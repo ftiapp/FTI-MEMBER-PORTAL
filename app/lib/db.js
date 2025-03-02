@@ -1,11 +1,22 @@
 import mysql from 'mysql2/promise';
 
-const connectionString = `mysql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
+// Log environment variables (mask sensitive data)
+console.log('Database connection attempt:', {
+  host: process.env.DB_HOST,
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  port: process.env.DB_PORT,
+  hasPassword: !!process.env.DB_PASSWORD
+});
 
-console.log('Database connection string:', connectionString.replace(process.env.DB_PASSWORD, '****'));
-
+// สร้าง connection string แบบไม่ใช้ SSL
 const pool = mysql.createPool({
-  uri: connectionString,
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT,
+  ssl: false,  // ปิดการใช้งาน SSL
   waitForConnections: true,
   connectionLimit: 10,
   maxIdle: 10,
@@ -22,7 +33,13 @@ pool.getConnection()
     connection.release();
   })
   .catch(err => {
-    console.error('Error connecting to the database:', err);
+    console.error('Error connecting to the database:', {
+      message: err.message,
+      code: err.code,
+      errno: err.errno,
+      sqlState: err.sqlState,
+      sqlMessage: err.sqlMessage
+    });
   });
 
 // Helper function สำหรับ execute queries
@@ -39,6 +56,9 @@ export async function query(sql, params) {
     console.error('Query error:', {
       message: error.message,
       code: error.code,
+      errno: error.errno,
+      sqlState: error.sqlState,
+      sqlMessage: error.sqlMessage,
       sql: sql,
       params: params
     });

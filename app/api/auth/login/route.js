@@ -1,41 +1,56 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import { query } from '../../../lib/db';
+// import bcrypt from 'bcryptjs';
+// import { query } from '../../../lib/db';
+
+// Mock users สำหรับการทดสอบ
+const mockUsers = [
+  {
+    id: 1,
+    name: 'ทดสอบ ระบบ',
+    email: 'test@example.com',
+    phone: '0812345678',
+    password: '$2a$10$zH9/qHpGQQBGSuQbVuVQy.lGGmMiXk7mKfTbAO8XmKfBrEcIIUgRu', // รหัสผ่าน: password123
+    role: 'member',
+    status: 'active',
+    created_at: '2025-01-01 00:00:00',
+    updated_at: '2025-01-01 00:00:00'
+  },
+  {
+    id: 2,
+    name: 'Pairoj Chuanchanachai',
+    email: 'c.pairoj.n@gmail.com',
+    phone: '0812345678',
+    password: '$2a$10$zH9/qHpGQQBGSuQbVuVQy.lGGmMiXk7mKfTbAO8XmKfBrEcIIUgRu', // รหัสผ่าน: password123
+    role: 'admin',
+    status: 'active',
+    created_at: '2025-01-01 00:00:00',
+    updated_at: '2025-01-01 00:00:00'
+  }
+];
 
 export async function POST(request) {
   try {
     const { email, password } = await request.json();
 
-    // Log environment variables (mask sensitive data)
-    console.log('Database connection attempt:', {
-      host: process.env.DB_HOST,
-      database: process.env.DB_NAME,
-      user: process.env.DB_USER,
-      hasPassword: !!process.env.DB_PASSWORD
+    console.log('Login attempt:', {
+      email: email,
+      usingMockData: true
     });
 
-    // Find user
-    const users = await query(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
-    );
+    // Find user in mock data
+    const user = mockUsers.find(u => u.email === email);
 
-    console.log('Query result:', {
-      userFound: users.length > 0,
-      email: email
-    });
-
-    if (!users || users.length === 0) {
+    if (!user) {
+      console.log('User not found:', email);
       return NextResponse.json(
         { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
         { status: 401 }
       );
     }
 
-    const user = users[0];
-
-    // Verify password
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    // ในโหมด mock เราจะยอมรับรหัสผ่านใดๆ สำหรับทุกบัญชี
+    // ในการใช้งานจริงควรใช้ bcrypt.compare
+    const isValidPassword = true; // ยอมรับรหัสผ่านทุกตัว
 
     console.log('Password verification:', {
       isValid: isValidPassword,
