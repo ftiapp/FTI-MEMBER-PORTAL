@@ -28,15 +28,20 @@ export default function Navbar() {
     <nav className="bg-white shadow-md">
       <div className="container-custom">
         <div className="flex justify-between items-center py-4">
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0">
+          {/* Logo and Organization Name */}
+          <Link href="/" className="flex-shrink-0 flex items-center">
             <Image
               src="/images/FTI-MasterLogo_RGB_forLightBG.png"
               alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-              width={150}
-              height={60}
+              width={90}
+              height={45}
               priority
+              className="mr-3"
             />
+            <div className="flex flex-col">
+              <span className="text-blue-900 font-semibold text-lg">สภาอุตสาหกรรมแห่งประเทศไทย</span>
+              <span className="text-gray-600 text-sm">The Federation of Thai Industries</span>
+            </div>
           </Link>
 
           {/* Desktop Menu */}

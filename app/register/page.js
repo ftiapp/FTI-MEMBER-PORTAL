@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function Register() {
   const router = useRouter();
@@ -22,6 +23,8 @@ export default function Register() {
 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const { user, isAuthenticated } = useAuth();
 
@@ -36,10 +39,21 @@ export default function Register() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // ถ้าเป็นช่องเบอร์โทรศัพท์ ตรวจสอบว่าเป็นตัวเลขเท่านั้น
+    if (name === 'phone') {
+      // อนุญาตเฉพาะตัวเลขเท่านั้น
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: numericValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
     setError('');
   };
 
@@ -106,6 +120,16 @@ export default function Register() {
     }
   };
 
+  // สลับการแสดงรหัสผ่าน
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // สลับการแสดงยืนยันรหัสผ่าน
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
+  };
+
   if (!mounted) {
     return null;
   }
@@ -119,7 +143,7 @@ export default function Register() {
         <div className="container-custom">
           <div className="py-16 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              สมัครสมาชิกกกกกก
+              สมัครสมาชิก
             </h1>
             <p className="text-lg md:text-xl text-blue-100">
               เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
@@ -143,15 +167,15 @@ export default function Register() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ชื่อ
+                      ชื่อ <span className="text-xs text-gray-500">(ไม่ต้องใส่คำนำหน้า)</span>
                     </label>
                     <input
                       type="text"
                       name="firstName"
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="ชื่อ"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                      placeholder="ชื่อ (ไม่ต้องใส่คำนำหน้า)"
                       autoComplete="given-name"
                     />
                   </div>
@@ -164,7 +188,7 @@ export default function Register() {
                       name="lastName"
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       placeholder="นามสกุล"
                       autoComplete="family-name"
                     />
@@ -180,7 +204,7 @@ export default function Register() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     placeholder="email@example.com"
                     autoComplete="email"
                   />
@@ -195,9 +219,11 @@ export default function Register() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                     placeholder="0812345678"
                     autoComplete="tel"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
                   />
                 </div>
 
@@ -205,30 +231,56 @@ export default function Register() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     รหัสผ่าน
                   </label>
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 text-gray-900"
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={togglePasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     ยืนยันรหัสผ่าน
                   </label>
-                  <input
-                    type="password"
-                    name="confirmPassword"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="••••••••"
-                    autoComplete="new-password"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 text-gray-900"
+                      placeholder="••••••••"
+                      autoComplete="new-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={toggleConfirmPasswordVisibility}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -236,7 +288,7 @@ export default function Register() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className={`w-full px-8 py-3 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 ${
+                  className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 ${
                     isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
                   }`}
                 >
@@ -245,7 +297,7 @@ export default function Register() {
                 
                 <Link 
                   href="/"
-                  className="block w-full text-center px-8 py-3 border-2 border-blue-900 text-blue-900 rounded-full font-semibold hover:bg-blue-50 transition-all duration-300"
+                  className="block w-full text-center px-8 py-3 border-2 border-blue-700 text-blue-700 rounded-full font-semibold hover:bg-blue-50 transition-all duration-300"
                 >
                   กลับหน้าหลัก
                 </Link>

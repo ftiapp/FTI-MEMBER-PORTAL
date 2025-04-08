@@ -13,9 +13,9 @@ export async function POST(request) {
     }
 
     // Validate password
-    if (password.length < 8) {
+    if (password.length < 6) {
       return NextResponse.json(
-        { error: 'รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร' },
+        { error: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร' },
         { status: 400 }
       );
     }

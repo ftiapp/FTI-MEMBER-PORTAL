@@ -18,7 +18,7 @@ export function generateToken() {
 export async function createVerificationToken(userId) {
   const token = generateToken();
   const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + 24); // Token expires in 24 hours
+  expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
   
   // Store token in database
   await query(
@@ -37,7 +37,7 @@ export async function createVerificationToken(userId) {
 export async function createPasswordResetToken(userId) {
   const token = generateToken();
   const expiresAt = new Date();
-  expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
+  expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
   
   // Store token in database
   await query(

@@ -9,14 +9,36 @@ console.log('Database connection attempt:', {
   hasPassword: !!process.env.DB_PASSWORD
 });
 
-// สร้าง connection string แบบไม่ใช้ SSL
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
-  ssl: false,  // ปิดการใช้งาน SSL
+// ตรวจสอบสภาพแวดล้อม (development หรือ production)
+const isProd = process.env.NODE_ENV === 'production';
+
+// กำหนดค่า connection ตามสภาพแวดล้อม
+let dbConfig;
+if (isProd) {
+  // ค่าสำหรับ production environment (Kubernetes)
+  dbConfig = {
+    host: process.env.DB_HOST || 'ftimemberportal-rofxa-mysql.ftimemberportal-rofxa.svc.cluster.local',
+    user: process.env.DB_USER || 'ermine',
+    password: process.env.DB_PASSWORD || 'qZ5[oG2:wK5*zC2[',
+    database: process.env.DB_NAME || 'ftimemberportal',
+    port: process.env.DB_PORT || '3306',
+    ssl: false
+  };
+} else {
+  // ค่าสำหรับ development environment
+  dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT,
+    ssl: false
+  };
+}
+
+// เพิ่ม connection options
+dbConfig = {
+  ...dbConfig,
   waitForConnections: true,
   connectionLimit: 10,
   maxIdle: 10,
@@ -24,7 +46,10 @@ const pool = mysql.createPool({
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0
-});
+};
+
+// สร้าง connection pool
+const pool = mysql.createPool(dbConfig);
 
 // Test connection on startup
 pool.getConnection()

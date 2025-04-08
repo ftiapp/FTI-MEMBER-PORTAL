@@ -46,9 +46,9 @@ export default function ResetPassword() {
       return;
     }
     
-    if (formData.password.length < 8) {
+    if (formData.password.length < 6) {
       setStatus('error');
-      setMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+      setMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
       return;
     }
     
@@ -170,6 +170,8 @@ export default function ResetPassword() {
                     </div>
                   )}
 
+
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       รหัสผ่านใหม่
@@ -179,12 +181,12 @@ export default function ResetPassword() {
                       name="password"
                       value={formData.password}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       placeholder="••••••••"
                       disabled={status === 'submitting'}
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร
+                      รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร
                     </p>
                   </div>
 
@@ -197,7 +199,7 @@ export default function ResetPassword() {
                       name="confirmPassword"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       placeholder="••••••••"
                       disabled={status === 'submitting'}
                     />

@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 
 export default function Login() {
   const router = useRouter();
@@ -17,6 +18,22 @@ export default function Login() {
 
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberPassword, setRememberPassword] = useState(false);
+
+  useEffect(() => {
+    // เช็คว่ามีการบันทึกข้อมูลไว้หรือไม่
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    
+    if (savedEmail && savedPassword) {
+      setFormData({
+        email: savedEmail,
+        password: savedPassword
+      });
+      setRememberPassword(true);
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -27,6 +44,10 @@ export default function Login() {
     setError('');
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
@@ -34,8 +55,21 @@ export default function Login() {
       return;
     }
 
+    // ป้องกันการกดปุ่มซ้ำ
+    if (isSubmitting) return;
+
     setIsSubmitting(true);
     try {
+      // บันทึกข้อมูลลงใน localStorage ถ้าผู้ใช้เลือก "จดจำรหัสผ่าน"
+      if (rememberPassword) {
+        localStorage.setItem('rememberedEmail', formData.email);
+        localStorage.setItem('rememberedPassword', formData.password);
+      } else {
+        // ลบข้อมูลที่บันทึกไว้ (ถ้ามี) หากผู้ใช้ไม่ได้เลือก "จดจำรหัสผ่าน"
+        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem('rememberedPassword');
+      }
+
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -65,20 +99,7 @@ export default function Login() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Header with Logo */}
-      <header className="bg-white shadow-sm">
-        <div className="container-custom py-4">
-          <Link href="/" className="flex-shrink-0">
-            <Image
-              src="/images/FTI-MasterLogo_RGB_forLightBG.png"
-              alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-              width={150}
-              height={60}
-              priority
-            />
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="container-custom py-12">
         <div className="flex flex-col md:flex-row gap-8">
@@ -86,7 +107,7 @@ export default function Login() {
           <div className="w-full md:w-1/2 lg:w-2/5">
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="bg-blue-700 p-6 text-white">
-                <h2 className="text-2xl font-bold">ยินดีต้อนรับ, Pairoj Chuanchanachai</h2>
+                <h2 className="text-2xl font-bold">ยินดีต้อนรับ</h2>
                 <p className="text-blue-100 mt-1">จัดการข้อมูลสมาชิกและบริการต่างๆ ของท่าน</p>
               </div>
               
@@ -107,7 +128,7 @@ export default function Login() {
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                       placeholder="email@example.com"
                       autoComplete="email"
                     />
@@ -117,15 +138,38 @@ export default function Login() {
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       รหัสผ่าน
                     </label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="••••••••"
-                      autoComplete="current-password"
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent pr-10 text-gray-900"
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                      />
+                      <button
+                        type="button"
+                        onClick={togglePasswordVisibility}
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
+                      >
+                        {showPassword ? (
+                          <span className="flex items-center justify-center h-5 w-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                              <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                          </span>
+                        ) : (
+                          <span className="flex items-center justify-center h-5 w-5">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                              <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                          </span>
+                        )}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex items-center justify-between">

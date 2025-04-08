@@ -107,7 +107,7 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
         </div>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
           <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-          <p>ลิงก์นี้จะหมดอายุใน 1 ชั่วโมง</p>
+          <p>ลิงก์นี้จะหมดอายุใน 15 นาที</p>
           <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
         </div>
       </div>
@@ -123,7 +123,7 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
       
       หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้
       
-      ลิงก์นี้จะหมดอายุใน 1 ชั่วโมง
+      ลิงก์นี้จะหมดอายุใน 15 นาที
       
       &copy; 2025 FTI Portal. สงวนลิขสิทธิ์.
     `);

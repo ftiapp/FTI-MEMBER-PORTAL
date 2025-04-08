@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import UpdateMember from './components/UpdateMember';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -98,50 +99,7 @@ export default function Dashboard() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800">อัพเดตข้อมูลสมาชิก</h2>
             <div className="bg-white rounded-xl shadow-md p-6">
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">ชื่อ</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      defaultValue="Pairoj"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">นามสกุล</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      defaultValue="Chuanchanachai"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
-                    <input
-                      type="email"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      defaultValue="c.pairoj.n@gmail.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">เบอร์โทรศัพท์</label>
-                    <input
-                      type="tel"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      defaultValue="0830755301"
-                    />
-                  </div>
-                </div>
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="px-6 py-3 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300"
-                  >
-                    บันทึกข้อมูล
-                  </button>
-                </div>
-              </form>
+              <UpdateMember />
             </div>
           </div>
         );
@@ -572,7 +530,7 @@ export default function Dashboard() {
           <div className="w-full md:w-1/4">
             <div className="bg-white rounded-xl shadow-md overflow-hidden">
               <div className="bg-blue-700 p-6 text-white">
-                <h2 className="text-xl font-bold">ยินดีต้อนรับ, Pairoj</h2>
+                <h2 className="text-xl font-bold">ยินดีต้อนรับ</h2>
                 <p className="text-blue-100 mt-1">จัดการข้อมูลสมาชิกและบริการต่างๆ</p>
               </div>
               <nav className="p-4">
