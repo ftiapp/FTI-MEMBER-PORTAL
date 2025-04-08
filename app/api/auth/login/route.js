@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-// import bcrypt from 'bcryptjs';
-// import { query } from '../../../lib/db';
+import bcrypt from 'bcryptjs';
+import { query } from '@/app/lib/db';
 
 // Mock users สำหรับการทดสอบ
 const mockUsers = [
@@ -34,13 +34,16 @@ export async function POST(request) {
 
     console.log('Login attempt:', {
       email: email,
-      usingMockData: true
+      usingMockData: false
     });
 
-    // Find user in mock data
-    const user = mockUsers.find(u => u.email === email);
+    // Find user in database
+    const users = await query(
+      'SELECT * FROM users WHERE email = ?',
+      [email]
+    );
 
-    if (!user) {
+    if (users.length === 0) {
       console.log('User not found:', email);
       return NextResponse.json(
         { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
@@ -48,9 +51,10 @@ export async function POST(request) {
       );
     }
 
-    // ในโหมด mock เราจะยอมรับรหัสผ่านใดๆ สำหรับทุกบัญชี
-    // ในการใช้งานจริงควรใช้ bcrypt.compare
-    const isValidPassword = true; // ยอมรับรหัสผ่านทุกตัว
+    const user = users[0];
+
+    // Verify password
+    const isValidPassword = await bcrypt.compare(password, user.password);
 
     console.log('Password verification:', {
       isValid: isValidPassword,
@@ -61,6 +65,17 @@ export async function POST(request) {
       return NextResponse.json(
         { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
         { status: 401 }
+      );
+    }
+    
+    // Check if email is verified
+    if (!user.email_verified) {
+      return NextResponse.json(
+        { 
+          error: 'กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ',
+          requiresVerification: true 
+        },
+        { status: 403 }
       );
     }
 

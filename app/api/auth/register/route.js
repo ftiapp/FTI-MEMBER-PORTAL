@@ -1,6 +1,8 @@
 import { query } from '@/app/lib/db';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import { createVerificationToken } from '@/app/lib/token';
+import { sendVerificationEmail } from '@/app/lib/mailersend';
 
 export async function POST(request) {
   try {
@@ -22,15 +24,24 @@ export async function POST(request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user with email_verified set to false
     const result = await query(
-      'INSERT INTO users (name, email, phone, password) VALUES (?, ?, ?, ?)',
-      [name, email, phone, hashedPassword]
+      'INSERT INTO users (name, email, phone, password, email_verified) VALUES (?, ?, ?, ?, ?)',
+      [name, email, phone, hashedPassword, 0]
     );
+    
+    const userId = result.insertId;
+    
+    // Generate verification token
+    const verificationToken = await createVerificationToken(userId);
+    
+    // Send verification email
+    await sendVerificationEmail(email, name, verificationToken);
 
     return NextResponse.json({
-      message: 'ลงทะเบียนสำเร็จ',
-      userId: result.insertId
+      message: 'ลงทะเบียนสำเร็จ กรุณาตรวจสอบอีเมลของคุณเพื่อยืนยันบัญชี',
+      userId: userId,
+      requiresVerification: true
     });
 
   } catch (error) {

@@ -12,7 +12,8 @@ export default function Register() {
   const { login } = useAuth();
   const [mounted, setMounted] = useState(false);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     password: '',
@@ -22,9 +23,16 @@ export default function Register() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const { user, isAuthenticated } = useAuth();
+
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // ถ้าผู้ใช้ล็อกอินแล้ว ให้ redirect ไปที่หน้า dashboard
+    if (isAuthenticated && user) {
+      router.push('/dashboard');
+    }
+  }, [isAuthenticated, user, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,7 +44,7 @@ export default function Register() {
   };
 
   const validateForm = () => {
-    if (!formData.name || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.password || !formData.confirmPassword) {
       setError('กรุณากรอกข้อมูลให้ครบทุกช่อง');
       return false;
     }
@@ -65,13 +73,18 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
+      // รวมชื่อและนามสกุล
+      const fullName = `${formData.firstName} ${formData.lastName}`;
+      
       const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name: formData.name,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          name: fullName,
           email: formData.email,
           phone: formData.phone,
           password: formData.password,
@@ -84,29 +97,8 @@ export default function Register() {
         throw new Error(data.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
       }
 
-      // Login after successful registration
-      const loginResponse = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-        }),
-      });
-
-      const loginData = await loginResponse.json();
-
-      if (!loginResponse.ok) {
-        throw new Error(loginData.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
-      }
-
-      // Login user
-      login(loginData.user);
-      
-      // Redirect to dashboard
-      router.push('/dashboard');
+      // เมื่อลงทะเบียนสำเร็จ ให้นำผู้ใช้ไปยังหน้าแจ้งให้ตรวจสอบอีเมล
+      router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -148,19 +140,35 @@ export default function Register() {
               )}
 
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ชื่อ-นามสกุล
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="ชื่อ-นามสกุล"
-                    autoComplete="name"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ชื่อ
+                    </label>
+                    <input
+                      type="text"
+                      name="firstName"
+                      value={formData.firstName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="ชื่อ"
+                      autoComplete="given-name"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      นามสกุล
+                    </label>
+                    <input
+                      type="text"
+                      name="lastName"
+                      value={formData.lastName}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="นามสกุล"
+                      autoComplete="family-name"
+                    />
+                  </div>
                 </div>
 
                 <div>

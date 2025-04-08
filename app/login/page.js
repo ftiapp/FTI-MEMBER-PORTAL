@@ -141,7 +141,7 @@ export default function Login() {
                       </label>
                     </div>
                     <div className="text-sm">
-                      <Link href="#" className="font-medium text-blue-700 hover:text-blue-600">
+                      <Link href="/forgot-password" className="font-medium text-blue-700 hover:text-blue-600">
                         ลืมรหัสผ่าน?
                       </Link>
                     </div>
