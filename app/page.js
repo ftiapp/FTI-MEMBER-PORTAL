@@ -41,7 +41,7 @@ export default function Home() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">บริการของเรา</h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">บริการของเรา</h2>
             <p className="text-lg text-gray-600">ครบครันด้วยบริการที่ตอบโจทย์ผู้ประกอบการอุตสาหกรรมไทย</p>
           </div>
 
@@ -49,26 +49,38 @@ export default function Home() {
             {featuredServices.map((service) => (
               <div
                 key={service.id}
-                className={`rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden bg-gradient-to-br ${service.color} text-white`}
+                className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group hover:transform hover:scale-105"
               >
-                <div className="p-6">
-                  <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center mb-4">
-                    <svg
-                      className="w-6 h-6"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="1.5"
-                        d={service.icon}
-                      />
-                    </svg>
+                <div className="flex flex-col h-full">
+                  <div className={`w-full h-16 ${service.color} flex items-center px-6`}>
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md">
+                      <svg
+                        className={`w-6 h-6 ${service.color.includes('blue') ? 'text-blue-500' : 
+                                    service.color.includes('green') ? 'text-green-500' : 
+                                    service.color.includes('purple') ? 'text-purple-500' : 
+                                    service.color.includes('yellow') ? 'text-yellow-500' : 
+                                    service.color.includes('red') ? 'text-red-500' : 
+                                    service.color.includes('indigo') ? 'text-indigo-500' : 
+                                    service.color.includes('pink') ? 'text-pink-500' : 
+                                    service.color.includes('teal') ? 'text-teal-500' : 
+                                    service.color.includes('orange') ? 'text-orange-500' : 'text-gray-500'}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="1.5"
+                          d={service.icon}
+                        />
+                      </svg>
+                    </div>
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                  <p className="text-white/80">{service.description}</p>
+                  <div className="p-6 flex-grow">
+                    <h3 className="text-xl font-semibold mb-3 text-gray-800">{service.title}</h3>
+                    <p className="text-gray-600">{service.description}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -77,7 +89,7 @@ export default function Home() {
           <div className="text-center mt-12">
             <Link
               href="/services"
-              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out"
+              className="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 transition duration-150 ease-in-out shadow-md hover:shadow-lg"
             >
               ดูบริการทั้งหมด
               <svg

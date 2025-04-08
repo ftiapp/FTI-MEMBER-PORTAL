@@ -127,7 +127,7 @@ export default function Register() {
         <div className="container-custom">
           <div className="py-16 text-center">
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              สมัครสมาชิก
+              สมัครสมาชิกกกกกก
             </h1>
             <p className="text-lg md:text-xl text-blue-100">
               เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
