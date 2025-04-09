@@ -8,6 +8,14 @@ import { useAuth } from '@/app/contexts/AuthContext';
 export default function MemberInfo() {
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showForm, setShowForm] = useState(true);
+  const [verificationStatus, setVerificationStatus] = useState({
+    isLoading: true,
+    submitted: false,
+    approved: false,
+    rejected: false,
+    rejectReason: null
+  });
   const [formData, setFormData] = useState({
     memberSearch: '', // Combined field for search
     memberNumber: '',
@@ -129,6 +137,42 @@ export default function MemberInfo() {
   useEffect(() => {
     console.log('Form data updated:', formData);
   }, [formData]);
+
+  // Fetch verification status when component mounts
+  useEffect(() => {
+    const fetchVerificationStatus = async () => {
+      if (!user || !user.id) return;
+      
+      try {
+        const response = await fetch(`/api/member/verification-status?userId=${user.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch verification status');
+        }
+        
+        const data = await response.json();
+        setVerificationStatus({
+          isLoading: false,
+          submitted: data.submitted,
+          approved: data.approved,
+          rejected: data.rejected,
+          rejectReason: data.rejectReason
+        });
+        
+        // Hide form if verification is already submitted and not rejected
+        if (data.submitted && !data.rejected) {
+          setShowForm(false);
+        }
+      } catch (error) {
+        console.error('Error fetching verification status:', error);
+        setVerificationStatus(prev => ({
+          ...prev,
+          isLoading: false
+        }));
+      }
+    };
+
+    fetchVerificationStatus();
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -276,6 +320,16 @@ export default function MemberInfo() {
       if (result.success) {
         toast.success('ส่งข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบและติดต่อกลับภายใน 1-2 วันทำการ');
         
+        // Update verification status and hide form
+        setVerificationStatus({
+          isLoading: false,
+          submitted: true,
+          approved: false,
+          rejected: false,
+          rejectReason: null
+        });
+        setShowForm(false);
+        
         // Reset form
         setFormData({
           memberSearch: '',
@@ -322,6 +376,68 @@ export default function MemberInfo() {
     }
   };
 
+  // Show loading state while fetching verification status
+  if (verificationStatus.isLoading) {
+    return (
+      <div>
+        <h2 className="text-xl font-semibold mb-4">ยืนยันตัวตนสมาชิกเดิม</h2>
+        <div className="bg-white rounded-xl shadow-md p-6 animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-3/4 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show success message if verification is submitted and pending
+  if (verificationStatus.submitted && !verificationStatus.approved && !verificationStatus.rejected) {
+    return (
+      <div>
+        <h2 className="text-xl font-semibold mb-4">ยืนยันตัวตนสมาชิกเดิม</h2>
+        <div className="bg-blue-50 rounded-xl shadow-md p-6 border border-blue-200">
+          <h3 className="text-lg font-medium text-blue-800">ท่านได้ทำการยืนยันตัวตนสมาชิกเดิมเสร็จสิ้นแล้ว</h3>
+          <p className="mt-2 text-sm text-blue-700">
+            กรุณารอ 1-2 วันทำการ ท่านจะได้รับการแจ้งเตือนผ่านอีเมลเมื่อการยืนยันตัวตนเสร็จสมบูรณ์
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show approved message if verification is approved
+  if (verificationStatus.approved) {
+    return (
+      <div>
+        <h2 className="text-xl font-semibold mb-4">ยืนยันตัวตนสมาชิกเดิม</h2>
+        <div className="bg-green-50 rounded-xl shadow-md p-6 border border-green-200">
+          <h3 className="text-lg font-medium text-green-800">การยืนยันตัวตนสมาชิกเดิมได้รับการอนุมัติแล้ว</h3>
+          <p className="mt-2 text-sm text-green-700">
+            ขอบคุณที่ทำการยืนยันตัวตน ท่านสามารถใช้งานระบบได้เต็มรูปแบบแล้ว
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show rejected message if verification is rejected
+  if (verificationStatus.rejected) {
+    return (
+      <div>
+        <h2 className="text-xl font-semibold mb-4">ยืนยันตัวตนสมาชิกเดิม</h2>
+        <div className="bg-red-50 rounded-xl shadow-md p-6 border border-red-200">
+          <h3 className="text-lg font-medium text-red-800">การยืนยันตัวตนสมาชิกเดิมถูกปฏิเสธ</h3>
+          <p className="mt-2 text-sm text-red-700">
+            เหตุผล: {verificationStatus.rejectReason || 'ไม่ระบุเหตุผล'}
+          </p>
+          <p className="mt-2 text-sm text-red-700">
+            กรุณาติดต่อเจ้าหน้าที่เพื่อขอข้อมูลเพิ่มเติม
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show form only if not submitted or if rejected (to allow resubmission)
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4">ยืนยันตัวตนสมาชิกเดิม</h2>

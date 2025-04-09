@@ -8,24 +8,74 @@ import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember';
-import MemberInfo from './components/MemberInfo';
+import MemberInfo from './components/MemberInfo_updated';
+import VerificationStatus from './components/VerificationStatus';
+import SubmittedMember from './components/SubmittedMember';
+import MemberDetail from './components/MemberDetail';
 
+/**
+ * Dashboard component
+ * 
+ * Main dashboard page for the member portal. Displays different tabs for various
+ * member functions including profile updates, document management, membership upgrades,
+ * and member verification.
+ */
 export default function Dashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('อัพเดตสมาชิก');
   const [membershipType, setMembershipType] = useState('ทั่วไป'); // Default membership type
-
+  const [verificationStatus, setVerificationStatus] = useState({
+    isLoading: true,
+    submitted: false,
+    approved: false,
+    rejected: false,
+    admin_comment: ''
+  });
+  
+  // Redirect to login if user is not authenticated
   useEffect(() => {
     if (!user) {
       router.push('/login');
     }
   }, [user, router]);
+  
+  // Fetch verification status when component mounts
+  useEffect(() => {
+    const fetchVerificationStatus = async () => {
+      if (!user || !user.id) return;
+      
+      try {
+        const response = await fetch(`/api/member/verification-status?userId=${user.id}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch verification status');
+        }
+        
+        const data = await response.json();
+        setVerificationStatus({
+          isLoading: false,
+          submitted: data.submitted,
+          approved: data.approved,
+          rejected: data.rejected,
+          admin_comment: data.admin_comment || ''
+        });
+      } catch (error) {
+        console.error('Error fetching verification status:', error);
+        setVerificationStatus(prev => ({
+          ...prev,
+          isLoading: false
+        }));
+      }
+    };
+
+    fetchVerificationStatus();
+  }, [user]);
 
   if (!user) {
     return null;
   }
 
+  // Dashboard menu items with icons
   const menuItems = [
     {
       name: 'อัพเดตสมาชิก',
@@ -93,6 +143,10 @@ export default function Dashboard() {
     },
   ];
 
+  /**
+   * Renders the content for the selected tab
+   * @returns {JSX.Element} The content for the active tab
+   */
   const renderTabContent = () => {
     switch (activeTab) {
       case 'อัพเดตสมาชิก':
@@ -354,10 +408,34 @@ export default function Dashboard() {
       case 'ยืนยันสมาชิกเดิม':
         return (
           <div className="space-y-6">
-            <MemberInfo />
+            <h2 className="text-2xl font-bold text-gray-800">ยืนยันตัวตนสมาชิกเดิม</h2>
+            <VerificationStatus />
+            {/* Show SubmittedMember component if verification has been submitted, otherwise show MemberInfo form */}
+            {verificationStatus.submitted && !verificationStatus.rejected ? (
+              <SubmittedMember />
+            ) : (
+              <MemberInfo />
+            )}
           </div>
         );
 
+      case 'ข้อมูลสมาชิก':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">ข้อมูลสมาชิก</h2>
+            <div className="bg-white rounded-xl shadow-md p-6">
+              {user && user.id ? (
+                <MemberDetail userId={user.id} />
+              ) : (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
+                  <p className="text-gray-600">กำลังโหลดข้อมูลสมาชิก...</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+        
       default:
         return (
           <div className="space-y-6">

@@ -8,17 +8,39 @@ export async function POST(request) {
   try {
     const { name, email, phone, password } = await request.json();
 
-    // Check if user already exists
+    // Check if user already exists and if email is verified
     const existingUser = await query(
-      'SELECT id FROM users WHERE email = ?',
+      'SELECT id, name, email_verified FROM users WHERE email = ?',
       [email]
     );
 
     if (existingUser.length > 0) {
-      return NextResponse.json(
-        { error: 'อีเมลนี้ถูกใช้งานแล้ว' },
-        { status: 400 }
-      );
+      // If email exists but is not verified, send a new verification token
+      if (existingUser[0].email_verified === 0) {
+        // Invalidate any existing tokens for this user
+        await query(
+          'UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND used = 0',
+          [existingUser[0].id]
+        );
+        
+        // Generate a new verification token
+        const verificationToken = await createVerificationToken(existingUser[0].id);
+        
+        // Send verification email
+        await sendVerificationEmail(email, existingUser[0].name, verificationToken);
+        
+        return NextResponse.json({
+          message: 'อีเมลนี้ได้ลงทะเบียนแล้วแต่ยังไม่ได้ยืนยัน เราได้ส่งอีเมลยืนยันใหม่ให้คุณแล้ว',
+          userId: existingUser[0].id,
+          requiresVerification: true
+        });
+      } else {
+        // If email is already verified, don't allow re-registration
+        return NextResponse.json(
+          { error: 'อีเมลนี้ถูกใช้งานแล้ว' },
+          { status: 400 }
+        );
+      }
     }
 
     // Hash password

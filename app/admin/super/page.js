@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
+/**
+ * Super Admin Dashboard Component
+ * 
+ * This component provides functionality for managing admin users including:
+ * - Viewing all admin accounts
+ * - Creating new admin accounts with specific permission levels
+ * - Activating/deactivating existing admin accounts
+ * 
+ * Only accessible to admin users with level 5 (SuperAdmin) permissions.
+ */
+
 export default function SuperAdminDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -17,10 +28,15 @@ export default function SuperAdminDashboard() {
     canUpdate: false
   });
 
+  // Fetch admin users when component mounts
   useEffect(() => {
     fetchAdmins();
   }, []);
 
+  /**
+   * Fetches the list of all admin users from the API
+   * Handles authentication, loading states, and error handling
+   */
   const fetchAdmins = async () => {
     try {
       setIsLoading(true);
@@ -50,6 +66,10 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  /**
+   * Handles form input changes for creating a new admin
+   * @param {Event} e - The input change event
+   */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -58,6 +78,11 @@ export default function SuperAdminDashboard() {
     }));
   };
 
+  /**
+   * Handles the submission of the create admin form
+   * Validates inputs and sends request to create a new admin user
+   * @param {Event} e - The form submission event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -107,6 +132,11 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  /**
+   * Toggles the active status of an admin user
+   * @param {number} adminId - The ID of the admin to toggle status for
+   * @param {boolean} isActive - The current active status of the admin
+   */
   const handleToggleActive = async (adminId, isActive) => {
     try {
       const response = await fetch('/api/admin/toggle-admin-status', {
@@ -134,10 +164,16 @@ export default function SuperAdminDashboard() {
     }
   };
 
+  /**
+   * Opens the modal for creating a new admin user
+   */
   const openCreateModal = () => {
     setShowCreateModal(true);
   };
 
+  /**
+   * Closes the create admin modal and resets the form data
+   */
   const closeCreateModal = () => {
     setShowCreateModal(false);
     setFormData({

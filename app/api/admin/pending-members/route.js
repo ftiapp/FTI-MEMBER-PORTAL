@@ -2,6 +2,14 @@ import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
 
+/**
+ * API endpoint for fetching pending member verification requests
+ * 
+ * This endpoint retrieves members who have submitted verification information
+ * but have not yet been approved or rejected by an admin. It includes pagination
+ * and joins data from multiple tables to provide complete information.
+ */
+
 export async function GET(request) {
   try {
     // Verify admin session
@@ -20,7 +28,7 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get('limit') || '10');
     const offset = (page - 1) * limit;
     
-    // Get pending members
+    // Get pending members with user information
     const members = await query(
       `SELECT 
         c.id, 
@@ -39,7 +47,10 @@ export async function GET(request) {
         d.document_type,
         d.file_path,
         d.status as document_status,
-        u.email
+        u.email,
+        u.name as user_name,
+        u.firstname,
+        u.lastname
       FROM 
         companies_Member c
       JOIN 
@@ -61,6 +72,7 @@ export async function GET(request) {
     const total = countResult[0].total;
     const totalPages = Math.ceil(total / limit);
     
+
     return NextResponse.json({
       success: true,
       data: members,

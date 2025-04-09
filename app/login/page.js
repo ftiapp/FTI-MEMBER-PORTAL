@@ -211,6 +211,15 @@ export default function Login() {
                         สมัครสมาชิก
                       </Link>
                     </p>
+                    <p className="text-gray-600 mt-2">
+                      ไม่ได้รับอีเมลยืนยัน หรืออีเมลยืนยันหมดอายุ?{' '}
+                      <Link
+                        href="/resend-verification"
+                        className="text-blue-700 hover:text-blue-600 font-semibold"
+                      >
+                        ส่งอีเมลยืนยันใหม่
+                      </Link>
+                    </p>
                   </div>
                 </form>
               </div>

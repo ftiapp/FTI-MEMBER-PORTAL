@@ -62,14 +62,14 @@ export async function POST(request) {
     
     // Log the activity
     await query(
-      `INSERT INTO incentive_activity_logs 
-       (agent_id, action, module, description, ip_address, user_agent) 
-       VALUES (?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO Member_portal_User_log 
+       (user_id, action, details, ip_address, user_agent, created_at) 
+       VALUES (?, ?, ?, ?, ?, NOW())`,
       [
         userId,
-        'MEMBER_INFO_SUBMITTED',
         'member_verification',
         JSON.stringify({
+          action: 'MEMBER_INFO_SUBMITTED',
           companyName,
           documentType: documentType || 'other',
           timestamp: new Date().toISOString()

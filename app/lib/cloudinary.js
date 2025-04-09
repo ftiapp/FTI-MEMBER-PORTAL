@@ -18,9 +18,19 @@ cloudinary.config({
  */
 export async function uploadToCloudinary(fileBuffer, fileName, folder = process.env.CLOUDINARY_FOLDER) {
   try {
+    // Determine the correct MIME type based on file extension
+    const fileExt = fileName.split('.').pop().toLowerCase();
+    let mimeType = 'application/octet-stream';
+    
+    // Set appropriate MIME type for common document types
+    if (fileExt === 'pdf') mimeType = 'application/pdf';
+    else if (['doc', 'docx'].includes(fileExt)) mimeType = 'application/msword';
+    else if (['xls', 'xlsx'].includes(fileExt)) mimeType = 'application/vnd.ms-excel';
+    else if (fileExt === 'txt') mimeType = 'text/plain';
+    
     // Convert buffer to base64
     const base64Data = Buffer.from(fileBuffer).toString('base64');
-    const dataURI = `data:application/octet-stream;base64,${base64Data}`;
+    const dataURI = `data:${mimeType};base64,${base64Data}`;
     
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
@@ -29,8 +39,9 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
         {
           folder,
           resource_type: 'auto',
-          public_id: `${Date.now()}_${fileName.replace(/\s+/g, '_')}`,
-          overwrite: true
+          public_id: `${Date.now()}_${fileName.split('.')[0].replace(/\s+/g, '_')}`,
+          overwrite: true,
+          format: fileName.split('.').pop().toLowerCase() // Explicitly set the format based on file extension
         },
         (error, result) => {
           if (error) {

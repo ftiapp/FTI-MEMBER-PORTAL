@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { getAdminFromSession, logAdminAction } from '@/app/lib/adminAuth';
+import { sendApprovalEmail, sendRejectionEmail } from '@/app/lib/mailersend';
 
 export async function POST(request) {
   try {
@@ -14,7 +15,7 @@ export async function POST(request) {
       );
     }
     
-    const { memberId, documentId, action, reason } = await request.json();
+    const { memberId, documentId, action, reason, comment } = await request.json();
     
     if (!memberId || !documentId || !action) {
       return NextResponse.json(
@@ -33,27 +34,34 @@ export async function POST(request) {
     
     // Update company member status
     await query(
-      `UPDATE companies_Member SET Admin_Submit = ? WHERE id = ?`,
-      [action === 'approve' ? 1 : 2, memberId]
+      `UPDATE companies_Member SET Admin_Submit = ?, reject_reason = ?, admin_comment = ? WHERE id = ?`,
+      [action === 'approve' ? 1 : 2, action === 'reject' ? reason : null, comment || null, memberId]
     );
     
     // Update document status
     await query(
       `UPDATE documents_Member SET 
         status = ?, 
-        Admin_Submit = ? 
+        Admin_Submit = ?,
+        reject_reason = ? 
       WHERE id = ?`,
-      [action === 'approve' ? 'approved' : 'rejected', action === 'approve' ? 1 : 2, documentId]
+      [action === 'approve' ? 'approved' : 'rejected', action === 'approve' ? 1 : 2, action === 'reject' ? reason : null, documentId]
     );
     
-    // Get user ID for logging
+    // Get user info for logging and email notification
     const companyResult = await query(
-      `SELECT user_id FROM companies_Member WHERE id = ?`,
+      `SELECT c.user_id, c.company_name, u.email, u.firstname, u.lastname, u.name 
+       FROM companies_Member c
+       JOIN users u ON c.user_id = u.id
+       WHERE c.id = ?`,
       [memberId]
     );
     
     if (companyResult.length > 0) {
-      const userId = companyResult[0].user_id;
+      const { user_id: userId, company_name: companyName, email, firstname, lastname, name } = companyResult[0];
+      
+      // Determine the user's display name
+      const displayName = name || (firstname && lastname ? `${firstname} ${lastname}` : companyName || 'สมาชิก');
       
       // Log admin action
       await logAdminAction(
@@ -81,6 +89,22 @@ export async function POST(request) {
           request.headers.get('user-agent') || ''
         ]
       );
+      
+      // Send email notification
+      if (email) {
+        try {
+          if (action === 'approve') {
+            await sendApprovalEmail(email, displayName, comment);
+          } else {
+            await sendRejectionEmail(email, displayName, reason || 'ไม่ระบุเหตุผล');
+          }
+          
+          console.log(`Email notification sent to ${email}`);
+        } catch (emailError) {
+          console.error('Error sending email notification:', emailError);
+          // Continue with the process even if email fails
+        }
+      }
     }
     
     return NextResponse.json({

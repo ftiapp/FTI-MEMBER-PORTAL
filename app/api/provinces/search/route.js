@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
+import { mssqlQuery } from '@/app/lib/mssql';
 
 export async function GET(request) {
   try {
@@ -13,24 +13,16 @@ export async function GET(request) {
       });
     }
     
-    // Search for provinces that match the term using the MB_PROVINCE table
-    // Ensure no duplicates by using DISTINCT
-    const provinces = await query(
-      `SELECT DISTINCT 
+    // Query จากฐานข้อมูล MSSQL แบบเรียบง่าย ไม่ซ้ำกัน
+    const provinces = await mssqlQuery(
+      `SELECT DISTINCT TOP 10
          PROVINCE_CODE as id, 
          PROVINCE_NAME_TH as name_th, 
-         PROVINCE_NAME_EN as name_en 
-       FROM MB_PROVINCE 
-       WHERE INACTIVE = 0 AND (PROVINCE_NAME_TH LIKE ? OR PROVINCE_NAME_EN LIKE ?) 
-       ORDER BY 
-         CASE 
-           WHEN PROVINCE_NAME_TH LIKE ? THEN 1
-           WHEN PROVINCE_NAME_EN LIKE ? THEN 2
-           ELSE 3
-         END,
-         PROVINCE_NAME_TH
-       LIMIT 10`,
-      [`%${term}%`, `%${term}%`, `${term}%`, `${term}%`]
+         PROVINCE_NAME_TH as name_en 
+       FROM [FTI].[dbo].[MB_PROVINCE] 
+       WHERE PROVINCE_NAME_TH LIKE ? AND PROVINCE_CODE NOT LIKE '%-%' 
+       ORDER BY PROVINCE_NAME_TH`,
+      [`%${term}%`]
     );
     
     return NextResponse.json({

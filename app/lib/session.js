@@ -1,0 +1,54 @@
+'use server';
+
+import { cookies } from 'next/headers';
+import { jwtVerify } from 'jose';
+import { query } from './db';
+
+// สร้าง secret key สำหรับ JWT
+const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-user-auth');
+
+// ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก session
+export async function getSession() {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get('user_token');
+    
+    if (!token) {
+      return null;
+    }
+    
+    // ตรวจสอบ token
+    const { payload } = await jwtVerify(token.value, secretKey);
+    
+    if (!payload || !payload.id) {
+      return null;
+    }
+    
+    // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
+    const users = await query(
+      'SELECT id, email, name FROM users WHERE id = ? LIMIT 1',
+      [payload.id]
+    );
+    
+    if (users.length === 0) {
+      return null;
+    }
+    
+    return { user: users[0] };
+  } catch (error) {
+    console.error('Error getting user session:', error);
+    return null;
+  }
+}
+
+// ฟังก์ชันสำหรับสร้าง session
+export async function createSession(user) {
+  // ในอนาคตอาจจะเพิ่มการสร้าง JWT token และบันทึกลงใน cookie
+  return user;
+}
+
+// ฟังก์ชันสำหรับลบ session
+export async function destroySession() {
+  // ในอนาคตอาจจะเพิ่มการลบ cookie
+  return true;
+}

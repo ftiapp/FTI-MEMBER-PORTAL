@@ -4,6 +4,17 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
+/**
+ * Admin Login Component
+ * 
+ * This component provides the login interface for admin users.
+ * It authenticates users against the admin_users table and redirects
+ * to the appropriate dashboard based on the admin's permission level.
+ * 
+ * - Regular admins (levels 1-4) are redirected to /admin/dashboard
+ * - SuperAdmins (level 5) are redirected to /admin/super
+ */
+
 export default function AdminLogin() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -12,6 +23,10 @@ export default function AdminLogin() {
     password: ''
   });
 
+  /**
+   * Handles form input changes
+   * @param {Event} e - The input change event
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -20,6 +35,11 @@ export default function AdminLogin() {
     }));
   };
 
+  /**
+   * Handles the login form submission
+   * Validates inputs, authenticates the user, and redirects to the appropriate dashboard
+   * @param {Event} e - The form submission event
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -62,21 +82,21 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <h2 className="mt-6 text-center text-3xl font-extrabold text-[#1e3a8a]">
           เข้าสู่ระบบผู้ดูแล
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
+        <p className="mt-2 text-center text-sm text-[#1e3a8a] text-opacity-70">
           สำหรับผู้ดูแลระบบเท่านั้น
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-4 shadow-md sm:rounded-lg sm:px-10 border border-[#1e3a8a] border-opacity-20">
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="username" className="block text-sm font-medium text-[#1e3a8a]">
                 ชื่อผู้ใช้
               </label>
               <div className="mt-1">
@@ -88,13 +108,13 @@ export default function AdminLogin() {
                   required
                   value={formData.username}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-[#1e3a8a] border-opacity-20 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1e3a8a] focus:border-[#1e3a8a] sm:text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-[#1e3a8a]">
                 รหัสผ่าน
               </label>
               <div className="mt-1">
@@ -106,7 +126,7 @@ export default function AdminLogin() {
                   required
                   value={formData.password}
                   onChange={handleChange}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="appearance-none block w-full px-3 py-2 border border-[#1e3a8a] border-opacity-20 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-[#1e3a8a] focus:border-[#1e3a8a] sm:text-sm"
                 />
               </div>
             </div>
@@ -115,7 +135,7 @@ export default function AdminLogin() {
               <button
                 type="submit"
                 disabled={isLoading}
-                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#1e3a8a] hover:bg-[#1e3a8a] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a8a] ${
                   isLoading ? 'opacity-70 cursor-not-allowed' : ''
                 }`}
               >
