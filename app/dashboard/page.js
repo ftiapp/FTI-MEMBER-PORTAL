@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember';
+import MemberInfo from './components/MemberInfo';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -352,131 +353,8 @@ export default function Dashboard() {
 
       case 'ยืนยันสมาชิกเดิม':
         return (
-          <div>
-            <h2 className="text-xl font-semibold mb-4">ยืนยันตัวตนสมาชิกเดิม</h2>
-            
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <div className="flex items-center">
-                <div className="bg-yellow-100 rounded-full p-2 mr-3">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">หากคุณเป็นสมาชิกเดิมของสภาอุตสาหกรรมแห่งประเทศไทย</p>
-                  <p className="text-sm text-gray-600">กรุณากรอกข้อมูลเพื่อยืนยันตัวตนและเชื่อมโยงบัญชีของคุณ</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white shadow-md rounded-lg p-6">
-              <form className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      เลขที่สมาชิก
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="เช่น M12345"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ประเภทสมาชิก
-                    </label>
-                    <select className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                      <option value="">-- เลือกประเภทสมาชิก --</option>
-                      <option value="สส">สมาชิกสามัญ (สส)</option>
-                      <option value="สน">สมาชิกวิสามัญ (สน)</option>
-                      <option value="ทน">สมาชิกไม่มีนิติบุคคล (ทน)</option>
-                      <option value="ทบ">สมาชิกสมทบ (ทบ)</option>
-                    </select>
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ชื่อบริษัท/องค์กร
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="ชื่อบริษัทหรือองค์กรที่ลงทะเบียนไว้"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      เลขประจำตัวผู้เสียภาษี
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="เลข 13 หลัก"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      เบอร์โทรศัพท์ที่ลงทะเบียนไว้
-                    </label>
-                    <input
-                      type="tel"
-                      className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="เบอร์โทรศัพท์ที่ใช้ลงทะเบียนไว้กับสภาอุตสาหกรรม"
-                    />
-                  </div>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    อัพโหลดเอกสารยืนยันตัวตน
-                  </label>
-                  <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                    <div className="space-y-1 text-center">
-                      <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                        <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      <div className="flex text-sm text-gray-600">
-                        <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                          <span>อัพโหลดไฟล์</span>
-                          <input id="file-upload" name="file-upload" type="file" className="sr-only" />
-                        </label>
-                        <p className="pl-1">หรือลากไฟล์มาวางที่นี่</p>
-                      </div>
-                      <p className="text-xs text-gray-500">
-                        รองรับไฟล์ PDF, JPG, PNG ขนาดไม่เกิน 10MB
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="pt-4">
-                  <button
-                    type="submit"
-                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                  >
-                    ส่งข้อมูลเพื่อยืนยันตัวตน
-                  </button>
-                </div>
-              </form>
-            </div>
-            
-            <div className="mt-6 bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-              <p className="flex items-start">
-                <svg className="w-5 h-5 text-gray-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <span>
-                  หลังจากส่งข้อมูลแล้ว เจ้าหน้าที่จะตรวจสอบและยืนยันตัวตนของคุณภายใน 1-2 วันทำการ
-                  คุณจะได้รับการแจ้งเตือนผ่านอีเมลเมื่อการยืนยันตัวตนเสร็จสมบูรณ์
-                </span>
-              </p>
-            </div>
+          <div className="space-y-6">
+            <MemberInfo />
           </div>
         );
 

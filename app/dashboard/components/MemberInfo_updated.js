@@ -13,6 +13,7 @@ export default function MemberInfo() {
     memberNumber: '',
     memberType: '',
     companyName: '',
+    taxId: '',
     registrationNumber: '',
     address: '',
     province: '',
@@ -28,6 +29,7 @@ export default function MemberInfo() {
     memberNumber: false,
     memberType: false,
     companyName: false,
+    taxId: false,
     registrationNumber: false,
     address: false,
     province: false,
@@ -160,7 +162,7 @@ export default function MemberInfo() {
       memberNumber: result.MEMBER_CODE || '',
       companyName: result.COMPANY_NAME || '',
       memberType: memberTypeValue,
-      registrationNumber: result.TAX_ID || '' // Using TAX_ID as registration number
+      taxId: result.TAX_ID || '',
     };
     
     console.log('Setting form data:', newFormData);
@@ -173,7 +175,7 @@ export default function MemberInfo() {
       memberNumber: false,
       companyName: false,
       memberType: false,
-      registrationNumber: false
+      taxId: false
     }));
     
     setSearchResults([]);
@@ -229,7 +231,7 @@ export default function MemberInfo() {
       memberNumber: !formData.memberNumber,
       memberType: !formData.memberType,
       companyName: !formData.companyName, 
-      registrationNumber: !formData.registrationNumber,
+      taxId: !formData.taxId,
       documentFile: !formData.documentFile
     };
     
@@ -238,7 +240,7 @@ export default function MemberInfo() {
     
     // Check if any required field is empty
     if (errors.memberSearch || errors.memberNumber || errors.memberType || 
-        errors.companyName || errors.registrationNumber || errors.documentFile) {
+        errors.companyName || errors.taxId || errors.documentFile) {
       toast.error('กรุณากรอกข้อมูลให้ครบถ้วน');
       return;
     }
@@ -254,7 +256,7 @@ export default function MemberInfo() {
       data.append('companyName', formData.companyName);
       data.append('companyType', formData.memberType);
       data.append('registrationNumber', formData.registrationNumber);
-      data.append('taxId', formData.registrationNumber); // Using registration number as taxId
+      data.append('taxId', formData.taxId);
       data.append('address', formData.address);
       data.append('province', formData.province);
       data.append('postalCode', formData.postalCode);
@@ -411,6 +413,26 @@ export default function MemberInfo() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
+                เลขประจำตัวผู้เสียภาษี
+              </label>
+              <input
+                type="text"
+                name="taxId"
+                value={formData.taxId}
+                onChange={handleChange}
+                className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.taxId ? 'border-red-500' : ''} text-gray-900 ${selectedResult ? 'bg-gray-100' : ''}`}
+                placeholder="เลข 13 หลัก"
+                readOnly={!!selectedResult}
+              />
+              {formErrors.taxId && (
+                <p className="text-red-500 text-xs mt-1">กรุณากรอกเลขประจำตัวผู้เสียภาษี</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 เลขทะเบียนนิติบุคคล
               </label>
               <input
@@ -418,17 +440,10 @@ export default function MemberInfo() {
                 name="registrationNumber"
                 value={formData.registrationNumber}
                 onChange={handleChange}
-                className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.registrationNumber ? 'border-red-500' : ''} text-gray-900 ${selectedResult ? 'bg-gray-100' : ''}`}
+                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="เลขทะเบียนนิติบุคคล"
-                readOnly={!!selectedResult}
               />
-              {formErrors.registrationNumber && (
-                <p className="text-red-500 text-xs mt-1">กรุณากรอกเลขทะเบียนนิติบุคคล</p>
-              )}
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -443,20 +458,6 @@ export default function MemberInfo() {
                 placeholder="เบอร์โทรศัพท์"
               />
             </div>
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              เว็บไซต์
-            </label>
-            <input
-              type="url"
-              name="website"
-              value={formData.website}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              placeholder="https://example.com"
-            />
           </div>
           
           <div>
@@ -530,6 +531,20 @@ export default function MemberInfo() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
+              เว็บไซต์
+            </label>
+            <input
+              type="url"
+              name="website"
+              value={formData.website}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+              placeholder="https://example.com"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               ประเภทเอกสาร
             </label>
             <select
@@ -546,7 +561,7 @@ export default function MemberInfo() {
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              อัพโหลดเอกสาร
+              อัปโหลดเอกสาร
             </label>
             <div className={`border-2 border-dashed rounded-lg p-4 ${formErrors.documentFile ? 'border-red-500' : 'border-gray-300'}`}>
               <div className="flex flex-col items-center justify-center py-3">
@@ -571,16 +586,34 @@ export default function MemberInfo() {
                 >
                   เลือกไฟล์
                 </button>
-                
-                {formData.documentFile && (
-                  <p className="text-sm text-green-600 mt-2">
-                    <span className="font-medium">ไฟล์ที่เลือก:</span> {formData.documentFile.name}
-                  </p>
-                )}
-                {formErrors.documentFile && (
-                  <p className="text-red-500 text-xs mt-1">กรุณาอัพโหลดเอกสาร</p>
-                )}
               </div>
+              
+              {formData.documentFile && (
+                <div className="mt-3 flex items-center justify-between bg-blue-50 p-3 rounded-md">
+                  <div className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <span className="text-sm truncate max-w-xs">{formData.documentFile.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData(prev => ({ ...prev, documentFile: null }));
+                      document.getElementById('file-upload').value = '';
+                    }}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              
+              {formErrors.documentFile && (
+                <p className="text-red-500 text-xs mt-1">กรุณาอัปโหลดเอกสาร</p>
+              )}
             </div>
           </div>
           
@@ -588,26 +621,20 @@ export default function MemberInfo() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
+              className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-              {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ส่งข้อมูลเพื่อยืนยันตัวตน'}
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  กำลังส่งข้อมูล...
+                </div>
+              ) : 'ส่งข้อมูล'}
             </button>
           </div>
         </form>
-      </div>
-      
-      <div className="mt-6 bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
-        <p className="flex items-start">
-          <svg className="w-5 h-5 text-gray-500 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>
-            หลังจากส่งข้อมูลแล้ว เจ้าหน้าที่จะตรวจสอบและยืนยันตัวตนของคุณภายใน 1-2 วันทำการ
-            คุณจะได้รับการแจ้งเตือนผ่านอีเมลเมื่อการยืนยันตัวตนเสร็จสมบูรณ์
-          </span>
-        </p>
       </div>
     </div>
   );
