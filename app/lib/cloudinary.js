@@ -34,15 +34,25 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
     
     // Upload to Cloudinary
     const result = await new Promise((resolve, reject) => {
+      // Special handling for PDFs to ensure they're viewable
+      const options = {
+        folder,
+        resource_type: 'auto',
+        public_id: `${Date.now()}_${fileName.split('.')[0].replace(/\s+/g, '_')}`,
+        overwrite: true
+      };
+      
+      // For PDFs, set specific options to ensure they're viewable
+      if (fileExt === 'pdf') {
+        options.resource_type = 'raw';
+        options.flags = 'attachment';
+      } else {
+        options.format = fileExt; // Explicitly set the format based on file extension
+      }
+      
       cloudinary.uploader.upload(
         dataURI,
-        {
-          folder,
-          resource_type: 'auto',
-          public_id: `${Date.now()}_${fileName.split('.')[0].replace(/\s+/g, '_')}`,
-          overwrite: true,
-          format: fileName.split('.').pop().toLowerCase() // Explicitly set the format based on file extension
-        },
+        options,
         (error, result) => {
           if (error) {
             console.error('Cloudinary upload error:', error);

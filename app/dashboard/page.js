@@ -8,10 +8,11 @@ import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember';
-import MemberInfo from './components/MemberInfo_updated';
+import Wasmember from './components/Wasmember.js/page';
 import VerificationStatus from './components/VerificationStatus';
 import SubmittedMember from './components/SubmittedMember';
 import MemberDetail from './components/MemberDetail';
+import ContactUs from './components/ContactUs';
 
 /**
  * Dashboard component
@@ -414,7 +415,7 @@ export default function Dashboard() {
             {verificationStatus.submitted && !verificationStatus.rejected ? (
               <SubmittedMember />
             ) : (
-              <MemberInfo />
+              <Wasmember />
             )}
           </div>
         );
@@ -436,6 +437,9 @@ export default function Dashboard() {
           </div>
         );
         
+      case 'ติดต่อเรา':
+        return <ContactUs />;
+
       default:
         return (
           <div className="space-y-6">

@@ -90,6 +90,10 @@ export default function AdminLayout({ children }) {
     {
       title: 'อัพเดตสมาชิก',
       href: '/admin/dashboard/update',
+    },
+    {
+      title: 'ข้อความติดต่อ',
+      href: '/admin/dashboard/contact-messages',
     }
   ];
   

@@ -13,13 +13,26 @@ export async function GET(request) {
       );
     }
     
-    // Get verification status from companies_Member table
+    // Get verification status from companies_Member table with full member data
     const companyResults = await query(
       `SELECT 
          id,
+         user_id,
+         MEMBER_CODE,
+         company_name,
+         company_type,
+         registration_number,
+         tax_id,
+         address,
+         province,
+         postal_code,
+         phone,
+         website,
          Admin_Submit,
          reject_reason,
-         admin_comment
+         admin_comment,
+         created_at,
+         updated_at
        FROM companies_Member 
        WHERE user_id = ? 
        ORDER BY id DESC 
@@ -79,12 +92,22 @@ export async function GET(request) {
       adminComment = companyResults[0].admin_comment;
     }
     
+    // Include member data if approved
+    let memberData = null;
+    if (approved && companyResults.length > 0) {
+      memberData = {
+        ...companyResults[0],
+        documents: documentResults
+      };
+    }
+    
     return NextResponse.json({
       submitted,
       approved,
       rejected,
       rejectReason,
-      adminComment
+      adminComment,
+      memberData
     });
   } catch (error) {
     console.error('Error fetching verification status:', error);

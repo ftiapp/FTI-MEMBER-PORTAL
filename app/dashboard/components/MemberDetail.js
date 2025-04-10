@@ -12,7 +12,8 @@ import {
   FaFileAlt, 
   FaIdBadge, 
   FaRegAddressCard, 
-  FaDownload
+  FaDownload,
+  FaEye
 } from 'react-icons/fa';
 
 /**
@@ -35,22 +36,32 @@ export default function MemberDetail({ userId }) {
 
       try {
         setLoading(true);
-        const response = await fetch(`/api/member/details?userId=${userId}`, {
+        console.log('Fetching member details for userId:', userId);
+        
+        const response = await fetch(`/api/member/verification-status?userId=${userId}`, {
           headers: {
             'Content-Type': 'application/json',
           },
         });
 
         if (!response.ok) {
-          throw new Error('ไม่สามารถดึงข้อมูลสมาชิกได้');
+          console.error('API response not OK:', response.status, response.statusText);
+          throw new Error(`ไม่สามารถดึงข้อมูลสมาชิกได้ (${response.status})`);
         }
 
         const data = await response.json();
-        setMemberData(data);
+        console.log('Member data received:', data);
+        
+        // Check if we have the necessary data
+        if (!data || !data.memberData) {
+          throw new Error('ข้อมูลสมาชิกไม่ถูกต้อง');
+        }
+        
+        setMemberData(data.memberData);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching member details:', err);
-        setError('ไม่สามารถดึงข้อมูลสมาชิกได้');
+        setError(err.message || 'ไม่สามารถดึงข้อมูลสมาชิกได้');
         setLoading(false);
       }
     };
@@ -91,20 +102,21 @@ export default function MemberDetail({ userId }) {
     );
   }
 
+  // Extract member data properties with fallbacks for any missing fields
+  // Add null checking to avoid errors if any properties are missing
   const {
-    MEMBER_CODE,
-    company_name,
-    company_type,
-    registration_number,
-    tax_id,
-    address,
-    province,
-    postal_code,
-    phone,
-    website,
-    email,
-    admin_comment,
-    reject_reason,
+    MEMBER_CODE = '',
+    company_name = '',
+    company_type = '',
+    registration_number = '',
+    tax_id = '',
+    address = '',
+    province = '',
+    postal_code = '',
+    phone = '',
+    website = '',
+    admin_comment = '',
+    reject_reason = '',
     Admin_Submit,
     created_at,
     updated_at,
@@ -301,13 +313,23 @@ export default function MemberDetail({ userId }) {
                   </div>
                 </div>
                 {doc.file_path && (
-                  <a 
-                    href={doc.file_path} 
-                    download 
-                    className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
-                  >
-                    <FaDownload className="mr-1" /> ดาวน์โหลด
-                  </a>
+                  <div className="flex space-x-2">
+                    <a 
+                      href={doc.file_path} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 flex items-center text-sm"
+                    >
+                      <FaEye className="mr-1" /> ดูเอกสาร
+                    </a>
+                    <a 
+                      href={doc.file_path} 
+                      download 
+                      className="text-green-600 hover:text-green-800 flex items-center text-sm"
+                    >
+                      <FaDownload className="mr-1" /> ดาวน์โหลด
+                    </a>
+                  </div>
                 )}
               </div>
             ))}
