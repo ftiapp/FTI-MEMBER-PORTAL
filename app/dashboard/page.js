@@ -425,9 +425,10 @@ export default function Dashboard() {
       case 'ยืนยันสมาชิกเดิม':
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">ยืนยันตัวตนสมาชิกเดิม</h2>
-            {/* Always show Wasmember component */}
-            <Wasmember />
+            <h2 className="text-2xl font-bold text-gray-800">ยืนยันสมาชิกเดิม</h2>
+            <div className="space-y-6">
+              <Wasmember />
+            </div>
           </div>
         );
 
