@@ -50,14 +50,15 @@ export async function GET(request) {
       [status]
     );
     
-    // Get documents for each member
+    // Get documents for each member, grouped by MEMBER_CODE
     const membersWithDocuments = await Promise.all(
       membersResult.map(async (member) => {
         const documents = await query(
-          `SELECT id, file_name, file_path, status, Admin_Submit, reject_reason, uploaded_at, updated_at
+          `SELECT id, MEMBER_CODE, file_name, file_path, status, Admin_Submit, reject_reason, uploaded_at, updated_at
            FROM documents_Member
-           WHERE user_id = ?`,
-          [member.user_id]
+           WHERE user_id = ? AND MEMBER_CODE = ?
+           ORDER BY uploaded_at DESC`,
+          [member.user_id, member.MEMBER_CODE]
         );
         
         return {

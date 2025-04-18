@@ -16,10 +16,17 @@ export default function AdminLayout({ children }) {
   const pathname = usePathname();
   const [adminInfo, setAdminInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [unreadCount, setUnreadCount] = useState(0);
   
   // Fetch admin info on component mount
   useEffect(() => {
     fetchAdminInfo();
+    fetchUnreadMessagesCount();
+    
+    // ตั้งเวลาดึงจำนวนข้อความที่ยังไม่อ่านทุก 1 นาที
+    const intervalId = setInterval(fetchUnreadMessagesCount, 60000);
+    
+    return () => clearInterval(intervalId);
   }, []);
   
   /**
@@ -52,6 +59,22 @@ export default function AdminLayout({ children }) {
       toast.error('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ดูแลระบบ');
     } finally {
       setIsLoading(false);
+    }
+  };
+  
+  /**
+   * Fetches the count of unread contact messages
+   */
+  const fetchUnreadMessagesCount = async () => {
+    try {
+      const response = await fetch('/api/admin/unread-messages-count');
+      
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadCount(data.count);
+      }
+    } catch (error) {
+      console.error('Error fetching unread messages count:', error);
     }
   };
   
@@ -92,8 +115,18 @@ export default function AdminLayout({ children }) {
       href: '/admin/dashboard/update',
     },
     {
+      title: 'คำขอแก้ไขข้อมูลสมาชิก',
+      href: '/admin/dashboard/profile-updates',
+      submenu: [
+        { title: 'รอการอนุมัติ', href: '/admin/dashboard/profile-updates?status=pending' },
+        { title: 'อนุมัติแล้ว', href: '/admin/dashboard/profile-updates?status=approved' },
+        { title: 'ปฏิเสธแล้ว', href: '/admin/dashboard/profile-updates?status=rejected' }
+      ]
+    },
+    {
       title: 'ข้อความติดต่อ',
       href: '/admin/dashboard/contact-messages',
+      badge: unreadCount > 0 ? unreadCount : null
     }
   ];
   
@@ -136,7 +169,12 @@ export default function AdminLayout({ children }) {
                   href={item.href}
                   className={`flex items-center px-4 py-3 text-white hover:bg-blue-800 transition-colors ${isActiveMenu(item) ? 'bg-blue-700 font-medium' : ''}`}
                 >
-                  <span>{item.title}</span>
+                  <span className="flex-grow">{item.title}</span>
+                  {item.badge && (
+                    <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 ml-2">
+                      {item.badge}
+                    </span>
+                  )}
                 </Link>
                 
                 {item.submenu && (

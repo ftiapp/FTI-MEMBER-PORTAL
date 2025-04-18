@@ -21,13 +21,7 @@ export async function GET(request) {
          MEMBER_CODE,
          company_name,
          company_type,
-         registration_number,
          tax_id,
-         address,
-         province,
-         postal_code,
-         phone,
-         website,
          Admin_Submit,
          reject_reason,
          admin_comment,
@@ -40,19 +34,43 @@ export async function GET(request) {
       [userId]
     );
     
-    // Get verification status from documents_Member table
-    const documentResults = await query(
-      `SELECT 
-         id,
-         status,
-         Admin_Submit,
-         reject_reason
-       FROM documents_Member 
-       WHERE user_id = ? 
-       ORDER BY id DESC 
-       LIMIT 1`,
-      [userId]
-    );
+    // Get verification status from documents_Member table for the same MEMBER_CODE
+    let documentResults = [];
+    
+    if (companyResults.length > 0) {
+      const memberCode = companyResults[0].MEMBER_CODE;
+      
+      documentResults = await query(
+        `SELECT 
+           id,
+           user_id,
+           MEMBER_CODE,
+           document_type,
+           file_name,
+           file_path,
+           status,
+           Admin_Submit,
+           reject_reason
+         FROM documents_Member 
+         WHERE user_id = ? AND MEMBER_CODE = ? 
+         ORDER BY id DESC`,
+        [userId, memberCode]
+      );
+    } else {
+      // Fallback to old behavior if no company results found
+      documentResults = await query(
+        `SELECT 
+           id,
+           status,
+           Admin_Submit,
+           reject_reason
+         FROM documents_Member 
+         WHERE user_id = ? 
+         ORDER BY id DESC 
+         LIMIT 1`,
+        [userId]
+      );
+    }
     
     // Check if user has submitted verification
     const hasCompanySubmission = companyResults.length > 0;
@@ -92,9 +110,9 @@ export async function GET(request) {
       adminComment = companyResults[0].admin_comment;
     }
     
-    // Include member data if approved
+    // Include member data regardless of approval status
     let memberData = null;
-    if (approved && companyResults.length > 0) {
+    if (companyResults.length > 0) {
       memberData = {
         ...companyResults[0],
         documents: documentResults

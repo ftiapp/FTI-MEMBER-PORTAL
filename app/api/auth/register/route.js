@@ -6,7 +6,7 @@ import { sendVerificationEmail } from '@/app/lib/mailersend';
 
 export async function POST(request) {
   try {
-    const { name, email, phone, password } = await request.json();
+    const { name, firstName, lastName, email, phone, password } = await request.json();
 
     // Check if user already exists and if email is verified
     const existingUser = await query(
@@ -48,8 +48,8 @@ export async function POST(request) {
 
     // Create user with email_verified set to false
     const result = await query(
-      'INSERT INTO users (name, email, phone, password, email_verified) VALUES (?, ?, ?, ?, ?)',
-      [name, email, phone, hashedPassword, 0]
+      'INSERT INTO users (name, firstname, lastname, email, phone, password, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, firstName, lastName, email, phone, hashedPassword, 0]
     );
     
     const userId = result.insertId;

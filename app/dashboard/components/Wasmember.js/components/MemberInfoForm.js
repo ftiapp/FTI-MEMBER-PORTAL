@@ -1,5 +1,4 @@
 import MemberSearchField from './MemberSearchField';
-import ProvinceSearchField from './ProvinceSearchField';
 import FileUploadField from './FileUploadField';
 
 export default function MemberInfoForm({ 
@@ -10,7 +9,8 @@ export default function MemberInfoForm({
   selectedResult,
   setSelectedResult,
   isSubmitting,
-  onSubmit
+  onSubmit,
+  showSubmitButton = true
 }) {
   
   const handleChange = (name, value) => {
@@ -43,6 +43,7 @@ export default function MemberInfoForm({
       companyName: result.COMPANY_NAME || '',
       memberType: memberTypeValue,
       taxId: result.TAX_ID || '',
+      documentFile: null
     };
     
     console.log('Setting form data:', newFormData);
@@ -53,9 +54,9 @@ export default function MemberInfoForm({
       ...prev,
       memberSearch: false,
       memberNumber: false,
-      companyName: false,
       memberType: false,
-      taxId: false
+      taxId: false,
+      documentFile: false
     }));
   };
 
@@ -67,7 +68,6 @@ export default function MemberInfoForm({
       memberSearch: !formData.memberSearch,
       memberNumber: !formData.memberNumber,
       memberType: !formData.memberType,
-      companyName: !formData.companyName, 
       taxId: !formData.taxId,
       documentFile: !formData.documentFile
     };
@@ -76,8 +76,7 @@ export default function MemberInfoForm({
     setFormErrors(errors);
     
     // Check if any required field is empty
-    if (errors.memberSearch || errors.memberNumber || errors.memberType || 
-        errors.companyName || errors.taxId || errors.documentFile) {
+    if (errors.memberSearch || errors.memberNumber || errors.memberType || errors.taxId || errors.documentFile) {
       return;
     }
     
@@ -137,111 +136,54 @@ export default function MemberInfoForm({
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              เลขทะเบียนนิติบุคคล
-            </label>
-            <input
-              type="text"
-              name="registrationNumber"
-              value={formData.registrationNumber}
-              onChange={(e) => handleChange('registrationNumber', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              placeholder="เลขทะเบียนนิติบุคคล"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              เบอร์โทรศัพท์
-            </label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={(e) => handleChange('phone', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              placeholder="เบอร์โทรศัพท์"
-            />
-          </div>
-        </div>
-        
+        {/* File upload field based on member type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            ที่อยู่
-          </label>
-          <textarea
-            name="address"
-            value={formData.address}
-            onChange={(e) => handleChange('address', e.target.value)}
-            rows={3}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-            placeholder="ที่อยู่"
-          ></textarea>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ProvinceSearchField 
-            value={formData.province}
-            onChange={handleChange}
-            hasError={formErrors.province}
-          />
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              รหัสไปรษณีย์
-            </label>
-            <input
-              type="text"
-              name="postalCode"
-              value={formData.postalCode}
-              onChange={(e) => handleChange('postalCode', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              placeholder="รหัสไปรษณีย์"
-            />
-          </div>
-        </div>
-        
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            เว็บไซต์
-          </label>
-          <input
-            type="url"
-            name="website"
-            value={formData.website}
-            onChange={(e) => handleChange('website', e.target.value)}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-            placeholder="https://example.com"
+          <FileUploadField 
+            label={
+              formData.memberType === 'สส' || formData.memberType === 'สน' ? 
+                'หนังสือรับรอง (ประทับตราบริษัท และ ลงนาม)' :
+              formData.memberType === 'ทน' ? 
+                'บัตรอนุญาตสมาคมการค้า (ประทับตราสมาคม และ ลงนาม)' :
+              formData.memberType === 'ทบ' ? 
+                'สำเนาบัตรประชาชน' :
+                'เอกสารยืนยัน'
+            }
+            name="documentFile"
+            value={formData.documentFile}
+            onChange={(name, file) => handleChange('documentFile', file)}
+            hasError={formErrors.documentFile}
+            errorMessage="กรุณาอัพโหลดเอกสารตามที่กำหนด"
+            helpText={
+              formData.memberType === 'สส' || formData.memberType === 'สน' ? 
+                'อัพโหลดหนังสือรับรองที่มีการประทับตราบริษัทและลงนาม (PDF, JPG)' :
+              formData.memberType === 'ทน' ? 
+                'อัพโหลดบัตรอนุญาตสมาคมการค้าที่มีการประทับตราสมาคมและลงนาม (PDF, JPG)' :
+              formData.memberType === 'ทบ' ? 
+                'อัพโหลดสำเนาบัตรประชาชนที่ลงนามรับรองสำเนาถูกต้อง (PDF, JPG)' :
+                'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
+            }
           />
         </div>
         
-        <FileUploadField 
-          documentType={formData.documentType}
-          documentFile={formData.documentFile}
-          onChangeDocumentType={(value) => handleChange('documentType', value)}
-          onChangeDocumentFile={(file) => handleChange('documentFile', file)}
-          hasError={formErrors.documentFile}
-        />
-        
-        <div className="pt-4">
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center justify-center">
-                <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                กำลังส่งข้อมูล...
-              </div>
-            ) : 'ส่งข้อมูล'}
-          </button>
-        </div>
+        {showSubmitButton && (
+          <div className="pt-4">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  กำลังส่งข้อมูล...
+                </div>
+              ) : 'ส่งข้อมูล'}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );

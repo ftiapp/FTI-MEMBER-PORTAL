@@ -8,6 +8,8 @@ export async function POST(request) {
     
     // Extract form data
     const userId = formData.get('userId');
+    const memberNumber = formData.get('memberNumber');
+    const memberType = formData.get('memberType');
     const companyName = formData.get('companyName');
     const companyType = formData.get('companyType');
     const registrationNumber = formData.get('registrationNumber');
@@ -21,9 +23,35 @@ export async function POST(request) {
     const documentFile = formData.get('documentFile');
     
     // Validate required fields
-    if (!userId || !companyName || !registrationNumber || !documentFile) {
+    if (!userId || !memberNumber || !memberType || !companyName || !taxId || !documentFile) {
       return NextResponse.json(
         { success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if MEMBER_CODE is already used by another user
+    const existingMemberOtherUser = await query(
+      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ?`,
+      [memberNumber, userId]
+    );
+    
+    if (existingMemberOtherUser.length > 0) {
+      return NextResponse.json(
+        { success: false, message: 'รหัสสมาชิกนี้ถูกใช้งานโดยผู้ใช้อื่นแล้ว ไม่สามารถใช้ยืนยันตัวตนได้' },
+        { status: 400 }
+      );
+    }
+    
+    // Check if current user has already submitted this MEMBER_CODE
+    const existingMemberSameUser = await query(
+      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ?`,
+      [memberNumber, userId]
+    );
+    
+    if (existingMemberSameUser.length > 0) {
+      return NextResponse.json(
+        { success: false, message: 'คุณได้ยืนยันตัวตนด้วยรหัสสมาชิกนี้ไปแล้ว กรุณาใช้รหัสสมาชิกอื่น' },
         { status: 400 }
       );
     }
@@ -47,17 +75,17 @@ export async function POST(request) {
     // Save company information to database
     const companyResult = await query(
       `INSERT INTO companies_Member 
-       (user_id, company_name, company_type, registration_number, tax_id, address, province, postal_code, phone, website, Admin_Submit) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [userId, companyName, companyType, registrationNumber, registrationNumber, address, province, postalCode, phone, website]
+       (user_id, MEMBER_CODE, company_name, company_type, tax_id, Admin_Submit) 
+       VALUES (?, ?, ?, ?, ?, 0)`,
+      [userId, memberNumber, companyName, memberType, taxId]
     );
     
     // Save document information to database
     await query(
       `INSERT INTO documents_Member 
-       (user_id, document_type, file_name, file_path, status, Admin_Submit) 
-       VALUES (?, ?, ?, ?, 'pending', 0)`,
-      [userId, documentType || 'other', fileName, uploadResult.url]
+       (user_id, MEMBER_CODE, document_type, file_name, file_path, status, Admin_Submit) 
+       VALUES (?, ?, ?, ?, ?, 'pending', 0)`,
+      [userId, memberNumber, documentType || 'other', fileName, uploadResult.url]
     );
     
     // Log the activity

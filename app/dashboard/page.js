@@ -9,10 +9,11 @@ import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember';
 import Wasmember from './components/Wasmember.js/page';
-import VerificationStatus from './components/VerificationStatus';
 import SubmittedMember from './components/SubmittedMember';
 import MemberDetail from './components/MemberDetail';
 import ContactUs from './components/ContactUs';
+import RecentActivities from './components/RecentActivities';
+import CheckStatusOperation from './components/CheckStatusOperation';
 
 /**
  * Dashboard component
@@ -119,6 +120,14 @@ export default function Dashboard() {
       ),
     },
     {
+      name: 'สถานะการดำเนินการ',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
       name: 'กิจกรรมล่าสุด',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -150,6 +159,13 @@ export default function Dashboard() {
    */
   const renderTabContent = () => {
     switch (activeTab) {
+      case 'สถานะการดำเนินการ':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">สถานะการดำเนินการ</h2>
+            <CheckStatusOperation />
+          </div>
+        );
       case 'อัพเดตสมาชิก':
         return (
           <div className="space-y-6">
@@ -410,13 +426,8 @@ export default function Dashboard() {
         return (
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-800">ยืนยันตัวตนสมาชิกเดิม</h2>
-            <VerificationStatus />
-            {/* Show SubmittedMember component if verification has been submitted, otherwise show MemberInfo form */}
-            {verificationStatus.submitted && !verificationStatus.rejected ? (
-              <SubmittedMember />
-            ) : (
-              <Wasmember />
-            )}
+            {/* Always show Wasmember component */}
+            <Wasmember />
           </div>
         );
 
@@ -439,6 +450,16 @@ export default function Dashboard() {
         
       case 'ติดต่อเรา':
         return <ContactUs />;
+
+      case 'กิจกรรมล่าสุด':
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">กิจกรรมล่าสุด</h2>
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <RecentActivities />
+            </div>
+          </div>
+        );
 
       default:
         return (

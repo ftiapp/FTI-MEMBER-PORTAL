@@ -6,6 +6,7 @@ import { query } from './db';
 
 // สร้าง secret key สำหรับ JWT
 const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-user-auth');
+const adminSecretKey = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'your-secret-key-for-admin-auth');
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก session
 export async function getSession() {
@@ -51,4 +52,38 @@ export async function createSession(user) {
 export async function destroySession() {
   // ในอนาคตอาจจะเพิ่มการลบ cookie
   return true;
+}
+
+// ฟังก์ชันสำหรับดึงข้อมูล admin จาก session
+export async function getServerSession() {
+  try {
+    const cookieStore = cookies();
+    const token = cookieStore.get('admin_token');
+    
+    if (!token) {
+      return null;
+    }
+    
+    // ตรวจสอบ token
+    const { payload } = await jwtVerify(token.value, adminSecretKey);
+    
+    if (!payload || !payload.id) {
+      return null;
+    }
+    
+    // ดึงข้อมูล admin จากฐานข้อมูล
+    const admins = await query(
+      'SELECT id, username, admin_level as level, can_create, can_update FROM admin_users WHERE id = ? AND is_active = 1 LIMIT 1',
+      [payload.id]
+    );
+    
+    if (admins.length === 0) {
+      return null;
+    }
+    
+    return { admin: admins[0] };
+  } catch (error) {
+    console.error('Error getting admin session:', error);
+    return null;
+  }
 }

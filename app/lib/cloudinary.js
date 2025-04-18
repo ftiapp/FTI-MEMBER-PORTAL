@@ -44,8 +44,9 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
       
       // For PDFs, set specific options to ensure they're viewable
       if (fileExt === 'pdf') {
-        options.resource_type = 'raw';
-        options.flags = 'attachment';
+        options.resource_type = 'auto';
+        options.format = 'pdf';
+        // ไม่ต้องใช้ flags attachment เพราะจะทำให้ไม่สามารถเปิดดูได้โดยตรง
       } else {
         options.format = fileExt; // Explicitly set the format based on file extension
       }

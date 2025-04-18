@@ -40,53 +40,113 @@ if (isProd) {
 dbConfig = {
   ...dbConfig,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 20, // เพิ่มจำนวน connection ที่รองรับ
   maxIdle: 10,
-  idleTimeout: 60000,
+  idleTimeout: 30000, // ลดเวลา idle ลงเพื่อให้ปล่อย connection เร็วขึ้น
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 0
+  keepAliveInitialDelay: 10000, // เพิ่มการส่ง keepalive เร็วขึ้น
+  connectTimeout: 60000, // เพิ่มเวลาในการเชื่อมต่อ
+  acquireTimeout: 60000, // เพิ่มเวลาในการรอคิว connection
 };
 
 // สร้าง connection pool
 const pool = mysql.createPool(dbConfig);
 
-// Test connection on startup
-pool.getConnection()
-  .then(connection => {
-    console.log('Database connection successful');
-    connection.release();
-  })
-  .catch(err => {
-    console.error('Error connecting to the database:', {
-      message: err.message,
-      code: err.code,
-      errno: err.errno,
-      sqlState: err.sqlState,
-      sqlMessage: err.sqlMessage
-    });
-  });
-
-// Helper function สำหรับ execute queries
-export async function query(sql, params) {
-  try {
-    console.log('Executing query:', {
-      sql: sql,
-      params: params
-    });
-    
-    const [results] = await pool.execute(sql, params);
-    return results;
-  } catch (error) {
-    console.error('Query error:', {
-      message: error.message,
-      code: error.code,
-      errno: error.errno,
-      sqlState: error.sqlState,
-      sqlMessage: error.sqlMessage,
-      sql: sql,
-      params: params
-    });
-    throw error;
+// Test connection on startup with retry
+async function testConnection() {
+  const maxRetries = 5;
+  let retryCount = 0;
+  
+  while (retryCount < maxRetries) {
+    try {
+      const connection = await pool.getConnection();
+      console.log('Database connection successful');
+      connection.release();
+      return true;
+    } catch (err) {
+      retryCount++;
+      console.error(`Error connecting to the database (attempt ${retryCount}/${maxRetries}):`, {
+        message: err.message,
+        code: err.code,
+        errno: err.errno,
+        sqlState: err.sqlState,
+        sqlMessage: err.sqlMessage
+      });
+      
+      if (retryCount < maxRetries) {
+        // Wait before retrying (exponential backoff)
+        const delay = Math.pow(2, retryCount) * 1000;
+        console.log(`Retrying connection in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error('All connection attempts failed');
+      }
+    }
   }
+  
+  return false;
+}
+
+// Run the test connection
+testConnection();
+
+// Helper function สำหรับ execute queries with retry
+export async function query(sql, params) {
+  const maxRetries = 3;
+  let retryCount = 0;
+  let lastError = null;
+  
+  while (retryCount < maxRetries) {
+    try {
+      console.log(`Executing query (attempt ${retryCount + 1}/${maxRetries}):`, {
+        sql: sql,
+        params: params
+      });
+      
+      // Get a connection from the pool
+      const connection = await pool.getConnection();
+      
+      try {
+        // Execute the query with the connection
+        const [results] = await connection.execute(sql, params);
+        return results;
+      } finally {
+        // Always release the connection back to the pool
+        connection.release();
+      }
+    } catch (error) {
+      lastError = error;
+      
+      // Log the error
+      console.error(`Query error (attempt ${retryCount + 1}/${maxRetries}):`, {
+        message: error.message,
+        code: error.code,
+        errno: error.errno,
+        sqlState: error.sqlState,
+        sqlMessage: error.sqlMessage,
+        sql: sql,
+        params: params
+      });
+      
+      // Only retry on connection errors (like ECONNRESET)
+      if (error.code === 'ECONNRESET' || error.code === 'PROTOCOL_CONNECTION_LOST' || error.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
+        retryCount++;
+        
+        if (retryCount < maxRetries) {
+          // Wait before retrying (exponential backoff)
+          const delay = Math.pow(2, retryCount) * 1000;
+          console.log(`Retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+      } else {
+        // For other errors, don't retry
+        break;
+      }
+    }
+  }
+  
+  // If we got here, all retries failed or it wasn't a retryable error
+  throw lastError;
 }

@@ -1,21 +1,191 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 export default function UpdateMember() {
+  const { user } = useAuth();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: ''
+  });
+  const [originalData, setOriginalData] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [updateStatus, setUpdateStatus] = useState(null);
+
+  useEffect(() => {
+    if (user?.id) {
+      fetchUserData();
+      fetchUpdateStatus();
+    }
+  }, [user]);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/user/profile?userId=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFormData({
+          firstName: data.firstname || '',
+          lastName: data.lastname || '',
+          email: data.email || '',
+          phone: data.phone || ''
+        });
+        setOriginalData({
+          firstName: data.firstname || '',
+          lastName: data.lastname || '',
+          email: data.email || '',
+          phone: data.phone || ''
+        });
+      } else {
+        toast.error('ไม่สามารถดึงข้อมูลผู้ใช้ได้');
+      }
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUpdateStatus = async () => {
+    try {
+      const response = await fetch(`/api/user/profile-update-status?userId=${user.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUpdateStatus(data.status);
+      }
+    } catch (error) {
+      console.error('Error fetching update status:', error);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name === 'phone') {
+      // Allow only numbers
+      const numericValue = value.replace(/[^0-9]/g, '');
+      setFormData(prev => ({
+        ...prev,
+        [name]: numericValue
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    if (!formData.firstName || !formData.lastName) {
+      toast.error('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
+      return false;
+    }
+
+    // Check if any data has changed
+    const hasChanges = Object.keys(formData).some(key => formData[key] !== originalData[key]);
+    if (!hasChanges) {
+      toast.error('ไม่มีข้อมูลที่เปลี่ยนแปลง');
+      return false;
+    }
+    
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setSubmitting(true);
+    try {
+      const response = await fetch('/api/user/update-profile', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: user.id,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: originalData.email,
+          phone: originalData.phone
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success('ส่งคำขอแก้ไขข้อมูลสำเร็จ รอการอนุมัติจากผู้ดูแลระบบ');
+        fetchUpdateStatus();
+      } else {
+        toast.error(data.error || 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+      }
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getStatusBadge = () => {
+    if (!updateStatus) return null;
+    
+    // แสดงเฉพาะสถานะ "รอการอนุมัติ" เท่านั้น
+    if (updateStatus.status === 'pending') {
+      return (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+          <div className="flex">
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                คำขอแก้ไขข้อมูลของคุณกำลังรอการอนุมัติ
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return null;
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white rounded-xl shadow-md p-6 flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
-     
       <div className="bg-white rounded-xl shadow-md p-6">
-        <form className="space-y-6">
+        <h3 className="text-lg font-medium mb-4">แก้ไขข้อมูลส่วนตัว</h3>
+        
+        {getStatusBadge()}
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
               <input
                 type="text"
                 id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="ชื่อ"
+                disabled={updateStatus?.status === 'pending'}
               />
             </div>
             <div>
@@ -23,8 +193,12 @@ export default function UpdateMember() {
               <input
                 type="text"
                 id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
                 className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
                 placeholder="นามสกุล"
+                disabled={updateStatus?.status === 'pending'}
               />
             </div>
             <div>
@@ -32,8 +206,12 @@ export default function UpdateMember() {
               <input
                 type="email"
                 id="email"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                name="email"
+                value={formData.email}
+                readOnly
+                className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
                 placeholder="อีเมล"
+                disabled={true}
               />
             </div>
             <div>
@@ -41,39 +219,25 @@ export default function UpdateMember() {
               <input
                 type="tel"
                 id="phone"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                name="phone"
+                value={formData.phone}
+                readOnly
+                className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
                 placeholder="เบอร์โทรศัพท์"
+                disabled={true}
               />
             </div>
-            <div>
-              <label htmlFor="company" className="block text-sm font-medium text-gray-700 mb-1">บริษัท</label>
-              <input
-                type="text"
-                id="company"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                placeholder="บริษัท"
-              />
-            </div>
-            <div>
-              <label htmlFor="position" className="block text-sm font-medium text-gray-700 mb-1">ตำแหน่ง</label>
-              <input
-                type="text"
-                id="position"
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-                placeholder="ตำแหน่ง"
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
-            <textarea
-              id="address"
-              rows="3"
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
-              placeholder="ที่อยู่"
-            ></textarea>
           </div>
 
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={submitting || updateStatus?.status === 'pending'}
+            >
+              {submitting ? 'กำลังส่งข้อมูล...' : 'ส่งคำขอแก้ไขข้อมูล'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

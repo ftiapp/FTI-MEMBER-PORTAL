@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaEnvelope, FaEnvelopeOpen } from 'react-icons/fa';
 
 export default function ContactUs() {
   const { user } = useAuth();
@@ -15,6 +16,8 @@ export default function ContactUs() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [userMessages, setUserMessages] = useState([]);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   
   // Load user data when component mounts
   useEffect(() => {
@@ -25,8 +28,32 @@ export default function ContactUs() {
         email: user.email || '',
         phone: user.phone || ''
       }));
+      
+      // Fetch user's contact messages
+      fetchUserMessages();
     }
   }, [user]);
+  
+  // Fetch user's contact messages
+  const fetchUserMessages = async () => {
+    if (!user || !user.id) return;
+    
+    try {
+      setMessagesLoading(true);
+      const response = await fetch(`/api/contact/user-messages?userId=${user.id}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch messages');
+      }
+      
+      const data = await response.json();
+      setUserMessages(data.messages || []);
+    } catch (error) {
+      console.error('Error fetching user messages:', error);
+    } finally {
+      setMessagesLoading(false);
+    }
+  };
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,9 +108,88 @@ export default function ContactUs() {
     }
   };
   
+  // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  // Get status icon based on message status
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'unread':
+        return <FaEnvelope className="text-yellow-500" size={16} />;
+      case 'read':
+        return <FaEnvelopeOpen className="text-blue-500" size={16} />;
+      case 'replied':
+        return <FaCheckCircle className="text-green-500" size={16} />;
+      default:
+        return <FaEnvelope className="text-gray-500" size={16} />;
+    }
+  };
+  
+  // Get status text based on message status
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'unread':
+        return 'ยังไม่ได้อ่าน';
+      case 'read':
+        return 'อ่านแล้ว';
+      case 'replied':
+        return 'ตอบกลับแล้ว';
+      default:
+        return 'ไม่ทราบสถานะ';
+    }
+  };
+  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-black">ติดต่อเรา</h2>
+      
+      {/* User's previous messages */}
+      {userMessages.length > 0 && (
+        <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4">
+            <div className="pb-4 border-b">
+              <h3 className="text-lg font-medium text-black">ข้อความที่เคยส่ง</h3>
+              <p className="text-sm text-black mt-1">ข้อความที่คุณเคยส่งถึงเรา</p>
+            </div>
+            
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เรื่อง</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่ส่ง</th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">สถานะ</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {userMessages.map((message) => (
+                    <tr key={message.id}>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{message.subject}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{formatDate(message.created_at)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <div className="flex items-center">
+                          {getStatusIcon(message.status)}
+                          <span className="ml-2">{getStatusText(message.status)}</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="bg-white rounded-xl shadow-md p-6">
         <div className="space-y-6">
           <div className="pb-4 border-b">
@@ -180,61 +286,75 @@ export default function ContactUs() {
           
           <div className="pt-6 border-t">
             <h3 className="text-lg font-medium mb-4 text-black">ช่องทางการติดต่อ</h3>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-black">โทรศัพท์</h4>
-                  <p className="text-black">02-345-1000</p>
-                </div>
-              </div>
-              
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-black">อีเมล</h4>
-                  <p className="text-black">contact@fti.or.th</p>
+            
+            {/* Grid layout for contact information */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Phone */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-black">โทรศัพท์</h4>
+                    <p className="text-black">02-345-1000</p>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="font-medium text-black">ที่อยู่</h4>
-                  <p className="text-black">
-                    สภาอุตสาหกรรมแห่งประเทศไทย<br />
-                    ชั้น 8 อาคารปฏิบัติการเทคโนโลยีเชิงสร้างสรรค์<br />
-                    เลขที่ 2 ถนนนางลิ้นจี่ แขวงทุ่งมหาเมฆ<br />
-                    เขตสาทร กรุงเทพมหานคร 10120
-                  </p>
+              {/* Email */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-black">อีเมล</h4>
+                    <p className="text-black">contact@fti.or.th</p>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0 mt-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
+              {/* Operating Hours */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-black">เวลาทำการ</h4>
+                    <p className="text-black">
+                      จันทร์ - ศุกร์: 08:30 - 17:30 น.<br />
+                      เสาร์ - อาทิตย์: ปิดทำการ
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-black">เวลาทำการ</h4>
-                  <p className="text-black">
-                    จันทร์ - ศุกร์: 08:30 - 17:30 น.<br />
-                    เสาร์ - อาทิตย์: ปิดทำการ
-                  </p>
+              </div>
+              
+              {/* Address - Takes full width on small screens, spans 2 columns on large screens */}
+              <div className="bg-gray-50 p-4 rounded-lg sm:col-span-2 lg:col-span-1">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-black">ที่อยู่</h4>
+                    <p className="text-black">
+                      สภาอุตสาหกรรมแห่งประเทศไทย<br />
+                      ชั้น 8 อาคารปฏิบัติการเทคโนโลยีเชิงสร้างสรรค์<br />
+                      เลขที่ 2 ถนนนางลิ้นจี่ แขวงทุ่งมหาเมฆ<br />
+                      เขตสาทร กรุงเทพมหานคร 10120
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
