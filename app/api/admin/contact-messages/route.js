@@ -6,10 +6,11 @@ export async function GET(request) {
     // Get query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const limit = parseInt(searchParams.get('limit') || '50');
     const search = searchParams.get('search') || '';
     const startDate = searchParams.get('start') || '';
     const endDate = searchParams.get('end') || '';
+    const status = searchParams.get('status') || '';
     
     // Calculate offset
     const offset = (page - 1) * limit;
@@ -35,6 +36,16 @@ export async function GET(request) {
       conditionParams.push(endDate);
     }
     
+    // Add status filter if provided
+    if (status) {
+      if (status === 'all') {
+        // No filter needed, show all statuses
+      } else if (['unread', 'read', 'replied'].includes(status)) {
+        conditions.push(`cm.status = ?`);
+        conditionParams.push(status);
+      }
+    }
+    
     // Combine all conditions
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     
@@ -43,6 +54,23 @@ export async function GET(request) {
     const countResult = await query(countQuery, conditionParams);
     
     const total = countResult[0].total;
+    
+    // ตรวจสอบว่ามีตาราง contact_message_responses หรือไม่
+    try {
+      await query(
+        `CREATE TABLE IF NOT EXISTS contact_message_responses (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          message_id INT NOT NULL,
+          admin_id INT NOT NULL,
+          response_text TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          FOREIGN KEY (message_id) REFERENCES contact_messages(id)
+        )`
+      );
+    } catch (error) {
+      console.error('Error creating contact_message_responses table:', error);
+      // ไม่ต้อง throw error เพราะถ้าตารางมีอยู่แล้วก็ไม่เป็นไร
+    }
     
     // Get messages from database with pagination, search and date filters
     const messagesQuery = `SELECT 
@@ -56,7 +84,8 @@ export async function GET(request) {
       cm.status,
       cm.admin_response,
       cm.created_at,
-      cm.updated_at
+      cm.updated_at,
+      (SELECT response_text FROM contact_message_responses WHERE message_id = cm.id ORDER BY created_at DESC LIMIT 1) as response_text
     FROM 
       contact_messages cm
     ${whereClause}
@@ -71,9 +100,15 @@ export async function GET(request) {
     
     const messages = await query(messagesQuery, conditionParams);
     
+    // แปลงข้อมูลให้เข้ากับรูปแบบเดิม
+    const processedMessages = messages.map(message => ({
+      ...message,
+      admin_response: message.response_text || null
+    }));
+    
     return NextResponse.json({
       success: true,
-      messages,
+      messages: processedMessages,
       total,
       page,
       limit,

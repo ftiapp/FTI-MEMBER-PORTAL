@@ -13,7 +13,9 @@ import {
   FaIdBadge, 
   FaRegAddressCard, 
   FaDownload,
-  FaEye
+  FaEye,
+  FaSpinner,
+  FaExclamationCircle
 } from 'react-icons/fa';
 
 /**
@@ -69,14 +71,20 @@ export default function MemberDetail({ userId }) {
     fetchMemberDetails();
   }, [userId]);
 
+  // Handle retry when loading failed
+  const handleRetry = () => {
+    if (userId) {
+      setError(null);
+      fetchMemberDetails();
+    }
+  };
+
   if (loading) {
     return (
       <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="animate-pulse flex flex-col space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-          <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-          <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+        <div className="py-16 flex flex-col items-center justify-center text-gray-600">
+          <FaSpinner className="animate-spin text-blue-600 mb-3" size={28} />
+          <p className="font-medium">กำลังโหลดข้อมูล...</p>
         </div>
       </div>
     );
@@ -85,8 +93,15 @@ export default function MemberDetail({ userId }) {
   if (error) {
     return (
       <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="text-center text-red-500">
-          <p>{error}</p>
+        <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
+          <FaExclamationCircle className="text-red-500 mb-3" size={28} />
+          <p className="font-medium mb-3">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+          <button 
+            onClick={handleRetry}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
+          >
+            ลองใหม่อีกครั้ง
+          </button>
         </div>
       </div>
     );
@@ -95,8 +110,9 @@ export default function MemberDetail({ userId }) {
   if (!memberData) {
     return (
       <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="text-center text-gray-500">
-          <p>ไม่พบข้อมูลสมาชิก</p>
+        <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-gray-200 rounded-lg">
+          <FaExclamationCircle className="text-gray-400 mb-3" size={28} />
+          <p className="font-medium">ไม่พบข้อมูลสมาชิก</p>
         </div>
       </div>
     );
@@ -219,18 +235,6 @@ export default function MemberDetail({ userId }) {
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-700">โทรศัพท์</p>
                 <p className="text-sm text-gray-900">{phone}</p>
-              </div>
-            </div>
-          )}
-          
-          {email && (
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mt-1">
-                <FaEnvelope className="h-5 w-5 text-blue-500" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-gray-700">อีเมล</p>
-                <p className="text-sm text-gray-900">{email}</p>
               </div>
             </div>
           )}
@@ -380,6 +384,18 @@ export default function MemberDetail({ userId }) {
           </p>
         )}
       </div>
+      
+      {/* Add global animation styles */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        button:active {
+          transform: translateY(1px);
+        }
+      `}</style>
     </div>
   );
 }

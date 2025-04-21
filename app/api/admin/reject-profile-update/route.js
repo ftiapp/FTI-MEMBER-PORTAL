@@ -1,15 +1,15 @@
 import { query } from '@/app/lib/db';
 import { NextResponse } from 'next/server';
-import { getServerSession } from '@/app/lib/session';
+import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { getClientIp } from '@/app/lib/utils';
 
 export async function POST(request) {
   try {
     // Check admin session
-    const session = await getServerSession();
-    if (!session || !session.admin) {
+    const admin = await getAdminFromSession();
+    if (!admin) {
       return NextResponse.json(
-        { error: 'ไม่ได้รับอนุญาต' },
+        { success: false, message: 'ไม่ได้รับอนุญาต' },
         { status: 401 }
       );
     }

@@ -4,7 +4,7 @@ import { query } from '@/app/lib/db';
 export async function PUT(request, { params }) {
   try {
     // ใช้ params แบบ asynchronous
-    const id = params.id;
+    const id = await params?.id;
     
     if (!id) {
       return NextResponse.json(

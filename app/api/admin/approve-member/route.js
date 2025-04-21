@@ -25,7 +25,7 @@ export async function POST(request) {
     }
     
     // Check if action is valid
-    if (action !== 'approve' && action !== 'reject') {
+    if (action !== 'approve' && action !== 'reject' && action !== 'delete') {
       return NextResponse.json(
         { success: false, message: 'การกระทำไม่ถูกต้อง' },
         { status: 400 }
@@ -33,19 +33,39 @@ export async function POST(request) {
     }
     
     // Update company member status
+    let adminSubmitValue = 0;
+    if (action === 'approve') adminSubmitValue = 1;
+    else if (action === 'reject') adminSubmitValue = 2;
+    else if (action === 'delete') adminSubmitValue = 3;
+    
     await query(
       `UPDATE companies_Member SET Admin_Submit = ?, reject_reason = ?, admin_comment = ? WHERE id = ?`,
-      [action === 'approve' ? 1 : 2, action === 'reject' ? reason : null, comment || null, memberId]
+      [adminSubmitValue, action === 'reject' ? reason : null, comment || null, memberId]
     );
     
     // Update document status
+    let docStatus = 'pending';
+    let docAdminSubmit = 0;
+    
+    if (action === 'approve') {
+      docStatus = 'approved';
+      docAdminSubmit = 1;
+    } else if (action === 'reject') {
+      docStatus = 'rejected';
+      docAdminSubmit = 2;
+    } else if (action === 'delete') {
+      // ใช้สถานะ 'rejected' แทน 'deleted' เนื่องจาก enum ในฐานข้อมูลไม่มีค่า 'deleted'
+      docStatus = 'rejected';
+      docAdminSubmit = 3;
+    }
+    
     await query(
       `UPDATE documents_Member SET 
         status = ?, 
         Admin_Submit = ?,
         reject_reason = ? 
       WHERE id = ?`,
-      [action === 'approve' ? 'approved' : 'rejected', action === 'approve' ? 1 : 2, action === 'reject' ? reason : null, documentId]
+      [docStatus, docAdminSubmit, action === 'reject' ? reason : null, documentId]
     );
     
     // Get user info for logging and email notification
@@ -64,17 +84,39 @@ export async function POST(request) {
       const displayName = name || (firstname && lastname ? `${firstname} ${lastname}` : companyName || 'สมาชิก');
       
       // Log admin action
+      let actionType = 'other';
+      let actionDetails = '';
+      
+      if (action === 'approve') {
+        actionType = 'approve_member';
+        actionDetails = 'Member approved';
+      } else if (action === 'reject') {
+        actionType = 'reject_member';
+        actionDetails = `Member rejected. Reason: ${reason || 'No reason provided'}`;
+      } else if (action === 'delete') {
+        actionType = 'other';
+        actionDetails = `Member deleted (status changed to 3)`;
+      }
+      
       await logAdminAction(
         admin.id,
-        action === 'approve' ? 'approve_member' : 'reject_member',
+        actionType,
         memberId,
-        action === 'approve' 
-          ? 'Member approved' 
-          : `Member rejected. Reason: ${reason || 'No reason provided'}`,
+        actionDetails,
         request
       );
       
       // Log in Member_portal_User_log
+      let logDetails = '';
+      
+      if (action === 'approve') {
+        logDetails = 'Member verification approved by admin';
+      } else if (action === 'reject') {
+        logDetails = `Member verification rejected. Reason: ${reason || 'No reason provided'}`;
+      } else if (action === 'delete') {
+        logDetails = 'Member verification deleted by admin';
+      }
+      
       await query(
         `INSERT INTO Member_portal_User_log 
          (user_id, action, details, ip_address, user_agent) 
@@ -82,20 +124,18 @@ export async function POST(request) {
         [
           userId,
           'member_verification',
-          action === 'approve' 
-            ? 'Member verification approved by admin' 
-            : `Member verification rejected. Reason: ${reason || 'No reason provided'}`,
+          logDetails,
           request.headers.get('x-forwarded-for') || '',
           request.headers.get('user-agent') || ''
         ]
       );
       
       // Send email notification
-      if (email) {
+      if (email && action !== 'delete') { // Don't send email for delete action
         try {
           if (action === 'approve') {
             await sendApprovalEmail(email, displayName, comment);
-          } else {
+          } else if (action === 'reject') {
             await sendRejectionEmail(email, displayName, reason || 'ไม่ระบุเหตุผล');
           }
           
@@ -111,7 +151,9 @@ export async function POST(request) {
       success: true,
       message: action === 'approve' 
         ? 'อนุมัติสมาชิกเรียบร้อยแล้ว' 
-        : 'ปฏิเสธสมาชิกเรียบร้อยแล้ว'
+        : action === 'reject'
+        ? 'ปฏิเสธสมาชิกเรียบร้อยแล้ว'
+        : 'ลบข้อมูลสมาชิกเรียบร้อยแล้ว'
     });
   } catch (error) {
     console.error('Error approving/rejecting member:', error);

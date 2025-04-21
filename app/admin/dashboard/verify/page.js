@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
+import ExistingMember from './existing-member';
 
 export default function VerifyMembers() {
   const router = useRouter();
@@ -22,6 +23,7 @@ export default function VerifyMembers() {
   const [rejectReason, setRejectReason] = useState('');
   const [approveComment, setApproveComment] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [showExistingMemberModal, setShowExistingMemberModal] = useState(false);
 
   // Status labels for display
   const statusLabels = {
@@ -252,12 +254,23 @@ export default function VerifyMembers() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleViewDetails(member)}
-                          className="text-white bg-[#1e3a8a] hover:bg-[#1e3a8a] hover:bg-opacity-90 px-4 py-2 rounded-md font-medium transition-colors shadow-sm"
-                        >
-                          ดูรายละเอียด
-                        </button>
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleViewDetails(member)}
+                            className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                          >
+                            ดูรายละเอียด
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedMember(member);
+                              setShowExistingMemberModal(true);
+                            }}
+                            className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                          >
+                            ยืนยันสมาชิกเดิม
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}

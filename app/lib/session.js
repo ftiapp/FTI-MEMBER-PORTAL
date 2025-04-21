@@ -12,7 +12,7 @@ const adminSecretKey = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 
 export async function getSession() {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get('user_token');
+    const token = await cookieStore.get('user_token');
     
     if (!token) {
       return null;
@@ -58,7 +58,7 @@ export async function destroySession() {
 export async function getServerSession() {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get('admin_token');
+    const token = await cookieStore.get('admin_token');
     
     if (!token) {
       return null;

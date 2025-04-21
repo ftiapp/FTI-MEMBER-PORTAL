@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
 
 export default function UpdateMember() {
   const { user } = useAuth();
@@ -14,6 +15,7 @@ export default function UpdateMember() {
   });
   const [originalData, setOriginalData] = useState({});
   const [loading, setLoading] = useState(true);
+  const [loadingError, setLoadingError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [updateStatus, setUpdateStatus] = useState(null);
 
@@ -27,6 +29,7 @@ export default function UpdateMember() {
   const fetchUserData = async () => {
     try {
       setLoading(true);
+      setLoadingError(false);
       const response = await fetch(`/api/user/profile?userId=${user.id}`);
       if (response.ok) {
         const data = await response.json();
@@ -43,10 +46,12 @@ export default function UpdateMember() {
           phone: data.phone || ''
         });
       } else {
+        setLoadingError(true);
         toast.error('ไม่สามารถดึงข้อมูลผู้ใช้ได้');
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      setLoadingError(true);
       toast.error('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
     } finally {
       setLoading(false);
@@ -155,12 +160,38 @@ export default function UpdateMember() {
     
     return null;
   };
+  
+  // Handle retry when loading failed
+  const handleRetry = () => {
+    if (user?.id) {
+      fetchUserData();
+      fetchUpdateStatus();
+    }
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="bg-white rounded-xl shadow-md p-6 flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="py-16 flex flex-col items-center justify-center text-gray-600">
+          <FaSpinner className="animate-spin text-blue-600 mb-3" size={28} />
+          <p className="font-medium">กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (loadingError) {
+    return (
+      <div className="bg-white shadow rounded-lg p-6 mb-6">
+        <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
+          <FaExclamationCircle className="text-red-500 mb-3" size={28} />
+          <p className="font-medium mb-3">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
+          <button 
+            onClick={handleRetry}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
+          >
+            ลองใหม่อีกครั้ง
+          </button>
         </div>
       </div>
     );
@@ -169,7 +200,7 @@ export default function UpdateMember() {
   return (
     <div className="space-y-6">
       <div className="bg-white rounded-xl shadow-md p-6">
-        <h3 className="text-lg font-medium mb-4">แก้ไขข้อมูลส่วนตัว</h3>
+       
         
         {getStatusBadge()}
         
@@ -240,6 +271,18 @@ export default function UpdateMember() {
           </div>
         </form>
       </div>
+      
+      {/* Add global animation styles */}
+      <style jsx global>{`
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        
+        button:active {
+          transform: translateY(1px);
+        }
+      `}</style>
     </div>
   );
 }

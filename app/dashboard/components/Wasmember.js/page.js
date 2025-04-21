@@ -3,13 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
+import { useSearchParams } from 'next/navigation';
 import MemberInfoForm from './components/MemberInfoForm';
 import EditMemberForm from './components/EditMemberForm';
 import InfoAlert from './components/InfoAlert';
+
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
 
 export default function WasMember() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState({
@@ -84,6 +87,46 @@ export default function WasMember() {
     
     setSubmissions(paginatedResults);
   }, [allSubmissions, statusFilter, typeFilter, searchTerm, currentPage, itemsPerPage]);
+
+  // Check for edit parameter in URL
+  useEffect(() => {
+    const editId = searchParams.get('edit');
+    if (editId && user) {
+      // Find the submission to edit
+      const fetchSubmissionToEdit = async () => {
+        try {
+          const response = await fetch(`/api/member/get-submission-details?id=${editId}`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data.submission) {
+              const submission = {
+                id: data.submission.id,
+                memberNumber: data.submission.MEMBER_CODE,
+                memberType: data.submission.company_type,
+                companyName: data.submission.company_name,
+                taxId: data.submission.tax_id,
+                status: data.submission.Admin_Submit === 0 ? 'pending' : 
+                       data.submission.Admin_Submit === 1 ? 'approved' : 
+                       data.submission.Admin_Submit === 2 ? 'rejected' : 'pending',
+                rejectReason: data.submission.reject_reason,
+                documentId: data.submission.document_id,
+                fileName: data.submission.file_name,
+                filePath: data.submission.file_path,
+                documentStatus: data.submission.document_status
+              };
+              setSubmissionToEdit(submission);
+              setShowEditForm(true);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching submission details:', error);
+          toast.error('ไม่สามารถดึงข้อมูลการยืนยันสมาชิกได้ กรุณาลองใหม่อีกครั้ง');
+        }
+      };
+      
+      fetchSubmissionToEdit();
+    }
+  }, [searchParams, user]);
 
   // Fetch verification status and previous submissions when component mounts
   useEffect(() => {
@@ -349,195 +392,21 @@ export default function WasMember() {
     setCurrentPage(newPage);
   };
   
-  // Function to render all submissions with their status
-  const renderSubmissions = () => {
-    if (allSubmissions.length === 0 && !isLoadingSubmissions) {
-      return (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">ข้อมูลการยืนยันสมาชิกเดิม</h3>
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-            <p className="text-gray-600">ไม่พบข้อมูลการยืนยันสมาชิก</p>
-          </div>
-        </div>
-      );
-    }
-    
-    if (isLoadingSubmissions) {
-      return (
-        <div className="mb-6">
-          <h3 className="text-lg font-medium text-gray-800 mb-3">ข้อมูลการยืนยันสมาชิกเดิม</h3>
-          <div className="bg-white border border-gray-200 rounded-lg p-6 flex justify-center items-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-            <p className="ml-3 text-blue-700">กำลังโหลดข้อมูล...</p>
-          </div>
-        </div>
-      );
-    }
-    
-    const totalPages = calculateTotalPages();
-    
+  // Function to render the member verification form
+  const renderMemberVerificationForm = () => {
     return (
-      <div className="mb-6">
-        <h3 className="text-lg font-medium text-gray-800 mb-3">ข้อมูลการยืนยันสมาชิกเดิม</h3>
-        
-        {/* Filter and search controls */}
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div>
-            <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">ค้นหา</label>
-            <input
-              type="text"
-              id="search"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="ค้นหาจากชื่อบริษัท รหัสสมาชิก หรือเลขประจำตัวผู้เสียภาษี"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          {/* Status filter */}
-          <div>
-            <label htmlFor="statusFilter" className="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
-            <select
-              id="statusFilter"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">ทั้งหมด</option>
-              <option value="pending">รอตรวจสอบ</option>
-              <option value="approved">อนุมัติแล้ว</option>
-              <option value="rejected">ไม่อนุมัติ</option>
-            </select>
-          </div>
-          
-          {/* Type filter */}
-          <div>
-            <label htmlFor="typeFilter" className="block text-sm font-medium text-gray-700 mb-1">ประเภทสมาชิก</label>
-            <select
-              id="typeFilter"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-            >
-              <option value="all">ทั้งหมด</option>
-              <option value="สามัญ">สามัญ</option>
-              <option value="วิสามัญ">วิสามัญ</option>
-              <option value="กิตติมศักดิ์">กิตติมศักดิ์</option>
-            </select>
-          </div>
-        </div>
-        
-        {/* Submissions list */}
-        <div className="space-y-3">
-          {submissions.length === 0 ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-              <p className="text-gray-600">ไม่พบข้อมูลที่ตรงกับเงื่อนไขที่ค้นหา</p>
-            </div>
-          ) : (
-            submissions.map(submission => {
-              // Determine status styling based on submission status
-              let statusStyle = {};
-              let statusText = '';
-              
-              if (submission.status === 'pending') {
-                statusStyle = { bgColor: 'bg-blue-100', textColor: 'text-blue-800' };
-                statusText = 'รอตรวจสอบ';
-              } else if (submission.status === 'approved') {
-                statusStyle = { bgColor: 'bg-green-100', textColor: 'text-green-800' };
-                statusText = 'อนุมัติแล้ว';
-              } else if (submission.status === 'rejected') {
-                statusStyle = { bgColor: 'bg-red-100', textColor: 'text-red-800' };
-                statusText = 'ไม่อนุมัติ';
-              }
-              
-              return (
-                <div key={`submission-${submission.id}`} className={`border rounded-lg p-4 ${submission.status === 'rejected' ? 'bg-red-50 border-red-200' : submission.status === 'approved' ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'}`}>
-                  <div className="flex items-start">
-                    <div className="flex-shrink-0 mt-1">
-                      <div className={`w-3 h-3 rounded-full ${submission.status === 'rejected' ? 'bg-red-500' : submission.status === 'approved' ? 'bg-green-500' : 'bg-blue-500'}`}></div>
-                    </div>
-                    <div className="ml-3 flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium text-gray-800">{submission.companyName}</p>
-                          <p className="text-sm text-gray-600">รหัสสมาชิก: {submission.memberNumber} | ประเภท: {submission.memberType}</p>
-                          {submission.status === 'rejected' && submission.rejectReason && (
-                            <p className="mt-2 text-sm text-red-600">เหตุผลที่ไม่อนุมัติ: {submission.rejectReason}</p>
-                          )}
-                          
-                          {/* Add edit and delete buttons for rejected submissions */}
-                          {submission.status === 'rejected' && (
-                            <div className="mt-3 flex space-x-2">
-                              <button 
-                                onClick={() => {
-                                  setSubmissionToEdit({...submission, userId: user?.id});
-                                  setShowEditForm(true);
-                                }}
-                                className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm font-medium flex items-center"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                แก้ไขข้อมูล
-                              </button>
-                              <button 
-                                onClick={() => {
-                                  setSubmissionToDelete(submission);
-                                  setShowDeleteModal(true);
-                                }}
-                                className="px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-sm font-medium flex items-center"
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                ลบข้อมูล
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                        <span className={`px-2 py-1 text-xs font-medium ${statusStyle.bgColor} ${statusStyle.textColor} rounded-full`}>{statusText}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-        
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-4">
-            <nav className="inline-flex rounded-md shadow">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`px-3 py-2 rounded-l-md border ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              >
-                ก่อนหน้า
-              </button>
-              
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => handlePageChange(i + 1)}
-                  className={`px-3 py-2 border-t border-b ${currentPage === i + 1 ? 'bg-blue-50 text-blue-700 border-blue-500' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-              
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className={`px-3 py-2 rounded-r-md border ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
-              >
-                ถัดไป
-              </button>
-            </nav>
-          </div>
-        )}
+      <div className={showTemporaryStatus || isSubmitting ? 'opacity-50 pointer-events-none' : ''}>
+        <MemberInfoForm 
+          formData={formData}
+          setFormData={setFormData}
+          formErrors={formErrors}
+          setFormErrors={setFormErrors}
+          selectedResult={selectedResult}
+          setSelectedResult={setSelectedResult}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+          showSubmitButton={!isSubmitting}
+        />
       </div>
     );
   };
@@ -583,9 +452,6 @@ export default function WasMember() {
 
   return (
     <div className="space-y-6">
-      {/* Always show existing submissions */}
-      {renderSubmissions()}
-      
       {/* Show loading indicator when submitting */}
       {isSubmitting && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -596,21 +462,8 @@ export default function WasMember() {
         </div>
       )}
       
-      {/* Always show form */}
-      <div className={showTemporaryStatus || isSubmitting ? 'opacity-50 pointer-events-none' : ''}>
-        <InfoAlert />
-        <MemberInfoForm 
-          formData={formData}
-          setFormData={setFormData}
-          formErrors={formErrors}
-          setFormErrors={setFormErrors}
-          selectedResult={selectedResult}
-          setSelectedResult={setSelectedResult}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          showSubmitButton={!isSubmitting}
-        />
-      </div>
+      {/* Show member verification form */}
+      {renderMemberVerificationForm()}
       
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

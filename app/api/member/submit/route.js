@@ -30,9 +30,9 @@ export async function POST(request) {
       );
     }
     
-    // Check if MEMBER_CODE is already used by another user
+    // Check if MEMBER_CODE is already used by another user (excluding deleted records)
     const existingMemberOtherUser = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ?`,
+      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ? AND Admin_Submit != 3`,
       [memberNumber, userId]
     );
     
@@ -43,9 +43,9 @@ export async function POST(request) {
       );
     }
     
-    // Check if current user has already submitted this MEMBER_CODE
+    // Check if current user has already submitted this MEMBER_CODE (excluding deleted records)
     const existingMemberSameUser = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ?`,
+      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ? AND Admin_Submit != 3`,
       [memberNumber, userId]
     );
     

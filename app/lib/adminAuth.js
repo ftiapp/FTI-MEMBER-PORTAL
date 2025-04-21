@@ -92,8 +92,26 @@ export async function getAdminFromSession() {
 }
 
 // ฟังก์ชันสำหรับบันทึกการกระทำของ admin
-export async function logAdminAction(adminId, actionType, targetId, description, req) {
+export async function logAdminAction(adminId, actionType, targetId, description, req, userId = null) {
   try {
+    // ตรวจสอบว่า description เป็น object หรือไม่
+    let descriptionStr = description;
+    
+    // ถ้าเป็น object ให้เพิ่ม userId เข้าไป
+    if (typeof description === 'object') {
+      // ถ้ามี userId ที่ส่งมาให้เพิ่มเข้าไปใน description
+      if (userId) {
+        description.userId = userId;
+      }
+      descriptionStr = JSON.stringify(description);
+    } else if (userId) {
+      // ถ้า description ไม่ใช่ object แต่มี userId ให้สร้าง object ใหม่
+      descriptionStr = JSON.stringify({
+        originalDescription: description,
+        userId: userId
+      });
+    }
+    
     await query(
       `INSERT INTO admin_actions_log 
        (admin_id, action_type, target_id, description, ip_address, user_agent) 
@@ -102,7 +120,7 @@ export async function logAdminAction(adminId, actionType, targetId, description,
         adminId,
         actionType,
         targetId,
-        description,
+        descriptionStr,
         req.headers.get('x-forwarded-for') || req.ip || '',
         req.headers.get('user-agent') || ''
       ]

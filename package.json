@@ -16,6 +16,7 @@
     "bcryptjs": "^3.0.2",
     "cloudinary": "^2.6.0",
     "date-fns": "^4.1.0",
+    "framer-motion": "^12.7.4",
     "jose": "^6.0.10",
     "lodash": "^4.17.21",
     "lucide-react": "^0.487.0",

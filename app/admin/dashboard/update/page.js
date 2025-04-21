@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
+import { motion } from 'framer-motion';
 
 export default function UpdateMembers() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [members, setMembers] = useState([]);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [memberData, setMemberData] = useState({
     MEMBER_CODE: '',
     company_name: '',
@@ -23,10 +25,16 @@ export default function UpdateMembers() {
     admin_comment: ''
   });
 
-  // Fetch members on initial load
+  // Reference to previous search term for animation control
+  const prevSearchRef = useRef(searchTerm);
+  
+  // Fetch members when search term changes
   useEffect(() => {
-    if (searchTerm.length > 0) {
-      searchMembers();
+    if (searchTerm.length >= 2) {
+      const delayDebounceFn = setTimeout(() => {
+        searchMembers();
+      }, 300);
+      return () => clearTimeout(delayDebounceFn);
     } else {
       setMembers([]);
       setIsLoading(false);
@@ -39,6 +47,9 @@ export default function UpdateMembers() {
   const searchMembers = async () => {
     if (searchTerm.length < 2) return;
     
+    // Store previous search term for animation purposes
+    prevSearchRef.current = searchTerm;
+    
     try {
       setIsLoading(true);
       const response = await fetch(`/api/admin/search-members?term=${encodeURIComponent(searchTerm)}`);
@@ -50,7 +61,7 @@ export default function UpdateMembers() {
       const result = await response.json();
       
       if (result.success) {
-        setMembers(result.data);
+        setMembers(result.data || []);
       } else {
         toast.error(result.message || 'ไม่สามารถค้นหาข้อมูลได้');
       }
@@ -120,7 +131,7 @@ export default function UpdateMembers() {
     e.preventDefault();
     
     try {
-      setIsLoading(true);
+      setIsSubmitting(true);
       const response = await fetch('/api/admin/update-member', {
         method: 'POST',
         headers: {
@@ -149,53 +160,96 @@ export default function UpdateMembers() {
       console.error('Error updating member:', error);
       toast.error('เกิดข้อผิดพลาดในการอัพเดตข้อมูลสมาชิก');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
+  };
+  
+  // Animation variants for page transitions - Simplified for smoother experience
+  const pageVariants = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    exit: { opacity: 0 }
+  };
+
+  // Transition settings - Reduced for more responsiveness
+  const pageTransition = {
+    type: "tween", 
+    ease: "easeOut",
+    duration: 0.2
   };
 
   return (
     <AdminLayout>
-      <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-xl font-semibold mb-6">อัพเดตข้อมูลสมาชิก</h2>
-        
-        {/* Search Bar */}
-        <div className="mb-6">
-          <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-1">
-            ค้นหาสมาชิก
-          </label>
-          <div className="mt-1 flex rounded-md shadow-sm">
-            <input
-              type="text"
-              name="search"
-              id="search"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300"
-              placeholder="ค้นหาด้วยชื่อบริษัท, รหัสสมาชิก, หรืออีเมล"
-            />
-            <button
-              type="button"
-              onClick={searchMembers}
-              className="ml-3 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-            >
-              ค้นหา
-            </button>
-          </div>
-          <p className="mt-1 text-sm text-gray-500">
-            พิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา
-          </p>
+      <motion.div 
+        className="space-y-4 max-w-7xl mx-auto px-4 sm:px-6"
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={pageVariants}
+        transition={pageTransition}
+      >
+        <div className="flex justify-between items-center py-5">
+          <h1 className="text-2xl font-bold text-gray-900">
+            อัพเดตข้อมูลสมาชิก
+          </h1>
         </div>
         
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        {/* Search Section - Improved clarity */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+          <div className="p-5">
+            <div className="space-y-2">
+              <label htmlFor="search" className="block text-base font-medium text-gray-900">
+                ค้นหาสมาชิก
+              </label>
+              <div className="flex rounded-md shadow-sm">
+                <input
+                  type="text"
+                  name="search"
+                  id="search"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="flex-1 block w-full rounded-l-md border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 text-base placeholder:text-gray-400"
+                  placeholder="ชื่อบริษัท, รหัสสมาชิก, หรืออีเมล"
+                />
+                <button
+                  type="button"
+                  onClick={searchMembers}
+                  disabled={searchTerm.length < 2 || isLoading}
+                  className="inline-flex items-center px-5 py-3 border border-l-0 border-transparent text-base font-medium rounded-r-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'กำลังค้นหา...' : 'ค้นหา'}
+                </button>
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                พิมพ์อย่างน้อย 2 ตัวอักษรเพื่อค้นหา 
+                {searchTerm.length >= 2 && !isLoading && members.length > 0 && 
+                  <span className="font-medium text-blue-600 ml-1">(พบ {members.length} รายการ)</span>
+                }
+              </p>
+            </div>
           </div>
-        ) : (
+        </div>
+
+        {/* Loading State - Simplified and clearer */}
+        {isLoading && (
+          <div className="flex justify-center items-center py-12">
+            <div className="flex flex-col items-center">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+              <p className="mt-3 text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Results Container */}
+        {!isLoading && (
           <>
-            {/* Search Results */}
+            {/* Members List - Improved clarity with better spacing and hover states */}
             {members.length > 0 && !selectedMember && (
-              <div className="mt-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-3">ผลการค้นหา</h3>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mt-5">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                  <h2 className="font-semibold text-gray-900 text-lg">รายการสมาชิก</h2>
+                  <span className="text-sm text-gray-500">คลิกที่รายการเพื่อแก้ไข</span>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
@@ -217,32 +271,39 @@ export default function UpdateMembers() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-100 bg-white">
                       {members.map((member) => (
-                        <tr key={member.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <tr 
+                          key={member.id} 
+                          className="hover:bg-blue-50 transition-colors duration-150 cursor-pointer"
+                          onClick={() => handleSelectMember(member)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             {member.MEMBER_CODE || '-'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm font-medium text-gray-900">{member.company_name}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{member.email}</div>
+                            <div className="text-sm text-gray-700">{member.email}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
                               ${member.Admin_Submit === 0 ? 'bg-yellow-100 text-yellow-800' : 
-                                member.Admin_Submit === 1 ? 'bg-green-100 text-green-800' : 
-                                'bg-red-100 text-red-800'}`}>
+                              member.Admin_Submit === 1 ? 'bg-green-100 text-green-800' : 
+                              'bg-red-100 text-red-800'}`}>
                               {member.Admin_Submit === 0 ? 'รอการอนุมัติ' : 
-                               member.Admin_Submit === 1 ? 'อนุมัติแล้ว' : 
-                               'ปฏิเสธแล้ว'}
+                              member.Admin_Submit === 1 ? 'อนุมัติแล้ว' : 
+                              'ปฏิเสธแล้ว'}
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <button
-                              onClick={() => handleSelectMember(member)}
-                              className="text-indigo-600 hover:text-indigo-900"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectMember(member);
+                              }}
+                              className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-md transition-colors duration-150 font-medium"
                             >
                               แก้ไข
                             </button>
@@ -254,228 +315,257 @@ export default function UpdateMembers() {
                 </div>
               </div>
             )}
-            
-            {/* Member Edit Form */}
+
+            {/* Member Edit Form - Improved with better spacing, sections and clear grouping */}
             {selectedMember && (
-              <div className="mt-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">แก้ไขข้อมูลสมาชิก</h3>
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mt-5">
+                <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-gray-900">แก้ไขข้อมูลสมาชิก</h3>
                   <button
                     onClick={() => setSelectedMember(null)}
-                    className="text-sm text-gray-600 hover:text-gray-900"
+                    className="text-gray-600 hover:text-gray-800 flex items-center bg-white hover:bg-gray-100 px-4 py-2 rounded-md shadow-sm transition-colors duration-150 text-sm font-medium border border-gray-200"
                   >
-                    &larr; กลับไปค้นหา
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    กลับไปค้นหา
                   </button>
                 </div>
                 
                 <form onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
-                    <div className="sm:col-span-3">
-                      <label htmlFor="MEMBER_CODE" className="block text-sm font-medium text-gray-700">
-                        รหัสสมาชิก
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="MEMBER_CODE"
-                          id="MEMBER_CODE"
-                          value={memberData.MEMBER_CODE}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
+                  <div className="p-6">
+                    {/* Form sections for better organization */}
+                    <div className="mb-8">
+                      <h4 className="text-lg font-medium text-gray-900 mb-4 pb-2 border-b border-gray-200">ข้อมูลทั่วไป</h4>
+                      <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
+                        <div className="sm:col-span-3">
+                          <label htmlFor="MEMBER_CODE" className="block text-sm font-medium text-gray-700 mb-1">
+                            รหัสสมาชิก
+                          </label>
+                          <input
+                            type="text"
+                            name="MEMBER_CODE"
+                            id="MEMBER_CODE"
+                            value={memberData.MEMBER_CODE}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="company_name" className="block text-sm font-medium text-gray-700 mb-1">
+                            ชื่อบริษัท <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            name="company_name"
+                            id="company_name"
+                            value={memberData.company_name}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                            required
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="company_type" className="block text-sm font-medium text-gray-700 mb-1">
+                            ประเภทธุรกิจ
+                          </label>
+                          <input
+                            type="text"
+                            name="company_type"
+                            id="company_type"
+                            value={memberData.company_type}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="registration_number" className="block text-sm font-medium text-gray-700 mb-1">
+                            เลขทะเบียนบริษัท
+                          </label>
+                          <input
+                            type="text"
+                            name="registration_number"
+                            id="registration_number"
+                            value={memberData.registration_number}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="tax_id" className="block text-sm font-medium text-gray-700 mb-1">
+                            เลขประจำตัวผู้เสียภาษี
+                          </label>
+                          <input
+                            type="text"
+                            name="tax_id"
+                            id="tax_id"
+                            value={memberData.tax_id}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="sm:col-span-3">
-                      <label htmlFor="company_name" className="block text-sm font-medium text-gray-700">
-                        ชื่อบริษัท
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="company_name"
-                          id="company_name"
-                          value={memberData.company_name}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                          required
-                        />
+                    {/* Address Section */}
+                    <div className="mb-8">
+                      <h4 className="text-lg font-medium text-gray-900 mb-4 pb-2 border-b border-gray-200">ที่อยู่และการติดต่อ</h4>
+                      <div className="grid grid-cols-1 gap-y-6 gap-x-6 sm:grid-cols-6">
+                        <div className="sm:col-span-6">
+                          <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
+                            ที่อยู่
+                          </label>
+                          <textarea
+                            id="address"
+                            name="address"
+                            rows={3}
+                            value={memberData.address}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">
+                            จังหวัด
+                          </label>
+                          <input
+                            type="text"
+                            name="province"
+                            id="province"
+                            value={memberData.province}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700 mb-1">
+                            รหัสไปรษณีย์
+                          </label>
+                          <input
+                            type="text"
+                            name="postal_code"
+                            id="postal_code"
+                            value={memberData.postal_code}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                            โทรศัพท์
+                          </label>
+                          <input
+                            type="text"
+                            name="phone"
+                            id="phone"
+                            value={memberData.phone}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">
+                            เว็บไซต์
+                          </label>
+                          <input
+                            type="text"
+                            name="website"
+                            id="website"
+                            value={memberData.website}
+                            onChange={handleInputChange}
+                            className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                            placeholder="https://example.com"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="sm:col-span-3">
-                      <label htmlFor="company_type" className="block text-sm font-medium text-gray-700">
-                        ประเภทธุรกิจ
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="company_type"
-                          id="company_type"
-                          value={memberData.company_type}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="registration_number" className="block text-sm font-medium text-gray-700">
-                        เลขทะเบียนบริษัท
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="registration_number"
-                          id="registration_number"
-                          value={memberData.registration_number}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="tax_id" className="block text-sm font-medium text-gray-700">
-                        เลขประจำตัวผู้เสียภาษี
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="tax_id"
-                          id="tax_id"
-                          value={memberData.tax_id}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-6">
-                      <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                        ที่อยู่
-                      </label>
-                      <div className="mt-1">
-                        <textarea
-                          id="address"
-                          name="address"
-                          rows={3}
-                          value={memberData.address}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="province" className="block text-sm font-medium text-gray-700">
-                        จังหวัด
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="province"
-                          id="province"
-                          value={memberData.province}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="postal_code" className="block text-sm font-medium text-gray-700">
-                        รหัสไปรษณีย์
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="postal_code"
-                          id="postal_code"
-                          value={memberData.postal_code}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                        โทรศัพท์
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="phone"
-                          id="phone"
-                          value={memberData.phone}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-3">
-                      <label htmlFor="website" className="block text-sm font-medium text-gray-700">
-                        เว็บไซต์
-                      </label>
-                      <div className="mt-1">
-                        <input
-                          type="text"
-                          name="website"
-                          id="website"
-                          value={memberData.website}
-                          onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="sm:col-span-6">
-                      <label htmlFor="admin_comment" className="block text-sm font-medium text-gray-700">
-                        ความคิดเห็นจากผู้ดูแลระบบ
-                      </label>
-                      <div className="mt-1">
+                    {/* Admin Section */}
+                    <div>
+                      <h4 className="text-lg font-medium text-gray-900 mb-4 pb-2 border-b border-gray-200">ข้อมูลสำหรับผู้ดูแลระบบ</h4>
+                      <div className="sm:col-span-6">
+                        <label htmlFor="admin_comment" className="block text-sm font-medium text-gray-700 mb-1">
+                          ความคิดเห็นจากผู้ดูแลระบบ
+                        </label>
                         <textarea
                           id="admin_comment"
                           name="admin_comment"
                           rows={3}
                           value={memberData.admin_comment}
                           onChange={handleInputChange}
-                          className="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 rounded-md"
+                          className="shadow-sm focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"
                           placeholder="ความคิดเห็นเพิ่มเติม (จะแสดงให้สมาชิกเห็น)"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex justify-end">
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end space-x-4">
                     <button
                       type="button"
                       onClick={() => setSelectedMember(null)}
-                      className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 mr-3"
+                      className="bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150"
+                      disabled={isSubmitting}
                     >
                       ยกเลิก
                     </button>
                     <button
                       type="submit"
-                      className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      disabled={isSubmitting}
+                      className="inline-flex items-center py-2 px-6 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-150 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                      บันทึกข้อมูล
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          กำลังบันทึก...
+                        </>
+                      ) : (
+                        'บันทึกข้อมูล'
+                      )}
                     </button>
                   </div>
                 </form>
               </div>
             )}
             
-            {searchTerm.length > 0 && members.length === 0 && !isLoading && (
-              <div className="text-center py-8 text-gray-500">
-                ไม่พบข้อมูลสมาชิกที่ตรงกับคำค้นหา
+            {/* Empty State - No Results - Improved with clear call to action */}
+            {searchTerm.length >= 2 && members.length === 0 && !isLoading && (
+              <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-8 mt-5">
+                <div className="text-center max-w-md mx-auto">
+                  <div className="bg-gray-50 p-4 rounded-full inline-flex mx-auto mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-gray-900 font-semibold text-lg">ไม่พบข้อมูลสมาชิก</h3>
+                  <p className="mt-2 text-sm text-gray-500 mb-4">
+                    ไม่พบข้อมูลสมาชิกที่ตรงกับคำค้นหา "{searchTerm}"
+                  </p>
+                  <div className="flex justify-center">
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="text-blue-600 border border-blue-200 hover:bg-blue-50 font-medium rounded-md px-4 py-2 text-sm"
+                    >
+                      ล้างการค้นหา
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </>
         )}
-      </div>
+      </motion.div>
     </AdminLayout>
   );
 }

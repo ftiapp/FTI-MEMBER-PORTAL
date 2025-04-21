@@ -3,7 +3,7 @@ import { query } from '@/app/lib/db';
 
 export async function POST(request, { params }) {
   try {
-    const id = params.id;
+    const id = await params?.id;
     const { adminId, adminName } = await request.json();
     
     if (!id) {

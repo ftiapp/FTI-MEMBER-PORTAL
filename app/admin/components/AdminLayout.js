@@ -1,237 +1,160 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { toast } from 'react-hot-toast';
+import AdminSidebar from './AdminSidebar';
 
-/**
- * Admin Layout Component
- * 
- * This component provides a consistent layout for admin pages with a sidebar navigation
- * and header showing admin information.
- */
 export default function AdminLayout({ children }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const [adminInfo, setAdminInfo] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
+  const router = useRouter();
+  const [adminData, setAdminData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [pageTitle, setPageTitle] = useState('');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  // Fetch admin info on component mount
+  // Set page title based on current path
   useEffect(() => {
-    fetchAdminInfo();
-    fetchUnreadMessagesCount();
+    const pathSegments = pathname.split('/');
+    const lastSegment = pathSegments[pathSegments.length - 1];
     
-    // ตั้งเวลาดึงจำนวนข้อความที่ยังไม่อ่านทุก 1 นาที
-    const intervalId = setInterval(fetchUnreadMessagesCount, 60000);
-    
-    return () => clearInterval(intervalId);
-  }, []);
-  
-  /**
-   * Fetches the current admin's information
-   */
-  const fetchAdminInfo = async () => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/admin/info');
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('กรุณาเข้าสู่ระบบ');
-          router.push('/admin');
-          return;
-        }
-        throw new Error('Failed to fetch admin info');
-      }
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setAdminInfo(result.admin);
-      } else {
-        toast.error(result.message || 'ไม่สามารถดึงข้อมูลผู้ดูแลระบบได้');
-        router.push('/admin');
-      }
-    } catch (error) {
-      console.error('Error fetching admin info:', error);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ดูแลระบบ');
-    } finally {
-      setIsLoading(false);
+    let title = '';
+    switch(lastSegment) {
+      case 'admin':
+        title = 'แดชบอร์ด';
+        break;
+      case 'members':
+        title = 'จัดการสมาชิก';
+        break;
+      case 'verifications':
+        title = 'ยืนยันตัวตนสมาชิก';
+        break;
+      case 'contact-messages':
+        title = 'ข้อคิดเห็นเพิ่มเติม';
+        break;
+      case 'recent-activities':
+        title = 'กิจกรรมล่าสุด';
+        break;
+      case 'settings':
+        title = 'ตั้งค่าระบบ';
+        break;
+      default:
+        title = 'ระบบจัดการ';
     }
-  };
+    
+    setPageTitle(title);
+  }, [pathname]);
   
-  /**
-   * Fetches the count of unread contact messages
-   */
-  const fetchUnreadMessagesCount = async () => {
-    try {
-      const response = await fetch('/api/admin/unread-messages-count');
-      
-      if (response.ok) {
+  // ตรวจสอบสถานะการเข้าสู่ระบบของ admin จาก cookie
+  useEffect(() => {
+    async function checkAdminSession() {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/admin/check-session', {
+          // ใช้ cache: 'no-store' เพื่อป้องกันการใช้ข้อมูลเก่าจาก cache
+          cache: 'no-store',
+          // ใช้ next: { revalidate: 0 } เพื่อให้ข้อมูลถูกดึงใหม่ทุกครั้ง
+          next: { revalidate: 0 }
+        });
         const data = await response.json();
-        setUnreadCount(data.count);
+        
+        if (data.success && data.admin) {
+          setAdminData(data.admin);
+        } else {
+          // ถ้าไม่มี session ให้ redirect ไปหน้า admin login
+          router.push('/admin', { scroll: false });
+        }
+      } catch (error) {
+        console.error('Error checking admin session:', error);
+        router.push('/admin', { scroll: false });
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error fetching unread messages count:', error);
     }
+    
+    checkAdminSession();
+  }, [router]);
+  
+  // Handle link clicks to prevent full page reloads
+  const handleLinkClick = (e, href) => {
+    e.preventDefault();
+    // ใช้ scroll: false เพื่อป้องกันการเลื่อนหน้าไปด้านบนเมื่อมีการนำทาง
+    router.push(href, { scroll: false });
+    setIsMobileMenuOpen(false); // Close mobile menu after navigation
   };
   
-  /**
-   * Handles admin logout
-   */
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/admin/logout', {
-        method: 'POST'
-      });
-      
-      if (response.ok) {
-        toast.success('ออกจากระบบสำเร็จ');
-        router.push('/admin');
-      } else {
-        toast.error('เกิดข้อผิดพลาดในการออกจากระบบ');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast.error('เกิดข้อผิดพลาดในการออกจากระบบ');
-    }
-  };
-  
-  // Menu items configuration
-  const menuItems = [
-    {
-      title: 'ยืนยันสมาชิกเดิม',
-      href: '/admin/dashboard/verify',
-      submenu: [
-        { title: 'รอการอนุมัติ', href: '/admin/dashboard/verify?status=0' },
-        { title: 'อนุมัติแล้ว', href: '/admin/dashboard/verify?status=1' },
-        { title: 'ปฏิเสธแล้ว', href: '/admin/dashboard/verify?status=2' }
-      ]
-    },
-    {
-      title: 'อัพเดตสมาชิก',
-      href: '/admin/dashboard/update',
-    },
-    {
-      title: 'คำขอแก้ไขข้อมูลสมาชิก',
-      href: '/admin/dashboard/profile-updates',
-      submenu: [
-        { title: 'รอการอนุมัติ', href: '/admin/dashboard/profile-updates?status=pending' },
-        { title: 'อนุมัติแล้ว', href: '/admin/dashboard/profile-updates?status=approved' },
-        { title: 'ปฏิเสธแล้ว', href: '/admin/dashboard/profile-updates?status=rejected' }
-      ]
-    },
-    {
-      title: 'ข้อความติดต่อ',
-      href: '/admin/dashboard/contact-messages',
-      badge: unreadCount > 0 ? unreadCount : null
-    }
-  ];
-  
-  // Check if the current path matches a menu item or its submenu
-  const isActiveMenu = (item) => {
-    if (pathname === item.href) return true;
-    if (item.submenu) {
-      return item.submenu.some(subItem => pathname.startsWith(subItem.href.split('?')[0]));
-    }
-    return false;
-  };
-  
-  // Check if submenu should be expanded
-  const isSubmenuExpanded = (item) => {
-    if (!item.submenu) return false;
-    return isActiveMenu(item);
-  };
-  
-  if (isLoading) {
+  if (loading || !adminData) {
     return (
-      <div className="min-h-screen flex justify-center items-center bg-white">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
+      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
   
   return (
-    <div className="min-h-screen bg-white flex">
-      {/* Sidebar */}
-      <div className="w-64 bg-[#1e3a8a] shadow-md"> {/* Navy blue background */}
-        <div className="p-4 border-b border-blue-900">
-          <h1 className="text-xl font-bold text-white">FTI-Portal Admin</h1>
-        </div>
-        
-        <nav className="mt-4">
-          <ul>
-            {menuItems.map((item, index) => (
-              <li key={index} className="mb-1">
-                <Link 
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 text-white hover:bg-blue-800 transition-colors ${isActiveMenu(item) ? 'bg-blue-700 font-medium' : ''}`}
-                >
-                  <span className="flex-grow">{item.title}</span>
-                  {item.badge && (
-                    <span className="bg-red-500 text-white text-xs font-bold rounded-full px-2 py-1 ml-2">
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-                
-                {item.submenu && (
-                  <ul className={`ml-4 border-l border-blue-700 ${isSubmenuExpanded(item) ? 'block' : 'hidden'}`}>
-                    {item.submenu.map((subItem, subIndex) => (
-                      <li key={subIndex}>
-                        <Link 
-                          href={subItem.href}
-                          className={`flex items-center px-4 py-2 text-sm text-blue-100 hover:bg-blue-800 transition-colors ${pathname === subItem.href || pathname.includes(subItem.href) ? 'bg-[#1e3a8a] font-medium' : ''}`}
-                        >
-                          <span>{subItem.title}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        </nav>
+    <div className="flex h-screen bg-gray-50">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:block">
+        <AdminSidebar />
       </div>
       
-      {/* Main content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-[#1e3a8a] shadow-md z-10"> {/* Navy blue header */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-white">
-              หน้าควบคุมผู้ดูแลระบบ
-            </h1>
-            
-            <div className="flex items-center space-x-4">
-              {adminInfo && (
-                <div className="text-sm text-white">
-                  <span>Admin ID: </span>
-                  <span className="font-medium">{adminInfo.id}</span>
-                  {adminInfo.level === 5 && (
-                    <span className="ml-1 px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full font-bold">
-                      SuperAdmin
-                    </span>
-                  )}
+      {/* Mobile Sidebar */}
+      <div className={`fixed inset-0 z-20 transition-opacity ${isMobileMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}>
+        <div className="absolute inset-0 bg-gray-600 opacity-75" onClick={() => setIsMobileMenuOpen(false)}></div>
+        <div className="relative flex flex-col w-80 max-w-sm h-full bg-gray-800 shadow-xl">
+          <AdminSidebar />
+        </div>
+      </div>
+      
+      {/* Main Content */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        {/* Top Navigation */}
+        <header className="bg-white shadow-sm z-10">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between h-16">
+              <div className="flex">
+                <button
+                  onClick={() => setIsMobileMenuOpen(true)}
+                  className="px-4 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden"
+                >
+                  <span className="sr-only">Open sidebar</span>
+                  <svg className="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                <div className="flex items-center px-2 lg:px-0">
+                  <h1 className="text-2xl font-semibold text-gray-800">{pageTitle}</h1>
                 </div>
-              )}
-              
-              <button
-                onClick={handleLogout}
-                className="px-3 py-1.5 bg-white text-[#1e3a8a] text-sm font-medium rounded-md hover:bg-gray-100 transition-colors shadow-sm"
-              >
-                ออกจากระบบ
-              </button>
+              </div>
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                    <span className="mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
+                    Admin
+                  </span>
+                </div>
+                <div className="ml-4 flex items-center md:ml-6">
+                  <div className="relative">
+                    <button className="flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                      <span className="sr-only">Open user menu</span>
+                      <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                        {adminData?.username?.charAt(0) || 'A'}
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </header>
         
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-white">
-          {children}
+        {/* Page Content */}
+        <main className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="bg-white shadow-sm rounded-lg p-6">
+              {children}
+            </div>
+          </div>
         </main>
       </div>
     </div>

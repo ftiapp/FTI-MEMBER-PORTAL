@@ -1,15 +1,15 @@
 import { query } from '@/app/lib/db';
 import { NextResponse } from 'next/server';
-import { getServerSession } from '@/app/lib/session';
+import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { getClientIp } from '@/app/lib/utils';
 
 export async function POST(request) {
   try {
     // Check admin session
-    const session = await getServerSession();
-    if (!session || !session.admin) {
+    const admin = await getAdminFromSession();
+    if (!admin) {
       return NextResponse.json(
-        { error: 'ไม่ได้รับอนุญาต' },
+        { success: false, message: 'ไม่ได้รับอนุญาต' },
         { status: 401 }
       );
     }
@@ -58,7 +58,7 @@ export async function POST(request) {
       `UPDATE profile_update_requests 
        SET status = "approved", admin_id = ?, admin_comment = ?, updated_at = NOW() 
        WHERE id = ?`,
-      [session.admin.id, comment || null, requestId]
+      [admin.id, comment || null, requestId]
     );
 
     // Get client IP and user agent
@@ -71,7 +71,7 @@ export async function POST(request) {
        (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
-        session.admin.id,
+        admin.id,
         'approve_profile_update',
         requestId,
         JSON.stringify({
