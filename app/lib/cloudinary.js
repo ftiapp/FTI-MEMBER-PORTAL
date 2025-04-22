@@ -1,6 +1,7 @@
 'use server';
 
 import { v2 as cloudinary } from 'cloudinary';
+import sharp from 'sharp';
 
 // Configure Cloudinary
 cloudinary.config({
@@ -21,15 +22,45 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
     // Determine the correct MIME type based on file extension
     const fileExt = fileName.split('.').pop().toLowerCase();
     let mimeType = 'application/octet-stream';
+    let processedBuffer = fileBuffer;
     
     // Set appropriate MIME type for common document types
     if (fileExt === 'pdf') mimeType = 'application/pdf';
     else if (['doc', 'docx'].includes(fileExt)) mimeType = 'application/msword';
     else if (['xls', 'xlsx'].includes(fileExt)) mimeType = 'application/vnd.ms-excel';
     else if (fileExt === 'txt') mimeType = 'text/plain';
+    else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+      // Process images to reduce size and resolution
+      try {
+        console.log(`Processing image: ${fileName} (${fileBuffer.length} bytes)`);
+        
+        // Determine if it's an image type
+        if (fileExt === 'jpg' || fileExt === 'jpeg') mimeType = 'image/jpeg';
+        else if (fileExt === 'png') mimeType = 'image/png';
+        else if (fileExt === 'gif') mimeType = 'image/gif';
+        else if (fileExt === 'webp') mimeType = 'image/webp';
+        
+        // Compress and resize the image
+        processedBuffer = await sharp(fileBuffer)
+          .resize({ 
+            width: 1280, // Limit width to 1280px
+            height: 1280, // Limit height to 1280px
+            fit: 'inside', // Maintain aspect ratio
+            withoutEnlargement: true // Don't enlarge smaller images
+          })
+          .jpeg({ quality: 80 }) // Convert to JPEG with 80% quality
+          .toBuffer();
+          
+        console.log(`Image processed: ${fileName} (${processedBuffer.length} bytes, ${Math.round((1 - processedBuffer.length / fileBuffer.length) * 100)}% reduction)`);
+        mimeType = 'image/jpeg'; // Set to JPEG since we converted it
+      } catch (imageError) {
+        console.error('Error processing image:', imageError);
+        // If image processing fails, continue with original buffer
+      }
+    }
     
     // Convert buffer to base64
-    const base64Data = Buffer.from(fileBuffer).toString('base64');
+    const base64Data = Buffer.from(processedBuffer).toString('base64');
     const dataURI = `data:${mimeType};base64,${base64Data}`;
     
     // Upload to Cloudinary
@@ -39,7 +70,8 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
         folder,
         resource_type: 'auto',
         public_id: `${Date.now()}_${fileName.split('.')[0].replace(/\s+/g, '_')}`,
-        overwrite: true
+        overwrite: true,
+        timeout: 120000 // Increase timeout to 2 minutes (120000ms)
       };
       
       // For PDFs, set specific options to ensure they're viewable
@@ -47,6 +79,15 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
         options.resource_type = 'auto';
         options.format = 'pdf';
         // ไม่ต้องใช้ flags attachment เพราะจะทำให้ไม่สามารถเปิดดูได้โดยตรง
+      } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+        // For images, set optimization options
+        options.format = 'jpg'; // Force JPEG format for all images
+        options.quality = 'auto'; // Let Cloudinary optimize quality
+        options.fetch_format = 'auto'; // Let Cloudinary choose best format
+        options.flags = 'lossy'; // Allow lossy compression
+        options.transformation = [
+          { width: 1280, height: 1280, crop: 'limit' } // Limit dimensions
+        ];
       } else {
         options.format = fileExt; // Explicitly set the format based on file extension
       }

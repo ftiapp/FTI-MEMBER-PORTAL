@@ -144,53 +144,80 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
  * Send approval email to member
  * @param {string} email - Member's email address
  * @param {string} name - Member's name
+ * @param {object} memberData - Member data including MEMBER_CODE and company_name
  * @param {string} comment - Admin's comment (optional)
  * @returns {Promise} - Promise with email sending result
  */
-export async function sendApprovalEmail(email, name, comment) {
+export async function sendApprovalEmail(email, firstname, lastname, memberCode, companyName, comment) {
+  const fullName = `${firstname} ${lastname}`.trim();
   // Create base URL for login
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
   const loginLink = `${baseUrl}/login`;
+  const dashboardLink = `${baseUrl}/dashboard`;
+
+  
+  
 
   const recipients = [new Recipient(email, name)];
 
   const emailParams = new EmailParams()
     .setFrom(defaultSender)
     .setTo(recipients)
-    .setSubject("การยืนยันตัวตนของคุณได้รับการอนุมัติแล้ว - FTI Portal")
+    .setSubject("การยืนยันตัวตนได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย")
     .setHtml(`
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+      <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #16a34a;">การยืนยันตัวตนได้รับการอนุมัติแล้ว</h1>
+          <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
+          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการอนุมัติยืนยันตัวตน</h1>
         </div>
-        <div style="margin-bottom: 30px;">
-          <p>สวัสดี ${name},</p>
-          <p>เรายินดีที่จะแจ้งให้คุณทราบว่า <strong>การยืนยันตัวตนของคุณได้รับการอนุมัติแล้ว</strong> คุณสามารถเข้าสู่ระบบและใช้งานได้เต็มรูปแบบ</p>
-          ${comment ? `<div style="background-color: #f0fdf4; padding: 15px; border-radius: 5px; margin: 20px 0;"><p style="margin: 0;"><strong>ความคิดเห็นจากผู้ดูแลระบบ:</strong></p><p style="margin: 10px 0 0;">${comment}</p></div>` : ''}
+        <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การยืนยันตัวตนของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลสมาชิก:</strong></p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ <strong>"ข้อมูลสมาชิก"</strong> บนแดชบอร์ดของท่าน</p>
+          
+          ${comment ? `<div style="background-color: #f0fdf4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #16a34a;"><p style="margin: 0;"><strong>ความคิดเห็นจากผู้ดูแลระบบ:</strong></p><p style="margin: 10px 0 0;">${comment}</p></div>` : ''}
         </div>
         <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${loginLink}" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่ระบบ</a>
+          <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
+          <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ไปที่แดชบอร์ด</a>
         </div>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากคุณมีคำถามหรือต้องการความช่วยเหลือ กรุณาติดต่อเรา</p>
-          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
+          <p>หากต้องการสอบถามข้อมูลเพิ่มเติม กรุณาติดต่อ CALL CENTER: 1453 กด 2</p>
+          <p>&copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
         </div>
       </div>
     `)
     .setText(`
-      การยืนยันตัวตนของคุณได้รับการอนุมัติแล้ว - FTI Portal
+      การยืนยันตัวตนได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
       
-      สวัสดี ${name},
+      เรียน คุณ${name}
       
-      เรายินดีที่จะแจ้งให้คุณทราบว่าการยืนยันตัวตนของคุณได้รับการอนุมัติแล้ว คุณสามารถเข้าสู่ระบบและใช้งานได้เต็มรูปแบบ
+      สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการยืนยันตัวตนของท่านได้รับการอนุมัติเรียบร้อยแล้ว
+      
+      ข้อมูลสมาชิก:
+      หมายเลขสมาชิก: ${memberCode}
+      ชื่อบริษัท: ${companyName}
+      
+      ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ "ข้อมูลสมาชิก" บนแดชบอร์ดของท่าน
       
       ${comment ? `ความคิดเห็นจากผู้ดูแลระบบ: ${comment}` : ''}
       
       เข้าสู่ระบบได้ที่: ${loginLink}
+      ไปที่แดชบอร์ด: ${dashboardLink}
       
-      หากคุณมีคำถามหรือต้องการความช่วยเหลือ กรุณาติดต่อเรา
+      หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+      โทรศัพท์: 02-345-1000
+      อีเมล: member@fti.or.th
       
-      &copy; 2025 FTI Portal. สงวนลิขสิทธิ์.
+      &copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
     `);
 
   try {
@@ -206,59 +233,83 @@ export async function sendApprovalEmail(email, name, comment) {
  * Send rejection email to member
  * @param {string} email - Member's email address
  * @param {string} name - Member's name
+ * @param {object} memberData - Member data including MEMBER_CODE and company_name
  * @param {string} reason - Rejection reason
  * @returns {Promise} - Promise with email sending result
  */
-export async function sendRejectionEmail(email, name, reason) {
+export async function sendRejectionEmail(email, firstname, lastname, memberCode, companyName, rejectReason) {
+  const fullName = `${firstname} ${lastname}`.trim();
   // Create base URL for login
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const loginLink = `${baseUrl}/login`;
   const dashboardLink = `${baseUrl}/dashboard`;
+
+  
+  
 
   const recipients = [new Recipient(email, name)];
 
   const emailParams = new EmailParams()
     .setFrom(defaultSender)
     .setTo(recipients)
-    .setSubject("การยืนยันตัวตนของคุณไม่ได้รับการอนุมัติ - FTI Portal")
+    .setSubject("การยืนยันตัวตนไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย")
     .setHtml(`
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+      <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #dc2626;">การยืนยันตัวตนไม่ได้รับการอนุมัติ</h1>
+          <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
+          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการตรวจสอบยืนยันตัวตน</h1>
         </div>
-        <div style="margin-bottom: 30px;">
-          <p>สวัสดี ${name},</p>
-          <p>เราขออภัยที่ต้องแจ้งให้คุณทราบว่า <strong>การยืนยันตัวตนของคุณไม่ได้รับการอนุมัติ</strong> ด้วยเหตุผลต่อไปนี้:</p>
-          <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0;">
-            <p style="margin: 0;"><strong>เหตุผล:</strong></p>
-            <p style="margin: 10px 0 0;">${reason}</p>
+        <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การยืนยันตัวตนของท่านไม่ได้รับการอนุมัติ</strong></p>
+          
+          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลที่ท่านยื่น:</strong></p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
           </div>
-          <p>คุณสามารถแก้ไขข้อมูลและส่งคำขอยืนยันตัวตนใหม่ได้จากแดชบอร์ดของคุณ</p>
+          
+          <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 0;"><strong>เหตุผลที่ไม่ได้รับการอนุมัติ:</strong></p>
+            <p style="margin: 10px 0 0;">${rejectReason || '-'}</p>
+          </div>
+          
+          <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอยืนยันตัวตนใหม่ได้จากแดชบอร์ดของท่าน หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
         </div>
         <div style="text-align: center; margin-bottom: 30px;">
+          <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
           <a href="${dashboardLink}" style="background-color: #4b5563; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ไปที่แดชบอร์ด</a>
         </div>
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากคุณมีคำถามหรือต้องการความช่วยเหลือ กรุณาติดต่อเรา</p>
-          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
+          <p>หากต้องการสอบถามข้อมูลเพิ่มเติม กรุณาติดต่อ CALL CENTER: 1453 กด 2</p>
+          <p>&copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
         </div>
       </div>
     `)
     .setText(`
-      การยืนยันตัวตนของคุณไม่ได้รับการอนุมัติ - FTI Portal
+      การยืนยันตัวตนไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
       
-      สวัสดี ${name},
+      เรียน คุณ${name}
       
-      เราขออภัยที่ต้องแจ้งให้คุณทราบว่าการยืนยันตัวตนของคุณไม่ได้รับการอนุมัติ ด้วยเหตุผลต่อไปนี้:
+      สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการยืนยันตัวตนของท่านไม่ได้รับการอนุมัติ
       
-      เหตุผล: ${reason}
+      ข้อมูลที่ท่านยื่น:
+      หมายเลขสมาชิก: ${memberCode}
+      ชื่อบริษัท: ${companyName}
       
-      คุณสามารถแก้ไขข้อมูลและส่งคำขอยืนยันตัวตนใหม่ได้จากแดชบอร์ดของคุณ
+      เหตุผลที่ไม่ได้รับการอนุมัติ: ${reason}
       
+      ท่านสามารถแก้ไขข้อมูลและส่งคำขอยืนยันตัวตนใหม่ได้จากแดชบอร์ดของท่าน หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+      
+      เข้าสู่ระบบได้ที่: ${loginLink}
       ไปที่แดชบอร์ด: ${dashboardLink}
       
-      หากคุณมีคำถามหรือต้องการความช่วยเหลือ กรุณาติดต่อเรา
+      หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+      โทรศัพท์: 02-345-1000
+      อีเมล: member@fti.or.th
       
-      &copy; 2025 FTI Portal. สงวนลิขสิทธิ์.
+      &copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
     `);
 
   try {

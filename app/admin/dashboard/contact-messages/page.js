@@ -6,6 +6,9 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import AdminLayout from '@/app/admin/components/AdminLayout';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
+import MessageList from './components/MessageList';
+import MessageDetail from './components/MessageDetail';
+import FilterButtons from './components/FilterButtons';
 
 export default function ContactMessages() {
   const router = useRouter();
@@ -18,6 +21,9 @@ export default function ContactMessages() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filter, setFilter] = useState('all'); // all, unread, read, replied
   
+  // Reference to previous filter value for animation control
+  const prevFilterRef = useRef(filter);
+
   // Fetch contact messages when component mounts
   useEffect(() => {
     // Check if user is admin
@@ -29,9 +35,6 @@ export default function ContactMessages() {
     fetchMessages();
   }, [user, router, filter]);
   
-  // Reference to previous filter value for animation control
-  const prevFilterRef = useRef(filter);
-
   // Fetch contact messages from API
   const fetchMessages = async () => {
     // Store previous filter for animation purposes
@@ -148,18 +151,6 @@ export default function ContactMessages() {
     window.open(mailtoLink, '_blank');
   };
   
-  // Format date for display
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-  
   // Handle message selection
   const handleSelectMessage = (message) => {
     setSelectedMessage(message);
@@ -172,20 +163,6 @@ export default function ContactMessages() {
     }
   };
 
-  // Get status badge
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'unread':
-        return <span className="bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">ใหม่</span>;
-      case 'read':
-        return <span className="bg-black text-white text-xs px-2 py-1 rounded-full font-medium">อ่านแล้ว</span>;
-      case 'replied':
-        return <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">ตอบกลับแล้ว</span>;
-      default:
-        return null;
-    }
-  };
-  
   // Count unread messages
   const unreadCount = messages.filter(msg => msg.status === 'unread').length;
   
@@ -232,56 +209,10 @@ export default function ContactMessages() {
             )}
           </motion.h1>
           
-          <motion.div 
-            className="flex space-x-2"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.3 }}
-          >
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 text-sm rounded-md transition-all duration-300 ${
-                filter === 'all'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-black border border-gray-300 hover:bg-gray-50 hover:shadow'
-              }`}
-            >
-              ทั้งหมด
-            </button>
-            <button
-              onClick={() => setFilter('unread')}
-              className={`px-4 py-2 text-sm rounded-md transition-all duration-300 ${
-                filter === 'unread'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-black border border-gray-300 hover:bg-gray-50 hover:shadow'
-              }`}
-            >
-              ยังไม่อ่าน
-            </button>
-            <button
-              onClick={() => setFilter('read')}
-              className={`px-4 py-2 text-sm rounded-md transition-all duration-300 ${
-                filter === 'read'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-black border border-gray-300 hover:bg-gray-50 hover:shadow'
-              }`}
-            >
-              อ่านแล้ว
-            </button>
-            <button
-              onClick={() => setFilter('replied')}
-              className={`px-4 py-2 text-sm rounded-md transition-all duration-300 ${
-                filter === 'replied'
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'bg-white text-black border border-gray-300 hover:bg-gray-50 hover:shadow'
-              }`}
-            >
-              ตอบกลับแล้ว
-            </button>
-          </motion.div>
+          <FilterButtons filter={filter} setFilter={setFilter} />
         </div>
         
-                    {loading ? (
+        {loading ? (
           <motion.div 
             className="flex justify-center items-center h-64"
             initial={{ opacity: 0 }}
@@ -320,144 +251,21 @@ export default function ContactMessages() {
             transition={{ duration: 0.4 }}
           >
             {/* Message List */}
-            <div className="lg:col-span-1 bg-white rounded-lg shadow-md overflow-hidden">
-              <div className="p-4 border-b">
-                <h2 className="font-bold text-black text-lg">รายการข้อความ</h2>
-              </div>
-              <div className="overflow-y-auto max-h-[calc(100vh-250px)]">
-                {messages.map((message) => (
-                  <motion.div 
-                    key={message.id}
-                    onClick={() => handleSelectMessage(message)}
-                    className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedMessage && selectedMessage.id === message.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                    } ${message.status === 'unread' ? 'font-semibold' : ''}`}
-                    whileHover={{ backgroundColor: "#f9fafb", x: 3 }}
-                    whileTap={{ scale: 0.98 }}
-                    initial={{ opacity: 0, x: -5 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-black truncate">{message.subject}</h3>
-                        <p className="text-sm text-black truncate font-semibold">{message.name}</p>
-                      </div>
-                      <div className="ml-2 flex-shrink-0">
-                        {getStatusBadge(message.status)}
-                      </div>
-                    </div>
-                    <p className="text-xs text-black mt-1 font-semibold">{formatDate(message.created_at)}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
+            <MessageList 
+              messages={messages} 
+              selectedMessage={selectedMessage} 
+              onSelectMessage={handleSelectMessage} 
+            />
             
             {/* Message Detail */}
-            <div className="lg:col-span-2 bg-white rounded-lg shadow-md overflow-hidden">
-              {selectedMessage ? (
-                <div className="h-full flex flex-col">
-                  <div className="p-6 border-b">
-                    <div className="flex justify-between items-start mb-4">
-                       <h3 className="text-xl font-bold text-black">{selectedMessage.subject}</h3>
-                      <div>
-                        {getStatusBadge(selectedMessage.status)}
-                      </div>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-black font-semibold">
-                      <div>
-                        <span className="font-bold text-black">จาก:</span> {selectedMessage.name}
-                      </div>
-                      <div>
-                        <span className="font-bold text-black">อีเมล:</span> {selectedMessage.email}
-                      </div>
-                      <div>
-                        <span className="font-bold text-black">เบอร์โทร:</span> {selectedMessage.phone || '-'}
-                      </div>
-                      <div>
-                        <span className="font-bold text-black">วันที่:</span> {formatDate(selectedMessage.created_at)}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6 bg-white flex-grow overflow-y-auto">
-                    <div className="mb-6">
-                      <h4 className="font-bold text-black mb-2 text-base">ข้อความ:</h4>
-                      <div className="bg-white p-4 rounded-lg border border-black">
-                        <p className="whitespace-pre-wrap text-black font-semibold">{selectedMessage.message}</p>
-                      </div>
-                    </div>
-                    
-                    {selectedMessage.admin_response && (
-                      <div>
-                        <h4 className="font-bold text-black mb-2 text-base">การตอบกลับของผู้ดูแลระบบ:</h4>
-                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-500">
-                          <p className="whitespace-pre-wrap text-black font-semibold">{selectedMessage.admin_response}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-6 border-t bg-white">
-                    <div className="space-y-4">
-                      <div>
-                        <label htmlFor="responseText" className="block text-sm font-bold text-black mb-1">
-                          บันทึกการตอบกลับ:
-                        </label>
-                        <textarea
-                          id="responseText"
-                          rows="4"
-                          className="w-full px-3 py-2 border border-black rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black font-medium"
-                          placeholder="บันทึกรายละเอียดการตอบกลับ เช่น วิธีการตอบกลับ, เนื้อหาโดยย่อ (ข้อความนี้มีไว้เพื่อแจ้งเตือนว่าไดทำการตอบกลับเรียบร้อยแล้วเท่านั้น)"
-                          value={responseText}
-                          onChange={(e) => setResponseText(String(e.target.value))}
-                        ></textarea>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-3">
-                        <button
-                          onClick={sendEmailReply}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors font-medium"
-                        >
-                          <span className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            เปิดอีเมลเพื่อตอบกลับ
-                          </span>
-                        </button>
-                        
-                        <button
-                          onClick={() => markAsReplied(selectedMessage.id)}
-                          disabled={isSubmitting || !(responseText && typeof responseText === 'string' && responseText.trim())}
-                          className={`px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium ${
-                            isSubmitting || !(responseText && typeof responseText === 'string' && responseText.trim())
-                              ? 'bg-black text-white cursor-not-allowed'
-                              : 'bg-green-600 text-white hover:bg-green-700'
-                          }`}
-                        >
-                          <span className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                            </svg>
-                            {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกว่าตอบกลับแล้ว'}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center h-96 text-black">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 mb-4 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                  </svg>
-                  <p className="text-lg text-black font-bold">เลือกข้อความเพื่อดูรายละเอียด</p>
-                  <p className="text-sm text-black font-semibold mt-2">คลิกที่ข้อความในรายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม</p>
-                </div>
-              )}
-            </div>
+            <MessageDetail 
+              selectedMessage={selectedMessage}
+              responseText={responseText}
+              setResponseText={setResponseText}
+              isSubmitting={isSubmitting}
+              onMarkAsReplied={markAsReplied}
+              onSendEmailReply={sendEmailReply}
+            />
           </motion.div>
         )}
       </motion.div>

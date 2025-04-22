@@ -129,14 +129,7 @@ export default function VerifyEmail() {
         <div className="container-custom">
           <div className="max-w-xl mx-auto">
             <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-              {verificationStatus === 'verifying' && (
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
-                  </div>
-                  <p className="text-lg">{message}</p>
-                </div>
-              )}
+              
 
               {verificationStatus === 'ready' && (
                 <div className="space-y-6">
@@ -163,14 +156,7 @@ export default function VerifyEmail() {
                 </div>
               )}
               
-              {verificationStatus === 'verifying' && (
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700"></div>
-                  </div>
-                  <p className="text-lg">{message}</p>
-                </div>
-              )}
+              
               
               {verificationStatus === 'success' && (
                 <div className="space-y-6">

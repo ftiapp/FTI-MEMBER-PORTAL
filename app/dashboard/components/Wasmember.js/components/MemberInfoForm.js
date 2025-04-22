@@ -107,10 +107,10 @@ export default function MemberInfoForm({
               disabled
             >
               <option value="">-- เลือกประเภทสมาชิก --</option>
-              <option value="สส">สมาชิกสามัญ (สส)</option>
-              <option value="สน">สมาชิกวิสามัญ (สน)</option>
-              <option value="ทน">สมาชิกไม่มีนิติบุคคล (ทน)</option>
-              <option value="ทบ">สมาชิกสมทบ (ทบ)</option>
+              <option value="สส">สามัญ-สมาคมการค้า (สส)</option>
+              <option value="สน">สามัญ-โรงงาน (สน)</option>
+              <option value="ทน">สมทบ-นิติบุคคล (ทน)</option>
+              <option value="ทบ">สมทบ-บุคคลธรรมดา (ทบ)</option>
             </select>
             {formErrors.memberType && (
               <p className="text-red-500 text-xs mt-1">กรุณาเลือกประเภทสมาชิก</p>

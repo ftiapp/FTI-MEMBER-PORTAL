@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 export default function AdminSidebar() {
   const pathname = usePathname();
@@ -12,12 +13,36 @@ export default function AdminSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [activePath, setActivePath] = useState('');
+  const [pendingVerifications, setPendingVerifications] = useState(0);
   
   // Reset loading state when navigation completes
   useEffect(() => {
     setLoading(false);
     setActivePath('');
   }, [pathname]);
+
+  // Fetch pending verification count
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const response = await fetch('/api/admin/pending-verifications-count');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPendingVerifications(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pending verifications count:', error);
+      }
+    };
+
+    fetchPendingCount();
+    // Set up interval to refresh count every minute
+    const intervalId = setInterval(fetchPendingCount, 60000);
+    
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Handle navigation without page reload
   const handleNavigation = (e, path) => {
@@ -77,6 +102,7 @@ export default function AdminSidebar() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
         </svg>
       ),
+      badge: pendingVerifications > 0 ? pendingVerifications : null,
     },
     {
       name: 'แจ้งเปลี่ยนข้อมูลส่วนตัว',
@@ -152,14 +178,21 @@ export default function AdminSidebar() {
                     item.icon
                   )}
                 </span>
-                <span className={`ml-3 ${collapsed ? 'hidden' : 'block'}`}>{item.name}</span>
+                <span className={`ml-3 ${collapsed ? 'hidden' : 'block'}`}>
+                  {item.name}
+                  {item.badge && (
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </span>
               </Link>
             </li>
           ))}
         </ul>
       </nav>
       
-      <div className="absolute bottom-0 w-full p-4 border-t border-gray-700">
+      <div className="absolute bottom-0 w-full border-t border-gray-700">
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -169,8 +202,9 @@ export default function AdminSidebar() {
             logout();
             router.push('/login');
           }}
-          className={`flex items-center w-full p-3 rounded-lg hover:bg-gray-700 transition-colors ${loading && activePath === 'logout' ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`flex items-center justify-center w-full p-3 hover:bg-gray-700 transition-colors ${loading && activePath === 'logout' ? 'opacity-70 cursor-not-allowed' : ''}`}
           disabled={loading}
+          title="ออกจากระบบ"
         >
           {loading && activePath === 'logout' ? (
             <svg className="animate-spin h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -182,7 +216,7 @@ export default function AdminSidebar() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           )}
-          <span className={`ml-3 ${collapsed ? 'hidden' : 'block'}`}>ออกจากระบบ</span>
+          {!collapsed && <span className="ml-3">ออก</span>}
         </button>
       </div>
     </aside>

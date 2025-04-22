@@ -66,8 +66,15 @@ export default function Register() {
       setError('รหัสผ่านไม่ตรงกัน');
       return false;
     }
-    if (formData.password.length < 6) {
-      setError('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+    // ตรวจสอบความซับซ้อนของรหัสผ่าน
+    const password = formData.password;
+    if (password.length < 8 ||
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+    ) {
+      setError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร รวมทั้งตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก ตัวเลข และอักขระพิเศษ');
       return false;
     }
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -167,7 +174,7 @@ export default function Register() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ชื่อ <span className="text-xs text-gray-500">(ไม่ต้องใส่คำนำหน้า)</span>
+                      ชื่อ <span className="text-xs text-red-500">(ไม่ต้องใส่คำนำหน้า)</span>
                     </label>
                     <input
                       type="text"
@@ -228,8 +235,8 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    รหัสผ่าน
+                  <label className="block text-sm text-gray-700 mb-2">
+                    รหัสผ่าน <span className="text-red-500" style={{ fontWeight: 'normal', fontSize: '0.95em' }}>(A-Z, a-z, 0-9, อักขระพิเศษ เช่น ** อย่างน้อย 8 ตัว)</span>
                   </label>
                   <div className="relative">
                     <input
@@ -253,6 +260,7 @@ export default function Register() {
                       )}
                     </button>
                   </div>
+
                 </div>
 
                 <div>
@@ -285,22 +293,29 @@ export default function Register() {
               </div>
 
               <div className="mt-8 space-y-4">
+                <div className="flex items-center mb-2">
+                  <input
+                    id="consent"
+                    type="checkbox"
+                    checked={formData.consent || false}
+                    onChange={e => setFormData(prev => ({ ...prev, consent: e.target.checked }))}
+                    className="mr-2"
+                  />
+                  <label htmlFor="consent" className="text-gray-700 text-sm">
+                    ฉันยอมรับ
+                    <Link href="/privacy-policy" className="text-blue-600 underline mx-1" target="_blank">นโยบายความเป็นส่วนตัว</Link>
+                    และ
+                    <Link href="/terms-of-service" className="text-blue-600 underline mx-1" target="_blank">เงื่อนไขการใช้บริการ</Link>
+                  </label>
+                </div>
                 <button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !formData.consent}
                   className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 ${
-                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                >
-                  {isSubmitting ? 'กำลังดำเนินการ...' : 'สมัครสมาชิก'}
+                    isSubmitting || !formData.consent ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}>
+                  สมัครสมาชิก
                 </button>
-                
-                <Link 
-                  href="/"
-                  className="block w-full text-center px-8 py-3 border-2 border-blue-700 text-blue-700 rounded-full font-semibold hover:bg-blue-50 transition-all duration-300"
-                >
-                  กลับหน้าหลัก
-                </Link>
               </div>
             </form>
           </div>

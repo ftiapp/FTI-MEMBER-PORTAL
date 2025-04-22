@@ -46,9 +46,16 @@ export default function ResetPassword() {
       return;
     }
     
-    if (formData.password.length < 6) {
+    // ตรวจสอบความซับซ้อนของรหัสผ่าน
+    const password = formData.password;
+    if (password.length < 8 ||
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/[0-9]/.test(password) ||
+      !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+    ) {
       setStatus('error');
-      setMessage('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+      setMessage('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร รวมทั้งตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก ตัวเลข และอักขระพิเศษ');
       return;
     }
     

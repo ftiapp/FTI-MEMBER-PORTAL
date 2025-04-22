@@ -96,7 +96,7 @@ export default function AdminLogin() {
         <div className="flex justify-center mb-6">
           <div className="relative w-24 h-24">
             <Image 
-              src="/images/fti-logo.png" 
+              src="/images/FTI-MasterLogo_RGB_forLightBG.png" 
               alt="FTI Logo" 
               width={96} 
               height={96}

@@ -104,7 +104,7 @@ export default function MemberSearchField({
           value={searchTerm}
           onChange={handleSearch}
           onFocus={() => searchTerm.length >= 2 && setShowResults(true)}
-          className={`block w-full pl-10 pr-3 py-2 border ${hasError ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+          className={`block w-full pl-10 pr-3 py-2 border text-black ${hasError ? 'border-red-300' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
           placeholder="รหัสสมาชิก หรือชื่อบริษัท (อย่างน้อย 2 ตัวอักษร)"
         />
       </div>
