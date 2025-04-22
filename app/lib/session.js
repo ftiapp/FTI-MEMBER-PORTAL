@@ -11,8 +11,8 @@ const adminSecretKey = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก session
 export async function getSession() {
   try {
-    const cookieStore = cookies();
-    const token = await cookieStore.get('user_token');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('user_token');
     
     if (!token) {
       return null;

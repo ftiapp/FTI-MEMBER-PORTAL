@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaFile, FaUpload, FaTimesCircle } from 'react-icons/fa';
 
 export default function FileUploadField({ 
@@ -14,6 +14,12 @@ export default function FileUploadField({
   helpText = 'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
 }) {
   const [fileName, setFileName] = useState('');
+
+  // Sync fileName with value prop from parent (reset filename when parent reset)
+  useEffect(() => {
+    if (!value) setFileName('');
+    // ถ้า value เป็นไฟล์จริงและอยากโชว์ชื่อไฟล์: else if (value && value.name) setFileName(value.name);
+  }, [value]);
   
   const handleFileChange = (e) => {
     const file = e.target.files[0];

@@ -193,12 +193,16 @@ export default function Login() {
 
                   <button
                     type="submit"
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 flex items-center justify-center"
                     disabled={isSubmitting}
-                    className={`w-full px-8 py-3 bg-blue-700 text-white rounded-lg font-semibold hover:bg-blue-800 transition-all duration-300 ${
-                      isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
                   >
-                    {isSubmitting ? 'กำลังดำเนินการ...' : 'เข้าสู่ระบบ'}
+                    {isSubmitting && (
+                      <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                      </svg>
+                    )}
+                    {isSubmitting ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
                   </button>
 
                   <div className="text-center mt-4">

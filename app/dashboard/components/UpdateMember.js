@@ -6,6 +6,8 @@ import { toast } from 'react-hot-toast';
 import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
 
 export default function UpdateMember() {
+  const MAX_REQUESTS_PER_DAY = 3;
+
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     firstName: '',
@@ -18,13 +20,31 @@ export default function UpdateMember() {
   const [loadingError, setLoadingError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [updateStatus, setUpdateStatus] = useState(null);
+  const [requestsToday, setRequestsToday] = useState(0);
+  const [limitLoading, setLimitLoading] = useState(true);
 
   useEffect(() => {
     if (user?.id) {
       fetchUserData();
       fetchUpdateStatus();
+      fetchProfileUpdateLimit();
     }
   }, [user]);
+
+  const fetchProfileUpdateLimit = async () => {
+    setLimitLoading(true);
+    try {
+      const response = await fetch('/api/user/profile-update-limit');
+      if (response.ok) {
+        const data = await response.json();
+        setRequestsToday(data.count || 0);
+      }
+    } catch (error) {
+      setRequestsToday(0);
+    } finally {
+      setLimitLoading(false);
+    }
+  };
 
   const fetchUserData = async () => {
     try {
@@ -107,7 +127,10 @@ export default function UpdateMember() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+    if (requestsToday >= MAX_REQUESTS_PER_DAY) {
+      toast.error('คุณได้ส่งคำขอครบจำนวนสูงสุดในวันนี้แล้ว กรุณารอวันถัดไป');
+      return;
+    }
     setSubmitting(true);
     try {
       const response = await fetch('/api/user/update-profile', {
@@ -129,6 +152,7 @@ export default function UpdateMember() {
       if (response.ok) {
         toast.success('ส่งคำขอแก้ไขข้อมูลสำเร็จ รอการอนุมัติจากผู้ดูแลระบบ');
         fetchUpdateStatus();
+        setRequestsToday(r => r + 1);
       } else {
         toast.error(data.error || 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
       }

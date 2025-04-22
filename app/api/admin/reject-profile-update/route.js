@@ -44,7 +44,7 @@ export async function POST(request) {
       `UPDATE profile_update_requests 
        SET status = "rejected", reject_reason = ?, admin_id = ?, admin_comment = ?, updated_at = NOW() 
        WHERE id = ?`,
-      [reason, session.admin.id, comment || null, requestId]
+      [reason, admin.id, comment || null, requestId]
     );
 
     // Get client IP and user agent
@@ -57,7 +57,7 @@ export async function POST(request) {
        (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
-        session.admin.id,
+        admin.id,
         'reject_profile_update',
         requestId,
         JSON.stringify({

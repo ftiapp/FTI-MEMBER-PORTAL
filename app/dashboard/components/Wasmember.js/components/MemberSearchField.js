@@ -12,6 +12,11 @@ export default function MemberSearchField({
   errorMessage = 'กรุณาค้นหาสมาชิก'
 }) {
   const [searchTerm, setSearchTerm] = useState(value || '');
+
+  // Sync searchTerm with value prop from parent (reset input when parent reset)
+  useEffect(() => {
+    setSearchTerm(value || '');
+  }, [value]);
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);

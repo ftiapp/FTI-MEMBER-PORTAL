@@ -14,6 +14,7 @@ export default function AdminSidebar() {
   const [loading, setLoading] = useState(false);
   const [activePath, setActivePath] = useState('');
   const [pendingVerifications, setPendingVerifications] = useState(0);
+  const [pendingProfileUpdates, setPendingProfileUpdates] = useState(0);
   
   // Reset loading state when navigation completes
   useEffect(() => {
@@ -36,11 +37,26 @@ export default function AdminSidebar() {
         console.error('Error fetching pending verifications count:', error);
       }
     };
-
+    const fetchPendingProfileUpdateCount = async () => {
+      try {
+        const response = await fetch('/api/admin/pending-profile-update-count');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPendingProfileUpdates(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pending profile update count:', error);
+      }
+    };
     fetchPendingCount();
+    fetchPendingProfileUpdateCount();
     // Set up interval to refresh count every minute
-    const intervalId = setInterval(fetchPendingCount, 60000);
-    
+    const intervalId = setInterval(() => {
+      fetchPendingCount();
+      fetchPendingProfileUpdateCount();
+    }, 600000);
     return () => clearInterval(intervalId);
   }, []);
 
@@ -112,6 +128,7 @@ export default function AdminSidebar() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
       ),
+      badge: pendingProfileUpdates > 0 ? pendingProfileUpdates : null,
     },
     {
       name: 'ข้อคิดเห็นเพิ่มเติม',

@@ -42,6 +42,8 @@ export default function WasMember() {
   const [submissions, setSubmissions] = useState([]);
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [showTemporaryStatus, setShowTemporaryStatus] = useState(false);
+const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+const [successMessage, setSuccessMessage] = useState('');
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState(null);
@@ -272,8 +274,15 @@ export default function WasMember() {
       const result = await response.json();
       
       if (result.success) {
-        toast.success('ส่งข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบและติดต่อกลับภายใน 1-2 วันทำการ');
-        
+        toast.success('ส่งข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน1-2 วันทำการ');
+
+        // Show green success message bar
+        setSuccessMessage('ส่งข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน 1-2 วันทำการ');
+        setShowSuccessMessage(true);
+        setTimeout(() => {
+          setShowSuccessMessage(false);
+        }, 6000);
+
         // Add the current submission to the list
         const newSubmission = {
           id: Date.now(), // Use timestamp as a simple unique ID
@@ -283,17 +292,9 @@ export default function WasMember() {
           taxId: formSubmitData.taxId,
           status: 'pending'
         };
-        
         // Add to allSubmissions and let the filter useEffect handle the rest
         setAllSubmissions(prev => [...prev, newSubmission]);
-        
-        // Show temporary status for 10 seconds
-        setShowTemporaryStatus(true);
-        setTimeout(() => {
-          setShowTemporaryStatus(false);
-        }, 10000); // 10 seconds
-        
-        // Reset form after successful submission
+        // Reset form immediately after submit
         setFormData({
           memberSearch: '',
           memberNumber: '',
@@ -452,7 +453,14 @@ export default function WasMember() {
 
   return (
     <div className="space-y-6">
-       <InfoAlert />
+      <InfoAlert />
+      {/* Success message */}
+      {showSuccessMessage && (
+        <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4 shadow flex items-center" role="alert">
+          <FaCheckCircle className="w-6 h-6 mr-2 text-green-600" />
+          <span className="font-medium">{successMessage}</span>
+        </div>
+      )}
       {/* Show loading indicator when submitting */}
       {isSubmitting && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
@@ -462,7 +470,6 @@ export default function WasMember() {
           </div>
         </div>
       )}
-      
       {/* Show member verification form */}
       {renderMemberVerificationForm()}
       
