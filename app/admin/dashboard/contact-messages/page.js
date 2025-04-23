@@ -20,6 +20,7 @@ export default function ContactMessages() {
   const [responseText, setResponseText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [filter, setFilter] = useState('all'); // all, unread, read, replied
+  const [unreadCount, setUnreadCount] = useState(0);
   
   // Reference to previous filter value for animation control
   const prevFilterRef = useRef(filter);
@@ -31,9 +32,27 @@ export default function ContactMessages() {
       router.push('/dashboard');
       return;
     }
-    
     fetchMessages();
   }, [user, router, filter]);
+
+  // Poll unread count every 10 minutes
+  useEffect(() => {
+    let intervalId = null;
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch('/api/admin/contact-messages/unread-count');
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadCount(data.unread || 0);
+        }
+      } catch (err) {
+        // ignore error
+      }
+    };
+    fetchUnreadCount(); // initial fetch
+    intervalId = setInterval(fetchUnreadCount, 10 * 60 * 1000); // 10 min
+    return () => intervalId && clearInterval(intervalId);
+  }, []);
   
   // Fetch contact messages from API
   const fetchMessages = async () => {
@@ -163,8 +182,7 @@ export default function ContactMessages() {
     }
   };
 
-  // Count unread messages
-  const unreadCount = messages.filter(msg => msg.status === 'unread').length;
+  // unreadCount is now fetched from API and polled every 10 minutes
   
   // Animation variants for smoother transitions
   const pageVariants = {
