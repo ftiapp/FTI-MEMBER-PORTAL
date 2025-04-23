@@ -11,9 +11,10 @@ import UpdateMember from './components/UpdateMember';
 import Wasmember from './components/Wasmember.js/page';
 import SubmittedMember from './components/SubmittedMember';
 import MemberDetail from './components/MemberDetail';
-import ContactUs from './components/ContactUs';
+import ContactUs from './components/ContactUs/page';
 import RecentActivities from './components/RecentActivities';
-import CheckStatusOperation from './components/CheckStatusOperation';
+// Import CheckStatusOperation from its page.js file
+import CheckStatusOperation from './components/CheckStatusOperation/page';
 import UpgradeMembership from './components/UpgradeMembership';
 
 /**

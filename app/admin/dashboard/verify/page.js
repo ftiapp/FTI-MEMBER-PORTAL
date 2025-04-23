@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import SearchBar from './SearchBar';
+import SortableHeader from './SortableHeader';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
@@ -17,7 +20,7 @@ export default function VerifyMembers() {
   const [members, setMembers] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
-    limit: 10,
+    limit: 5,
     total: 0,
     totalPages: 0
   });
@@ -27,6 +30,11 @@ export default function VerifyMembers() {
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  // เพิ่ม state สำหรับ search, filter, sort
+  const [searchTerm, setSearchTerm] = useState('');
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
+  const [sortField, setSortField] = useState('created_at');
+  const [sortOrder, setSortOrder] = useState('desc');
 
   // Status labels for display
   const statusLabels = {
@@ -38,7 +46,7 @@ export default function VerifyMembers() {
   // Fetch members when the page or status changes
   useEffect(() => {
     fetchMembers();
-  }, [pagination.page, statusParam]);
+  }, [pagination.page, statusParam, searchTerm, dateRange.from, dateRange.to, sortField, sortOrder]);
 
   /**
    * Fetches members based on status filter
@@ -46,7 +54,13 @@ export default function VerifyMembers() {
   const fetchMembers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`/api/admin/members?page=${pagination.page}&limit=${pagination.limit}&status=${statusParam}`);
+      let url = `/api/admin/members?page=${pagination.page}&limit=${pagination.limit}&status=${statusParam}`;
+      if (searchTerm.length >= 2) url += `&term=${encodeURIComponent(searchTerm)}`;
+      if (dateRange.from) url += `&from=${dateRange.from}`;
+      if (dateRange.to) url += `&to=${dateRange.to}`;
+      if (sortField) url += `&sortField=${sortField}`;
+      if (sortOrder) url += `&sortOrder=${sortOrder}`;
+      const response = await fetch(url);
       
       if (!response.ok) {
         if (response.status === 401) {
@@ -243,11 +257,17 @@ export default function VerifyMembers() {
 
   return (
     <AdminLayout>
-      <div className="bg-white shadow-md rounded-lg p-6 border border-[#1e3a8a] border-opacity-20">
+      <>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 24 }}
+        transition={{ duration: 0.4, ease: 'easeOut' }}
+        className="bg-white shadow-md rounded-lg p-6 border border-[#1e3a8a] border-opacity-20"
+      >
         <h2 className="text-xl font-semibold mb-4 text-[#1e3a8a] border-b pb-2 border-[#1e3a8a] border-opacity-20">
           สมาชิก - {statusLabels[statusParam]}
         </h2>
-        
         {/* Status filter tabs */}
         <div className="flex border-b mb-6">
           <button
@@ -275,7 +295,14 @@ export default function VerifyMembers() {
             ปฏิเสธแล้ว
           </button>
         </div>
-        
+        {/* Search & Filter Bar */}
+        <SearchBar 
+          value={searchTerm} 
+          onChange={setSearchTerm}
+          dateRange={dateRange}
+          onDateChange={setDateRange}
+          placeholder="ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก"
+        />
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
@@ -290,21 +317,11 @@ export default function VerifyMembers() {
               <table className="min-w-full divide-y divide-[#1e3a8a] divide-opacity-10 border border-[#1e3a8a] border-opacity-20 rounded-lg overflow-hidden">
                 <thead className="bg-[#1e3a8a] text-white">
                   <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      บริษัท
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      อีเมล
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      วันที่ลงทะเบียน
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
-                      สถานะ
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">
-                      การดำเนินการ
-                    </th>
+                    <SortableHeader field="company_name" label="บริษัท" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
+                    <SortableHeader field="email" label="อีเมล" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
+                    <SortableHeader field="created_at" label="วันที่ลงทะเบียน" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
+                    <SortableHeader field="Admin_Submit" label="สถานะ" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
+                    <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">การดำเนินการ</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -401,7 +418,7 @@ export default function VerifyMembers() {
             )}
           </>
         )}
-      </div>
+      </motion.div>
       
       {/* Member Details Modal */}
       {selectedMember && !showExistingMemberModal && !showRejectModal && (
@@ -446,6 +463,7 @@ export default function VerifyMembers() {
           </div>
         </div>
       )}
+      </>
     </AdminLayout>
   );
 }
