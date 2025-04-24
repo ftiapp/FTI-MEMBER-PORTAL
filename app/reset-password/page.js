@@ -100,9 +100,9 @@ export default function ResetPassword() {
         <div className="container-custom py-4">
           <Link href="/" className="flex-shrink-0">
             <Image
-              src="/images/FTI-MasterLogo_RGB_forLightBG.png"
+              src="/FTI-MasterLogo_RGB_forLightBG.png"
               alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-              width={150}
+              width={180}
               height={60}
               priority
             />
@@ -182,6 +182,7 @@ export default function ResetPassword() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       รหัสผ่านใหม่
+                      <span className="text-red-600 text-xs ml-2">(A-Z, a-z, 0-9, อักขระพิเศษ เช่น ** อย่างน้อย 8 ตัว)</span>
                     </label>
                     <input
                       type="password"
@@ -193,7 +194,7 @@ export default function ResetPassword() {
                       disabled={status === 'submitting'}
                     />
                     <p className="mt-1 text-xs text-gray-500">
-                      รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร
+                      รหัสผ่านต้องประกอบด้วยตัวอักษรพิมพ์ใหญ่, พิมพ์เล็ก, ตัวเลข และอักขระพิเศษ
                     </p>
                   </div>
 

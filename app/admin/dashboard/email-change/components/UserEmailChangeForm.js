@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
+import UserEmailHistory from './UserEmailHistory';
 
 /**
  * UserEmailChangeForm Component
@@ -246,6 +247,11 @@ export default function UserEmailChangeForm({ user, onBack }) {
             </button>
           </div>
         </form>
+      )}
+      
+      {/* Show email change history */}
+      {user && user.id && (
+        <UserEmailHistory userId={user.id} />
       )}
     </div>
   );

@@ -25,9 +25,17 @@ export async function POST(request) {
     }
 
     // Validate password length
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return NextResponse.json({ 
-        error: 'รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร' 
+        error: 'รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร' 
+      }, { status: 400 });
+    }
+    
+    // Check for at least one uppercase letter, one lowercase letter, one number, and one special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return NextResponse.json({ 
+        error: 'รหัสผ่านต้องประกอบด้วยตัวอักษรพิมพ์ใหญ่, พิมพ์เล็ก, ตัวเลข และอักขระพิเศษ' 
       }, { status: 400 });
     }
 

@@ -75,9 +75,16 @@ export default function VerifyNewEmail() {
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
     
-    // Validate password
-    if (passwordData.password.length < 6) {
-      toast.error('รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร');
+    // Validate password requirements
+    if (passwordData.password.length < 8) {
+      toast.error('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+      return;
+    }
+    
+    // Check for at least one uppercase letter, one lowercase letter, one number, and one special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$/;
+    if (!passwordRegex.test(passwordData.password)) {
+      toast.error('รหัสผ่านต้องประกอบด้วยตัวอักษรพิมพ์ใหญ่, พิมพ์เล็ก, ตัวเลข และอักขระพิเศษ');
       return;
     }
     
@@ -128,10 +135,10 @@ export default function VerifyNewEmail() {
         <div className="p-6">
           <div className="flex justify-center mb-6">
             <Image
-              src="/images/logo.png"
+              src="/FTI-MasterLogo_RGB_forLightBG.png"
               alt="FTI Logo"
-              width={150}
-              height={50}
+              width={180}
+              height={60}
               priority
             />
           </div>
@@ -177,6 +184,7 @@ export default function VerifyNewEmail() {
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
                     รหัสผ่านใหม่
+                    <span className="text-red-600 text-xs ml-2">(A-Z, a-z, 0-9, อักขระพิเศษ เช่น ** อย่างน้อย 8 ตัว)</span>
                   </label>
                   <div className="relative">
                     <input
@@ -186,7 +194,7 @@ export default function VerifyNewEmail() {
                       value={passwordData.password}
                       onChange={handlePasswordChange}
                       className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      placeholder="รหัสผ่านอย่างน้อย 6 ตัวอักษร"
+                      placeholder="รหัสผ่านอย่างน้อย 8 ตัวอักษร"
                       required
                     />
                     <button
