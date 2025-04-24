@@ -183,7 +183,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200" id="operations-container">
-      <h3 className="text-xl font-semibold mb-4 text-blue-800">สถานะการแก้ไขข้อมูล</h3>
+      <h3 className="text-xl font-semibold mb-4 text-blue-800">สถานะการดำเนินการทั้งหมด</h3>
       <OperationsListSearchBar
         search={search}
         setSearch={setSearch}

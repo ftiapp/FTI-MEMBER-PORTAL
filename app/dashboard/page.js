@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember';
+
 import Wasmember from './components/Wasmember.js/page';
 import SubmittedMember from './components/SubmittedMember';
 import MemberDetail from './components/MemberDetail';
@@ -145,6 +146,7 @@ export default function Dashboard() {
         </svg>
       ),
     },
+    
     {
       name: 'ติดต่อเรา',
       icon: (
@@ -256,6 +258,8 @@ export default function Dashboard() {
         
       case 'ติดต่อเรา':
         return <ContactUs />;
+        
+     
 
       case 'กิจกรรมล่าสุด':
         return (

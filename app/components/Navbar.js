@@ -58,6 +58,12 @@ export default function Navbar() {
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link
+                  href="/ChangeEmail"
+                  className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                >
+                  แจ้งเปลี่ยนอีเมล
+                </Link>
+                <Link
                   href="/dashboard"
                   className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
                 >
@@ -127,6 +133,13 @@ export default function Navbar() {
               ))}
               {user ? (
                 <>
+                  <Link
+                    href="/ChangeEmail"
+                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    แจ้งเปลี่ยนอีเมลล์
+                  </Link>
                   <Link
                     href="/dashboard"
                     className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4"

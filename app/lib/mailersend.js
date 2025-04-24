@@ -75,6 +75,51 @@ export async function sendVerificationEmail(email, name, verificationToken) {
 }
 
 /**
+ * Send verification email for new email address
+ * @param {string} newEmail - User's new email address
+ * @param {string} name - User's name
+ * @param {string} verificationToken - Verification token
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendNewEmailVerification(newEmail, name, verificationToken) {
+  // Create base URL for verification link
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const verificationLink = `${baseUrl}/verify-new-email?token=${verificationToken}`;
+
+  // Use the default sender
+  const recipients = [new Recipient(newEmail, name)];
+
+  const emailParams = new EmailParams()
+    .setFrom(defaultSender)
+    .setTo(recipients)
+    .setSubject("ยืนยันอีเมลใหม่ของคุณ - FTI Portal")
+    .setHtml(`
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="color: #1a56db;">ยืนยันอีเมลใหม่ของคุณ</h1>
+        </div>
+        <div style="margin-bottom: 30px;">
+          <p>สวัสดี ${name},</p>
+          <p>คุณได้ขอเปลี่ยนอีเมลของคุณใน FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลใหม่ของคุณ:</p>
+        </div>
+        <div style="text-align: center; margin-bottom: 30px;">
+          <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยืนยันอีเมลใหม่ของฉัน</a>
+        </div>
+        <div>
+          <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
+          <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
+        </div>
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
+          <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
+          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
+        </div>
+      </div>
+    `);
+
+  return await mailerSend.email.send(emailParams);
+}
+
+/**
  * Send password reset email to user
  * @param {string} email - User's email address
  * @param {string} name - User's name

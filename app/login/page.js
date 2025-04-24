@@ -89,6 +89,20 @@ export default function Login() {
 
       // Login successful
       login(data.user);
+      // Log login event
+      try {
+        const sessionId = data.sessionId || (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}_${data.user.id}`);
+        fetch('/api/auth/log-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: data.user.id,
+            event_type: 'login',
+            session_id: sessionId,
+            user_agent: window.navigator.userAgent
+          })
+        });
+      } catch (e) { /* ignore log errors */ }
       router.push('/dashboard');
     } catch (err) {
       setError(err.message);
@@ -215,7 +229,7 @@ export default function Login() {
                         สมัครสมาชิก
                       </Link>
                     </p>
-                    <p className="text-gray-600 mt-2">
+                    {/* <p className="text-gray-600 mt-2">
                       ไม่ได้รับอีเมลยืนยัน หรืออีเมลยืนยันหมดอายุ?{' '}
                       <Link
                         href="/resend-verification"
@@ -223,7 +237,7 @@ export default function Login() {
                       >
                         ส่งอีเมลยืนยันใหม่
                       </Link>
-                    </p>
+                    </p>*/}
                   </div>
                 </form>
               </div>
