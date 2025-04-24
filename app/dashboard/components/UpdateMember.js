@@ -221,7 +221,10 @@ export default function UpdateMember() {
   }
 
   return (
-    <div className="space-y-6">
+    <div>
+      <h2 className="text-2xl font-bold text-blue-800 mb-1">ข้อมูลสมาชิก</h2>
+      <p className="text-gray-500 text-sm mb-6">สำหรับอัปเดตข้อมูลบัญชีสมาชิกของคุณ หากต้องการเปลี่ยนแปลงข้อมูลส่วนตัว กรุณากรอกข้อมูลให้ถูกต้องและครบถ้วน</p>
+      <div className="space-y-6">
       {/* Toaster สำหรับแจ้งเตือนที่มุมขวาบน */}
       <Toaster position="top-right" />
       <div className="bg-white rounded-xl shadow-md p-6">
@@ -308,6 +311,7 @@ export default function UpdateMember() {
           transform: translateY(1px);
         }
       `}</style>
+      </div>
     </div>
   );
 }

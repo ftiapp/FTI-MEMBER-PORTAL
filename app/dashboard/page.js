@@ -293,7 +293,7 @@ export default function Dashboard() {
         <div className="bg-white shadow-md rounded-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">ยินดีต้อนรับ, {user.name || 'สมาชิก'}</h1>
+              <h1 className="text-2xl font-bold text-gray-800">ยินดีต้อนรับ, {(user.firstname && user.lastname) ? `${user.firstname} ${user.lastname}` : 'สมาชิก'}</h1>
               <div className="flex items-center mt-2">
                 <span className="text-gray-600">สถานะสมาชิก:</span>
                 <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">

@@ -16,7 +16,7 @@ const ContactInfo = () => {
           </div>
           <div>
             <p className="font-medium text-gray-800">โทรศัพท์</p>
-            <p className="text-gray-600">02-345-1000</p>
+            <p className="text-gray-600">1453 กด 2</p>
           </div>
         </div>
         
@@ -26,7 +26,7 @@ const ContactInfo = () => {
           </div>
           <div>
             <p className="font-medium text-gray-800">อีเมล</p>
-            <p className="text-gray-600">contact@fti.or.th</p>
+            <a href="mailto:member@fti.or.th" className="text-blue-700 underline hover:text-blue-900">member@fti.or.th</a>
           </div>
         </div>
         
@@ -58,11 +58,19 @@ const ContactInfo = () => {
             </div>
             
             {/* Map placeholder */}
-            <div className="mt-4 bg-gray-100 rounded-lg h-32 flex items-center justify-center border border-gray-200">
-              <div className="text-center">
-                <FaMapMarkerAlt className="h-8 w-8 text-blue-700 mx-auto" />
-                <p className="text-sm text-gray-600 mt-1">คลิกเพื่อดูแผนที่</p>
-              </div>
+            <div className="mt-4 flex flex-col items-center justify-center">
+              <a
+                href="https://www.google.com/maps/dir//%E0%B8%AA%E0%B8%A0%E0%B8%B2%E0%B8%AD%E0%B8%B8%E0%B8%95%E0%B8%AA%E0%B8%B2%E0%B8%AB%E0%B8%81%E0%B8%A3%E0%B8%A3%E0%B8%A1%E0%B9%81%E0%B8%AB%E0%B9%88%E0%B8%87%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8%E0%B9%84%E0%B8%97%E0%B8%A2+2+%E0%B8%96%E0%B8%99%E0%B8%99+%E0%B8%99%E0%B8%A3%E0%B8%B2%E0%B8%98%E0%B8%B4%E0%B8%A7%E0%B8%B2%E0%B8%AA%E0%B8%A3%E0%B8%B2%E0%B8%8A%E0%B8%99%E0%B8%84%E0%B8%A3%E0%B8%B4%E0%B8%99%E0%B8%97%E0%B8%A3%E0%B9%8C+%E0%B9%81%E0%B8%82%E0%B8%A7%E0%B8%87%E0%B8%97%E0%B8%B8%E0%B9%88%E0%B8%87%E0%B8%A1%E0%B8%AB%E0%B8%B2%E0%B9%80%E0%B8%A1%E0%B8%86+%E0%B9%80%E0%B8%82%E0%B8%95%E0%B8%AA%E0%B8%B2%E0%B8%97%E0%B8%A3+%E0%B8%81%E0%B8%A3%E0%B8%B8%E0%B8%87%E0%B9%80%E0%B8%97%E0%B8%9E%E0%B8%A1%E0%B8%AB%E0%B8%B2%E0%B8%99%E0%B8%84%E0%B8%A3+10120+%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B9%80%E0%B8%97%E0%B8%A8%E0%B9%84%E0%B8%97%E0%B8%A2/@13.7112622,100.4536774,12z/data=!4m8!4m7!1m0!1m5!1m1!1s0x30e29f1a3d1745ab:0xe53e4bdad87508ca!2m2!1d100.5360792!2d13.7112758?entry=ttu&g_ep=EgoyMDI1MDQyMS4wIKXMDSoASAFQAw%3D%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-col items-center justify-center group"
+                title="ดูแผนที่บน Google Maps"
+              >
+                <span className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors mb-2">
+                  <FaMapMarkerAlt className="text-blue-700" size={32} />
+                </span>
+                <span className="text-blue-700 font-medium group-hover:underline">คลิกเพื่อดูแผนที่</span>
+              </a>
             </div>
           </div>
         </div>

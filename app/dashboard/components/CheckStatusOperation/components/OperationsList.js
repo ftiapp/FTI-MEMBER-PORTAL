@@ -183,7 +183,8 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200" id="operations-container">
-      <h3 className="text-xl font-semibold mb-4 text-blue-800">สถานะการดำเนินการทั้งหมด</h3>
+      <h3 className="text-xl font-semibold mb-1 text-blue-800">สถานะการดำเนินการทั้งหมด</h3>
+      <p className="text-gray-500 text-sm mb-4">ตรวจสอบสถานะคำขอ คำร้อง หรือการดำเนินการต่าง ๆ ที่เกี่ยวข้องกับบัญชีและข้อมูลสมาชิกของคุณได้ที่นี่</p>
       <OperationsListSearchBar
         search={search}
         setSearch={setSearch}
