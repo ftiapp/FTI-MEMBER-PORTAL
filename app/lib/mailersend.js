@@ -1,4 +1,5 @@
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import { getFTIEmailHtmlTemplate } from "./fti-email-template";
 
 // Initialize MailerSend with API key
 const mailerSend = new MailerSend({
@@ -29,28 +30,19 @@ export async function sendVerificationEmail(email, name, verificationToken) {
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("ยืนยันอีเมลของคุณ - FTI Portal")
-    .setHtml(`
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #1a56db;">ยืนยันอีเมลของคุณ</h1>
-        </div>
-        <div style="margin-bottom: 30px;">
-          <p>สวัสดี ${name},</p>
-          <p>ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
-        </div>
-        <div style="text-align: center; margin-bottom: 30px;">
-          <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยืนยันอีเมลของฉัน</a>
-        </div>
-        <div>
-          <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
-          <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
-        </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `)
+.setHtml(getFTIEmailHtmlTemplate({
+  title: "ยืนยันอีเมลของคุณ",
+  bodyContent: `
+    <p>สวัสดี ${name},</p>
+    <p>ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
+    <div style="text-align: center; margin-bottom: 30px;">
+      <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยืนยันอีเมลของฉัน</a>
+    </div>
+    <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
+    <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
+    <p style="color: #d97706; margin-top: 32px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
+  `
+}))
     .setText(`
       ยืนยันอีเมลของคุณ - FTI Portal
       

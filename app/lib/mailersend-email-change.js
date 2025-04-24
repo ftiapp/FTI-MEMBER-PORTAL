@@ -1,4 +1,5 @@
 import { MailerSend, EmailParams, Sender, Recipient } from "mailersend";
+import { getFTIEmailHtmlTemplate } from "./fti-email-template";
 
 // Initialize MailerSend with API key
 const mailerSend = new MailerSend({
@@ -26,27 +27,19 @@ export async function sendEmailChangeOTP(email, firstname, lastname, otp) {
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("รหัสยืนยันสำหรับการเปลี่ยนอีเมล - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(`
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="https://www.fti.or.th/wp-content/uploads/2022/01/cropped-logo-fti-1.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px;">
-        </div>
-        <div style="border-top: 3px solid #1a56db; padding-top: 20px;">
-          <h2 style="color: #1a56db; font-size: 20px;">รหัสยืนยันสำหรับการเปลี่ยนอีเมล</h2>
-          <p style="color: #333; font-size: 16px;">เรียน ท่าน ${firstname} ${lastname}</p>
-          <p style="color: #333; font-size: 16px;">ทางสภาอุตสาหกรรมแห่งประเทศไทยได้รับคำขอเปลี่ยนอีเมลในระบบสมาชิก</p>
-          <p style="color: #333; font-size: 16px;">กรุณาใช้รหัสยืนยันด้านล่างนี้เพื่อดำเนินการต่อ:</p>
-          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; font-size: 28px; letter-spacing: 6px; text-align: center; font-weight: bold; margin: 20px 0; color: #1a56db;">
-            ${otp}
-          </div>
-          <p style="color: #333; font-size: 16px;">รหัสยืนยันนี้จะหมดอายุภายใน 15 นาที</p>
-          <p style="color: #333; font-size: 16px;">หากท่านไม่ได้ทำรายการนี้ โปรดแจ้งเจ้าหน้าที่ผู้ดูแลระบบทันที</p>
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eaeaea; color: #666; font-size: 14px;">
-            <p>ด้วยความเคารพ<br>สภาอุตสาหกรรมแห่งประเทศไทย<br>The Federation of Thai Industries</p>
-          </div>
-        </div>
-      </div>
-    `);
+    .setHtml(getFTIEmailHtmlTemplate({
+  title: "รหัสยืนยันสำหรับการเปลี่ยนอีเมล",
+  bodyContent: `
+    <p>เรียน ท่าน ${firstname} ${lastname}</p>
+    <p>ทางสภาอุตสาหกรรมแห่งประเทศไทยได้รับคำขอเปลี่ยนอีเมลในระบบสมาชิก</p>
+    <p>กรุณาใช้รหัสยืนยันด้านล่างนี้เพื่อดำเนินการต่อ:</p>
+    <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; font-size: 28px; letter-spacing: 6px; text-align: center; font-weight: bold; margin: 20px 0; color: #1a56db;">
+      ${otp}
+    </div>
+    <p>รหัสยืนยันนี้จะหมดอายุภายใน 15 นาที</p>
+    <p>หากท่านไม่ได้ทำรายการนี้ โปรดแจ้งเจ้าหน้าที่ผู้ดูแลระบบทันที</p>
+  `
+}));
 
   try {
     const response = await mailerSend.email.send(emailParams);
