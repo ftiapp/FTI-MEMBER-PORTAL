@@ -82,8 +82,17 @@ export default function Login() {
       });
 
       const data = await response.json();
+      console.log('Login response:', { status: response.status, data });
 
       if (!response.ok) {
+        // ตรวจสอบว่าเป็นกรณีที่ต้องยืนยันอีเมลหรือไม่
+        if (response.status === 403 && data.requiresVerification) {
+          console.log('Email verification required, redirecting...');
+          // ถ้าต้องยืนยันอีเมล ให้ redirect ไปที่หน้า verification-required
+          setIsSubmitting(false); // ต้องรีเซ็ตสถานะก่อน redirect
+          router.push(`/verification-required?email=${encodeURIComponent(formData.email)}`);
+          return;
+        }
         throw new Error(data.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
       }
 

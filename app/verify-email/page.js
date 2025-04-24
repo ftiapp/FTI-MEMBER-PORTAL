@@ -23,27 +23,9 @@ export default function VerifyEmail() {
       return;
     }
     setToken(tokenFromUrl);
-    // เริ่ม auto-verify
-    const verify = async () => {
-      setVerificationStatus('verifying');
-      setMessage('กำลังยืนยันอีเมลของคุณ...');
-      try {
-        const response = await fetch(`/api/auth/verify-email?token=${tokenFromUrl}`);
-        const data = await response.json();
-        if (!response.ok) {
-          setVerificationStatus('error');
-          setMessage(data.error || 'เกิดข้อผิดพลาดในการยืนยันอีเมล');
-          return;
-        }
-        setVerificationStatus('success');
-        setMessage('ยืนยันอีเมลสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
-        if (data.email) setEmail(data.email);
-      } catch (error) {
-        setVerificationStatus('error');
-        setMessage('เกิดข้อผิดพลาดในการยืนยันอีเมล');
-      }
-    };
-    verify();
+    // ไม่ต้อง auto-verify แล้ว ให้ผู้ใช้กดปุ่มยืนยันเอง
+    setVerificationStatus('ready');
+    setMessage('กรุณากดปุ่มยืนยันอีเมลด้านล่างเพื่อยืนยันอีเมลของคุณ');
   }, [searchParams]);
 
   // ฟังก์ชันสำหรับการยืนยันอีเมลเมื่อกดปุ่ม
@@ -127,7 +109,38 @@ export default function VerifyEmail() {
             <div className="bg-white rounded-xl shadow-lg p-8 text-center">
               
 
-               {verificationStatus === 'verifying' && (
+               {verificationStatus === 'ready' && (
+                <div className="space-y-6">
+                  <div className="flex justify-center">
+                    <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    ยืนยันอีเมลของคุณ
+                  </h3>
+                  <p className="text-gray-600">{message}</p>
+                  <div className="pt-4 flex space-x-4 justify-center">
+                    <button 
+                      onClick={handleVerify}
+                      disabled={isSubmitting}
+                      className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-5 py-2.5 transition-colors disabled:opacity-50 flex items-center justify-center"
+                    >
+                      {isSubmitting && (
+                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                      )}
+                      {isSubmitting ? 'กำลังยืนยัน...' : 'ยืนยันอีเมลของฉัน'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {verificationStatus === 'verifying' && (
                 <div className="space-y-6">
                   <div className="flex justify-center">
                     <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center animate-spin">
