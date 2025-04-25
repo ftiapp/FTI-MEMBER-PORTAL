@@ -16,7 +16,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 3;
   const [operations, setOperations] = useState(initialOperations);
-  const [contactMessageStatus, setContactMessageStatus] = useState(null);
+  const [contactMessageStatus, setContactMessageStatus] = useState([]);
   const [verifications, setVerifications] = useState([]);
   // Search/filter states
   const [search, setSearch] = useState('');
@@ -61,38 +61,42 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
       .then(data => {
         console.log('Contact message API response:', data);
         if (Array.isArray(data.messages) && data.messages.length > 0) {
-          const latest = data.messages[0];
-          console.log('Latest contact message:', latest);
-          setContactMessageStatus({
-            id: latest.id || Date.now(),
+          // Map all messages to operation cards instead of just the latest one
+          const contactMessages = data.messages.map(message => ({
+            id: message.id || Date.now(),
             title: 'ติดต่อเจ้าหน้าที่',
-            description: `หัวข้อ: ${latest.subject || 'ไม่มีหัวข้อ'} - สถานะการติดต่อเจ้าหน้าที่`,
-            status: latest.status || 'unread',
-            created_at: latest.created_at || new Date().toISOString(),
-            subject: latest.subject || ''
-          });
+            description: `หัวข้อ: ${message.subject || 'ไม่มีหัวข้อ'} - สถานะการติดต่อเจ้าหน้าที่`,
+            status: message.status || 'unread',
+            created_at: message.created_at || new Date().toISOString(),
+            subject: message.subject || '',
+            type: 'ติดต่อเจ้าหน้าที่',
+            message_content: message.message || ''
+          }));
+          setContactMessageStatus(contactMessages);
         } else {
           // แม้ไม่มีข้อความก็ให้แสดงสถานะว่าไม่มีข้อความ
           console.log('No contact messages found, creating placeholder');
-          setContactMessageStatus({
+          setContactMessageStatus([{
             id: Date.now(),
             title: 'ติดต่อเจ้าหน้าที่',
             description: 'คุณยังไม่มีการติดต่อเจ้าหน้าที่',
             status: 'none',
-            created_at: new Date().toISOString()
-          });
+            created_at: new Date().toISOString(),
+            type: 'ติดต่อเจ้าหน้าที่'
+          }]);
         }
       })
       .catch(error => {
         console.error('Error fetching contact message status:', error);
         // แม้มี error ก็ให้แสดงสถานะว่าไม่มีข้อความ
-        setContactMessageStatus({
+        setContactMessageStatus([{
           id: Date.now(),
           title: 'ติดต่อเจ้าหน้าที่',
           description: 'ไม่สามารถดึงข้อมูลสถานะการติดต่อได้',
           status: 'error',
-          created_at: new Date().toISOString()
-        });
+          created_at: new Date().toISOString(),
+          type: 'ติดต่อเจ้าหน้าที่'
+        }]);
       });
   }, [userId]);
 
@@ -123,25 +127,60 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
 
   // Merge all cards for display
   useEffect(() => {
-    let mergedOps = [...initialOperations];
-    // Add verifications as operation cards
+    // Start with a clean array to avoid duplicates
+    let mergedOps = [];
+    
+    // Add verifications as operation cards (only if they don't exist in initialOperations)
     if (verifications.length > 0) {
-      const verificationOps = verifications.map(v => ({
-        id: v.id,
-        title: `ยืนยันสมาชิกเดิม: ${v.company_name} (${v.MEMBER_CODE})`,
-        description: `ประเภทบริษัท: ${v.company_type}`,
-        status: v.Admin_Submit === 1 ? 'approved' : v.Admin_Submit === 2 ? 'rejected' : 'pending',
-        created_at: v.created_at,
-        reason: v.reject_reason,
-        company_name: v.company_name,
-        MEMBER_CODE: v.MEMBER_CODE
-      }));
-      mergedOps = [...verificationOps, ...mergedOps];
+      const verificationIds = new Set(initialOperations
+        .filter(op => op.title?.includes('ยืนยันสมาชิกเดิม'))
+        .map(op => op.id));
+      
+      const verificationOps = verifications
+        .filter(v => !verificationIds.has(v.id)) // Only add if not already in initialOperations
+        .map(v => ({
+          id: v.id,
+          title: `ยืนยันสมาชิกเดิม: ${v.company_name} (${v.MEMBER_CODE})`,
+          description: `ประเภทบริษัท: ${v.company_type}`,
+          status: v.Admin_Submit === 1 ? 'approved' : v.Admin_Submit === 2 ? 'rejected' : 'pending',
+          created_at: v.created_at,
+          reason: v.reject_reason,
+          company_name: v.company_name,
+          MEMBER_CODE: v.MEMBER_CODE,
+          type: 'ยืนยันสมาชิกเดิม' // Add explicit type for filtering
+        }));
+      
+      mergedOps = [...verificationOps];
     }
-    // Add contact message status as operation card
-    if (contactMessageStatus) {
-      mergedOps = [contactMessageStatus, ...mergedOps];
+    
+    // Add all contact messages as operation cards
+    if (contactMessageStatus && contactMessageStatus.length > 0) {
+      // Filter out any contact messages that might already exist in initialOperations
+      const existingContactIds = new Set(
+        initialOperations
+          .filter(op => op.title === 'ติดต่อเจ้าหน้าที่')
+          .map(op => op.id)
+      );
+      
+      const newContactMessages = contactMessageStatus
+        .filter(msg => !existingContactIds.has(msg.id))
+        
+      // Add all contact messages to the operations list
+      mergedOps = [...newContactMessages, ...mergedOps];
     }
+    
+    // Add the rest of initialOperations with type property
+    const restOps = initialOperations.map(op => ({
+      ...op,
+      type: op.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 
+            op.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : 'แก้ไขข้อมูลส่วนตัว'
+    }));
+    
+    mergedOps = [...mergedOps, ...restOps];
+    
+    // Sort by created_at (newest first)
+    mergedOps.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
     setOperations(mergedOps);
   }, [initialOperations, contactMessageStatus, verifications]);
 
@@ -156,14 +195,40 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
         (op.MEMBER_CODE && op.MEMBER_CODE.toLowerCase().includes(searchLower)) ||
         (op.description && op.description.toLowerCase().includes(searchLower))
       );
-    // Filter by status
-    const matchesStatus = !statusFilter || op.status === statusFilter;
+      
+    // Get operation type
+    const opType = op.type || 
+      (op.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 
+       op.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : 'แก้ไขข้อมูลส่วนตัว');
+      
     // Filter by type
-    let typeLabel = '';
-    if (op.title?.includes('ยืนยันสมาชิกเดิม')) typeLabel = 'ยืนยันสมาชิกเดิม';
-    else if (op.title === 'ติดต่อเจ้าหน้าที่') typeLabel = 'ติดต่อเจ้าหน้าที่';
-    else typeLabel = 'แก้ไขข้อมูลส่วนตัว';
-    const matchesType = !typeFilter || typeLabel === typeFilter;
+    const matchesType = !typeFilter || opType === typeFilter;
+    
+    // Filter by status - only apply status filters that are relevant to the current type
+    let matchesStatus = true;
+    if (statusFilter) {
+      // For contact messages, only allow unread, read, replied statuses
+      if (opType === 'ติดต่อเจ้าหน้าที่') {
+        if (!['unread', 'read', 'replied', 'none', 'error'].includes(statusFilter)) {
+          matchesStatus = false;
+        } else {
+          matchesStatus = op.status === statusFilter;
+        }
+      } 
+      // For verifications, only allow pending, approved, rejected statuses
+      else if (opType === 'ยืนยันสมาชิกเดิม') {
+        if (!['pending', 'approved', 'rejected'].includes(statusFilter)) {
+          matchesStatus = false;
+        } else {
+          matchesStatus = op.status === statusFilter;
+        }
+      }
+      // For other types, apply the filter normally
+      else {
+        matchesStatus = op.status === statusFilter;
+      }
+    }
+    
     // Filter by date
     let matchesDate = true;
     if (dateRange[0]) {
@@ -172,6 +237,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
     if (dateRange[1]) {
       matchesDate = matchesDate && new Date(op.created_at) <= new Date(dateRange[1] + 'T23:59:59');
     }
+    
     return matchesSearch && matchesStatus && matchesType && matchesDate;
   });
 
@@ -211,6 +277,9 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
               statusClass={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusClass(operation.status) : getStatusClass(operation.status)}
               date={operation.created_at}
               errorMessage={operation.status === 'rejected' ? operation.reason : null}
+              id={operation.id}
+              type={operation.type || (operation.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : operation.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 'แก้ไขข้อมูลส่วนตัว')}
+              message_content={operation.message_content}
             />
           ))}
           <Pagination

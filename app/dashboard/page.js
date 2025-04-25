@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -30,6 +30,62 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('อัพเดตสมาชิก');
   const [membershipType, setMembershipType] = useState('ทั่วไป'); // Default membership type
+  
+  // Create refs for menu items
+  const menuRefs = {
+    'ติดต่อเรา': useRef(null)
+  };
+  
+  // Check URL parameters for tab selection and listen for URL changes
+  useEffect(() => {
+    // Function to handle URL parameter changes
+    const handleUrlChange = () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const tabParam = searchParams.get('tab');
+      const messageId = searchParams.get('messageId');
+      
+      console.log('URL parameters:', { tabParam, messageId });
+      
+      if (tabParam === 'status') {
+        setActiveTab('สถานะการดำเนินการ');
+      } else if (tabParam === 'contact') {
+        setActiveTab('ติดต่อเรา');
+        
+        // Programmatically click the Contact Us menu item if messageId is present
+        if (messageId && menuRefs['ติดต่อเรา']?.current) {
+          console.log('Programmatically clicking Contact Us menu item');
+          menuRefs['ติดต่อเรา'].current.click();
+        }
+      }
+    };
+    
+    // Function to handle contact message clicks from operations list
+    const handleContactMessageClick = (event) => {
+      const { messageId } = event.detail;
+      console.log('Contact message clicked event received, messageId:', messageId);
+      
+      // The URL is already updated by the StatusCard component
+      // Just programmatically click the Contact Us menu item
+      if (menuRefs['ติดต่อเรา']?.current) {
+        console.log('Programmatically clicking Contact Us menu item');
+        menuRefs['ติดต่อเรา'].current.click();
+      }
+    };
+    
+    // Check parameters on initial load
+    handleUrlChange();
+    
+    // Set up event listeners
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('contactMessageClicked', handleContactMessageClick);
+    
+    // Clean up event listeners on component unmount
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('contactMessageClicked', handleContactMessageClick);
+    };
+  }, []);
+
   const [verificationStatus, setVerificationStatus] = useState({
     isLoading: true,
     submitted: false,
@@ -256,8 +312,20 @@ export default function Dashboard() {
           </div>
         );
         
-      case 'ติดต่อเรา':
-        return <ContactUs />;
+      case 'ติดต่อเรา': {
+        // Check if there's a messageId parameter in the URL
+        const searchParams = new URLSearchParams(window.location.search);
+        const messageId = searchParams.get('messageId');
+        console.log('Dashboard: Rendering ContactUs with messageId:', messageId);
+        return (
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-800">ติดต่อเรา</h2>
+            <div className="bg-white rounded-xl shadow-md p-6">
+              <ContactUs messageId={messageId} />
+            </div>
+          </div>
+        );
+      }
         
      
 
@@ -329,7 +397,26 @@ export default function Dashboard() {
                   {menuItems.map((item) => (
                     <li key={item.name}>
                       <button
-                        onClick={() => setActiveTab(item.name)}
+                        ref={menuRefs[item.name] || null}
+                        onClick={() => {
+                          if (item.name === 'สถานะการดำเนินการ') {
+                            // Use shallow routing for this menu item
+                            router.push('/dashboard?tab=status', undefined, { shallow: true });
+                          } else if (item.name === 'ติดต่อเรา') {
+                            // For Contact Us, check if there's a messageId in the URL
+                            const searchParams = new URLSearchParams(window.location.search);
+                            const messageId = searchParams.get('messageId');
+                            
+                            if (messageId) {
+                              // If there's already a messageId, preserve it
+                              router.push(`/dashboard?tab=contact&messageId=${messageId}`, undefined, { shallow: true });
+                            } else {
+                              // Otherwise just navigate to the contact tab
+                              router.push('/dashboard?tab=contact', undefined, { shallow: true });
+                            }
+                          }
+                          setActiveTab(item.name);
+                        }}
                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                           activeTab === item.name
                             ? 'bg-blue-50 text-blue-700'

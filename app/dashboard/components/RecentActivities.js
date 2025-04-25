@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
@@ -147,54 +148,165 @@ export default function RecentActivities() {
   };
 
   return (
-    <div>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="space-y-6" id="activities-container">
-        <div className="pb-4 border-b border-gray-200">
-          <h3 className="text-xl font-semibold text-blue-800">กิจกรรมของคุณ</h3>
-          <p className="text-gray-600 mt-1 text-sm">รายการกิจกรรมและการเปลี่ยนแปลงล่าสุดของบัญชีของคุณ</p>
-        </div>
+        <motion.div 
+          className="pb-4 border-b border-gray-200"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <motion.h3 
+            className="text-xl font-semibold text-blue-800"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
+            กิจกรรมของคุณ
+          </motion.h3>
+          <motion.p 
+            className="text-gray-600 mt-1 text-sm"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            รายการกิจกรรมและการเปลี่ยนแปลงล่าสุดของบัญชีของคุณ
+          </motion.p>
+        </motion.div>
         
         {loading ? (
-          <div className="py-16 flex flex-col items-center justify-center text-gray-600">
-            <FaSpinner className="animate-spin text-blue-600 mb-3" size={28} />
-            <p className="font-medium">กำลังโหลดข้อมูล...</p>
-          </div>
+          <motion.div 
+            className="py-16 flex flex-col items-center justify-center text-gray-600"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            >
+              <FaSpinner className="text-blue-600 mb-3" size={28} />
+            </motion.div>
+            <motion.p 
+              className="font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              กำลังโหลดข้อมูล...
+            </motion.p>
+          </motion.div>
         ) : loadingError ? (
-          <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
-            <FaExclamationCircle className="text-red-500 mb-3" size={28} />
-            <p className="font-medium mb-3">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
-            <button 
+          <motion.div 
+            className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <FaExclamationCircle className="text-red-500 mb-3" size={28} />
+            </motion.div>
+            <motion.p 
+              className="font-medium mb-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              เกิดข้อผิดพลาดในการโหลดข้อมูล
+            </motion.p>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               onClick={handleRetry}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
             >
               ลองใหม่อีกครั้ง
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         ) : activities.length === 0 ? (
-          <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-gray-200 rounded-lg">
-            <FaExclamationCircle className="text-gray-400 mb-3" size={28} />
-            <p className="font-medium">ยังไม่มีกิจกรรมล่าสุด</p>
-          </div>
+          <motion.div 
+            className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-gray-200 rounded-lg"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <FaExclamationCircle className="text-gray-400 mb-3" size={28} />
+            </motion.div>
+            <motion.p 
+              className="font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              ยังไม่มีกิจกรรมล่าสุด
+            </motion.p>
+          </motion.div>
         ) : (
-          <div className="space-y-4">
-            {currentItems.map((activity, index) => (
-              <div 
-                key={index} 
-                className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow bg-white"
-              >
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <AnimatePresence>
+              {currentItems.map((activity, index) => (
+                <motion.div 
+                  key={index} 
+                  className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-all duration-300 bg-white"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  whileHover={{ scale: 1.01, boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" }}
+                >
                 <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 bg-gray-100 rounded-lg p-3 text-center min-w-[60px] shadow-sm border border-gray-200">
+                  <motion.div 
+                    className="flex-shrink-0 bg-gray-100 rounded-lg p-3 text-center min-w-[60px] shadow-sm border border-gray-200"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.3, delay: 0.1 + index * 0.1 }}
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                  >
                     {getActivityIcon(activity.action)}
-                  </div>
-                  <div className="flex-grow">
+                  </motion.div>
+                  <motion.div 
+                    className="flex-grow"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
+                  >
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                      <h4 className="font-semibold text-gray-900">
+                      <motion.h4 
+                        className="font-semibold text-gray-900"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+                      >
                         {activity.type === 'contact' ? activity.subject : 
                          activity.type === 'member' ? `${activity.company_name} (${activity.MEMBER_CODE})` : 
                          activity.type === 'profile' ? 'คำขอแก้ไขข้อมูลส่วนตัว' :
                          activity.details}
-                      </h4>
-                      {getActivityStatus(activity)}
+                      </motion.h4>
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
+                      >
+                        {getActivityStatus(activity)}
+                      </motion.div>
                     </div>
                     <p className="text-sm text-gray-700 font-medium mt-2">
                       {activity.type === 'contact' ? 
@@ -212,24 +324,37 @@ export default function RecentActivities() {
                     <div className="mt-3 text-sm text-gray-600">
                       <span className="font-medium">วันที่:</span> {formatDate(activity.created_at)}
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
-            ))}
+              </motion.div>
+              ))}
+            </AnimatePresence>
             
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2 mt-6 pt-4 border-t border-gray-200">
-                <button 
+              <motion.div 
+                className="flex justify-center items-center space-x-2 mt-6 pt-4 border-t border-gray-200"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => paginate(currentPage - 1)} 
                   disabled={currentPage === 1}
-                  className={`p-2 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed bg-gray-100' : 'text-blue-700 hover:bg-blue-100 active:bg-blue-200'} transition-colors`}
+                  className={`p-2 rounded-md ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed bg-gray-100' : 'text-blue-700 hover:bg-blue-100 active:bg-blue-200'} transition-all duration-200`}
                   aria-label="Previous page"
                 >
                   <FaChevronLeft size={16} />
-                </button>
+                </motion.button>
                 
-                <div className="flex space-x-2">
+                <motion.div 
+                  className="flex space-x-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.5, delay: 0.4 }}
+                >
                   {Array.from({ length: totalPages }, (_, index) => {
                     // Display limited page numbers for better UX when there are many pages
                     const pageNumber = index + 1;
@@ -242,17 +367,19 @@ export default function RecentActivities() {
                       (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
                     ) {
                       return (
-                        <button
+                        <motion.button
                           key={pageNumber}
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
                           onClick={() => paginate(pageNumber)}
                           className={`w-8 h-8 rounded-md font-medium ${
                             currentPage === pageNumber 
                               ? 'bg-blue-600 text-white shadow-sm' 
                               : 'text-gray-700 hover:bg-gray-100 active:bg-gray-200'
-                          } transition-colors`}
+                          } transition-all duration-200`}
                         >
                           {pageNumber}
-                        </button>
+                        </motion.button>
                       );
                     }
                     
@@ -267,19 +394,21 @@ export default function RecentActivities() {
                     // Hide other page numbers
                     return null;
                   })}
-                </div>
+                </motion.div>
                 
-                <button 
+                <motion.button 
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => paginate(currentPage + 1)} 
                   disabled={currentPage === totalPages}
-                  className={`p-2 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed bg-gray-100' : 'text-blue-700 hover:bg-blue-100 active:bg-blue-200'} transition-colors`}
+                  className={`p-2 rounded-md ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed bg-gray-100' : 'text-blue-700 hover:bg-blue-100 active:bg-blue-200'} transition-all duration-200`}
                   aria-label="Next page"
                 >
                   <FaChevronRight size={16} />
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             )}
-          </div>
+          </motion.div>
         )}
       </div>
       
@@ -290,14 +419,50 @@ export default function RecentActivities() {
           to { opacity: 1; transform: translateY(0); }
         }
         
+        @keyframes slideIn {
+          from { transform: translateX(-20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        
+        .animate-pulse {
+          animation: pulse 2s infinite ease-in-out;
+        }
+        
+        .animate-slide-in {
+          animation: slideIn 0.5s ease-out forwards;
+        }
+        
         #activities-container {
           scroll-margin-top: 20px;
         }
         
-        button:active {
-          transform: translateY(1px);
+        .activity-card-enter {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        
+        .activity-card-enter-active {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 300ms, transform 300ms;
+        }
+        
+        .activity-card-exit {
+          opacity: 1;
+        }
+        
+        .activity-card-exit-active {
+          opacity: 0;
+          transform: translateY(-20px);
+          transition: opacity 300ms, transform 300ms;
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }

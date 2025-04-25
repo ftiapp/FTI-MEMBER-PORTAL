@@ -1,4 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+// Helper function to get filtered status options based on type
+const getFilteredStatusOptions = (type, allOptions) => {
+  if (!type) return allOptions;
+  
+  switch (type) {
+    case 'ติดต่อเจ้าหน้าที่':
+      return allOptions.filter(opt => 
+        ['', 'unread', 'read', 'replied', 'none', 'error'].includes(opt.value)
+      );
+    case 'ยืนยันสมาชิกเดิม':
+      return allOptions.filter(opt => 
+        ['', 'pending', 'approved', 'rejected'].includes(opt.value)
+      );
+    default:
+      return allOptions;
+  }
+};
 
 export default function OperationsListSearchBar({
   search,
@@ -12,6 +30,14 @@ export default function OperationsListSearchBar({
   operationTypeOptions,
   statusOptions
 }) {
+  // State for filtered status options based on selected type
+  const [filteredStatusOptions, setFilteredStatusOptions] = useState(statusOptions);
+
+  // Update filtered status options when type filter changes
+  useEffect(() => {
+    setFilteredStatusOptions(getFilteredStatusOptions(typeFilter, statusOptions));
+  }, [typeFilter, statusOptions]);
+
   return (
     <div className="flex flex-col gap-4 mb-4">
       {/* Search bar at the top */}
@@ -44,6 +70,23 @@ export default function OperationsListSearchBar({
           />
         </div>
         <div>
+          <label className="block text-sm font-medium text-black mb-1">กรองประเภท</label>
+          <select
+            className="border border-gray-300 rounded-md px-2 py-2 w-44 text-black"
+            value={typeFilter}
+            onChange={e => {
+              setTypeFilter(e.target.value);
+              // Reset status filter when type changes
+              setStatusFilter('');
+            }}
+          >
+            <option value="">ทั้งหมด</option>
+            {operationTypeOptions.map(opt => (
+              <option value={opt.value} key={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
+        <div>
           <label className="block text-sm font-medium text-black mb-1">กรองสถานะ</label>
           <select
             className="border border-gray-300 rounded-md px-2 py-2 w-36 text-black"
@@ -51,20 +94,7 @@ export default function OperationsListSearchBar({
             onChange={e => setStatusFilter(e.target.value)}
           >
             <option value="">ทั้งหมด</option>
-            {statusOptions.map(opt => (
-              <option value={opt.value} key={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-black mb-1">กรองประเภท</label>
-          <select
-            className="border border-gray-300 rounded-md px-2 py-2 w-44 text-black"
-            value={typeFilter}
-            onChange={e => setTypeFilter(e.target.value)}
-          >
-            <option value="">ทั้งหมด</option>
-            {operationTypeOptions.map(opt => (
+            {filteredStatusOptions.map(opt => (
               <option value={opt.value} key={opt.value}>{opt.label}</option>
             ))}
           </select>

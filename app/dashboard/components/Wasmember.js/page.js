@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import MemberInfoForm from './components/MemberInfoForm';
 import EditMemberForm from './components/EditMemberForm';
 import InfoAlert from './components/InfoAlert';
@@ -452,32 +453,106 @@ const [successMessage, setSuccessMessage] = useState('');
   };
 
   return (
-    <div className="space-y-6">
-      <InfoAlert />
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <InfoAlert />
+      </motion.div>
+      
       {/* Success message */}
-      {showSuccessMessage && (
-        <div className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4 shadow flex items-center" role="alert">
-          <FaCheckCircle className="w-6 h-6 mr-2 text-green-600" />
-          <span className="font-medium">{successMessage}</span>
-        </div>
-      )}
+      <AnimatePresence>
+        {showSuccessMessage && (
+          <motion.div 
+            className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4 shadow flex items-center" 
+            role="alert"
+            initial={{ opacity: 0, y: -20, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -20, height: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <FaCheckCircle className="w-6 h-6 mr-2 text-green-600" />
+            </motion.div>
+            <motion.span 
+              className="font-medium"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.3 }}
+            >
+              {successMessage}
+            </motion.span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Show loading indicator when submitting */}
-      {isSubmitting && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-          <div className="flex items-center">
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-700 mr-3"></div>
-            <p className="text-blue-700">กำลังดำเนินการ โปรดรอสักครู่...</p>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {isSubmitting && (
+          <motion.div 
+            className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
+            initial={{ opacity: 0, y: -10, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -10, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="flex items-center">
+              <motion.div 
+                className="rounded-full h-5 w-5 border-b-2 border-blue-700 mr-3"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              ></motion.div>
+              <motion.p 
+                className="text-blue-700"
+                initial={{ opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                กำลังดำเนินการ โปรดรอสักครู่...
+              </motion.p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Show member verification form */}
-      {renderMemberVerificationForm()}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        {renderMemberVerificationForm()}
+      </motion.div>
       
       {/* Delete Confirmation Modal */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
-            <button 
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div 
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div 
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
               onClick={() => {
                 setShowDeleteModal(false);
                 setSubmissionToDelete(null);
@@ -487,81 +562,135 @@ const [successMessage, setSuccessMessage] = useState('');
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </motion.button>
             
-            <div className="text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <motion.div className="text-center">
+              <motion.svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                className="h-12 w-12 mx-auto text-red-500" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                stroke="currentColor"
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.5, type: "spring" }}
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+              </motion.svg>
               
-              <h3 className="text-xl font-bold text-gray-900 mt-4">ยืนยันการลบข้อมูล</h3>
+              <motion.h3 
+                className="text-xl font-bold text-gray-900 mt-4"
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                ยืนยันการลบข้อมูล
+              </motion.h3>
               
-              <p className="text-gray-600 mt-2">
+              <motion.p 
+                className="text-gray-600 mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
                 คุณต้องการลบข้อมูลการยืนยันสมาชิกสำหรับ <span className="font-medium">{submissionToDelete?.companyName}</span> ใช่หรือไม่?
-              </p>
+              </motion.p>
               
-              <p className="text-gray-600 mt-1">
+              <motion.p 
+                className="text-gray-600 mt-1"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
                 รหัสสมาชิก: <span className="font-medium">{submissionToDelete?.memberNumber}</span>
-              </p>
+              </motion.p>
               
-              <p className="text-sm text-red-600 mt-2">
+              <motion.p 
+                className="text-sm text-red-600 mt-2"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+              >
                 การดำเนินการนี้ไม่สามารถเรียกคืนได้
-              </p>
+              </motion.p>
               
-              <div className="mt-6 flex space-x-3">
-                <button
+              <motion.div 
+                className="mt-6 flex space-x-3"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.6 }}
+              >
+                <motion.button
+                  whileHover={{ scale: 1.05, backgroundColor: "#f9fafb" }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => {
                     setShowDeleteModal(false);
                     setSubmissionToDelete(null);
                   }}
-                  className="flex-1 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                  className="flex-1 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none transition-all duration-200"
                 >
                   ยกเลิก
-                </button>
+                </motion.button>
                 
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.05, backgroundColor: "#dc2626" }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleDeleteSubmission}
                   disabled={isDeleting}
-                  className="flex-1 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none flex justify-center items-center"
+                  className="flex-1 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none flex justify-center items-center transition-all duration-200"
                 >
                   {isDeleting ? (
                     <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      <motion.div 
+                        className="rounded-full h-4 w-4 border-b-2 border-white mr-2"
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      ></motion.div>
                       กำลังลบ...
                     </>
                   ) : 'ลบข้อมูล'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                </motion.button>
+              </motion.div>
+            </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Edit Member Form Modal */}
-      {showEditForm && submissionToEdit && (
-        <EditMemberForm
-          submission={submissionToEdit}
-          onClose={() => {
-            setShowEditForm(false);
-            setSubmissionToEdit(null);
-          }}
-          onSuccess={(updatedSubmission) => {
-            // Update the submission in the list
-            setAllSubmissions(prev => 
-              prev.map(item => 
-                item.id === updatedSubmission.id ? {
-                  ...item,
-                  memberNumber: updatedSubmission.memberNumber,
-                  memberType: updatedSubmission.memberType,
-                  companyName: updatedSubmission.companyName,
-                  taxId: updatedSubmission.taxId,
-                  status: 'pending'
-                } : item
-              )
-            );
-          }}
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {showEditForm && submissionToEdit && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <EditMemberForm
+              submission={submissionToEdit}
+              onClose={() => {
+                setShowEditForm(false);
+                setSubmissionToEdit(null);
+              }}
+              onSuccess={(updatedSubmission) => {
+                // Update the submission in the list
+                setAllSubmissions(prev => 
+                  prev.map(item => 
+                    item.id === updatedSubmission.id ? {
+                      ...item,
+                      memberNumber: updatedSubmission.memberNumber,
+                      memberType: updatedSubmission.memberType,
+                      companyName: updatedSubmission.companyName,
+                      taxId: updatedSubmission.taxId,
+                      status: 'pending'
+                    } : item
+                  )
+                );
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }

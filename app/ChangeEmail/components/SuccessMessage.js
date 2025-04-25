@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
@@ -8,19 +8,33 @@ import Link from 'next/link';
 export default function SuccessMessage() {
   const router = useRouter();
   const { logout } = useAuth();
+  const [countdown, setCountdown] = useState(3);
+  const [isLocked, setIsLocked] = useState(true);
 
   useEffect(() => {
-    // ล็อกเอาท์ผู้ใช้หลังจาก 10 วินาที
-    const timer = setTimeout(() => {
+    // นับถอยหลังจาก 3 วินาทีและล็อกเอาท์ผู้ใช้
+    if (countdown > 0) {
+      const timer = setTimeout(() => {
+        setCountdown(countdown - 1);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
       logout();
       router.push('/login');
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [logout, router]);
+    }
+  }, [countdown, logout, router]);
 
   return (
-    <div className="bg-white rounded-lg max-w-md mx-auto text-center py-8 px-6">
+    <div className="relative bg-white rounded-lg max-w-md mx-auto text-center py-8 px-6">
+      {isLocked && (
+        <div className="absolute inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center rounded-lg z-10">
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-xl font-bold mb-3">กำลังออกจากระบบ</h3>
+            <div className="text-3xl font-bold text-blue-600 mb-3">{countdown}</div>
+            <p className="text-gray-600">กรุณารอสักครู่...</p>
+          </div>
+        </div>
+      )}
       <div className="flex justify-center mb-6">
         <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
           <svg 
@@ -47,7 +61,7 @@ export default function SuccessMessage() {
       </p>
       
       <p className="text-sm text-gray-500 mb-6">
-        ระบบจะนำท่านไปยังหน้าล็อกอินโดยอัตโนมัติใน 10 วินาที
+        ระบบจะนำท่านไปยังหน้าล็อกอินโดยอัตโนมัติใน 3 วินาที
       </p>
       
       <Link 

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast, Toaster } from 'react-hot-toast';
 import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function UpdateMember() {
   const MAX_REQUESTS_PER_DAY = 3;
@@ -169,15 +170,28 @@ export default function UpdateMember() {
     // แสดงเฉพาะสถานะ "รอการอนุมัติ" เท่านั้น
     if (updateStatus.status === 'pending') {
       return (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-          <div className="flex">
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                คำขอแก้ไขข้อมูลของคุณกำลังรอการอนุมัติ
-              </p>
+        <AnimatePresence>
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.4 }}
+            className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6"
+          >
+            <div className="flex">
+              <div className="ml-3">
+                <motion.p 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                  className="text-sm text-yellow-700"
+                >
+                  คำขอแก้ไขข้อมูลของคุณกำลังรอการอนุมัติ
+                </motion.p>
+              </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </AnimatePresence>
       );
     }
     
@@ -194,124 +208,243 @@ export default function UpdateMember() {
 
   if (loading) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white shadow rounded-lg p-6 mb-6"
+      >
         <div className="py-16 flex flex-col items-center justify-center text-gray-600">
-          <FaSpinner className="animate-spin text-blue-600 mb-3" size={28} />
-          <p className="font-medium">กำลังโหลดข้อมูล...</p>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+          >
+            <FaSpinner className="text-blue-600 mb-3" size={28} />
+          </motion.div>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="font-medium"
+          >
+            กำลังโหลดข้อมูล...
+          </motion.p>
         </div>
-      </div>
+      </motion.div>
     );
   }
   
   if (loadingError) {
     return (
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white shadow rounded-lg p-6 mb-6"
+      >
         <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
-          <FaExclamationCircle className="text-red-500 mb-3" size={28} />
-          <p className="font-medium mb-3">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
-          <button 
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <FaExclamationCircle className="text-red-500 mb-3" size={28} />
+          </motion.div>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="font-medium mb-3"
+          >
+            เกิดข้อผิดพลาดในการโหลดข้อมูล
+          </motion.p>
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={handleRetry}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
           >
             ลองใหม่อีกครั้ง
-          </button>
+          </motion.button>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold text-blue-800 mb-1">ข้อมูลสมาชิก</h2>
-      <p className="text-gray-500 text-sm mb-6">สำหรับอัปเดตข้อมูลบัญชีสมาชิกของคุณ หากต้องการเปลี่ยนแปลงข้อมูลส่วนตัว กรุณากรอกข้อมูลให้ถูกต้องและครบถ้วน</p>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.h2 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="text-2xl font-bold text-blue-800 mb-1"
+      >
+        ข้อมูลสมาชิก
+      </motion.h2>
+      <motion.p 
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="text-gray-500 text-sm mb-6"
+      >
+        สำหรับอัปเดตข้อมูลบัญชีสมาชิกของคุณ หากต้องการเปลี่ยนแปลงข้อมูลส่วนตัว กรุณากรอกข้อมูลให้ถูกต้องและครบถ้วน
+      </motion.p>
       <div className="space-y-6">
       {/* Toaster สำหรับแจ้งเตือนที่มุมขวาบน */}
       <Toaster position="top-right" />
-      <div className="bg-white rounded-xl shadow-md p-6">
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+        className="bg-white rounded-xl shadow-md p-6"
+      >
         {getStatusBadge()}
         {/* ส่วนที่ 1: ชื่อ - นามสกุล พร้อมปุ่มส่งคำขอแก้ไข */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <motion.form 
+          onSubmit={handleSubmit} 
+          className="space-y-6"
+        >
           <div className="mb-6 border-b pb-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+              >
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
-                <input
+                <motion.input
+                  whileFocus={{ scale: 1.01, boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
                   type="text"
                   id="firstName"
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
                   placeholder="ชื่อ"
                   disabled={updateStatus?.status === 'pending'}
                 />
-              </div>
-              <div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+              >
                 <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">นามสกุล</label>
-                <input
+                <motion.input
+                  whileFocus={{ scale: 1.01, boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
                   type="text"
                   id="lastName"
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900"
+                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
                   placeholder="นามสกุล"
                   disabled={updateStatus?.status === 'pending'}
                 />
-              </div>
+              </motion.div>
             </div>
-            <div className="flex justify-end mt-6">
-              <button
+            <motion.div 
+              className="flex justify-end mt-6"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={submitting || updateStatus?.status === 'pending'}
               >
-                {submitting ? 'กำลังส่งข้อมูล...' : 'ส่งคำขอแก้ไข'}
-              </button>
-            </div>
+                {submitting ? (
+                  <span className="flex items-center">
+                    <motion.span
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                      className="inline-block mr-2"
+                    >
+                      <FaSpinner size={16} />
+                    </motion.span>
+                    กำลังส่งข้อมูล...
+                  </span>
+                ) : 'ส่งคำขอแก้ไข'}
+              </motion.button>
+            </motion.div>
           </div>
-        </form>
+        </motion.form>
         {/* ส่วนที่ 2: อีเมลและเบอร์โทร (แสดงเฉยๆ ไม่มีปุ่ม) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">อีเมล (Username)</label>
-            <input
+            <motion.input
+              whileHover={{ scale: 1.01 }}
               type="email"
               id="email"
               name="email"
               value={formData.email}
               readOnly
-              className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
+              className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900 transition-all duration-200"
               placeholder="อีเมล"
               disabled={true}
             />
-          </div>
-          <div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.7 }}
+          >
             <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">เบอร์โทรศัพท์</label>
-            <input
+            <motion.input
+              whileHover={{ scale: 1.01 }}
               type="tel"
               id="phone"
               name="phone"
               value={formData.phone}
               readOnly
-              className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900"
+              className="w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-900 transition-all duration-200"
               placeholder="เบอร์โทรศัพท์"
               disabled={true}
             />
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
       {/* Add global animation styles */}
       <style jsx global>{`
         @keyframes fadeIn {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
-        button:active {
-          transform: translateY(1px);
+        @keyframes slideIn {
+          from { transform: translateX(-20px); opacity: 0; }
+          to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes pulse {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.05); }
+          100% { transform: scale(1); }
+        }
+        .animate-pulse {
+          animation: pulse 2s infinite ease-in-out;
+        }
+        .animate-slide-in {
+          animation: slideIn 0.5s ease-out forwards;
+        }
+        input:focus, button:focus {
+          transition: all 0.2s ease-in-out;
+        }
+        .page-transition {
+          transition: all 0.3s ease-in-out;
         }
       `}</style>
       </div>
-    </div>
+    </motion.div>
   );
 }
