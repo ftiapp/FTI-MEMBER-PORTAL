@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 
 export default function ForgotPassword() {
   const router = useRouter();
@@ -52,20 +53,7 @@ export default function ForgotPassword() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      {/* Header with Logo */}
-      <header className="bg-white shadow-sm">
-        <div className="container-custom py-4">
-          <Link href="/" className="flex-shrink-0">
-            <Image
-              src="/images/FTI-MasterLogo_RGB_forLightBG.png"
-              alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-              width={150}
-              height={60}
-              priority
-            />
-          </Link>
-        </div>
-      </header>
+      <Navbar />
 
       <div className="container-custom py-12">
         <div className="max-w-md mx-auto">

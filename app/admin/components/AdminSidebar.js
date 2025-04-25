@@ -6,6 +6,29 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 
+function AdminInfo({ collapsed }) {
+  const [admin, setAdmin] = useState(null);
+  useEffect(() => {
+    async function fetchAdmin() {
+      try {
+        const res = await fetch('/api/admin/check-session', { cache: 'no-store', next: { revalidate: 0 } });
+        const data = await res.json();
+        if (data.success && data.admin) setAdmin(data.admin);
+      } catch (e) {}
+    }
+    fetchAdmin();
+  }, []);
+  if (!admin) return null;
+  return (
+    <div className={`mt-2 mb-4 px-2 py-2 rounded ${collapsed ? 'hidden' : 'block'} bg-gray-900/70`}> 
+      <div className="text-sm text-blue-100 font-semibold">{admin.name || 'Admin'}</div>
+      <div className="text-xs text-gray-400 font-mono">{admin.username}</div>
+    </div>
+  );
+}
+
+export { AdminInfo };
+
 export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
@@ -164,22 +187,9 @@ export default function AdminSidebar() {
     <aside className={`bg-gray-800 text-white ${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 ease-in-out min-h-screen h-full`}>
       <div className="p-4 flex justify-between items-center border-b border-gray-700">
         <div className={`${collapsed ? 'hidden' : 'block'}`}>
-          <h1 className="text-xl font-bold">Admin Portal</h1>
+          <h1 className="text-xl font-bold">เมนู</h1>
         </div>
-        <button 
-          onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded-full hover:bg-gray-700"
-        >
-          {collapsed ? (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-            </svg>
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-            </svg>
-          )}
-        </button>
+       
       </div>
       
       <nav className="mt-6">
@@ -228,21 +238,21 @@ export default function AdminSidebar() {
             logout();
             router.push('/login');
           }}
-          className={`flex items-center justify-center w-full p-3 hover:bg-gray-700 transition-colors ${loading && activePath === 'logout' ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`flex items-center justify-center w-full p-2 text-xs hover:bg-gray-700 transition-colors ${loading && activePath === 'logout' ? 'opacity-70 cursor-not-allowed' : ''}`}
           disabled={loading}
           title="ออกจากระบบ"
         >
           {loading && activePath === 'logout' ? (
-            <svg className="animate-spin h-6 w-6 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <svg className="animate-spin h-4 w-4 text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           )}
-          {!collapsed && <span className="ml-3">ออก</span>}
+          {!collapsed && <span className="ml-2">ออกจากระบบ</span>}
         </button>
       </div>
     </aside>

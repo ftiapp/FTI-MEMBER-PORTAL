@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast, Toaster } from 'react-hot-toast';
 import Link from 'next/link';
 import Navbar from '@/app/components/Navbar';
@@ -26,12 +27,24 @@ export default function ChangeEmailPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-md text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
-          <p className="text-gray-600">กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</p>
+      <motion.div 
+        className="min-h-screen bg-gray-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="container-custom py-8">
+          <motion.div 
+            className="max-w-3xl mx-auto bg-white rounded-lg shadow-md overflow-hidden"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-700 mx-auto mb-4"></div>
+            <p className="text-gray-600">กำลังตรวจสอบสถานะการเข้าสู่ระบบ...</p>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -63,13 +76,30 @@ export default function ChangeEmailPage() {
     }
   };
 
+  // Animation variants for step indicators
+  const stepVariants = {
+    active: { scale: 1.1, backgroundColor: '#2563EB', color: '#FFFFFF', transition: { duration: 0.3 } },
+    inactive: { scale: 1, backgroundColor: '#E5E7EB', color: '#000000', transition: { duration: 0.3 } },
+    completed: { scale: 1, backgroundColor: '#2563EB', color: '#FFFFFF', transition: { duration: 0.3 } }
+  };
+
   return (
     <>
       <Navbar />
-      <div className="min-h-screen bg-gray-50 py-12">
+      <motion.div 
+        className="min-h-screen bg-gray-50 py-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
         <Toaster position="top-right" />
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+          <motion.div 
+            className="bg-white rounded-xl shadow-md overflow-hidden"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             {/* Header */}
             <div className="bg-blue-600 px-6 py-4">
               <h1 className="text-2xl font-bold text-white">แจ้งเปลี่ยนอีเมลล์</h1>
@@ -88,29 +118,74 @@ export default function ChangeEmailPage() {
               <p className="text-xs text-red-600 mt-2">หมายเหตุ: หลังจากเปลี่ยนอีเมลสำเร็จ ท่านจะต้องรอ 7 วันก่อนที่จะสามารถเปลี่ยนอีเมลได้อีกครั้ง</p>
             </div>
             
-            {/* Progress Bar */}
-            <div className="px-6 pt-4">
-              <div className="flex items-center justify-between mb-4">
-                <div className="w-full flex items-center">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+            {/* Progress Steps */}
+            <div className="p-6 border-b">
+              <div className="mb-2">
+                <div className="flex items-center">
+                  <motion.div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    variants={stepVariants}
+                    initial="inactive"
+                    animate={currentStep >= 1 ? "completed" : "inactive"}
+                  >
                     1
-                  </div>
-                  <div className={`flex-1 h-1 mx-2 ${currentStep >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                  </motion.div>
+                  <motion.div 
+                    className="flex-1 h-1 mx-2"
+                    initial={{ backgroundColor: "#E5E7EB" }}
+                    animate={{ backgroundColor: currentStep >= 2 ? "#2563EB" : "#E5E7EB" }}
+                    transition={{ duration: 0.5 }}
+                  ></motion.div>
+                  <motion.div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    variants={stepVariants}
+                    initial="inactive"
+                    animate={currentStep >= 2 ? "completed" : currentStep === 2 ? "active" : "inactive"}
+                  >
                     2
-                  </div>
-                  <div className={`flex-1 h-1 mx-2 ${currentStep >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                  </motion.div>
+                  <motion.div 
+                    className="flex-1 h-1 mx-2"
+                    initial={{ backgroundColor: "#E5E7EB" }}
+                    animate={{ backgroundColor: currentStep >= 3 ? "#2563EB" : "#E5E7EB" }}
+                    transition={{ duration: 0.5 }}
+                  ></motion.div>
+                  <motion.div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    variants={stepVariants}
+                    initial="inactive"
+                    animate={currentStep >= 3 ? "completed" : currentStep === 3 ? "active" : "inactive"}
+                  >
                     3
-                  </div>
-                  <div className={`flex-1 h-1 mx-2 ${currentStep >= 4 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 4 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                  </motion.div>
+                  <motion.div 
+                    className="flex-1 h-1 mx-2"
+                    initial={{ backgroundColor: "#E5E7EB" }}
+                    animate={{ backgroundColor: currentStep >= 4 ? "#2563EB" : "#E5E7EB" }}
+                    transition={{ duration: 0.5 }}
+                  ></motion.div>
+                  <motion.div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    variants={stepVariants}
+                    initial="inactive"
+                    animate={currentStep >= 4 ? "completed" : currentStep === 4 ? "active" : "inactive"}
+                  >
                     4
-                  </div>
-                  <div className={`flex-1 h-1 mx-2 ${currentStep >= 5 ? 'bg-blue-600' : 'bg-gray-200'}`}></div>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${currentStep >= 5 ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                  </motion.div>
+                  <motion.div 
+                    className="flex-1 h-1 mx-2"
+                    initial={{ backgroundColor: "#E5E7EB" }}
+                    animate={{ backgroundColor: currentStep >= 5 ? "#2563EB" : "#E5E7EB" }}
+                    transition={{ duration: 0.5 }}
+                  ></motion.div>
+                  <motion.div 
+                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    variants={stepVariants}
+                    initial="inactive"
+                    animate={currentStep >= 5 ? "completed" : currentStep === 5 ? "active" : "inactive"}
+                  >
                     5
-                  </div>
+                  </motion.div>
                 </div>
               </div>
               <div className="flex justify-between text-xs text-gray-600 px-1 mb-6">
@@ -124,11 +199,21 @@ export default function ChangeEmailPage() {
             
             {/* Content */}
             <div className="p-6">
-              {renderStep()}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentStep}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {renderStep()}
+                </motion.div>
+              </AnimatePresence>
             </div>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
       <Footer />
     </>
   );

@@ -16,6 +16,17 @@ export default function UpdateDetail({ member, onApprove, onReject, isProcessing
       <div className="border-b border-black pb-4">
         <h2 className="text-xl font-bold text-black">รายละเอียดสมาชิก</h2>
         <p className="text-sm text-black font-medium mt-1">แก้ไขล่าสุด: {member.updated_at ? new Date(member.updated_at).toLocaleString('th-TH') : '-'}</p>
+        {(member.admin_name) && (
+          <p className="text-sm text-black font-medium mt-1">
+            <span className="font-bold">ผู้ดำเนินการ:</span> {member.admin_name}
+          </p>
+        )}
+        <p className="text-sm text-black font-medium mt-1">
+          <span className="font-bold">สถานะ:</span> 
+          <span className={`ml-2 px-2 py-1 text-xs rounded-full font-medium ${member.Admin_Submit === 1 ? 'bg-green-100 text-green-800' : member.Admin_Submit === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+            {member.Admin_Submit === 1 ? 'อนุมัติแล้ว' : member.Admin_Submit === 0 ? 'ปฏิเสธแล้ว' : 'รออนุมัติ'}
+          </span>
+        </p>
       </div>
       <div className="space-y-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -321,6 +321,7 @@ export default function VerifyMembers() {
                     <SortableHeader field="email" label="อีเมล" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
                     <SortableHeader field="created_at" label="วันที่ลงทะเบียน" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
                     <SortableHeader field="Admin_Submit" label="สถานะ" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">ผู้ดำเนินการ</th>
                     <th scope="col" className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider">การดำเนินการ</th>
                   </tr>
                 </thead>
@@ -348,6 +349,12 @@ export default function VerifyMembers() {
                            member.Admin_Submit === 1 ? 'อนุมัติแล้ว' : 
                            'ปฏิเสธแล้ว'}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                          {(member.Admin_Submit === 1 || member.Admin_Submit === 2) && member.admin_name ? 
+                            member.admin_name : '-'}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex space-x-2 justify-end">

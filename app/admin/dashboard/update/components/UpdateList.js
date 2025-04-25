@@ -25,7 +25,14 @@ export default function UpdateList({ members, selectedId, onSelect }) {
               {member.status === 'pending' ? 'รออนุมัติ' : member.status === 'approved' ? 'อนุมัติแล้ว' : 'ปฏิเสธแล้ว'}
             </span>
           </div>
-          <div className="mt-2 text-xs text-black font-medium">{member.updated_at ? new Date(member.updated_at).toLocaleString('th-TH') : ''}</div>
+          <div className="mt-2 flex justify-between items-center">
+            <div className="text-xs text-black font-medium">{member.updated_at ? new Date(member.updated_at).toLocaleString('th-TH') : ''}</div>
+            {(member.status === 'approved' || member.status === 'rejected') && member.admin_name && (
+              <div className="text-xs text-gray-600">
+                <span className="font-medium">ผู้ดำเนินการ:</span> {member.admin_name}
+              </div>
+            )}
+          </div>
         </motion.div>
       ))}
     </div>

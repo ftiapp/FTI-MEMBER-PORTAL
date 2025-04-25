@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,80 +25,171 @@ export default function Navbar() {
     router.push('/');
   };
 
+  // Animation variants
+  const navVariants = {
+    hidden: { y: -50, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
+  };
+
+  const logoVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.03, transition: { type: "spring", stiffness: 400, damping: 10 } }
+  };
+
+  const menuVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { delay: 0.2, duration: 0.5 } }
+  };
+
+  const itemVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05 },
+    tap: { scale: 0.95 }
+  };
+
+  const buttonVariants = {
+    initial: { scale: 1 },
+    hover: { scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" },
+    tap: { scale: 0.95 }
+  };
+
+  const mobileMenuVariants = {
+    hidden: { opacity: 0, height: 0 },
+    visible: { opacity: 1, height: "auto", transition: { duration: 0.3 } },
+    exit: { opacity: 0, height: 0, transition: { duration: 0.3 } }
+  };
+
   return (
-    <nav className="bg-white shadow-md">
+    <motion.nav 
+      className="bg-white shadow-md"
+      variants={navVariants}
+      initial="hidden"
+      animate="visible"
+    >
       <div className="container-custom">
         <div className="flex justify-between items-center py-4">
           {/* Logo and Organization Name */}
-          <Link href="/" className="flex-shrink-0 flex items-center">
-            <Image
-              src="/images/FTI-MasterLogo_RGB_forLightBG.png"
-              alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-              width={90}
-              height={45}
-              priority
-              className="mr-3"
-            />
-            <div className="flex flex-col">
-              <span className="text-blue-900 font-semibold text-lg">สภาอุตสาหกรรมแห่งประเทศไทย</span>
-              <span className="text-gray-600 text-sm">The Federation of Thai Industries</span>
-            </div>
-          </Link>
+          <motion.div
+            variants={logoVariants}
+            initial="initial"
+            whileHover="hover"
+          >
+            <Link href="/" className="flex-shrink-0 flex items-center">
+              <Image
+                src="/images/FTI-MasterLogo_RGB_forLightBG.png"
+                alt="สภาอุตสาหกรรมแห่งประเทศไทย"
+                width={90}
+                height={45}
+                priority
+                className="mr-3"
+              />
+              <div className="flex flex-col">
+                <span className="text-blue-900 font-semibold text-lg">สภาอุตสาหกรรมแห่งประเทศไทย</span>
+                <span className="text-gray-600 text-sm">The Federation of Thai Industries</span>
+              </div>
+            </Link>
+          </motion.div>
 
           {/* Desktop Menu */}
-          <div className="hidden md:flex items-center space-x-8">
+          <motion.div 
+            className="hidden md:flex items-center space-x-8"
+            variants={menuVariants}
+            initial="hidden"
+            animate="visible"
+          >
             {menuItems.map((item) => (
-              <Link
+              <motion.div
                 key={item.name}
-                href={item.href}
-                className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                variants={itemVariants}
+                initial="initial"
+                whileHover="hover"
+                whileTap="tap"
               >
-                {item.name}
-              </Link>
+                <Link
+                  href={item.href}
+                  className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                >
+                  {item.name}
+                </Link>
+              </motion.div>
             ))}
             {user ? (
               <div className="flex items-center space-x-4">
-                <Link
-                  href="/ChangeEmail"
-                  className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                <motion.div
+                  variants={itemVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  แจ้งเปลี่ยนอีเมล
-                </Link>
-                <Link
-                  href="/dashboard"
-                  className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                  <Link
+                    href="/ChangeEmail"
+                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                  >
+                    แจ้งเปลี่ยนอีเมล
+                  </Link>
+                </motion.div>
+                <motion.div
+                  variants={itemVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  แดชบอร์ด
-                </Link>
-                <button
+                  <Link
+                    href="/dashboard"
+                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                  >
+                    แดชบอร์ด
+                  </Link>
+                </motion.div>
+                <motion.button
                   onClick={handleLogout}
                   className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300"
+                  variants={buttonVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
                 >
                   ออกจากระบบ
-                </button>
+                </motion.button>
               </div>
             ) : (
               <div className="flex items-center space-x-4">
-                <Link
-                  href="/login"
-                  className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                <motion.div
+                  variants={itemVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  เข้าสู่ระบบ
-                </Link>
-                <Link
-                  href="/register"
-                  className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300"
+                  <Link
+                    href="/login"
+                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors"
+                  >
+                    เข้าสู่ระบบ
+                  </Link>
+                </motion.div>
+                <motion.div
+                  variants={itemVariants}
+                  initial="initial"
+                  whileHover="hover"
+                  whileTap="tap"
                 >
-                  สมัครสมาชิก
-                </Link>
+                  <Link
+                    href="/register"
+                    className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold hover:shadow-lg transition-all duration-300 inline-block"
+                  >
+                    สมัครสมาชิก
+                  </Link>
+                </motion.div>
               </div>
             )}
-          </div>
+          </motion.div>
 
           {/* Mobile Menu Button */}
-          <button
+          <motion.button
             className="md:hidden p-2"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.1 }}
           >
             <svg
               className="w-6 h-6"
@@ -114,71 +206,100 @@ export default function Navbar() {
                 <path d="M4 6h16M4 12h16M4 18h16" />
               )}
             </svg>
-          </button>
+          </motion.button>
         </div>
 
         {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t">
-            <div className="flex flex-col space-y-4">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </Link>
-              ))}
-              {user ? (
-                <>
-                  <Link
-                    href="/ChangeEmail"
-                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4"
-                    onClick={() => setIsMenuOpen(false)}
+        <AnimatePresence>
+          {isMenuOpen && (
+            <motion.div 
+              className="md:hidden py-4 border-t"
+              variants={mobileMenuVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="flex flex-col space-y-4">
+                {menuItems.map((item) => (
+                  <motion.div
+                    key={item.name}
+                    whileHover={{ x: 5 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    แจ้งเปลี่ยนอีเมลล์
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    แดชบอร์ด
-                  </Link>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMenuOpen(false);
-                    }}
-                    className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold mx-4"
-                  >
-                    ออกจากระบบ
-                  </button>
-                </>
-              ) : (
-                <>
-                  <Link
-                    href="/login"
-                    className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    เข้าสู่ระบบ
-                  </Link>
-                  <Link
-                    href="/register"
-                    className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold text-center mx-4"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    สมัครสมาชิก
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                    <Link
+                      href={item.href}
+                      className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  </motion.div>
+                ))}
+                {user ? (
+                  <>
+                    <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                      <Link
+                        href="/ChangeEmail"
+                        className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        แจ้งเปลี่ยนอีเมลล์
+                      </Link>
+                    </motion.div>
+                    <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                      <Link
+                        href="/dashboard"
+                        className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        แดชบอร์ด
+                      </Link>
+                    </motion.div>
+                    <motion.div 
+                      className="px-4"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <motion.button
+                        onClick={() => {
+                          handleLogout();
+                          setIsMenuOpen(false);
+                        }}
+                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        ออกจากระบบ
+                      </motion.button>
+                    </motion.div>
+                  </>
+                ) : (
+                  <>
+                    <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                      <Link
+                        href="/login"
+                        className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        เข้าสู่ระบบ
+                      </Link>
+                    </motion.div>
+                    <motion.div className="px-4" whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                      <Link
+                        href="/register"
+                        className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold text-center inline-block"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        สมัครสมาชิก
+                      </Link>
+                    </motion.div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

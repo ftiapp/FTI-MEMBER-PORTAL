@@ -28,13 +28,14 @@ export async function GET(request) {
     const total = countResult[0].total;
 
     // Query to get paginated users
+    // แก้ไขการใช้ LIMIT และ OFFSET โดยใส่ค่าตัวเลขโดยตรงในคำสั่ง SQL
     const usersQuery = `
       SELECT id, name, firstname, lastname, email, phone, status, email_verified, created_at, updated_at
       FROM users
       ORDER BY id DESC
-      LIMIT ? OFFSET ?
+      LIMIT ${limit} OFFSET ${offset}
     `;
-    const users = await query(usersQuery, [limit, offset]);
+    const users = await query(usersQuery);
 
     return NextResponse.json({
       success: true,

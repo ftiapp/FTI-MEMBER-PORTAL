@@ -24,7 +24,7 @@ export default function AdminLogin() {
     username: '',
     password: ''
   });
-  
+  const [formError, setFormError] = useState('');
   // เพิ่ม animation เมื่อโหลดหน้า
   const [mounted, setMounted] = useState(false);
   
@@ -51,15 +51,14 @@ export default function AdminLogin() {
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setFormError('');
     if (!formData.username || !formData.password) {
+      setFormError('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
       toast.error('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
       return;
     }
-    
     try {
       setIsLoading(true);
-      
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
@@ -67,12 +66,9 @@ export default function AdminLogin() {
         },
         body: JSON.stringify(formData)
       });
-      
       const result = await response.json();
-      
       if (result.success) {
         toast.success('เข้าสู่ระบบสำเร็จ');
-        
         // Redirect based on admin level with smooth transition
         if (result.adminLevel === 5) {
           router.push('/admin/super', undefined, { scroll: false });
@@ -80,15 +76,18 @@ export default function AdminLogin() {
           router.push('/admin/dashboard', undefined, { scroll: false });
         }
       } else {
+        setFormError(result.message || 'เข้าสู่ระบบไม่สำเร็จ');
         toast.error(result.message || 'เข้าสู่ระบบไม่สำเร็จ');
       }
     } catch (error) {
       console.error('Login error:', error);
+      setFormError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
       toast.error('เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -114,6 +113,11 @@ export default function AdminLogin() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className={`bg-white py-8 px-4 shadow-lg sm:rounded-lg sm:px-10 border border-[#1e3a8a] border-opacity-20 transition-all duration-500 ${mounted ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+          {formError && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-center text-sm">
+              {formError}
+            </div>
+          )}
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="username" className="block text-sm font-medium text-[#1e3a8a]">

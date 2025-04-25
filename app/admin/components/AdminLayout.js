@@ -39,7 +39,7 @@ export default function AdminLayout({ children }) {
         title = 'ตั้งค่าระบบ';
         break;
       default:
-        title = 'ระบบจัดการ';
+        title = 'FTI-Portal Management';
     }
     
     setPageTitle(title);
@@ -130,7 +130,15 @@ export default function AdminLayout({ children }) {
                 <div className="flex-shrink-0">
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                     <span className="mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
-                    Admin
+                    {adminData?.name ? (
+                      <>
+                        {adminData.name}
+                        <span className="mx-2 text-blue-400">|</span>
+                        <span className="text-blue-700 font-mono">{adminData.username}</span>
+                      </>
+                    ) : (
+                      adminData?.username || 'Admin'
+                    )}
                   </span>
                 </div>
                 <div className="ml-4 flex items-center md:ml-6">

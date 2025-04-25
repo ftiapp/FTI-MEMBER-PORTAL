@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Footer from '../components/Footer';
+import { motion } from 'framer-motion';
 
 export default function ResetPassword() {
   const router = useRouter();
@@ -94,7 +95,12 @@ export default function ResetPassword() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <motion.main 
+      className="min-h-screen bg-gray-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       {/* Header with Logo */}
       <header className="bg-white shadow-sm">
         <div className="container-custom py-4">
@@ -110,9 +116,23 @@ export default function ResetPassword() {
         </div>
       </header>
 
-      <div className="container-custom py-12">
-        <div className="max-w-md mx-auto">
-          <div className="bg-white rounded-xl shadow-md overflow-hidden">
+      <motion.div 
+        className="container-custom py-12"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <motion.div 
+          className="max-w-md mx-auto"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <motion.div 
+            className="bg-white rounded-xl shadow-md overflow-hidden"
+            whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="bg-blue-700 p-6 text-white">
               <h2 className="text-2xl font-bold">ตั้งรหัสผ่านใหม่</h2>
               <p className="text-blue-100 mt-1">กรุณาตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ</p>
@@ -234,12 +254,12 @@ export default function ResetPassword() {
                 </form>
               )}
             </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Footer */}
       <Footer />
-    </main>
+    </motion.main>
   );
 }

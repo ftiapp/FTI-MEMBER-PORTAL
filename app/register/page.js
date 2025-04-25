@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
 import { Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export default function Register() {
   const router = useRouter();
@@ -142,28 +143,60 @@ export default function Register() {
   }
 
   return (
-    <main className="min-h-screen bg-white">
+    <motion.main 
+      className="min-h-screen bg-white"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <Navbar />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700">
+      <motion.section 
+        className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
         <div className="container-custom">
-          <div className="py-16 text-center">
+          <motion.div 
+            className="py-16 text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+          >
             <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
               สมัครสมาชิก
             </h1>
             <p className="text-lg md:text-xl text-blue-100">
               เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
             </p>
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Registration Form */}
-      <section className="py-12">
+      <motion.section 
+        className="py-12"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
         <div className="container-custom">
-          <div className="max-w-xl mx-auto">
-            <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-8">
+          <motion.div 
+            className="max-w-xl mx-auto"
+            initial={{ y: 30, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
+            <motion.form 
+              onSubmit={handleSubmit} 
+              className="bg-white rounded-xl shadow-lg p-8"
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+              whileHover={{ boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+            >
               {error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm">
                   {error}
@@ -308,21 +341,24 @@ export default function Register() {
                     <Link href="/terms-of-service" className="text-blue-600 underline mx-1" target="_blank">เงื่อนไขการใช้บริการ</Link>
                   </label>
                 </div>
-                <button
+                <motion.button
                   type="submit"
                   disabled={isSubmitting || !formData.consent}
-                  className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold hover:shadow-lg hover:scale-105 transition-all duration-300 ${
+                  className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold transition-all duration-300 ${
                     isSubmitting || !formData.consent ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}>
+                  }`}
+                  whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   สมัครสมาชิก
-                </button>
+                </motion.button>
               </div>
-            </form>
-          </div>
+            </motion.form>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       <Footer />
-    </main>
+    </motion.main>
   );
 }

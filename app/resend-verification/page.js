@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { toast } from 'react-hot-toast';
+import { motion } from 'framer-motion';
 
 export default function ResendVerification() {
   const router = useRouter();
@@ -47,19 +48,46 @@ export default function ResendVerification() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <motion.div 
+      className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="sm:mx-auto sm:w-full sm:max-w-md"
+        initial={{ y: -20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
         <h2 className="mt-6 text-center text-3xl font-extrabold text-[#1e3a8a]">
           ส่งอีเมลยืนยันใหม่
         </h2>
         <p className="mt-2 text-center text-sm text-[#1e3a8a] text-opacity-70">
           หากคุณไม่ได้รับอีเมลยืนยัน หรืออีเมลยืนยันหมดอายุแล้ว
         </p>
-      </div>
+      </motion.div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow-md sm:rounded-lg sm:px-10 border border-[#1e3a8a] border-opacity-20">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      <motion.div 
+        className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <motion.div 
+          className="bg-white py-8 px-4 shadow-md sm:rounded-lg sm:px-10 border border-[#1e3a8a] border-opacity-20"
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+          whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+        >
+          <motion.form 
+            className="space-y-6" 
+            onSubmit={handleSubmit}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+          >
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-[#1e3a8a]">
                 อีเมล
@@ -89,9 +117,14 @@ export default function ResendVerification() {
                 {isLoading ? 'กำลังส่ง...' : 'ส่งอีเมลยืนยันใหม่'}
               </button>
             </div>
-          </form>
+          </motion.form>
 
-          <div className="mt-6">
+          <motion.div 
+            className="mt-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+          >
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
@@ -119,9 +152,9 @@ export default function ResendVerification() {
                 </Link>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }

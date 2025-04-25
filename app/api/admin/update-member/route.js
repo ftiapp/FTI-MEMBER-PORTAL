@@ -32,7 +32,8 @@ export async function POST(request) {
       postal_code,
       phone,
       website,
-      admin_comment
+      admin_comment,
+      status // เพิ่ม status เพื่อรองรับการอนุมัติ/ปฏิเสธ
     } = await request.json();
     
     if (!id || !company_name) {
@@ -57,44 +58,84 @@ export async function POST(request) {
     
     const userId = memberCheck[0].user_id;
     
-    // Update member information
-    await query(
-      `UPDATE companies_Member SET
-        MEMBER_CODE = ?,
-        company_name = ?,
-        company_type = ?,
-        registration_number = ?,
-        tax_id = ?,
-        address = ?,
-        province = ?,
-        postal_code = ?,
-        phone = ?,
-        website = ?,
-        admin_comment = ?,
-        updated_at = NOW()
-      WHERE id = ?`,
-      [
-        MEMBER_CODE,
-        company_name,
-        company_type,
-        registration_number,
-        tax_id,
-        address,
-        province,
-        postal_code,
-        phone,
-        website,
-        admin_comment,
-        id
-      ]
-    );
+    // ถ้ามีการอัพเดตสถานะ (อนุมัติ/ปฏิเสธ) ให้บันทึกข้อมูล admin ด้วย
+    if (status === 'approved' || status === 'rejected') {
+      await query(
+        `UPDATE companies_Member SET
+          MEMBER_CODE = ?,
+          company_name = ?,
+          company_type = ?,
+          registration_number = ?,
+          tax_id = ?,
+          address = ?,
+          province = ?,
+          postal_code = ?,
+          phone = ?,
+          website = ?,
+          admin_comment = ?,
+          Admin_Submit = ?,
+          admin_id = ?,
+          admin_name = ?,
+          updated_at = NOW()
+        WHERE id = ?`,
+        [
+          MEMBER_CODE || '',
+          company_name || '',
+          company_type || '',
+          registration_number || '',
+          tax_id || '',
+          address || '',
+          province || '',
+          postal_code || '',
+          phone || '',
+          website || '',
+          admin_comment || '',
+          status === 'approved' ? 1 : 0,
+          admin.id,
+          admin.username, // ใช้ username ของ admin เนื่องจากอาจไม่มี name
+          id
+        ]
+      );
+    } else {
+      // อัพเดตข้อมูลทั่วไปโดยไม่เปลี่ยนสถานะ
+      await query(
+        `UPDATE companies_Member SET
+          MEMBER_CODE = ?,
+          company_name = ?,
+          company_type = ?,
+          registration_number = ?,
+          tax_id = ?,
+          address = ?,
+          province = ?,
+          postal_code = ?,
+          phone = ?,
+          website = ?,
+          admin_comment = ?,
+          updated_at = NOW()
+        WHERE id = ?`,
+        [
+          MEMBER_CODE || '',
+          company_name || '',
+          company_type || '',
+          registration_number || '',
+          tax_id || '',
+          address || '',
+          province || '',
+          postal_code || '',
+          phone || '',
+          website || '',
+          admin_comment || '',
+          id
+        ]
+      );
+    }
     
     // Log admin action
     await logAdminAction(
       admin.id,
-      'update_member',
+      status ? `member_${status}` : 'update_member',
       id,
-      `Member updated: ${company_name}`,
+      `Member ${status ? status : 'updated'}: ${company_name}`,
       request
     );
     
@@ -105,8 +146,8 @@ export async function POST(request) {
        VALUES (?, ?, ?, ?, ?)`,
       [
         userId,
-        'member_update',
-        `Member information updated by admin`,
+        status ? `member_${status}` : 'member_update',
+        `Member ${status ? status + ' by admin: ' + admin.username : 'information updated by admin'}`,
         request.headers.get('x-forwarded-for') || '',
         request.headers.get('user-agent') || ''
       ]

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
+import { motion } from 'framer-motion';
 
 export default function Login() {
   const router = useRouter();
@@ -19,21 +20,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberPassword, setRememberPassword] = useState(false);
-
-  useEffect(() => {
-    // เช็คว่ามีการบันทึกข้อมูลไว้หรือไม่
-    const savedEmail = localStorage.getItem('rememberedEmail');
-    const savedPassword = localStorage.getItem('rememberedPassword');
-    
-    if (savedEmail && savedPassword) {
-      setFormData({
-        email: savedEmail,
-        password: savedPassword
-      });
-      setRememberPassword(true);
-    }
-  }, []);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -60,15 +47,7 @@ export default function Login() {
 
     setIsSubmitting(true);
     try {
-      // บันทึกข้อมูลลงใน localStorage ถ้าผู้ใช้เลือก "จดจำรหัสผ่าน"
-      if (rememberPassword) {
-        localStorage.setItem('rememberedEmail', formData.email);
-        localStorage.setItem('rememberedPassword', formData.password);
-      } else {
-        // ลบข้อมูลที่บันทึกไว้ (ถ้ามี) หากผู้ใช้ไม่ได้เลือก "จดจำรหัสผ่าน"
-        localStorage.removeItem('rememberedEmail');
-        localStorage.removeItem('rememberedPassword');
-      }
+      
 
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -121,7 +100,12 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <motion.main 
+      className="min-h-screen bg-gray-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <Navbar />
 
       <div className="container-custom py-12">
@@ -133,7 +117,6 @@ export default function Login() {
                 <h2 className="text-2xl font-bold">ยินดีต้อนรับ</h2>
                 <p className="text-blue-100 mt-1">จัดการข้อมูลสมาชิกและบริการต่างๆ ของท่าน</p>
               </div>
-              
               <div className="p-6">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   {error && (
@@ -196,17 +179,7 @@ export default function Login() {
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <input
-                        id="remember-me"
-                        name="remember-me"
-                        type="checkbox"
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                        จดจำฉัน
-                      </label>
-                    </div>
+                    
                     <div className="text-sm">
                       <Link href="/forgot-password" className="font-medium text-blue-700 hover:text-blue-600">
                         ลืมรหัสผ่าน?
@@ -238,15 +211,6 @@ export default function Login() {
                         สมัครสมาชิก
                       </Link>
                     </p>
-                    {/* <p className="text-gray-600 mt-2">
-                      ไม่ได้รับอีเมลยืนยัน หรืออีเมลยืนยันหมดอายุ?{' '}
-                      <Link
-                        href="/resend-verification"
-                        className="text-blue-700 hover:text-blue-600 font-semibold"
-                      >
-                        ส่งอีเมลยืนยันใหม่
-                      </Link>
-                    </p>*/}
                   </div>
                 </form>
               </div>
@@ -257,7 +221,6 @@ export default function Login() {
           <div className="w-full md:w-1/2 lg:w-3/5">
             <div className="bg-white rounded-xl shadow-md p-6">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">บริการสำหรับสมาชิก</h2>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Feature 1 */}
                 <div className="bg-blue-50 p-5 rounded-lg hover:shadow-md transition-all">
@@ -332,6 +295,6 @@ export default function Login() {
 
       {/* Footer */}
       <Footer />
-    </main>
+    </motion.main>
   );
 }
