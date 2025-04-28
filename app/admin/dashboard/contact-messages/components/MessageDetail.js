@@ -49,6 +49,22 @@ export default function MessageDetail({
             <div>
               <span className="font-bold text-black">วันที่:</span> {formatDate(selectedMessage.created_at)}
             </div>
+            {selectedMessage.status !== 'unread' && selectedMessage.read_by_admin_name && (
+              <div>
+                <span className="font-bold text-black">อ่านโดย:</span> {selectedMessage.read_by_admin_name}
+                {selectedMessage.read_at && (
+                  <span className="ml-2 text-xs text-gray-500">({formatDate(selectedMessage.read_at)})</span>
+                )}
+              </div>
+            )}
+            {selectedMessage.status === 'replied' && selectedMessage.replied_by_admin_name && (
+              <div>
+                <span className="font-bold text-black">ตอบกลับโดย:</span> {selectedMessage.replied_by_admin_name}
+                {selectedMessage.replied_at && (
+                  <span className="ml-2 text-xs text-gray-500">({formatDate(selectedMessage.replied_at)})</span>
+                )}
+              </div>
+            )}
           </div>
         </div>
         

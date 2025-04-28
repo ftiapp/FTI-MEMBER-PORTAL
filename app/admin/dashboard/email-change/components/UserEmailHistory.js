@@ -114,7 +114,7 @@ const UserEmailHistory = ({ userId }) => {
                     {getStatusBadge(change.status)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {change.admin_username || 'ผู้ใช้'}
+                    {change.admin_name || 'ผู้ใช้'}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {change.admin_note || '-'}

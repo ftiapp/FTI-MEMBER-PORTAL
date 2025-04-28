@@ -94,9 +94,13 @@ export async function PUT(request, { params }) {
     // อัปเดตสถานะของข้อความเป็น 'replied' และตั้งค่า admin_response เป็น 1
     await query(
       `UPDATE contact_messages 
-       SET status = 'replied', admin_response = 1, updated_at = NOW() 
+       SET status = 'replied', 
+           admin_response = 1, 
+           replied_by_admin_id = ?, 
+           replied_at = NOW(), 
+           updated_at = NOW() 
        WHERE id = ?`,
-      [id]
+      [adminId, id]
     );
     
     // Log admin action

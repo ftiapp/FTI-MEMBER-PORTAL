@@ -32,7 +32,7 @@ export async function GET(request, { params }) {
         pec.status,
         pec.created_at,
         pec.updated_at,
-        COALESCE(au.username, 'ผู้ใช้') as admin_username,
+        COALESCE(au.name, 'ผู้ใช้') as admin_name,
         pec.admin_note
       FROM 
         pending_email_changes pec

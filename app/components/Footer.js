@@ -180,18 +180,28 @@ const Footer = () => {
           <motion.div variants={itemVariants}>
             <motion.h3 className="text-lg font-semibold mb-4 text-blue-300" variants={itemVariants}>ติดต่อเรา</motion.h3>
             <motion.ul className="space-y-3 text-sm text-gray-300" variants={itemVariants}>
+              <motion.li className="flex items-start" variants={itemVariants}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-blue-400 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>สภาอุตสาหกรรมแห่งประเทศไทย<br />
+                ชั้น 8 อาคารปฏิบัติการเทคโนโลยีเชิงสร้างสรรค์<br />
+                เลขที่ 2 ถนนนางลิ้นจี่ แขวงทุ่งมหาเมฆ<br />
+                เขตสาทร กรุงเทพมหานคร 10120</span>
+              </motion.li>
               <motion.li className="flex items-center" variants={itemVariants}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
                 <motion.a 
-                  href="tel:+6621451234" 
+                  href="tel:1453,2" 
                   className="hover:text-white transition-colors"
                   variants={linkVariants}
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  02-145-1234
+                  1453 กด 2
                 </motion.a>
               </motion.li>
               <motion.li className="flex items-center" variants={itemVariants}>
@@ -199,27 +209,21 @@ const Footer = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 <motion.a 
-                  href="mailto:contact@fti.or.th" 
+                  href="mailto:member@fti.or.th" 
                   className="hover:text-white transition-colors"
                   variants={linkVariants}
                   whileHover="hover"
                   whileTap="tap"
                 >
-                  contact@fti.or.th
+                  member@fti.or.th
                 </motion.a>
-              </motion.li>
-              <motion.li className="flex items-center" variants={itemVariants}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span>กรุงเทพมหานคร 10400</span>
               </motion.li>
               <motion.li className="flex items-center" variants={itemVariants}>
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>จันทร์-ศุกร์: 8:30 - 17:30 น.</span>
+                <span>จันทร์-ศุกร์: 08:30 - 17:30 น.<br />
+                เสาร์-อาทิตย์ และวันหยุดนักขัตฤกษ์: ปิดทำการ</span>
               </motion.li>
             </motion.ul>
           </motion.div>
@@ -229,12 +233,26 @@ const Footer = () => {
           className="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center"
           variants={itemVariants}
         >
-          <motion.p 
-            className="text-sm text-gray-400 mb-4 md:mb-0"
+          <motion.div 
+            className="flex flex-col text-sm text-gray-400 mb-4 md:mb-0"
             variants={itemVariants}
           > 
-            {new Date().getFullYear()} สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
-          </motion.p>
+            <p>{new Date().getFullYear()} ฝ่ายดิจิทัลและเทคโนโลยี สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
+            <div className="flex items-center mt-2 text-gray-300">
+              <span className="mr-1 text-xs">หากท่านมีปัญหาด้านการใช้งาน กรุณาติดต่อ</span>
+              <span className="font-medium">พลวัต ศรีชนะ</span>
+              <span className="mx-1">|</span>
+              <motion.a 
+                href="tel:0234510750" 
+                className="text-gray-300 hover:text-white transition-colors"
+                variants={linkVariants}
+                whileHover="hover"
+                whileTap="tap"
+              >
+                Tel: 02-345-1075
+              </motion.a>
+            </div>
+          </motion.div>
           <motion.div className="flex space-x-6" variants={itemVariants}>
             <motion.div whileHover={{ x: 2 }}>
               <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">

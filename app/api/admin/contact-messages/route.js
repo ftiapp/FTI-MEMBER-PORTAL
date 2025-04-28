@@ -85,9 +85,19 @@ export async function GET(request) {
       cm.admin_response,
       cm.created_at,
       cm.updated_at,
-      (SELECT response_text FROM contact_message_responses WHERE message_id = cm.id ORDER BY created_at DESC LIMIT 1) as response_text
+      cm.read_by_admin_id,
+      cm.replied_by_admin_id,
+      cm.read_at,
+      cm.replied_at,
+      (SELECT response_text FROM contact_message_responses WHERE message_id = cm.id ORDER BY created_at DESC LIMIT 1) as response_text,
+      read_admin.name as read_by_admin_name,
+      reply_admin.name as replied_by_admin_name
     FROM 
       contact_messages cm
+    LEFT JOIN
+      admin_users read_admin ON cm.read_by_admin_id = read_admin.id
+    LEFT JOIN
+      admin_users reply_admin ON cm.replied_by_admin_id = reply_admin.id
     ${whereClause}
     ORDER BY 
       CASE 

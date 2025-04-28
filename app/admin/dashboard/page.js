@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '../components/AdminLayout';
+import Analytics from '../components/Analytics';
+import ChangePersonal from '../components/ChangePersonal';
+import Alluser from '../components/Alluser';
 import Link from 'next/link';
 
 /**
@@ -15,9 +18,10 @@ import Link from 'next/link';
 export default function AdminDashboard() {
   const router = useRouter();
   const [stats, setStats] = useState({
-    pendingVerifications: 0,
     pendingUpdates: 0,
-    totalMembers: 0,
+    totalUsers: 0,
+    activeUsers: 0,
+    pendingUsers: 0,
     recentActivities: []
   });
   const [adminInfo, setAdminInfo] = useState(null);
@@ -28,17 +32,13 @@ export default function AdminDashboard() {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // Fetch pending verifications count
-        const verifyRes = await fetch('/api/admin/pending-verifications-count');
-        const verifyData = await verifyRes.json();
+        // Fetch user statistics
+        const userStatsRes = await fetch('/api/admin/UserCountStat');
+        const userStatsData = await userStatsRes.json();
         
         // Fetch pending updates count
         const updateRes = await fetch('/api/admin/search-members?status=pending');
         const updateData = await updateRes.json();
-        
-        // Fetch total members count
-        const membersRes = await fetch('/api/admin/members-count');
-        const membersData = await membersRes.json();
         
         // Fetch admin info
         const adminRes = await fetch('/api/admin/check-session', { cache: 'no-store', next: { revalidate: 0 } });
@@ -49,9 +49,10 @@ export default function AdminDashboard() {
         }
         
         setStats({
-          pendingVerifications: verifyData.success ? verifyData.count : 0,
           pendingUpdates: updateData.success ? updateData.data.length : 0,
-          totalMembers: membersData.success ? membersData.count : 0,
+          totalUsers: userStatsData.success ? userStatsData.counts.total : 0,
+          activeUsers: userStatsData.success ? userStatsData.counts.active : 0,
+          pendingUsers: userStatsData.success ? userStatsData.counts.pending : 0,
           recentActivities: []
         });
       } catch (error) {
@@ -82,12 +83,12 @@ export default function AdminDashboard() {
             <Link href="/admin/dashboard/verify?status=0" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg font-semibold text-gray-600">รอการยืนยันตัวตน</p>
-                  <p className="text-3xl font-bold text-blue-600">{stats.pendingVerifications}</p>
+                  <p className="text-lg font-semibold text-gray-600">จำนวนผู้ใช้งานทั้งหมด</p>
+                  <p className="text-3xl font-bold text-blue-600">{stats.totalUsers}</p>
                 </div>
                 <div className="bg-blue-100 p-3 rounded-full">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
               </div>
@@ -110,8 +111,8 @@ export default function AdminDashboard() {
             <Link href="/admin/members" className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-lg font-semibold text-gray-600">สมาชิกทั้งหมด</p>
-                  <p className="text-3xl font-bold text-purple-600">{stats.totalMembers}</p>
+                  <p className="text-lg font-semibold text-gray-600">ผู้ใช้งานที่ยืนยันแล้ว</p>
+                  <p className="text-3xl font-bold text-purple-600">{stats.activeUsers}</p>
                 </div>
                 <div className="bg-purple-100 p-3 rounded-full">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,18 +127,18 @@ export default function AdminDashboard() {
           <div className="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-xl font-bold text-gray-800 mb-4">การดำเนินการด่วน</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Link href="/admin/dashboard/verify?status=0" className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
+              <a href="#user-stats" className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
-                ยืนยันตัวตนสมาชิก
-              </Link>
-              <Link href="/admin/dashboard/update" className="bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
+                ยืนยันตัวสมาชิกเดิม
+              </a>
+              <a href="#personal-update-stats" className="bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                อนุมัติการแก้ไข
-              </Link>
+                แจ้งเปลี่ยนข้อมูลส่วนตัว
+              </a>
               <Link href="/admin/members" className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -151,6 +152,45 @@ export default function AdminDashboard() {
                 </svg>
                 ตั้งค่าระบบ
               </Link>
+            </div>
+          </div>
+          
+          {/* User Statistics */}
+          <div id="user-stats" className="relative mb-12">
+            <Alluser 
+              title="สถิติผู้ใช้งานระบบ" 
+            />
+          </div>
+          
+          {/* Member Verification Stats */}
+          <div id="member-stats" className="relative mb-12">
+            <Analytics 
+              title="ยืนยันตัวสมาชิกเดิม - บริษัท" 
+              endpoint="/api/admin/member-verification-stats" 
+            />
+            <div className="text-right mt-4">
+              <a href="#personal-update-stats" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+                <span className="mr-1">ไปที่ แจ้งเปลี่ยนข้อมูลส่วนตัว</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+          
+          {/* Profile Update Stats */}
+          <div id="personal-update-stats" className="relative mb-12">
+            <ChangePersonal 
+              title="แจ้งเปลี่ยนข้อมูลส่วนตัว" 
+              endpoint="/api/admin/profile_update_stat" 
+            />
+            <div className="text-right mt-4">
+              <a href="#user-stats" className="inline-flex items-center text-blue-600 hover:text-blue-800">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                </svg>
+                <span>กลับไปที่ สถิติผู้ใช้งานระบบ</span>
+              </a>
             </div>
           </div>
           

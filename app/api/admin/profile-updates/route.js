@@ -16,11 +16,13 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status') || 'pending';
 
-    // Get profile update requests with user information
+    // Get profile update requests with user information and admin name
     const requests = await query(
-      `SELECT pr.*, u.name, u.firstname, u.lastname, u.email, u.phone
+      `SELECT pr.*, u.name, u.firstname, u.lastname, u.email, u.phone,
+       au.name as admin_name
        FROM profile_update_requests pr
        JOIN users u ON pr.user_id = u.id
+       LEFT JOIN admin_users au ON pr.admin_id = au.id
        WHERE pr.status = ?
        ORDER BY pr.created_at DESC`,
       [status]

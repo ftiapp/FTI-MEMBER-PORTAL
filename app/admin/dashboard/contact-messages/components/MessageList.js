@@ -33,7 +33,19 @@ export default function MessageList({ messages, selectedMessage, onSelectMessage
                 <StatusBadge status={message.status} />
               </div>
             </div>
-            <p className="text-xs text-black mt-1 font-semibold">{formatDate(message.created_at)}</p>
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-black mt-1 font-semibold">{formatDate(message.created_at)}</p>
+              {message.status !== 'unread' && message.read_by_admin_name && (
+                <p className="text-xs text-gray-600 mt-1">
+                  อ่านโดย: {message.read_by_admin_name}
+                </p>
+              )}
+              {message.status === 'replied' && message.replied_by_admin_name && (
+                <p className="text-xs text-gray-600 mt-1">
+                  ตอบกลับโดย: {message.replied_by_admin_name}
+                </p>
+              )}
+            </div>
           </motion.div>
         ))}
       </div>

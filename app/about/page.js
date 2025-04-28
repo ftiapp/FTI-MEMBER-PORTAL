@@ -1,5 +1,7 @@
 'use client';
 
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import HeroSection from '../components/HeroSection';
@@ -64,8 +66,96 @@ export default function About() {
     },
   ];
 
+  // Animation variants
+  const fadeIn = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.6, ease: "easeOut" }
+    }
+  };
+
+  const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.2
+      }
+    }
+  };
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { 
+        type: "spring", 
+        stiffness: 100, 
+        damping: 10 
+      } 
+    },
+    hover: { 
+      y: -10, 
+      boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+      transition: { type: "spring", stiffness: 300, damping: 15 } 
+    }
+  };
+
+  const timelineItemVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 100, 
+        damping: 10 
+      } 
+    }
+  };
+
+  const timelineRightItemVariants = {
+    hidden: { opacity: 0, x: 50 },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 100, 
+        damping: 10 
+      } 
+    }
+  };
+
+  const timelineDotAnimation = {
+    hidden: { opacity: 0, scale: 0 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { 
+        type: "spring", 
+        stiffness: 300, 
+        damping: 10,
+        delay: 0.2
+      } 
+    }
+  };
+
+  // Intersection Observer hooks for different sections
+  const [timelineRef, timelineInView] = useInView({ threshold: 0.1, triggerOnce: true });
+  const [objectivesRef, objectivesInView] = useInView({ threshold: 0.1, triggerOnce: true });
+  const [rolesRef, rolesInView] = useInView({ threshold: 0.1, triggerOnce: true });
+
   return (
-    <main className="min-h-screen bg-gray-50">
+    <motion.main 
+      className="min-h-screen bg-gray-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
       <Navbar />
 
       <HeroSection
@@ -74,92 +164,242 @@ export default function About() {
       />
 
       {/* Timeline Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white" ref={timelineRef}>
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">ประวัติความเป็นมา</h2>
+          <motion.div 
+            className="max-w-4xl mx-auto"
+            variants={fadeIn}
+            initial="hidden"
+            animate={timelineInView ? "visible" : "hidden"}
+          >
+            <motion.h2 
+              className="text-3xl font-bold text-gray-900 mb-12 text-center"
+              variants={fadeIn}
+            >
+              ประวัติความเป็นมา
+            </motion.h2>
             <div className="relative">
               {/* Timeline Line */}
-              <div className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-blue-200"></div>
+              <motion.div 
+                className="absolute left-1/2 transform -translate-x-1/2 h-full w-0.5 bg-blue-200"
+                initial={{ height: 0 }}
+                animate={timelineInView ? { height: "100%" } : { height: 0 }}
+                transition={{ duration: 1, delay: 0.3 }}
+              ></motion.div>
               
               {/* Timeline Items */}
               <div className="space-y-12">
                 {milestones.map((milestone, index) => (
                   <div key={index} className={`flex items-center ${index % 2 === 0 ? 'flex-row' : 'flex-row-reverse'}`}>
-                    <div className="w-1/2 pr-8 text-right">
+                    <motion.div 
+                      className="w-1/2 pr-8 text-right"
+                      variants={index % 2 === 0 ? timelineItemVariants : timelineRightItemVariants}
+                      initial="hidden"
+                      animate={timelineInView ? "visible" : "hidden"}
+                      transition={{ delay: index * 0.2 + 0.5 }}
+                    >
                       <div className={`${index % 2 === 0 ? 'text-right' : 'text-left'}`}>
-                        <h3 className="text-2xl font-bold text-blue-600 mb-2">พ.ศ. {milestone.year}</h3>
-                        <h4 className="text-xl font-semibold text-gray-900 mb-2">{milestone.title}</h4>
-                        <p className="text-gray-600">{milestone.description}</p>
+                        <motion.h3 
+                          className="text-2xl font-bold text-blue-600 mb-2"
+                          initial={{ opacity: 0 }}
+                          animate={timelineInView ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ delay: index * 0.2 + 0.7 }}
+                        >
+                          พ.ศ. {milestone.year}
+                        </motion.h3>
+                        <motion.h4 
+                          className="text-xl font-semibold text-gray-900 mb-2"
+                          initial={{ opacity: 0 }}
+                          animate={timelineInView ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ delay: index * 0.2 + 0.8 }}
+                        >
+                          {milestone.title}
+                        </motion.h4>
+                        <motion.p 
+                          className="text-gray-600"
+                          initial={{ opacity: 0 }}
+                          animate={timelineInView ? { opacity: 1 } : { opacity: 0 }}
+                          transition={{ delay: index * 0.2 + 0.9 }}
+                        >
+                          {milestone.description}
+                        </motion.p>
                       </div>
-                    </div>
-                    <div className="relative flex items-center justify-center w-8 h-8 bg-blue-600 rounded-full border-4 border-white shadow">
-                      <div className="h-2.5 w-2.5 bg-white rounded-full"></div>
-                    </div>
+                    </motion.div>
+                    <motion.div 
+                      className="relative flex items-center justify-center w-8 h-8 bg-blue-600 rounded-full border-4 border-white shadow"
+                      variants={timelineDotAnimation}
+                      initial="hidden"
+                      animate={timelineInView ? "visible" : "hidden"}
+                      transition={{ delay: index * 0.3 + 0.6 }}
+                    >
+                      <motion.div 
+                        className="h-2.5 w-2.5 bg-white rounded-full"
+                        initial={{ scale: 0 }}
+                        animate={timelineInView ? { scale: 1 } : { scale: 0 }}
+                        transition={{ delay: index * 0.3 + 0.8 }}
+                      ></motion.div>
+                    </motion.div>
                     <div className="w-1/2 pl-8"></div>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Objectives Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-gray-50" ref={objectivesRef}>
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">วัตถุประสงค์</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+          <motion.h2 
+            className="text-3xl font-bold text-gray-900 mb-12 text-center"
+            variants={fadeIn}
+            initial="hidden"
+            animate={objectivesInView ? "visible" : "hidden"}
+          >
+            วัตถุประสงค์
+          </motion.h2>
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto"
+            variants={staggerContainer}
+            initial="hidden"
+            animate={objectivesInView ? "visible" : "hidden"}
+          >
             {objectives.map((objective, index) => (
-              <div key={index} className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300">
+              <motion.div 
+                key={index} 
+                className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-300"
+                variants={cardVariants}
+                initial="hidden"
+                animate={objectivesInView ? "visible" : "hidden"}
+                whileHover="hover"
+                transition={{ delay: index * 0.1 }}
+              >
                 <div className="flex items-start">
-                  <div className="flex-shrink-0">
+                  <motion.div 
+                    className="flex-shrink-0"
+                    initial={{ opacity: 0, rotate: -20 }}
+                    animate={objectivesInView ? { opacity: 1, rotate: 0 } : { opacity: 0, rotate: -20 }}
+                    transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
+                  >
                     <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
-                      <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <motion.svg 
+                        className="w-6 h-6" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                        initial={{ scale: 0 }}
+                        animate={objectivesInView ? { scale: 1 } : { scale: 0 }}
+                        transition={{ delay: index * 0.1 + 0.4, type: "spring" }}
+                      >
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={objective.icon} />
-                      </svg>
+                      </motion.svg>
                     </div>
-                  </div>
+                  </motion.div>
                   <div className="ml-4">
-                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{objective.title}</h3>
-                    <p className="text-gray-600">{objective.description}</p>
+                    <motion.h3 
+                      className="text-xl font-semibold text-gray-900 mb-2"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={objectivesInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                      transition={{ delay: index * 0.1 + 0.5 }}
+                    >
+                      {objective.title}
+                    </motion.h3>
+                    <motion.p 
+                      className="text-gray-600"
+                      initial={{ opacity: 0 }}
+                      animate={objectivesInView ? { opacity: 1 } : { opacity: 0 }}
+                      transition={{ delay: index * 0.1 + 0.6 }}
+                    >
+                      {objective.description}
+                    </motion.p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Roles Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white" ref={rolesRef}>
         <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">บทบาทและหน้าที่</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <motion.div 
+            className="max-w-4xl mx-auto"
+            variants={fadeIn}
+            initial="hidden"
+            animate={rolesInView ? "visible" : "hidden"}
+          >
+            <motion.h2 
+              className="text-3xl font-bold text-gray-900 mb-12 text-center"
+              variants={fadeIn}
+            >
+              บทบาทและหน้าที่
+            </motion.h2>
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              variants={staggerContainer}
+              initial="hidden"
+              animate={rolesInView ? "visible" : "hidden"}
+            >
               {roles.map((role, index) => (
-                <div key={index} className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300">
+                <motion.div 
+                  key={index} 
+                  className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate={rolesInView ? "visible" : "hidden"}
+                  whileHover="hover"
+                  transition={{ delay: index * 0.1 }}
+                >
                   <div className="flex items-start">
-                    <div className="flex-shrink-0">
+                    <motion.div 
+                      className="flex-shrink-0"
+                      initial={{ opacity: 0, rotate: -20 }}
+                      animate={rolesInView ? { opacity: 1, rotate: 0 } : { opacity: 0, rotate: -20 }}
+                      transition={{ delay: index * 0.1 + 0.3, type: "spring" }}
+                    >
                       <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <motion.svg 
+                          className="w-5 h-5" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                          initial={{ scale: 0 }}
+                          animate={rolesInView ? { scale: 1 } : { scale: 0 }}
+                          transition={{ delay: index * 0.1 + 0.4, type: "spring" }}
+                        >
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={role.icon} />
-                        </svg>
+                        </motion.svg>
                       </div>
-                    </div>
+                    </motion.div>
                     <div className="ml-4">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{role.title}</h3>
-                      <p className="text-gray-600 text-sm">{role.description}</p>
+                      <motion.h3 
+                        className="text-lg font-semibold text-gray-900 mb-2"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={rolesInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                        transition={{ delay: index * 0.1 + 0.5 }}
+                      >
+                        {role.title}
+                      </motion.h3>
+                      <motion.p 
+                        className="text-gray-600 text-sm"
+                        initial={{ opacity: 0 }}
+                        animate={rolesInView ? { opacity: 1 } : { opacity: 0 }}
+                        transition={{ delay: index * 0.1 + 0.6 }}
+                      >
+                        {role.description}
+                      </motion.p>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       <Footer />
-    </main>
+    </motion.main>
   );
 }

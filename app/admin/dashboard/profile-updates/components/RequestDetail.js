@@ -109,7 +109,7 @@ export default function RequestDetail({
         {selectedRequest.status === 'approved' && selectedRequest.admin_id && (
           <div className="pt-4 border-t border-black">
             <p className="text-sm text-black font-semibold">
-              <span className="font-bold text-black">อนุมัติโดย:</span> Admin ID: {selectedRequest.admin_id}
+              <span className="font-bold text-black">อนุมัติโดย:</span> {selectedRequest.admin_name || `Admin`}
             </p>
             {selectedRequest.admin_comment && (
               <p className="text-sm text-black font-semibold mt-2">
@@ -125,7 +125,7 @@ export default function RequestDetail({
         {selectedRequest.status === 'rejected' && (
           <div className="pt-4 border-t border-black">
             <p className="text-sm text-black font-semibold">
-              <span className="font-bold text-black">ปฏิเสธโดย:</span> Admin ID: {selectedRequest.admin_id}
+              <span className="font-bold text-black">ปฏิเสธโดย:</span> {selectedRequest.admin_name || `Admin`}
             </p>
             <p className="text-sm text-black font-semibold mt-2">
               <span className="font-bold text-black">เหตุผล:</span> {selectedRequest.reject_reason}

@@ -134,7 +134,7 @@ export default function AdminSidebar() {
       ),
     },
     {
-      name: 'ยืนยันตัวตนสมาชิก',
+      name: 'ยืนยันตัวตนสมาชิกเดิม',
       path: '/admin/dashboard/verify',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -163,7 +163,7 @@ export default function AdminSidebar() {
       ),
     },
     {
-      name: 'ข้อคิดเห็นเพิ่มเติม',
+      name: 'ข้อความติดต่อ',
       path: '/admin/dashboard/contact-messages',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
