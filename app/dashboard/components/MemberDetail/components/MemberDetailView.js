@@ -1,7 +1,5 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
 import { 
   FaIdCard, 
   FaBuilding, 
@@ -14,112 +12,29 @@ import {
   FaRegAddressCard, 
   FaDownload,
   FaEye,
-  FaSpinner,
-  FaExclamationCircle
+  FaCheckCircle,
+  FaTable
 } from 'react-icons/fa';
 
 /**
- * MemberDetail component displays detailed information about an approved member
+ * MemberDetailView component for displaying detailed member information
  * @param {Object} props Component properties
- * @param {number} props.userId The user ID to fetch member details for
+ * @param {Object} props.memberData Member data to display
+ * @param {Function} props.onToggleView Function to toggle between table and detail view
  */
-export default function MemberDetail({ userId }) {
-  const { user } = useAuth();
-  const [memberData, setMemberData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchMemberDetails = async () => {
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        console.log('Fetching member details for userId:', userId);
-        
-        const response = await fetch(`/api/member/verification-status?userId=${userId}`, {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          console.error('API response not OK:', response.status, response.statusText);
-          throw new Error(`ไม่สามารถดึงข้อมูลสมาชิกได้ (${response.status})`);
-        }
-
-        const data = await response.json();
-        console.log('Member data received:', data);
-        
-        // Check if we have the necessary data
-        if (!data || !data.memberData) {
-          throw new Error('ข้อมูลสมาชิกไม่ถูกต้อง');
-        }
-        
-        setMemberData(data.memberData);
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching member details:', err);
-        setError(err.message || 'ไม่สามารถดึงข้อมูลสมาชิกได้');
-        setLoading(false);
-      }
-    };
-
-    fetchMemberDetails();
-  }, [userId]);
-
-  // Handle retry when loading failed
-  const handleRetry = () => {
-    if (userId) {
-      setError(null);
-      fetchMemberDetails();
-    }
+export default function MemberDetailView({ memberData = {}, onToggleView }) {
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('th-TH', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    });
   };
-
-  if (loading) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="py-16 flex flex-col items-center justify-center text-gray-600">
-          <FaSpinner className="animate-spin text-blue-600 mb-3" size={28} />
-          <p className="font-medium">กำลังโหลดข้อมูล...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
-          <FaExclamationCircle className="text-red-500 mb-3" size={28} />
-          <p className="font-medium mb-3">เกิดข้อผิดพลาดในการโหลดข้อมูล</p>
-          <button 
-            onClick={handleRetry}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
-          >
-            ลองใหม่อีกครั้ง
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!memberData) {
-    return (
-      <div className="bg-white shadow rounded-lg p-6 mb-6">
-        <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-gray-200 rounded-lg">
-          <FaExclamationCircle className="text-gray-400 mb-3" size={28} />
-          <p className="font-medium">ไม่พบข้อมูลสมาชิก</p>
-        </div>
-      </div>
-    );
-  }
-
+  
   // Extract member data properties with fallbacks for any missing fields
-  // Add null checking to avoid errors if any properties are missing
   const {
     MEMBER_CODE = '',
     company_name = '',
@@ -139,7 +54,7 @@ export default function MemberDetail({ userId }) {
     name,
     firstname,
     lastname,
-    documents
+    documents = []
   } = memberData;
   
   // Determine the display name to use
@@ -147,7 +62,18 @@ export default function MemberDetail({ userId }) {
 
   return (
     <div className="bg-white shadow rounded-lg p-6 mb-6">
-      <h2 className="text-xl font-semibold mb-4 text-gray-800">ข้อมูลสมาชิก</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-800">ข้อมูลสมาชิก</h2>
+        <div className="flex items-center">
+          <button
+            onClick={onToggleView}
+            className="flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+          >
+            <FaTable className="mr-1" size={14} />
+            <span>ดูแบบตาราง</span>
+          </button>
+        </div>
+      </div>
       
       {/* Member Code and Status */}
       <div className="flex justify-between items-center mb-6">
@@ -384,18 +310,6 @@ export default function MemberDetail({ userId }) {
           </p>
         )}
       </div>
-      
-      {/* Add global animation styles */}
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        button:active {
-          transform: translateY(1px);
-        }
-      `}</style>
     </div>
   );
 }
