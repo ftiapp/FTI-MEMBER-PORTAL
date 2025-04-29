@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaIdCard, 
   FaBuilding, 
@@ -185,56 +186,129 @@ export default function MemberDetail({ userId }) {
   // Component definitions
   // LoadingState component
   const LoadingState = () => (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
+    <motion.div 
+      className="bg-white shadow rounded-lg p-6 mb-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="py-16 flex flex-col items-center justify-center text-gray-600">
-        <FaSpinner className="animate-spin text-blue-600 mb-3" size={28} />
-        <p className="font-medium">กำลังโหลดข้อมูล...</p>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+        >
+          <FaSpinner className="text-blue-600 mb-3" size={28} />
+        </motion.div>
+        <motion.p 
+          className="font-medium"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+        >
+          กำลังโหลดข้อมูล...
+        </motion.p>
       </div>
-    </div>
+    </motion.div>
   );
 
   // ErrorState component
   const ErrorState = ({ message, onRetry }) => (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
+    <motion.div 
+      className="bg-white shadow rounded-lg p-6 mb-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
-        <FaExclamationCircle className="text-red-500 mb-3" size={28} />
-        <p className="font-medium mb-3">{message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล'}</p>
-        <button 
+        <motion.div
+          initial={{ scale: 0.5 }}
+          animate={{ scale: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 15 }}
+        >
+          <FaExclamationCircle className="text-red-500 mb-3" size={28} />
+        </motion.div>
+        <motion.p 
+          className="font-medium mb-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          {message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล'}
+        </motion.p>
+        <motion.button 
           onClick={onRetry}
           className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
         >
           ลองใหม่อีกครั้ง
-        </button>
+        </motion.button>
       </div>
-    </div>
+    </motion.div>
   );
 
   // EmptyState component
   const EmptyState = () => (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
+    <motion.div 
+      className="bg-white shadow rounded-lg p-6 mb-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
       <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-gray-200 rounded-lg">
-        <FaExclamationCircle className="text-gray-400 mb-3" size={28} />
-        <p className="font-medium">ไม่พบข้อมูลบริษัทที่ได้รับการอนุมัติ</p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <FaExclamationCircle className="text-gray-400 mb-3" size={28} />
+        </motion.div>
+        <motion.p 
+          className="font-medium"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          ไม่พบข้อมูลบริษัทที่ได้รับการอนุมัติ
+        </motion.p>
       </div>
-    </div>
+    </motion.div>
   );
 
   // SearchBar component
   const SearchBar = ({ searchTerm, onSearchChange }) => (
-    <div className="mb-4">
+    <motion.div 
+      className="mb-4"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, delay: 0.1 }}
+    >
       <div className="relative">
         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <FaSearch className="h-5 w-5 text-gray-400" />
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
+            <FaSearch className="h-5 w-5 text-gray-400" />
+          </motion.div>
         </div>
-        <input
+        <motion.input
           type="text"
           className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           placeholder="ค้นหาชื่อบริษัท..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
+          whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
+          initial={{ width: "95%" }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 0.3 }}
         />
       </div>
-    </div>
+    </motion.div>
   );
 
   // FilterSection component
@@ -250,108 +324,198 @@ export default function MemberDetail({ userId }) {
     onEndDateChange, 
     resetFilters 
   }) => (
-    <div className="mb-4">
+    <motion.div 
+      className="mb-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">รายการบริษัทที่ได้รับการอนุมัติ</h2>
-        <button
+        <div>
+          <motion.h2 
+            className="text-xl font-semibold text-blue-900"
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            รายการบริษัทที่ได้รับการอนุมัติ
+          </motion.h2>
+          <motion.p
+            className="text-xs text-gray-600 mt-1"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            แสดงรายการบริษัทที่ได้รับการอนุมัติจากสภาอุตสาหกรรมแห่งประเทศไทย คุณสามารถค้นหาและกรองข้อมูลได้ตามต้องการ
+          </motion.p>
+        </div>
+        <motion.button
           onClick={toggleFilters}
           className="flex items-center px-3 py-1 text-sm bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 transition-colors"
+          whileHover={{ scale: 1.05, backgroundColor: "#dbeafe" }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
         >
           <FaFilter className="mr-1" size={14} />
           <span>{showFilters ? 'ซ่อนตัวกรอง' : 'ตัวกรอง'}</span>
-        </button>
+        </motion.button>
       </div>
 
-      {showFilters && (
-        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {/* Company Type Filter */}
-            <div>
-              <label htmlFor="companyType" className="block text-sm font-medium text-gray-700 mb-1">
-                ประเภทบริษัท
-              </label>
-              <select
-                id="companyType"
-                className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                value={companyTypeFilter}
-                onChange={(e) => onCompanyTypeChange(e.target.value)}
-              >
-                <option value="">ทั้งหมด</option>
-                {companyTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
-            </div>
-            
-            {/* Start Date Filter */}
-            <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
-                วันที่อนุมัติ (จาก)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaCalendarAlt className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="date"
-                  id="startDate"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={startDate}
-                  onChange={(e) => onStartDateChange(e.target.value)}
-                />
-              </div>
-            </div>
-            
-            {/* End Date Filter */}
-            <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
-                วันที่อนุมัติ (ถึง)
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <FaCalendarAlt className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="date"
-                  id="endDate"
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={endDate}
-                  onChange={(e) => onEndDateChange(e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-          
-          {/* Reset Filters Button */}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={resetFilters}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      <AnimatePresence>
+        {showFilters && (
+          <motion.div 
+            className="mb-4 p-4 bg-gray-50 rounded-lg"
+            initial={{ opacity: 0, height: 0, overflow: "hidden" }}
+            animate={{ opacity: 1, height: "auto", overflow: "visible" }}
+            exit={{ opacity: 0, height: 0, overflow: "hidden" }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div 
+              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.3 }}
             >
-              รีเซ็ตตัวกรอง
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+              {/* Company Type Filter */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <label htmlFor="companyType" className="block text-sm font-medium text-gray-700 mb-1">
+                  ประเภทบริษัท
+                </label>
+                <motion.select
+                  id="companyType"
+                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
+                  value={companyTypeFilter}
+                  onChange={(e) => onCompanyTypeChange(e.target.value)}
+                  whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
+                >
+                  <option value="">ทั้งหมด</option>
+                  {companyTypes.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </motion.select>
+              </motion.div>
+              
+              {/* Start Date Filter */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  วันที่อนุมัติ (จาก)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaCalendarAlt className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <motion.input
+                    type="date"
+                    id="startDate"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    value={startDate}
+                    onChange={(e) => onStartDateChange(e.target.value)}
+                    whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
+                  />
+                </div>
+              </motion.div>
+              
+              {/* End Date Filter */}
+              <motion.div
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-1">
+                  วันที่อนุมัติ (ถึง)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaCalendarAlt className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <motion.input
+                    type="date"
+                    id="endDate"
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    value={endDate}
+                    onChange={(e) => onEndDateChange(e.target.value)}
+                    whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
+                  />
+                </div>
+              </motion.div>
+            </motion.div>
+            
+            {/* Reset Filters Button */}
+            <motion.div 
+              className="mt-4 flex justify-end"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.button
+                onClick={resetFilters}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                whileHover={{ scale: 1.05, backgroundColor: "#f9fafb" }}
+                whileTap={{ scale: 0.95 }}
+              >
+                รีเซ็ตตัวกรอง
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 
   // ApprovedCompaniesTable component
   const ApprovedCompaniesTable = ({ companies, formatDate }) => (
-    <div className="overflow-x-auto rounded-lg shadow-lg border border-gray-200">
-      <div className="p-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200">
+    <motion.div 
+      className="overflow-x-auto rounded-lg shadow-lg border border-gray-200"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: 0.2 }}
+    >
+      <motion.div 
+        className="p-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
+      >
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+          <motion.div 
+            className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3"
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.4 }}
+          >
             <FaBuilding className="text-blue-600" size={16} />
-          </div>
+          </motion.div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-800">รายการบริษัทที่ได้รับการอนุมัติ</h3>
-            <p className="text-sm text-gray-500">พบ {companies.length} รายการ</p>
+           
+            <motion.p 
+              className="text-sm text-gray-500"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              พบ {companies.length} รายการบริษัทที่ได้รับการอุมัติ
+            </motion.p>
+
           </div>
         </div>
-      </div>
+      </motion.div>
       <table className="min-w-full divide-y divide-gray-200 border-collapse">
-        <thead className="bg-blue-600">
+        <motion.thead 
+          className="bg-blue-600"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.4 }}
+        >
           <tr>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               หมายเลขสมาชิก
@@ -372,11 +536,23 @@ export default function MemberDetail({ userId }) {
               สถานะ
             </th>
           </tr>
-        </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        </motion.thead>
+        <motion.tbody 
+          className="bg-white divide-y divide-gray-200"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
           {companies.length > 0 ? (
             companies.map((company, index) => (
-              <tr key={company.id} className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-blue-50 hover:bg-blue-100'}>
+              <motion.tr 
+                key={company.id} 
+                className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-blue-50 hover:bg-blue-100'}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.1 * index }}
+                whileHover={{ backgroundColor: "#eff6ff", scale: 1.01 }}
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-100">
                   {company.MEMBER_CODE || '-'}
                 </td>
@@ -393,26 +569,49 @@ export default function MemberDetail({ userId }) {
                   {formatDate(company.updated_at)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm">
+                  <motion.span 
+                    className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm"
+                    whileHover={{ scale: 1.05, backgroundColor: "#dcfce7" }}
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
                     <FaCheckCircle className="mr-1 mt-0.5" size={12} />
                     อนุมัติ
-                  </span>
+                  </motion.span>
                 </td>
-              </tr>
+              </motion.tr>
             ))
           ) : (
-            <tr>
+            <motion.tr
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
               <td colSpan="6" className="px-6 py-10 text-center">
                 <div className="flex flex-col items-center justify-center">
-                  <FaSearch className="text-gray-300 mb-3" size={24} />
-                  <p className="text-gray-500 font-medium">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</p>
+                  <motion.div
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <FaSearch className="text-gray-300 mb-3" size={24} />
+                  </motion.div>
+                  <motion.p 
+                    className="text-gray-500 font-medium"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                  >
+                    ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา
+                  </motion.p>
                 </div>
               </td>
-            </tr>
+            </motion.tr>
           )}
-        </tbody>
+        </motion.tbody>
       </table>
-    </div>
+    </motion.div>
   );
 
   // Pagination component
@@ -421,39 +620,58 @@ export default function MemberDetail({ userId }) {
     const indexOfLastItem = Math.min(currentPage * itemsPerPage, totalItems);
     
     return totalItems > 0 ? (
-      <div className="mt-4 flex items-center justify-between">
+      <motion.div 
+        className="mt-4 flex items-center justify-between"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.3 }}
+      >
         <div className="flex-1 flex justify-between sm:hidden">
-          <button
+          <motion.button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
             className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            whileHover={currentPage !== 1 ? { scale: 1.05, backgroundColor: "#f9fafb" } : {}}
+            whileTap={currentPage !== 1 ? { scale: 0.95 } : {}}
           >
             ก่อนหน้า
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             className={`relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white text-gray-700 hover:bg-gray-50'}`}
+            whileHover={currentPage !== totalPages ? { scale: 1.05, backgroundColor: "#f9fafb" } : {}}
+            whileTap={currentPage !== totalPages ? { scale: 0.95 } : {}}
           >
             ถัดไป
-          </button>
+          </motion.button>
         </div>
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
             <p className="text-sm text-gray-700">
               แสดง <span className="font-medium">{indexOfFirstItem}</span> ถึง <span className="font-medium">{indexOfLastItem}</span> จาก <span className="font-medium">{totalItems}</span> รายการ
             </p>
-          </div>
-          <div>
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
             <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
-              <button
+              <motion.button
                 onClick={() => onPageChange(1)}
                 disabled={currentPage === 1}
                 className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                whileHover={currentPage !== 1 ? { scale: 1.1, backgroundColor: "#f9fafb" } : {}}
+                whileTap={currentPage !== 1 ? { scale: 0.9 } : {}}
               >
                 <span className="sr-only">หน้าแรก</span>
                 <FaChevronLeft className="h-5 w-5" aria-hidden="true" />
-              </button>
+              </motion.button>
               
               {/* Page numbers */}
               {[...Array(totalPages).keys()].map(number => {
@@ -465,13 +683,21 @@ export default function MemberDetail({ userId }) {
                   (pageNumber >= currentPage - 1 && pageNumber <= currentPage + 1)
                 ) {
                   return (
-                    <button
+                    <motion.button
                       key={pageNumber}
                       onClick={() => onPageChange(pageNumber)}
                       className={`relative inline-flex items-center px-4 py-2 border ${currentPage === pageNumber ? 'z-10 bg-blue-50 border-blue-500 text-blue-600' : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'} text-sm font-medium`}
+                      whileHover={currentPage !== pageNumber ? { scale: 1.1, backgroundColor: "#f9fafb" } : {}}
+                      whileTap={{ scale: 0.9 }}
+                      initial={currentPage === pageNumber ? { scale: 1.1 } : { scale: 1 }}
+                      animate={currentPage === pageNumber ? 
+                        { scale: 1, backgroundColor: "#eff6ff", borderColor: "#3b82f6" } : 
+                        { scale: 1 }
+                      }
+                      transition={{ type: "spring", stiffness: 300, damping: 15 }}
                     >
                       {pageNumber}
-                    </button>
+                    </motion.button>
                   );
                 } else if (
                   pageNumber === currentPage - 2 ||
@@ -479,29 +705,34 @@ export default function MemberDetail({ userId }) {
                 ) {
                   // Show ellipsis for page gaps
                   return (
-                    <span
+                    <motion.span
                       key={pageNumber}
                       className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.3 }}
                     >
                       ...
-                    </span>
+                    </motion.span>
                   );
                 }
                 return null;
               })}
               
-              <button
+              <motion.button
                 onClick={() => onPageChange(totalPages)}
                 disabled={currentPage === totalPages}
                 className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-gray-500 hover:bg-gray-50'}`}
+                whileHover={currentPage !== totalPages ? { scale: 1.1, backgroundColor: "#f9fafb" } : {}}
+                whileTap={currentPage !== totalPages ? { scale: 0.9 } : {}}
               >
                 <span className="sr-only">หน้าสุดท้าย</span>
                 <FaChevronRight className="h-5 w-5" aria-hidden="true" />
-              </button>
+              </motion.button>
             </nav>
-          </div>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
     ) : null;
   };
 
@@ -594,59 +825,81 @@ export default function MemberDetail({ userId }) {
 
   // Render table view or detail view based on state
   return (
-    <div className="bg-white shadow rounded-lg p-6 mb-6">
-      {tableView ? (
-        <>
-          <FilterSection 
-            showFilters={showFilters}
-            toggleFilters={() => setShowFilters(!showFilters)}
-            companyTypeFilter={companyTypeFilter}
-            onCompanyTypeChange={(value) => {
-              setCompanyTypeFilter(value);
-              setCurrentPage(1);
-            }}
-            companyTypes={companyTypes}
-            startDate={startDate}
-            onStartDateChange={(value) => {
-              setStartDate(value);
-              setCurrentPage(1);
-            }}
-            endDate={endDate}
-            onEndDateChange={(value) => {
-              setEndDate(value);
-              setCurrentPage(1);
-            }}
-            resetFilters={resetFilters}
-          />
-          
-          <SearchBar 
-            searchTerm={searchTerm}
-            onSearchChange={(value) => {
-              setSearchTerm(value);
-              setCurrentPage(1);
-            }}
-          />
-          
-          <ApprovedCompaniesTable 
-            companies={currentItems} 
-            formatDate={formatDate}
-            totalItems={filteredCompanies.length}
-          />
-          
-          <Pagination 
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredCompanies.length}
-            itemsPerPage={itemsPerPage}
-            onPageChange={handlePageChange}
-          />
-        </>
-      ) : (
-        <MemberDetailView 
-          memberData={memberData || approvedCompanies[0]} 
-          onToggleView={toggleView} 
-        />
-      )}
+    <motion.div 
+      className="bg-white shadow rounded-lg p-6 mb-6"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      layout
+    >
+      <AnimatePresence mode="wait">
+        {tableView ? (
+          <motion.div
+            key="table-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <FilterSection 
+              showFilters={showFilters}
+              toggleFilters={() => setShowFilters(!showFilters)}
+              companyTypeFilter={companyTypeFilter}
+              onCompanyTypeChange={(value) => {
+                setCompanyTypeFilter(value);
+                setCurrentPage(1);
+              }}
+              companyTypes={companyTypes}
+              startDate={startDate}
+              onStartDateChange={(value) => {
+                setStartDate(value);
+                setCurrentPage(1);
+              }}
+              endDate={endDate}
+              onEndDateChange={(value) => {
+                setEndDate(value);
+                setCurrentPage(1);
+              }}
+              resetFilters={resetFilters}
+            />
+            
+            <SearchBar 
+              searchTerm={searchTerm}
+              onSearchChange={(value) => {
+                setSearchTerm(value);
+                setCurrentPage(1);
+              }}
+            />
+            
+            <ApprovedCompaniesTable 
+              companies={currentItems} 
+              formatDate={formatDate}
+              totalItems={filteredCompanies.length}
+            />
+            
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredCompanies.length}
+              itemsPerPage={itemsPerPage}
+              onPageChange={handlePageChange}
+            />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="detail-view"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <MemberDetailView 
+              memberData={memberData || approvedCompanies[0]} 
+              onToggleView={toggleView} 
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
       
       {/* Add global animation styles */}
       <style jsx global>{`
@@ -659,6 +912,6 @@ export default function MemberDetail({ userId }) {
           transform: translateY(1px);
         }
       `}</style>
-    </div>
+    </motion.div>
   );
 }
