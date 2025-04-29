@@ -8,6 +8,7 @@ export default function RequestOTP({ userEmail, onSuccess }) {
   const [loading, setLoading] = useState(false);
   const [requested, setRequested] = useState(false);
   const [cooldown, setCooldown] = useState(0);
+  const [otpCooldown, setOtpCooldown] = useState(0);
   const [captchaVerified, setCaptchaVerified] = useState(false);
   const [showCaptcha, setShowCaptcha] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -76,6 +77,9 @@ export default function RequestOTP({ userEmail, onSuccess }) {
           setNextAvailableDate(data.nextAvailableDate);
           setDaysToWait(data.daysToWait);
           toast.error(`ท่านได้เปลี่ยนอีเมลไปเมื่อไม่นานนี้ กรุณารอ ${data.daysToWait} วัน`);
+        } else if (data.cooldownMinutes) {
+          setOtpCooldown(data.cooldownMinutes);
+          toast.error(`ท่านได้ขอรหัส OTP ไปเมื่อไม่นานนี้ กรุณารอ ${data.cooldownMinutes} นาที`);
         } else {
           setErrorMessage(data.error || 'เกิดข้อผิดพลาดในการส่งรหัส OTP');
           toast.error(data.error || 'เกิดข้อผิดพลาดในการส่งรหัส OTP');
@@ -101,6 +105,20 @@ export default function RequestOTP({ userEmail, onSuccess }) {
             {nextAvailableDate && (
               <p className="mt-2">ท่านจะสามารถเปลี่ยนอีเมลได้อีกครั้งในวันที่: {nextAvailableDate}</p>
             )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  if (otpCooldown > 0) {
+    return (
+      <div className="bg-white p-6 rounded-lg shadow-md max-w-md mx-auto">
+        <div className="text-center mb-6">
+          <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4">
+            <p className="font-bold">ไม่สามารถขอรหัส OTP ได้ในขณะนี้</p>
+            <p>ท่านได้ขอรหัส OTP ไปเมื่อไม่นานนี้ กรุณารอ {otpCooldown} นาที</p>
+            <p className="mt-2">เพื่อป้องกันการส่งอีเมลมากเกินไป ระบบจำกัดการขอรหัส OTP ทุก 5 นาที</p>
           </div>
         </div>
       </div>

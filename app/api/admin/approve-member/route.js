@@ -70,7 +70,7 @@ export async function POST(request) {
     
     // Get user info for logging and email notification
     const companyResult = await query(
-      `SELECT c.user_id, c.company_name, u.email, u.firstname, u.lastname, u.name 
+      `SELECT c.user_id, c.company_name, c.MEMBER_CODE, u.email, u.firstname, u.lastname, u.name 
        FROM companies_Member c
        JOIN users u ON c.user_id = u.id
        WHERE c.id = ?`,
@@ -133,10 +133,12 @@ export async function POST(request) {
       // Send email notification
       if (email && action !== 'delete') { // Don't send email for delete action
         try {
+          const { MEMBER_CODE, company_name, firstname, lastname } = companyResult[0];
+          
           if (action === 'approve') {
-            await sendApprovalEmail(email, displayName, comment);
+            await sendApprovalEmail(email, firstname, lastname, MEMBER_CODE, company_name, comment);
           } else if (action === 'reject') {
-            await sendRejectionEmail(email, displayName, reason || 'ไม่ระบุเหตุผล');
+            await sendRejectionEmail(email, firstname, lastname, MEMBER_CODE, company_name, reason || 'ไม่ระบุเหตุผล');
           }
           
           console.log(`Email notification sent to ${email}`);

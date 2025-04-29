@@ -57,7 +57,7 @@ export async function POST(request) {
       [pending[0].id]
     );
     
-    // บันทึกประวัติการเปลี่ยนอีเมล
+    // บันทึกประวัติการเปลี่ยนอีเมล (ใช้ action เดิมแต่แยกด้วยข้อความใน details)
     await query(
       `INSERT INTO Member_portal_User_log 
        (user_id, action, details, ip_address, user_agent, created_at) 

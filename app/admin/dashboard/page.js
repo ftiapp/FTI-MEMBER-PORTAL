@@ -3,9 +3,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '../components/AdminLayout';
+import ActionCounts from '../components/ActionCounts';
+import Alluser from '../components/Alluser';
 import Analytics from '../components/Analytics';
 import ChangePersonal from '../components/ChangePersonal';
-import Alluser from '../components/Alluser';
+import ContactMessageStats from '../components/ContactMessageStats';
+import GuestContactMessageStats from '../components/GuestContactMessageStats';
 import Link from 'next/link';
 
 /**
@@ -123,37 +126,8 @@ export default function AdminDashboard() {
             </Link>
           </div>
           
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">การดำเนินการด่วน</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <a href="#user-stats" className="bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-                ยืนยันตัวสมาชิกเดิม
-              </a>
-              <a href="#personal-update-stats" className="bg-green-50 hover:bg-green-100 text-green-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                แจ้งเปลี่ยนข้อมูลส่วนตัว
-              </a>
-              <Link href="/admin/members" className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                จัดการสมาชิก
-              </Link>
-              <Link href="/admin/settings" className="bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold py-3 px-4 rounded-lg flex items-center justify-center transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                ตั้งค่าระบบ
-              </Link>
-            </div>
-          </div>
+          {/* Action Counts */}
+          <ActionCounts title="สถิติการดำเนินการในระบบ" />
           
           {/* User Statistics */}
           <div id="user-stats" className="relative mb-12">
@@ -162,35 +136,34 @@ export default function AdminDashboard() {
             />
           </div>
           
-          {/* Member Verification Stats */}
-          <div id="member-stats" className="relative mb-12">
-            <Analytics 
-              title="ยืนยันตัวสมาชิกเดิม - บริษัท" 
-              endpoint="/api/admin/member-verification-stats" 
-            />
-            <div className="text-right mt-4">
-              <a href="#personal-update-stats" className="inline-flex items-center text-blue-600 hover:text-blue-800">
-                <span className="mr-1">ไปที่ แจ้งเปลี่ยนข้อมูลส่วนตัว</span>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </a>
-            </div>
-          </div>
-          
-          {/* Profile Update Stats */}
-          <div id="personal-update-stats" className="relative mb-12">
-            <ChangePersonal 
-              title="แจ้งเปลี่ยนข้อมูลส่วนตัว" 
-              endpoint="/api/admin/profile_update_stat" 
-            />
-            <div className="text-right mt-4">
-              <a href="#user-stats" className="inline-flex items-center text-blue-600 hover:text-blue-800">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-                <span>กลับไปที่ สถิติผู้ใช้งานระบบ</span>
-              </a>
+          {/* Stats Group */}
+          <div className="mb-16">
+            <h2 className="text-xl font-bold text-gray-800 mb-8">สถิติการดำเนินการและการอนุมัติ</h2>
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-10">
+              {/* Member Verification Stats */}
+              <div id="member-stats" className="bg-white rounded-lg shadow-md p-1">
+                <Analytics 
+                  title="ยืนยันตัวสมาชิกเดิม - บริษัท" 
+                  endpoint="/api/admin/member-verification-stats" 
+                />
+              </div>
+              
+              {/* Profile Update Stats */}
+              <div id="personal-update-stats" className="bg-white rounded-lg shadow-md p-1">
+                <ChangePersonal 
+                  title="แจ้งเปลี่ยนข้อมูลส่วนตัว" 
+                  endpoint="/api/admin/profile_update_stat" 
+                />
+              </div>
+              
+              {/* Contact Message Stats */}
+              <div className="bg-white rounded-lg shadow-md p-1">
+                <ContactMessageStats title="สถิติข้อความติดต่อ (สมาชิก)" />
+              </div>
+              <div className="bg-white rounded-lg shadow-md p-1">
+                <GuestContactMessageStats title="สถิติข้อความติดต่อ (บุคคลทั่วไป)" />
+              </div>
             </div>
           </div>
           

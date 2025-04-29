@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   getStatusIcon, 
   getStatusText, 
@@ -8,8 +9,6 @@ import { getContactMessageStatusIcon, getContactMessageStatusText, getContactMes
 import EmptyState from './EmptyState';
 import StatusCard from './StatusCard';
 import Pagination from './Pagination';
-
-import { useEffect } from 'react';
 import OperationsListSearchBar from './OperationsListSearchBar';
 
 const OperationsList = ({ operations: initialOperations, userId }) => {
@@ -23,6 +22,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [dateRange, setDateRange] = useState(['','']);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Filter options
   const operationTypeOptions = [
@@ -42,10 +42,60 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
     { value: 'error', label: 'โหลดผิดพลาด' },
   ];
 
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        when: "beforeChildren",
+        staggerChildren: 0.1,
+        duration: 0.3
+      }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        type: "spring", 
+        stiffness: 300,
+        damping: 24
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      y: -20,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  const headingVariants = {
+    hidden: { opacity: 0, y: -10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { 
+        delay: 0.1,
+        duration: 0.5
+      }
+    }
+  };
+
   // Fetch contact message status
   useEffect(() => {
     if (!userId) return;
+    
+    setIsLoading(true);
     console.log('Fetching contact message status for user:', userId);
+    
     fetch(`/api/dashboard/operation-status/contact-message-status?userId=${userId}`)
       .then(res => {
         // Check if response is OK and is JSON
@@ -103,6 +153,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   // Fetch verifications (member verification status)
   useEffect(() => {
     if (!userId) return;
+    
     fetch(`/api/member/verification-status?userId=${userId}`)
       .then(res => res.json())
       .then(data => {
@@ -122,6 +173,9 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
           }];
         }
         setVerifications(merged);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, [userId]);
 
@@ -183,6 +237,11 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
     
     setOperations(mergedOps);
   }, [initialOperations, contactMessageStatus, verifications]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter, typeFilter, dateRange]);
 
   // Filtering
   const filteredOperations = operations.filter(op => {
@@ -248,48 +307,112 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const totalPages = Math.ceil(filteredOperations.length / itemsPerPage);
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 border border-gray-200" id="operations-container">
-      <h3 className="text-xl font-semibold mb-1 text-blue-800">สถานะการดำเนินการทั้งหมด</h3>
-      <p className="text-gray-500 text-sm mb-4">ตรวจสอบสถานะคำขอ คำร้อง หรือการดำเนินการต่าง ๆ ที่เกี่ยวข้องกับบัญชีและข้อมูลสมาชิกของคุณได้ที่นี่</p>
-      <OperationsListSearchBar
-        search={search}
-        setSearch={setSearch}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        typeFilter={typeFilter}
-        setTypeFilter={setTypeFilter}
-        dateRange={dateRange}
-        setDateRange={setDateRange}
-        operationTypeOptions={operationTypeOptions}
-        statusOptions={statusOptions}
-      />
-      {filteredOperations.length === 0 ? (
-        <EmptyState message="ไม่พบรายการแก้ไขข้อมูล" />
+    <motion.div 
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="bg-white rounded-xl shadow-md p-6 border border-gray-200"
+      id="operations-container"
+    >
+      <motion.h3 
+        variants={headingVariants} 
+        className="text-xl font-semibold mb-1 text-blue-800"
+      >
+        สถานะการดำเนินการทั้งหมด
+      </motion.h3>
+      
+      <motion.p 
+        variants={headingVariants}
+        className="text-gray-500 text-sm mb-4"
+      >
+        ตรวจสอบสถานะคำขอ คำร้อง หรือการดำเนินการต่าง ๆ ที่เกี่ยวข้องกับบัญชีและข้อมูลสมาชิกของคุณได้ที่นี่
+      </motion.p>
+      
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+      >
+        <OperationsListSearchBar
+          search={search}
+          setSearch={setSearch}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          typeFilter={typeFilter}
+          setTypeFilter={setTypeFilter}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          operationTypeOptions={operationTypeOptions}
+          statusOptions={statusOptions}
+        />
+      </motion.div>
+      
+      {isLoading ? (
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="py-16 flex justify-center items-center"
+        >
+          <div className="loader rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 animate-spin" style={{ borderTopColor: '#3B82F6' }}></div>
+        </motion.div>
+      ) : filteredOperations.length === 0 ? (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          <EmptyState message="ไม่พบรายการแก้ไขข้อมูล" />
+        </motion.div>
       ) : (
-        <div className="space-y-4">
-          {currentOperations.map((operation, index) => (
-            <StatusCard
-              key={index}
-              icon={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusIcon(operation.status) : getStatusIcon(operation.status)}
-              title={operation.title}
-              description={operation.description}
-              statusText={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusText(operation.status) : getStatusText(operation.status)}
-              statusClass={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusClass(operation.status) : getStatusClass(operation.status)}
-              date={operation.created_at}
-              errorMessage={operation.status === 'rejected' ? operation.reason : null}
-              id={operation.id}
-              type={operation.type || (operation.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : operation.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 'แก้ไขข้อมูลส่วนตัว')}
-              message_content={operation.message_content}
+        <motion.div 
+          variants={containerVariants}
+          className="space-y-4"
+        >
+          <AnimatePresence mode="wait">
+            {currentOperations.map((operation, index) => (
+              <motion.div
+                key={operation.id || index}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                layout
+                whileHover={{ 
+                  scale: 1.02, 
+                  boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+                  transition: { type: "spring", stiffness: 400, damping: 17 }
+                }}
+              >
+                <StatusCard
+                  icon={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusIcon(operation.status) : getStatusIcon(operation.status)}
+                  title={operation.title}
+                  description={operation.description}
+                  statusText={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusText(operation.status) : getStatusText(operation.status)}
+                  statusClass={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusClass(operation.status) : getStatusClass(operation.status)}
+                  date={operation.created_at}
+                  errorMessage={operation.status === 'rejected' ? operation.reason : null}
+                  id={operation.id}
+                  type={operation.type || (operation.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : operation.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 'แก้ไขข้อมูลส่วนตัว')}
+                  message_content={operation.message_content}
+                />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+          
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+          >
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
             />
-          ))}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-          />
-        </div>
+          </motion.div>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

@@ -38,7 +38,7 @@ export default function AdminSidebar() {
   const [activePath, setActivePath] = useState('');
   const [pendingVerifications, setPendingVerifications] = useState(0);
   const [pendingProfileUpdates, setPendingProfileUpdates] = useState(0);
-  
+  const [pendingGuestMessages, setPendingGuestMessages] = useState(0);
   // Reset loading state when navigation completes
   useEffect(() => {
     setLoading(false);
@@ -73,12 +73,27 @@ export default function AdminSidebar() {
         console.error('Error fetching pending profile update count:', error);
       }
     };
+    const fetchPendingGuestMessagesCount = async () => {
+      try {
+        const response = await fetch('/api/admin/pending-guest-messages-count');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPendingGuestMessages(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pending guest messages count:', error);
+      }
+    };
     fetchPendingCount();
     fetchPendingProfileUpdateCount();
+    fetchPendingGuestMessagesCount();
     // Set up interval to refresh count every minute
     const intervalId = setInterval(() => {
       fetchPendingCount();
       fetchPendingProfileUpdateCount();
+      fetchPendingGuestMessagesCount();
     }, 600000);
     return () => clearInterval(intervalId);
   }, []);
@@ -163,13 +178,23 @@ export default function AdminSidebar() {
       ),
     },
     {
-      name: 'ข้อความติดต่อ',
+      name: 'ข้อความติดต่อ (สมาชิก)',
       path: '/admin/dashboard/contact-messages',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
         </svg>
       ),
+    },
+    {
+      name: 'ข้อความติดต่อ (บุคคลทั่วไป)',
+      path: '/admin/dashboard/guest-messages',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        </svg>
+      ),
+      badge: pendingGuestMessages > 0 ? pendingGuestMessages : null,
     },
     {
       name: 'ตั้งค่าระบบ',
@@ -184,7 +209,7 @@ export default function AdminSidebar() {
   ];
   
   return (
-    <aside className={`bg-gray-800 text-white ${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 ease-in-out min-h-screen h-full`}>
+    <aside className={`bg-gray-800 text-white ${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 ease-in-out min-h-screen h-full flex flex-col`}>
       <div className="p-4 flex justify-between items-center border-b border-gray-700">
         <div className={`${collapsed ? 'hidden' : 'block'}`}>
           <h1 className="text-xl font-bold">เมนู</h1>
@@ -228,7 +253,7 @@ export default function AdminSidebar() {
         </ul>
       </nav>
       
-      <div className="absolute bottom-0 w-full border-t border-gray-700">
+      <div className="mt-auto sticky bottom-0 w-full border-t border-gray-700">
         <button
           onClick={(e) => {
             e.preventDefault();
@@ -238,7 +263,7 @@ export default function AdminSidebar() {
             logout();
             router.push('/login');
           }}
-          className={`flex items-center justify-center w-full p-2 text-xs hover:bg-gray-700 transition-colors ${loading && activePath === 'logout' ? 'opacity-70 cursor-not-allowed' : ''}`}
+          className={`flex items-center ${collapsed ? 'justify-center' : 'px-4'} w-full p-4 text-base font-medium hover:bg-red-700 bg-gray-700 transition-colors ${loading && activePath === 'logout' ? 'opacity-70 cursor-not-allowed' : ''}`}
           disabled={loading}
           title="ออกจากระบบ"
         >
@@ -248,11 +273,11 @@ export default function AdminSidebar() {
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
           ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
             </svg>
           )}
-          {!collapsed && <span className="ml-2">ออกจากระบบ</span>}
+          {!collapsed && <span className="ml-3 text-white">ออกจากระบบ</span>}
         </button>
       </div>
     </aside>

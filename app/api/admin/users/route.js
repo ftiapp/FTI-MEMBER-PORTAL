@@ -20,22 +20,32 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
     const offset = (page - 1) * limit;
 
+    // Build search condition if search term is provided
+    let searchCondition = '';
+    let queryParams = [];
+    
+    if (search) {
+      searchCondition = `WHERE firstname LIKE ? OR lastname LIKE ? OR email LIKE ?`;
+      queryParams = [`%${search}%`, `%${search}%`, `%${search}%`];
+    }
+    
     // Query to get total count
-    const countQuery = `SELECT COUNT(*) as total FROM users`;
-    const countResult = await query(countQuery);
+    const countQuery = `SELECT COUNT(*) as total FROM users ${searchCondition}`;
+    const countResult = await query(countQuery, queryParams);
     const total = countResult[0].total;
 
     // Query to get paginated users
-    // แก้ไขการใช้ LIMIT และ OFFSET โดยใส่ค่าตัวเลขโดยตรงในคำสั่ง SQL
     const usersQuery = `
-      SELECT id, name, firstname, lastname, email, phone, status, email_verified, created_at, updated_at
+      SELECT id, name, firstname, lastname, email, phone, status, email_verified, created_at, updated_at, login_count
       FROM users
+      ${searchCondition}
       ORDER BY id DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
-    const users = await query(usersQuery);
+    const users = await query(usersQuery, queryParams);
 
     return NextResponse.json({
       success: true,

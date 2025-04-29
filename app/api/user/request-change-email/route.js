@@ -28,6 +28,7 @@ export async function POST(request) {
     const recentSuccessfulChanges = await query(
       `SELECT * FROM Member_portal_User_log 
        WHERE user_id = ? AND action = 'change_email' 
+       AND details LIKE '%(ยืนยันแล้ว)%' 
        AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)`,
       [userId]
     );
@@ -35,24 +36,66 @@ export async function POST(request) {
     if (recentSuccessfulChanges && recentSuccessfulChanges.length > 0) {
       // คำนวณวันที่สามารถเปลี่ยนได้อีกครั้ง
       const lastChangeDate = new Date(recentSuccessfulChanges[0].created_at);
-      const nextAvailableDate = new Date(lastChangeDate);
-      nextAvailableDate.setDate(nextAvailableDate.getDate() + 7);
+      const nextAvailableDate = new Date(lastChangeDate.getTime() + (7 * 24 * 60 * 60 * 1000)); // เพิ่ม 7 วัน (604,800,000 มิลลิวินาที)
       
       // คำนวณจำนวนวันที่ต้องรอ
       const now = new Date();
-      const daysToWait = Math.ceil((nextAvailableDate - now) / (1000 * 60 * 60 * 24));
+      const timeDiff = nextAvailableDate.getTime() - now.getTime();
+      
+      // ตรวจสอบว่าเวลาที่ต้องรอยังเหลืออยู่หรือไม่
+      if (timeDiff <= 0) {
+        // ถ้าเวลาที่ต้องรอหมดแล้ว ให้ดำเนินการต่อไปได้เลย
+        console.log('7-day cooldown period has already passed, allowing email change');
+      } else {
+        // คำนวณจำนวนวันที่ต้องรอ
+        const daysToWait = Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24))); // อย่างน้อย 1 วัน
+        
+        const formattedDate = nextAvailableDate.toISOString().split('T')[0];
+        
+        return NextResponse.json(
+          { 
+            error: `คุณได้เปลี่ยนอีเมลไปแล้วใน 7 วันที่ผ่านมา กรุณารออีก ${daysToWait} วัน`,
+            nextAvailableDate: formattedDate,
+            daysToWait: daysToWait
+          },
+          { status: 429 }
+        );
+      }
+    }
+    
+    // ตรวจสอบการขอ OTP บ่อยเกินไป (ทุก 5 นาที)
+    // ตรวจสอบจากตาราง verification_tokens แทนการใช้ LIKE query
+    const recentOTPRequests = await query(
+      `SELECT * FROM verification_tokens 
+       WHERE user_id = ? AND token_type = 'change_email_cooldown' 
+       AND expires_at > NOW()`,
+      [userId]
+    );
+
+    if (recentOTPRequests && recentOTPRequests.length > 0) {
+      // คำนวณเวลาที่ต้องรอ (เป็นนาที)
+      const expiresAt = new Date(recentOTPRequests[0].expires_at);
+      const now = new Date();
+      const timeDiff = expiresAt.getTime() - now.getTime();
+      
+      // คำนวณจำนวนนาทีที่ต้องรอ
+      const minutesToWait = Math.max(1, Math.ceil(timeDiff / (1000 * 60))); // อย่างน้อย 1 นาที
+      
+      console.log(`Cooldown active: ${minutesToWait} minutes remaining until ${expiresAt}`);
       
       return NextResponse.json(
         { 
-          error: `คุณได้เปลี่ยนอีเมลไปแล้วใน 7 วันที่ผ่านมา กรุณารออีก ${daysToWait} วัน`,
-          nextAvailableDate: nextAvailableDate.toISOString().split('T')[0],
-          daysToWait: daysToWait
+          error: `คุณได้ขอรหัส OTP ไปเมื่อไม่นานนี้ กรุณารออีก ${minutesToWait} นาที`,
+          cooldownMinutes: minutesToWait
         },
         { status: 429 }
       );
     }
     
-    // ตรวจสอบว่ามีคำขอที่ยังไม่หมดอายุหรือไม่ (ไม่ได้บล็อกการขอ OTP ใหม่)
+    // ถ้าไม่มีคูลดาวน์หรือคูลดาวน์หมดแล้ว ให้ดำเนินการต่อไป
+    console.log('No active cooldown, allowing new OTP request');
+    
+    // ตรวจสอบว่ามีคำขอที่ยังไม่หมดอายุหรือไม่
     const pendingRequests = await query(
       `SELECT * FROM verification_tokens 
        WHERE user_id = ? AND token_type = 'change_email' 
@@ -83,18 +126,26 @@ export async function POST(request) {
        VALUES (?, ?, 'change_email', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0)`,
       [userId, token, otp]
     );
+    
+    // บันทึกคูลดาวน์การขอ OTP ใหม่ (5 นาที)
+    await query(
+      `INSERT INTO verification_tokens 
+       (user_id, token, token_type, otp, expires_at, used) 
+       VALUES (?, ?, 'change_email_cooldown', '000000', DATE_ADD(NOW(), INTERVAL 5 MINUTE), 0)`,
+      [userId, generateToken()]
+    );
 
     // ส่งอีเมลพร้อม OTP
     await sendEmailChangeOTP(email, user[0].firstname, user[0].lastname, otp);
     
-    // บันทึกประวัติการขอเปลี่ยนอีเมล
+    // บันทึกประวัติการขอเปลี่ยนอีเมล (ใช้ action เดิมแต่แยกด้วยข้อความใน details)
     await query(
       `INSERT INTO Member_portal_User_log 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, 'change_email', ?, ?, ?, NOW())`,
       [
         userId, 
-        `ขอเปลี่ยนอีเมล - ส่ง OTP ไปยังอีเมลปัจจุบัน ${email}`, 
+        `[OTP] ขอเปลี่ยนอีเมล - ส่ง OTP ไปยังอีเมลปัจจุบัน ${email}`, 
         request.headers.get('x-forwarded-for') || 'unknown',
         request.headers.get('user-agent') || 'unknown'
       ]

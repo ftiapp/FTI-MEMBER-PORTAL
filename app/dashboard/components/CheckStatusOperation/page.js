@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import LoadingState from './components/Loadingstate';
 import ErrorState from './components/ErrorState';
 import OperationsList from './components/OperationsList';
@@ -11,15 +12,11 @@ export default function CheckStatusOperation() {
   const { user } = useAuth();
   const router = useRouter();
   const [operations, setOperations] = useState([]);
-
   const [loading, setLoading] = useState(true);
-
-
   const [loadingError, setLoadingError] = useState(false);
   
   // Refs for preventing duplicate requests
   const isLoadingOperations = useRef(false);
-
 
   useEffect(() => {
     if (user?.id) {
@@ -57,8 +54,6 @@ export default function CheckStatusOperation() {
     }
   };
   
-  
-  
   // Handle retry when loading failed
   const handleRetry = () => {
     if (user?.id) {
@@ -66,39 +61,55 @@ export default function CheckStatusOperation() {
     }
   };
 
-  
-
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: { 
+        when: "beforeChildren",
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   if (loading) {
-    return <LoadingState />;
+    return (
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <LoadingState />
+      </motion.div>
+    );
   }
   
   if (loadingError) {
-    return <ErrorState onRetry={handleRetry} />;
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <ErrorState onRetry={handleRetry} />
+      </motion.div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Profile Update Operations */}
-      <OperationsList operations={operations} userId={user?.id} />
-      
-      {/* Add global animation styles */}
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-        
-        /* Better button active state */
-        button:active {
-          transform: translateY(2px);
-          box-shadow: none;
-        }
-      `}</style>
-    </div>
+    <AnimatePresence>
+      <motion.div 
+        className="space-y-6"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        exit={{ opacity: 0, y: 20 }}
+      >
+        {/* Profile Update Operations */}
+        <OperationsList operations={operations} userId={user?.id} />
+      </motion.div>
+    </AnimatePresence>
   );
 }

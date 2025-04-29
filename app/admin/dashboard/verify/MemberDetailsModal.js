@@ -68,20 +68,16 @@ export default function MemberDetailsModal({
                 <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">รหัสสมาชิก:</span> {member.MEMBER_CODE || 'ยังไม่มีรหัสสมาชิก'}</p>
                 <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ชื่อบริษัท:</span> {member.company_name}</p>
                 <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ประเภทธุรกิจ:</span> {member.company_type}</p>
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">เลขทะเบียนบริษัท:</span> {member.registration_number}</p>
                 <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">เลขประจำตัวผู้เสียภาษี:</span> {member.tax_id}</p>
               </div>
             </div>
             
             <div>
-              <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">ข้อมูลติดต่อ</h4>
+              <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">ข้อมูลผู้ส่งคำขอ</h4>
               <div className="space-y-2">
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ที่อยู่:</span> {member.address}</p>
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">จังหวัด:</span> {member.province}</p>
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">รหัสไปรษณีย์:</span> {member.postal_code}</p>
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">โทรศัพท์:</span> {member.phone}</p>
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">อีเมล:</span> {member.email}</p>
-                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">เว็บไซต์:</span> {member.website || '-'}</p>
+                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ชื่อ-นามสกุล:</span> {member.firstname} {member.lastname}</p>
+                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">โทรศัพท์:</span> {member.phone || '-'}</p>
+                <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">อีเมล:</span> {member.email ? <a href={`mailto:${member.email}`} className="text-blue-600 hover:underline">{member.email}</a> : '-'}</p>
               </div>
             </div>
           </div>

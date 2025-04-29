@@ -1,5 +1,6 @@
 import MemberSearchField from './MemberSearchField';
 import FileUploadField from './FileUploadField';
+import { motion } from 'framer-motion';
 
 export default function MemberInfoForm({ 
   formData,
@@ -85,8 +86,19 @@ export default function MemberInfoForm({
   };
   
   return (
-    <div className="bg-white shadow-md rounded-lg p-6">
-      <form className="space-y-6" onSubmit={handleSubmit}>
+    <motion.div 
+      className="bg-white shadow-md rounded-lg p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <motion.form 
+        className="space-y-6" 
+        onSubmit={handleSubmit}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
         <MemberSearchField 
           value={formData.memberSearch}
           onChange={handleChange}
@@ -94,7 +106,12 @@ export default function MemberInfoForm({
           hasError={formErrors.memberSearch}
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               ประเภทสมาชิก
@@ -134,10 +151,14 @@ export default function MemberInfoForm({
               <p className="text-red-500 text-xs mt-1">กรุณากรอกเลขประจำตัวผู้เสียภาษี</p>
             )}
           </div>
-        </div>
+        </motion.div>
         
         {/* File upload field based on member type */}
-        <div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
           <FileUploadField 
             label={
               formData.memberType === 'สส' || formData.memberType === 'สน' ? 
@@ -163,14 +184,21 @@ export default function MemberInfoForm({
                 'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
             }
           />
-        </div>
+        </motion.div>
         
         {showSubmitButton && (
-          <div className="pt-4">
-            <button
+          <motion.div 
+            className="pt-4"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            <motion.button
               type="submit"
               disabled={isSubmitting}
               className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
+              whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+              whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
             >
               {isSubmitting ? (
                 <div className="flex items-center justify-center">
@@ -181,10 +209,10 @@ export default function MemberInfoForm({
                   กำลังส่งข้อมูล...
                 </div>
               ) : 'ส่งข้อมูล'}
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         )}
-      </form>
-    </div>
+      </motion.form>
+    </motion.div>
   );
 }

@@ -192,10 +192,8 @@ export async function sendApprovalEmail(email, firstname, lastname, memberCode, 
   const loginLink = `${baseUrl}/login`;
   const dashboardLink = `${baseUrl}/dashboard`;
 
-  
-  
-
-  const recipients = [new Recipient(email, name)];
+  // Use fullName for recipient
+  const recipients = [new Recipient(email, fullName)];
 
   const emailParams = new EmailParams()
     .setFrom(defaultSender)
@@ -235,7 +233,7 @@ export async function sendApprovalEmail(email, firstname, lastname, memberCode, 
     .setText(`
       การยืนยันตัวตนได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
       
-      เรียน คุณ${name}
+      เรียน คุณ${fullName}
       
       สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการยืนยันตัวตนของท่านได้รับการอนุมัติเรียบร้อยแล้ว
       
@@ -281,10 +279,8 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
   const loginLink = `${baseUrl}/login`;
   const dashboardLink = `${baseUrl}/dashboard`;
 
-  
-  
-
-  const recipients = [new Recipient(email, name)];
+  // Use fullName for recipient
+  const recipients = [new Recipient(email, fullName)];
 
   const emailParams = new EmailParams()
     .setFrom(defaultSender)
@@ -327,7 +323,7 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
     .setText(`
       การยืนยันตัวตนไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
       
-      เรียน คุณ${name}
+      เรียน คุณ${fullName}
       
       สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการยืนยันตัวตนของท่านไม่ได้รับการอนุมัติ
       
@@ -335,7 +331,7 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
       หมายเลขสมาชิก: ${memberCode}
       ชื่อบริษัท: ${companyName}
       
-      เหตุผลที่ไม่ได้รับการอนุมัติ: ${reason}
+      เหตุผลที่ไม่ได้รับการอนุมัติ: ${rejectReason}
       
       ท่านสามารถแก้ไขข้อมูลและส่งคำขอยืนยันตัวตนใหม่ได้จากแดชบอร์ดของท่าน หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
       

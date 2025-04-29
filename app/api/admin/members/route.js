@@ -41,7 +41,7 @@ export async function GET(request) {
     // Get members with the specified status
     // Convert limit and offset to numbers to avoid MySQL prepared statement issues
     const membersResult = await query(
-      `SELECT cm.*, u.email, u.name, u.firstname, u.lastname
+      `SELECT cm.*, u.email, u.name, u.firstname, u.lastname, u.phone
        FROM companies_Member cm
        JOIN users u ON cm.user_id = u.id
        WHERE cm.Admin_Submit = ?
