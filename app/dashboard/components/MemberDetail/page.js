@@ -496,6 +496,9 @@ export default function MemberDetail({ userId }) {
               สถานะ
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              สถานะสมาชิก
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               เอกสารยืนยัน
             </th>
           </tr>
@@ -510,11 +513,17 @@ export default function MemberDetail({ userId }) {
             companies.map((company, index) => (
               <motion.tr 
                 key={company.id} 
-                className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-blue-50 hover:bg-blue-100'}
+                className={index % 2 === 0 ? 'bg-white hover:bg-blue-50 cursor-pointer' : 'bg-blue-50 hover:bg-blue-100 cursor-pointer'}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 * index }}
                 whileHover={{ backgroundColor: "#eff6ff", scale: 1.01 }}
+                onClick={() => {
+                  if (company.MEMBER_CODE) {
+                    // Navigate to member detail page with the member code
+                    window.location.href = `/MemberDetail?memberCode=${encodeURIComponent(company.MEMBER_CODE)}`;
+                  }
+                }}
               >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-100">
                   {company.MEMBER_CODE || '-'}
@@ -536,6 +545,21 @@ export default function MemberDetail({ userId }) {
                     <FaCheckCircle className="mr-1 mt-0.5" size={12} />
                     อนุมัติ
                   </motion.span>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm border-r border-gray-100">
+                  {company.memberStatus ? (
+                    <motion.span 
+                      className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm ${company.memberStatus.active === 1 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}
+                      whileHover={{ scale: 1.05 }}
+                      initial={{ scale: 0.9 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                    >
+                      {company.memberStatus.statusName || 'ไม่พบข้อมูล'}
+                    </motion.span>
+                  ) : (
+                    <span className="text-gray-400 italic">ไม่พบข้อมูล</span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {company.file_path ? (

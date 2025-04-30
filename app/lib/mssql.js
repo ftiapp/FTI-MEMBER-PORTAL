@@ -71,7 +71,25 @@ export async function mssqlQuery(queryText, params = []) {
     
     console.log('Executing MSSQL query:', modifiedQuery);
     const result = await request.query(modifiedQuery);
-    return result.recordset;
+    
+    // Check if this is a stored procedure call (contains EXEC or EXECUTE)
+    const isStoredProcedure = /EXEC(?:UTE)?\s+/i.test(queryText);
+    
+    // Enhanced logging for debugging stored procedure results
+    console.log('Stored procedure result:', isStoredProcedure ? 'Success' : 'Not a stored procedure');
+    console.log('Recordset available:', result.recordset ? 'Yes' : 'No');
+    console.log('Records found:', result.recordset ? result.recordset.length : 0);
+    
+    // For stored procedures, especially member detail queries
+    if (isStoredProcedure && queryText.includes('sp_GetMemberDetailByMemberCode_FTI_PORTAL')) {
+      const memberCode = params[0];
+      if (!result.recordset || result.recordset.length === 0) {
+        console.log(`No records found for member code: ${memberCode}`);
+      }
+    }
+    
+    // Return the recordset or an empty array if no recordset
+    return result.recordset || [];
   } catch (error) {
     console.error('MSSQL query error:', error);
     throw error;
