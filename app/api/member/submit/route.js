@@ -9,6 +9,8 @@ export async function POST(request) {
     // Extract form data
     const userId = formData.get('userId');
     const memberNumber = formData.get('memberNumber');
+    const compPersonCode = formData.get('compPersonCode');
+    const registCode = formData.get('registCode');
     const memberType = formData.get('memberType');
     const companyName = formData.get('companyName');
     const companyType = formData.get('companyType');
@@ -30,9 +32,9 @@ export async function POST(request) {
       );
     }
     
-    // Check if MEMBER_CODE is already used by another user (excluding deleted records)
+    // Check if MEMBER_CODE is already used by another user (only check pending or approved records)
     const existingMemberOtherUser = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ? AND Admin_Submit != 3`,
+      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
       [memberNumber, userId]
     );
     
@@ -43,9 +45,9 @@ export async function POST(request) {
       );
     }
     
-    // Check if current user has already submitted this MEMBER_CODE (excluding deleted records)
+    // Check if current user has already submitted this MEMBER_CODE (only check pending or approved records)
     const existingMemberSameUser = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ? AND Admin_Submit != 3`,
+      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
       [memberNumber, userId]
     );
     
@@ -75,9 +77,9 @@ export async function POST(request) {
     // Save company information to database
     const companyResult = await query(
       `INSERT INTO companies_Member 
-       (user_id, MEMBER_CODE, company_name, company_type, tax_id, Admin_Submit) 
-       VALUES (?, ?, ?, ?, ?, 0)`,
-      [userId, memberNumber, companyName, memberType, taxId]
+       (user_id, MEMBER_CODE, COMP_PERSON_CODE, REGIST_CODE, company_name, company_type, tax_id, Admin_Submit) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+      [userId, memberNumber, compPersonCode, registCode, companyName, memberType, taxId]
     );
     
     // Save document information to database

@@ -15,21 +15,24 @@ export async function GET(request) {
       );
     }
     
-    // Get all approved companies for this user
+    // Get all approved companies for this user with their document information
     const approvedCompanies = await query(
       `SELECT 
-         id,
-         user_id,
-         MEMBER_CODE,
-         company_name,
-         company_type,
-         tax_id,
-         updated_at,
-         Admin_Submit,
-         admin_comment
-       FROM companies_Member 
-       WHERE user_id = ? AND Admin_Submit = 1
-       ORDER BY updated_at DESC`,
+         c.id,
+         c.user_id,
+         c.MEMBER_CODE,
+         c.company_name,
+         c.company_type,
+         c.tax_id,
+         c.updated_at,
+         c.Admin_Submit,
+         c.admin_comment,
+         d.file_path,
+         d.file_name
+       FROM companies_Member c
+       LEFT JOIN documents_Member d ON c.MEMBER_CODE = d.MEMBER_CODE AND d.Admin_Submit = 1
+       WHERE c.user_id = ? AND c.Admin_Submit = 1
+       ORDER BY c.updated_at DESC`,
       [userId]
     );
     

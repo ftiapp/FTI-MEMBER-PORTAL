@@ -26,6 +26,8 @@ export default function WasMember() {
   const [formData, setFormData] = useState({
     memberSearch: '',
     memberNumber: '',
+    compPersonCode: '',
+    registCode: '',
     memberType: '',
     companyName: '',
     taxId: '',
@@ -255,6 +257,8 @@ const [successMessage, setSuccessMessage] = useState('');
       const data = new FormData();
       data.append('userId', user?.id || '');
       data.append('memberNumber', formSubmitData.memberNumber);
+      data.append('compPersonCode', formSubmitData.compPersonCode);
+      data.append('registCode', formSubmitData.registCode);
       data.append('memberType', formSubmitData.memberType);
       data.append('companyName', formSubmitData.companyName);
       data.append('taxId', formSubmitData.taxId);
@@ -299,6 +303,8 @@ const [successMessage, setSuccessMessage] = useState('');
         setFormData({
           memberSearch: '',
           memberNumber: '',
+          compPersonCode: '',
+          registCode: '',
           memberType: '',
           companyName: '',
           taxId: '',

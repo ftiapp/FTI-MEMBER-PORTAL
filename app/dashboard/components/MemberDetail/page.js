@@ -105,9 +105,6 @@ export default function MemberDetail({ userId }) {
       // Search by company name
       const matchesSearch = company.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Filter by company type
-      const matchesType = !companyTypeFilter || company.company_type === companyTypeFilter;
-      
       // Filter by date range
       let matchesDateRange = true;
       if (startDate && endDate) {
@@ -128,9 +125,9 @@ export default function MemberDetail({ userId }) {
         matchesDateRange = companyDate <= filterEndDate;
       }
       
-      return matchesSearch && matchesType && matchesDateRange;
+      return matchesSearch && matchesDateRange;
     });
-  }, [approvedCompanies, searchTerm, companyTypeFilter, startDate, endDate]);
+  }, [approvedCompanies, searchTerm, startDate, endDate]);
   
   // Calculate pagination
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
@@ -138,11 +135,7 @@ export default function MemberDetail({ userId }) {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredCompanies.slice(indexOfFirstItem, indexOfLastItem);
   
-  // Get unique company types for filter dropdown
-  const companyTypes = useMemo(() => {
-    const types = approvedCompanies.map(company => company.company_type).filter(Boolean);
-    return [...new Set(types)];
-  }, [approvedCompanies]);
+  // No longer needed as company type filter is removed
   
   // Handle pagination
   const handlePageChange = (pageNumber) => {
@@ -152,7 +145,6 @@ export default function MemberDetail({ userId }) {
   // Reset filters
   const resetFilters = () => {
     setSearchTerm('');
-    setCompanyTypeFilter('');
     setStartDate('');
     setEndDate('');
     setCurrentPage(1);
@@ -315,9 +307,6 @@ export default function MemberDetail({ userId }) {
   const FilterSection = ({ 
     showFilters, 
     toggleFilters, 
-    companyTypeFilter, 
-    onCompanyTypeChange, 
-    companyTypes, 
     startDate, 
     onStartDateChange, 
     endDate, 
@@ -373,34 +362,11 @@ export default function MemberDetail({ userId }) {
             transition={{ duration: 0.3 }}
           >
             <motion.div 
-              className="grid grid-cols-1 md:grid-cols-3 gap-4"
+              className="grid grid-cols-1 md:grid-cols-2 gap-4"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1, duration: 0.3 }}
             >
-              {/* Company Type Filter */}
-              <motion.div
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <label htmlFor="companyType" className="block text-sm font-medium text-gray-700 mb-1">
-                  ประเภทบริษัท
-                </label>
-                <motion.select
-                  id="companyType"
-                  className="block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-                  value={companyTypeFilter}
-                  onChange={(e) => onCompanyTypeChange(e.target.value)}
-                  whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
-                >
-                  <option value="">ทั้งหมด</option>
-                  {companyTypes.map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </motion.select>
-              </motion.div>
-              
               {/* Start Date Filter */}
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
@@ -524,16 +490,13 @@ export default function MemberDetail({ userId }) {
               ชื่อบริษัท
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              ประเภทสมาชิก
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-              TAX ID
-            </th>
-            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               วันที่อนุมัติ
             </th>
             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
               สถานะ
+            </th>
+            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+              เอกสารยืนยัน
             </th>
           </tr>
         </motion.thead>
@@ -560,15 +523,9 @@ export default function MemberDetail({ userId }) {
                   {company.company_name || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-100">
-                  {company.company_type || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-100">
-                  {company.tax_id || '-'}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-100">
                   {formatDate(company.updated_at)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100">
                   <motion.span 
                     className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm"
                     whileHover={{ scale: 1.05, backgroundColor: "#dcfce7" }}
@@ -580,6 +537,23 @@ export default function MemberDetail({ userId }) {
                     อนุมัติ
                   </motion.span>
                 </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {company.file_path ? (
+                    <motion.a 
+                      href={company.file_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 flex items-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <FaFileAlt className="mr-1" size={14} />
+                      ดูเอกสาร
+                    </motion.a>
+                  ) : (
+                    <span className="text-gray-400 italic">ไม่มีเอกสาร</span>
+                  )}
+                </td>
               </motion.tr>
             ))
           ) : (
@@ -588,7 +562,7 @@ export default function MemberDetail({ userId }) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5 }}
             >
-              <td colSpan="6" className="px-6 py-10 text-center">
+              <td colSpan="4" className="px-6 py-10 text-center">
                 <div className="flex flex-col items-center justify-center">
                   <motion.div
                     initial={{ scale: 0.5, opacity: 0 }}
@@ -844,12 +818,6 @@ export default function MemberDetail({ userId }) {
             <FilterSection 
               showFilters={showFilters}
               toggleFilters={() => setShowFilters(!showFilters)}
-              companyTypeFilter={companyTypeFilter}
-              onCompanyTypeChange={(value) => {
-                setCompanyTypeFilter(value);
-                setCurrentPage(1);
-              }}
-              companyTypes={companyTypes}
               startDate={startDate}
               onStartDateChange={(value) => {
                 setStartDate(value);

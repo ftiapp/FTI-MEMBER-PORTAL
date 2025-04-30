@@ -50,8 +50,10 @@ export async function GET(req) {
       .input('startWithPattern', sql.NVarChar, startWithPattern)
       .query(`
         SELECT TOP 10 
+          [REGIST_CODE],
           [MEMBER_CODE],
           [MEMBER_TYPE_CODE],
+          [COMP_PERSON_CODE],
           [TAX_ID],
           [COMPANY_NAME]
         FROM [FTI].[dbo].[BI_MEMBER]

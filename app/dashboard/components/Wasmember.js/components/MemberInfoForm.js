@@ -41,6 +41,8 @@ export default function MemberInfoForm({
       ...formData,
       memberSearch: `${result.MEMBER_CODE} - ${result.COMPANY_NAME}`,
       memberNumber: result.MEMBER_CODE || '',
+      compPersonCode: result.COMP_PERSON_CODE || '',
+      registCode: result.REGIST_CODE || '',
       companyName: result.COMPANY_NAME || '',
       memberType: memberTypeValue,
       taxId: result.TAX_ID || '',
