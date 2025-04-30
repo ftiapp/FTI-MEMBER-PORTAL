@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe } from 'react-icons/fa';
+import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe, FaFax, FaHome, FaBuilding, FaRoad, FaMapSigns } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
- * Address tab content for the member detail page
+ * Address tab content for the member detail page with improved layout
  */
 export default function AddressTabContent({ addresses = {} }) {
   // Animation variants
@@ -24,6 +24,7 @@ export default function AddressTabContent({ addresses = {} }) {
     visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
     hover: { scale: 1.02, boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }
   };
+  
   const [addressIndex, setAddressIndex] = useState(0);
   const [selectedAddress, setSelectedAddress] = useState('');
 
@@ -41,8 +42,20 @@ export default function AddressTabContent({ addresses = {} }) {
     }
   };
 
-  // Helper function to format address
-  const formatAddress = (address) => {
+  // Initialize with first address if available
+  useEffect(() => {
+    if (addresses && Object.keys(addresses).length > 0) {
+      setSelectedAddress(Object.keys(addresses)[0]);
+      setAddressIndex(0);
+    }
+  }, [addresses]);
+  
+  // Check if addresses exist and have keys
+  const hasAddresses = addresses && Object.keys(addresses).length > 0;
+  const addressKeys = hasAddresses ? Object.keys(addresses) : [];
+  
+  // Format the complete address for display at the bottom
+  const formatFullAddress = (address) => {
     if (!address) return '';
     
     const parts = [];
@@ -57,30 +70,19 @@ export default function AddressTabContent({ addresses = {} }) {
     
     return parts.join(' ');
   };
-
-  // Initialize with first address if available
-  useEffect(() => {
-    if (addresses && Object.keys(addresses).length > 0) {
-      setSelectedAddress(Object.keys(addresses)[0]);
-      setAddressIndex(0);
-    }
-  }, [addresses]);
-  
-  // Check if addresses exist and have keys
-  const hasAddresses = addresses && Object.keys(addresses).length > 0;
-  const addressKeys = hasAddresses ? Object.keys(addresses) : [];
   
   return (
     <motion.div
       variants={containerVariants}
       initial="hidden"
       animate="visible"
+      className="w-full"
     >
       {/* Address navigation */}
       <motion.div className="mb-6" variants={itemVariants}>
         <div className="flex items-center justify-between">
           <motion.h3 
-            className="text-lg font-medium text-gray-900"
+            className="text-xl font-medium text-gray-900"
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.4 }}
@@ -146,10 +148,10 @@ export default function AddressTabContent({ addresses = {} }) {
                 setSelectedAddress(addrCode);
                 setAddressIndex(index);
               }}
-              className={`px-3 py-1 text-xs rounded-full ${
+              className={`px-4 py-1.5 text-sm rounded-full transition-all ${
                 selectedAddress === addrCode
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? 'bg-blue-600 text-white font-medium shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -167,7 +169,7 @@ export default function AddressTabContent({ addresses = {} }) {
       <AnimatePresence mode="wait">
         {hasAddresses && selectedAddress && addresses[selectedAddress] ? (
           <motion.div 
-            className="space-y-4"
+            className="bg-white p-8 rounded-xl border border-gray-200 shadow-sm w-full"
             key={selectedAddress}
             variants={cardVariants}
             initial="hidden"
@@ -175,74 +177,222 @@ export default function AddressTabContent({ addresses = {} }) {
             exit={{ opacity: 0, scale: 0.95 }}
             whileHover="hover"
           >
-           
-            
-            <motion.div className="flex items-start" variants={itemVariants}>
-              <FaMapMarkerAlt className="mt-1 mr-3 text-blue-500" />
-              <div>
-                <p className="font-medium">ที่อยู่</p>
-                <p className="text-gray-700">{formatAddress(addresses[selectedAddress])}</p>
-              </div>
-            </motion.div>
-            
-            <motion.div className="flex items-start" variants={itemVariants}>
-              <FaPhone className="mt-1 mr-3 text-blue-500" />
-              <div>
-                <p className="font-medium">โทรศัพท์</p>
-                <p className="text-gray-700">{addresses[selectedAddress].ADDR_TELEPHONE || '-'}</p>
-              </div>
-            </motion.div>
-            
-            <motion.div className="flex items-start" variants={itemVariants}>
-              <FaEnvelope className="mt-1 mr-3 text-blue-500" />
-              <div>
-                <p className="font-medium">อีเมล</p>
-                <p className="text-gray-700">{addresses[selectedAddress].ADDR_EMAIL || '-'}</p>
-              </div>
-            </motion.div>
-            
-            {addresses[selectedAddress].ADDR_FAX && (
-              <motion.div className="flex items-start" variants={itemVariants}>
-                <FaPhone className="mt-1 mr-3 text-blue-500" />
-                <div>
-                  <p className="font-medium">โทรสาร</p>
-                  <p className="text-gray-700">{addresses[selectedAddress].ADDR_FAX}</p>
+            {/* Address components with better organization */}
+            <div className="mb-8">
+              <h4 className="text-lg font-semibold text-blue-600 mb-4 border-b pb-2">
+                รายละเอียดที่อยู่
+              </h4>
+              
+              {/* Full address at the top */}
+              <motion.div 
+                className="bg-gray-50 p-5 rounded-lg mb-6 border border-blue-100 shadow-sm" 
+                variants={itemVariants}
+              >
+                <div className="flex items-start">
+                  <FaMapMarkerAlt className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-blue-700 text-lg mb-2">ที่อยู่เต็ม</p>
+                    <p className="text-gray-800 break-words text-base">{formatFullAddress(addresses[selectedAddress])}</p>
+                  </div>
                 </div>
               </motion.div>
-            )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+                {/* House Number */}
+                {addresses[selectedAddress].ADDR_NO && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaHome className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">บ้านเลขที่</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_NO}</p>
+                  </motion.div>
+                )}
+                
+                {/* Moo (Village Number) */}
+                {addresses[selectedAddress].ADDR_MOO && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaBuilding className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">หมู่</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_MOO}</p>
+                  </motion.div>
+                )}
+                
+                {/* Soi (Alley) */}
+                {addresses[selectedAddress].ADDR_SOI && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaMapSigns className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">ซอย</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_SOI}</p>
+                  </motion.div>
+                )}
+                
+                {/* Road */}
+                {addresses[selectedAddress].ADDR_ROAD && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaRoad className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">ถนน</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_ROAD}</p>
+                  </motion.div>
+                )}
+                
+                {/* Sub District */}
+                {addresses[selectedAddress].ADDR_SUB_DISTRICT && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">ตำบล/แขวง</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_SUB_DISTRICT}</p>
+                  </motion.div>
+                )}
+                
+                {/* District */}
+                {addresses[selectedAddress].ADDR_DISTRICT && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">อำเภอ/เขต</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_DISTRICT}</p>
+                  </motion.div>
+                )}
+                
+                {/* Province */}
+                {addresses[selectedAddress].ADDR_PROVINCE_NAME && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">จังหวัด</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_PROVINCE_NAME}</p>
+                  </motion.div>
+                )}
+                
+                {/* Postal Code */}
+                {addresses[selectedAddress].ADDR_POSTCODE && (
+                  <motion.div 
+                    className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all" 
+                    variants={itemVariants}
+                  >
+                    <div className="flex items-center mb-2">
+                      <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
+                      <p className="font-semibold text-blue-700 text-base">รหัสไปรษณีย์</p>
+                    </div>
+                    <p className="text-gray-800 text-lg pl-7">{addresses[selectedAddress].ADDR_POSTCODE}</p>
+                  </motion.div>
+                )}
+              </div>
+            </div>
             
-            {addresses[selectedAddress].ADDR_WEBSITE && (
-              <motion.div className="flex items-start" variants={itemVariants}>
-                <FaGlobe className="mt-1 mr-3 text-blue-500" />
-                <div>
-                  <p className="font-medium">เว็บไซต์</p>
-                  <p className="text-gray-700">
-                    <motion.a 
-                      href={addresses[selectedAddress].ADDR_WEBSITE.startsWith('http') 
-                        ? addresses[selectedAddress].ADDR_WEBSITE 
-                        : `http://${addresses[selectedAddress].ADDR_WEBSITE}`
-                      } 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline"
-                      whileHover={{ scale: 1.03 }}
-                    >
-                      {addresses[selectedAddress].ADDR_WEBSITE}
-                    </motion.a>
-                  </p>
-                </div>
-              </motion.div>
-            )}
+            {/* Contact information */}
+            <motion.div className="border-t pt-6 mt-6">
+              <h4 className="text-lg font-semibold text-blue-600 mb-4 border-b pb-2">
+                รายละเอียดการติดต่อ
+              </h4>
+              
+              {/* Contact information grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Phone */}
+                <motion.div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all" variants={itemVariants}>
+                  <FaPhone className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
+                  <div>
+                    <p className="font-semibold text-blue-700 mb-2">โทรศัพท์</p>
+                    <p className="text-gray-800 text-lg">{addresses[selectedAddress].ADDR_TELEPHONE || '-'}</p>
+                  </div>
+                </motion.div>
+                
+                {/* Fax */}
+                {addresses[selectedAddress].ADDR_FAX && (
+                  <motion.div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all" variants={itemVariants}>
+                    <FaFax className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
+                    <div>
+                      <p className="font-semibold text-blue-700 mb-2">โทรสาร</p>
+                      <p className="text-gray-800 text-lg">{addresses[selectedAddress].ADDR_FAX}</p>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {/* Email with hyperlink */}
+                <motion.div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all" variants={itemVariants}>
+                  <FaEnvelope className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
+                  <div className="overflow-hidden">
+                    <p className="font-semibold text-blue-700 mb-2">อีเมล</p>
+                    {addresses[selectedAddress].ADDR_EMAIL ? (
+                      <motion.a 
+                        href={`mailto:${addresses[selectedAddress].ADDR_EMAIL}`}
+                        className="text-blue-600 hover:underline break-words block text-ellipsis overflow-hidden text-lg"
+                        whileHover={{ scale: 1.01 }}
+                      >
+                        {addresses[selectedAddress].ADDR_EMAIL}
+                      </motion.a>
+                    ) : (
+                      <p className="text-gray-800 text-lg">-</p>
+                    )}
+                  </div>
+                </motion.div>
+                
+                {/* Website with hyperlink */}
+                {addresses[selectedAddress].ADDR_WEBSITE && (
+                  <motion.div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all" variants={itemVariants}>
+                    <FaGlobe className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
+                    <div className="overflow-hidden">
+                      <p className="font-semibold text-blue-700 mb-2">เว็บไซต์</p>
+                      <motion.a 
+                        href={addresses[selectedAddress].ADDR_WEBSITE.startsWith('http') 
+                          ? addresses[selectedAddress].ADDR_WEBSITE 
+                          : `http://${addresses[selectedAddress].ADDR_WEBSITE}`
+                        } 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline break-words block text-ellipsis overflow-hidden text-lg"
+                        whileHover={{ scale: 1.01 }}
+                      >
+                        {addresses[selectedAddress].ADDR_WEBSITE}
+                      </motion.a>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
         ) : (
           <motion.div 
-            className="py-8 text-center text-gray-500"
+            className="py-12 text-center text-gray-500 bg-gray-50 rounded-lg"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.4 }}
           >
-            ไม่พบข้อมูลที่อยู่สำหรับรหัสที่เลือก
+            <FaMapMarkerAlt className="mx-auto h-12 w-12 text-gray-300 mb-3" />
+            <p className="font-medium text-lg">ไม่พบข้อมูลที่อยู่สำหรับรหัสที่เลือก</p>
           </motion.div>
         )}
       </AnimatePresence>

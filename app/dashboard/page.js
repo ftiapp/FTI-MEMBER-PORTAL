@@ -118,8 +118,13 @@ export default function Dashboard() {
           submitted: data.submitted,
           approved: data.approved,
           rejected: data.rejected,
-          admin_comment: data.admin_comment || ''
+          admin_comment: data.adminComment || ''
         });
+        
+        // Update user with role information if available
+        if (data.userRole) {
+          user.role = data.userRole;
+        }
       } catch (error) {
         console.error('Error fetching verification status:', error);
         setVerificationStatus(prev => ({
@@ -363,10 +368,20 @@ export default function Dashboard() {
             <div>
               <h1 className="text-2xl font-bold text-gray-800">ยินดีต้อนรับ, {(user.firstname && user.lastname) ? `${user.firstname} ${user.lastname}` : 'สมาชิก'}</h1>
               <div className="flex items-center mt-2">
-                <span className="text-gray-600">สถานะสมาชิก:</span>
-                <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">
-                  ประเภท{membershipType}
-                </span>
+                <span className="text-gray-600">สถานะผู้ใช้งาน:</span>
+                {user.role === 'member' ? (
+                  <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                    สมาชิก
+                  </span>
+                ) : user.role === 'admin' ? (
+                  <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                    ผู้ดูแลระบบ
+                  </span>
+                ) : (
+                  <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">
+                    ผู้ใช้งานทั่วไป
+                  </span>
+                )}
               </div>
             </div>
             <div className="mt-4 md:mt-0 flex items-center">

@@ -318,6 +318,7 @@ export default function VerifyMembers() {
                 <thead className="bg-[#1e3a8a] text-white">
                   <tr>
                     <SortableHeader field="company_name" label="บริษัท" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
+                    <SortableHeader field="name" label="ชื่อ-นามสกุล" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
                     <SortableHeader field="email" label="อีเมล" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
                     <SortableHeader field="created_at" label="วันที่ลงทะเบียน" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
                     <SortableHeader field="Admin_Submit" label="สถานะ" sortField={sortField} sortOrder={sortOrder} onSort={(f, o) => { setSortField(f); setSortOrder(o); }} />
@@ -331,6 +332,9 @@ export default function VerifyMembers() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{member.company_name}</div>
                         <div className="text-sm text-gray-500">{member.MEMBER_CODE || 'ยังไม่มีรหัสสมาชิก'}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{member.firstname} {member.lastname}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{member.email}</div>

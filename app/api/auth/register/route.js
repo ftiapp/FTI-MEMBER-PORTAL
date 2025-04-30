@@ -46,10 +46,10 @@ export async function POST(request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user with email_verified set to false
+    // Create user with email_verified set to false and role set to default_user
     const result = await query(
-      'INSERT INTO users (name, firstname, lastname, email, phone, password, email_verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, firstName, lastName, email, phone, hashedPassword, 0]
+      'INSERT INTO users (name, firstname, lastname, email, phone, password, email_verified, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, firstName, lastName, email, phone, hashedPassword, 0, 'default_user']
     );
     
     const userId = result.insertId;

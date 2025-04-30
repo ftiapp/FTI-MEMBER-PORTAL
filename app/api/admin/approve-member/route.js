@@ -15,6 +15,15 @@ export async function POST(request) {
       );
     }
     
+    // Fetch admin details from database to get the name
+    const adminDetails = await query(
+      'SELECT name FROM admin_users WHERE id = ? LIMIT 1',
+      [admin.id]
+    );
+    
+    // Get admin name or use a default if not found
+    const adminName = adminDetails.length > 0 ? adminDetails[0].name : 'Admin';
+    
     const { memberId, documentId, action, reason, comment } = await request.json();
     
     if (!memberId || !documentId || !action) {
@@ -39,9 +48,27 @@ export async function POST(request) {
     else if (action === 'delete') adminSubmitValue = 3;
     
     await query(
-      `UPDATE companies_Member SET Admin_Submit = ?, reject_reason = ?, admin_comment = ? WHERE id = ?`,
-      [adminSubmitValue, action === 'reject' ? reason : null, comment || null, memberId]
+      `UPDATE companies_Member SET Admin_Submit = ?, reject_reason = ?, admin_comment = ?, admin_id = ?, admin_name = ? WHERE id = ?`,
+      [adminSubmitValue, action === 'reject' ? reason : null, comment || null, admin.id, adminName, memberId]
     );
+    
+    // If approving, get the user_id to update their role to 'member'
+    if (action === 'approve') {
+      const userResult = await query(
+        `SELECT user_id FROM companies_Member WHERE id = ?`,
+        [memberId]
+      );
+      
+      if (userResult.length > 0) {
+        const userId = userResult[0].user_id;
+        
+        // Update user role from 'default_user' to 'member'
+        await query(
+          `UPDATE users SET role = 'member' WHERE id = ? AND role = 'default_user'`,
+          [userId]
+        );
+      }
+    }
     
     // Update document status
     let docStatus = 'pending';
@@ -63,9 +90,11 @@ export async function POST(request) {
       `UPDATE documents_Member SET 
         status = ?, 
         Admin_Submit = ?,
-        reject_reason = ? 
+        reject_reason = ?,
+        admin_id = ?,
+        admin_name = ? 
       WHERE id = ?`,
-      [docStatus, docAdminSubmit, action === 'reject' ? reason : null, documentId]
+      [docStatus, docAdminSubmit, action === 'reject' ? reason : null, admin.id, adminName, documentId]
     );
     
     // Get user info for logging and email notification

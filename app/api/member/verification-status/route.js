@@ -13,6 +13,14 @@ export async function GET(request) {
       );
     }
     
+    // Get user role information
+    const userResults = await query(
+      `SELECT role FROM users WHERE id = ?`,
+      [userId]
+    );
+    
+    const userRole = userResults.length > 0 ? userResults[0].role : 'default_user';
+    
     // Get verification status from companies_Member table with full member data
     const companyResults = await query(
       `SELECT 
@@ -125,7 +133,8 @@ export async function GET(request) {
       rejected,
       rejectReason,
       adminComment,
-      memberData
+      memberData,
+      userRole
     });
   } catch (error) {
     console.error('Error fetching verification status:', error);
