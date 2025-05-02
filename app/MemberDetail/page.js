@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import MemberDetailComponent from './components/MemberDetailComponent';
+import MemberTypeSelector from './components/MemberTypeSelector';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,6 +18,8 @@ export default function MemberDetailPage() {
   const router = useRouter();
   const [memberCode, setMemberCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedMemberType, setSelectedMemberType] = useState(null);
+  const [memberTypeCode, setMemberTypeCode] = useState(null);
   const { user, isLoading: authLoading } = useAuth();
   
   // Animation variants
@@ -43,10 +46,21 @@ export default function MemberDetailPage() {
       return;
     }
     
-    // Get member code from URL query parameter if available
+    // Get member code and type from URL query parameters if available
     const codeFromUrl = searchParams.get('memberCode');
+    const typeFromUrl = searchParams.get('memberType');
+    const typeCodeFromUrl = searchParams.get('typeCode');
+    
     if (codeFromUrl) {
       setMemberCode(codeFromUrl);
+      
+      // Set member type if provided
+      if (typeFromUrl) {
+        setSelectedMemberType(typeFromUrl);
+        if (typeCodeFromUrl) {
+          setMemberTypeCode(typeCodeFromUrl);
+        }
+      }
     } else {
       // If no member code is provided, redirect to dashboard
       router.push('/dashboard');
@@ -56,6 +70,36 @@ export default function MemberDetailPage() {
   
   const handleBackToDashboard = () => {
     router.push('/dashboard?tab=member');
+  };
+  
+  const handleMemberTypeSelect = (type, code) => {
+    setSelectedMemberType(type);
+    setMemberTypeCode(code);
+    
+    // Update URL with the selected type without reloading the page
+    const params = new URLSearchParams(window.location.search);
+    params.set('memberType', type);
+    if (code) {
+      params.set('typeCode', code);
+    } else {
+      params.delete('typeCode');
+    }
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
+  };
+  
+  const handleBackToTypeSelection = () => {
+    setSelectedMemberType(null);
+    setMemberTypeCode(null);
+    
+    // Update URL to remove the type parameters
+    const params = new URLSearchParams(window.location.search);
+    params.delete('memberType');
+    params.delete('typeCode');
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
   };
   
   return (
@@ -115,7 +159,33 @@ export default function MemberDetailPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <MemberDetailComponent memberCode={memberCode} />
+                {selectedMemberType ? (
+                  <div className="space-y-4">
+                    <motion.button
+                      onClick={handleBackToTypeSelection}
+                      className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
+                      </svg>
+                      <span>กลับไปเลือกประเภทสมาชิก</span>
+                    </motion.button>
+                    
+                    <MemberDetailComponent 
+                      memberCode={memberCode} 
+                      selectedMemberType={selectedMemberType}
+                      memberTypeCode={memberTypeCode}
+                    />
+                  </div>
+                ) : (
+                  <MemberTypeSelector 
+                    memberCode={memberCode} 
+                    onSelectType={handleMemberTypeSelect} 
+                  />
+                )}
               </motion.div>
             ) : (
               <motion.div 
