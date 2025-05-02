@@ -55,7 +55,7 @@ export default function MemberDetailPage() {
   }, [searchParams, router, user, authLoading]);
   
   const handleBackToDashboard = () => {
-    router.push('/dashboard');
+    router.push('/dashboard?tab=member');
   };
   
   return (

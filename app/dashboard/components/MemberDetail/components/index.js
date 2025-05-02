@@ -1,21 +1,13 @@
-'use client';
+// Export all components from a single file
+export { default as LoadingState } from './LoadingState';
+export { default as ErrorState } from './ErrorState';
+export { default as EmptyState } from './EmptyState';
+export { default as SearchBar } from './SearchBar';
+export { default as FilterSection } from './FilterSection';
+export { default as ApprovedCompaniesTable } from './ApprovedCompaniesTable';
+export { default as Pagination } from './Pagination';
+export { default as MemberDetailView } from './MemberDetailView';
+export { default as MemberDetail } from './MemberDetail';
 
-import LoadingState from './LoadingState';
-import ErrorState from './ErrorState';
-import EmptyState from './EmptyState';
-import SearchBar from './SearchBar';
-import FilterSection from './FilterSection';
-import ApprovedCompaniesTable from './ApprovedCompaniesTable';
-import Pagination from './Pagination';
-import MemberDetailView from './MemberDetailView';
-
-export {
-  LoadingState,
-  ErrorState,
-  EmptyState,
-  SearchBar,
-  FilterSection,
-  ApprovedCompaniesTable,
-  Pagination,
-  MemberDetailView
-};
+// Export utils
+export * from './utils';

@@ -32,11 +32,11 @@ export default function AddressTabContent({ addresses = {} }) {
   const getAddressLabel = (code) => {
     switch (code) {
       case '001':
-        return 'ที่ตั้งสำนักงาน';
+        return 'ที่อยู่สำหรับติดต่อ (ทะเบียน)';
       case '002':
-        return 'ที่ตั้งโรงงาน';
+        return 'ที่อยู่สำหรับจัดส่งเอกสาร';
       case '003':
-        return 'ที่อยู่จัดส่งเอกสาร';
+        return 'ที่อยู่สำหรับออกใบกำกับภาษี';
       default:
         return `ที่อยู่ ${code}`;
     }

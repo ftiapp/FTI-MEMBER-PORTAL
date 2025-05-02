@@ -1,86 +1,204 @@
 'use client';
 
-import { FaCheckCircle } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { 
+  FaBuilding, 
+  FaFileAlt, 
+  FaCheckCircle, 
+  FaSearch 
+} from 'react-icons/fa';
 
 /**
- * ApprovedCompaniesTable component for displaying the list of approved companies
+ * ApprovedCompaniesTable component displays a table of approved companies
  * @param {Object} props Component properties
- * @param {Array} props.companies Array of companies to display
- * @param {Function} props.formatDate Function to format dates
- * @param {number} props.totalItems Total number of items across all pages
+ * @param {Array} props.companies List of company objects to display
+ * @param {Function} props.formatDate Function to format date strings
+ * @returns {JSX.Element} The companies table UI
  */
-export default function ApprovedCompaniesTable({ companies = [], formatDate, totalItems = 0 }) {
-  return (
-    <div>
-      {/* Results count */}
-      <div className="mb-2 text-sm text-gray-500">
-        พบ {totalItems} รายการ
+const ApprovedCompaniesTable = ({ companies, formatDate }) => (
+  <motion.div 
+    className="overflow-x-auto rounded-lg shadow-lg border border-gray-200"
+    initial={{ opacity: 0, y: 20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5, delay: 0.2 }}
+  >
+    <motion.div 
+      className="p-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, delay: 0.3 }}
+    >
+      <div className="flex items-center">
+        <motion.div 
+          className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3"
+          initial={{ scale: 0, rotate: -180 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.4 }}
+        >
+          <FaBuilding className="text-blue-600" size={16} />
+        </motion.div>
+        <div>
+          <motion.p 
+            className="text-sm text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+          >
+            พบ {companies.length} รายการบริษัทที่ได้รับการอุมัติ
+          </motion.p>
+        </div>
       </div>
-      
-      {/* Table */}
-      <div className="overflow-x-auto rounded-md shadow">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-blue-600">
-            <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                รหัสสมาชิก
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                ชื่อบริษัท
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                ประเภทบริษัท
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                เลขประจำตัวผู้เสียภาษี
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                วันที่อนุมัติ
-              </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
-                สถานะ
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {companies.length > 0 ? (
-              companies.map((company, index) => (
-                <tr 
-                  key={company.id} 
-                  className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-blue-50 hover:bg-blue-100'}
+    </motion.div>
+    <table className="min-w-full divide-y divide-gray-200 border-collapse">
+      <motion.thead 
+        className="bg-blue-600"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
+        <tr>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            หมายเลขสมาชิก
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            ชื่อบริษัท
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            วันที่อนุมัติ
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            สถานะ
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            สถานะสมาชิก
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            เอกสารยืนยัน
+          </th>
+        </tr>
+      </motion.thead>
+      <motion.tbody 
+        className="bg-white divide-y divide-gray-200"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
+      >
+        {companies.length > 0 ? (
+          companies.map((company, index) => (
+            <motion.tr 
+              key={company.id} 
+              className={index % 2 === 0 ? 'bg-white hover:bg-blue-50 cursor-pointer' : 'bg-blue-50 hover:bg-blue-100 cursor-pointer'}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 * index }}
+              whileHover={{ backgroundColor: "#eff6ff", scale: 1.01 }}
+              onClick={(e) => {
+                // Only navigate if not clicking on a link or button
+                if (!e.target.closest('a') && !e.target.closest('button') && company.MEMBER_CODE) {
+                  // Navigate to member detail page with the member code
+                  window.location.href = `/MemberDetail?memberCode=${encodeURIComponent(company.MEMBER_CODE)}`;
+                }
+              }}
+            >
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 border-r border-gray-100">
+                {company.MEMBER_CODE ? (
+                  <Link 
+                    href={`/MemberDetail?memberCode=${company.MEMBER_CODE}`}
+                    className="text-blue-600 hover:underline cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click
+                    }}
+                  >
+                    {company.MEMBER_CODE}
+                  </Link>
+                ) : '-'}
+              </td>
+              <td className="px-6 py-4 text-sm text-gray-700 border-r border-gray-100">
+                {company.company_name || '-'}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-100">
+                {formatDate(company.updated_at)}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100">
+                <motion.span 
+                  className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm"
+                  whileHover={{ scale: 1.05, backgroundColor: "#dcfce7" }}
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                    {company.MEMBER_CODE || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                    {company.company_name || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {company.company_type || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {company.tax_id || '-'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {formatDate(company.updated_at)}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                      อนุมัติ
-                    </span>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                  <FaCheckCircle className="mr-1 mt-0.5" size={12} />
+                  อนุมัติ
+                </motion.span>
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm border-r border-gray-100">
+                {company.memberStatus ? (
+                  <motion.span 
+                    className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full shadow-sm ${company.memberStatus.active === 1 ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}
+                    whileHover={{ scale: 1.05 }}
+                    initial={{ scale: 0.9 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                  >
+                    {company.memberStatus.statusName || 'ไม่พบข้อมูล'}
+                  </motion.span>
+                ) : (
+                  <span className="text-gray-400 italic">ไม่พบข้อมูล</span>
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {company.file_path ? (
+                  <motion.a 
+                    href={company.file_path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:text-blue-800 flex items-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click
+                    }}
+                  >
+                    <FaFileAlt className="mr-1" size={14} />
+                    ดูเอกสาร
+                  </motion.a>
+                ) : (
+                  <span className="text-gray-400 italic">ไม่มีเอกสาร</span>
+                )}
+              </td>
+            </motion.tr>
+          ))
+        ) : (
+          <motion.tr
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <td colSpan="6" className="px-6 py-10 text-center">
+              <div className="flex flex-col items-center justify-center">
+                <motion.div
+                  initial={{ scale: 0.5, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <FaSearch className="text-gray-300 mb-3" size={24} />
+                </motion.div>
+                <motion.p 
+                  className="text-gray-500 font-medium"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
                   ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
+                </motion.p>
+              </div>
+            </td>
+          </motion.tr>
+        )}
+      </motion.tbody>
+    </table>
+  </motion.div>
+);
+
+export default ApprovedCompaniesTable;

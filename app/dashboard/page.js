@@ -33,7 +33,8 @@ export default function Dashboard() {
   
   // Create refs for menu items
   const menuRefs = {
-    'ติดต่อเรา': useRef(null)
+    'ติดต่อเรา': useRef(null),
+    'ข้อมูลสมาชิก': useRef(null)
   };
   
   // Check URL parameters for tab selection and listen for URL changes
@@ -55,6 +56,14 @@ export default function Dashboard() {
         if (messageId && menuRefs['ติดต่อเรา']?.current) {
           console.log('Programmatically clicking Contact Us menu item');
           menuRefs['ติดต่อเรา'].current.click();
+        }
+      } else if (tabParam === 'member') {
+        setActiveTab('ข้อมูลสมาชิก');
+        
+        // Programmatically click the MemberDetail menu item if needed
+        if (menuRefs['ข้อมูลสมาชิก']?.current) {
+          console.log('Programmatically clicking MemberDetail menu item');
+          menuRefs['ข้อมูลสมาชิก'].current.click();
         }
       }
     };
@@ -429,6 +438,9 @@ export default function Dashboard() {
                               // Otherwise just navigate to the contact tab
                               router.push('/dashboard?tab=contact', undefined, { shallow: true });
                             }
+                          } else if (item.name === 'ข้อมูลสมาชิก') {
+                            // For MemberDetail, update URL with tab parameter
+                            router.push('/dashboard?tab=member', undefined, { shallow: true });
                           }
                           setActiveTab(item.name);
                         }}
