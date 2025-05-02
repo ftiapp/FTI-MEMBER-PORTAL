@@ -20,6 +20,8 @@ export default function MemberDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMemberType, setSelectedMemberType] = useState(null);
   const [memberTypeCode, setMemberTypeCode] = useState(null);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [authError, setAuthError] = useState(null);
   const { user, isLoading: authLoading } = useAuth();
   
   // Animation variants
@@ -35,7 +37,7 @@ export default function MemberDetailPage() {
     tap: { scale: 0.95 }
   };
   
-  // Check authentication and get member code from URL
+  // Check authentication, authorization, and get member code from URL
   useEffect(() => {
     // Wait for auth to finish loading
     if (authLoading) return;
@@ -50,22 +52,62 @@ export default function MemberDetailPage() {
     const codeFromUrl = searchParams.get('memberCode');
     const typeFromUrl = searchParams.get('memberType');
     const typeCodeFromUrl = searchParams.get('typeCode');
+    const accessToken = sessionStorage.getItem('memberDetailAccess');
     
-    if (codeFromUrl) {
-      setMemberCode(codeFromUrl);
-      
-      // Set member type if provided
-      if (typeFromUrl) {
-        setSelectedMemberType(typeFromUrl);
-        if (typeCodeFromUrl) {
-          setMemberTypeCode(typeCodeFromUrl);
-        }
-      }
-    } else {
+    if (!codeFromUrl) {
       // If no member code is provided, redirect to dashboard
       router.push('/dashboard');
+      return;
     }
-    setIsLoading(false);
+    
+    // Set member code and type for UI rendering
+    setMemberCode(codeFromUrl);
+    if (typeFromUrl) {
+      setSelectedMemberType(typeFromUrl);
+      if (typeCodeFromUrl) {
+        setMemberTypeCode(typeCodeFromUrl);
+      }
+    }
+    
+    // Check if user is authorized to view this member
+    const checkAuthorization = async () => {
+      try {
+        // First check if we have a valid access token in session storage
+        // This token is set when navigating from the dashboard
+        if (accessToken && accessToken.includes(codeFromUrl)) {
+          setIsAuthorized(true);
+          setIsLoading(false);
+          return;
+        }
+        
+        // If no token or token doesn't match, verify ownership via API
+        const response = await fetch(`/api/member/verify-ownership?memberCode=${encodeURIComponent(codeFromUrl)}`, {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+        });
+
+        const data = await response.json();
+        
+        if (data.success && data.isOwner) {
+          setIsAuthorized(true);
+          // Store the access token for future use
+          sessionStorage.setItem('memberDetailAccess', `${codeFromUrl}_${Date.now()}`);
+        } else {
+          setAuthError(data.message || 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลสมาชิกนี้');
+          setIsAuthorized(false);
+        }
+      } catch (error) {
+        console.error('Authorization check failed:', error);
+        setAuthError('ไม่สามารถตรวจสอบสิทธิ์การเข้าถึงได้');
+        setIsAuthorized(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    checkAuthorization();
   }, [searchParams, router, user, authLoading]);
   
   const handleBackToDashboard = () => {
@@ -153,6 +195,22 @@ export default function MemberDetailPage() {
                   className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full"
                 />
               </div>
+            ) : !isAuthorized ? (
+              <motion.div 
+                className="bg-red-50 border-l-4 border-red-400 p-4 text-red-700"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p className="font-medium">ไม่สามารถเข้าถึงข้อมูลได้</p>
+                <p>{authError || 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลสมาชิกนี้'}</p>
+                <button 
+                  onClick={handleBackToDashboard}
+                  className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                >
+                  กลับไปหน้าแดชบอร์ด
+                </button>
+              </motion.div>
             ) : memberCode ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}

@@ -96,6 +96,10 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
               onClick={(e) => {
                 // Only navigate if not clicking on a link or button
                 if (!e.target.closest('a') && !e.target.closest('button') && company.MEMBER_CODE) {
+                  // Set access token in session storage to authorize access to member details
+                  // This token will be checked by the MemberDetail page to verify authorized access
+                  sessionStorage.setItem('memberDetailAccess', `${company.MEMBER_CODE}_${Date.now()}`);
+                  
                   // Navigate to member detail page with the member code
                   window.location.href = `/MemberDetail?memberCode=${encodeURIComponent(company.MEMBER_CODE)}`;
                 }
