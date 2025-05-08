@@ -33,7 +33,7 @@ export async function POST(request) {
     }
 
     const addressUpdate = addressUpdates[0];
-    const { member_code, type_code, addr_code, new_address } = addressUpdate;
+    const { member_code, comp_person_code, type_code, addr_code, addr_lang, new_address } = addressUpdate;
 
     // เริ่ม transaction
     await db.query('START TRANSACTION');
@@ -49,12 +49,21 @@ export async function POST(request) {
       let updateQuery;
       let updateParams;
 
+      // Determine which field to update based on address code and language
       if (addr_code === '001') {
-        updateQuery = 'UPDATE companies_Member SET ADDRESS = ? WHERE MEMBER_CODE = ?';
-        updateParams = [new_address, member_code];
+        if (addr_lang === 'en') {
+          updateQuery = 'UPDATE companies_Member SET ADDRESS_EN = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?';
+        } else {
+          updateQuery = 'UPDATE companies_Member SET ADDRESS = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?';
+        }
+        updateParams = [new_address, member_code, comp_person_code];
       } else if (addr_code === '002') {
-        updateQuery = 'UPDATE companies_Member SET FACTORY_ADDRESS = ? WHERE MEMBER_CODE = ?';
-        updateParams = [new_address, member_code];
+        if (addr_lang === 'en') {
+          updateQuery = 'UPDATE companies_Member SET FACTORY_ADDRESS_EN = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?';
+        } else {
+          updateQuery = 'UPDATE companies_Member SET FACTORY_ADDRESS = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?';
+        }
+        updateParams = [new_address, member_code, comp_person_code];
       } else {
         throw new Error(`Unsupported address type: ${addr_code}`);
       }
@@ -70,9 +79,11 @@ export async function POST(request) {
           id,
           JSON.stringify({
             member_code,
+            comp_person_code,
             member_type: addressUpdate.member_type,
             type_code,
             addr_code,
+            addr_lang,
             old_address: addressUpdate.old_address,
             new_address
           })

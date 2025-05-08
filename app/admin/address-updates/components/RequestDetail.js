@@ -50,9 +50,14 @@ export default function RequestDetail({
   
   // Format date
   const formatDate = (dateString) => {
-    if (!dateString) return '';
+    if (!dateString) return '-';
     const date = new Date(dateString);
     return format(date, 'd MMMM yyyy, HH:mm น.', { locale: th });
+  };
+  
+  // Get language label
+  const getLanguageLabel = (addrLang) => {
+    return addrLang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
   };
   
   // Map member type code to readable text
@@ -68,10 +73,10 @@ export default function RequestDetail({
   // Map member subtype code to readable text
   const getMemberSubtypeName = (typeCode) => {
     const memberSubtypeMap = {
-      '11': 'สน (สมาชิกนิติบุคคล)',
-      '12': 'สส (สมาชิกสมทบ)',
-      '21': 'ทน (ที่ปรึกษานิติบุคคล)',
-      '22': 'ทบ (ที่ปรึกษาบุคคลธรรมดา)'
+      '11': 'สน (สามัญ-โรงงาน)',
+      '12': 'สส (สามัญ-สมาคมการค้า)',
+      '21': 'ทน (สมทบ-นิติบุคคล)',
+      '22': 'ทบ (สมทบ-บุคคลธรรมดา)'
     };
     return memberSubtypeMap[typeCode] || typeCode;
   };
@@ -181,6 +186,10 @@ export default function RequestDetail({
             <p className="font-medium">{selectedRequest.member_code}</p>
           </div>
           <div>
+            <p className="text-sm text-gray-600">รหัสบุคคล</p>
+            <p className="font-medium">{selectedRequest.comp_person_code || '-'}</p>
+          </div>
+          <div>
             <p className="text-sm text-gray-600">ประเภทสมาชิก</p>
             <p className="font-medium">{getMemberTypeName(selectedRequest.member_type)}</p>
           </div>
@@ -195,6 +204,10 @@ export default function RequestDetail({
           <div>
             <p className="text-sm text-gray-600">ประเภทที่อยู่</p>
             <p className="font-medium">{getAddressTypeName(selectedRequest.addr_code)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-600">ภาษา</p>
+            <p className="font-medium">{getLanguageLabel(selectedRequest.addr_lang)}</p>
           </div>
           <div>
             <p className="text-sm text-gray-600">วันที่ขอแก้ไข</p>

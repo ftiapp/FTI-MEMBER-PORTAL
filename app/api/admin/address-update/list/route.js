@@ -9,42 +9,63 @@ export async function GET(request) {
     if (!admin) {
       return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
     }
-
-    // ข้ามการตรวจสอบว่ามีตาราง pending_address_updates หรือไม่
-    // เนื่องจากทราบว่ามีตารางอยู่แล้ว
-    console.log('Assuming table pending_address_updates exists...');
-
-    console.log('Fetching pending address updates...');
     
-    // ตรวจสอบข้อมูลทั้งหมดในตารางก่อน
-    console.log('Checking all records in pending_address_updates table...');
-    try {
-      const allRecords = await dbQuery(`
-        SELECT id, status, member_code, user_id FROM pending_address_updates
-      `);
-      console.log('All records:', JSON.stringify(allRecords, null, 2));
-      console.log('Total records found:', allRecords.length);
-      
-      // Count records by status
-      const pendingCount = allRecords.filter(r => r.status === 'pending').length;
-      const approvedCount = allRecords.filter(r => r.status === 'approved').length;
-      const rejectedCount = allRecords.filter(r => r.status === 'rejected').length;
-      console.log(`Status counts - Pending: ${pendingCount}, Approved: ${approvedCount}, Rejected: ${rejectedCount}`);
-    } catch (error) {
-      console.error('Error checking all records:', error);
+    // รับพารามิเตอร์จาก URL
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '5');
+    const search = searchParams.get('search') || '';
+    const status = searchParams.get('status') || '';
+    
+    // คำนวณ offset สำหรับการแบ่งหน้า
+    const offset = (page - 1) * limit;
+    
+    // เปลี่ยนวิธีการดึงข้อมูลเพื่อแก้ปัญหา prepared statements
+    let whereConditions = [];
+    let queryParams = [];
+    
+    // สร้างเงื่อนไขการค้นหา
+    if (search) {
+      whereConditions.push("(pau.member_code LIKE CONCAT('%', ?, '%') OR cm.COMPANY_NAME LIKE CONCAT('%', ?, '%'))");
+      queryParams.push(search, search);
     }
     
-    // ดึงข้อมูลคำขอแก้ไขที่อยู่ทั้งหมด
-    console.log('Executing query for all address updates...');
-    const sqlQuery = `
+    // สร้างเงื่อนไขการกรองตามสถานะ
+    if (status && status !== 'all') {
+      whereConditions.push("pau.status = ?");
+      queryParams.push(status);
+    }
+    
+    // สร้าง WHERE clause
+    const whereSQL = whereConditions.length > 0 
+      ? `WHERE ${whereConditions.join(' AND ')}` 
+      : '';
+    
+    // นับจำนวนรายการทั้งหมด
+    let countSQL = `
+      SELECT COUNT(*) as total 
+      FROM pending_address_updates pau 
+      LEFT JOIN companies_Member cm ON pau.member_code = cm.MEMBER_CODE 
+      LEFT JOIN users u ON pau.user_id = u.id 
+      ${whereSQL}
+    `;
+    
+    // ดึงจำนวนรายการทั้งหมด
+    const countResults = await dbQuery(countSQL, queryParams);
+    const total = countResults[0]?.total || 0;
+    
+    // สร้าง SQL สำหรับดึงข้อมูล
+    const dataSQL = `
       SELECT 
         pau.id,
         pau.user_id,
         pau.member_code,
+        pau.comp_person_code,
         pau.member_type,
         pau.member_group_code,
         pau.type_code,
         pau.addr_code,
+        pau.addr_lang,
         pau.old_address,
         pau.new_address,
         pau.request_date,
@@ -60,22 +81,32 @@ export async function GET(request) {
       FROM pending_address_updates pau
       LEFT JOIN companies_Member cm ON pau.member_code = cm.MEMBER_CODE
       LEFT JOIN users u ON pau.user_id = u.id
+      ${whereSQL}
       ORDER BY pau.request_date DESC
+      LIMIT ?
+      OFFSET ?
     `;
-    console.log('SQL Query:', sqlQuery);
     
-    const updates = await dbQuery(sqlQuery);
+    // เพิ่มพารามิเตอร์สำหรับ LIMIT และ OFFSET
+    const allParams = [...queryParams, limit, offset];
     
-    console.log(`Found ${updates.length} pending address updates`);
+    // ดึงข้อมูล
+    const updates = await dbQuery(dataSQL, allParams);
     
-    // แสดงข้อมูลแรกเพื่อดูโครงสร้าง
-    if (updates.length > 0) {
-      console.log('Sample update:', JSON.stringify(updates[0], null, 2));
-    }
-
-    // Make sure we're returning the updates array properly
-    console.log('Final response data:', { success: true, updates, count: updates.length });
-    return NextResponse.json({ success: true, updates });
+    // คำนวณจำนวนหน้าทั้งหมด
+    const totalPages = Math.ceil(total / limit);
+    
+    // ส่งข้อมูลกลับไปพร้อมกับข้อมูลการแบ่งหน้า
+    return NextResponse.json({ 
+      success: true, 
+      updates,
+      pagination: {
+        total,
+        limit,
+        page,
+        totalPages
+      }
+    });
   } catch (error) {
     console.error('Error fetching address updates:', error);
     return NextResponse.json(

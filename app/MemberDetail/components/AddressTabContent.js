@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaHome, FaBuilding, FaMapSigns, FaRoad, FaMapMarkerAlt, FaPhone, FaFax, FaEnvelope, FaGlobe, FaEdit, FaExclamationTriangle, FaInfoCircle, FaSave, FaTimes, FaCheckCircle, FaPrint } from 'react-icons/fa';
+import { FaHome, FaBuilding, FaMapSigns, FaRoad, FaMapMarkerAlt, FaPhone, FaFax, FaEnvelope, FaGlobe, FaEdit, FaExclamationTriangle, FaInfoCircle, FaPrint } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
+import EditAddressForm from './EditAddressForm';
 
 /**
  * Address tab content for the member detail page with improved layout
@@ -17,28 +18,13 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   // Ensure addresses is an object
   const safeAddresses = addresses && typeof addresses === 'object' ? addresses : {};
   const { user } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEditMode, setIsEditMode] = useState(false);
+  
+  // Debug all addresses data
+  console.log('All addresses data:', addresses);
   const [selectedAddress, setSelectedAddress] = useState('');
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const [formData, setFormData] = useState({
-    ADDR_NO: '',
-    ADDR_MOO: '',
-    ADDR_SOI: '',
-    ADDR_ROAD: '',
-    ADDR_SUB_DISTRICT: '',
-    ADDR_DISTRICT: '',
-    ADDR_PROVINCE_NAME: '',
-    ADDR_POSTCODE: '',
-    ADDR_TELEPHONE: '',
-    ADDR_FAX: '',
-    ADDR_EMAIL: '',
-    ADDR_WEBSITE: ''
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [isEditMode, setIsEditMode] = useState(false);
   
   // Animation variants
   const containerVariants = {
@@ -49,6 +35,19 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+  
+  // Handle address selection
+  const handleAddressSelect = (addrCode) => {
+    setSelectedAddress(addrCode);
+    setIsEditMode(false); // Reset edit mode when changing address
+    
+    // Debug selected address data
+    console.log('Selected address data:', {
+      addrCode,
+      addressData: addresses[addrCode],
+      compPersonCode: addresses[addrCode]?.COMP_PERSON_CODE
+    });
   };
   
   // Helper function to get address type name
@@ -96,34 +95,13 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
       console.log('Setting selected address to:', firstKey);
       setSelectedAddress(firstKey);
       
-      // Initialize form data if address exists
-      if (addresses[firstKey]) {
-        initializeFormData(addresses[firstKey]);
-      }
+      // ไม่ต้อง initialize form data เนื่องจากเราใช้ EditAddressForm แทน
     } else {
       console.log('No addresses found in props');
     }
   }, [addresses]);
   
-  // Initialize form data from address
-  const initializeFormData = (address) => {
-    if (address) {
-      setFormData({
-        ADDR_NO: address.ADDR_NO || '',
-        ADDR_MOO: address.ADDR_MOO || '',
-        ADDR_SOI: address.ADDR_SOI || '',
-        ADDR_ROAD: address.ADDR_ROAD || '',
-        ADDR_SUB_DISTRICT: address.ADDR_SUB_DISTRICT || '',
-        ADDR_DISTRICT: address.ADDR_DISTRICT || '',
-        ADDR_PROVINCE_NAME: address.ADDR_PROVINCE_NAME || '',
-        ADDR_POSTCODE: address.ADDR_POSTCODE || '',
-        ADDR_TELEPHONE: address.ADDR_TELEPHONE || '',
-        ADDR_FAX: address.ADDR_FAX || '',
-        ADDR_EMAIL: address.ADDR_EMAIL || '',
-        ADDR_WEBSITE: address.ADDR_WEBSITE || ''
-      });
-    }
-  };
+  // ลบฟังก์ชัน initializeFormData เนื่องจากจะใช้ EditAddressForm แทน
   
   // Check if addresses exist and if selected address exists
   const hasAddresses = addresses && Object.keys(addresses).length > 0;
@@ -142,63 +120,7 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   // Check if address is editable (only 001 and 002 can be edited)
   const isEditable = selectedAddress === '001' || selectedAddress === '002';
   
-  // Handle input change in edit form
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-  
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage(''); // Clear any previous error messages
-    
-    try {
-      // Prepare data for API
-      const requestData = {
-        userId: user?.id,
-        memberCode,
-        memberType,
-        memberGroupCode,
-        typeCode,
-        addrCode: selectedAddress,
-        originalAddress: addresses[selectedAddress],
-        newAddress: formData
-      };
-      
-      // Call API to submit address update request
-      const response = await fetch('/api/member/request-address-update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        setSubmitSuccess(true);
-        // Call onSuccess callback after 2 seconds to show success message
-        setTimeout(() => {
-          setIsEditMode(false);
-          setSubmitSuccess(false);
-        }, 2000);
-      } else {
-        console.error('Failed to submit address update request:', data.message);
-        setErrorMessage(data.message || 'เกิดข้อผิดพลาดในการส่งคำขอแก้ไขที่อยู่');
-      }
-    } catch (error) {
-      console.error('Error submitting address update request:', error);
-      setErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  // ลบฟังก์ชัน handleChange และ handleSubmit เนื่องจากจะใช้ EditAddressForm แทน
   
   // Handle print functionality
   const handlePrint = () => {
@@ -206,12 +128,12 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   };
 
   // Check if there's a pending address update request
-  const checkPendingRequest = async () => {
+  const checkPendingRequest = async (lang = 'th') => {
     if (!user?.id || !isEditable || !selectedAddress) return;
     
     setIsCheckingStatus(true);
     try {
-      const response = await fetch(`/api/member/check-pending-address-update?userId=${user.id}&memberCode=${memberCode}&memberType=${memberType}&memberGroupCode=${memberGroupCode}&typeCode=${typeCode}&addrCode=${selectedAddress}`);
+      const response = await fetch(`/api/member/check-pending-address-update?userId=${user.id}&memberCode=${memberCode}&memberType=${memberType}&memberGroupCode=${memberGroupCode}&typeCode=${typeCode}&addrCode=${selectedAddress}&addrLang=${lang}`);
       const data = await response.json();
       
       setHasPendingRequest(data.hasPendingRequest);
@@ -232,11 +154,6 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
     
     // Reset edit mode when changing address
     setIsEditMode(false);
-    
-    // Initialize form data for the selected address
-    if (selectedAddress && addresses[selectedAddress]) {
-      initializeFormData(addresses[selectedAddress]);
-    }
   }, [selectedAddress, user?.id, memberCode, memberType, memberGroupCode, typeCode]);
   
   return (
@@ -256,10 +173,7 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
                 ? 'bg-blue-600 text-white shadow-md' 
                 : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
-            onClick={() => {
-              setSelectedAddress(addrCode);
-              setIsEditing(false); // Exit edit mode when changing address
-            }}
+            onClick={() => handleAddressSelect(addrCode)}
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             variants={itemVariants}
@@ -342,260 +256,22 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
             
             {/* Edit form */}
             {isEditMode && (
-              <motion.form
-                onSubmit={handleSubmit}
-                className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="flex justify-between items-center mb-6 pb-3 border-b">
-                  <h3 className="text-xl font-semibold text-blue-700">
-                    แก้ไขที่อยู่ {selectedAddress === '001' ? 'สำหรับติดต่อ (ทะเบียน)' : 'สำหรับจัดส่งเอกสาร'}
-                  </h3>
-                  
-                  <div className="flex space-x-2">
-                    <motion.button
-                      type="button"
-                      onClick={() => setIsEditMode(false)}
-                      className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      disabled={isSubmitting}
-                    >
-                      <FaTimes className="mr-2" />
-                      ยกเลิก
-                    </motion.button>
-                    
-                    <motion.button
-                      type="submit"
-                      className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      disabled={isSubmitting}
-                    >
-                      <FaSave className="mr-2" />
-                      {isSubmitting ? 'กำลังส่งข้อมูล...' : 'บันทึกการแก้ไข'}
-                    </motion.button>
-                  </div>
-                </div>
-                
-                {/* Error message */}
-                {errorMessage && (
-                  <div className="bg-red-50 border-l-4 border-red-500 p-4 my-4 rounded">
-                    <p className="text-red-700">{errorMessage}</p>
-                  </div>
-                )}
-                
-                {/* Success message */}
-                {submitSuccess && (
-                  <motion.div 
-                    className="mb-6 p-4 bg-green-50 border-l-4 border-green-400 text-green-700 rounded-md"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="flex items-center">
-                      <FaCheckCircle className="mr-2 text-green-500" />
-                      <p>คำขอแก้ไขที่อยู่ถูกส่งเรียบร้อยแล้ว กรุณารอการตรวจสอบจากเจ้าหน้าที่</p>
-                    </div>
-                  </motion.div>
-                )}
-                
-                <motion.div
-                  className="mb-6 p-4 bg-blue-50 border-l-4 border-blue-400 text-blue-700 rounded-md"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="flex items-center">
-                    <FaExclamationTriangle className="mr-2 text-blue-500" />
-                    <p>การแก้ไขที่อยู่จะต้องได้รับการตรวจสอบและอนุมัติจากผู้ดูแลระบบก่อน จึงจะมีผลในระบบ</p>
-                  </div>
-                </motion.div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* บ้านเลขที่ */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_NO">
-                      บ้านเลขที่
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_NO"
-                      name="ADDR_NO"
-                      value={formData.ADDR_NO}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* หมู่ */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_MOO">
-                      หมู่
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_MOO"
-                      name="ADDR_MOO"
-                      value={formData.ADDR_MOO}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* ซอย */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_SOI">
-                      ซอย
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_SOI"
-                      name="ADDR_SOI"
-                      value={formData.ADDR_SOI}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* ถนน */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_ROAD">
-                      ถนน
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_ROAD"
-                      name="ADDR_ROAD"
-                      value={formData.ADDR_ROAD}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* ตำบล/แขวง */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_SUB_DISTRICT">
-                      ตำบล/แขวง
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_SUB_DISTRICT"
-                      name="ADDR_SUB_DISTRICT"
-                      value={formData.ADDR_SUB_DISTRICT}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* อำเภอ/เขต */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_DISTRICT">
-                      อำเภอ/เขต
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_DISTRICT"
-                      name="ADDR_DISTRICT"
-                      value={formData.ADDR_DISTRICT}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* จังหวัด */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_PROVINCE_NAME">
-                      จังหวัด
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_PROVINCE_NAME"
-                      name="ADDR_PROVINCE_NAME"
-                      value={formData.ADDR_PROVINCE_NAME}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* รหัสไปรษณีย์ */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_POSTCODE">
-                      รหัสไปรษณีย์
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_POSTCODE"
-                      name="ADDR_POSTCODE"
-                      value={formData.ADDR_POSTCODE}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* โทรศัพท์ */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_TELEPHONE">
-                      โทรศัพท์
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_TELEPHONE"
-                      name="ADDR_TELEPHONE"
-                      value={formData.ADDR_TELEPHONE}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* โทรสาร */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_FAX">
-                      โทรสาร
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_FAX"
-                      name="ADDR_FAX"
-                      value={formData.ADDR_FAX}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* อีเมล */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_EMAIL">
-                      อีเมล
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_EMAIL"
-                      name="ADDR_EMAIL"
-                      value={formData.ADDR_EMAIL}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                  
-                  {/* เว็บไซต์ */}
-                  <div className="mb-4">
-                    <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_WEBSITE">
-                      เว็บไซต์
-                    </label>
-                    <input
-                      type="text"
-                      id="ADDR_WEBSITE"
-                      name="ADDR_WEBSITE"
-                      value={formData.ADDR_WEBSITE}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </div>
-                </div>
-              </motion.form>
+              <EditAddressForm
+                address={addresses[selectedAddress]}
+                addrCode={selectedAddress}
+                memberCode={memberCode}
+                compPersonCode={addresses[selectedAddress]?.COMP_PERSON_CODE || ''} // ส่งค่า COMP_PERSON_CODE จากข้อมูลที่อยู่
+                registCode={addresses[selectedAddress]?.REGIST_CODE || ''} // ส่งค่า REGIST_CODE จากข้อมูลที่อยู่
+                memberType={memberType}
+                memberGroupCode={memberGroupCode}
+                typeCode={typeCode}
+                onCancel={() => setIsEditMode(false)}
+                onSuccess={() => {
+                  setIsEditMode(false);
+                  // รีเฟรชข้อมูลหลังจากแก้ไขสำเร็จ
+                  checkPendingRequest();
+                }}
+              />
             )}
             
             {/* Address information */}

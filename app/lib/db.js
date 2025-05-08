@@ -108,8 +108,8 @@ export async function query(sql, params) {
       const connection = await pool.getConnection();
       
       try {
-        // Execute the query with the connection
-        const [results] = await connection.execute(sql, params);
+        // ใช้ query แทน execute เพื่อรองรับ LIMIT และ OFFSET ใน prepared statements
+        const [results] = await connection.query(sql, params);
         return results;
       } finally {
         // Always release the connection back to the pool

@@ -31,6 +31,12 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
     return addressTypeMap[addrCode] || `ที่อยู่รหัส ${addrCode}`;
   };
   
+  // Get language label
+  const getLanguageLabel = (addrLang) => {
+    if (!addrLang) return 'ไม่ระบุภาษา';
+    return addrLang.toLowerCase() === 'en' ? 'ภาษาอังกฤษ (EN)' : 'ภาษาไทย (TH)';
+  };
+  
   const getStatusBadge = (statusValue) => {
     switch (statusValue) {
       case 'pending':
@@ -77,6 +83,9 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
               <div>
                 <h3 className="font-bold text-black">
                   {request.member_code}
+                  {request.comp_person_code && (
+                    <span className="ml-2 text-sm text-gray-600">({request.comp_person_code})</span>
+                  )}
                 </h3>
                 <p className="text-sm text-black font-medium">{fullName}</p>
               </div>
@@ -88,6 +97,9 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
               </p>
               <p className="text-xs text-gray-600">
                 <span className="font-medium">ประเภทที่อยู่:</span> {getAddressTypeName(request.addr_code)}
+              </p>
+              <p className="text-xs text-gray-600">
+                <span className="font-medium">ภาษา:</span> {getLanguageLabel(request.addr_lang)}
               </p>
             </div>
             <div className="mt-2 text-xs text-gray-500">

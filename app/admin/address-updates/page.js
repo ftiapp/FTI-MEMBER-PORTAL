@@ -19,6 +19,13 @@ export default function AddressUpdatesPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [pagination, setPagination] = useState({
+    total: 0,
+    limit: 5,
+    page: 1,
+    totalPages: 0
+  });
   
   useEffect(() => {
     const checkAdminSession = async () => {
@@ -43,13 +50,22 @@ export default function AddressUpdatesPage() {
     checkAdminSession();
   }, [router, status]);
   
-  const fetchRequests = async (status) => {
+  const fetchRequests = async (status, page = 1, search = '') => {
     try {
       setLoading(true);
-      let url = '/api/admin/address-update/list';
+      
+      // สร้าง URL พร้อมพารามิเตอร์
+      const params = new URLSearchParams();
       if (status && status !== 'all') {
-        url += `?status=${status}`;
+        params.append('status', status);
       }
+      params.append('page', page.toString());
+      params.append('limit', pagination.limit.toString());
+      if (search) {
+        params.append('search', search);
+      }
+      
+      const url = `/api/admin/address-update/list?${params.toString()}`;
       
       const response = await fetch(url, {
         method: 'GET',
@@ -67,10 +83,17 @@ export default function AddressUpdatesPage() {
 
       const data = await response.json();
       
-      if (data && data.success === true && Array.isArray(data.updates)) {
-        setRequests(data.updates);
-      } else if (Array.isArray(data)) {
-        setRequests(data);
+      if (data && data.success === true) {
+        if (Array.isArray(data.updates)) {
+          setRequests(data.updates);
+          
+          // อัปเดตข้อมูลการแบ่งหน้า
+          if (data.pagination) {
+            setPagination(data.pagination);
+          }
+        } else {
+          setRequests([]);
+        }
       } else {
         setRequests([]);
       }
@@ -85,6 +108,19 @@ export default function AddressUpdatesPage() {
   
   const handleStatusChange = (newStatus) => {
     router.push(`/admin/address-updates?status=${newStatus}`);
+  };
+  
+  const handlePageChange = (newPage) => {
+    fetchRequests(status, newPage, searchTerm);
+  };
+  
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchRequests(status, 1, searchTerm);
+  };
+  
+  const handleSearchInputChange = (e) => {
+    setSearchTerm(e.target.value);
   };
   
   const handleViewRequest = (request) => {
@@ -241,6 +277,30 @@ export default function AddressUpdatesPage() {
           </motion.div>
         </div>
         
+        {/* Search Bar */}
+        <motion.div 
+          className="mb-4"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+        >
+          <form onSubmit={handleSearch} className="flex w-full max-w-md">
+            <input
+              type="text"
+              placeholder="ค้นหาด้วยรหัสสมาชิกหรือชื่อบริษัท"
+              value={searchTerm}
+              onChange={handleSearchInputChange}
+              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 transition-colors"
+            >
+              ค้นหา
+            </button>
+          </form>
+        </motion.div>
+        
         {/* Debug Button */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -280,29 +340,87 @@ export default function AddressUpdatesPage() {
             <p className="text-black font-medium">ไม่พบคำขอแก้ไขที่อยู่ที่มีสถานะ {getStatusName(status)}</p>
           </motion.div>
         ) : (
-          <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          >
-            {/* Request List */}
-            <RequestList 
-              requests={requests} 
-              selectedRequestId={selectedRequest?.id}
-              onViewRequest={handleViewRequest}
-            />
-            
-            {/* Request Details */}
-            <RequestDetail 
-              selectedRequest={selectedRequest}
-              comment={comment}
-              setComment={setComment}
-              isProcessing={isProcessing}
-              handleApprove={handleApprove}
-              onRejectClick={() => setShowRejectModal(true)}
-            />
-          </motion.div>
+          <>
+            <motion.div 
+              className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              {/* Request List */}
+              <div className="lg:col-span-1 space-y-4">
+                <RequestList 
+                  requests={requests} 
+                  selectedRequestId={selectedRequest?.id}
+                  onViewRequest={handleViewRequest}
+                />
+                
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                  <motion.div 
+                    className="flex justify-center items-center mt-4 bg-white p-3 rounded-lg shadow-sm"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    <button
+                      onClick={() => handlePageChange(1)}
+                      disabled={pagination.page === 1}
+                      className={`px-3 py-1 mx-1 rounded-md ${pagination.page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      «
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(pagination.page - 1)}
+                      disabled={pagination.page === 1}
+                      className={`px-3 py-1 mx-1 rounded-md ${pagination.page === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      ‹
+                    </button>
+                    
+                    <div className="mx-2 text-sm">
+                      <span className="font-medium">{pagination.page}</span> / {pagination.totalPages}
+                    </div>
+                    
+                    <button
+                      onClick={() => handlePageChange(pagination.page + 1)}
+                      disabled={pagination.page === pagination.totalPages}
+                      className={`px-3 py-1 mx-1 rounded-md ${pagination.page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      ›
+                    </button>
+                    <button
+                      onClick={() => handlePageChange(pagination.totalPages)}
+                      disabled={pagination.page === pagination.totalPages}
+                      className={`px-3 py-1 mx-1 rounded-md ${pagination.page === pagination.totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                    >
+                      »
+                    </button>
+                  </motion.div>
+                )}
+                
+                {/* Results Summary */}
+                <motion.div 
+                  className="text-sm text-gray-500 text-center mt-2"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
+                  แสดง {requests.length} รายการ จากทั้งหมด {pagination.total} รายการ
+                </motion.div>
+              </div>
+              
+              {/* Request Details */}
+              <RequestDetail 
+                selectedRequest={selectedRequest}
+                comment={comment}
+                setComment={setComment}
+                isProcessing={isProcessing}
+                handleApprove={handleApprove}
+                onRejectClick={() => setShowRejectModal(true)}
+              />
+            </motion.div>
+          </>
         )}
       </motion.div>
       
