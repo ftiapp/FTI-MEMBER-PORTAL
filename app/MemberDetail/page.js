@@ -171,10 +171,11 @@ export default function MemberDetailPage() {
               </p>
             </motion.div>
             
-            <div className="flex items-center mb-6">
+            {/* Navigation breadcrumb */}
+            <nav className="flex items-center mb-6 bg-white p-3 rounded-lg shadow-sm">
               <motion.button
                 onClick={handleBackToDashboard}
-                className="flex items-center text-blue-600 hover:text-blue-800 mr-4"
+                className="flex items-center text-blue-600 hover:text-blue-800"
                 variants={buttonVariants}
                 initial="initial"
                 whileHover="hover"
@@ -183,9 +184,28 @@ export default function MemberDetailPage() {
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
                 </svg>
-                <span>กลับไปหน้าแดชบอร์ด</span>
+                <span>แดชบอร์ด</span>
               </motion.button>
-            </div>
+              
+              <span className="mx-2 text-gray-500">/</span>
+              <span className="text-gray-700">ข้อมูลสมาชิก</span>
+              
+              {selectedMemberType && (
+                <>
+                  <span className="mx-2 text-gray-500">/</span>
+                  <motion.button
+                    onClick={handleBackToTypeSelection}
+                    className="flex items-center text-blue-600 hover:text-blue-800"
+                    variants={buttonVariants}
+                    initial="initial"
+                    whileHover="hover"
+                    whileTap="tap"
+                  >
+                    <span>ประเภทสมาชิก</span>
+                  </motion.button>
+                </>
+              )}
+            </nav>
             
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
@@ -219,19 +239,6 @@ export default function MemberDetailPage() {
               >
                 {selectedMemberType ? (
                   <div className="space-y-4">
-                    <motion.button
-                      onClick={handleBackToTypeSelection}
-                      className="flex items-center text-blue-600 hover:text-blue-800 mb-4"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: 0.2 }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clipRule="evenodd" />
-                      </svg>
-                      <span>กลับไปเลือกประเภทสมาชิก</span>
-                    </motion.button>
-                    
                     <MemberDetailComponent 
                       memberCode={memberCode} 
                       selectedMemberType={selectedMemberType}

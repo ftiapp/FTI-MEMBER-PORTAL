@@ -270,7 +270,7 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
 
       {/* Content based on active tab */}
       <motion.div 
-        className="p-6"
+        className="p-6 relative z-10 overflow-visible"
         variants={itemVariants}
       >
         <AnimatePresence mode="wait">
@@ -302,7 +302,13 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <AddressTabContent addresses={addresses} />
+              <AddressTabContent 
+                addresses={addresses} 
+                memberCode={companyInfo.MEMBER_CODE}
+                memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
+                memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
+                typeCode={companyInfo.MEMBER_TYPE_CODE}
+              />
             </motion.div>
           )}
 

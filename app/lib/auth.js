@@ -1,26 +1,43 @@
-'use server';
-
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
-import { getAdminFromSession } from './adminAuth';
+import { query } from './db';
 
-// Secret key for JWT verification (should match the one in adminAuth.js)
+// สร้าง secret key สำหรับ JWT
 const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-admin-auth');
 
 /**
- * Check if the current request has a valid admin session
- * @returns {Promise<Object|null>} Admin object if authenticated, null otherwise
+ * ตรวจสอบ session ของ admin จาก cookie
+ * @returns {Promise<Object|null>} ข้อมูล admin หรือ null ถ้าไม่มี session
  */
 export async function checkAdminSession() {
   try {
-    // Use the existing getAdminFromSession function
-    const admin = await getAdminFromSession();
+    const cookieStore = await cookies();
+    const token = cookieStore.get('admin_token')?.value;
     
-    if (!admin) {
+    if (!token) {
       return null;
     }
+
+    const verified = await jwtVerify(token, secretKey);
+    const payload = verified.payload;
     
-    return admin;
+    // ตรวจสอบว่า admin ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
+    const admins = await query(
+      'SELECT * FROM admin_users WHERE id = ? AND is_active = TRUE LIMIT 1',
+      [payload.id]
+    );
+
+    if (admins.length === 0) {
+      return null;
+    }
+
+    return {
+      id: payload.id,
+      username: payload.username,
+      adminLevel: payload.adminLevel,
+      canCreate: payload.canCreate,
+      canUpdate: payload.canUpdate
+    };
   } catch (error) {
     console.error('Error checking admin session:', error);
     return null;
@@ -28,49 +45,32 @@ export async function checkAdminSession() {
 }
 
 /**
- * Check if the current request has a valid user session
- * @returns {Promise<Object|null>} User object if authenticated, null otherwise
+ * ตรวจสอบว่าผู้ใช้มีสิทธิ์ในการเข้าถึงหรือไม่
+ * @param {Object} admin ข้อมูล admin
+ * @param {number} requiredLevel ระดับสิทธิ์ที่ต้องการ
+ * @returns {Promise<boolean>} true ถ้ามีสิทธิ์, false ถ้าไม่มีสิทธิ์
  */
-export async function checkUserSession() {
-  try {
-    const cookieStore = cookies();
-    const token = cookieStore.get('user_token')?.value;
-    
-    if (!token) {
-      return null;
-    }
-
-    const verified = await jwtVerify(token, secretKey);
-    return verified.payload;
-  } catch (error) {
-    console.error('Error verifying user token:', error);
-    return null;
-  }
+export async function hasPermission(admin, requiredLevel) {
+  if (!admin) return false;
+  return admin.adminLevel >= requiredLevel;
 }
 
 /**
- * Get the current user ID from the session
- * @returns {Promise<number|null>} User ID if authenticated, null otherwise
+ * ตรวจสอบว่าผู้ใช้มีสิทธิ์ในการสร้างหรือไม่
+ * @param {Object} admin ข้อมูล admin
+ * @returns {Promise<boolean>} true ถ้ามีสิทธิ์, false ถ้าไม่มีสิทธิ์
  */
-export async function getCurrentUserId() {
-  const user = await checkUserSession();
-  return user ? user.id : null;
+export async function canCreate(admin) {
+  if (!admin) return false;
+  return admin.canCreate === 1 || admin.adminLevel === 5;
 }
 
 /**
- * Check if the current user has admin privileges
- * @returns {Promise<boolean>} True if the user is an admin, false otherwise
+ * ตรวจสอบว่าผู้ใช้มีสิทธิ์ในการแก้ไขหรือไม่
+ * @param {Object} admin ข้อมูล admin
+ * @returns {Promise<boolean>} true ถ้ามีสิทธิ์, false ถ้าไม่มีสิทธิ์
  */
-export async function isAdmin() {
-  const admin = await checkAdminSession();
-  return !!admin;
-}
-
-/**
- * Check if the current user is a super admin (admin_level = 5)
- * @returns {Promise<boolean>} True if the user is a super admin, false otherwise
- */
-export async function isSuperAdmin() {
-  const admin = await checkAdminSession();
-  return admin ? admin.adminLevel === 5 : false;
+export async function canUpdate(admin) {
+  if (!admin) return false;
+  return admin.canUpdate === 1 || admin.adminLevel === 5;
 }

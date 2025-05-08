@@ -6,6 +6,7 @@ import {
   getStatusClass 
 } from './utils';
 import { getContactMessageStatusIcon, getContactMessageStatusText, getContactMessageStatusClass } from './contactMessageStatusUtils';
+import { getAddressUpdateStatusIcon, getAddressUpdateStatusText, getAddressUpdateStatusClass } from './addressUpdateStatusUtils';
 import EmptyState from './EmptyState';
 import StatusCard from './StatusCard';
 import Pagination from './Pagination';
@@ -17,6 +18,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const [operations, setOperations] = useState(initialOperations);
   const [contactMessageStatus, setContactMessageStatus] = useState([]);
   const [verifications, setVerifications] = useState([]);
+  const [addressUpdates, setAddressUpdates] = useState([]);
   // Search/filter states
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -29,6 +31,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
     { value: '', label: 'ทั้งหมด' },
     { value: 'ยืนยันสมาชิกเดิม', label: 'ยืนยันสมาชิกเดิม' },
     { value: 'ติดต่อเจ้าหน้าที่', label: 'ติดต่อเจ้าหน้าที่' },
+    { value: 'แก้ไขข้อมูลสมาชิก', label: 'แก้ไขข้อมูลสมาชิก' },
     { value: 'แก้ไขข้อมูลส่วนตัว', label: 'แก้ไขข้อมูลส่วนตัว' },
   ];
   const statusOptions = [
@@ -150,6 +153,57 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
       });
   }, [userId]);
 
+  // Fetch address update requests
+  useEffect(() => {
+    if (!userId) return;
+    
+    console.log('Fetching address update status for user:', userId);
+    
+    fetch(`/api/dashboard/operation-status/address-update-status?userId=${userId}`, {
+      credentials: 'include', // Include cookies in the request
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`API responded with status: ${res.status}`);
+        }
+        const contentType = res.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          throw new Error(`Expected JSON but got ${contentType}`);
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log('Address update API response:', data);
+        if (data.success && Array.isArray(data.updates) && data.updates.length > 0) {
+          setAddressUpdates(data.updates);
+        } else {
+          // Create a placeholder if no address updates found
+          setAddressUpdates([{
+            id: Date.now(),
+            title: 'แก้ไขข้อมูลสมาชิก',
+            description: 'คุณยังไม่มีคำขอแก้ไขที่อยู่',
+            status: 'none',
+            created_at: new Date().toISOString(),
+            type: 'แก้ไขข้อมูลสมาชิก'
+          }]);
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching address update status:', error);
+        setAddressUpdates([{
+          id: Date.now(),
+          title: 'แก้ไขข้อมูลสมาชิก',
+          description: 'ไม่สามารถดึงข้อมูลสถานะการแก้ไขที่อยู่ได้',
+          status: 'error',
+          created_at: new Date().toISOString(),
+          type: 'แก้ไขข้อมูลสมาชิก'
+        }]);
+      });
+  }, [userId]);
+
   // Fetch verifications (member verification status)
   useEffect(() => {
     if (!userId) return;
@@ -223,11 +277,55 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
       mergedOps = [...newContactMessages, ...mergedOps];
     }
     
+    // Add address update requests as operation cards
+    if (addressUpdates && addressUpdates.length > 0) {
+      // Filter out any address updates that might already exist in initialOperations
+      const existingAddressUpdateIds = new Set(
+        initialOperations
+          .filter(op => op.title === 'แก้ไขข้อมูลสมาชิก')
+          .map(op => op.id)
+      );
+      
+      const addressUpdateOps = addressUpdates
+        .filter(update => update.status !== 'none' && update.status !== 'error' && !existingAddressUpdateIds.has(update.id))
+        .map(update => ({
+          id: update.id,
+          title: 'แก้ไขข้อมูลสมาชิก',
+          description: `คำขอแก้ไขที่อยู่: ${update.company_name || update.member_code} (${update.addr_code})`,
+          status: update.status,
+          created_at: update.request_date,
+          reason: update.admin_comment,
+          member_code: update.member_code,
+          old_address: update.old_address,
+          new_address: update.new_address,
+          type: 'แก้ไขข้อมูลสมาชิก'
+        }));
+      
+      // Add placeholder if no actual address updates
+      if (addressUpdateOps.length === 0 && addressUpdates.some(update => update.status === 'none' || update.status === 'error')) {
+        const placeholder = addressUpdates.find(update => update.status === 'none' || update.status === 'error');
+        if (placeholder) {
+          addressUpdateOps.push({
+            id: placeholder.id,
+            title: 'แก้ไขข้อมูลสมาชิก',
+            description: placeholder.description || 'สถานะการแก้ไขที่อยู่',
+            status: placeholder.status,
+            created_at: placeholder.created_at,
+            type: 'แก้ไขข้อมูลสมาชิก'
+          });
+        }
+      }
+      
+      // Add all address updates to the operations list
+      mergedOps = [...addressUpdateOps, ...mergedOps];
+    }
+    
     // Add the rest of initialOperations with type property
     const restOps = initialOperations.map(op => ({
       ...op,
       type: op.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 
-            op.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : 'แก้ไขข้อมูลส่วนตัว'
+            op.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' :
+            op.title === 'แก้ไขข้อมูลสมาชิก' ? 'แก้ไขข้อมูลสมาชิก' : 'แก้ไขข้อมูลส่วนตัว'
     }));
     
     mergedOps = [...mergedOps, ...restOps];
@@ -236,7 +334,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
     mergedOps.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
     setOperations(mergedOps);
-  }, [initialOperations, contactMessageStatus, verifications]);
+  }, [initialOperations, contactMessageStatus, verifications, addressUpdates]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -384,15 +482,32 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
                 }}
               >
                 <StatusCard
-                  icon={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusIcon(operation.status) : getStatusIcon(operation.status)}
+                  icon={
+                    operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusIcon(operation.status) : 
+                    operation.title === 'แก้ไขข้อมูลสมาชิก' ? getAddressUpdateStatusIcon(operation.status) :
+                    getStatusIcon(operation.status)
+                  }
                   title={operation.title}
                   description={operation.description}
-                  statusText={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusText(operation.status) : getStatusText(operation.status)}
-                  statusClass={operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusClass(operation.status) : getStatusClass(operation.status)}
+                  statusText={
+                    operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusText(operation.status) :
+                    operation.title === 'แก้ไขข้อมูลสมาชิก' ? getAddressUpdateStatusText(operation.status) :
+                    getStatusText(operation.status)
+                  }
+                  statusClass={
+                    operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusClass(operation.status) :
+                    operation.title === 'แก้ไขข้อมูลสมาชิก' ? getAddressUpdateStatusClass(operation.status) :
+                    getStatusClass(operation.status)
+                  }
                   date={operation.created_at}
                   errorMessage={operation.status === 'rejected' ? operation.reason : null}
                   id={operation.id}
-                  type={operation.type || (operation.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : operation.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 'แก้ไขข้อมูลส่วนตัว')}
+                  type={operation.type || (
+                    operation.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : 
+                    operation.title === 'แก้ไขข้อมูลสมาชิก' ? 'แก้ไขข้อมูลสมาชิก' :
+                    operation.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 'แก้ไขข้อมูลส่วนตัว'
+                  )}
+                  status={operation.status}
                   message_content={operation.message_content}
                 />
               </motion.div>

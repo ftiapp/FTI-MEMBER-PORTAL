@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { toast } from 'react-hot-toast';
 
 function AdminInfo({ collapsed }) {
   const [admin, setAdmin] = useState(null);
@@ -39,6 +38,8 @@ export default function AdminSidebar() {
   const [pendingVerifications, setPendingVerifications] = useState(0);
   const [pendingProfileUpdates, setPendingProfileUpdates] = useState(0);
   const [pendingGuestMessages, setPendingGuestMessages] = useState(0);
+  const [pendingAddressUpdates, setPendingAddressUpdates] = useState(0);
+  
   // Reset loading state when navigation completes
   useEffect(() => {
     setLoading(false);
@@ -60,6 +61,7 @@ export default function AdminSidebar() {
         console.error('Error fetching pending verifications count:', error);
       }
     };
+    
     const fetchPendingProfileUpdateCount = async () => {
       try {
         const response = await fetch('/api/admin/pending-profile-update-count');
@@ -73,6 +75,7 @@ export default function AdminSidebar() {
         console.error('Error fetching pending profile update count:', error);
       }
     };
+    
     const fetchPendingGuestMessagesCount = async () => {
       try {
         const response = await fetch('/api/admin/pending-guest-messages-count');
@@ -86,15 +89,34 @@ export default function AdminSidebar() {
         console.error('Error fetching pending guest messages count:', error);
       }
     };
+    
+    const fetchPendingAddressUpdatesCount = async () => {
+      try {
+        const response = await fetch('/api/admin/pending-address-updates-count');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPendingAddressUpdates(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pending address updates count:', error);
+      }
+    };
+    
     fetchPendingCount();
     fetchPendingProfileUpdateCount();
     fetchPendingGuestMessagesCount();
+    fetchPendingAddressUpdatesCount();
+    
     // Set up interval to refresh count every minute
     const intervalId = setInterval(() => {
       fetchPendingCount();
       fetchPendingProfileUpdateCount();
       fetchPendingGuestMessagesCount();
+      fetchPendingAddressUpdatesCount();
     }, 600000);
+    
     return () => clearInterval(intervalId);
   }, []);
 
@@ -167,6 +189,17 @@ export default function AdminSidebar() {
         </svg>
       ),
       badge: pendingProfileUpdates > 0 ? pendingProfileUpdates : null,
+    },
+    {
+      name: 'จัดการคำขอแก้ไขที่อยู่',
+      path: '/admin/address-updates',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+      badge: pendingAddressUpdates > 0 ? pendingAddressUpdates : null,
     },
     {
       name: 'เปลี่ยนอีเมลผู้ใช้',
