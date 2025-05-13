@@ -348,7 +348,7 @@ export default function MemberTypeSelector({ memberCode, onSelectType }) {
                       key={groupCode}
                       className="w-full text-left p-3 hover:bg-purple-50 transition-colors flex justify-between items-center"
                       onClick={() => onSelectType('200', groupCode)}
-                      whileHover={{ backgroundColor: 'rgba(243, 232, 255, 1)' }}
+                      whileHover={{ backgroundColor: 'rgba(250, 245, 255, 1)' }}
                     >
                       <div>
                         <p className="font-medium text-purple-800">{group.name}</p>
@@ -364,7 +364,7 @@ export default function MemberTypeSelector({ memberCode, onSelectType }) {
         )}
       </div>
 
-      {/* If there are multiple groups or provinces, show a note */}
+      {/* If there are multiple groups or provinces, show a second level selection */}
       {(Object.keys(membershipTypes['100']).length > 1 || Object.keys(membershipTypes['200']).length > 1) && (
         <motion.div
           className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-md"

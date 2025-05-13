@@ -118,12 +118,14 @@ export default function MemberDetailPage() {
     setSelectedMemberType(type);
     setMemberTypeCode(code);
     
-    // Update URL with the selected type without reloading the page
+    // Update URL with the selected type and group code without reloading the page
     const params = new URLSearchParams(window.location.search);
     params.set('memberType', type);
     if (code) {
-      params.set('typeCode', code);
+      params.set('member_group_code', code); // Add member_group_code to URL
+      params.set('typeCode', code); // Keep typeCode for backward compatibility
     } else {
+      params.delete('member_group_code');
       params.delete('typeCode');
     }
     

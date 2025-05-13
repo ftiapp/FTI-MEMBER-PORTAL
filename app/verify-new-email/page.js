@@ -216,7 +216,7 @@ export default function VerifyNewEmail() {
                     </button>
                   </div>
                   <p className="mt-1 text-xs text-gray-500">
-                    รหัสผ่านต้องมีความยาวอย่างน้อย 6 ตัวอักษร
+                    รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร
                   </p>
                 </div>
                 
