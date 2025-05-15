@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
-import db from '@/app/lib/db';
+import { query } from '@/app/lib/db';
 
 export async function GET(request) {
   try {
@@ -21,24 +21,24 @@ export async function GET(request) {
     }
 
     // ดึงข้อมูลทั้งหมดจากตาราง pending_address_updates
-    const [allRecords] = await db.query(`
+    const [allRecords] = await query(`
       SELECT * FROM pending_address_updates
     `);
     
     // ดึงข้อมูลโครงสร้างตาราง
-    const [tableStructure] = await db.query(`
+    const [tableStructure] = await query(`
       DESCRIBE pending_address_updates
     `);
 
     // ตรวจสอบจำนวนรายการตามสถานะ
-    const [statusCounts] = await db.query(`
+    const [statusCounts] = await query(`
       SELECT status, COUNT(*) as count 
       FROM pending_address_updates 
       GROUP BY status
     `);
 
     // ดึงข้อมูลล่าสุด 5 รายการ
-    const [recentRecords] = await db.query(`
+    const [recentRecords] = await query(`
       SELECT id, user_id, member_code, member_type, member_group_code, 
              type_code, addr_code, request_date, status
       FROM pending_address_updates
@@ -67,7 +67,7 @@ export async function GET(request) {
 // ฟังก์ชันตรวจสอบว่ามีตารางในฐานข้อมูลหรือไม่
 async function checkTableExists(tableName) {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await query(`
       SELECT COUNT(*) as count
       FROM information_schema.tables
       WHERE table_schema = DATABASE()

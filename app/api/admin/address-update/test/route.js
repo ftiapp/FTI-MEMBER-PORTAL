@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '@/app/lib/db';
+import { query } from '@/app/lib/db';
 
 export async function GET(request) {
   try {
@@ -68,7 +68,7 @@ export async function GET(request) {
     };
 
     // Check if a test record already exists
-    const [existingRecords] = await db.query(
+    const [existingRecords] = await query(
       'SELECT id FROM pending_address_updates WHERE member_code = ? AND type_code = ? AND addr_code = ? AND status = ?',
       ['TEST001', '000', '001', 'pending']
     );
@@ -80,7 +80,7 @@ export async function GET(request) {
       console.log('Test record already exists with ID:', testRecordId);
     } else {
       // Insert a test record
-      const insertResult = await db.query(
+      const insertResult = await query(
         `INSERT INTO pending_address_updates (
           user_id, 
           member_code, 
@@ -110,7 +110,7 @@ export async function GET(request) {
     }
 
     // Fetch all records to confirm
-    const [allRecords] = await db.query('SELECT * FROM pending_address_updates');
+    const [allRecords] = await query('SELECT * FROM pending_address_updates');
     
     return NextResponse.json({ 
       success: true, 
@@ -132,7 +132,7 @@ export async function GET(request) {
 // Function to check if a table exists
 async function checkTableExists(tableName) {
   try {
-    const [rows] = await db.query(`
+    const [rows] = await query(`
       SELECT COUNT(*) as count
       FROM information_schema.tables
       WHERE table_schema = DATABASE()

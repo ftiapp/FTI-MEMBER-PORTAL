@@ -12,7 +12,7 @@ import MemberDetailTabs from './MemberDetailTabs';
 import InfoTabContent from './InfoTabContent';
 import AddressTabContent from './AddressTabContent';
 import RepresentativeTabContent from './RepresentativeTabContent';
-import ProductsTabContent from './ProductTabContent';
+import ProductsPage from './Product/page';
 import MembershipTabContent from './MembershipTabContent';
 import MemberTypeFilter from './MemberTypeFilter';
 
@@ -335,7 +335,7 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <ProductsTabContent companyInfo={companyInfo} />
+              <ProductsPage companyInfo={companyInfo} />
             </motion.div>
           )}
           
