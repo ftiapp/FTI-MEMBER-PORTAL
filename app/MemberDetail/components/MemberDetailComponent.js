@@ -10,7 +10,7 @@ import EmptyState from './Emptystate';
 import MemberDetailHeader from './MemberDetailHeader';
 import MemberDetailTabs from './MemberDetailTabs';
 import InfoTabContent from './InfoTabContent';
-import AddressTabContent from './AddressTabContent';
+import AddressTabContent from './AddressTabContent/page';
 import RepresentativeTabContent from './RepresentativeTabContent';
 import ProductsPage from './Product/page';
 import MembershipTabContent from './MembershipTabContent';
