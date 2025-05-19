@@ -2,81 +2,81 @@ import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 
 /**
- * API endpoint to get TSIC categories
- * GET /api/member/get-tsic-codes
+ * API endpoint to get TSIC categories and pending requests
+ * GET /api/member/get-tsic-codes?member_code=xxx
  */
 export async function GET(request) {
   try {
     // Get search parameters from query params
     const { searchParams } = new URL(request.url);
-    const categoryCode = searchParams.get('category_code');
-    const searchQuery = searchParams.get('q') || '';
+    const memberCode = searchParams.get('member_code');
     
-    // If category_code is provided, return TSIC codes for that category
-    if (categoryCode) {
-      let sql = `
-        SELECT 
-          id,
-          category_order,
-          tsic_code,
-          description,
-          positive_list
-        FROM 
-          tsic_categories
-        WHERE 
-          category_order = ?
-      `;
-      
-      const params = [categoryCode];
-      
-      // Add search condition if query is provided
-      if (searchQuery && searchQuery.length >= 2) {
-        sql += ` AND (tsic_code LIKE ? OR description LIKE ?)`;
-        const searchPattern = `%${searchQuery}%`;
-        params.push(searchPattern, searchPattern);
-      }
-      
-      // Add order and limit
-      sql += `
-        ORDER BY 
-          tsic_code
-        LIMIT 50
-      `;
-      
-      const results = await query(sql, params);
-      
+    if (!memberCode) {
       return NextResponse.json({ 
-        success: true, 
-        results 
-      });
-    } 
-    // If no category_code, return all categories
-    else {
-      const sql = `
-        SELECT 
+        success: false, 
+        message: 'กรุณาระบุรหัสสมาชิก' 
+      }, { status: 400 });
+    }
+
+    // Get approved TSIC codes for the member from the view
+    let approvedCodes = [];
+    try {
+      const [approvedResults] = await query(
+        `SELECT 
+          tsic_code,
+          category_order,
+          tsic_description,
+          positive_list,
+          category_name,
+          created_at,
+          updated_at
+        FROM member_approved_tsic 
+        WHERE member_code = ?`,
+        [memberCode]
+      );
+      approvedCodes = approvedResults || [];
+    } catch (error) {
+      console.error('Error fetching approved TSIC codes:', error);
+      // Continue with empty array if there's an error
+    }
+
+    // Get pending TSIC update requests for the member
+    let pendingRequests = [];
+    try {
+      const [pendingResults] = await query(
+        `SELECT 
           id,
           category_code,
           category_name,
-          item_count
-        FROM 
-          tsic_description
-        ORDER BY 
-          category_code
-      `;
-      
-      const results = await query(sql);
-      
-      return NextResponse.json({ 
-        success: true, 
-        results 
-      });
+          tsic_code,
+          tsic_description,
+          category_order,
+          request_date,
+          created_at
+        FROM pending_tsic_updates 
+        WHERE member_code = ? 
+        AND status = 'pending' 
+        ORDER BY request_date DESC`,
+        [memberCode]
+      );
+      pendingRequests = pendingResults || [];
+    } catch (error) {
+      console.error('Error fetching pending TSIC requests:', error);
+      // Continue with empty array if there's an error
     }
+
+    return NextResponse.json({
+      success: true,
+      approvedCodes,
+      pendingRequests
+    });
     
   } catch (error) {
-    console.error('Error fetching TSIC data:', error);
+    console.error('Error in get-tsic-codes:', error);
     return NextResponse.json({ 
       success: false, 
-      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลรหัส TSIC' 
+      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลรหัส TSIC',
+      error: error.message 
     }, { status: 500 });
   }
 }

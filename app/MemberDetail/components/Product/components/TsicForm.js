@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { FaSpinner, FaTimes } from 'react-icons/fa';
+import { FaSpinner, FaTimes, FaExclamationTriangle, FaInfoCircle } from 'react-icons/fa';
 import AutocompleteMultiSearch from './AutocompleteMultiSearch';
 import TsicSearchDropdown from './TsicSearchDropdown';
 import SelectedTsicList from './SelectedTsicList';
@@ -9,6 +9,7 @@ import { fetchAllCategories } from './api';
 
 /**
  * Form component for adding/editing TSIC codes
+ * Completely rebuilt to ensure proper category-TSIC association
  */
 const TsicForm = ({ 
   editingTsic, 
@@ -28,6 +29,9 @@ const TsicForm = ({
   
   // State to track TSIC codes per category
   const [tsicCodesPerCategory, setTsicCodesPerCategory] = useState({});
+  
+  // State to track validation errors
+  const [validationError, setValidationError] = useState(null);
   
   // Update parent component's selectedCategory when selectedCategories changes
   useEffect(() => {
@@ -58,12 +62,12 @@ const TsicForm = ({
     return selectedTsicCodes.filter(item => item.category_code === categoryCode).length >= 5;
   };
   
-  // Handle form submission
-  const handleSubmit = () => {
-    // Make sure at least one TSIC code is selected
+  // Validate that each TSIC code belongs to its correct category
+  const validateTsicCodes = () => {
+    // Check if we have any TSIC codes
     if (selectedTsicCodes.length === 0) {
-      alert('กรุณาเลือกอย่างน้อย 1 TSIC code');
-      return;
+      setValidationError('กรุณาเลือกอย่างน้อย 1 TSIC code');
+      return false;
     }
     
     // Check if all selected categories have at least one TSIC code
@@ -73,10 +77,23 @@ const TsicForm = ({
     
     if (categoriesWithoutTsic.length > 0) {
       const categoryNames = categoriesWithoutTsic.map(cat => `${cat.category_code} - ${cat.category_name}`).join('\n- ');
-      alert(`กรุณาเลือกอย่างน้อย 1 TSIC code สำหรับแต่ละหมวดหมู่ที่เลือก:\n- ${categoryNames}`);
+      setValidationError(`กรุณาเลือกอย่างน้อย 1 TSIC code สำหรับแต่ละหมวดหมู่ที่เลือก:\n- ${categoryNames}`);
+      return false;
+    }
+    
+    // Clear any validation errors
+    setValidationError(null);
+    return true;
+  };
+  
+  // Handle form submission
+  const handleSubmit = () => {
+    // Validate TSIC codes before submission
+    if (!validateTsicCodes()) {
       return;
     }
     
+    // Submit the selected TSIC codes
     onSubmit(selectedTsicCodes);
   };
   
@@ -101,11 +118,29 @@ const TsicForm = ({
         </div>
       )}
       
+      {validationError && (
+        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md flex items-start">
+          <FaExclamationTriangle className="mr-2 mt-1 flex-shrink-0" />
+          <div>{validationError}</div>
+        </div>
+      )}
+      
       {success && (
         <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
           {success}
         </div>
       )}
+      
+      {/* Important Information Banner */}
+      <div className="mb-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 rounded-md">
+        <div className="flex items-start">
+          <FaInfoCircle className="mr-2 mt-1 flex-shrink-0" />
+          <div>
+            <p className="font-medium">สำคัญ: ระบบจะตรวจสอบความถูกต้องของรหัส TSIC กับหมวดหมู่</p>
+            <p className="text-sm mt-1">แต่ละรหัส TSIC จะถูกบันทึกพร้อมกับหมวดหมู่ที่ถูกต้องตามฐานข้อมูลของระบบ</p>
+          </div>
+        </div>
+      </div>
       
       {/* Category Search */}
       <div className="mb-4">
@@ -168,6 +203,7 @@ const TsicForm = ({
                     <label className="block text-sm font-medium mb-1">ค้นหารายละเอียด TSIC ของหมวดหมู่นี้</label>
                     <TsicSearchDropdown 
                       placeholder="คลิกเพื่อดูรายการ TSIC CODE..."
+                      categoryCode={category.category_code}
                       fetchSuggestions={async (query) => {
                         try {
                           // เรียกใช้ API โดยตรงเพื่อให้แน่ใจว่าได้ข้อมูลทั้งหมด
@@ -184,11 +220,23 @@ const TsicForm = ({
                             results = data;
                           }
                           
+                          // ดึงข้อมูล category_order จากฐานข้อมูล
+                          const categoryResponse = await fetch(`/api/tsic-categories?category_code=${category.category_code}`);
+                          let categoryOrder = category.category_code; // ค่าเริ่มต้น
+                          
+                          if (categoryResponse.ok) {
+                            const categoryData = await categoryResponse.json();
+                            if (categoryData && categoryData.length > 0) {
+                              categoryOrder = categoryData[0].category_order || category.category_code;
+                            }
+                          }
+                          
                           // Add category information to each result
                           results = results.map(item => ({
                             ...item,
                             category_code: category.category_code,
-                            category_name: category.category_name
+                            category_name: category.category_name,
+                            category_order: categoryOrder // เพิ่ม category_order
                           }));
                           
                           // กรองข้อมูลตามคำค้นหา (ถ้ามี)
@@ -210,13 +258,6 @@ const TsicForm = ({
                             return codeA.localeCompare(codeB);
                           });
                           
-                          // Filter out already selected items
-                          results = results.filter(item => 
-                            !selectedTsicCodes.some(selected => 
-                              selected.tsic_code === (item.tsic_code || item.code)
-                            )
-                          );
-                          
                           return results;
                         } catch (error) {
                           console.error('Error fetching TSIC codes:', error);
@@ -226,11 +267,12 @@ const TsicForm = ({
                       onSelect={(tsic) => {
                         if (!tsic) return;
                         
-                        // Add category information if not present
+                        // Ensure the TSIC code has the correct category information
                         const tsicWithCategory = {
                           ...tsic,
                           category_code: category.category_code,
-                          category_name: category.category_name
+                          category_name: category.category_name,
+                          category_order: tsic.category_order || category.category_code // ใช้ค่า category_order ที่ดึงมาจาก API
                         };
                         
                         // Check if this TSIC code is already selected
@@ -240,12 +282,13 @@ const TsicForm = ({
                         
                         // Check if we've reached the limit for this category
                         if (selectedCount >= 5) {
-                          alert(`คุณได้เลือก TSIC code สำหรับหมวดหมู่นี้ครบ 5 รายการแล้ว`);
+                          setValidationError(`คุณได้เลือก TSIC code สำหรับหมวดหมู่นี้ครบ 5 รายการแล้ว`);
                           return;
                         }
                         
-                        // Add the TSIC code
+                        // Add the TSIC code and clear any validation errors
                         setSelectedTsicCodes([...selectedTsicCodes, tsicWithCategory]);
+                        setValidationError(null);
                       }}
                       disabled={isFull}
                     />
@@ -293,11 +336,32 @@ const TsicForm = ({
         </div>
       )}
 
-      {/* Selected TSIC Codes */}
-      <SelectedTsicList 
-        selectedTsicCodes={selectedTsicCodes} 
-        onRemove={(index) => setSelectedTsicCodes(selectedTsicCodes.filter((_, i) => i !== index))}
-      />
+      {/* Selected TSIC Codes Summary */}
+      {selectedTsicCodes.length > 0 && (
+        <div className="mt-6 border-t pt-4">
+          <h3 className="text-lg font-medium text-blue-600 mb-2">สรุปรายการ TSIC ที่เลือกทั้งหมด</h3>
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left pb-2">หมวดหมู่</th>
+                  <th className="text-left pb-2">รหัส TSIC</th>
+                  <th className="text-left pb-2">คำอธิบาย</th>
+                </tr>
+              </thead>
+              <tbody>
+                {selectedTsicCodes.map((tsic, idx) => (
+                  <tr key={idx} className="border-b last:border-b-0">
+                    <td className="py-2">{tsic.category_code}</td>
+                    <td className="py-2 font-medium">{tsic.tsic_code}</td>
+                    <td className="py-2">{tsic.tsic_description || tsic.description}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
       
       <div className="flex justify-end space-x-2 mt-6">
         <button

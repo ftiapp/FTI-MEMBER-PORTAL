@@ -4,13 +4,14 @@ import { useState } from 'react';
 
 export default function RejectReasonModal({ onReject, onClose }) {
   const [rejectReason, setRejectReason] = useState('');
+  const [adminComment, setAdminComment] = useState('');
   const [isRejecting, setIsRejecting] = useState(false);
 
   const handleReject = async () => {
     if (onReject && rejectReason.trim()) {
       setIsRejecting(true);
       try {
-        await onReject(rejectReason);
+        await onReject(rejectReason, adminComment);
       } catch (error) {
         console.error('Error rejecting member:', error);
       } finally {
@@ -30,15 +31,26 @@ export default function RejectReasonModal({ onReject, onClose }) {
         
         <div className="p-6">
           <label htmlFor="rejectReason" className="block text-sm font-medium text-gray-700 mb-2">
-            เหตุผล <span className="text-red-500">*</span>
+            เหตุผลที่ปฏิเสธ <span className="text-red-500">*</span>
           </label>
           <textarea
             className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a]"
-            rows="4"
+            rows="3"
             value={rejectReason}
             onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="ระบุเหตุผลที่ปฏิเสธ"
+            placeholder="ระบุเหตุผลที่ปฏิเสธ (จะแสดงให้สมาชิกเห็น)"
             required
+          />
+          
+          <label htmlFor="adminComment" className="block text-sm font-medium text-gray-700 mt-4 mb-2">
+            ความคิดเห็นเพิ่มเติม (ไม่บังคับ)
+          </label>
+          <textarea
+            className="w-full px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-[#1e3a8a] focus:ring-1 focus:ring-[#1e3a8a]"
+            rows="2"
+            value={adminComment}
+            onChange={(e) => setAdminComment(e.target.value)}
+            placeholder="ใส่ความคิดเห็นเพิ่มเติม (จะแสดงให้สมาชิกเห็น)"
           />
           
           <div className="mt-6 flex justify-end space-x-3">

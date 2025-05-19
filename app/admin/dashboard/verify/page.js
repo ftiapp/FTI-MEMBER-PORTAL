@@ -155,9 +155,9 @@ export default function VerifyMembers() {
   };
 
   /**
-   * Rejects a member verification request with a reason
+   * Rejects a member verification request with a reason and optional comment
    */
-  const handleReject = async (reason) => {
+  const handleReject = async (reason, comment) => {
     if (!selectedMember) return;
     
     try {
@@ -180,7 +180,8 @@ export default function VerifyMembers() {
           memberId: selectedMember.id,
           documentId: documentId,
           action: 'reject',
-          reason: reason
+          reason: reason,
+          comment: comment || null
         })
       });
       

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { query as dbQuery } from '@/app/lib/db';
+import { sendAddressRejectionEmail } from '@/app/lib/mailersend';
 
 export async function POST(request) {
   try {
@@ -72,6 +73,34 @@ export async function POST(request) {
           request.headers.get('user-agent') || 'Unknown',
         ]
       );
+
+      // ส่งอีเมลแจ้งเตือนการปฏิเสธ
+      try {
+        // ดึงข้อมูลผู้ใช้และข้อมูลบริษัทเพื่อส่งอีเมล
+        const [user] = await dbQuery(
+          `SELECT u.email, u.firstname, u.lastname, c.company_name 
+           FROM users u 
+           LEFT JOIN companies_Member c ON c.MEMBER_CODE = ? 
+           WHERE u.id = ?`,
+          [addressUpdate.member_code, addressUpdate.user_id]
+        );
+        
+        if (user && user.email) {
+          await sendAddressRejectionEmail(
+            user.email,
+            user.firstname || '',
+            user.lastname || '',
+            addressUpdate.member_code || '',
+            user.company_name || addressUpdate.company_name || 'บริษัทของคุณ',
+            reason || 'ไม่ระบุเหตุผล',
+            admin.username || 'ผู้ดูแลระบบ'
+          );
+          console.log('Rejection email sent to', user.email);
+        }
+      } catch (emailError) {
+        console.error('Error sending rejection email:', emailError);
+        // ไม่ต้อง throw error เพื่อไม่ให้กระทบการทำงานหลัก
+      }
 
       return NextResponse.json({ success: true, message: 'Address update rejected successfully' });
     } catch (error) {

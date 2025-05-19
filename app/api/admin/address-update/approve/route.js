@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { query } from '@/app/lib/db';
 import { mssqlQuery } from '@/app/lib/mssql';
+import { sendAddressApprovalEmail } from '@/app/lib/mailersend';
 
 export async function POST(request) {
   try {
@@ -432,6 +433,33 @@ export async function POST(request) {
 
       // Commit transaction ใน MySQL
       await query('COMMIT');
+      
+      // ส่งอีเมลแจ้งเตือนการอนุมัติ
+      try {
+        // ดึงข้อมูลผู้ใช้และข้อมูลบริษัทเพื่อส่งอีเมล
+        const [user] = await query(
+          `SELECT u.email, u.firstname, u.lastname, c.company_name 
+           FROM users u 
+           LEFT JOIN companies_Member c ON c.MEMBER_CODE = ? 
+           WHERE u.id = ?`,
+          [member_code, user_id]
+        );
+        
+        if (user && user.email) {
+          await sendAddressApprovalEmail(
+            user.email,
+            user.firstname || '',
+            user.lastname || '',
+            addressUpdate.member_code,
+            user.company_name || addressUpdate.company_name || 'บริษัทของคุณ',
+            addressUpdate.admin_comment || 'ไม่มีคำอธิบายเพิ่มเติม'
+          );
+          console.log('Approval email sent to', user.email);
+        }
+      } catch (emailError) {
+        console.error('Error sending approval email:', emailError);
+        // ไม่ต้อง throw error เพื่อไม่ให้กระทบการทำงานหลัก
+      }
 
       return NextResponse.json({ 
         success: true, 

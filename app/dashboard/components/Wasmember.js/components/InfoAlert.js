@@ -9,25 +9,41 @@ export default function InfoAlert() {
   const [alertRef, alertInView] = useInView({ threshold: 0.1, triggerOnce: true });
   const [stepsRef, stepsInView] = useInView({ threshold: 0.1, triggerOnce: true });
   
-  // Steps data
+  // Steps data with icons instead of numbers
   const steps = [
     {
-      number: "1",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+        </svg>
+      ),
       title: "ส่งข้อมูลยืนยัน",
       description: "กรอกข้อมูลและส่งคำขอ"
     },
     {
-      number: "2",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
       title: "ตรวจสอบข้อมูล",
       description: "เจ้าหน้าที่ตรวจสอบข้อมูล"
     },
     {
-      number: "3",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+        </svg>
+      ),
       title: "อนุมัติ",
       description: "ได้รับการอนุมัติจากเจ้าหน้าที่"
     },
     {
-      number: "4",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
       title: "ตรวจสอบข้อมูล",
       description: "ในเมนู \"ข้อมูลสมาชิก\""
     }
@@ -69,7 +85,7 @@ export default function InfoAlert() {
               animate={alertInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ delay: 0.5 }}
             >
-              กรุณากรอกข้อมูลเพื่อยืนยันตัวตนและเชื่อมโยงบัญชีของคุณ เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ
+              กรุณากรอกข้อมูลเพื่อยืนยันตัวตนและเชื่อมโยงบัญชีของคุณ เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 2 วันทำการ
             </motion.p>
           </div>
         </div>
@@ -101,7 +117,7 @@ export default function InfoAlert() {
             transition={{ duration: 1, delay: 0.5 }}
           />
           
-          {/* Step items */}
+          {/* Step items with icons instead of numbers */}
           {steps.map((step, index) => (
             <motion.div 
               key={index} 
@@ -111,12 +127,12 @@ export default function InfoAlert() {
               transition={{ delay: index * 0.2 + 0.3 }}
             >
               <motion.div 
-                className="bg-blue-900 text-white rounded-full w-10 h-10 flex items-center justify-center font-bold mb-3"
+                className="bg-blue-900 text-white rounded-full w-10 h-10 flex items-center justify-center mb-3"
                 initial={{ scale: 0 }}
                 animate={stepsInView ? { scale: 1 } : { scale: 0 }}
                 transition={{ delay: index * 0.2 + 0.4 }}
               >
-                {step.number}
+                {step.icon}
               </motion.div>
               <p className="font-medium">{step.title}</p>
               <p className="text-sm text-gray-600 mt-1">{step.description}</p>

@@ -108,6 +108,7 @@ export default function EditAddressForm({
   // Initialize form data from address
   useEffect(() => {
     if (address) {
+      console.log('Address data from API:', address);
       setFormData({
         // Thai address fields
         ADDR_NO: address.ADDR_NO || '',
@@ -134,7 +135,8 @@ export default function EditAddressForm({
         ADDR_TELEPHONE_EN: address.ADDR_TELEPHONE_EN || '',
         ADDR_FAX_EN: address.ADDR_FAX_EN || '',
         ADDR_EMAIL_EN: address.ADDR_EMAIL_EN || '',
-        ADDR_WEBSITE_EN: address.ADDR_WEBSITE_EN || ''
+        // Use the same website value for both Thai and English if ADDR_WEBSITE_EN is not available
+        ADDR_WEBSITE_EN: address.ADDR_WEBSITE_EN || address.ADDR_WEBSITE || ''
       });
     }
   }, [address]);

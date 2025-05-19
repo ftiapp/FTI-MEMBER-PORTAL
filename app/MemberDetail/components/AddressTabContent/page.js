@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { FaLanguage } from 'react-icons/fa';
 
 // Import sub-components
 import AddressSelector from './components/AddressSelector';
@@ -33,6 +34,7 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [language, setLanguage] = useState('th'); // เพิ่ม state สำหรับเก็บภาษาที่เลือก (th หรือ en)
   
   // Animation variants
   const containerVariants = {
@@ -140,6 +142,31 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
         selectedAddress={selectedAddress} 
         addresses={safeAddresses} 
       />
+      
+      {/* Language Switch */}
+      {hasAddresses && selectedAddressExists && (
+        <div className="flex justify-end mb-4">
+          <div className="flex items-center space-x-2">
+            <FaLanguage className="text-blue-500 text-xl" />
+            <div className="flex bg-gray-100 rounded-lg p-1">
+              <button
+                type="button"
+                onClick={() => setLanguage('th')}
+                className={`px-3 py-1 text-sm rounded-md transition-all ${language === 'th' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-200'}`}
+              >
+                TH
+              </button>
+              <button
+                type="button"
+                onClick={() => setLanguage('en')}
+                className={`px-3 py-1 text-sm rounded-md transition-all ${language === 'en' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-200'}`}
+              >
+                EN
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <AnimatePresence mode="wait">
         {hasAddresses ? (
@@ -172,6 +199,7 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
                 memberType={memberType}
                 memberGroupCode={memberGroupCode}
                 typeCode={typeCode}
+                activeLanguage={language} /* ส่งค่า language ไปให้ EditAddressForm */
                 onCancel={() => setIsEditMode(false)}
                 onSuccess={() => {
                   setIsEditMode(false);
@@ -190,17 +218,20 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
                 
                 {/* Full address at the top */}
                 <FullAddressDisplay 
-                  address={addresses[selectedAddress]} 
+                  address={addresses[selectedAddress]}
+                  language={language}
                 />
                 
                 {/* Address information grid */}
                 <AddressDetailsGrid 
-                  address={addresses[selectedAddress]} 
+                  address={addresses[selectedAddress]}
+                  language={language}
                 />
                 
                 {/* Contact information */}
                 <ContactInfoGrid 
-                  address={addresses[selectedAddress]} 
+                  address={addresses[selectedAddress]}
+                  language={language}
                 />
               </div>
             )}

@@ -26,17 +26,44 @@ export async function fetchTsicCodes(memberCode) {
       if (data.pendingRequests && data.pendingRequests.length > 0) {
         const latestRequest = data.pendingRequests[0];
         if (latestRequest.status === 'pending') {
-          allCodes = latestRequest.tsic_data.map(code => ({
-            ...code,
-            status: 'pending'
-          }));
+          // Parse the tsic_data if it's a JSON string
+          let tsicData = latestRequest.tsic_data;
+          if (typeof tsicData === 'string') {
+            try {
+              tsicData = JSON.parse(tsicData);
+            } catch (e) {
+              console.error('Error parsing tsic_data:', e);
+              tsicData = [];
+            }
+          }
+          
+          if (Array.isArray(tsicData) && tsicData.length > 0) {
+            allCodes = tsicData.map(code => ({
+              ...code,
+              status: 'pending',
+              request_id: latestRequest.id
+            }));
+          }
         } else if (latestRequest.status === 'rejected' && allCodes.length === 0) {
           // Only show rejected if there are no approved codes
-          allCodes = latestRequest.tsic_data.map(code => ({
-            ...code,
-            status: 'rejected',
-            admin_comment: latestRequest.admin_comment
-          }));
+          let tsicData = latestRequest.tsic_data;
+          if (typeof tsicData === 'string') {
+            try {
+              tsicData = JSON.parse(tsicData);
+            } catch (e) {
+              console.error('Error parsing tsic_data:', e);
+              tsicData = [];
+            }
+          }
+          
+          if (Array.isArray(tsicData) && tsicData.length > 0) {
+            allCodes = tsicData.map(code => ({
+              ...code,
+              status: 'rejected',
+              admin_comment: latestRequest.admin_comment,
+              request_id: latestRequest.id
+            }));
+          }
         }
       }
       
@@ -131,12 +158,33 @@ export async function submitTsicUpdate(userId, memberCode, tsicCodes) {
     });
     
     const data = await response.json();
+    
+    // If response is not OK but we have data, return the data with error details
+    if (!response.ok) {
+      console.warn('TSIC update request failed:', data);
+      
+      // Handle specific error codes
+      if (data.code === 'PENDING_REQUEST_EXISTS') {
+        return {
+          success: false,
+          code: data.code,
+          message: data.message || 'มีคำขอที่รอการอนุมัติอยู่แล้ว',
+          details: data.details || {},
+          help: data.help || 'กรุณารอการอนุมัติหรือติดต่อเจ้าหน้าที่เพื่อยกเลิกคำขอเดิมก่อน'
+        };
+      }
+      
+      // Return the error data from the server
+      return data;
+    }
+    
     return data;
   } catch (error) {
     console.error('Error submitting TSIC update:', error);
     return { 
       success: false,
-      message: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์'
+      message: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์',
+      details: error.message
     };
   }
 }

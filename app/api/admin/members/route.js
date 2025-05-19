@@ -45,7 +45,7 @@ export async function GET(request) {
        FROM companies_Member cm
        JOIN users u ON cm.user_id = u.id
        WHERE cm.Admin_Submit = ?
-       ORDER BY cm.created_at DESC
+       ORDER BY cm.id DESC
        LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
       [status]
     );

@@ -2,6 +2,15 @@ import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { query } from '@/app/lib/db';
 
+// Helper function to log objects safely
+function safeLog(label, obj) {
+  try {
+    console.log(label, JSON.stringify(obj));
+  } catch (e) {
+    console.log(label, 'Error stringifying object:', e.message);
+  }
+}
+
 /**
  * API endpoint to get a list of TSIC update requests
  */
@@ -100,12 +109,37 @@ export async function GET(request) {
     let requests = [];
     try {
       const result = await query(sql, params);
+      
+      // Debug the result structure
+      safeLog('Raw query result:', result);
+      
       // MySQL returns results as [rows, fields]
-      if (result && Array.isArray(result) && result.length > 0) {
-        // Ensure we have an array of rows
-        requests = Array.isArray(result[0]) ? result[0] : [];
+      if (result && Array.isArray(result)) {
+        if (result.length > 0 && Array.isArray(result[0])) {
+          // Standard format: [rows, fields]
+          requests = result[0];
+        } else {
+          // Alternative format: just rows
+          requests = result;
+        }
       }
-      console.log('Requests found:', requests.length, requests);
+      
+      // Process each request to ensure tsic_data is properly parsed
+      requests = requests.map(req => {
+        try {
+          // If tsic_data is a string, try to parse it
+          if (req.tsic_data && typeof req.tsic_data === 'string') {
+            req.tsic_data = JSON.parse(req.tsic_data);
+          }
+        } catch (e) {
+          console.error('Error parsing tsic_data for request:', req.id, e);
+          // Keep the original string if parsing fails
+        }
+        return req;
+      });
+      
+      safeLog('Processed requests:', requests);
+      console.log('Requests found:', requests.length);
     } catch (error) {
       console.error('Error executing main query:', error);
       // Continue with empty requests array

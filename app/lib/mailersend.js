@@ -528,3 +528,161 @@ export async function sendAddressRejectionEmail(email, firstname, lastname, memb
     throw error;
   }
 }
+
+/**
+ * Send TSIC update approval email to member
+ * @param {string} email - Member's email address
+ * @param {string} firstname - Member's first name
+ * @param {string} lastname - Member's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @param {string} tsicDetails - TSIC code and description
+ * @param {string} comment - Admin comment
+ * @returns {Promise} - Promise with email sending result
+ */
+async function sendTsicApprovalEmail(email, firstname, lastname, memberCode, companyName, tsicDetails, comment = '') {
+  if (!email || !memberCode) {
+    throw new Error('Email and member code are required');
+  }
+
+  const fullName = `${firstname || ''} ${lastname || ''}`.trim();
+  const loginLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456'}/login`;
+  const dashboardLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456'}/member`;
+  
+  // Create sender
+  const defaultSender = new Sender('noreply@fti.or.th', 'สภาอุตสาหกรรมแห่งประเทศไทย');
+  
+  // Create recipients
+  const recipients = [
+    new Recipient(email, fullName)
+  ];
+
+  // Create email params
+  const emailParams = new EmailParams()
+    .setFrom(defaultSender)
+    .setTo(recipients)
+    .setSubject("คำขอแก้ไขรหัส TSIC ได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย")
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "คำขอแก้ไขรหัส TSIC ได้รับการอนุมัติแล้ว",
+      bodyContent: `
+        <p>เรียน คุณ${fullName || 'ผู้ใช้งาน'}</p>
+        
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขรหัส TSIC ของท่านได้รับการอนุมัติเรียบร้อยแล้ว</p>
+        
+        <div style="background-color: #f3f4f6; padding: 15px; border-radius: 4px; margin: 15px 0;">
+          <p style="margin: 0 0 10px 0; font-weight: bold;">รายละเอียดการอนุมัติ:</p>
+          <p style="margin: 5px 0;">หมายเลขสมาชิก: <strong>${memberCode}</strong></p>
+          <p style="margin: 5px 0;">ชื่อบริษัท: <strong>${companyName || 'ไม่ระบุ'}</strong></p>
+          <p style="margin: 5px 0;">รหัส TSIC ที่อนุมัติ: <strong>${tsicDetails || 'ไม่ระบุ'}</strong></p>
+          ${comment ? `<p style="margin: 5px 0;">ความคิดเห็นจากผู้ดูแลระบบ: <strong>${comment}</strong></p>` : ''}
+        </div>
+        
+        <p>ท่านสามารถตรวจสอบข้อมูลรหัส TSIC ที่ได้รับการอนุมัติได้จากหน้ารายละเอียดสมาชิก</p>
+        
+        <div style="margin: 25px 0; text-align: center;">
+          <a href="${loginLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่ระบบ</a>
+        </div>
+        
+        <p>หรือเข้าสู่ระบบได้ที่: <a href="${loginLink}" style="color: #1a56db; text-decoration: underline;">${loginLink}</a></p>
+        
+        <p>หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <p>โทรศัพท์: 02-345-1000<br>
+        อีเมล: <a href="mailto:member@fti.or.th" style="color: #1a56db; text-decoration: underline;">member@fti.or.th</a></p>
+      `
+    }));
+
+  try {
+    const response = await mailerSend.email.send(emailParams);
+    return response;
+  } catch (error) {
+    console.error('Error sending TSIC approval email:', error);
+    throw error;
+  }
+}
+
+/**
+ * Send TSIC update rejection email to member
+ * @param {string} email - Member's email address
+ * @param {string} firstname - Member's first name
+ * @param {string} lastname - Member's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @param {string} tsicDetails - TSIC code and description
+ * @param {string} rejectReason - Rejection reason
+ * @returns {Promise} - Promise with email sending result
+ */
+async function sendTsicRejectionEmail(email, firstname, lastname, memberCode, companyName, tsicDetails, rejectReason) {
+  if (!email || !memberCode || !rejectReason) {
+    throw new Error('Email, member code, and rejection reason are required');
+  }
+
+  const fullName = `${firstname || ''} ${lastname || ''}`.trim();
+  const loginLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456'}/login`;
+  const dashboardLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456'}/member`;
+  
+  // Create sender
+  const defaultSender = new Sender('noreply@fti.or.th', 'สภาอุตสาหกรรมแห่งประเทศไทย');
+  
+  // Create recipients
+  const recipients = [
+    new Recipient(email, fullName)
+  ];
+
+  // Create email params
+  const emailParams = new EmailParams()
+    .setFrom(defaultSender)
+    .setTo(recipients)
+    .setSubject("คำขอแก้ไขรหัส TSIC ไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย")
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "คำขอแก้ไขรหัส TSIC ไม่ได้รับการอนุมัติ",
+      bodyContent: `
+        <p>เรียน คุณ${fullName || 'ผู้ใช้งาน'}</p>
+        
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขรหัส TSIC ของท่านไม่ได้รับการอนุมัติ เนื่องจาก:</p>
+        
+        <div style="background-color: #fef2f2; border-right: 4px solid #f87171; padding: 12px 15px; margin: 15px 0; border-radius: 4px;">
+          <p style="margin: 0; color: #dc2626; font-weight: bold;">${rejectReason || 'ไม่ระบุเหตุผล'}</p>
+        </div>
+        
+        <div style="background-color: #f3f4f6; padding: 15px; border-radius: 4px; margin: 15px 0;">
+          <p style="margin: 0 0 10px 0; font-weight: bold;">รายละเอียดคำขอ:</p>
+          <p style="margin: 5px 0;">หมายเลขสมาชิก: <strong>${memberCode}</strong></p>
+          <p style="margin: 5px 0;">ชื่อบริษัท: <strong>${companyName || 'ไม่ระบุ'}</strong></p>
+          <p style="margin: 5px 0;">รหัส TSIC ที่ขอแก้ไข: <strong>${tsicDetails || 'ไม่ระบุ'}</strong></p>
+        </div>
+        
+        <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอแก้ไขรหัส TSIC ใหม่ได้จากหน้ารายละเอียดสมาชิก หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่เพื่อขอทราบเหตุผลและแนวทางแก้ไข</p>
+        
+        <div style="margin: 25px 0; text-align: center;">
+          <a href="${loginLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่ระบบ</a>
+        </div>
+        
+        <p>หรือเข้าสู่ระบบได้ที่: <a href="${loginLink}" style="color: #1a56db; text-decoration: underline;">${loginLink}</a></p>
+        
+        <p>หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <p>โทรศัพท์: 02-345-1000<br>
+        อีเมล: <a href="mailto:member@fti.or.th" style="color: #1a56db; text-decoration: underline;">member@fti.or.th</a></p>
+      `
+    }));
+
+  try {
+    const response = await mailerSend.email.send(emailParams);
+    return response;
+  } catch (error) {
+    console.error('Error sending TSIC rejection email:', error);
+    throw error;
+  }
+}
+
+// Add the new functions to the service
+const mailerSendService = {
+  sendVerificationEmail,
+  sendNewEmailVerification,
+  sendPasswordResetEmail,
+  sendApprovalEmail,
+  sendRejectionEmail,
+  sendAddressApprovalEmail,
+  sendAddressRejectionEmail,
+  sendTsicApprovalEmail,
+  sendTsicRejectionEmail
+};

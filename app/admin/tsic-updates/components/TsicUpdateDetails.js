@@ -21,6 +21,9 @@ export default function TsicUpdateDetails({
       tsicData = JSON.parse(request.tsic_data);
     } else if (Array.isArray(request.tsic_data)) {
       tsicData = request.tsic_data;
+    } else if (request.tsic_data && typeof request.tsic_data === 'object') {
+      // It might already be a parsed object
+      tsicData = request.tsic_data;
     } else {
       console.error('Unexpected TSIC data format in details component');
     }
