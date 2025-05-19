@@ -7,8 +7,8 @@ import { th } from 'date-fns/locale';
 
 export default function RequestDetail({ 
   selectedRequest, 
-  comment, 
-  setComment, 
+  adminNotes,
+  setAdminNotes,
   isProcessing, 
   handleApprove, 
   onRejectClick 
@@ -302,16 +302,16 @@ export default function RequestDetail({
       {selectedRequest.status === 'pending' && (
         <div className="p-4">
           <div className="mb-4">
-            <label htmlFor="comment" className="block text-sm font-medium text-gray-700 mb-1">
-              หมายเหตุ (ไม่บังคับ)
+            <label htmlFor="adminNotes" className="block text-sm font-medium text-gray-700 mb-1">
+              บันทึกช่วยจำ (เฉพาะเจ้าหน้าที่)
             </label>
             <textarea
-              id="comment"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="2"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              placeholder="เพิ่มหมายเหตุเกี่ยวกับการอนุมัติหรือปฏิเสธ"
+              id="adminNotes"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-yellow-50"
+              rows="3"
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              placeholder="บันทึกช่วยจำสำหรับเจ้าหน้าที่ (เฉพาะแอดมินเท่านั้นที่จะเห็นข้อความนี้)"
             />
           </div>
           
@@ -355,9 +355,14 @@ export default function RequestDetail({
           <p className="text-sm text-gray-600">
             <span className="font-medium">วันที่ดำเนินการ:</span> {formatDate(selectedRequest.processed_date)}
           </p>
+          {selectedRequest.admin_notes && (
+            <p className="text-sm text-gray-600 mt-1 bg-yellow-50 p-2 border border-yellow-200 rounded">
+              <span className="font-medium">บันทึกช่วยจำ (เฉพาะเจ้าหน้าที่):</span> {selectedRequest.admin_notes}
+            </p>
+          )}
           {selectedRequest.admin_comment && (
-            <p className="text-sm text-gray-600 mt-1">
-              <span className="font-medium">หมายเหตุจากผู้ดูแลระบบ:</span> {selectedRequest.admin_comment}
+            <p className="text-sm text-gray-600 mt-1 bg-red-50 p-2 border border-red-200 rounded">
+              <span className="font-medium">เหตุผลที่ปฏิเสธ:</span> {selectedRequest.admin_comment}
             </p>
           )}
         </div>

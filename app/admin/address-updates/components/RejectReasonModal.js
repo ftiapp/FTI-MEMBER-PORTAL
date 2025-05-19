@@ -6,6 +6,8 @@ export default function RejectReasonModal({
   isVisible,
   rejectReason,
   setRejectReason,
+  adminNotes,
+  setAdminNotes,
   onCancel,
   onConfirm,
   isProcessing
@@ -48,6 +50,20 @@ export default function RejectReasonModal({
               {rejectReason.trim() === '' && (
                 <p className="mt-1 text-sm text-red-600">กรุณาระบุเหตุผลในการปฏิเสธ</p>
               )}
+            </div>
+            
+            <div className="mb-4">
+              <label htmlFor="adminNotes" className="block text-sm font-medium text-gray-700 mb-1">
+                บันทึกช่วยจำ (เฉพาะเจ้าหน้าที่)
+              </label>
+              <textarea
+                id="adminNotes"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-yellow-50"
+                rows="3"
+                value={adminNotes}
+                onChange={(e) => setAdminNotes(e.target.value)}
+                placeholder="บันทึกช่วยจำสำหรับเจ้าหน้าที่ (เฉพาะแอดมินเท่านั้นที่จะเห็นข้อความนี้)"
+              />
             </div>
             
             <div className="flex justify-end space-x-3">

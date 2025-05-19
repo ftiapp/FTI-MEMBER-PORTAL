@@ -12,7 +12,7 @@ export async function POST(request) {
     }
 
     // รับข้อมูลจาก request body
-    const { id, reason } = await request.json();
+    const { id, reason, admin_notes } = await request.json();
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Missing required field: id' },
@@ -57,8 +57,8 @@ export async function POST(request) {
     try {
       // อัปเดตสถานะคำขอเป็น 'rejected' พร้อมเหตุผล
       await dbQuery(
-        'UPDATE pending_address_updates SET status = "rejected", processed_date = NOW(), admin_comment = ? WHERE id = ?',
-        [reason, id]
+        'UPDATE pending_address_updates SET status = "rejected", processed_date = NOW(), admin_comment = ?, admin_notes = ? WHERE id = ?',
+        [reason, admin_notes || "", id]
       );
 
       // บันทึกการกระทำของ admin

@@ -72,6 +72,7 @@ export async function GET(request) {
         pau.processed_date,
         pau.status,
         pau.admin_comment,
+        pau.admin_notes,
         cm.COMPANY_NAME as company_name,
         u.name,
         u.firstname,

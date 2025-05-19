@@ -13,7 +13,7 @@ export async function POST(request) {
     }
 
     // รับข้อมูลจาก request body
-    const { id } = await request.json();
+    const { id, admin_notes } = await request.json();
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Missing required field: id' },
@@ -302,8 +302,8 @@ export async function POST(request) {
 
       // 3. อัปเดตสถานะคำขอเป็น 'approved' ใน MySQL
       await query(
-        'UPDATE pending_address_updates SET status = "approved", processed_date = NOW(), admin_comment = "Approved" WHERE id = ?',
-        [id]
+        'UPDATE pending_address_updates SET status = "approved", processed_date = NOW(), admin_notes = ? WHERE id = ?',
+        [admin_notes || "", id]
       );
 
       // 4. ตรวจสอบโครงสร้างตาราง companies_Member ก่อนที่จะพยายามอัปเดตข้อมูล

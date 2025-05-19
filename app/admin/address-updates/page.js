@@ -15,7 +15,7 @@ export default function AddressUpdatesPage() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedRequest, setSelectedRequest] = useState(null);
-  const [comment, setComment] = useState('');
+  const [adminNotes, setAdminNotes] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
@@ -125,7 +125,7 @@ export default function AddressUpdatesPage() {
   
   const handleViewRequest = (request) => {
     setSelectedRequest(request);
-    setComment('');
+    setAdminNotes('');
     setRejectReason('');
   };
   
@@ -141,7 +141,7 @@ export default function AddressUpdatesPage() {
         },
         body: JSON.stringify({
           id: selectedRequest.id,
-          comment: comment
+          admin_notes: adminNotes
         })
       });
       
@@ -176,7 +176,7 @@ export default function AddressUpdatesPage() {
         body: JSON.stringify({
           id: selectedRequest.id,
           reason: rejectReason,
-          comment: comment
+          admin_notes: adminNotes
         })
       });
       
@@ -413,8 +413,8 @@ export default function AddressUpdatesPage() {
               {/* Request Details */}
               <RequestDetail 
                 selectedRequest={selectedRequest}
-                comment={comment}
-                setComment={setComment}
+                adminNotes={adminNotes}
+                setAdminNotes={setAdminNotes}
                 isProcessing={isProcessing}
                 handleApprove={handleApprove}
                 onRejectClick={() => setShowRejectModal(true)}
@@ -429,6 +429,8 @@ export default function AddressUpdatesPage() {
         isVisible={showRejectModal}
         rejectReason={rejectReason}
         setRejectReason={setRejectReason}
+        adminNotes={adminNotes}
+        setAdminNotes={setAdminNotes}
         onCancel={() => setShowRejectModal(false)}
         onConfirm={handleReject}
         isProcessing={isProcessing}
