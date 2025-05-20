@@ -73,6 +73,7 @@ export async function GET(request) {
         pau.status,
         pau.admin_comment,
         pau.admin_notes,
+        pau.document_url,
         cm.COMPANY_NAME as company_name,
         u.name,
         u.firstname,

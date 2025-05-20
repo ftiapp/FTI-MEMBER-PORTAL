@@ -37,10 +37,10 @@ export async function GET(request) {
       GROUP BY status
     `);
 
-    // ดึงข้อมูลล่าสุด 5 รายการ
-    const [recentRecords] = await query(`
+    // ดึงข้อมูลล่าสุด 5 รายการ พร้อม document_url
+    const recentRecords = await query(`
       SELECT id, user_id, member_code, member_type, member_group_code, 
-             type_code, addr_code, request_date, status
+             type_code, addr_code, request_date, status, document_url
       FROM pending_address_updates
       ORDER BY request_date DESC
       LIMIT 5

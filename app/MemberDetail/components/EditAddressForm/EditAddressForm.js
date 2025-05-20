@@ -13,7 +13,8 @@ import {
   ErrorMessage, 
   ThaiAddressFields, 
   EnglishAddressFields, 
-  ContactFields 
+  ContactFields,
+  DocumentUpload
 } from './components';
 
 /**
@@ -90,10 +91,19 @@ export default function EditAddressForm({
   // State to track which language tab is active - default to 'th'
   const [activeLanguage, setActiveLanguage] = useState('th');
   
+  // State for document file
+  const [documentFile, setDocumentFile] = useState(null);
+  
   // Log when language changes
   const handleLanguageChange = (lang) => {
     console.log('Language changed to:', lang);
     setActiveLanguage(lang);
+  };
+  
+  // Handle document file change
+  const handleDocumentChange = (file) => {
+    console.log('Document file changed:', file);
+    setDocumentFile(file);
   };
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -166,6 +176,15 @@ export default function EditAddressForm({
       return;
     }
     
+    // ตรวจสอบว่าต้องแนบเอกสารหรือไม่
+    const requiresDocument = addrCode === '001' || addrCode === '003';
+    if (requiresDocument && !documentFile) {
+      const documentType = addrCode === '001' ? 'หนังสือรับรองนิติบุคคลจากกระทรวงพาณิชย์' : 'ใบทะเบียนภาษีมูลค่าเพิ่ม (แบบ ภ.พ.20)';
+      setErrorMessage(`กรุณาแนบไฟล์ ${documentType}`);
+      setIsSubmitting(false);
+      return;
+    }
+    
     try {
       // แยกข้อมูลตามภาษาที่เลือก
       let filteredFormData = {};
@@ -221,6 +240,47 @@ export default function EditAddressForm({
       
       // Debug request data
       console.log('Request data sent to API:', JSON.stringify(requestData, null, 2));
+      
+      let documentUrl = null;
+      
+      // Upload document if needed
+      if (documentFile) {
+        console.log('Uploading document file:', documentFile.name);
+        
+        try {
+          // Create FormData for file upload
+          const formData = new FormData();
+          formData.append('file', documentFile);
+          formData.append('folder', `address_documents/${addrCode}`);
+          formData.append('userId', user.id);
+          
+          // Upload file to server via API
+          const uploadResponse = await fetch('/api/upload/document', {
+            method: 'POST',
+            body: formData,
+          });
+          
+          const uploadResult = await uploadResponse.json();
+          
+          if (!uploadResponse.ok || !uploadResult.success) {
+            console.error('Document upload failed:', uploadResult.message || 'Unknown error');
+            setErrorMessage(uploadResult.message || 'เกิดข้อผิดพลาดในการอัปโหลดเอกสาร');
+            setIsSubmitting(false);
+            return;
+          }
+          
+          documentUrl = uploadResult.url;
+          console.log('Document uploaded successfully:', documentUrl);
+          
+          // Add document URL to request data
+          requestData.documentUrl = documentUrl;
+        } catch (uploadError) {
+          console.error('Error during document upload:', uploadError);
+          setErrorMessage('เกิดข้อผิดพลาดในการอัปโหลดเอกสาร: ' + (uploadError.message || 'ไม่ทราบสาเหตุ'));
+          setIsSubmitting(false);
+          return;
+        }
+      }
       
       // Call API to submit address update request
       const response = await fetch('/api/member/request-address-update', {
@@ -342,6 +402,13 @@ export default function EditAddressForm({
           handleChange={handleChange} 
           itemVariants={itemVariants} 
           activeLanguage={activeLanguage} 
+        />
+        
+        {/* Document Upload */}
+        <DocumentUpload
+          addrCode={addrCode}
+          onFileChange={handleDocumentChange}
+          itemVariants={itemVariants}
         />
       </div>
     </motion.form>

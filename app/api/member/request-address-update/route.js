@@ -22,7 +22,7 @@ export async function POST(request) {
     }
     
     // Validate required fields
-    const { memberCode, compPersonCode, registCode, memberType, memberGroupCode, typeCode, addrCode, addrLang, originalAddress, newAddress } = body;
+    const { memberCode, compPersonCode, registCode, memberType, memberGroupCode, typeCode, addrCode, addrLang, originalAddress, newAddress, documentUrl } = body;
     
     // Debug received data
     console.log('Received data in API:', {
@@ -34,7 +34,8 @@ export async function POST(request) {
       typeCode,
       addrCode,
       addrLang,
-      userId
+      userId,
+      documentUrl
     });
     
     // ข้ามการตรวจสอบข้อมูลทั้งหมดเพื่อแก้ปัญหาการส่งคำขอแก้ไขที่อยู่
@@ -117,9 +118,9 @@ export async function POST(request) {
       return NextResponse.json({ success: false, message: 'ไม่พบข้อมูลผู้ใช้ในระบบ' }, { status: 403 });
     }
     
-    // Only allow editing of ADDR_CODE 001 and 002
-    if (addrCodeValue !== '001' && addrCodeValue !== '002') {
-      return NextResponse.json({ success: false, message: 'สามารถแก้ไขได้เฉพาะที่อยู่สำหรับติดต่อ (001) และที่อยู่สำหรับจัดส่งเอกสาร (002) เท่านั้น' }, { status: 400 });
+    // Only allow editing of ADDR_CODE 001, 002, and 003
+    if (addrCodeValue !== '001' && addrCodeValue !== '002' && addrCodeValue !== '003') {
+      return NextResponse.json({ success: false, message: 'สามารถแก้ไขได้เฉพาะที่อยู่สำหรับติดต่อ (001), ที่อยู่สำหรับจัดส่งเอกสาร (002) และที่อยู่สำหรับออกใบกำกับภาษี (003) เท่านั้น' }, { status: 400 });
     }
     
     // Check if user already has a pending request for this address
@@ -201,11 +202,12 @@ export async function POST(request) {
         old_address, 
         new_address, 
         request_date, 
-        status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'pending')
+        status,
+        document_url
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), 'pending', ?)
     `;
     
-    const insertResult = await query(insertQuery, [userId, memberCodeValue, compPersonCodeValue, registCodeValue, memberTypeValue, memberGroupCodeValue, typeCodeValue, addrCodeValue, addrLangValue, oldAddressJson, newAddressJson]);
+    const insertResult = await query(insertQuery, [userId, memberCodeValue, compPersonCodeValue, registCodeValue, memberTypeValue, memberGroupCodeValue, typeCodeValue, addrCodeValue, addrLangValue, oldAddressJson, newAddressJson, documentUrl || null]);
     
     const updateRequestId = insertResult.insertId;
     

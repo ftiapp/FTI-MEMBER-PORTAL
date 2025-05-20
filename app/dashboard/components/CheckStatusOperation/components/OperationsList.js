@@ -291,7 +291,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
         .map(update => ({
           id: update.id,
           title: 'แก้ไขข้อมูลสมาชิก',
-          description: `คำขอแก้ไขที่อยู่: ${update.company_name || update.member_code} (${update.addr_code})`,
+          description: `คำขอแก้ไขที่อยู่: ${update.company_name || update.member_code} (${update.addr_code === '001' ? 'ที่อยู่สำหรับติดต่อ (ทะเบียน)' : update.addr_code === '002' ? 'ที่อยู่สำหรับจัดส่งเอกสาร' : update.addr_code === '003' ? 'ที่อยู่สำหรับออกใบกำกับภาษี' : update.addr_code})`,
           status: update.status,
           created_at: update.request_date,
           reason: update.admin_comment,

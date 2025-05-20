@@ -91,6 +91,18 @@ export default function RequestDetail({
     return addressTypeMap[addrCode] || `ที่อยู่รหัส ${addrCode}`;
   };
   
+  // Document type based on address code
+  const getDocumentType = (addrCode) => {
+    switch (addrCode) {
+      case '001':
+        return 'หนังสือรับรองนิติบุคคลจากกระทรวงพาณิชย์';
+      case '003':
+        return 'ใบทะเบียนภาษีมูลค่าเพิ่ม (แบบ ภ.พ.20)';
+      default:
+        return 'เอกสารแนบ';
+    }
+  };
+
   // Format full address
   const formatFullAddress = (address) => {
     if (!address) return 'ไม่มีข้อมูล';
@@ -215,6 +227,47 @@ export default function RequestDetail({
           </div>
         </div>
       </div>
+      
+      {/* Document Display Section */}
+      {(selectedRequest.addr_code === '001' || selectedRequest.addr_code === '003') && (
+        <div className="p-4 border-b">
+          <h3 className="font-bold text-lg mb-2">เอกสารแนบ</h3>
+   
+          
+          {selectedRequest.document_url ? (
+            <div className="flex flex-col">
+              <p className="text-sm text-gray-600 mb-2">{getDocumentType(selectedRequest.addr_code)}</p>
+              <div className="flex items-center space-x-3">
+                <a 
+                  href={selectedRequest.document_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 inline-flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  ดูเอกสาร
+                </a>
+                {/*
+                <a 
+                  href={selectedRequest.document_url} 
+                  download
+                  className="px-4 py-2 bg-green-50 text-green-600 rounded-md hover:bg-green-100 inline-flex items-center"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  ดาวน์โหลด
+                </a> */}
+              </div>
+            </div>
+          ) : (
+            <p className="text-red-500">ไม่พบเอกสารแนบ</p>
+          )}
+        </div>
+      )}
       
       {/* Address Comparison Tabs */}
       <div className="border-b">

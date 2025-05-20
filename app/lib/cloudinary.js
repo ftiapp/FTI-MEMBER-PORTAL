@@ -4,11 +4,25 @@ import { v2 as cloudinary } from 'cloudinary';
 import sharp from 'sharp';
 
 // Configure Cloudinary
-cloudinary.config({
+const cloudinaryConfig = {
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET
+};
+
+// Default folder for uploads
+const DEFAULT_FOLDER = process.env.CLOUDINARY_FOLDER || 'FTI_Portal-Document';
+
+// Log Cloudinary configuration (without secrets)
+console.log('Cloudinary configuration:', {
+  cloud_name: cloudinaryConfig.cloud_name,
+  api_key: cloudinaryConfig.api_key ? '***' : undefined,
+  api_secret: cloudinaryConfig.api_secret ? '***' : undefined,
+  folder: DEFAULT_FOLDER,
+  configured: !!(cloudinaryConfig.cloud_name && cloudinaryConfig.api_key && cloudinaryConfig.api_secret)
 });
+
+cloudinary.config(cloudinaryConfig);
 
 /**
  * Upload a file to Cloudinary
@@ -17,7 +31,7 @@ cloudinary.config({
  * @param {string} folder - Cloudinary folder to store the file in
  * @returns {Promise<Object>} - Upload result
  */
-export async function uploadToCloudinary(fileBuffer, fileName, folder = process.env.CLOUDINARY_FOLDER) {
+export async function uploadToCloudinary(fileBuffer, fileName, folder = DEFAULT_FOLDER) {
   try {
     // Determine the correct MIME type based on file extension
     const fileExt = fileName.split('.').pop().toLowerCase();
@@ -25,11 +39,10 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
     let processedBuffer = fileBuffer;
     
     // Set appropriate MIME type for common document types
-    if (fileExt === 'pdf') mimeType = 'application/pdf';
-    else if (['doc', 'docx'].includes(fileExt)) mimeType = 'application/msword';
-    else if (['xls', 'xlsx'].includes(fileExt)) mimeType = 'application/vnd.ms-excel';
-    else if (fileExt === 'txt') mimeType = 'text/plain';
-    else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+    if (fileExt === 'pdf') {
+      mimeType = 'application/pdf';
+      console.log('Processing PDF file:', fileName);
+    } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
       // Process images to reduce size and resolution
       try {
         console.log(`Processing image: ${fileName} (${fileBuffer.length} bytes)`);
@@ -64,6 +77,8 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
     const dataURI = `data:${mimeType};base64,${base64Data}`;
     
     // Upload to Cloudinary
+    console.log(`Uploading to Cloudinary: ${fileName}, folder: ${folder}, mime: ${mimeType}`);
+    
     const result = await new Promise((resolve, reject) => {
       // Special handling for PDFs to ensure they're viewable
       const options = {
@@ -78,7 +93,7 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
       if (fileExt === 'pdf') {
         options.resource_type = 'auto';
         options.format = 'pdf';
-        // ไม่ต้องใช้ flags attachment เพราะจะทำให้ไม่สามารถเปิดดูได้โดยตรง
+        console.log('Using PDF-specific upload options');
       } else if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
         // For images, set optimization options
         options.format = 'jpg'; // Force JPEG format for all images
@@ -88,9 +103,9 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
         options.transformation = [
           { width: 1280, height: 1280, crop: 'limit' } // Limit dimensions
         ];
-      } else {
-        options.format = fileExt; // Explicitly set the format based on file extension
       }
+      
+      console.log('Cloudinary upload options:', { ...options, folder: options.folder });
       
       cloudinary.uploader.upload(
         dataURI,
@@ -100,6 +115,11 @@ export async function uploadToCloudinary(fileBuffer, fileName, folder = process.
             console.error('Cloudinary upload error:', error);
             reject(error);
           } else {
+            console.log('Cloudinary upload success:', { 
+              url: result.secure_url,
+              public_id: result.public_id,
+              format: result.format
+            });
             resolve(result);
           }
         }

@@ -64,8 +64,8 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   const hasAddresses = addresses && Object.keys(addresses).length > 0;
   const selectedAddressExists = hasAddresses && selectedAddress && addresses[selectedAddress];
   
-  // Check if address is editable (only 001 and 002 can be edited)
-  const isEditable = selectedAddress === '001' || selectedAddress === '002';
+  // Check if address is editable (001, 002, and 003 can be edited)
+  const isEditable = selectedAddress === '001' || selectedAddress === '002' || selectedAddress === '003';
 
   // Check if there's a pending address update request
   const checkPendingRequest = async (lang = 'th') => {
