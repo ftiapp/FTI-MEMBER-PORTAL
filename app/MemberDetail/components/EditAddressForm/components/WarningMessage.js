@@ -14,7 +14,7 @@ export default function WarningMessage({ itemVariants }) {
     >
       <div className="flex items-center">
         <FaExclamationTriangle className="mr-2 text-blue-500" />
-        <p>การแก้ไขที่อยู่จะได้รับการตรวจสอบและอนุมัติจากผู้ดูแลระบบ ภายใน 1-2 วันทำการ</p>
+        <p>การแก้ไขที่อยู่จะได้รับการตรวจสอบและอนุมัติจากผู้ดูแลระบบ ภายใน 2 วันทำการ</p>
       </div>
     </motion.div>
   );

@@ -9,3 +9,4 @@ export { default as ThaiAddressFields } from './ThaiAddesssFields';
 export { default as EnglishAddressFields } from './EnglishAddressFields';
 export { default as ContactFields } from './ContactFields';
 export { default as DocumentUpload } from './DocumentUpload';
+export { default as StepIndicator } from './StepIndicator';

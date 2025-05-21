@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast, Toaster } from 'react-hot-toast';
-import { FaSpinner, FaExclamationCircle } from 'react-icons/fa';
+import { FaSpinner, FaExclamationCircle, FaEdit, FaSave, FaTimes } from 'react-icons/fa';
+import ProfileStepIndicator from './ProfileStepIndicator';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function UpdateMember() {
@@ -23,6 +24,8 @@ export default function UpdateMember() {
   const [updateStatus, setUpdateStatus] = useState(null);
   const [requestsToday, setRequestsToday] = useState(0);
   const [limitLoading, setLimitLoading] = useState(true);
+  const [editMode, setEditMode] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   useEffect(() => {
     if (user?.id) {
@@ -124,6 +127,20 @@ export default function UpdateMember() {
     return true;
   };
 
+  // Toggle edit mode on/off
+  const toggleEditMode = () => {
+    if (editMode) {
+      // If canceling edit, reset form data to original values
+      setFormData({
+        ...formData,
+        firstName: originalData.firstName,
+        lastName: originalData.lastName
+      });
+      setCurrentStep(1);
+    }
+    setEditMode(!editMode);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -131,37 +148,65 @@ export default function UpdateMember() {
       toast.error('คุณได้ส่งคำขอครบจำนวนสูงสุดในวันนี้แล้ว กรุณารอวันถัดไป');
       return;
     }
-    setSubmitting(true);
-    try {
-      const response = await fetch('/api/user/update-profile', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: user.id,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: originalData.email,
-          phone: originalData.phone
-        }),
-      });
+    
+    // Move to step 2 (confirmation) before submitting
+    setCurrentStep(2);
+    
+    // If user confirms, proceed with submission
+    if (currentStep === 2) {
+      setSubmitting(true);
+      try {
+        const response = await fetch('/api/user/update-profile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            email: originalData.email,
+            phone: originalData.phone
+          }),
+        });
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (response.ok) {
-        toast.success('ส่งคำขอแก้ไขข้อมูลสำเร็จ รอการอนุมัติจากผู้ดูแลระบบ');
-        fetchUpdateStatus();
-        setRequestsToday(r => r + 1);
-      } else {
-        toast.error(data.error || 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+        if (response.ok) {
+          toast.success('ส่งคำขอแก้ไขข้อมูลสำเร็จ รอการอนุมัติจากผู้ดูแลระบบ');
+          fetchUpdateStatus();
+          setRequestsToday(r => r + 1);
+          setCurrentStep(3);
+          setEditMode(false);
+        } else {
+          toast.error(data.error || 'เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+          setCurrentStep(1);
+        }
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
+        setCurrentStep(1);
+      } finally {
+        setSubmitting(false);
       }
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      toast.error('เกิดข้อผิดพลาดในการแก้ไขข้อมูล');
-    } finally {
-      setSubmitting(false);
     }
+  };
+  
+  // Handle confirmation of profile update
+  const handleConfirmUpdate = async () => {
+    setCurrentStep(3);
+    await handleSubmit({ preventDefault: () => {} });
+  };
+  
+  // Cancel update and return to step 1
+  const handleCancelUpdate = () => {
+    setCurrentStep(1);
+    setFormData({
+      ...formData,
+      firstName: originalData.firstName,
+      lastName: originalData.lastName
+    });
+    setEditMode(false);
   };
 
   const getStatusBadge = () => {
@@ -196,6 +241,91 @@ export default function UpdateMember() {
     }
     
     return null;
+  };
+  
+  // Render confirmation step content
+  const renderConfirmationStep = () => {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-6"
+      >
+        <h3 className="text-lg font-semibold text-blue-800 mb-4">ยืนยันการแก้ไขข้อมูล</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <p className="text-sm text-gray-500">ชื่อเดิม</p>
+            <p className="font-medium">{originalData.firstName}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">ชื่อใหม่</p>
+            <p className="font-medium text-blue-600">{formData.firstName}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">นามสกุลเดิม</p>
+            <p className="font-medium">{originalData.lastName}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">นามสกุลใหม่</p>
+            <p className="font-medium text-blue-600">{formData.lastName}</p>
+          </div>
+        </div>
+        <div className="flex justify-end space-x-4">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleCancelUpdate}
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+            disabled={submitting}
+          >
+            <span className="flex items-center">
+              <FaTimes className="mr-2" /> ยกเลิก
+            </span>
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleConfirmUpdate}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+            disabled={submitting}
+          >
+            {submitting ? (
+              <span className="flex items-center">
+                <motion.span
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  className="inline-block mr-2"
+                >
+                  <FaSpinner size={16} />
+                </motion.span>
+                กำลังส่งข้อมูล...
+              </span>
+            ) : (
+              <span className="flex items-center">
+                <FaSave className="mr-2" /> ยืนยันการแก้ไข
+              </span>
+            )}
+          </motion.button>
+        </div>
+      </motion.div>
+    );
+  };
+  
+  // Render final step (waiting for admin approval)
+  const renderFinalStep = () => {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="bg-green-50 p-6 rounded-lg border border-green-200 mb-6"
+      >
+        <h3 className="text-lg font-semibold text-green-800 mb-4">ส่งคำขอแก้ไขข้อมูลสำเร็จ</h3>
+        <p className="mb-4">คำขอแก้ไขข้อมูลของคุณได้ถูกส่งไปยังผู้ดูแลระบบเรียบร้อยแล้ว</p>
+        <p className="text-sm text-gray-600">ผู้ดูแลระบบจะดำเนินการตรวจสอบและอนุมัติคำขอภายใน 2 วันทำการ</p>
+      </motion.div>
+    );
   };
   
   // Handle retry when loading failed
@@ -302,8 +432,19 @@ export default function UpdateMember() {
         transition={{ duration: 0.5, delay: 0.2 }}
         className="bg-white rounded-xl shadow-md p-6"
       >
+        {/* Step Indicator */}
+        {(editMode || currentStep > 1 || updateStatus?.status === 'pending') && (
+          <ProfileStepIndicator currentStep={updateStatus?.status === 'pending' ? 3 : currentStep} />
+        )}
+        
+        {/* Show confirmation step if we're on step 2 */}
+        {currentStep === 2 && renderConfirmationStep()}
+        
+        {/* Show final step if we're on step 3 */}
+        {currentStep === 3 && !updateStatus?.status === 'pending' && renderFinalStep()}
+        
         {getStatusBadge()}
-        {/* ส่วนที่ 1: ชื่อ - นามสกุล พร้อมปุ่มส่งคำขอแก้ไข */}
+        {/* ส่วนที่ 1: ชื่อ - นามสกุล พร้อมปุ่มแก้ไข */}
         <motion.form 
           onSubmit={handleSubmit} 
           className="space-y-6"
@@ -316,17 +457,20 @@ export default function UpdateMember() {
                 transition={{ duration: 0.5, delay: 0.3 }}
               >
                 <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">ชื่อ</label>
-                <motion.input
-                  whileFocus={{ scale: 1.01, boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
-                  placeholder="ชื่อ"
-                  disabled={updateStatus?.status === 'pending'}
-                />
+                <div className="relative">
+                  <motion.input
+                    whileFocus={{ scale: 1.01, boxShadow: "0 0 0 2px rgba(59, 130, 246, 0.5)" }}
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200 ${!editMode ? 'bg-gray-50' : ''}`}
+                    placeholder="ชื่อ"
+                    disabled={!editMode || updateStatus?.status === 'pending'}
+                    readOnly={!editMode || updateStatus?.status === 'pending'}
+                  />
+                </div>
               </motion.div>
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -341,9 +485,10 @@ export default function UpdateMember() {
                   name="lastName"
                   value={formData.lastName}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200"
+                  className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 transition-all duration-200 ${!editMode ? 'bg-gray-50' : ''}`}
                   placeholder="นามสกุล"
-                  disabled={updateStatus?.status === 'pending'}
+                  disabled={!editMode || updateStatus?.status === 'pending'}
+                  readOnly={!editMode || updateStatus?.status === 'pending'}
                 />
               </motion.div>
             </div>
@@ -353,26 +498,54 @@ export default function UpdateMember() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                type="submit"
-                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={submitting || updateStatus?.status === 'pending'}
-              >
-                {submitting ? (
-                  <span className="flex items-center">
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                      className="inline-block mr-2"
-                    >
-                      <FaSpinner size={16} />
-                    </motion.span>
-                    กำลังส่งข้อมูล...
-                  </span>
-                ) : 'ส่งคำขอแก้ไข'}
-              </motion.button>
+              {!editMode ? (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={toggleEditMode}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  disabled={updateStatus?.status === 'pending'}
+                >
+                  <FaEdit className="mr-2" /> แก้ไขข้อมูล
+                </motion.button>
+              ) : (
+                <div className="flex space-x-3">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="button"
+                    onClick={toggleEditMode}
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
+                  >
+                    <FaTimes className="mr-2" /> ยกเลิก
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    type="submit"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                    disabled={submitting}
+                  >
+                    {submitting ? (
+                      <span className="flex items-center">
+                        <motion.span
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                          className="inline-block mr-2"
+                        >
+                          <FaSpinner size={16} />
+                        </motion.span>
+                        กำลังส่งข้อมูล...
+                      </span>
+                    ) : (
+                      <span className="flex items-center">
+                        <FaSave className="mr-2" /> บันทึกข้อมูล
+                      </span>
+                    )}
+                  </motion.button>
+                </div>
+              )}
             </motion.div>
           </div>
         </motion.form>

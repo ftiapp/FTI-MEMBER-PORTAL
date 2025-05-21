@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaCheckCircle } from 'react-icons/fa';
+import { FaCheckCircle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 // Import components
@@ -14,7 +14,8 @@ import {
   ThaiAddressFields, 
   EnglishAddressFields, 
   ContactFields,
-  DocumentUpload
+  DocumentUpload,
+  StepIndicator
 } from './components';
 
 /**
@@ -59,6 +60,8 @@ export default function EditAddressForm({
   }, [address, addrCode, memberCode, compPersonCode, registCode, memberType, memberGroupCode, typeCode]);
   
   const { user } = useAuth();
+  // State to track current step
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     // Thai address fields
     ADDR_NO: '',
@@ -329,6 +332,53 @@ export default function EditAddressForm({
     visible: { opacity: 1, y: 0 }
   };
   
+  // Check if document step should be skipped (for address type 002)
+  const skipDocumentStep = addrCode === '002';
+  
+  // Get max step based on address type
+  const maxStep = skipDocumentStep ? 3 : 4;
+  
+  // Handle next step
+  const handleNextStep = () => {
+    // Validate current step before proceeding
+    if (currentStep === 1) {
+      // Basic validation for step 1 (form data)
+      if (!formData.ADDR_NO || !formData.ADDR_DISTRICT || !formData.ADDR_PROVINCE_NAME) {
+        setErrorMessage('กรุณากรอกข้อมูลที่อยู่ให้ครบถ้วน');
+        return;
+      }
+      
+      // For address type 002, skip to step 3 (which is actually step 2 in the UI)
+      if (skipDocumentStep) {
+        setCurrentStep(2); // Skip to confirmation step
+        return;
+      }
+    } else if (currentStep === 2 && !skipDocumentStep) {
+      // Validate document upload for step 2 (only for address types 001 and 003)
+      const requiresDocument = addrCode === '001' || addrCode === '003';
+      if (requiresDocument && !documentFile) {
+        const documentType = addrCode === '001' ? 'หนังสือรับรองนิติบุคคลจากกระทรวงพาณิชย์' : 'ใบทะเบียนภาษีมูลค่าเพิ่ม (แบบ ภ.พ.20)';
+        setErrorMessage(`กรุณาแนบไฟล์ ${documentType}`);
+        return;
+      }
+    }
+
+    // Clear any error messages
+    setErrorMessage('');
+    
+    // Move to next step
+    if (currentStep < maxStep) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  // Handle previous step
+  const handlePrevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   // If success, show success message
   if (submitSuccess) {
     return <SuccessMessage />;
@@ -336,21 +386,33 @@ export default function EditAddressForm({
   
   return (
     <motion.form
-      onSubmit={handleSubmit}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (currentStep === 3) {
+          handleSubmit(e);
+        } else {
+          handleNextStep();
+        }
+      }}
       className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
       variants={formVariants}
       initial="hidden"
       animate="visible"
     >
-      {/* Form Header with language tabs */}
-      <AddressFormHeader 
-        addrCode={addrCode}
-        activeLanguage={activeLanguage}
-        handleLanguageChange={handleLanguageChange}
-        onCancel={onCancel}
-        isSubmitting={isSubmitting}
-        onSubmit={handleSubmit}
-      />
+      {/* Step Indicator */}
+      <StepIndicator currentStep={currentStep} addrCode={addrCode} />
+      
+      {/* Form Header with language tabs - only show in step 1 */}
+      {currentStep === 1 && (
+        <AddressFormHeader 
+          addrCode={addrCode}
+          activeLanguage={activeLanguage}
+          handleLanguageChange={handleLanguageChange}
+          onCancel={onCancel}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+        />
+      )}
       
       {/* Error Message */}
       <ErrorMessage message={errorMessage} />
@@ -370,46 +432,226 @@ export default function EditAddressForm({
         </motion.div>
       )}
       
-      {/* Warning Message */}
-      <WarningMessage itemVariants={itemVariants} />
+      {/* Warning Message - only show in step 1 */}
+      {currentStep === 1 && <WarningMessage itemVariants={itemVariants} />}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Section headers */}
-        <div className="md:col-span-2 border-b border-gray-200 pb-2 mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">
-            {activeLanguage === 'th' ? 'ข้อมูลที่อยู่' : 'Address Information'}
-          </h3>
+      {/* Step 1: Edit Address Information */}
+      {currentStep === 1 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Section headers */}
+          <div className="md:col-span-2 border-b border-gray-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              {activeLanguage === 'th' ? 'ข้อมูลที่อยู่' : 'Address Information'}
+            </h3>
+          </div>
+          
+          {/* Address Fields based on active language */}
+          {activeLanguage === 'th' ? (
+            <ThaiAddressFields 
+              formData={formData} 
+              handleChange={handleChange} 
+              itemVariants={itemVariants} 
+            />
+          ) : (
+            <EnglishAddressFields 
+              formData={formData} 
+              handleChange={handleChange} 
+              itemVariants={itemVariants} 
+            />
+          )}
+          
+          {/* Contact Fields */}
+          <ContactFields 
+            formData={formData} 
+            handleChange={handleChange} 
+            itemVariants={itemVariants} 
+            activeLanguage={activeLanguage} 
+          />
         </div>
-        
-        {/* Address Fields based on active language */}
-        {activeLanguage === 'th' ? (
-          <ThaiAddressFields 
-            formData={formData} 
-            handleChange={handleChange} 
-            itemVariants={itemVariants} 
+      )}
+      
+      {/* Step 2: Document Upload - only show for address types 001 and 003 */}
+      {currentStep === 2 && !skipDocumentStep && (
+        <div className="grid grid-cols-1 gap-6">
+          <div className="border-b border-gray-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              แนบเอกสารยืนยัน
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {addrCode === '001' && 'กรุณาแนบหนังสือรับรองนิติบุคคลจากกระทรวงพาณิชย์'}
+              {addrCode === '003' && 'กรุณาแนบใบทะเบียนภาษีมูลค่าเพิ่ม (แบบ ภ.พ.20)'}
+            </p>
+          </div>
+          
+          <DocumentUpload
+            addrCode={addrCode}
+            onFileChange={handleDocumentChange}
+            itemVariants={itemVariants}
           />
-        ) : (
-          <EnglishAddressFields 
-            formData={formData} 
-            handleChange={handleChange} 
-            itemVariants={itemVariants} 
-          />
+        </div>
+      )}
+      
+      {/* Step 3: Confirmation (Step 2 for address type 002) */}
+      {(currentStep === 3 || (skipDocumentStep && currentStep === 2)) && (
+        <div className="grid grid-cols-1 gap-6">
+          <div className="border-b border-gray-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              ยืนยันการส่งข้อมูล
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนยืนยันการส่ง
+            </p>
+          </div>
+          
+          <div className="bg-gray-50 p-4 rounded-lg">
+            <h4 className="font-medium text-gray-700 mb-2">ข้อมูลที่อยู่ที่ต้องการแก้ไข</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-gray-500">ประเภทที่อยู่:</p>
+                <p className="text-sm">
+                  {addrCode === '001' && 'ที่อยู่สำนักงานใหญ่'}
+                  {addrCode === '002' && 'ที่อยู่สำหรับจัดส่งเอกสาร'}
+                  {addrCode === '003' && 'ที่อยู่สำหรับออกใบกำกับภาษี'}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">ภาษา:</p>
+                <p className="text-sm">{activeLanguage === 'th' ? 'ภาษาไทย' : 'ภาษาอังกฤษ'}</p>
+              </div>
+              
+              <div className="md:col-span-2">
+                <p className="text-sm font-medium text-gray-500">ที่อยู่ใหม่:</p>
+                <p className="text-sm">
+                  {activeLanguage === 'th' ? (
+                    <>
+                      {formData.ADDR_NO} {formData.ADDR_MOO && `หมู่ ${formData.ADDR_MOO}`} 
+                      {formData.ADDR_SOI && `ซอย ${formData.ADDR_SOI}`} 
+                      {formData.ADDR_ROAD && `ถนน ${formData.ADDR_ROAD}`} 
+                      {formData.ADDR_SUB_DISTRICT && `ตำบล/แขวง ${formData.ADDR_SUB_DISTRICT}`} 
+                      {formData.ADDR_DISTRICT && `อำเภอ/เขต ${formData.ADDR_DISTRICT}`} 
+                      {formData.ADDR_PROVINCE_NAME && `จังหวัด ${formData.ADDR_PROVINCE_NAME}`} 
+                      {formData.ADDR_POSTCODE}
+                    </>
+                  ) : (
+                    <>
+                      {formData.ADDR_NO_EN} {formData.ADDR_MOO_EN && `Moo ${formData.ADDR_MOO_EN}`} 
+                      {formData.ADDR_SOI_EN && `Soi ${formData.ADDR_SOI_EN}`} 
+                      {formData.ADDR_ROAD_EN && `Road ${formData.ADDR_ROAD_EN}`} 
+                      {formData.ADDR_SUB_DISTRICT_EN && `Sub-district ${formData.ADDR_SUB_DISTRICT_EN}`} 
+                      {formData.ADDR_DISTRICT_EN && `District ${formData.ADDR_DISTRICT_EN}`} 
+                      {formData.ADDR_PROVINCE_NAME_EN && `Province ${formData.ADDR_PROVINCE_NAME_EN}`} 
+                      {formData.ADDR_POSTCODE_EN}
+                    </>
+                  )}
+                </p>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-500">เบอร์โทรศัพท์:</p>
+                <p className="text-sm">{formData.ADDR_TELEPHONE || '-'}</p>
+              </div>
+              
+              <div>
+                <p className="text-sm font-medium text-gray-500">อีเมล:</p>
+                <p className="text-sm">{formData.ADDR_EMAIL || '-'}</p>
+              </div>
+              
+              {(addrCode === '001' || addrCode === '003') && (
+                <div className="md:col-span-2">
+                  <p className="text-sm font-medium text-gray-500">เอกสารแนบ:</p>
+                  <p className="text-sm">{documentFile ? documentFile.name : 'ไม่ได้แนบเอกสาร'}</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <motion.div 
+            className="p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 rounded-md"
+            variants={itemVariants}
+          >
+            <p>หลังจากส่งคำขอแล้ว เจ้าหน้าที่จะตรวจสอบและดำเนินการแก้ไขข้อมูลให้ภายใน 3-5 วันทำการ</p>
+          </motion.div>
+        </div>
+      )}
+      
+      {/* Step 4: Waiting for Approval (Step 3 for address type 002) */}
+      {(currentStep === 4 || (skipDocumentStep && currentStep === 3)) && (
+        <div className="grid grid-cols-1 gap-6">
+          <div className="border-b border-gray-200 pb-2 mb-4">
+            <h3 className="text-lg font-semibold text-gray-800">
+              รอการอนุมัติจากแอดมิน
+            </h3>
+          </div>
+          
+          <motion.div 
+            className="p-6 bg-blue-50 border border-blue-200 rounded-lg text-center"
+            variants={itemVariants}
+          >
+            <FaCheckCircle className="mx-auto mb-4 text-4xl text-blue-500" />
+            <h4 className="text-xl font-semibold text-blue-700 mb-2">คำขอแก้ไขที่อยู่ถูกส่งเรียบร้อยแล้ว</h4>
+            <p className="text-gray-600 mb-4">
+              เจ้าหน้าที่จะตรวจสอบข้อมูลและดำเนินการแก้ไขให้ภายใน 3-5 วันทำการ
+              คุณสามารถตรวจสอบสถานะคำขอได้ที่หน้าแดชบอร์ด
+            </p>
+            
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              กลับสู่หน้าหลัก
+            </button>
+          </motion.div>
+        </div>
+      )}
+      
+      {/* Navigation buttons */}
+      <div className="flex justify-between mt-8">
+        {currentStep > 1 && (
+          <button
+            type="button"
+            onClick={handlePrevStep}
+            className="px-4 py-2 flex items-center text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            disabled={isSubmitting}
+          >
+            <FaArrowLeft className="mr-2" />
+            ย้อนกลับ
+          </button>
         )}
         
-        {/* Contact Fields */}
-        <ContactFields 
-          formData={formData} 
-          handleChange={handleChange} 
-          itemVariants={itemVariants} 
-          activeLanguage={activeLanguage} 
-        />
+        {currentStep === 1 && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+          >
+            ยกเลิก
+          </button>
+        )}
         
-        {/* Document Upload */}
-        <DocumentUpload
-          addrCode={addrCode}
-          onFileChange={handleDocumentChange}
-          itemVariants={itemVariants}
-        />
+        <div className="ml-auto">
+          {(currentStep < 3 || (skipDocumentStep && currentStep < 2)) && (
+            <button
+              type="button"
+              onClick={handleNextStep}
+              className="px-4 py-2 flex items-center text-white bg-blue-600 rounded-md hover:bg-blue-700 transition-colors"
+            >
+              ถัดไป
+              <FaArrowRight className="ml-2" />
+            </button>
+          )}
+          
+          {(currentStep === 3 || (skipDocumentStep && currentStep === 2)) && (
+            <button
+              type="submit"
+              className="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors flex items-center"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ยืนยันการส่งข้อมูล'}
+              <FaCheckCircle className="ml-2" />
+            </button>
+          )}
+        </div>
       </div>
     </motion.form>
   );
