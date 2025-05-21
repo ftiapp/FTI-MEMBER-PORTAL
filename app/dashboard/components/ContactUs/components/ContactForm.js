@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf, FaEnvelope } from 'react-icons/fa';
+import ContactStepIndicator from './ContactStepIndicator';
 
-const ContactForm = ({ user, onSuccess }) => {
+const ContactForm = ({ user, onSubmitSuccess }) => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     subject: '',
     message: '',
@@ -15,11 +17,21 @@ const ContactForm = ({ user, onSuccess }) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   
+  // Update step based on form state
+  useEffect(() => {
+    if (success) {
+      setCurrentStep(2); // Message sent, show confirmation step
+    } else if (loading) {
+      setCurrentStep(1); // Sending message
+    } else if (formData.subject && formData.message) {
+      setCurrentStep(1); // Form filled but not submitted
+    } else {
+      setCurrentStep(1); // Initial state
+    }
+  }, [success, loading, formData]);
+  
   // Create a ref to track if a request is in progress
   const isSubmitting = useRef(false);
-  
-  // Timeout ref for clearing success message
-  const successTimeoutRef = useRef(null);
   
   // Handle form input changes
   const handleChange = (e) => {
@@ -93,14 +105,9 @@ const ContactForm = ({ user, onSuccess }) => {
       setSuccess(true);
       
       // Notify parent component
-      if (onSuccess) {
-        onSuccess();
+      if (onSubmitSuccess) {
+        onSubmitSuccess();
       }
-      
-      // Auto-hide success message after 5 seconds
-      successTimeoutRef.current = setTimeout(() => {
-        setSuccess(false);
-      }, 5000);
       
     } catch (error) {
       console.error('Error submitting contact form:', error);
@@ -117,7 +124,9 @@ const ContactForm = ({ user, onSuccess }) => {
 
   return (
     <div className="space-y-6">
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <ContactStepIndicator currentStep={currentStep} />
+      
+      <form onSubmit={handleSubmit} className="space-y-6">
         {/* User Info (Read-only) */}
         <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 mb-2">
           <h4 className="font-medium text-blue-800 mb-3">ข้อมูลผู้ติดต่อ</h4>

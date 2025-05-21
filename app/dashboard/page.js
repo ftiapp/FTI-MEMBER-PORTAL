@@ -150,7 +150,7 @@ export default function Dashboard() {
     return null;
   }
 
-  // Dashboard menu items with icons
+  // Dashboard menu items with icons - removed กิจกรรมล่าสุด item
   const menuItems = [
     {
       name: 'อัพเดตสมาชิก',
@@ -197,14 +197,6 @@ export default function Dashboard() {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-        </svg>
-      ),
-    },
-    {
-      name: 'กิจกรรมล่าสุด',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
         </svg>
       ),
     },
@@ -423,10 +415,7 @@ export default function Dashboard() {
                       <button
                         ref={menuRefs[item.name] || null}
                         onClick={() => {
-                          if (item.name === 'สถานะการดำเนินการ') {
-                            // Use shallow routing for this menu item
-                            router.push('/dashboard?tab=status', undefined, { shallow: true });
-                          } else if (item.name === 'ติดต่อเรา') {
+                          if (item.name === 'ติดต่อเรา') {
                             // For Contact Us, check if there's a messageId in the URL
                             const searchParams = new URLSearchParams(window.location.search);
                             const messageId = searchParams.get('messageId');
