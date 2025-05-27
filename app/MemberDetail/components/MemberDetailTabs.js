@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { FaIdCard, FaMapMarkerAlt, FaUsers, FaBoxes, FaLayerGroup } from 'react-icons/fa';
+import { FaIdCard, FaMapMarkerAlt, FaUsers, FaBoxes, FaLayerGroup, FaShareAlt, FaImage } from 'react-icons/fa';
 
 /**
  * Navigation tabs for the member detail page
@@ -93,6 +93,46 @@ export default function MemberDetailTabs({ activeTab, setActiveTab, itemVariants
           <FaBoxes className="mr-1" />
           <span>สินค้า/บริการ</span>
           {activeTab === 'products' && (
+            <motion.div 
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+              layoutId="activeTab"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            />
+          )}
+        </motion.button>
+
+        <motion.button
+          onClick={() => setActiveTab('social-media')}
+          className={`px-6 py-4 text-sm font-medium relative flex items-center`}
+          variants={tabVariants}
+          animate={activeTab === 'social-media' ? 'active' : 'inactive'}
+          whileHover="hover"
+        >
+          <FaShareAlt className="mr-1" />
+          <span>โซเชียลมีเดีย</span>
+          {activeTab === 'social-media' && (
+            <motion.div 
+              className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
+              layoutId="activeTab"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            />
+          )}
+        </motion.button>
+
+        <motion.button
+          onClick={() => setActiveTab('logo')}
+          className={`px-6 py-4 text-sm font-medium relative flex items-center`}
+          variants={tabVariants}
+          animate={activeTab === 'logo' ? 'active' : 'inactive'}
+          whileHover="hover"
+        >
+          <FaImage className="mr-1" />
+          <span>โลโก้/ตราสัญลักษณ์</span>
+          {activeTab === 'logo' && (
             <motion.div 
               className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"
               layoutId="activeTab"

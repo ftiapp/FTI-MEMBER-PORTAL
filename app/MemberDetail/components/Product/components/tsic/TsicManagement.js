@@ -156,16 +156,57 @@ export default function TsicManagement({ memberCode, onAdd, language = 'th' }) {
     }
   };
 
-  // Get category name
+  // Get category name with hardcoded values
   const getCategoryName = (categoryCode) => {
-    if (!groupedTsicData[categoryCode] || groupedTsicData[categoryCode].length === 0) {
-      return categoryCode;
+    // Hardcoded category names
+    const categoryNames = {
+      'A': {
+        th: 'เกษตรกรรม การป่าไม้ และการประมง',
+        en: 'Agriculture, forestry and fishing'
+      },
+      'B': {
+        th: 'การทำเหมืองแร่และเหมืองหิน',
+        en: 'Mining and quarrying'
+      },
+      'C': {
+        th: 'การผลิต',
+        en: 'Manufacturing'
+      },
+      'D': {
+        th: 'ไฟฟ้า ก๊าซ ไอน้ำ และระบบปรับอากาศ',
+        en: 'Electricity, gas, steam and air conditioning supply'
+      },
+      'E': {
+        th: 'การจัดหาน้ำ การจัดการน้ำเสียและของเสีย',
+        en: 'Water supply; sewerage, waste management and remediation activities'
+      },
+      'F': {
+        th: 'การก่อสร้าง',
+        en: 'Construction'
+      },
+      'G': {
+        th: 'การขายส่งและการขายปลีก',
+        en: 'Wholesale and retail trade'
+      }
+    };
+    
+    // Return category name based on language
+    if (categoryNames[categoryCode]) {
+      return language === 'th' ? categoryNames[categoryCode].th : categoryNames[categoryCode].en;
     }
     
-    const firstTsic = groupedTsicData[categoryCode][0];
-    return language === 'th' 
-      ? firstTsic.category_name || categoryCode
-      : firstTsic.category_name_EN || firstTsic.category_name || categoryCode;
+    // Fallback to data from API if available
+    if (groupedTsicData[categoryCode] && groupedTsicData[categoryCode].length > 0) {
+      const firstTsic = groupedTsicData[categoryCode][0];
+      if (language === 'th') {
+        return firstTsic.category_name || categoryCode;
+      } else {
+        return firstTsic.category_name_EN || firstTsic.category_name || categoryCode;
+      }
+    }
+    
+    // Default fallback
+    return categoryCode;
   };
 
   // Check if we've reached the maximum number of categories/subcategories
@@ -206,14 +247,20 @@ export default function TsicManagement({ memberCode, onAdd, language = 'th' }) {
           {Object.keys(groupedTsicData).map(categoryCode => (
             <div key={categoryCode} className="bg-white p-4 rounded-lg border border-gray-200">
               <div className="flex justify-between items-center mb-3">
-                <h4 className="text-md font-medium text-gray-800 flex items-center">
-                  <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">
-                    {categoryCode}
-                  </span>
-                  {getCategoryName(categoryCode)}
-                  <span className="ml-2 text-sm bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full">
-                    {groupedTsicData[categoryCode].length}/{5}
-                  </span>
+                <h4 className="text-md font-medium text-gray-800 flex items-start">
+                  <div className="flex flex-col w-full">
+                    <div className="flex items-center mb-1">
+                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">
+                        {categoryCode}
+                      </span>
+                      <span className="text-gray-800 font-medium flex-1">
+                        {getCategoryName(categoryCode)}
+                      </span>
+                      <span className="ml-2 text-sm bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full">
+                        {groupedTsicData[categoryCode].length}/{5}
+                      </span>
+                    </div>
+                  </div>
                 </h4>
               </div>
               

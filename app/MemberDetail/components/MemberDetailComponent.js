@@ -13,6 +13,8 @@ import InfoTabContent from './InfoTabContent';
 import AddressTabContent from './AddressTabContent/page';
 import RepresentativeTabContent from './RepresentativeTabContent';
 import ProductsPage from './Product/page';
+import SocialMediaTabContent from './SocialMedia/page';
+import LogoTabContent from './Logo/page';
 import MembershipTabContent from './MembershipTabContent';
 import MemberTypeFilter from './MemberTypeFilter';
 
@@ -336,6 +338,30 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
               transition={{ duration: 0.3 }}
             >
               <ProductsPage companyInfo={companyInfo} />
+            </motion.div>
+          )}
+          
+          {/* Social Media Tab */}
+          {activeTab === 'social-media' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <SocialMediaTabContent companyInfo={companyInfo} />
+            </motion.div>
+          )}
+          
+          {/* Logo Tab */}
+          {activeTab === 'logo' && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <LogoTabContent companyInfo={companyInfo} />
             </motion.div>
           )}
           

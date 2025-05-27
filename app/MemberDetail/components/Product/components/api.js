@@ -47,6 +47,9 @@ export async function fetchTsicCodes(memberCode) {
         tsic_code: code.tsic_code,
         category_code: code.category_code || '00',
         description: code.description || code.tsic_description || '',
+        description_EN: code.description_EN || '',
+        category_name: code.category_name || '',
+        category_name_EN: code.category_name_EN || '',
         status: code.status || 'approved'
       }));
       

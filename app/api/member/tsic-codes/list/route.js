@@ -40,8 +40,7 @@ export async function GET(request) {
       );
     }
 
-    // Build query based on parameters
-    // เนื่องจากมีปัญหา collation ที่แตกต่างกัน เราจะไม่ใช้ JOIN แต่จะดึงข้อมูลจากตาราง member_tsic_codes เท่านั้น
+    // เนื่องจากมีปัญหา collation ที่แตกต่างกัน เราจะดึงข้อมูลแยกกันและรวมข้อมูลในโค้ด
     let sql = `
       SELECT * FROM member_tsic_codes
       WHERE member_code = ?
@@ -106,30 +105,27 @@ export async function GET(request) {
         // สร้าง placeholders สำหรับคำสั่ง SQL
         const catPlaceholders = uniqueCategoryCodes.map(() => '?').join(',');
         
-        // ดึงข้อมูลคำอธิบายหมวดหมู่จากตาราง tsic_categories
-        // ใช้การดึงข้อมูลแบบแยกเป็นหมวดหมู่ย่อยและหมวดหมู่ใหญ่
+        // ดึงข้อมูลคำอธิบายหมวดหมู่จากตาราง tsic_description ตามที่คุณระบุ
+        // ดึงข้อมูลทั้งหมดจากตาราง tsic_description เพื่อให้แน่ใจว่าได้ข้อมูลครบถ้วน
         const catSql = `
-          SELECT DISTINCT category_code, 
-                          MAX(description) as category_name, 
-                          MAX(description_EN) as category_name_EN 
-          FROM tsic_categories 
-          WHERE category_code IN (${catPlaceholders})
-          GROUP BY category_code
+          SELECT category_code, 
+                 category_name, 
+                 category_name_EN 
+          FROM tsic_description
         `;
         
-        console.log('Fetching category descriptions with SQL:', catSql);
-        console.log('Category codes:', uniqueCategoryCodes);
-        
-        const catResults = await query(catSql, uniqueCategoryCodes);
-        console.log('Category results:', catResults);
+        // ดึงข้อมูลคำอธิบายหมวดหมู่จากฐานข้อมูล
+        const catResults = await query(catSql);
         
         // สร้าง map ของรหัสหมวดหมู่และคำอธิบาย
         catResults.forEach(row => {
           categoryDescriptions[row.category_code] = {
-            name: row.category_name || `หมวดหมู่ ${row.category_code}`,
-            name_EN: row.category_name_EN || `Category ${row.category_code}`
+            category_name: row.category_name || `หมวดหมู่ ${row.category_code}`,
+            category_name_EN: row.category_name_EN || `Category ${row.category_code}`
           };
         });
+        
+        // สร้าง map ของคำอธิบายหมวดหมู่เสร็จสิ้น
       } catch (error) {
         console.error('Error fetching category descriptions:', error);
         // ไม่ต้องทำอะไร เพราะเราจะใช้ค่าเริ่มต้นสำหรับคำอธิบายที่ไม่พบ
@@ -149,8 +145,8 @@ export async function GET(request) {
         category_code: code.category_code || '00',
         description: desc.description || `รหัส TSIC: ${code.tsic_code}`,
         description_EN: desc.description_EN || `TSIC Code: ${code.tsic_code}`,
-        category_name: categoryDesc.name || `หมวดหมู่ ${code.category_code || '00'}`,
-        category_name_EN: categoryDesc.name_EN || `Category ${code.category_code || '00'}`,
+        category_name: categoryDesc.category_name || `หมวดหมู่ ${code.category_code || '00'}`,
+        category_name_EN: categoryDesc.category_name_EN || `Category ${code.category_code || '00'}`,
         status: code.status === 1 ? 'approved' : 'pending',
         created_at: code.created_at,
         updated_at: code.updated_at
