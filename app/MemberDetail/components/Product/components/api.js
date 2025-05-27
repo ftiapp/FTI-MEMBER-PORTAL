@@ -51,16 +51,118 @@ export async function fetchTsicCodes(memberCode) {
       }));
       
       return { success: true, data: formattedCodes };
+    } else {
+      return { success: false, message: data.message || 'ไม่สามารถดึงข้อมูลได้', data: [] };
     }
-    
-    return { success: false, message: data.message || 'ไม่พบข้อมูลรหัส TSIC', data: [] };
   } catch (error) {
     console.error('Error fetching TSIC codes:', error);
     return { 
       success: false, 
-      message: error.message || 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์', 
+      message: 'เกิดข้อผิดพลาดในการดึงข้อมูล', 
       data: [] 
     };
+  }
+}
+
+/**
+ * ฟังก์ชันใหม่ที่จะโหลดและเลือกรหัส TSIC โดยเฉพาะ
+ * @param {string} memberCode - รหัสสมาชิก
+ * @param {Array} mainCategories - รายการหมวดหมู่หลัก
+ * @param {Function} setSelectedMainCategories - ฟังก์ชันสำหรับเซ็ตหมวดหมู่หลักที่เลือก
+ * @param {Function} setSelectedSubcategories - ฟังก์ชันสำหรับเซ็ตหมวดหมู่ย่อยที่เลือก
+ * @param {Function} fetchSubcategories - ฟังก์ชันสำหรับดึงข้อมูลหมวดหมู่ย่อย
+ * @param {Object} subcategories - ข้อมูลหมวดหมู่ย่อยที่มีอยู่
+ */
+export async function preloadTsicCodes(memberCode, mainCategories, setSelectedMainCategories, setSelectedSubcategories, fetchSubcategories, subcategories) {
+  try {
+    console.log('Preloading TSIC codes for member:', memberCode);
+    console.log('Available main categories:', mainCategories);
+    
+    // ดึงข้อมูลรหัส TSIC ที่มีอยู่
+    const result = await fetchTsicCodes(memberCode);
+    
+    if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+      console.log('Existing TSIC codes loaded:', result.data);
+      
+      // จัดกลุ่มรหัส TSIC ตามหมวดหมู่
+      const selectedCategories = [];
+      const selectedSubs = {};
+      
+      // รวบรวมหมวดหมู่ที่ไม่ซ้ำกัน
+      const uniqueCategories = new Set();
+      result.data.forEach(tsic => {
+        if (tsic.category_code && tsic.category_code !== '00') {
+          uniqueCategories.add(tsic.category_code);
+        }
+      });
+      
+      console.log('Unique category codes found:', Array.from(uniqueCategories));
+      
+      // สำหรับแต่ละหมวดหมู่
+      for (const categoryCode of uniqueCategories) {
+        // หาข้อมูลหมวดหมู่จาก mainCategories
+        const category = mainCategories.find(c => c.category_code === categoryCode);
+        console.log(`Looking for category ${categoryCode} in mainCategories:`, category);
+        
+        if (category) {
+          selectedCategories.push(category);
+          
+          // ดึงข้อมูลหมวดหมู่ย่อยสำหรับหมวดหมู่นี้
+          if (!subcategories[categoryCode] || subcategories[categoryCode].length === 0) {
+            await fetchSubcategories(category);
+          }
+          
+          // จัดกลุ่มรหัส TSIC ตามหมวดหมู่นี้
+          const tsicsInCategory = result.data.filter(tsic => 
+            tsic.category_code === categoryCode
+          );
+          
+          console.log(`Found ${tsicsInCategory.length} TSIC codes for category ${categoryCode}:`, tsicsInCategory);
+          
+          // หาข้อมูลหมวดหมู่ย่อยที่สมบูรณ์จากหมวดหมู่ย่อยที่ดึงมา
+          const subcategoryObjects = [];
+          tsicsInCategory.forEach(tsic => {
+            const subcategory = subcategories[categoryCode]?.find(sub => 
+              sub.tsic_code === tsic.tsic_code
+            );
+            
+            if (subcategory) {
+              subcategoryObjects.push(subcategory);
+            } else {
+              // ถ้าไม่พบหมวดหมู่ย่อยที่ตรงกัน ให้สร้างข้อมูลชั่วคราว
+              const placeholder = {
+                tsic_code: tsic.tsic_code,
+                description: tsic.description || '',
+                display_description: tsic.description || '',
+                display_description_EN: tsic.description || ''
+              };
+              console.log(`Creating placeholder for TSIC code ${tsic.tsic_code}:`, placeholder);
+              subcategoryObjects.push(placeholder);
+            }
+          });
+          
+          selectedSubs[categoryCode] = subcategoryObjects;
+          console.log(`Set selectedSubs for category ${categoryCode}:`, subcategoryObjects);
+        } else {
+          console.warn(`Category ${categoryCode} not found in mainCategories!`);
+        }
+      }
+      
+      // เซ็ตหมวดหมู่หลักและหมวดหมู่ย่อยที่เลือก
+      console.log('Setting selected main categories:', selectedCategories);
+      console.log('Setting selected subcategories:', selectedSubs);
+      
+      setSelectedMainCategories(selectedCategories);
+      setSelectedSubcategories(selectedSubs);
+      
+      return true;
+    } else {
+      console.log('No existing TSIC codes found or error loading them');
+      return false;
+    }
+  } catch (error) {
+    console.error('Error preloading TSIC codes:', error);
+    return false;
   }
 }
 

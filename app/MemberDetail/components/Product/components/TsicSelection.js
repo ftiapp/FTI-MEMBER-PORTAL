@@ -15,12 +15,12 @@ import LanguageToggle from './tsic/LanguageToggle';
 import LoadingSpinner from './tsic/LoadingSpinner';
 
 // Import API functions
-import { submitTsicUpdate, fetchTsicCodes } from './api';
+import { submitTsicUpdate, fetchTsicCodes, preloadTsicCodes } from './api';
 
 const MAX_MAIN_CATEGORIES = 3;
 const MAX_SUBCATEGORIES = 5;
 
-export default function TsicSelection({ onSuccess, memberCode, isEditMode = false, replacingTsicCode = null, editingTsicId = null }) {
+export default function TsicSelection({ onSuccess, memberCode, isEditMode = false, replacingTsicCode = null, editingTsicId = null, language = 'th', onDataLoaded }) {
   // Get the current user from AuthContext
   const { user } = useAuth();
   // State variables
@@ -46,12 +46,16 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [language, setLanguage] = useState('th'); // 'th' or 'en'
+  // ใช้ค่า language จาก props แทนการประกาศ state ใหม่
+  const [languageState, setLanguage] = useState(language); // ใช้ค่าเริ่มต้นจาก props
 
   // Fetch main categories on component mount
   useEffect(() => {
     fetchMainCategories();
-  }, [language]);
+  }, [languageState]);
+  
+  // เราจะไม่เรียกใช้ fetchExistingTsicCodes ที่นี่ เพราะมีการเรียกใช้ใน fetchMainCategories อยู่แล้ว
+  // เพื่อหลีกเลี่ยงการเรียกใช้ซ้ำซ้อน
   
   // Fetch subcategories for selected main categories
   useEffect(() => {
@@ -74,12 +78,13 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
   const fetchExistingTsicCodes = async () => {
     try {
       setIsLoading(prev => ({ ...prev, main: true }));
-      console.log('Fetching existing TSIC codes...');
+      console.log('Fetching existing TSIC codes for member code:', memberCode);
       
       const result = await fetchTsicCodes(memberCode);
+      console.log('API result:', result);
       
       if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-        console.log('Existing TSIC codes loaded:', result.data);
+        console.log('Existing TSIC codes loaded successfully:', result.data);
         
         // Store original TSIC data for reference
         setOriginalTsicData(result.data);
@@ -97,10 +102,14 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
           }
         });
         
+        console.log('Unique category codes found:', Array.from(uniqueCategories));
+        console.log('Available main categories:', mainCategories);
+        
         // Fetch category information for each unique category
         for (const categoryCode of uniqueCategories) {
           // Find the category in mainCategories
           const category = mainCategories.find(c => c.category_code === categoryCode);
+          console.log(`Looking for category ${categoryCode} in mainCategories:`, category);
           
           if (category) {
             selectedCategories.push(category);
@@ -113,6 +122,8 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
               tsic.category_code === categoryCode
             );
             
+            console.log(`Found ${tsicsInCategory.length} TSIC codes for category ${categoryCode}:`, tsicsInCategory);
+            
             // Find the full subcategory objects from the fetched subcategories
             const subcategoryObjects = [];
             tsicsInCategory.forEach(tsic => {
@@ -124,16 +135,21 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
                 subcategoryObjects.push(subcategory);
               } else {
                 // If we can't find the exact subcategory, create a placeholder
-                subcategoryObjects.push({
+                const placeholder = {
                   tsic_code: tsic.tsic_code,
                   description: tsic.description || '',
                   display_description: tsic.description || '',
                   display_description_EN: tsic.description || ''
-                });
+                };
+                console.log(`Creating placeholder for TSIC code ${tsic.tsic_code}:`, placeholder);
+                subcategoryObjects.push(placeholder);
               }
             });
             
             selectedSubs[categoryCode] = subcategoryObjects;
+            console.log(`Set selectedSubs for category ${categoryCode}:`, subcategoryObjects);
+          } else {
+            console.warn(`Category ${categoryCode} not found in mainCategories!`);
           }
         }
         
@@ -145,10 +161,9 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
         setSelectedMainCategories(selectedCategories);
         setSelectedSubcategories(selectedSubs);
         
-        // If we have categories selected, move to step 2
-        if (selectedCategories.length > 0) {
-          setCurrentStep(2);
-        }
+        // ไม่ต้องข้ามไปขั้นตอนที่ 2 โดยอัตโนมัติ เพื่อให้ผู้ใช้เห็นหมวดหมู่ใหญ่ที่เลือกไว้แล้ว
+        // Always stay at step 1 when adding new TSIC codes
+        setCurrentStep(1);
         
         // Log what's been selected for debugging
         console.log('After setting, selectedMainCategories:', selectedCategories);
@@ -261,13 +276,14 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
 
   // Helper function to get text based on current language
   const getText = (thText, enText) => {
-    return language === 'th' ? thText : (enText || thText);
+    return languageState === 'th' ? thText : (enText || thText);
   };
 
   // Fetch main categories
   const fetchMainCategories = async () => {
     setIsLoading(prev => ({ ...prev, main: true }));
     try {
+      console.log('Fetching main categories...');
       const response = await fetch('/api/tsic/main-categories', {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
@@ -277,6 +293,8 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       
       const data = await response.json();
+      console.log('Main categories API response:', data);
+      
       if (data.success) {
         const categoriesWithCode = data.data
           .sort((a, b) => a.category_code.localeCompare(b.category_code))
@@ -285,14 +303,29 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
             display_name: `${category.category_code} ${category.category_name}`,
             display_name_EN: `${category.category_code} ${category.category_name_EN || category.category_name}`
           }));
+        
+        console.log('Processed main categories:', categoriesWithCode);
         setMainCategories(categoriesWithCode);
         
         // After loading main categories, fetch existing TSIC codes
         if (memberCode) {
-          // Wait a bit to ensure main categories are fully processed
-          setTimeout(() => {
-            fetchExistingTsicCodes();
-          }, 100);
+          console.log('Main categories loaded successfully, now preloading TSIC codes for member code:', memberCode);
+          // ใช้ฟังก์ชัน preloadTsicCodes แทนฟังก์ชัน fetchExistingTsicCodes
+          setTimeout(async () => {
+            const result = await preloadTsicCodes(
+              memberCode,
+              categoriesWithCode,
+              setSelectedMainCategories,
+              setSelectedSubcategories,
+              fetchSubcategories,
+              subcategories
+            );
+            
+            // เรียกใช้ onDataLoaded เมื่อโหลดข้อมูลเสร็จสิ้น
+            if (onDataLoaded) {
+              onDataLoaded(result);
+            }
+          }, 1000); // รอ 1 วินาทีเพื่อให้แน่ใจว่า state ถูกอัพเดทอย่างถูกต้อง
         }
       } else {
         throw new Error(data.message || 'Failed to load categories');
@@ -705,6 +738,26 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
       setShowSuccess(true);
       setShowConfirmation(false);
       
+      // ตั้งค่า cooldown เพื่อป้องกันการกดปุ่มซ้ำ
+      try {
+        const cooldownKey = `tsic_cooldown_${memberCode}`;
+        const now = new Date().getTime();
+        
+        // ตั้งเวลา cooldown เป็น 5 วินาทีสำหรับการพัฒนา
+        const cooldownSeconds = 5; // 5 วินาทีสำหรับการพัฒนา
+        const cooldownMs = cooldownSeconds * 1000;
+        const endTime = new Date(now + cooldownMs);
+        
+        localStorage.setItem(cooldownKey, JSON.stringify({
+          endTime: endTime.toISOString(),
+          memberCode
+        }));
+        
+        console.log(`TSIC update cooldown set for ${memberCode}: ${cooldownMinutes} minutes`);
+      } catch (e) {
+        console.error('Failed to set cooldown:', e);
+      }
+      
       setTimeout(() => {
         if (onSuccess) onSuccess();
       }, 2000);
@@ -739,12 +792,12 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center mb-4">
-        <SectionFlow currentStep={currentStep} language={language} />
-        <LanguageToggle language={language} onToggle={toggleLanguage} />
+        <SectionFlow currentStep={currentStep} language={languageState} />
+        <LanguageToggle language={languageState} onToggle={toggleLanguage} />
       </div>
       
       {showSuccess ? (
-        <SuccessMessage language={language} />
+        <SuccessMessage language={languageState} />
       ) : (
         <div className="bg-white p-6 rounded-lg shadow">
           <h3 className="text-lg font-medium text-gray-900 mb-4">
@@ -781,7 +834,7 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
                 selectedMainCategories={selectedMainCategories}
                 handleMainCategoryChange={handleMainCategoryChange}
                 isLoading={isLoading}
-                language={language}
+                language={languageState}
               />
               
               <div className="mt-6 flex justify-end">
@@ -800,16 +853,6 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
           {/* Step 2: Subcategory Selection */}
           {currentStep === 2 && selectedMainCategories.length > 0 && (
             <>
-              <h4 className="text-lg font-medium text-gray-900 mb-4">
-                {getText('รหัส TSIC ที่เลือกแล้ว', 'Selected TSIC Codes')}
-              </h4>
-              <ul>
-                {Object.keys(selectedSubcategories).map(categoryCode => (
-                  <li key={categoryCode}>
-                    {categoryCode}: {selectedSubcategories[categoryCode].map(sub => sub.tsic_code).join(', ')}
-                  </li>
-                ))}
-              </ul>
               <SubcategoryStep
                 selectedMainCategories={selectedMainCategories}
                 filteredSubcategories={filteredSubcategories}
@@ -821,7 +864,7 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
                 handlePageChange={handlePageChange}
                 handleSubcategoryChange={handleSubcategoryChange}
                 isLoading={isLoading}
-                language={language}
+                language={languageState}
                 getSelectedCount={getSelectedCount}
               />
               
@@ -849,7 +892,7 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
             <ReviewStep
               selectedMainCategories={selectedMainCategories}
               selectedSubcategories={selectedSubcategories}
-              language={language}
+              language={languageState}
               handleCancel={() => setCurrentStep(2)}
               handleSubmit={confirmSubmit}
             />

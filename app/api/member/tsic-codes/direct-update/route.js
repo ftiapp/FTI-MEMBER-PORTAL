@@ -94,43 +94,28 @@ export async function POST(request) {
     await query('START TRANSACTION');
     
     try {
-      // Check for existing codes to avoid duplicates
+      // ตรวจสอบว่ามีรหัส TSIC ที่ถูกต้องหรือไม่
       const validTsicCodes = tsicCodes.filter(code => code && code.tsic_code);
       
       if (validTsicCodes.length === 0) {
         throw new Error('No valid TSIC codes provided');
       }
       
-      const placeholders = validTsicCodes.map(() => '?').join(',');
-      
-      const existingCodesQuery = `
-        SELECT tsic_code FROM member_tsic_codes 
-        WHERE member_code = ? AND tsic_code IN (${placeholders})
+      // ลบข้อมูลเดิมทั้งหมดก่อนบันทึกข้อมูลใหม่
+      console.log(`Deleting all existing TSIC codes for member: ${memberCode}`);
+      const deleteQuery = `
+        DELETE FROM member_tsic_codes 
+        WHERE member_code = ?
       `;
       
-      const existingCodesParams = [memberCode, ...validTsicCodes.map(code => code.tsic_code)];
-      console.log('Checking existing codes with query:', existingCodesQuery);
+      await query(deleteQuery, [memberCode]);
+      console.log('Deleted existing TSIC codes successfully');
       
-      const existingCodes = await query(existingCodesQuery, existingCodesParams);
-      const existingCodeSet = new Set(existingCodes.map(row => row.tsic_code));
+      // เตรียมข้อมูลสำหรับการบันทึก
+      console.log(`Inserting ${validTsicCodes.length} new TSIC codes for member: ${memberCode}`);
       
-      console.log('Existing TSIC codes:', Array.from(existingCodeSet));
-      
-      // Filter out existing codes
-      const newCodes = validTsicCodes.filter(code => !existingCodeSet.has(code.tsic_code));
-      
-      console.log('New TSIC codes to insert:', newCodes.length);
-      
-      if (newCodes.length === 0) {
-        await query('ROLLBACK');
-        return NextResponse.json(
-          { success: false, message: 'รหัส TSIC ทั้งหมดมีอยู่แล้วสำหรับสมาชิกนี้' },
-          { status: 400 }
-        );
-      }
-      
-      // Insert new codes
-      const insertValues = newCodes.map(code => 
+      // บันทึกข้อมูลใหม่
+      const insertValues = validTsicCodes.map(code => 
         `(${userId}, '${memberCode}', '${code.category_code || '00'}', '${code.tsic_code}', 1, NOW(), NOW())`
       ).join(',');
       
@@ -149,12 +134,12 @@ export async function POST(request) {
       
       await query(
         `INSERT INTO Member_portal_User_log 
-        (user_id, action, details, ip_address, user_agent, created_at)
+        (user_id, action, details, ip_address, user_agent, created_at) 
         VALUES (?, ?, ?, ?, ?, NOW())`,
         [
           userId,
           'tsic_code_update',
-          `User added ${newCodes.length} TSIC codes for member ${memberCode}`,
+          `User updated TSIC codes for member ${memberCode} with ${validTsicCodes.length} codes`,
           ipAddress,
           userAgent
         ]
@@ -164,10 +149,8 @@ export async function POST(request) {
       
       return NextResponse.json({
         success: true,
-        message: `เพิ่มรหัส TSIC จำนวน ${newCodes.length} รายการเรียบร้อยแล้ว${existingCodeSet.size > 0 ? ` (มี ${existingCodeSet.size} รายการที่มีอยู่แล้ว)` : ''}`,
+        message: `บันทึกรหัส TSIC จำนวน ${validTsicCodes.length} รายการเรียบร้อยแล้ว`,
         data: {
-          added: newCodes.length,
-          existing: existingCodeSet.size,
           total: validTsicCodes.length
         }
       });

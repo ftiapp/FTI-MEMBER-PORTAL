@@ -9,6 +9,24 @@ export default function ReviewStep({
 }) {
   return (
     <div className="space-y-6">
+      {/* หมายเหตุเกี่ยวกับการลบข้อมูลเดิมและบันทึกข้อมูลใหม่ */}
+      <div className="bg-blue-50 p-4 rounded-md mb-4 border border-blue-200">
+        <div className="flex items-start">
+          <div className="flex-shrink-0 mt-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              {language === 'th' 
+                ? 'หมายเหตุ: เมื่อท่านยืนยันการแก้ไขหรืออัพเดทรหัส TSIC ระบบจะทำการลบข้อมูลรหัส TSIC ก่อนหน้าทั้งหมด และบันทึกข้อมูลรหัส TSIC ที่ท่านเลือกในครั้งนี้ลงไปแทน โปรดตรวจสอบข้อมูลให้ถูกต้องก่อนการยืนยัน หลังจากการบันทึกข้อมูล หากต้องการเพิ่ม/แก้ไขข้อมูล กรุณารอ 5 วินาที ขออภัยในความไม่สะดวก' 
+                : 'Note: When you confirm to update TSIC codes, the system will delete all previous TSIC codes and save the currently selected TSIC codes instead. Please verify the information carefully before confirming. After saving, if you want to add/edit data, please wait 5 seconds. We apologize for the inconvenience.'}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div className="bg-gray-50 p-4 rounded-md">
         <h4 className="font-medium text-gray-700 mb-3">
           {language === 'th' ? 'ข้อมูลที่เลือก' : 'Selected Information'}
