@@ -10,11 +10,16 @@ import ProductsTabContent from './components/ProductsTabContent';
 export default function ProductsPage({ companyInfo }) {
   return (
     <div className="w-full">
-      <ProductsTabContent companyInfo={companyInfo} />
+      <ProductsTabContent 
+        companyInfo={companyInfo} 
+      />
     </div>
   );
 }
 
 ProductsPage.defaultProps = {
   companyInfo: {},
+  memberType: '',
+  memberGroupCode: '',
+  typeCode: ''
 };

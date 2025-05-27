@@ -34,7 +34,7 @@ export default function AddressFormHeader({
             ยกเลิก
           </motion.button>
           
-          <motion.button
+          {/*<motion.button
             type="submit"
             onClick={onSubmit}
             className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center ${isSubmitting ? 'opacity-70 cursor-not-allowed' : ''}`}
@@ -44,7 +44,7 @@ export default function AddressFormHeader({
           >
             <FaSave className="mr-2" />
             {isSubmitting ? 'กำลังส่งข้อมูล...' : 'บันทึกการแก้ไข'}
-          </motion.button>
+          </motion.button> */}
         </div>
       </div>
       

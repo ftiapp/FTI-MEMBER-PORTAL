@@ -5,7 +5,7 @@ import TsicManagement from './tsic/TsicManagement';
 import TsicSelection from './TsicSelection';
 import { preloadTsicCodes } from './api';
 
-export default function TsicCodeManager({ memberCode, language = 'th' }) {
+export default function TsicCodeManager({ memberCode, language = 'th', memberType = '', memberGroupCode = '', typeCode = '' }) {
   const [mode, setMode] = useState('view'); // 'view', 'add'
   const [isLoading, setIsLoading] = useState(false);
   const [cooldownActive, setCooldownActive] = useState(false);
@@ -92,6 +92,9 @@ export default function TsicCodeManager({ memberCode, language = 'th' }) {
           memberCode={memberCode} 
           onAdd={handleAdd}
           language={language}
+          memberType={memberType}
+          memberGroupCode={memberGroupCode}
+          typeCode={typeCode}
         />
       )}
 

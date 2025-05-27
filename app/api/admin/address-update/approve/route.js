@@ -77,74 +77,44 @@ export async function POST(request) {
     await query('START TRANSACTION');
 
     let mssqlUpdateSuccess = false;
-    let registCode = null;
     
     try {
-      // 1. ค้นหา regist_code จากตาราง MB_MEMBER ใน MSSQL
-      console.log('Searching for regist_code with parameters:', {
-        member_type,
-        member_group_code,
-        type_code,
-        comp_person_code
+      console.log('Using direct update with comp_person_code and ADDR_CODE:', {
+        comp_person_code,
+        addr_code
       });
       
-      const memberQuery = `
-        SELECT [REGIST_CODE]
-        FROM [FTI].[dbo].[MB_MEMBER]
-        WHERE [MEMBER_MAIN_GROUP_CODE] = ? -- member_type
-          AND [MEMBER_GROUP_CODE] = ?     -- member_group_code
-          AND [MEMBER_TYPE_CODE] = ?      -- type_code
-          AND [COMP_PERSON_CODE] = ?      -- comp_person_code
-      `;
-      
-      const memberResult = await mssqlQuery(memberQuery, [
-        member_type,
-        member_group_code,
-        type_code,
-        comp_person_code
-      ]);
-      
-      console.log('Member search result:', JSON.stringify(memberResult));
-      
-      if (!memberResult || memberResult.length === 0) {
-        throw new Error(`Member not found in MSSQL database with the specified parameters`);
-      }
-      
-      // ใช้ regist_code จากผลลัพธ์การค้นหา
-      const registCode = memberResult[0].REGIST_CODE;
-      console.log('Found REGIST_CODE in MSSQL:', registCode);
-      
-      // 2. ตรวจสอบว่ามีที่อยู่นี้ใน MSSQL หรือไม่
+      // ตรวจสอบว่ามีที่อยู่นี้ใน MSSQL หรือไม่
       const addressCheckQuery = `
         SELECT [COMP_PERSON_CODE], [ADDR_CODE]
         FROM [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
-        WHERE [REGIST_CODE] = ?
+        WHERE [COMP_PERSON_CODE] = ?
           AND [ADDR_CODE] = ?
       `;
       
       const addressCheckResult = await mssqlQuery(addressCheckQuery, [
-        registCode,
+        comp_person_code,
         addr_code
       ]);
       
       console.log('Address check result:', JSON.stringify(addressCheckResult));
       
       if (!addressCheckResult || addressCheckResult.length === 0) {
-        throw new Error(`Address not found in MSSQL database for regist_code: ${registCode} and addr_code: ${addr_code}`);
+        throw new Error(`Address not found in MSSQL database for comp_person_code: ${comp_person_code} and addr_code: ${addr_code}`);
       }
 
-      // 2. ดึงข้อมูลที่อยู่ปัจจุบันเพื่อตรวจสอบข้อมูล
+      // ดึงข้อมูลที่อยู่ปัจจุบันเพื่อตรวจสอบข้อมูล
       const currentAddressQuery = `
         SELECT * FROM [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
-        WHERE [REGIST_CODE] = ?
+        WHERE [COMP_PERSON_CODE] = ?
           AND [ADDR_CODE] = ?
       `;
       
-      const currentAddressResult = await mssqlQuery(currentAddressQuery, [registCode, addr_code]);
+      const currentAddressResult = await mssqlQuery(currentAddressQuery, [comp_person_code, addr_code]);
       console.log('Current address data:', JSON.stringify(currentAddressResult));
       
       if (!currentAddressResult || currentAddressResult.length === 0) {
-        throw new Error(`Could not find address data for regist_code: ${registCode} and addr_code: ${addr_code}`);
+        throw new Error(`Could not find address data for comp_person_code: ${comp_person_code} and addr_code: ${addr_code}`);
       }
       
       // 3. อัปเดตที่อยู่ใน MSSQL
@@ -232,12 +202,12 @@ export async function POST(request) {
         const mssqlUpdateQuery = `
           UPDATE [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
           SET ${updateFields.join(', ')}
-          WHERE [REGIST_CODE] = ?
+          WHERE [COMP_PERSON_CODE] = ?
             AND [ADDR_CODE] = ?
         `;
         
         // เพิ่ม parameters สำหรับ WHERE clause
-        updateValues.push(registCode, addr_code);
+        updateValues.push(comp_person_code, addr_code);
         
         // ทำการอัปเดตใน MSSQL
         const updateResult = await mssqlQuery(mssqlUpdateQuery, updateValues);
@@ -259,11 +229,11 @@ export async function POST(request) {
             const singleFieldQuery = `
               UPDATE [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
               SET ${updateFields[i]}
-              WHERE [REGIST_CODE] = ?
+              WHERE [COMP_PERSON_CODE] = ?
                 AND [ADDR_CODE] = ?
             `;
             
-            const singleFieldResult = await mssqlQuery(singleFieldQuery, [updateValues[i], registCode, addr_code]);
+            const singleFieldResult = await mssqlQuery(singleFieldQuery, [updateValues[i], comp_person_code, addr_code]);
             
             if (singleFieldResult.rowsAffected && singleFieldResult.rowsAffected[0] > 0) {
               successCount++;
@@ -279,11 +249,11 @@ export async function POST(request) {
           const updByDateQuery = `
             UPDATE [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
             SET [UPD_BY] = ?, [UPD_DATE] = GETDATE()
-            WHERE [REGIST_CODE] = ?
+            WHERE [COMP_PERSON_CODE] = ?
               AND [ADDR_CODE] = ?
           `;
           
-          const updByDateResult = await mssqlQuery(updByDateQuery, ['FTI_PORTAL', registCode, addr_code]);
+          const updByDateResult = await mssqlQuery(updByDateQuery, ['FTI_PORTAL', comp_person_code, addr_code]);
           
           if (updByDateResult.rowsAffected && updByDateResult.rowsAffected[0] > 0) {
             successCount++;

@@ -12,7 +12,7 @@ import EmptyState from '../Emptystate';
 /**
  * Logo tab content for member detail page
  */
-export default function LogoTabContent({ companyInfo }) {
+export default function LogoTabContent({ companyInfo, memberType, memberGroupCode, typeCode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [logoData, setLogoData] = useState(null);
@@ -117,7 +117,7 @@ export default function LogoTabContent({ companyInfo }) {
     >
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-blue-600">โลโก้/ตราสัญลักษณ์บริษัท</h2>
-        {!isEditing && (
+        {!isEditing && memberType === '000' && (
           <button
             onClick={() => setIsEditing(true)}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"

@@ -38,6 +38,7 @@ import {
  * @param {string} props.memberTypeCode The specific group code within the member type (optional)
  */
 export default function MemberDetailComponent({ memberCode, selectedMemberType, memberTypeCode }) {
+  console.log('MemberDetailComponent - Parameters from URL:', { memberCode, selectedMemberType, memberTypeCode });
   const [memberData, setMemberData] = useState(null);
   const [filteredData, setFilteredData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -337,7 +338,12 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <ProductsPage companyInfo={companyInfo} />
+              <ProductsPage 
+                companyInfo={companyInfo} 
+                memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
+                memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
+                typeCode={companyInfo.MEMBER_TYPE_CODE}
+              />
             </motion.div>
           )}
           
@@ -349,7 +355,12 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <SocialMediaTabContent companyInfo={companyInfo} />
+              <SocialMediaTabContent 
+                companyInfo={companyInfo} 
+                memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
+                memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
+                typeCode={companyInfo.MEMBER_TYPE_CODE}
+              />
             </motion.div>
           )}
           
@@ -361,7 +372,12 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <LogoTabContent companyInfo={companyInfo} />
+              <LogoTabContent 
+                companyInfo={companyInfo} 
+                memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
+                memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
+                typeCode={companyInfo.MEMBER_TYPE_CODE}
+              />
             </motion.div>
           )}
           

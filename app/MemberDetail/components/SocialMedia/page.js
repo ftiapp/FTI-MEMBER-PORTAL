@@ -14,7 +14,7 @@ import EmptyState from '../Emptystate';
 /**
  * Social Media tab content for member detail page
  */
-export default function SocialMediaTabContent({ companyInfo }) {
+export default function SocialMediaTabContent({ companyInfo, memberType, memberGroupCode, typeCode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socialMediaData, setSocialMediaData] = useState([]);
@@ -104,7 +104,7 @@ export default function SocialMediaTabContent({ companyInfo }) {
             </div>
           )}
           
-          {!isEditing && (
+          {!isEditing && memberType === '000' && (
             <button
               onClick={() => setIsEditing(true)}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"

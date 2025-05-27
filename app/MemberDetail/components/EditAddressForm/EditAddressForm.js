@@ -569,7 +569,7 @@ export default function EditAddressForm({
             className="p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700 rounded-md"
             variants={itemVariants}
           >
-            <p>หลังจากส่งคำขอแล้ว เจ้าหน้าที่จะตรวจสอบและดำเนินการแก้ไขข้อมูลให้ภายใน 3-5 วันทำการ</p>
+            <p>หลังจากส่งคำขอแล้ว เจ้าหน้าที่จะตรวจสอบและดำเนินการแก้ไขข้อมูลให้ภายใน 2 วันทำการ</p>
           </motion.div>
         </div>
       )}

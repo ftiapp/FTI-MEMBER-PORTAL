@@ -14,7 +14,7 @@ import TsicCodeManager from './TsicCodeManager';
 /**
  * Products tab content for the member detail page
  */
-export default function ProductsTabContent({ companyInfo }) {
+export default function ProductsTabContent({ companyInfo, memberType, memberGroupCode, typeCode }) {
   const [showCategoryInfo, setShowCategoryInfo] = useState(false);
   const [language, setLanguage] = useState('th'); // 'th' หรือ 'en'
   const [mainCategories, setMainCategories] = useState([]);
@@ -107,7 +107,13 @@ export default function ProductsTabContent({ companyInfo }) {
         )}
         
         <div className="border-t border-gray-200 pt-4">
-          <TsicCodeManager memberCode={memberCode} language={language} />
+          <TsicCodeManager 
+            memberCode={memberCode} 
+            language={language} 
+            memberType={memberType}
+            memberGroupCode={memberGroupCode}
+            typeCode={typeCode}
+          />
         </div>
       </section>
 
@@ -129,4 +135,7 @@ ProductsTabContent.defaultProps = {
   companyInfo: {
     tsic_codes: []
   },
+  memberType: '',
+  memberGroupCode: '',
+  typeCode: ''
 };

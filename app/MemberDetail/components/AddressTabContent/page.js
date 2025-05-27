@@ -65,7 +65,9 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   const selectedAddressExists = hasAddresses && selectedAddress && addresses[selectedAddress];
   
   // Check if address is editable (001, 002, and 003 can be edited)
-  const isEditable = selectedAddress === '001' || selectedAddress === '002' || selectedAddress === '003';
+  const isAddressTypeEditable = selectedAddress === '001' || selectedAddress === '002' || selectedAddress === '003';
+  // Only allow editing for memberType '000' (สภาอุตสาหกรรมแห่งประเทศไทย), not for '100' (กลุ่มอุตสาหกรรม) or '200' (สภาอุตสาหกรรมจังหวัด)
+  const isEditable = isAddressTypeEditable && memberType === '000';
 
   // Check if there's a pending address update request
   const checkPendingRequest = async (lang = 'th') => {
