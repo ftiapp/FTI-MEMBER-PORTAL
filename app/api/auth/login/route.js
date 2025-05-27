@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { query } from '@/app/lib/db';
+import { cookies } from 'next/headers';
 
 // Mock users สำหรับการทดสอบ
 const mockUsers = [
@@ -82,10 +84,34 @@ export async function POST(request) {
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
-    return NextResponse.json({
+    // สร้าง JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.id,
+        email: user.email 
+      }, 
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '7d' }
+    );
+
+    // สร้าง response object
+    const response = NextResponse.json({
       message: 'เข้าสู่ระบบสำเร็จ',
       user: userWithoutPassword
     });
+
+    // เก็บ token ใน cookie
+    response.cookies.set({
+      name: 'token',
+      value: token,
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 60 * 60 * 24 * 7, // 7 วัน
+      path: '/'
+    });
+
+    return response;
   } catch (error) {
     console.error('Login error:', {
       message: error.message,

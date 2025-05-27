@@ -2,245 +2,131 @@
 
 import { motion } from 'framer-motion';
 import React, { useState, useEffect } from 'react';
+import { InformationCircleIcon } from '@heroicons/react/24/solid';
+import { toast } from 'react-toastify';
 
-import TsicFlow from './TsicFlow';
-import TsicCodesList from './TsicCodesList';
-import TsicForm from './TsicForm';
 import ProductsList from './ProductsList';
 import { formatProductsList } from './utils';
-import { fetchTsicCodes, submitTsicUpdate } from './api';
+import { fetchMainCategories } from './api';
+import LanguageToggle from './tsic/LanguageToggle';
+import TsicCodeManager from './TsicCodeManager';
 
 /**
  * Products tab content for the member detail page
  */
 export default function ProductsTabContent({ companyInfo }) {
-  // TSIC Code state
-  const [tsicCodes, setTsicCodes] = useState([]);
-  const [showTsicModal, setShowTsicModal] = useState(false);
-  const [editingTsic, setEditingTsic] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [selectedTsicCodes, setSelectedTsicCodes] = useState([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [memberCode, setMemberCode] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [flowStep, setFlowStep] = useState(1);
-  
+  const [showCategoryInfo, setShowCategoryInfo] = useState(false);
+  const [language, setLanguage] = useState('th'); // 'th' หรือ 'en'
+  const [mainCategories, setMainCategories] = useState([]);
   const productsList = formatProductsList(companyInfo.PRODUCT_DESC_TH);
+  const memberCode = companyInfo.MEMBER_CODE || companyInfo.member_code;
   
-  // Get member code and user ID from companyInfo
+  // โหลดข้อมูลหมวดหมู่ใหญ่เมื่อ component ถูกโหลด
   useEffect(() => {
-    if (companyInfo && companyInfo.MEMBER_CODE) {
-      setMemberCode(companyInfo.MEMBER_CODE);
-    } else {
-      // Fallback for demo
-      setMemberCode('DEMO123');
+    if (memberCode) {
+      loadMainCategories();
     }
-    setUserId(1); // Placeholder user ID, should come from authentication context
-  }, [companyInfo]);
-  
-  // Fetch existing TSIC codes when member code changes
-  useEffect(() => {
-    async function loadTsicCodes() {
-      if (!memberCode) return;
-      
-      try {
-        const allCodes = await fetchTsicCodes(memberCode);
-        setTsicCodes(allCodes);
-      } catch (error) {
-        console.error('Error fetching TSIC codes:', error);
-      }
-    }
-    
-    loadTsicCodes();
   }, [memberCode]);
-
-  // Update flow step based on selection
+  
+  // รีเรนเดอร์เมื่อมีการเปลี่ยนภาษา
   useEffect(() => {
-    if (showTsicModal) {
-      if (!selectedCategory) {
-        setFlowStep(1);
-      } else if (selectedCategory && selectedTsicCodes.length === 0) {
-        setFlowStep(2);
-      } else if (selectedTsicCodes.length > 0) {
-        setFlowStep(3);
-      }
-    }
-  }, [selectedCategory, selectedTsicCodes, showTsicModal]);
-
-  // Submit TSIC codes to backend
-  const handleSubmitTsic = async () => {
-    if (!selectedCategory || selectedTsicCodes.length === 0 || !memberCode || !userId) {
-      setError('ข้อมูลไม่ครบถ้วน กรุณาลองใหม่อีกครั้ง');
-      return;
-    }
-    
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-    
+    // เมื่อมีการเปลี่ยนภาษา ให้บังคับให้ component รีเรนเดอร์
+    console.log('Language changed to:', language);
+  }, [language]);
+  
+  // ฟังก์ชันสำหรับโหลดข้อมูลหมวดหมู่ใหญ่
+  const loadMainCategories = async () => {
     try {
-      // Prepare data for submission
-      const tsicCodesWithCategory = selectedTsicCodes.map(tsic => ({
-        category_code: selectedCategory.category_code,
-        category_name: selectedCategory.category_name,
-        category_order: tsic.category_order,
-        tsic_code: tsic.tsic_code,
-        description: tsic.description
-      }));
-      
-      const result = await submitTsicUpdate(userId, memberCode, tsicCodesWithCategory);
-      
+      const result = await fetchMainCategories();
       if (result.success) {
-        setSuccess(result.message);
-        // Update the local state to show pending status
-        const updatedCodes = tsicCodesWithCategory.map(code => ({
-          ...code,
-          status: 'pending'
-        }));
-        setTsicCodes(updatedCodes);
-        setFlowStep(4); // Move to last step
-        
-        // Close modal after a delay
-        setTimeout(() => {
-          setShowTsicModal(false);
-          setSuccess(null);
-        }, 2000);
+        setMainCategories(result.data || []);
       } else {
-        setError(result.message || 'เกิดข้อผิดพลาดในการส่งคำขอ');
+        console.error('Error fetching main categories:', result.message);
       }
     } catch (error) {
-      console.error('Error submitting TSIC update:', error);
-      setError('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error loading main categories:', error);
     }
   };
-
-  // Reset form when modal is opened
-  useEffect(() => {
-    if (showTsicModal) {
-      setSelectedCategory(null);
-      setSelectedTsicCodes([]);
-      setError(null);
-      setSuccess(null);
-      setFlowStep(1);
-      
-      // If editing, pre-populate with existing data
-      if (editingTsic && tsicCodes.length > 0) {
-        // Group by category
-        const categories = {};
-        tsicCodes.forEach(code => {
-          if (!categories[code.category_code]) {
-            categories[code.category_code] = {
-              category_code: code.category_code,
-              category_name: code.category_name,
-              codes: []
-            };
-          }
-          categories[code.category_code].codes.push(code);
-        });
-        
-        // Use the first category
-        const firstCategory = Object.values(categories)[0];
-        if (firstCategory) {
-          setSelectedCategory({
-            category_code: firstCategory.category_code,
-            category_name: firstCategory.category_name
-          });
-          setSelectedTsicCodes(firstCategory.codes);
-          setFlowStep(3); // Set appropriate flow step for editing
-        }
-      }
-    }
-  }, [showTsicModal, editingTsic, tsicCodes]);
+  
+  // Toggle language
+  const toggleLanguage = () => {
+    setLanguage(prev => prev === 'th' ? 'en' : 'th');
+  };
 
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="space-y-6"
+      className="space-y-8"
     >
-      {/* TSIC โค้ด Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h3 className="text-lg font-medium text-blue-600 border-b pb-2">
-          TSIC โค้ด
-        </h3>
-        
-        {/* Error/Success messages */}
-        {error && (
-          <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md">
-            {error}
-          </div>
-        )}
-        
-        {success && (
-          <div className="mb-4 p-3 bg-green-100 text-green-700 rounded-md">
-            {success}
-          </div>
-        )}
-
-        {/* TSIC Flow Steps */}
-        {showTsicModal && (
-          <TsicFlow flowStep={flowStep} />
-        )}
-        
-        {/* TSIC Codes List */}
-        {tsicCodes.length === 0 && !showTsicModal ? (
-          <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200">
-            ยังไม่มีข้อมูล หมวดหมู่ธุรกิจของท่าน กรุณา "เพิ่มข้อมูล"<br />
+      {/* TSIC Code Section */}
+      <section className="bg-white p-6 rounded-lg shadow-md">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center space-x-2">
+            <h2 className="text-xl font-semibold text-gray-900">รหัส TSIC</h2>
             <button
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
-              onClick={() => setShowTsicModal(true)}
+              type="button"
+              onClick={() => setShowCategoryInfo(!showCategoryInfo)}
+              className="text-gray-500 hover:text-gray-700 focus:outline-none"
+              title="ข้อมูลหมวดหมู่"
             >
-              เพิ่มข้อมูล
+              <InformationCircleIcon className="h-5 w-5" aria-hidden="true" />
             </button>
           </div>
-        ) : (
-          <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 mt-4">
-            {!showTsicModal && (
-              <TsicCodesList 
-                tsicCodes={tsicCodes} 
-                onEdit={() => {
-                  setEditingTsic(true);
-                  setShowTsicModal(true);
-                }} 
-              />
-            )}
-            
-            {/* Add/Edit TSIC Form */}
-            {showTsicModal && (
-              <TsicForm
-                editingTsic={editingTsic}
-                selectedCategory={selectedCategory}
-                setSelectedCategory={setSelectedCategory}
-                selectedTsicCodes={selectedTsicCodes}
-                setSelectedTsicCodes={setSelectedTsicCodes}
-                onSubmit={handleSubmitTsic}
-                onCancel={() => setShowTsicModal(false)}
-                isSubmitting={isSubmitting}
-                error={error}
-                success={success}
-                tsicCodes={tsicCodes}
-              />
-            )}
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-500">ภาษา:</span>
+            <LanguageToggle 
+              language={language} 
+              onToggle={toggleLanguage} 
+            />
+          </div>
+        </div>
+        
+        {/* ข้อมูลหมวดหมู่ใหญ่ */}
+        {showCategoryInfo && (
+          <div className="mb-4 p-4 bg-gray-50 rounded-md">
+            <h3 className="text-lg font-medium text-gray-900 mb-2">หมวดหมู่ TSIC</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {mainCategories.map(category => (
+                <div key={category.id} className="p-3 bg-white rounded border border-gray-200">
+                  <p className="font-medium text-gray-900">{category.category_code}</p>
+                  <p className="text-sm text-gray-600">
+                    {language === 'th' ? category.category_name : (category.category_name_EN || category.category_name)}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    จำนวนรายการ: {category.item_count || 0}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-gray-500 mt-4">
+              * สามารถเลือกได้สูงสุด 3 หมวดหมู่ใหญ่ และแต่ละหมวดหมู่สามารถเลือกได้สูงสุด 5 รายการ
+            </p>
           </div>
         )}
-      </motion.div>
-      
+        
+        <div className="border-t border-gray-200 pt-4">
+          <TsicCodeManager memberCode={memberCode} language={language} />
+        </div>
+      </section>
+
       {/* Products and Services Section */}
-      <ProductsList companyInfo={companyInfo} />
+      <section className="bg-white p-6 rounded-lg shadow-md">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">สินค้าและบริการ</h2>
+        <div className="border-t border-gray-200 pt-4">
+          <ProductsList companyInfo={companyInfo} />
+        </div>
+      </section>
+
+
     </motion.div>
   );
 }
 
 // Set default props
 ProductsTabContent.defaultProps = {
-  companyInfo: {},
+  companyInfo: {
+    tsic_codes: []
+  },
 };

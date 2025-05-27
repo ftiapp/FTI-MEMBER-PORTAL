@@ -1,6 +1,6 @@
 import { Noto_Sans_Thai, IBM_Plex_Sans_Thai } from 'next/font/google';
 import './globals.css';
-import { AuthProvider } from './contexts/AuthContext';
+import { Providers } from './providers';
 
 const notoSansThai = Noto_Sans_Thai({
   weight: ['300', '400', '500', '600', '700'],
@@ -25,9 +25,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="th" className={`${notoSansThai.variable} ${plexSansThai.variable}`}>
       <body className="font-noto">
-        <AuthProvider>
+        <Providers>
           {children}
-        </AuthProvider>
+        </Providers>
       </body>
     </html>
   );

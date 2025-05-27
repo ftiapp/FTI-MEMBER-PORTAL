@@ -12,6 +12,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
     "chart.js": "^4.4.9",
@@ -20,6 +22,7 @@
     "file-type": "^20.5.0",
     "framer-motion": "^12.11.3",
     "jose": "^6.0.10",
+    "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.487.0",
     "mailersend": "^2.5.0",
@@ -35,6 +38,7 @@
     "react-hot-toast": "^2.5.2",
     "react-icons": "^5.5.0",
     "react-intersection-observer": "^9.16.0",
+    "react-toastify": "^11.0.5",
     "sharp": "^0.34.1"
   },
   "devDependencies": {

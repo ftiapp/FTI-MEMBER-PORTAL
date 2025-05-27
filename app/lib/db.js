@@ -47,11 +47,11 @@ dbConfig = {
   enableKeepAlive: true,
   keepAliveInitialDelay: 10000, // เพิ่มการส่ง keepalive เร็วขึ้น
   connectTimeout: 60000, // เพิ่มเวลาในการเชื่อมต่อ
-  acquireTimeout: 60000, // เพิ่มเวลาในการรอคิว connection
+  // acquireTimeout ไม่ใช่ option ที่ถูกต้องสำหรับ mysql2
 };
 
-// สร้าง connection pool
-const pool = mysql.createPool(dbConfig);
+// Create connection pool
+export const pool = mysql.createPool(dbConfig);
 
 // Test connection on startup with retry
 async function testConnection() {
@@ -92,6 +92,7 @@ async function testConnection() {
 testConnection();
 
 // Helper function สำหรับ execute queries with retry
+// Export the query function
 export async function query(sql, params) {
   const maxRetries = 3;
   let retryCount = 0;
@@ -149,4 +150,67 @@ export async function query(sql, params) {
   
   // If we got here, all retries failed or it wasn't a retryable error
   throw lastError;
+}
+
+/**
+ * เริ่มต้น transaction
+ * @returns {Promise<Object>} Connection object with transaction
+ */
+export async function beginTransaction() {
+  const connection = await pool.getConnection();
+  try {
+    await connection.beginTransaction();
+    return connection;
+  } catch (error) {
+    connection.release();
+    throw error;
+  }
+}
+
+/**
+ * Execute query with a specific connection (for transactions)
+ * @param {Object} connection - Connection object
+ * @param {string} sql - SQL query
+ * @param {Array} params - Query parameters
+ * @returns {Promise<Array>} Query results
+ */
+export async function executeQuery(connection, sql, params) {
+  try {
+    const [results] = await connection.query(sql, params);
+    return results;
+  } catch (error) {
+    console.error('Error executing query:', {
+      message: error.message,
+      code: error.code,
+      sql: sql,
+      params: params
+    });
+    throw error;
+  }
+}
+
+/**
+ * Commit transaction
+ * @param {Object} connection - Connection object with active transaction
+ * @returns {Promise<void>}
+ */
+export async function commitTransaction(connection) {
+  try {
+    await connection.commit();
+  } finally {
+    connection.release();
+  }
+}
+
+/**
+ * Rollback transaction
+ * @param {Object} connection - Connection object with active transaction
+ * @returns {Promise<void>}
+ */
+export async function rollbackTransaction(connection) {
+  try {
+    await connection.rollback();
+  } finally {
+    connection.release();
+  }
 }

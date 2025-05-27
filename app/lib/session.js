@@ -42,6 +42,47 @@ export async function getSession() {
   }
 }
 
+/**
+ * ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก session โดยรับ request object
+ * @param {Object} request - The request object
+ * @returns {Object|null} - User object or null if not authenticated
+ */
+export async function getUserFromSession(request) {
+  try {
+    // ดึง token จาก cookies ในรูปแบบของ request
+    const cookieHeader = request.headers.get('cookie');
+    if (!cookieHeader) return null;
+    
+    // แยก cookies และหา user_token
+    const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
+      const [key, value] = cookie.trim().split('=');
+      acc[key] = value;
+      return acc;
+    }, {});
+    
+    const token = cookies.user_token;
+    if (!token) return null;
+    
+    // ตรวจสอบ token
+    const { payload } = await jwtVerify(token, secretKey);
+    
+    if (!payload || !payload.id) return null;
+    
+    // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
+    const users = await query(
+      'SELECT id, email, name FROM users WHERE id = ? LIMIT 1',
+      [payload.id]
+    );
+    
+    if (users.length === 0) return null;
+    
+    return users[0];
+  } catch (error) {
+    console.error('Error getting user from session:', error);
+    return null;
+  }
+}
+
 // ฟังก์ชันสำหรับสร้าง session
 export async function createSession(user) {
   // ในอนาคตอาจจะเพิ่มการสร้าง JWT token และบันทึกลงใน cookie
