@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -9,6 +9,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  // Fix hydration mismatch by only rendering menu after component is mounted
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -61,13 +67,13 @@ export default function Navbar() {
 
   return (
     <motion.nav 
-      className="bg-white shadow-md"
+      className="bg-white shadow-md w-full"
       variants={navVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container-custom">
-        <div className="flex justify-between items-center py-4">
+      <div className="container-custom px-4 max-w-7xl mx-auto">
+        <div className="flex justify-between items-center py-4 flex-wrap md:flex-nowrap">
           {/* Logo and Organization Name */}
           <motion.div
             variants={logoVariants}
@@ -92,7 +98,7 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <motion.div 
-            className="hidden md:flex items-center space-x-8"
+            className="hidden lg:flex items-center space-x-8"
             variants={menuVariants}
             initial="hidden"
             animate="visible"
@@ -185,35 +191,37 @@ export default function Navbar() {
           </motion.div>
 
           {/* Mobile Menu Button */}
-          <motion.button
-            className="md:hidden p-2"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.1 }}
-          >
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+          {mounted && (
+            <motion.button
+              className="lg:hidden p-2"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
             >
+              <svg
+                className="w-7 h-7 text-blue-900 font-bold"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2.5"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
               {isMenuOpen ? (
                 <path d="M6 18L18 6M6 6l12 12" />
               ) : (
                 <path d="M4 6h16M4 12h16M4 18h16" />
               )}
-            </svg>
-          </motion.button>
+              </svg>
+            </motion.button>
+          )}
         </div>
 
         {/* Mobile Menu */}
         <AnimatePresence>
-          {isMenuOpen && (
+          {mounted && isMenuOpen && (
             <motion.div 
-              className="md:hidden py-4 border-t"
+              className="lg:hidden py-4 border-t w-full"
               variants={mobileMenuVariants}
               initial="hidden"
               animate="visible"

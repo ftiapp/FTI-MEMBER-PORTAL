@@ -86,12 +86,62 @@ export default function ChangeEmailPage() {
   return (
     <>
       <Navbar />
-      <motion.div 
-        className="min-h-screen bg-gray-50 py-12"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
+      <motion.main className="bg-gray-50 min-h-screen">
+        {/* Hero Section - Updated to match consistent pattern */}
+        <motion.div 
+          className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-blue-800 opacity-10">
+            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+          
+          {/* Email icon */}
+          <motion.div 
+            className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 0.15, x: 0 }}
+            transition={{ delay: 0.5, duration: 1 }}
+          >
+            <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4H20C21.1 4 22 4.9 22 6V18C22 19.1 21.1 20 20 20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22 6L12 13L2 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.div>
+          <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+            <motion.h1 
+              className="text-3xl md:text-5xl font-bold mb-4 text-center"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
+            >
+              แจ้งเปลี่ยนอีเมล
+            </motion.h1>
+            <motion.div 
+              className="w-24 h-1 bg-white mx-auto mb-6"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            />
+            <motion.p 
+              className="text-lg md:text-xl text-center max-w-3xl mx-auto"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              เปลี่ยนอีเมลสำหรับการเข้าสู่ระบบและรับการแจ้งเตือน
+            </motion.p>
+          </div>
+        </motion.div>
+        
+        <div className="py-12">
         <Toaster position="top-right" />
         <div className="max-w-4xl mx-auto">
           <motion.div 
@@ -213,8 +263,9 @@ export default function ChangeEmailPage() {
             </div>
           </motion.div>
         </div>
-      </motion.div>
+      </div>
       <Footer />
+      </motion.main>
     </>
   );
 }

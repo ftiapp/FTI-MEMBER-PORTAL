@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import HeroSection from '../components/HeroSection';
+// HeroSection removed in favor of consistent header pattern
 import { services } from '../data/services';
 
 export default function Services() {
@@ -109,28 +109,75 @@ export default function Services() {
   };
 
   return (
-    <motion.div 
-      className="min-h-screen bg-gray-100"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.5 }}
-    >
+    <>
       <Navbar />
-      <HeroSection 
-        title="บริการของเรา"
-        subtitle="บริการครบวงจรเพื่อผู้ประกอบการไทย"
-      >
-        <motion.p 
-          className="mt-4 text-lg text-blue-100 max-w-3xl mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
+      <motion.main className="bg-gray-50 min-h-screen">
+        {/* Hero Section - Updated to match consistent pattern */}
+        <motion.div 
+          className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
         >
-          สภาอุตสาหกรรมแห่งประเทศไทยมีบริการหลากหลายที่ออกแบบมาเพื่อช่วยเหลือและสนับสนุนผู้ประกอบการอุตสาหกรรมไทย
-          ให้เติบโตอย่างยั่งยืนในตลาดที่มีการแข่งขันสูง
-        </motion.p>
-      </HeroSection>
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-blue-800 opacity-10">
+            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+          
+          {/* Service icon */}
+          <motion.div 
+            className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 0.15, x: 0 }}
+            transition={{ delay: 0.5, duration: 1 }}
+          >
+            <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 12V19" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 19V12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 19V12" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 12C13.6569 12 15 10.6569 15 9C15 7.34315 13.6569 6 12 6C10.3431 6 9 7.34315 9 9C9 10.6569 10.3431 12 12 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 12C20.6569 12 22 10.6569 22 9C22 7.34315 20.6569 6 19 6C17.3431 6 16 7.34315 16 9C16 10.6569 17.3431 12 19 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5 12C6.65685 12 8 10.6569 8 9C8 7.34315 6.65685 6 5 6C3.34315 6 2 7.34315 2 9C2 10.6569 3.34315 12 5 12Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.div>
+          <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+            <motion.h1 
+              className="text-3xl md:text-5xl font-bold mb-4 text-center"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
+            >
+              บริการของเรา
+            </motion.h1>
+            <motion.div 
+              className="w-24 h-1 bg-white mx-auto mb-6"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            />
+            <motion.p 
+              className="text-lg md:text-xl text-center max-w-3xl mx-auto"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              บริการครบวงจรเพื่อผู้ประกอบการไทย
+            </motion.p>
+            <motion.p 
+              className="mt-4 text-lg text-blue-100 max-w-3xl mx-auto text-center"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
+            >
+              สภาอุตสาหกรรมแห่งประเทศไทยมีบริการหลากหลายที่ออกแบบมาเพื่อช่วยเหลือและสนับสนุนผู้ประกอบการอุตสาหกรรมไทย
+              ให้เติบโตอย่างยั่งยืนในตลาดที่มีการแข่งขันสูง
+            </motion.p>
+          </div>
+        </motion.div>
       
       <div className="container mx-auto px-4 py-12">
         {/* Search and Categories */}
@@ -419,6 +466,7 @@ export default function Services() {
         )}
       </div>
       <Footer />
-    </motion.div>
+      </motion.main>
+    </>
   );
 }

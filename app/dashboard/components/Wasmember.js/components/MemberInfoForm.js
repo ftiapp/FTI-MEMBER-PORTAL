@@ -145,10 +145,11 @@ export default function MemberInfoForm({
               name="taxId"
               value={formData.taxId}
               onChange={(e) => handleChange('taxId', e.target.value)}
-              className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.taxId ? 'border-red-500' : ''} text-gray-900 ${selectedResult ? 'bg-gray-100' : ''}`}
+              className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.taxId ? 'border-red-500' : ''} text-gray-900 bg-gray-100`}
               placeholder="เลข 13 หลัก"
-              readOnly={!!selectedResult}
+              readOnly={true}
             />
+            <p className="text-xs text-gray-500 mt-1">เลขประจำตัวผู้เสียภาษีจะถูกดึงจากข้อมูลสมาชิกอัตโนมัติ</p>
             {formErrors.taxId && (
               <p className="text-red-500 text-xs mt-1">กรุณากรอกเลขประจำตัวผู้เสียภาษี</p>
             )}
@@ -161,31 +162,43 @@ export default function MemberInfoForm({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <FileUploadField 
-            label={
-              formData.memberType === 'สส' || formData.memberType === 'สน' ? 
-                'หนังสือรับรอง (ประทับตราบริษัท และ ลงนาม)' :
-              formData.memberType === 'ทน' ? 
-                'บัตรอนุญาตสมาคมการค้า (ประทับตราสมาคม และ ลงนาม)' :
-              formData.memberType === 'ทบ' ? 
-                'สำเนาบัตรประชาชน' :
-                'เอกสารยืนยัน'
-            }
-            name="documentFile"
-            value={formData.documentFile}
-            onChange={(name, file) => handleChange('documentFile', file)}
-            hasError={formErrors.documentFile}
-            errorMessage="กรุณาอัพโหลดเอกสารตามที่กำหนด"
-            helpText={
-              formData.memberType === 'สส' || formData.memberType === 'สน' ? 
-                'อัพโหลดหนังสือรับรองที่มีการประทับตราบริษัทและลงนาม (PDF, JPG)' :
-              formData.memberType === 'ทน' ? 
-                'อัพโหลดบัตรอนุญาตสมาคมการค้าที่มีการประทับตราสมาคมและลงนาม (PDF, JPG)' :
-              formData.memberType === 'ทบ' ? 
-                'อัพโหลดสำเนาบัตรประชาชนที่ลงนามรับรองสำเนาถูกต้อง (PDF, JPG)' :
-                'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
-            }
-          />
+          <div className="space-y-2">
+            <FileUploadField
+              label={
+                formData.memberType === 'สส' || formData.memberType === 'สน' ? 
+                  'หนังสือรับรอง (ประทับตราบริษัท และ ลงนาม)' :
+                formData.memberType === 'ทน' ? 
+                  'บัตรอนุญาตสมาคมการค้า (ประทับตราสมาคม และ ลงนาม)' :
+                formData.memberType === 'ทบ' ? 
+                  'สำเนาบัตรประชาชน' :
+                  'เอกสารยืนยัน'
+              }
+              name="documentFile"
+              value={formData.documentFile}
+              onChange={(name, file) => handleChange('documentFile', file)}
+              hasError={formErrors.documentFile}
+              errorMessage="กรุณาอัพโหลดเอกสารตามที่กำหนด"
+              helpText={
+                formData.memberType === 'สส' || formData.memberType === 'สน' ? 
+                  'อัพโหลดหนังสือรับรองที่มีการประทับตราบริษัทและลงนาม (PDF, JPG)' :
+                formData.memberType === 'ทน' ? 
+                  'อัพโหลดบัตรอนุญาตสมาคมการค้าที่มีการประทับตราสมาคมและลงนาม (PDF, JPG)' :
+                formData.memberType === 'ทบ' ? 
+                  'อัพโหลดสำเนาบัตรประชาชนที่ลงนามรับรองสำเนาถูกต้อง (PDF, JPG)' :
+                  'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
+              }
+            />
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mt-2">
+              <h4 className="text-sm font-medium text-blue-800 mb-1">เอกสารที่ต้องใช้ในการยืนยันสมาชิก</h4>
+              <ul className="text-xs text-blue-700 list-disc pl-4 space-y-1">
+                <li>สมาชิกประเภทสามัญ-โรงงาน (สน): หนังสือรับรองบริษัทที่มีการประทับตราและลงนาม</li>
+                <li>สมาชิกประเภทสามัญ-สมาคมการค้า (สส): หนังสือรับรองสมาคมที่มีการประทับตราและลงนาม</li>
+                <li>สมาชิกประเภทสมทบ-นิติบุคคล (ทน): หนังสือรับรองบริษัทที่มีการประทับตราและลงนาม</li>
+                <li>สมาชิกประเภทสมทบ-บุคคลธรรมดา (ทบ): สำเนาบัตรประชาชนที่ลงนามรับรองสำเนาถูกต้อง</li>
+              </ul>
+              <p className="text-xs text-blue-700 mt-2">เอกสารจะถูกตรวจสอบโดยเจ้าหน้าที่ภายใน 2 วันทำการ</p>
+            </div>
+          </div>
         </motion.div>
         
         {showSubmitButton && (

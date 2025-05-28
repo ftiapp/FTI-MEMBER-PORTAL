@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import HeroSection from './components/HeroSection';
+// HeroSection removed in favor of consistent header pattern
 import { services } from './data/services';
 
 export default function Home() {
@@ -64,42 +64,65 @@ export default function Home() {
   };
 
   return (
-    <motion.main 
-      className="min-h-screen bg-gray-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <>
       <Navbar />
-      
-      <HeroSection
-        title="สภาอุตสาหกรรมแห่งประเทศไทย"
-        description={
-          <>
-            เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย<br />
-            ให้สามารถแข่งขันได้ในระดับสากล
-          </>
-        }
-      >
+      <motion.main className="bg-gray-50 min-h-screen">
+        {/* Hero Section - Updated to match consistent pattern */}
         <motion.div 
-          className="flex justify-center mt-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8, type: 'spring', stiffness: 50 }}
+          className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
         >
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Link
-              href="/register"
-              className="inline-block px-8 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl"
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-blue-800 opacity-10">
+            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          </div>
+          <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+            <motion.h1 
+              className="text-3xl md:text-5xl font-bold mb-4 text-center"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
             >
-              สมัครสมาชิก
-            </Link>
-          </motion.div>
+              สภาอุตสาหกรรมแห่งประเทศไทย
+            </motion.h1>
+            <motion.div 
+              className="w-24 h-1 bg-white mx-auto mb-6"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            />
+            <motion.p 
+              className="text-lg md:text-xl text-center max-w-3xl mx-auto"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย<br />
+              ให้สามารถแข่งขันได้ในระดับสากล
+            </motion.p>
+            
+            <motion.div 
+              className="flex justify-center mt-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, type: 'spring', stiffness: 50 }}
+            >
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <Link
+                  href="/register"
+                  className="inline-block px-8 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl"
+                >
+                  สมัครสมาชิก
+                </Link>
+              </motion.div>
+            </motion.div>
+          </div>
         </motion.div>
-      </HeroSection>
 
       {/* Services Section */}
       <section className="py-16 bg-white">
@@ -257,6 +280,7 @@ export default function Home() {
       </section>
 
       <Footer />
-    </motion.main>
+      </motion.main>
+    </>
   );
 }

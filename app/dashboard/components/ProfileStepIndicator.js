@@ -13,70 +13,124 @@ export default function ProfileStepIndicator({ currentStep = 1 }) {
   const steps = [
     { 
       id: 1, 
-      icon: <FaEdit className="w-5 h-5" />, 
-      label: '1 แก้ไขชื่อ',
+      icon: <FaEdit className="w-4 h-4 md:w-5 md:h-5" />, 
+      label: 'แก้ไขชื่อ',
       description: 'แก้ไขชื่อ-นามสกุล'
     },
     { 
       id: 2, 
-      icon: <FaCheckCircle className="w-5 h-5" />, 
-      label: '2 ตรวจสอบยืนยัน',
+      icon: <FaCheckCircle className="w-4 h-4 md:w-5 md:h-5" />, 
+      label: 'ตรวจสอบยืนยัน',
       description: 'ยืนยันข้อมูลที่แก้ไข'
     },
     { 
       id: 3, 
-      icon: <FaUserCog className="w-5 h-5" />, 
-      label: '3 แอดมินยืนยัน',
+      icon: <FaUserCog className="w-4 h-4 md:w-5 md:h-5" />, 
+      label: 'แอดมินยืนยัน',
       description: 'ภายใน 2 วันทำการ'
     }
   ];
 
   return (
-    <div className="w-full mb-8">
-      <div className="flex justify-between items-center">
-        {steps.map((step, index) => {
-          // Calculate if this step is active, completed, or upcoming
-          const isActive = step.id === currentStep;
-          const isCompleted = currentStep > step.id;
-          const isUpcoming = currentStep < step.id;
+    <div className="w-full max-w-4xl mx-auto mb-8 px-4">
+      {/* Desktop/Tablet View - Hidden on small screens and in landscape mode */}
+      <div className="hidden md:block">
+        <div className="flex items-center justify-between relative">
+          {/* No connecting lines */}
           
-          return (
-            <div key={step.id} className="flex flex-col items-center">
-              
-              {/* Step circle */}
-              <motion.div
-                className={`z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                  isActive
-                    ? 'border-blue-500 bg-blue-50 text-blue-500'
-                    : isCompleted
-                    ? 'border-blue-500 bg-blue-500 text-white'
-                    : 'border-gray-300 bg-white text-gray-400'
-                }`}
-                initial={{ scale: 0.8 }}
-                animate={{ 
-                  scale: isActive ? 1.1 : 1,
-                  backgroundColor: isActive ? '#EBF5FF' : 
-                                   isCompleted ? '#3B82F6' : '#FFFFFF'
-                }}
-                transition={{ duration: 0.3 }}
+          {/* Steps */}
+          {steps.map((step, index) => {
+            const isActive = step.id <= currentStep;
+            
+            return (
+              <div
+                key={step.id}
+                className="flex flex-col items-center relative"
+                style={{ flex: '1', maxWidth: '200px' }}
               >
-                {step.icon}
-              </motion.div>
-              
-              {/* Step label */}
-              <div className="mt-2 text-center">
-                <p className={`text-sm font-medium ${
-                  !isUpcoming ? 'text-blue-600' : 'text-gray-500'
-                }`}>
-                  {step.label}
-                </p>
-                <p className="text-xs text-gray-500 mt-1 hidden md:block">
-                  {step.description}
-                </p>
+                <motion.div
+                  className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border-2 bg-white shadow-sm ${
+                    isActive ? 'border-blue-600' : 'border-gray-300'
+                  }`}
+                  initial={false}
+                  animate={{
+                    scale: isActive ? 1.1 : 1,
+                    borderColor: isActive ? '#2563eb' : '#d1d5db',
+                  }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.div
+                    animate={{
+                      color: isActive ? '#2563eb' : '#9ca3af',
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {step.icon}
+                  </motion.div>
+                </motion.div>
+                
+                <div className="mt-3 text-center">
+                  <p className={`text-xs md:text-sm font-medium ${
+                    isActive ? 'text-blue-600' : 'text-gray-500'
+                  }`}>
+                    {step.label}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1 hidden md:block">
+                    {step.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Mobile View - Shown on small screens and in landscape mode */}
+      <div className="block md:hidden">
+        <div className="space-y-4 landscape:flex landscape:space-y-0 landscape:space-x-4 landscape:justify-between landscape:items-start">
+          {steps.map((step, index) => {
+            const isActive = step.id <= currentStep;
+            const isCompleted = step.id < currentStep;
+            
+            return (
+              <div key={step.id} className="flex items-start space-x-4 landscape:flex-col landscape:items-center landscape:space-x-0 landscape:space-y-2 landscape:flex-1">
+                <div className="flex flex-col items-center">
+                  <motion.div
+                    className={`flex items-center justify-center w-10 h-10 rounded-full border-2 bg-white ${
+                      isActive ? 'border-blue-600' : 'border-gray-300'
+                    }`}
+                    initial={false}
+                    animate={{
+                      scale: isActive ? 1.1 : 1,
+                      borderColor: isActive ? '#2563eb' : '#d1d5db',
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <motion.div
+                      animate={{
+                        color: isActive ? '#2563eb' : '#9ca3af',
+                      }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      {step.icon}
+                    </motion.div>
+                  </motion.div>
+                </div>
+                
+                <div className="flex-1 pb-2">
+                  <p className={`text-sm font-medium ${
+                    isActive ? 'text-blue-600' : 'text-gray-500'
+                  }`}>
+                    {step.label}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
@@ -30,6 +31,7 @@ export default function Dashboard() {
   const { user, logout } = useAuth();
   const [activeTab, setActiveTab] = useState('อัพเดตสมาชิก');
   const [membershipType, setMembershipType] = useState('ทั่วไป'); // Default membership type
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar state
   
   // Create refs for menu items
   const menuRefs = {
@@ -150,69 +152,60 @@ export default function Dashboard() {
     return null;
   }
 
-  // Dashboard menu items with icons - removed กิจกรรมล่าสุด item
+  // Dashboard menu items with icons - reordered and updated
   const menuItems = [
     {
-      name: 'อัพเดตสมาชิก',
+      name: 'ข้อมูลผู้ใช้งาน',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      ),
-    },
-    {
-      name: 'จัดการเอกสาร',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-      ),
-    },
-    {
-      name: 'อัพเกรดสมาชิก',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-        </svg>
-      ),
-    },
-    {
-      name: 'ยืนยันสมาชิกเดิม',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      ),
-    },
-    {
-      name: 'ชำระค่าบริการ',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-        </svg>
-      ),
-    },
-    {
-      name: 'สถานะการดำเนินการ',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
       ),
     },
     {
       name: 'ข้อมูลสมาชิก',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
         </svg>
       ),
     },
-    
+    {
+      name: 'ยืนยันสมาชิกเดิม',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'อัพเกรดสมาชิก',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+      ),
+    },
+    {
+      name: 'เอกสารยืนยันสมาชิก',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+      ),
+    },
+    {
+      name: 'สถานะการดำเนินการ',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+    },
     {
       name: 'ติดต่อเรา',
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
         </svg>
       ),
@@ -227,54 +220,54 @@ export default function Dashboard() {
     switch (activeTab) {
       case 'สถานะการดำเนินการ':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">สถานะการดำเนินการ</h2>
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">สถานะการดำเนินการ</h2>
             <CheckStatusOperation />
           </div>
         );
       case 'อัพเดตสมาชิก':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">อัพเดตข้อมูลสมาชิก</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">อัพเดตข้อมูลสมาชิก</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <UpdateMember />
             </div>
           </div>
         );
-      case 'จัดการเอกสาร':
+      case 'เอกสารยืนยันสมาชิก':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">จัดการเอกสาร</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">เอกสารยืนยันสมาชิก</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <div className="space-y-4">
-                <div className="flex justify-between items-center pb-4 border-b">
-                  <h3 className="font-medium">เอกสารของท่าน</h3>
-                  <button className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm">อัพโหลดเอกสาร</button>
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b gap-3 sm:gap-0">
+                  <h3 className="font-medium">เอกสารยืนยันสมาชิกของท่าน</h3>
+                  <button className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm whitespace-nowrap">อัพโหลดเอกสาร</button>
                 </div>
                 <div className="space-y-4">
-                  <div className="p-4 border rounded-lg flex justify-between items-center">
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="p-3 sm:p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex items-center w-full sm:w-auto">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <div>
-                        <p className="font-medium">หนังสือรับรองบริษัท</p>
-                        <p className="text-sm text-gray-500">อัพโหลดเมื่อ 15 ม.ค. 2025</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base truncate">หนังสือรับรองบริษัท</p>
+                        <p className="text-xs sm:text-sm text-gray-500">อัพโหลดเมื่อ 15 ม.ค. 2025</p>
                       </div>
                     </div>
-                    <button className="text-blue-700 hover:underline">ดาวน์โหลด</button>
+                    <button className="text-blue-700 hover:underline text-sm whitespace-nowrap">ดาวน์โหลด</button>
                   </div>
-                  <div className="p-4 border rounded-lg flex justify-between items-center">
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="p-3 sm:p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div className="flex items-center w-full sm:w-auto">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      <div>
-                        <p className="font-medium">ภพ.20</p>
-                        <p className="text-sm text-gray-500">อัพโหลดเมื่อ 15 ม.ค. 2025</p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base truncate">ภพ.20</p>
+                        <p className="text-xs sm:text-sm text-gray-500">อัพโหลดเมื่อ 15 ม.ค. 2025</p>
                       </div>
                     </div>
-                    <button className="text-blue-700 hover:underline">ดาวน์โหลด</button>
+                    <button className="text-blue-700 hover:underline text-sm whitespace-nowrap">ดาวน์โหลด</button>
                   </div>
                 </div>
               </div>
@@ -283,9 +276,9 @@ export default function Dashboard() {
         );
       case 'อัพเกรดสมาชิก':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">อัพเกรดสมาชิก</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">อัพเกรดสมาชิก</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <UpgradeMembership />
             </div>
           </div>
@@ -293,9 +286,9 @@ export default function Dashboard() {
 
       case 'ยืนยันสมาชิกเดิม':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">ยืนยันสมาชิกเดิม</h2>
-            <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">ยืนยันสมาชิกเดิม</h2>
+            <div className="space-y-4 sm:space-y-6">
               <Wasmember />
             </div>
           </div>
@@ -303,9 +296,9 @@ export default function Dashboard() {
 
       case 'ข้อมูลสมาชิก':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">ข้อมูลสมาชิก</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">ข้อมูลสมาชิก</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               {user && user.id ? (
                 <MemberDetail userId={user.id} />
               ) : (
@@ -317,29 +310,37 @@ export default function Dashboard() {
             </div>
           </div>
         );
-        
+
+      case 'ข้อมูลผู้ใช้งาน':
+        return (
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">ข้อมูลผู้ใช้งาน</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+              <UpdateMember />
+            </div>
+          </div>
+        );
+
       case 'ติดต่อเรา': {
         // Check if there's a messageId parameter in the URL
         const searchParams = new URLSearchParams(window.location.search);
         const messageId = searchParams.get('messageId');
         console.log('Dashboard: Rendering ContactUs with messageId:', messageId);
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">ติดต่อเรา</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">ติดต่อเรา</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <ContactUs messageId={messageId} />
             </div>
           </div>
         );
       }
         
-     
-
       case 'กิจกรรมล่าสุด':
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">กิจกรรมล่าสุด</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">กิจกรรมล่าสุด</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <RecentActivities />
             </div>
           </div>
@@ -347,9 +348,9 @@ export default function Dashboard() {
 
       default:
         return (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-bold text-gray-800">{activeTab}</h2>
-            <div className="bg-white rounded-xl shadow-md p-6">
+          <div className="space-y-4 sm:space-y-6">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">{activeTab}</h2>
+            <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
               <p>เนื้อหาสำหรับ {activeTab} จะแสดงที่นี่</p>
             </div>
           </div>
@@ -358,108 +359,221 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Include Navbar */}
+    <>
       <Navbar />
-      
-      <div className="container-custom py-8">
-        {/* Dashboard Header */}
-        <div className="bg-white shadow-md rounded-lg p-6 mb-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">ยินดีต้อนรับ, {(user.firstname && user.lastname) ? `${user.firstname} ${user.lastname}` : 'สมาชิก'}</h1>
-              <div className="flex items-center mt-2">
-                <span className="text-gray-600">สถานะผู้ใช้งาน:</span>
-                {user.role === 'member' ? (
-                  <span className="ml-2 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                    สมาชิก
-                  </span>
-                ) : user.role === 'admin' ? (
-                  <span className="ml-2 px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                    ผู้ดูแลระบบ
-                  </span>
-                ) : (
-                  <span className="ml-2 px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm font-medium">
-                    ผู้ใช้งานทั่วไป
-                  </span>
-                )}
+      <main className="bg-gray-50 min-h-screen">
+        {/* Hero Section - Updated to match consistent pattern with dashboard icon */}
+        <motion.div 
+          className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 md:py-16"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-blue-800 opacity-10">
+            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+          
+          {/* Dashboard icon */}
+          <motion.div 
+            className="absolute right-8 top-1/2 transform -translate-y-1/2 hidden lg:block"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 0.15, x: 0 }}
+            transition={{ delay: 0.5, duration: 1 }}
+          >
+            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.div>
+
+          <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+            <motion.h1 
+              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-center"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
+            >
+              แดชบอร์ดสมาชิก
+            </motion.h1>
+            <motion.div 
+              className="w-16 h-1 bg-white mx-auto mb-3"
+              initial={{ width: 0 }}
+              animate={{ width: 64 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            />
+            <motion.p 
+              className="text-base md:text-lg text-center max-w-3xl mx-auto text-blue-100"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+            >
+              จัดการข้อมูลสมาชิกและบริการต่างๆ ของสภาอุตสาหกรรมแห่งประเทศไทย
+            </motion.p>
+          </div>
+        </motion.div>
+        
+        <div 
+          className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8"
+        >
+          {/* Dashboard Header */}
+          <div 
+            className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-4 sm:mb-6"
+          >
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+              <div className="flex-1 min-w-0">
+                <h1 
+                  className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate"
+                >
+                  ยินดีต้อนรับ, {(user.firstname && user.lastname) ? `${user.firstname} ${user.lastname}` : 'สมาชิก'}
+                </h1>
+                <div 
+                  className="flex flex-col sm:flex-row sm:items-center mt-2 gap-2"
+                >
+                  <span className="text-sm sm:text-base text-gray-600">สถานะผู้ใช้งาน:</span>
+                  {user.role === 'member' ? (
+                    <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-medium">
+                      สมาชิก
+                    </span>
+                  ) : user.role === 'admin' ? (
+                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs sm:text-sm font-medium">
+                      ผู้ดูแลระบบ
+                    </span>
+                  ) : (
+                    <span className="inline-block px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-xs sm:text-sm font-medium">
+                      ผู้ใช้งานทั่วไป
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-            <div className="mt-4 md:mt-0 flex items-center">
-              <button
-                onClick={logout}
-                className="flex items-center text-red-600 hover:text-red-800 transition-colors"
+              <div 
+                className="flex items-center gap-4"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v6" />
-                </svg>
-                ออกจากระบบ
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Dashboard Content */}
-        <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar */}
-          <div className="w-full md:w-1/4">
-            <div className="bg-white rounded-xl shadow-md overflow-hidden">
-              <div className="bg-blue-700 p-6 text-white">
-                <h2 className="text-xl font-bold">ยินดีต้อนรับ</h2>
-                <p className="text-blue-100 mt-1">จัดการข้อมูลสมาชิกและบริการต่างๆ</p>
+                {/* Mobile Menu Button */}
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="lg:hidden p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors"
+                  aria-label="Toggle menu"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                </button>
+                
+                <button
+                  onClick={logout}
+                  className="flex items-center text-red-600 hover:text-red-800 transition-colors text-sm sm:text-base"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v6" />
+                  </svg>
+                  <span className="hidden sm:inline">ออกจากระบบ</span>
+                </button>
               </div>
-              <nav className="p-4">
-                <ul className="space-y-2">
-                  {menuItems.map((item) => (
-                    <li key={item.name}>
-                      <button
-                        ref={menuRefs[item.name] || null}
-                        onClick={() => {
-                          if (item.name === 'ติดต่อเรา') {
-                            // For Contact Us, check if there's a messageId in the URL
-                            const searchParams = new URLSearchParams(window.location.search);
-                            const messageId = searchParams.get('messageId');
-                            
-                            if (messageId) {
-                              // If there's already a messageId, preserve it
-                              router.push(`/dashboard?tab=contact&messageId=${messageId}`, undefined, { shallow: true });
-                            } else {
-                              // Otherwise just navigate to the contact tab
-                              router.push('/dashboard?tab=contact', undefined, { shallow: true });
-                            }
-                          } else if (item.name === 'ข้อมูลสมาชิก') {
-                            // For MemberDetail, update URL with tab parameter
-                            router.push('/dashboard?tab=member', undefined, { shallow: true });
-                          }
-                          setActiveTab(item.name);
-                        }}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                          activeTab === item.name
-                            ? 'bg-blue-50 text-blue-700'
-                            : 'text-gray-700 hover:bg-gray-100'
-                        }`}
-                      >
-                        <span className={activeTab === item.name ? 'text-blue-700' : 'text-gray-500'}>
-                          {item.icon}
-                        </span>
-                        <span>{item.name}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="w-full md:w-3/4">
-            {renderTabContent()}
+          {/* Dashboard Content */}
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
+            {/* Mobile Sidebar Overlay */}
+            {sidebarOpen && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                onClick={() => setSidebarOpen(false)}
+              />
+            )}
+
+            {/* Sidebar */}
+            <div 
+              className={`
+                w-full lg:w-1/4 xl:w-1/5 
+                ${sidebarOpen ? 'fixed inset-y-0 left-0 z-50 w-80 transform translate-x-0' : 'hidden'}
+                lg:block lg:relative lg:translate-x-0 lg:z-auto lg:w-1/4 xl:w-1/5
+                transition-transform duration-300 ease-in-out
+              `}
+            >
+              <div className="bg-white rounded-xl shadow-md overflow-hidden h-full lg:h-auto">
+                <div 
+                  className="bg-blue-700 p-4 sm:p-6 text-white"
+                >
+                  <h2 className="text-lg sm:text-xl font-bold">ยินดีต้อนรับ</h2>
+                  <p className="text-blue-100 mt-1 text-sm sm:text-base">จัดการข้อมูลสมาชิกและบริการต่างๆ</p>
+                </div>
+                
+                {/* Mobile sidebar header */}
+                <div className="lg:hidden flex justify-between items-center p-4 border-b">
+                  <h2 className="text-lg font-bold text-gray-800">เมนู</h2>
+                  <button
+                    onClick={() => setSidebarOpen(false)}
+                    className="p-2 rounded-lg hover:bg-gray-100"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+                <nav className="p-3 sm:p-4 max-h-screen overflow-y-auto">
+                  <ul className="space-y-1 sm:space-y-2">
+                    {menuItems.map((item, index) => (
+                      <li 
+                        key={item.name}
+                      >
+                        <button
+                          ref={menuRefs[item.name] || null}
+                          onClick={() => {
+                            // Close mobile sidebar when item is clicked
+                            setSidebarOpen(false);
+                            
+                            if (item.name === 'ติดต่อเรา') {
+                              // For Contact Us, check if there's a messageId in the URL
+                              const searchParams = new URLSearchParams(window.location.search);
+                              const messageId = searchParams.get('messageId');
+                              
+                              if (messageId) {
+                                // If there's already a messageId, preserve it
+                                router.push(`/dashboard?tab=contact&messageId=${messageId}`, undefined, { shallow: true });
+                              } else {
+                                // Otherwise just navigate to the contact tab
+                                router.push('/dashboard?tab=contact', undefined, { shallow: true });
+                              }
+                            } else if (item.name === 'ข้อมูลสมาชิก') {
+                              // For MemberDetail, update URL with tab parameter
+                              router.push('/dashboard?tab=member', undefined, { shallow: true });
+                            }
+                            setActiveTab(item.name);
+                          }}
+                          className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-left ${
+                            activeTab === item.name
+                              ? 'bg-blue-50 text-blue-700'
+                              : 'text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          <span className={`flex-shrink-0 ${activeTab === item.name ? 'text-blue-700' : 'text-gray-500'}`}>
+                            {item.icon}
+                          </span>
+                          <span className="text-sm sm:text-base truncate">{item.name}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div 
+              className="w-full lg:w-3/4 xl:w-4/5"
+            >
+              {renderTabContent()}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer */}
-      <Footer />
-    </main>
+        <Footer />
+      </main>
+    </>
   );
 }

@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import MemberInfoForm from './components/MemberInfoForm';
 import EditMemberForm from './components/EditMemberForm';
 import InfoAlert from './components/InfoAlert';
+import WasMemberStepIndicator from './components/WasMemberStepIndicator';
 
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
 
@@ -460,18 +461,52 @@ const [successMessage, setSuccessMessage] = useState('');
 
   return (
     <motion.div 
-      className="space-y-6"
+      className="space-y-4 sm:space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
+      {/* Yellow Alert: Instruction for existing members */}
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+        transition={{ duration: 0.6 }}
+        className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3"
       >
-        <InfoAlert />
+        <div className="flex items-center">
+          <motion.div 
+            className="bg-yellow-100 rounded-full p-2 mr-3"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </motion.div>
+          <div>
+            <motion.p 
+              className="font-medium text-black"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              หากท่านเป็นสมาชิกเดิมของสภาอุตสาหกรรมแห่งประเทศไทย
+            </motion.p>
+            <motion.p 
+              className="text-sm text-black"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              กรุณากรอกข้อมูลเพื่อยืนยันตัวตนและเชื่อมโยงบัญชีของคุณ เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 2 วันทำการ
+            </motion.p>
+          </div>
+        </div>
       </motion.div>
+      
+      {/* Step Indicator */}
+      <WasMemberStepIndicator currentStep={showForm ? 1 : (verificationStatus.submitted ? 3 : 2)} />
       
       {/* Success message */}
       <AnimatePresence>

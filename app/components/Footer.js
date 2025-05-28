@@ -36,15 +36,15 @@ const Footer = () => {
 
   return (
     <motion.footer 
-      className="bg-gray-900 text-white py-12"
+      className="bg-gray-900 text-white py-8 md:py-12 w-full"
       variants={containerVariants}
       initial="hidden"
       animate="visible"
     >
-      <div className="container mx-auto px-4">
-        <motion.div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 max-w-7xl w-full">
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
           {/* Logo and About */}
-          <motion.div className="mb-8 md:mb-0" variants={itemVariants}>
+          <motion.div className="mb-4 sm:mb-0" variants={itemVariants}>
             <motion.div className="mb-4" variants={itemVariants}>
               <Image 
                 src="/FTI-MasterLogo_RGB-White.png" 
@@ -54,7 +54,7 @@ const Footer = () => {
                 className="mb-4"
               />
             </motion.div>
-            <motion.p className="text-gray-400 mb-4" variants={itemVariants}>
+            <motion.p className="text-gray-400 mb-3 text-xs sm:text-sm" variants={itemVariants}>
               สภาอุตสาหกรรมแห่งประเทศไทย องค์กรที่มุ่งมั่นพัฒนาและส่งเสริมอุตสาหกรรมไทยให้เติบโตอย่างยั่งยืน
             </motion.p>
             <motion.div className="flex space-x-4" variants={itemVariants}>
@@ -114,8 +114,8 @@ const Footer = () => {
           </motion.div>
 
           {/* Quick Links */}
-          <motion.div className="mb-8 md:mb-0" variants={itemVariants}>
-            <motion.h3 className="text-xl font-semibold mb-4" variants={itemVariants}>ลิงก์ด่วน</motion.h3>
+          <motion.div className="mb-4 sm:mb-0" variants={itemVariants}>
+            <motion.h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3" variants={itemVariants}>ลิงก์ด่วน</motion.h3>
             <motion.ul className="space-y-2" variants={itemVariants}>
               <motion.li variants={itemVariants}>
                 <Link href="/about" className="text-gray-400 hover:text-white">
@@ -141,8 +141,8 @@ const Footer = () => {
           </motion.div>
 
           {/* Member Services */}
-          <motion.div className="mb-8 md:mb-0" variants={itemVariants}>
-            <motion.h3 className="text-xl font-semibold mb-4" variants={itemVariants}>สำหรับสมาชิก</motion.h3>
+          <motion.div className="mb-4 sm:mb-0" variants={itemVariants}>
+            <motion.h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3" variants={itemVariants}>สำหรับสมาชิก</motion.h3>
             <motion.ul className="space-y-2" variants={itemVariants}>
               <motion.li variants={itemVariants}>
                 <Link href="/register" className="text-gray-400 hover:text-white">
@@ -178,14 +178,14 @@ const Footer = () => {
 
           {/* Contact Info */}
           <motion.div variants={itemVariants}>
-            <motion.h3 className="text-lg font-semibold mb-4 text-blue-300" variants={itemVariants}>ติดต่อเรา</motion.h3>
-            <motion.ul className="space-y-3 text-sm text-gray-300" variants={itemVariants}>
+            <motion.h3 className="text-base sm:text-lg font-semibold mb-2 sm:mb-3 text-blue-300" variants={itemVariants}>ติดต่อเรา</motion.h3>
+            <motion.ul className="space-y-3 text-xs sm:text-sm text-gray-300" variants={itemVariants}>
               <motion.li className="flex items-start" variants={itemVariants}>
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3 text-blue-400 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 sm:h-5 sm:w-5 mr-2 sm:mr-3 text-blue-400 flex-shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
-                <span>สภาอุตสาหกรรมแห่งประเทศไทย<br />
+                <span className="text-xs sm:text-sm">สภาอุตสาหกรรมแห่งประเทศไทย<br />
                 ชั้น 8 อาคารปฏิบัติการเทคโนโลยีเชิงสร้างสรรค์<br />
                 เลขที่ 2 ถนนนางลิ้นจี่ แขวงทุ่งมหาเมฆ<br />
                 เขตสาทร กรุงเทพมหานคร 10120</span>
@@ -230,21 +230,21 @@ const Footer = () => {
         </motion.div>
 
         <motion.div 
-          className="mt-12 pt-8 border-t border-gray-700 flex flex-col md:flex-row justify-between items-center"
+          className="mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-gray-700 flex flex-col lg:flex-row justify-between items-center gap-3 pb-4"
           variants={itemVariants}
         >
           <motion.div 
-            className="flex flex-col text-sm text-gray-400 mb-4 md:mb-0"
+            className="flex flex-col text-xs text-gray-400 mb-3 lg:mb-0 text-center lg:text-left w-full lg:w-auto"
             variants={itemVariants}
           > 
             <p>{new Date().getFullYear()} ฝ่ายดิจิทัลและเทคโนโลยี สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
-            <div className="flex items-center mt-2 text-gray-300">
+            <div className="flex flex-col sm:flex-row items-center mt-2 text-gray-300">
               <span className="mr-1 text-xs">หากท่านมีปัญหาด้านการใช้งาน กรุณาติดต่อ</span>
               <span className="font-medium">พลวัต ศรีชนะ</span>
-              <span className="mx-1">|</span>
+              <span className="mx-1 hidden sm:inline">|</span>
               <motion.a 
                 href="tel:0234510750" 
-                className="text-gray-300 hover:text-white transition-colors"
+                className="text-gray-300 hover:text-white transition-colors mt-1 sm:mt-0"
                 variants={linkVariants}
                 whileHover="hover"
                 whileTap="tap"
@@ -253,19 +253,19 @@ const Footer = () => {
               </motion.a>
             </div>
           </motion.div>
-          <motion.div className="flex space-x-6" variants={itemVariants}>
+          <motion.div className="flex flex-wrap justify-center lg:justify-end gap-3 lg:gap-4 w-full lg:w-auto" variants={itemVariants}>
             <motion.div whileHover={{ x: 2 }}>
-              <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="/privacy-policy" className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors">
                 นโยบายความเป็นส่วนตัว
               </Link>
             </motion.div>
             <motion.div whileHover={{ x: 2 }}>
-              <Link href="/terms-of-service" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="/terms-of-service" className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors">
                 ข้อกำหนดการใช้งาน
               </Link>
             </motion.div>
             <motion.div whileHover={{ x: 2 }}>
-              <Link href="/sitemap" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="/sitemap" className="text-xs sm:text-sm text-gray-400 hover:text-white transition-colors">
                 แผนผังเว็บไซต์
               </Link>
             </motion.div>

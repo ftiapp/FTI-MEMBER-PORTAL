@@ -98,37 +98,61 @@ export default function Contact() {
   };
 
   return (
-    <main className="min-h-screen bg-white">
+    <>
       <Navbar />
-
-      {/* Hero Section */}
-      <motion.section 
-        className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="container-custom">
-          <div className="py-16 text-center">
+      <motion.main className="bg-gray-50 min-h-screen">
+        {/* Hero Section - Updated to match consistent pattern */}
+        <motion.div 
+          className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Background pattern */}
+          <div className="absolute inset-0 bg-blue-800 opacity-10">
+            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+          </div>
+          
+          {/* Decorative elements */}
+          <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+          
+          {/* Contact icon */}
+          <motion.div 
+            className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block"
+            initial={{ opacity: 0, x: 100 }}
+            animate={{ opacity: 0.15, x: 0 }}
+            transition={{ delay: 0.5, duration: 1 }}
+          >
+            <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7293C21.7209 20.9845 21.5573 21.2136 21.3521 21.4019C21.1468 21.5901 20.9046 21.7335 20.6407 21.8227C20.3769 21.9119 20.0974 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77382 17.3147 6.72533 15.2662 5.18999 12.85C3.49997 10.2412 2.44824 7.27099 2.11999 4.18C2.09494 3.90347 2.12781 3.62476 2.21643 3.36163C2.30506 3.09849 2.4475 2.85669 2.63476 2.65163C2.82202 2.44656 3.04986 2.28271 3.30385 2.17052C3.55783 2.05834 3.83256 2.00026 4.10999 2H7.10999C7.5953 1.99522 8.06579 2.16708 8.43376 2.48353C8.80173 2.79999 9.04207 3.23945 9.10999 3.72C9.23662 4.68007 9.47144 5.62273 9.80999 6.53C9.94454 6.88792 9.97366 7.27691 9.8939 7.65088C9.81415 8.02485 9.62886 8.36811 9.35999 8.64L8.08999 9.91C9.51355 12.4135 11.5864 14.4864 14.09 15.91L15.36 14.64C15.6319 14.3711 15.9751 14.1858 16.3491 14.1061C16.7231 14.0263 17.1121 14.0555 17.47 14.19C18.3773 14.5286 19.3199 14.7634 20.28 14.89C20.7658 14.9585 21.2094 15.2032 21.5265 15.5775C21.8437 15.9518 22.0122 16.4296 22 16.92Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </motion.div>
+          <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <motion.h1 
-              className="text-4xl md:text-5xl font-bold text-white mb-4"
+              className="text-3xl md:text-5xl font-bold mb-4 text-center"
               initial={{ y: -50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 50 }}
+              transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
             >
               ติดต่อเรา
             </motion.h1>
+            <motion.div 
+              className="w-24 h-1 bg-white mx-auto mb-6"
+              initial={{ width: 0 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 0.5, duration: 0.8 }}
+            />
             <motion.p 
-              className="text-lg md:text-xl text-blue-100"
-              initial={{ y: 50, opacity: 0 }}
+              className="text-lg md:text-xl text-center max-w-3xl mx-auto"
+              initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, type: "spring", stiffness: 50 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
             >
               เรายินดีให้คำปรึกษาและช่วยเหลือสมาชิกทุกท่าน
             </motion.p>
           </div>
-        </div>
-      </motion.section>
+        </motion.div>
 
       {/* Contact Information */}
       <motion.section 
@@ -474,6 +498,7 @@ export default function Contact() {
       </section>
 
       <Footer />
-    </main>
+      </motion.main>
+    </>
   );
 }
