@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Check, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function Register() {
@@ -26,6 +26,14 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0); // 0: none, 1: weak, 2: medium, 3: strong
+  const [passwordCriteria, setPasswordCriteria] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    special: false
+  });
 
   const { user, isAuthenticated } = useAuth();
 
@@ -54,8 +62,42 @@ export default function Register() {
         ...prev,
         [name]: value
       }));
+      
+      // ตรวจสอบความแข็งแกร่งของรหัสผ่าน
+      if (name === 'password') {
+        checkPasswordStrength(value);
+      }
     }
+    
     setError('');
+  };
+  
+  // ฟังก์ชันตรวจสอบความแข็งแกร่งของรหัสผ่าน
+  const checkPasswordStrength = (password) => {
+    // ตรวจสอบเงื่อนไขต่างๆ
+    const criteria = {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
+    };
+    
+    setPasswordCriteria(criteria);
+    
+    // คำนวณความแข็งแกร่ง - ต้องผ่านทุกเกณฑ์จึงจะถือว่าแข็งแกร่ง
+    const passedCriteria = Object.values(criteria).filter(Boolean).length;
+    const allCriteriaPassed = Object.values(criteria).every(Boolean);
+    
+    if (passedCriteria === 0) {
+      setPasswordStrength(0); // ไม่มีรหัสผ่าน
+    } else if (passedCriteria <= 2) {
+      setPasswordStrength(1); // อ่อน
+    } else if (!allCriteriaPassed) {
+      setPasswordStrength(2); // ปานกลาง
+    } else {
+      setPasswordStrength(3); // แข็งแกร่ง (ผ่านทุกเกณฑ์)
+    }
   };
 
   const validateForm = () => {
@@ -67,15 +109,9 @@ export default function Register() {
       setError('รหัสผ่านไม่ตรงกัน');
       return false;
     }
-    // ตรวจสอบความซับซ้อนของรหัสผ่าน
-    const password = formData.password;
-    if (password.length < 8 ||
-      !/[A-Z]/.test(password) ||
-      !/[a-z]/.test(password) ||
-      !/[0-9]/.test(password) ||
-      !/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
-    ) {
-      setError('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร รวมทั้งตัวพิมพ์ใหญ่ ตัวพิมพ์เล็ก ตัวเลข และอักขระพิเศษ');
+    // ตรวจสอบความซับซ้อนของรหัสผ่าน - ต้องแข็งแกร่งที่สุดเท่านั้น (ระดับ 3)
+    if (passwordStrength < 3) {
+      setError('รหัสผ่านไม่ปลอดภัยเพียงพอ ต้องผ่านทุกเกณฑ์และมีความแข็งแกร่งเต็มหลอด');
       return false;
     }
     if (!formData.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
@@ -151,29 +187,62 @@ export default function Register() {
     >
       <Navbar />
 
-      {/* Hero Section */}
-      <motion.section 
-        className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
+      {/* Hero Section - Consistent with other pages */}
+      <motion.div 
+        className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
       >
-        <div className="container-custom">
-          <motion.div 
-            className="py-16 text-center"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3, duration: 0.5 }}
-          >
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              สมัครสมาชิก
-            </h1>
-            <p className="text-lg md:text-xl text-blue-100">
-              เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
-            </p>
-          </motion.div>
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-blue-800 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
         </div>
-      </motion.section>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+        
+        {/* Register icon */}
+        <motion.div 
+          className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 0.15, x: 0 }}
+          transition={{ delay: 0.5, duration: 1 }}
+        >
+          <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M20 8V14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M23 11H17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </motion.div>
+
+        <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+          <motion.h1 
+            className="text-3xl md:text-5xl font-bold mb-4 text-center"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
+          >
+            สมัครสมาชิก
+          </motion.h1>
+          <motion.div 
+            className="w-24 h-1 bg-white mx-auto mb-6"
+            initial={{ width: 0 }}
+            animate={{ width: 96 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+          />
+          <motion.p 
+            className="text-lg md:text-xl text-blue-100 text-center max-w-2xl mx-auto"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+          >
+            เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+          </motion.p>
+        </div>
+      </motion.div>
 
       {/* Registration Form */}
       <motion.section 
@@ -197,10 +266,29 @@ export default function Register() {
               transition={{ delay: 0.6, duration: 0.5 }}
               whileHover={{ boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
             >
+              {/* Toast Notification for Errors */}
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm">
-                  {error}
-                </div>
+                <motion.div 
+                  className="fixed top-24 right-5 z-[10000] p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-lg max-w-md flex items-start gap-3"
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 50 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <div className="bg-red-100 p-2 rounded-full">
+                    <X className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-red-800 mb-1">พบข้อผิดพลาด</h3>
+                    <p className="text-red-600 text-sm">{error}</p>
+                  </div>
+                  <button 
+                    onClick={() => setError('')} 
+                    className="text-gray-500 hover:text-gray-700 ml-auto"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </motion.div>
               )}
 
               <div className="space-y-6">
@@ -269,7 +357,7 @@ export default function Register() {
 
                 <div>
                   <label className="block text-sm text-gray-700 mb-2">
-                    รหัสผ่าน <span className="text-red-500" style={{ fontWeight: 'normal', fontSize: '0.95em' }}>(A-Z, a-z, 0-9, อักขระพิเศษ เช่น ** อย่างน้อย 8 ตัว)</span>
+                    รหัสผ่าน
                   </label>
                   <div className="relative">
                     <input
@@ -293,7 +381,76 @@ export default function Register() {
                       )}
                     </button>
                   </div>
-
+                  
+                  {/* Password Strength Meter */}
+                  {formData.password && (
+                    <div className="mt-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-medium text-gray-700">ความแข็งแกร่งของรหัสผ่าน:</span>
+                        <span className="text-xs font-medium">
+                          {passwordStrength === 0 && <span className="text-gray-500">ยังไม่ได้กรอก</span>}
+                          {passwordStrength === 1 && <span className="text-red-500">อ่อน (ไม่ปลอดภัย)</span>}
+                          {passwordStrength === 2 && <span className="text-yellow-500">ปานกลาง (ไม่เพียงพอ)</span>}
+                          {passwordStrength === 3 && <span className="text-green-500">แข็งแกร่ง </span>}
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div 
+                          className={`h-2.5 rounded-full ${passwordStrength === 1 ? 'bg-red-500' : passwordStrength === 2 ? 'bg-yellow-500' : passwordStrength === 3 ? 'bg-green-500' : 'bg-gray-300'}`}
+                          style={{ width: `${(passwordStrength / 3) * 100}%` }}
+                        ></div>
+                      </div>
+                      
+                      {/* Password Requirements */}
+                      <div className="mt-3 space-y-2 text-sm">
+                        <p className="font-medium text-gray-700">รหัสผ่านต้องประกอบด้วย:</p>
+                        <ul className="space-y-1 pl-1">
+                          <li className="flex items-center">
+                            {passwordCriteria.length ? 
+                              <Check className="h-4 w-4 text-green-500 mr-2" /> : 
+                              <X className="h-4 w-4 text-red-500 mr-2" />}
+                            <span className={passwordCriteria.length ? "text-green-700" : "text-gray-600"}>
+                              อย่างน้อย 8 ตัวอักษร
+                            </span>
+                          </li>
+                          <li className="flex items-center">
+                            {passwordCriteria.uppercase ? 
+                              <Check className="h-4 w-4 text-green-500 mr-2" /> : 
+                              <X className="h-4 w-4 text-red-500 mr-2" />}
+                            <span className={passwordCriteria.uppercase ? "text-green-700" : "text-gray-600"}>
+                              ตัวอักษรภาษาอังกฤษตัวใหญ่ (A-Z)
+                            </span>
+                          </li>
+                          <li className="flex items-center">
+                            {passwordCriteria.lowercase ? 
+                              <Check className="h-4 w-4 text-green-500 mr-2" /> : 
+                              <X className="h-4 w-4 text-red-500 mr-2" />}
+                            <span className={passwordCriteria.lowercase ? "text-green-700" : "text-gray-600"}>
+                              ตัวอักษรภาษาอังกฤษตัวเล็ก (a-z)
+                            </span>
+                          </li>
+                          <li className="flex items-center">
+                            {passwordCriteria.number ? 
+                              <Check className="h-4 w-4 text-green-500 mr-2" /> : 
+                              <X className="h-4 w-4 text-red-500 mr-2" />}
+                            <span className={passwordCriteria.number ? "text-green-700" : "text-gray-600"}>
+                              ตัวเลข (0-9)
+                            </span>
+                          </li>
+                          <li className="flex items-center">
+                            {passwordCriteria.special ? 
+                              <Check className="h-4 w-4 text-green-500 mr-2" /> : 
+                              <X className="h-4 w-4 text-red-500 mr-2" />}
+                            <span className={passwordCriteria.special ? "text-green-700" : "text-gray-600"}>
+                              อักขระพิเศษ (เช่น ! @ # $ % ^ & *)
+                            </span>
+                          </li>
+                        </ul>
+                        <p className="text-xs text-gray-500 mt-2">ตัวอย่างรหัสผ่านที่ปลอดภัย: <code>Abc123!@#</code>, <code>P@ssw0rd2023</code></p>
+                      
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div>

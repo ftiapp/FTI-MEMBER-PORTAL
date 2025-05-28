@@ -1,22 +1,60 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const pathname = usePathname();
+  const menuButtonRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   // Fix hydration mismatch by only rendering menu after component is mounted
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Close menu when pathname changes
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [pathname]);
+
+  // Add click outside handler to close menu
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (isMenuOpen && 
+          mobileMenuRef.current && 
+          !mobileMenuRef.current.contains(event.target) &&
+          menuButtonRef.current &&
+          !menuButtonRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    }
+
+    // Add event listener when menu is open
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    // Clean up event listener
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
   const { user, logout } = useAuth();
   const router = useRouter();
+  
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
 
   const menuItems = [
     { name: 'หน้าแรก', href: '/' },
@@ -66,12 +104,15 @@ export default function Navbar() {
   };
 
   return (
-    <motion.nav 
-      className="bg-white shadow-md w-full"
-      variants={navVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <>
+      {/* Add a spacer div to prevent content from being hidden behind the fixed navbar */}
+      <div className="h-[80px] w-full"></div>
+      <motion.nav 
+        className="bg-white shadow-md w-full fixed top-0 left-0 right-0 z-[9999]"
+        variants={navVariants}
+        initial="hidden"
+        animate="visible"
+      >
       <div className="container-custom px-4 max-w-7xl mx-auto">
         <div className="flex justify-between items-center py-4 flex-wrap md:flex-nowrap">
           {/* Logo and Organization Name */}
@@ -193,10 +234,13 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           {mounted && (
             <motion.button
-              className="lg:hidden p-2"
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              ref={menuButtonRef}
+              className="lg:hidden p-2 relative z-[9999] cursor-pointer"
+              onClick={toggleMenu}
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.1 }}
+              style={{ pointerEvents: 'auto' }}
+              aria-label="Toggle menu"
             >
               <svg
                 className="w-7 h-7 text-blue-900 font-bold"
@@ -221,11 +265,13 @@ export default function Navbar() {
         <AnimatePresence>
           {mounted && isMenuOpen && (
             <motion.div 
-              className="lg:hidden py-4 border-t w-full"
+              ref={mobileMenuRef}
+              className="lg:hidden py-4 border-t w-full absolute top-full left-0 right-0 bg-white z-[9998] shadow-lg"
               variants={mobileMenuVariants}
               initial="hidden"
               animate="visible"
               exit="exit"
+              style={{ pointerEvents: 'auto' }}
             >
               <div className="flex flex-col space-y-4">
                 {menuItems.map((item) => (
@@ -309,5 +355,6 @@ export default function Navbar() {
         </AnimatePresence>
       </div>
     </motion.nav>
+    </>
   );
 }

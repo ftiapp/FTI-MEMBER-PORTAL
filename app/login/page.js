@@ -155,34 +155,61 @@ export default function Login() {
     >
       <Navbar />
 
-      {/* Hero Section with Blue Gradient - Similar to Contact Page */}
-      <motion.section 
-        className="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700"
+      {/* Hero Section with Blue Gradient - Consistent with other pages */}
+      <motion.div 
+        className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6 }}
       >
-        <div className="container-custom">
-          <div className="py-16 text-center">
-            <motion.h1 
-              className="text-4xl md:text-5xl font-bold text-white mb-4"
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, type: "spring", stiffness: 50 }}
-            >
-              เข้าสู่ระบบ
-            </motion.h1>
-            <motion.p 
-              className="text-lg md:text-xl text-blue-100"
-              initial={{ y: 50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, type: "spring", stiffness: 50 }}
-            >
-              เข้าถึงบริการสำหรับสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย
-            </motion.p>
-          </div>
+        {/* Background pattern */}
+        <div className="absolute inset-0 bg-blue-800 opacity-10">
+          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
         </div>
-      </motion.section>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+        <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+        
+        {/* Login icon */}
+        <motion.div 
+          className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block"
+          initial={{ opacity: 0, x: 100 }}
+          animate={{ opacity: 0.15, x: 0 }}
+          transition={{ delay: 0.5, duration: 1 }}
+        >
+          <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M10 17L15 12L10 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M15 12H3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </motion.div>
+
+        <div className="container mx-auto px-4 relative z-10 max-w-5xl">
+          <motion.h1 
+            className="text-3xl md:text-5xl font-bold mb-4 text-center"
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
+          >
+            เข้าสู่ระบบ
+          </motion.h1>
+          <motion.div 
+            className="w-24 h-1 bg-white mx-auto mb-6"
+            initial={{ width: 0 }}
+            animate={{ width: 96 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
+          />
+          <motion.p 
+            className="text-lg md:text-xl text-blue-100 text-center max-w-2xl mx-auto"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+          >
+            เข้าถึงบริการสำหรับสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย
+          </motion.p>
+        </div>
+      </motion.div>
 
       <div className="container-custom py-12">
         <div className="flex flex-col md:flex-row gap-8">
