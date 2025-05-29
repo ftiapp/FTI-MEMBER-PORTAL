@@ -18,6 +18,7 @@ export default function UserEmailChangeForm({ user, onBack }) {
   });
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
+  const [error, setError] = useState('');
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -31,6 +32,9 @@ export default function UserEmailChangeForm({ user, onBack }) {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Reset error state
+    setError('');
     
     // Validate inputs
     if (!formData.newEmail || !formData.confirmNewEmail) {
@@ -76,18 +80,42 @@ export default function UserEmailChangeForm({ user, onBack }) {
         toast.success('ส่งอีเมลยืนยันไปยังอีเมลใหม่เรียบร้อยแล้ว');
         setEmailSent(true);
       } else {
-        toast.error(result.message || 'เกิดข้อผิดพลาดในการเปลี่ยนอีเมล');
+        const errorMessage = result.message || 'เกิดข้อผิดพลาดในการเปลี่ยนอีเมล';
+        toast.error(errorMessage);
+        setError(errorMessage);
       }
     } catch (error) {
       console.error('Error changing email:', error);
-      toast.error('เกิดข้อผิดพลาดในการเปลี่ยนอีเมล');
+      const errorMessage = 'เกิดข้อผิดพลาดในการเปลี่ยนอีเมล';
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Error notification in top-right corner */}
+      {error && (
+        <div className="absolute top-0 right-0 mt-4 mr-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-10 shadow-md" role="alert">
+          <div className="flex">
+            <div>
+              <p className="font-bold">ข้อผิดพลาด</p>
+              <p>{error}</p>
+            </div>
+            <button 
+              onClick={() => setError('')} 
+              className="ml-4"
+              aria-label="ปิด"
+            >
+              <svg className="h-4 w-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                <path d="M10 8.586l4.293-4.293a1 1 0 0 1 1.414 1.414L11.414 10l4.293 4.293a1 1 0 0 1-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 0 1-1.414-1.414L8.586 10 4.293 5.707a1 1 0 0 1 1.414-1.414L10 8.586z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
       {/* User Information */}
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
         <h3 className="text-lg font-medium text-blue-800 mb-2">ข้อมูลผู้ใช้</h3>

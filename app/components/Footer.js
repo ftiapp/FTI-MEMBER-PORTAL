@@ -137,6 +137,11 @@ const Footer = () => {
                   ติดต่อเรา
                 </Link>
               </motion.li>
+              <motion.li variants={itemVariants}>
+                <Link href="/sitemap" className="text-gray-400 hover:text-white">
+                  แผนผังเว็บไซต์
+                </Link>
+              </motion.li>
             </motion.ul>
           </motion.div>
 

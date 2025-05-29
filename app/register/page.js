@@ -13,6 +13,7 @@ export default function Register() {
   const router = useRouter();
   const { login } = useAuth();
   const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -26,7 +27,7 @@ export default function Register() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0); // 0: none, 1: weak, 2: medium, 3: strong
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const [passwordCriteria, setPasswordCriteria] = useState({
     length: false,
     uppercase: false,
@@ -40,18 +41,24 @@ export default function Register() {
   useEffect(() => {
     setMounted(true);
     
-    // ถ้าผู้ใช้ล็อกอินแล้ว ให้ redirect ไปที่หน้า dashboard
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
     if (isAuthenticated && user) {
       router.push('/dashboard');
     }
+    
+    return () => window.removeEventListener('resize', checkMobile);
   }, [isAuthenticated, user, router]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // ถ้าเป็นช่องเบอร์โทรศัพท์ ตรวจสอบว่าเป็นตัวเลขเท่านั้น
     if (name === 'phone') {
-      // อนุญาตเฉพาะตัวเลขเท่านั้น
       const numericValue = value.replace(/[^0-9]/g, '');
       setFormData(prev => ({
         ...prev,
@@ -63,7 +70,6 @@ export default function Register() {
         [name]: value
       }));
       
-      // ตรวจสอบความแข็งแกร่งของรหัสผ่าน
       if (name === 'password') {
         checkPasswordStrength(value);
       }
@@ -72,9 +78,7 @@ export default function Register() {
     setError('');
   };
   
-  // ฟังก์ชันตรวจสอบความแข็งแกร่งของรหัสผ่าน
   const checkPasswordStrength = (password) => {
-    // ตรวจสอบเงื่อนไขต่างๆ
     const criteria = {
       length: password.length >= 8,
       uppercase: /[A-Z]/.test(password),
@@ -85,18 +89,17 @@ export default function Register() {
     
     setPasswordCriteria(criteria);
     
-    // คำนวณความแข็งแกร่ง - ต้องผ่านทุกเกณฑ์จึงจะถือว่าแข็งแกร่ง
     const passedCriteria = Object.values(criteria).filter(Boolean).length;
     const allCriteriaPassed = Object.values(criteria).every(Boolean);
     
     if (passedCriteria === 0) {
-      setPasswordStrength(0); // ไม่มีรหัสผ่าน
+      setPasswordStrength(0);
     } else if (passedCriteria <= 2) {
-      setPasswordStrength(1); // อ่อน
+      setPasswordStrength(1);
     } else if (!allCriteriaPassed) {
-      setPasswordStrength(2); // ปานกลาง
+      setPasswordStrength(2);
     } else {
-      setPasswordStrength(3); // แข็งแกร่ง (ผ่านทุกเกณฑ์)
+      setPasswordStrength(3);
     }
   };
 
@@ -109,7 +112,6 @@ export default function Register() {
       setError('รหัสผ่านไม่ตรงกัน');
       return false;
     }
-    // ตรวจสอบความซับซ้อนของรหัสผ่าน - ต้องแข็งแกร่งที่สุดเท่านั้น (ระดับ 3)
     if (passwordStrength < 3) {
       setError('รหัสผ่านไม่ปลอดภัยเพียงพอ ต้องผ่านทุกเกณฑ์และมีความแข็งแกร่งเต็มหลอด');
       return false;
@@ -131,7 +133,6 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
-      // รวมชื่อและนามสกุล
       const fullName = `${formData.firstName} ${formData.lastName}`;
       
       const response = await fetch('/api/auth/register', {
@@ -155,7 +156,6 @@ export default function Register() {
         throw new Error(data.error || 'เกิดข้อผิดพลาดในการสมัครสมาชิก');
       }
 
-      // เมื่อลงทะเบียนสำเร็จ ให้นำผู้ใช้ไปยังหน้าแจ้งให้ตรวจสอบอีเมล
       router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
     } catch (err) {
       setError(err.message);
@@ -164,14 +164,22 @@ export default function Register() {
     }
   };
 
-  // สลับการแสดงรหัสผ่าน
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
 
-  // สลับการแสดงยืนยันรหัสผ่าน
   const toggleConfirmPasswordVisibility = () => {
     setShowConfirmPassword(!showConfirmPassword);
+  };
+
+  // Simple animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
   };
 
   if (!mounted) {
@@ -179,119 +187,96 @@ export default function Register() {
   }
 
   return (
-    <motion.main 
-      className="min-h-screen bg-white"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <main className="min-h-screen bg-white">
       <Navbar />
 
-      {/* Hero Section - Consistent with other pages */}
-      <motion.div 
-        className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-      >
-        {/* Background pattern */}
-        <div className="absolute inset-0 bg-blue-800 opacity-10">
-          <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-        </div>
+      {/* Hero Section - ใช้แบบเดียวกับหน้าอื่น */}
+      <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
+        {/* ลด decorative elements ในมือถือ */}
+        {!isMobile && (
+          <>
+            <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+            <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+          </>
+        )}
         
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-        <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
-        
-        {/* Register icon */}
-        <motion.div 
-          className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block"
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 0.15, x: 0 }}
-          transition={{ delay: 0.5, duration: 1 }}
-        >
-          <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M20 8V14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M23 11H17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </motion.div>
+        {/* Register icon - ซ่อนในมือถือ */}
+        {!isMobile && (
+          <div className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block opacity-15">
+            <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 21V19C16 17.9391 15.5786 16.9217 14.8284 16.1716C14.0783 15.4214 13.0609 15 12 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8.5 11C10.7091 11 12.5 9.20914 12.5 7C12.5 4.79086 10.7091 3 8.5 3C6.29086 3 4.5 4.79086 4.5 7C4.5 9.20914 6.29086 11 8.5 11Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20 8V14" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M23 11H17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+        )}
 
         <div className="container mx-auto px-4 relative z-10 max-w-5xl">
-          <motion.h1 
-            className="text-3xl md:text-5xl font-bold mb-4 text-center"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
-          >
+          <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
             สมัครสมาชิก
-          </motion.h1>
+          </h1>
           <motion.div 
             className="w-24 h-1 bg-white mx-auto mb-6"
             initial={{ width: 0 }}
             animate={{ width: 96 }}
-            transition={{ delay: 0.4, duration: 0.8 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
           />
-          <motion.p 
-            className="text-lg md:text-xl text-blue-100 text-center max-w-2xl mx-auto"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.8 }}
-          >
+          <p className="text-lg md:text-xl text-blue-100 text-center max-w-2xl mx-auto">
             เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
-          </motion.p>
+          </p>
         </div>
-      </motion.div>
+      </div>
 
       {/* Registration Form */}
-      <motion.section 
-        className="py-12"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-      >
-        <div className="container-custom">
+      <section className="py-12">
+        <div className="container mx-auto px-4">
           <motion.div 
             className="max-w-xl mx-auto"
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5 }}
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
           >
-            <motion.form 
-              onSubmit={handleSubmit} 
-              className="bg-white rounded-xl shadow-lg p-8"
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              whileHover={{ boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+            <motion.h2 
+              className="text-3xl font-bold text-gray-900 mb-8 text-center"
+              variants={fadeInUp}
+              initial="hidden"
+              animate="visible"
             >
+              ลงทะเบียน
+              <motion.div 
+                className="w-16 h-1 bg-blue-600 mx-auto mt-3"
+                initial={{ width: 0 }}
+                animate={{ width: 64 }}
+                transition={{ delay: 0.5, duration: 0.8 }}
+              />
+            </motion.h2>
+
+            <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
               {/* Toast Notification for Errors */}
               {error && (
                 <motion.div 
-                  className="fixed top-24 right-5 z-[10000] p-4 bg-red-50 border-l-4 border-red-500 rounded-lg shadow-lg max-w-md flex items-start gap-3"
-                  initial={{ opacity: 0, x: 50 }}
+                  className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg flex items-start gap-3"
+                  initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 50 }}
-                  transition={{ duration: 0.3 }}
                 >
                   <div className="bg-red-100 p-2 rounded-full">
                     <X className="h-5 w-5 text-red-600" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-medium text-red-800 mb-1">พบข้อผิดพลาด</h3>
                     <p className="text-red-600 text-sm">{error}</p>
                   </div>
                   <button 
                     onClick={() => setError('')} 
-                    className="text-gray-500 hover:text-gray-700 ml-auto"
+                    className="text-gray-500 hover:text-gray-700"
                   >
                     <X className="h-4 w-4" />
                   </button>
                 </motion.div>
               )}
 
-              <div className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -447,7 +432,6 @@ export default function Register() {
                           </li>
                         </ul>
                         <p className="text-xs text-gray-500 mt-2">ตัวอย่างรหัสผ่านที่ปลอดภัย: <code>Abc123!@#</code>, <code>P@ssw0rd2023</code></p>
-                      
                       </div>
                     </div>
                   )}
@@ -480,42 +464,53 @@ export default function Register() {
                     </button>
                   </div>
                 </div>
-              </div>
 
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center mb-2">
-                  <input
-                    id="consent"
-                    type="checkbox"
-                    checked={formData.consent || false}
-                    onChange={e => setFormData(prev => ({ ...prev, consent: e.target.checked }))}
-                    className="mr-2"
-                  />
-                  <label htmlFor="consent" className="text-gray-700 text-sm">
-                    ฉันยอมรับ
-                    <Link href="/privacy-policy" className="text-blue-600 underline mx-1" target="_blank">นโยบายความเป็นส่วนตัว</Link>
-                    และ
-                    <Link href="/terms-of-service" className="text-blue-600 underline mx-1" target="_blank">เงื่อนไขการใช้บริการ</Link>
-                  </label>
+                <div className="mt-8 space-y-4">
+                  <div className="flex items-center mb-2">
+                    <input
+                      id="consent"
+                      type="checkbox"
+                      checked={formData.consent || false}
+                      onChange={e => setFormData(prev => ({ ...prev, consent: e.target.checked }))}
+                      className="mr-2"
+                    />
+                    <label htmlFor="consent" className="text-gray-700 text-sm">
+                      ฉันยอมรับ
+                      <Link href="/privacy-policy" className="text-blue-600 underline mx-1" target="_blank">นโยบายความเป็นส่วนตัว</Link>
+                      และ
+                      <Link href="/terms-of-service" className="text-blue-600 underline mx-1" target="_blank">เงื่อนไขการใช้บริการ</Link>
+                    </label>
+                  </div>
+                  
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !formData.consent}
+                    className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold transition-all duration-300 ${
+                      isSubmitting || !formData.consent ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
+                  >
+                    {isSubmitting ? 'กำลังสมัครสมาชิก...' : 'สมัครสมาชิก'}
+                  </button>
+
+                  <div className="text-center mt-4">
+                    <p className="text-gray-600">
+                      มีบัญชีอยู่แล้ว?{' '}
+                      <Link
+                        href="/login"
+                        className="text-blue-700 hover:text-blue-600 font-semibold"
+                      >
+                        เข้าสู่ระบบ
+                      </Link>
+                    </p>
+                  </div>
                 </div>
-                <motion.button
-                  type="submit"
-                  disabled={isSubmitting || !formData.consent}
-                  className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold transition-all duration-300 ${
-                    isSubmitting || !formData.consent ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
-                  whileHover={{ scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  สมัครสมาชิก
-                </motion.button>
-              </div>
-            </motion.form>
+              </form>
+            </div>
           </motion.div>
         </div>
-      </motion.section>
+      </section>
 
       <Footer />
-    </motion.main>
+    </main>
   );
 }

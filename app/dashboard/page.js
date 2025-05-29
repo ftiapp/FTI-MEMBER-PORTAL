@@ -9,29 +9,21 @@ import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember';
-
 import Wasmember from './components/Wasmember.js/page';
 import SubmittedMember from './components/SubmittedMember';
 import MemberDetail from './components/MemberDetail/page';
 import ContactUs from './components/ContactUs/page';
 import RecentActivities from './components/RecentActivities';
-// Import CheckStatusOperation from its page.js file
 import CheckStatusOperation from './components/CheckStatusOperation/page';
 import UpgradeMembership from './components/UpgradeMembership';
 
-/**
- * Dashboard component
- * 
- * Main dashboard page for the member portal. Displays different tabs for various
- * member functions including profile updates, document management, membership upgrades,
- * and member verification.
- */
 export default function Dashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
+  const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState('อัพเดตสมาชิก');
-  const [membershipType, setMembershipType] = useState('ทั่วไป'); // Default membership type
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar state
+  const [membershipType, setMembershipType] = useState('ทั่วไป');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   
   // Create refs for menu items
   const menuRefs = {
@@ -39,9 +31,19 @@ export default function Dashboard() {
     'ข้อมูลสมาชิก': useRef(null)
   };
   
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+  
   // Check URL parameters for tab selection and listen for URL changes
   useEffect(() => {
-    // Function to handle URL parameter changes
     const handleUrlChange = () => {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab');
@@ -54,7 +56,6 @@ export default function Dashboard() {
       } else if (tabParam === 'contact') {
         setActiveTab('ติดต่อเรา');
         
-        // Programmatically click the Contact Us menu item if messageId is present
         if (messageId && menuRefs['ติดต่อเรา']?.current) {
           console.log('Programmatically clicking Contact Us menu item');
           menuRefs['ติดต่อเรา'].current.click();
@@ -62,7 +63,6 @@ export default function Dashboard() {
       } else if (tabParam === 'member') {
         setActiveTab('ข้อมูลสมาชิก');
         
-        // Programmatically click the MemberDetail menu item if needed
         if (menuRefs['ข้อมูลสมาชิก']?.current) {
           console.log('Programmatically clicking MemberDetail menu item');
           menuRefs['ข้อมูลสมาชิก'].current.click();
@@ -70,27 +70,21 @@ export default function Dashboard() {
       }
     };
     
-    // Function to handle contact message clicks from operations list
     const handleContactMessageClick = (event) => {
       const { messageId } = event.detail;
       console.log('Contact message clicked event received, messageId:', messageId);
       
-      // The URL is already updated by the StatusCard component
-      // Just programmatically click the Contact Us menu item
       if (menuRefs['ติดต่อเรา']?.current) {
         console.log('Programmatically clicking Contact Us menu item');
         menuRefs['ติดต่อเรา'].current.click();
       }
     };
     
-    // Check parameters on initial load
     handleUrlChange();
     
-    // Set up event listeners
     window.addEventListener('popstate', handleUrlChange);
     window.addEventListener('contactMessageClicked', handleContactMessageClick);
     
-    // Clean up event listeners on component unmount
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('contactMessageClicked', handleContactMessageClick);
@@ -105,14 +99,12 @@ export default function Dashboard() {
     admin_comment: ''
   });
   
-  // Redirect to login if user is not authenticated
   useEffect(() => {
     if (!user) {
       router.push('/login');
     }
   }, [user, router]);
   
-  // Fetch verification status when component mounts
   useEffect(() => {
     const fetchVerificationStatus = async () => {
       if (!user || !user.id) return;
@@ -132,7 +124,6 @@ export default function Dashboard() {
           admin_comment: data.adminComment || ''
         });
         
-        // Update user with role information if available
         if (data.userRole) {
           user.role = data.userRole;
         }
@@ -152,7 +143,7 @@ export default function Dashboard() {
     return null;
   }
 
-  // Dashboard menu items with icons - reordered and updated
+  // Dashboard menu items with icons
   const menuItems = [
     {
       name: 'ข้อมูลผู้ใช้งาน',
@@ -212,10 +203,16 @@ export default function Dashboard() {
     },
   ];
 
-  /**
-   * Renders the content for the selected tab
-   * @returns {JSX.Element} The content for the active tab
-   */
+  // Simple animation variants
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.4, ease: "easeOut" }
+    }
+  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 'สถานะการดำเนินการ':
@@ -322,7 +319,6 @@ export default function Dashboard() {
         );
 
       case 'ติดต่อเรา': {
-        // Check if there's a messageId parameter in the URL
         const searchParams = new URLSearchParams(window.location.search);
         const messageId = searchParams.get('messageId');
         console.log('Dashboard: Rendering ContactUs with messageId:', messageId);
@@ -362,77 +358,61 @@ export default function Dashboard() {
     <>
       <Navbar />
       <main className="bg-gray-50 min-h-screen">
-        {/* Hero Section - Updated to match consistent pattern with dashboard icon */}
-        <motion.div 
-          className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 md:py-16"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          {/* Background pattern */}
-          <div className="absolute inset-0 bg-blue-800 opacity-10">
-            <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
-          </div>
+        {/* Hero Section - ใช้แบบเดียวกับหน้าอื่น */}
+        <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24 z-[50]">
+          {/* ลด decorative elements ในมือถือ */}
+          {!isMobile && (
+            <>
+              <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+            </>
+          )}
           
-          {/* Decorative elements */}
-          <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
-          
-          {/* Dashboard icon */}
-          <motion.div 
-            className="absolute right-8 top-1/2 transform -translate-y-1/2 hidden lg:block"
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 0.15, x: 0 }}
-            transition={{ delay: 0.5, duration: 1 }}
-          >
-            <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          </motion.div>
+          {/* Dashboard icon - ซ่อนในมือถือ */}
+          {!isMobile && (
+            <div className="absolute right-8 top-1/2 transform -translate-y-1/2 hidden lg:block opacity-15">
+              <svg width="120" height="120" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+          )}
 
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
-            <motion.h1 
-              className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 text-center"
-              initial={{ y: -50, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2, duration: 0.8, type: "spring" }}
-            >
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
               แดชบอร์ดสมาชิก
-            </motion.h1>
+            </h1>
             <motion.div 
-              className="w-16 h-1 bg-white mx-auto mb-3"
+              className="w-24 h-1 bg-white mx-auto mb-6"
               initial={{ width: 0 }}
-              animate={{ width: 64 }}
-              transition={{ delay: 0.5, duration: 0.8 }}
+              animate={{ width: 96 }}
+              transition={{ delay: 0.3, duration: 0.8 }}
             />
-            <motion.p 
-              className="text-base md:text-lg text-center max-w-3xl mx-auto text-blue-100"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-            >
+            <p className="text-lg md:text-xl text-center max-w-3xl mx-auto text-blue-100">
               จัดการข้อมูลสมาชิกและบริการต่างๆ ของสภาอุตสาหกรรมแห่งประเทศไทย
-            </motion.p>
+            </p>
           </div>
-        </motion.div>
+        </div>
         
-        <div 
-          className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8"
-        >
+        <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
           {/* Dashboard Header */}
-          <div 
-            className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-4 sm:mb-6"
+          <motion.div 
+            className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 relative z-[100]"
+            variants={fadeInUp}
+            initial="hidden"
+            animate="visible"
           >
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+            <div className="flex justify-between items-center gap-4">
               <div className="flex-1 min-w-0">
-                <h1 
-                  className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate"
-                >
+                <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate">
                   ยินดีต้อนรับ, {(user.firstname && user.lastname) ? `${user.firstname} ${user.lastname}` : 'สมาชิก'}
-                </h1>
-                <div 
-                  className="flex flex-col sm:flex-row sm:items-center mt-2 gap-2"
-                >
+                  <motion.div 
+                    className="w-16 h-1 bg-blue-600 mt-2"
+                    initial={{ width: 0 }}
+                    animate={{ width: 64 }}
+                    transition={{ delay: 0.5, duration: 0.8 }}
+                  />
+                </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center mt-4 gap-2">
                   <span className="text-sm sm:text-base text-gray-600">สถานะผู้ใช้งาน:</span>
                   {user.role === 'member' ? (
                     <span className="inline-block px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs sm:text-sm font-medium">
@@ -449,9 +429,7 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
-              <div 
-                className="flex items-center gap-4"
-              >
+              <div className="flex items-center gap-3">
                 {/* Mobile Menu Button */}
                 <button
                   onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -474,14 +452,14 @@ export default function Dashboard() {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Dashboard Content */}
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             {/* Mobile Sidebar Overlay */}
             {sidebarOpen && (
               <div 
-                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+                className="fixed inset-0 bg-black bg-opacity-50 z-[150] lg:hidden"
                 onClick={() => setSidebarOpen(false)}
               />
             )}
@@ -490,22 +468,20 @@ export default function Dashboard() {
             <div 
               className={`
                 w-full lg:w-1/4 xl:w-1/5 
-                ${sidebarOpen ? 'fixed inset-y-0 left-0 z-50 w-80 transform translate-x-0' : 'hidden'}
+                ${sidebarOpen ? 'fixed inset-y-0 left-0 z-[200] w-80 transform translate-x-0' : 'hidden'}
                 lg:block lg:relative lg:translate-x-0 lg:z-auto lg:w-1/4 xl:w-1/5
                 transition-transform duration-300 ease-in-out
               `}
             >
               <div className="bg-white rounded-xl shadow-md overflow-hidden h-full lg:h-auto">
-                <div 
-                  className="bg-blue-700 p-4 sm:p-6 text-white"
-                >
-                  <h2 className="text-lg sm:text-xl font-bold">ยินดีต้อนรับ</h2>
+                <div className="bg-blue-700 p-4 sm:p-6 text-white">
+                  <h3 className="text-lg sm:text-xl font-bold">เมนูหลัก</h3>
                   <p className="text-blue-100 mt-1 text-sm sm:text-base">จัดการข้อมูลสมาชิกและบริการต่างๆ</p>
                 </div>
                 
                 {/* Mobile sidebar header */}
                 <div className="lg:hidden flex justify-between items-center p-4 border-b">
-                  <h2 className="text-lg font-bold text-gray-800">เมนู</h2>
+                  <h4 className="text-lg font-bold text-gray-800">เมนู</h4>
                   <button
                     onClick={() => setSidebarOpen(false)}
                     className="p-2 rounded-lg hover:bg-gray-100"
@@ -518,29 +494,22 @@ export default function Dashboard() {
                 <nav className="p-3 sm:p-4 max-h-screen overflow-y-auto">
                   <ul className="space-y-1 sm:space-y-2">
                     {menuItems.map((item, index) => (
-                      <li 
-                        key={item.name}
-                      >
+                      <li key={item.name}>
                         <button
                           ref={menuRefs[item.name] || null}
                           onClick={() => {
-                            // Close mobile sidebar when item is clicked
                             setSidebarOpen(false);
                             
                             if (item.name === 'ติดต่อเรา') {
-                              // For Contact Us, check if there's a messageId in the URL
                               const searchParams = new URLSearchParams(window.location.search);
                               const messageId = searchParams.get('messageId');
                               
                               if (messageId) {
-                                // If there's already a messageId, preserve it
                                 router.push(`/dashboard?tab=contact&messageId=${messageId}`, undefined, { shallow: true });
                               } else {
-                                // Otherwise just navigate to the contact tab
                                 router.push('/dashboard?tab=contact', undefined, { shallow: true });
                               }
                             } else if (item.name === 'ข้อมูลสมาชิก') {
-                              // For MemberDetail, update URL with tab parameter
                               router.push('/dashboard?tab=member', undefined, { shallow: true });
                             }
                             setActiveTab(item.name);
@@ -564,9 +533,7 @@ export default function Dashboard() {
             </div>
 
             {/* Main Content */}
-            <div 
-              className="w-full lg:w-3/4 xl:w-4/5"
-            >
+            <div className="w-full lg:w-3/4 xl:w-4/5">
               {renderTabContent()}
             </div>
           </div>

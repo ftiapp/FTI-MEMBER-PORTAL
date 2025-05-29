@@ -98,10 +98,76 @@ export default function Navbar() {
   };
 
   const mobileMenuVariants = {
-    hidden: { opacity: 0, height: 0 },
-    visible: { opacity: 1, height: "auto", transition: { duration: 0.3 } },
-    exit: { opacity: 0, height: 0, transition: { duration: 0.3 } }
+    hidden: { 
+      opacity: 0, 
+      height: 0, 
+      transition: { 
+        duration: 0.2,
+        when: "afterChildren",
+        staggerChildren: 0.05,
+        staggerDirection: -1
+      }
+    },
+    visible: { 
+      opacity: 1, 
+      height: "auto", 
+      transition: { 
+        duration: 0.3,
+        when: "beforeChildren",
+        staggerChildren: 0.05,
+        delayChildren: 0.1
+      }
+    }
   };
+
+  const mobileItemVariants = {
+    hidden: { 
+      opacity: 0, 
+      x: -20,
+      transition: { duration: 0.2 }
+    },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      transition: { duration: 0.3 }
+    }
+  };
+
+  // Don't render anything until mounted to prevent hydration issues
+  if (!mounted) {
+    return (
+      <>
+        <div className="h-[80px] w-full"></div>
+        <nav className="bg-white shadow-md w-full fixed top-0 left-0 right-0 z-[9999]">
+          <div className="container-custom px-4 max-w-7xl mx-auto">
+            <div className="flex justify-between items-center py-4 flex-wrap md:flex-nowrap">
+              <div>
+                <Link href="/" className="flex-shrink-0 flex items-center">
+                  <Image
+                    src="/images/FTI-MasterLogo_RGB_forLightBG.png"
+                    alt="สภาอุตสาหกรรมแห่งประเทศไทย"
+                    width={90}
+                    height={45}
+                    priority
+                    className="mr-3"
+                  />
+                  <div className="flex flex-col">
+                    <span className="text-blue-900 font-semibold text-lg">สภาอุตสาหกรรมแห่งประเทศไทย</span>
+                    <span className="text-gray-600 text-sm">The Federation of Thai Industries</span>
+                  </div>
+                </Link>
+              </div>
+              <div className="lg:hidden p-2">
+                <svg className="w-7 h-7 text-blue-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </nav>
+      </>
+    );
+  }
 
   return (
     <>
@@ -232,51 +298,50 @@ export default function Navbar() {
           </motion.div>
 
           {/* Mobile Menu Button */}
-          {mounted && (
-            <motion.button
-              ref={menuButtonRef}
-              className="lg:hidden p-2 relative z-[9999] cursor-pointer"
-              onClick={toggleMenu}
-              whileTap={{ scale: 0.9 }}
-              whileHover={{ scale: 1.1 }}
-              style={{ pointerEvents: 'auto' }}
-              aria-label="Toggle menu"
+          <motion.button
+            ref={menuButtonRef}
+            className="lg:hidden p-2 relative z-[9999] cursor-pointer"
+            onClick={toggleMenu}
+            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.1 }}
+            style={{ pointerEvents: 'auto' }}
+            aria-label="Toggle menu"
+          >
+            <svg
+              className="w-7 h-7 text-blue-900 font-bold"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2.5"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
             >
-              <svg
-                className="w-7 h-7 text-blue-900 font-bold"
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2.5"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-              {isMenuOpen ? (
-                <path d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path d="M4 6h16M4 12h16M4 18h16" />
-              )}
-              </svg>
-            </motion.button>
-          )}
+            {isMenuOpen ? (
+              <path d="M6 18L18 6M6 6l12 12" />
+            ) : (
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            )}
+            </svg>
+          </motion.button>
         </div>
 
         {/* Mobile Menu */}
-        <AnimatePresence>
-          {mounted && isMenuOpen && (
+        <AnimatePresence mode="wait">
+          {isMenuOpen && (
             <motion.div 
               ref={mobileMenuRef}
-              className="lg:hidden py-4 border-t w-full absolute top-full left-0 right-0 bg-white z-[9998] shadow-lg"
+              className="lg:hidden py-4 border-t w-full fixed top-[80px] left-0 right-0 bottom-0 bg-white z-[9999] shadow-lg overflow-auto"
               variants={mobileMenuVariants}
               initial="hidden"
               animate="visible"
-              exit="exit"
+              exit="hidden"
               style={{ pointerEvents: 'auto' }}
             >
               <div className="flex flex-col space-y-4">
-                {menuItems.map((item) => (
+                {menuItems.map((item, index) => (
                   <motion.div
                     key={item.name}
+                    variants={mobileItemVariants}
                     whileHover={{ x: 5 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -291,16 +356,24 @@ export default function Navbar() {
                 ))}
                 {user ? (
                   <>
-                    <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div 
+                      variants={mobileItemVariants}
+                      whileHover={{ x: 5 }} 
+                      whileTap={{ scale: 0.98 }}
+                    >
                       <Link
                         href="/ChangeEmail"
                         className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        แจ้งเปลี่ยนอีเมลล์
+                        แจ้งเปลี่ยนอีเมล
                       </Link>
                     </motion.div>
-                    <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div 
+                      variants={mobileItemVariants}
+                      whileHover={{ x: 5 }} 
+                      whileTap={{ scale: 0.98 }}
+                    >
                       <Link
                         href="/dashboard"
                         className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
@@ -311,6 +384,7 @@ export default function Navbar() {
                     </motion.div>
                     <motion.div 
                       className="px-4"
+                      variants={mobileItemVariants}
                       whileHover={{ x: 5 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -319,9 +393,9 @@ export default function Navbar() {
                           handleLogout();
                           setIsMenuOpen(false);
                         }}
-                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold"
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold w-full"
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                       >
                         ออกจากระบบ
                       </motion.button>
@@ -329,7 +403,11 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
-                    <motion.div whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div 
+                      variants={mobileItemVariants}
+                      whileHover={{ x: 5 }} 
+                      whileTap={{ scale: 0.98 }}
+                    >
                       <Link
                         href="/login"
                         className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
@@ -338,10 +416,15 @@ export default function Navbar() {
                         เข้าสู่ระบบ
                       </Link>
                     </motion.div>
-                    <motion.div className="px-4" whileHover={{ x: 5 }} whileTap={{ scale: 0.98 }}>
+                    <motion.div 
+                      className="px-4" 
+                      variants={mobileItemVariants}
+                      whileHover={{ x: 5 }} 
+                      whileTap={{ scale: 0.98 }}
+                    >
                       <Link
                         href="/register"
-                        className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold text-center inline-block"
+                        className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold text-center block w-full"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         สมัครสมาชิก
