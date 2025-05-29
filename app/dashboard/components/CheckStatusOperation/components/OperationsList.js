@@ -469,7 +469,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
           <AnimatePresence mode="wait">
             {currentOperations.map((operation, index) => (
               <motion.div
-                key={operation.id || index}
+                key={`${operation.type}-${operation.id}-${index}`}
                 variants={itemVariants}
                 initial="hidden"
                 animate="visible"
