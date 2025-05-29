@@ -16,6 +16,7 @@ import ContactUs from './components/ContactUs/page';
 import RecentActivities from './components/RecentActivities';
 import CheckStatusOperation from './components/CheckStatusOperation/page';
 import UpgradeMembership from './components/UpgradeMembership';
+import MembershipCertificate from './components/MembershipCertificate/page';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -67,6 +68,9 @@ export default function Dashboard() {
           console.log('Programmatically clicking MemberDetail menu item');
           menuRefs['ข้อมูลสมาชิก'].current.click();
         }
+      } else if (tabParam === 'certificatedocument') {
+        setActiveTab('เอกสารยืนยันสมาชิก');
+        console.log('Setting active tab to เอกสารยืนยันสมาชิก');
       }
     };
     
@@ -236,38 +240,7 @@ export default function Dashboard() {
           <div className="space-y-4 sm:space-y-6">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-800">เอกสารยืนยันสมาชิก</h2>
             <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 border-b gap-3 sm:gap-0">
-                  <h3 className="font-medium">เอกสารยืนยันสมาชิกของท่าน</h3>
-                  <button className="px-4 py-2 bg-blue-700 text-white rounded-lg text-sm whitespace-nowrap">อัพโหลดเอกสาร</button>
-                </div>
-                <div className="space-y-4">
-                  <div className="p-3 sm:p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex items-center w-full sm:w-auto">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm sm:text-base truncate">หนังสือรับรองบริษัท</p>
-                        <p className="text-xs sm:text-sm text-gray-500">อัพโหลดเมื่อ 15 ม.ค. 2025</p>
-                      </div>
-                    </div>
-                    <button className="text-blue-700 hover:underline text-sm whitespace-nowrap">ดาวน์โหลด</button>
-                  </div>
-                  <div className="p-3 sm:p-4 border rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-                    <div className="flex items-center w-full sm:w-auto">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6 text-blue-700 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <div className="min-w-0 flex-1">
-                        <p className="font-medium text-sm sm:text-base truncate">ภพ.20</p>
-                        <p className="text-xs sm:text-sm text-gray-500">อัพโหลดเมื่อ 15 ม.ค. 2025</p>
-                      </div>
-                    </div>
-                    <button className="text-blue-700 hover:underline text-sm whitespace-nowrap">ดาวน์โหลด</button>
-                  </div>
-                </div>
-              </div>
+              <MembershipCertificate />
             </div>
           </div>
         );
@@ -511,6 +484,8 @@ export default function Dashboard() {
                               }
                             } else if (item.name === 'ข้อมูลสมาชิก') {
                               router.push('/dashboard?tab=member', undefined, { shallow: true });
+                            } else if (item.name === 'เอกสารยืนยันสมาชิก') {
+                              router.push('/dashboard?tab=certificatedocument', undefined, { shallow: true });
                             }
                             setActiveTab(item.name);
                           }}
