@@ -49,6 +49,25 @@ export default function Navbar() {
     };
   }, [isMenuOpen]);
 
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, [isMenuOpen]);
+
   const { user, logout } = useAuth();
   const router = useRouter();
   
@@ -69,53 +88,98 @@ export default function Navbar() {
     router.push('/');
   };
 
-  // Animation variants
+  // Optimized animation variants for mobile
   const navVariants = {
     hidden: { y: -50, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } }
+    visible: { 
+      y: 0, 
+      opacity: 1, 
+      transition: { 
+        duration: 0.3, 
+        ease: "easeOut",
+        type: "tween"
+      } 
+    }
   };
 
   const logoVariants = {
     initial: { scale: 1 },
-    hover: { scale: 1.03, transition: { type: "spring", stiffness: 400, damping: 10 } }
+    hover: { 
+      scale: 1.02, 
+      transition: { 
+        type: "tween", 
+        duration: 0.2,
+        ease: "easeOut"
+      } 
+    }
   };
 
   const menuVariants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { delay: 0.2, duration: 0.5 } }
+    visible: { 
+      opacity: 1, 
+      transition: { 
+        delay: 0.1, 
+        duration: 0.3,
+        type: "tween"
+      } 
+    }
   };
 
   const itemVariants = {
     initial: { scale: 1 },
-    hover: { scale: 1.05 },
-    tap: { scale: 0.95 }
+    hover: { 
+      scale: 1.03,
+      transition: {
+        type: "tween",
+        duration: 0.15
+      }
+    },
+    tap: { 
+      scale: 0.97,
+      transition: {
+        type: "tween",
+        duration: 0.1
+      }
+    }
   };
 
   const buttonVariants = {
     initial: { scale: 1 },
-    hover: { scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" },
-    tap: { scale: 0.95 }
+    hover: { 
+      scale: 1.02, 
+      transition: {
+        type: "tween",
+        duration: 0.2
+      }
+    },
+    tap: { 
+      scale: 0.95,
+      transition: {
+        type: "tween",
+        duration: 0.1
+      }
+    }
   };
 
+  // Simplified mobile menu animations
   const mobileMenuVariants = {
     hidden: { 
-      opacity: 0, 
-      height: 0, 
+      opacity: 0,
+      y: -20,
       transition: { 
         duration: 0.2,
-        when: "afterChildren",
-        staggerChildren: 0.05,
-        staggerDirection: -1
+        type: "tween",
+        ease: "easeInOut"
       }
     },
     visible: { 
-      opacity: 1, 
-      height: "auto", 
+      opacity: 1,
+      y: 0,
       transition: { 
-        duration: 0.3,
-        when: "beforeChildren",
-        staggerChildren: 0.05,
-        delayChildren: 0.1
+        duration: 0.25,
+        type: "tween",
+        ease: "easeOut"
       }
     }
   };
@@ -123,13 +187,19 @@ export default function Navbar() {
   const mobileItemVariants = {
     hidden: { 
       opacity: 0, 
-      x: -20,
-      transition: { duration: 0.2 }
+      x: -15,
+      transition: { 
+        duration: 0.15,
+        type: "tween"
+      }
     },
     visible: { 
       opacity: 1, 
       x: 0,
-      transition: { duration: 0.3 }
+      transition: { 
+        duration: 0.2,
+        type: "tween"
+      }
     }
   };
 
@@ -300,11 +370,14 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <motion.button
             ref={menuButtonRef}
-            className="lg:hidden p-2 relative z-[9999] cursor-pointer"
+            className="lg:hidden p-2 relative z-[9999] touch-manipulation"
             onClick={toggleMenu}
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.1 }}
-            style={{ pointerEvents: 'auto' }}
+            whileTap={{ scale: 0.95 }}
+            transition={{ type: "tween", duration: 0.1 }}
+            style={{ 
+              pointerEvents: 'auto',
+              WebkitTapHighlightColor: 'transparent'
+            }}
             aria-label="Toggle menu"
           >
             <svg
@@ -330,108 +403,142 @@ export default function Navbar() {
           {isMenuOpen && (
             <motion.div 
               ref={mobileMenuRef}
-              className="lg:hidden py-4 border-t w-full fixed top-[80px] left-0 right-0 bottom-0 bg-white z-[9999] shadow-lg overflow-auto"
+              className="lg:hidden w-full fixed top-[80px] left-0 right-0 bg-white z-[9998] shadow-lg border-t"
               variants={mobileMenuVariants}
               initial="hidden"
               animate="visible"
               exit="hidden"
-              style={{ pointerEvents: 'auto' }}
+              style={{ 
+                pointerEvents: 'auto',
+                height: 'calc(100vh - 80px)',
+                overflowY: 'auto',
+                WebkitOverflowScrolling: 'touch'
+              }}
             >
-              <div className="flex flex-col space-y-4">
+              <div className="flex flex-col py-4">
                 {menuItems.map((item, index) => (
                   <motion.div
                     key={item.name}
                     variants={mobileItemVariants}
-                    whileHover={{ x: 5 }}
-                    whileTap={{ scale: 0.98 }}
+                    initial="hidden"
+                    animate="visible"
+                    exit="hidden"
+                    transition={{ delay: index * 0.05 }}
+                    whileTap={{ scale: 0.98, x: 5 }}
+                    className="touch-manipulation"
+                    style={{ WebkitTapHighlightColor: 'transparent' }}
                   >
                     <Link
                       href={item.href}
-                      className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
+                      className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-6 py-4 block hover:bg-gray-50"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.name}
                     </Link>
                   </motion.div>
                 ))}
-                {user ? (
-                  <>
-                    <motion.div 
-                      variants={mobileItemVariants}
-                      whileHover={{ x: 5 }} 
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        href="/ChangeEmail"
-                        className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
-                        onClick={() => setIsMenuOpen(false)}
+                
+                <div className="border-t border-gray-200 mt-2 pt-4">
+                  {user ? (
+                    <>
+                      <motion.div 
+                        variants={mobileItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        transition={{ delay: menuItems.length * 0.05 }}
+                        whileTap={{ scale: 0.98, x: 5 }}
+                        className="touch-manipulation"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
-                        แจ้งเปลี่ยนอีเมล
-                      </Link>
-                    </motion.div>
-                    <motion.div 
-                      variants={mobileItemVariants}
-                      whileHover={{ x: 5 }} 
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        href="/dashboard"
-                        className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
-                        onClick={() => setIsMenuOpen(false)}
+                        <Link
+                          href="/ChangeEmail"
+                          className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-6 py-4 block hover:bg-gray-50"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          แจ้งเปลี่ยนอีเมล
+                        </Link>
+                      </motion.div>
+                      <motion.div 
+                        variants={mobileItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        transition={{ delay: (menuItems.length + 1) * 0.05 }}
+                        whileTap={{ scale: 0.98, x: 5 }}
+                        className="touch-manipulation"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
-                        แดชบอร์ด
-                      </Link>
-                    </motion.div>
-                    <motion.div 
-                      className="px-4"
-                      variants={mobileItemVariants}
-                      whileHover={{ x: 5 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <motion.button
-                        onClick={() => {
-                          handleLogout();
-                          setIsMenuOpen(false);
-                        }}
-                        className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold w-full"
-                        whileHover={{ scale: 1.02 }}
+                        <Link
+                          href="/dashboard"
+                          className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-6 py-4 block hover:bg-gray-50"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          แดชบอร์ด
+                        </Link>
+                      </motion.div>
+                      <motion.div 
+                        className="px-6 py-4"
+                        variants={mobileItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        transition={{ delay: (menuItems.length + 2) * 0.05 }}
                         whileTap={{ scale: 0.98 }}
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
-                        ออกจากระบบ
-                      </motion.button>
-                    </motion.div>
-                  </>
-                ) : (
-                  <>
-                    <motion.div 
-                      variants={mobileItemVariants}
-                      whileHover={{ x: 5 }} 
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        href="/login"
-                        className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-4 block"
-                        onClick={() => setIsMenuOpen(false)}
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setIsMenuOpen(false);
+                          }}
+                          className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold w-full transition-colors"
+                        >
+                          ออกจากระบบ
+                        </button>
+                      </motion.div>
+                    </>
+                  ) : (
+                    <>
+                      <motion.div 
+                        variants={mobileItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        transition={{ delay: menuItems.length * 0.05 }}
+                        whileTap={{ scale: 0.98, x: 5 }}
+                        className="touch-manipulation"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
-                        เข้าสู่ระบบ
-                      </Link>
-                    </motion.div>
-                    <motion.div 
-                      className="px-4" 
-                      variants={mobileItemVariants}
-                      whileHover={{ x: 5 }} 
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Link
-                        href="/register"
-                        className="px-6 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold text-center block w-full"
-                        onClick={() => setIsMenuOpen(false)}
+                        <Link
+                          href="/login"
+                          className="text-gray-700 hover:text-blue-900 font-medium transition-colors px-6 py-4 block hover:bg-gray-50"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          เข้าสู่ระบบ
+                        </Link>
+                      </motion.div>
+                      <motion.div 
+                        className="px-6 py-4" 
+                        variants={mobileItemVariants}
+                        initial="hidden"
+                        animate="visible"
+                        exit="hidden"
+                        transition={{ delay: (menuItems.length + 1) * 0.05 }}
+                        whileTap={{ scale: 0.98 }}
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
                       >
-                        สมัครสมาชิก
-                      </Link>
-                    </motion.div>
-                  </>
-                )}
+                        <Link
+                          href="/register"
+                          className="px-6 py-3 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 text-white rounded-full font-semibold text-center block w-full transition-all"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          สมัครสมาชิก
+                        </Link>
+                      </motion.div>
+                    </>
+                  )}
+                </div>
               </div>
             </motion.div>
           )}

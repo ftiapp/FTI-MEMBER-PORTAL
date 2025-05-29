@@ -1,0 +1,101 @@
+import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import jwt from 'jsonwebtoken';
+import { executeQuery, getConnection } from '@/app/lib/db';
+
+/**
+ * API endpoint to get logo update status for a user
+ */
+export async function GET(request) {
+  try {
+    // Get user ID from query parameters
+    const { searchParams } = new URL(request.url);
+    let userId = searchParams.get('userId');
+    
+    // If no userId provided, try to get from JWT token
+    if (!userId) {
+      const cookieStore = await cookies();
+      const token = cookieStore.get('token')?.value;
+      
+      if (!token) {
+        return NextResponse.json({ 
+          success: false, 
+          message: 'ไม่พบข้อมูลผู้ใช้' 
+        }, { status: 401 });
+      }
+      
+      try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.id;
+      } catch (error) {
+        console.error('Error verifying token:', error);
+        return NextResponse.json({ 
+          success: false, 
+          message: 'โทเคนไม่ถูกต้อง' 
+        }, { status: 401 });
+      }
+    }
+    
+    // ตรวจสอบว่า userId มีค่าและเป็นตัวเลข
+    if (!userId || isNaN(parseInt(userId))) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'รหัสผู้ใช้ไม่ถูกต้อง'
+      }, { status: 400 });
+    }
+
+    // Fetch logo updates from the database
+    const query = `
+      SELECT l.id, l.member_code, l.logo_url, l.display_mode, l.created_at, 
+             c.company_name_th as company_name
+      FROM member_logos l
+      LEFT JOIN companies_Member c ON l.member_code = c.MEMBER_CODE
+      WHERE l.user_id = ?
+      ORDER BY l.created_at DESC
+    `;
+    
+    const connection = await getConnection();
+    const logoUpdates = await executeQuery(connection, query, [userId]);
+    
+    // Format the response
+    if (logoUpdates && logoUpdates.length > 0) {
+      const formattedUpdates = logoUpdates.map(update => ({
+        id: update.id,
+        title: 'อัปเดตโลโก้บริษัท',
+        description: `บริษัท: ${update.company_name || update.member_code}`,
+        status: 'approved', // Logo updates are immediately approved
+        created_at: update.created_at,
+        type: 'อัปเดตโลโก้บริษัท',
+        member_code: update.member_code,
+        company_name: update.company_name,
+        logo_url: update.logo_url,
+        display_mode: update.display_mode
+      }));
+      
+      return NextResponse.json({
+        success: true,
+        updates: formattedUpdates
+      });
+    } else {
+      // Return a placeholder if no logo updates found
+      return NextResponse.json({
+        success: true,
+        updates: [{
+          id: Date.now(),
+          title: 'อัปเดตโลโก้บริษัท',
+          description: 'คุณยังไม่มีการอัปเดตโลโก้',
+          status: 'none',
+          created_at: new Date().toISOString(),
+          type: 'อัปเดตโลโก้บริษัท'
+        }]
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching logo status:', error);
+    return NextResponse.json({
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสถานะโลโก้',
+      error: error.message
+    }, { status: 500 });
+  }
+}
