@@ -50,32 +50,33 @@ export default function ContactStepIndicator({ currentStep = 1 }) {
               >
                 <motion.div
                   className={`flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-full border-2 bg-white shadow-sm ${
-                    isActive ? 'border-blue-600' : 'border-gray-300'
+                    isActive ? 'border-blue-700' : 'border-gray-400'
                   }`}
                   initial={false}
                   animate={{
                     scale: isActive ? 1.1 : 1,
-                    borderColor: isActive ? '#2563eb' : '#d1d5db',
+                    borderColor: isActive ? '#1d4ed8' : '#9ca3af',
                   }}
                   transition={{ duration: 0.3 }}
                 >
                   <motion.div
                     animate={{
-                      color: isActive ? '#2563eb' : '#9ca3af',
+                      color: isActive ? '#1d4ed8' : '#4b5563',
                     }}
                     transition={{ duration: 0.3 }}
+                    className={isActive ? 'text-blue-700' : 'text-gray-600'}
                   >
                     {step.icon}
                   </motion.div>
                 </motion.div>
                 
                 <div className="mt-3 text-center">
-                  <p className={`text-xs md:text-sm font-medium ${
-                    isActive ? 'text-blue-600' : 'text-gray-500'
+                  <p className={`text-xs md:text-sm font-semibold ${
+                    isActive ? 'text-blue-700' : 'text-gray-700'
                   }`}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1 hidden md:block">
+                  <p className="text-xs text-gray-600 mt-1 hidden md:block font-medium">
                     {step.description}
                   </p>
                 </div>
@@ -97,20 +98,21 @@ export default function ContactStepIndicator({ currentStep = 1 }) {
                 <div className="flex flex-col items-center">
                   <motion.div
                     className={`flex items-center justify-center w-10 h-10 rounded-full border-2 bg-white ${
-                      isActive ? 'border-blue-600' : 'border-gray-300'
+                      isActive ? 'border-blue-700' : 'border-gray-400'
                     }`}
                     initial={false}
                     animate={{
                       scale: isActive ? 1.1 : 1,
-                      borderColor: isActive ? '#2563eb' : '#d1d5db',
+                      borderColor: isActive ? '#1d4ed8' : '#9ca3af',
                     }}
                     transition={{ duration: 0.3 }}
                   >
                     <motion.div
                       animate={{
-                        color: isActive ? '#2563eb' : '#9ca3af',
+                        color: isActive ? '#1d4ed8' : '#4b5563',
                       }}
                       transition={{ duration: 0.3 }}
+                      className={isActive ? 'text-blue-700' : 'text-gray-600'}
                     >
                       {step.icon}
                     </motion.div>
@@ -120,12 +122,12 @@ export default function ContactStepIndicator({ currentStep = 1 }) {
                 </div>
                 
                 <div className="flex-1 pb-2">
-                  <p className={`text-sm font-medium ${
-                    isActive ? 'text-blue-600' : 'text-gray-500'
+                  <p className={`text-sm font-semibold ${
+                    isActive ? 'text-blue-700' : 'text-gray-700'
                   }`}>
                     {step.label}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-600 mt-1 font-medium">
                     {step.description}
                   </p>
                 </div>
