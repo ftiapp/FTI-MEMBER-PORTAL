@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { mssqlQuery } from '@/app/lib/mssql';
+import { cookies } from 'next/headers';
 
 /**
  * API endpoint to fetch member details by member code using the stored procedure
@@ -19,12 +20,47 @@ export async function GET(request) {
       );
     }
     
+    // Log authentication information for debugging
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token');
+    console.log('Auth token present:', token ? 'Yes' : 'No');
+    
     console.log('Fetching member details for member code:', memberCode);
     
     let result;
     try {
       // Execute the stored procedure
       console.log(`Executing stored procedure with member_code: ${memberCode}`);
+      
+      // Try to get database connection information
+      const dbConfig = {
+        server: process.env.MSSQL_SERVER || '203.151.40.31',
+        database: process.env.MSSQL_DATABASE || 'FTI'
+      };
+      console.log('Using database config:', dbConfig);
+      
+      // First check if the stored procedure exists
+      try {
+        const spCheck = await mssqlQuery(
+          `SELECT OBJECT_ID('[dbo].[sp_GetMemberDetailByMemberCode_FTI_PORTAL]') AS sp_id`
+        );
+        console.log('Stored procedure check result:', spCheck);
+        
+        if (!spCheck || !spCheck[0] || !spCheck[0].sp_id) {
+          console.error('Stored procedure sp_GetMemberDetailByMemberCode_FTI_PORTAL does not exist');
+          return NextResponse.json(
+            { 
+              error: 'Stored procedure not found', 
+              details: 'The required stored procedure does not exist in the database' 
+            },
+            { status: 500 }
+          );
+        }
+      } catch (checkError) {
+        console.error('Error checking stored procedure existence:', checkError);
+      }
+      
+      // Execute the actual stored procedure
       result = await mssqlQuery(`EXEC [dbo].[sp_GetMemberDetailByMemberCode_FTI_PORTAL] @member_code = @param0`, [memberCode]);
       
       if (!result || result.length === 0) {
@@ -36,8 +72,13 @@ export async function GET(request) {
       }
     } catch (spError) {
       console.error('Error executing stored procedure:', spError);
+      console.error('Error stack:', spError.stack);
       return NextResponse.json(
-        { error: 'เกิดข้อผิดพลาดในการเรียกใช้ stored procedure', details: spError.message },
+        { 
+          error: 'เกิดข้อผิดพลาดในการเรียกใช้ stored procedure', 
+          details: spError.message,
+          stack: process.env.NODE_ENV === 'development' ? spError.stack : undefined
+        },
         { status: 500 }
       );
     }
@@ -127,8 +168,14 @@ export async function GET(request) {
     
   } catch (error) {
     console.error('Error fetching member details:', error);
+    console.error('Error stack:', error.stack);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก', details: error.message },
+      { 
+        error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก', 
+        details: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
+        url: request.url
+      },
       { status: 500 }
     );
   }
