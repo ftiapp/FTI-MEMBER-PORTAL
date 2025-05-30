@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { query as dbQuery } from '@/app/lib/db';
 import { sendAddressRejectionEmail } from '@/app/lib/mailersend';
+import { createNotification } from '@/app/lib/notifications';
 
 export async function POST(request) {
   try {
@@ -96,6 +97,23 @@ export async function POST(request) {
             admin.username || 'ผู้ดูแลระบบ'
           );
           console.log('Rejection email sent to', user.email);
+          
+          // สร้างการแจ้งเตือนในระบบเมื่อปฏิเสธการแก้ไขที่อยู่
+          try {
+            const addrTypeText = addressUpdate.addr_code === '001' ? 'หลัก' : 'โรงงาน';
+            const langText = addressUpdate.addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
+            
+            await createNotification(
+              addressUpdate.user_id,
+              'address_update',
+              `คำขอแก้ไขที่อยู่${addrTypeText}${langText}ของท่าน [รหัสสมาชิก: ${addressUpdate.member_code}] [บริษัท: ${user.company_name || addressUpdate.company_name || 'บริษัทของท่าน'}] ถูกปฏิเสธ: ${reason || 'ไม่ระบุเหตุผล'}`,
+              '/dashboard?tab=address'
+            );
+            console.log('Address update rejection notification created for user:', addressUpdate.user_id);
+          } catch (notificationError) {
+            console.error('Error creating address update rejection notification:', notificationError);
+            // Continue with the process even if notification creation fails
+          }
         }
       } catch (emailError) {
         console.error('Error sending rejection email:', emailError);

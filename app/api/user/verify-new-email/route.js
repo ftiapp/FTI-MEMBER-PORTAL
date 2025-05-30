@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { sendEmailChangeNotificationToOld } from '@/app/lib/mailersend-email-change';
+import { createNotification } from '@/app/lib/notifications';
 
 export async function POST(request) {
   try {
@@ -114,6 +115,20 @@ async function processVerification(tokenData, request) {
     } catch (emailError) {
       console.error('Error sending notification to old email:', emailError);
       // ไม่ต้องหยุดการทำงานหากส่งอีเมลไม่สำเร็จ
+    }
+    
+    // สร้างการแจ้งเตือนในระบบเมื่อเปลี่ยนอีเมลสำเร็จ
+    try {
+      await createNotification(
+        user_id,
+        'profile_update',
+        `อีเมลของคุณถูกเปลี่ยนจาก ${old_email} เป็น ${new_email} เรียบร้อยแล้ว`,
+        '/dashboard?tab=profile'
+      );
+      console.log('Email change notification created for user:', user_id);
+    } catch (notificationError) {
+      console.error('Error creating email change notification:', notificationError);
+      // Continue with the process even if notification creation fails
     }
 
     return NextResponse.json({

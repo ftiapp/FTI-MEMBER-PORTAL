@@ -3,6 +3,7 @@ import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { query } from '@/app/lib/db';
 import { mssqlQuery } from '@/app/lib/mssql';
 import { sendAddressApprovalEmail } from '@/app/lib/mailersend';
+import { createNotification } from '@/app/lib/notifications';
 
 export async function POST(request) {
   try {
@@ -425,6 +426,23 @@ export async function POST(request) {
             addressUpdate.admin_comment || 'ไม่มีคำอธิบายเพิ่มเติม'
           );
           console.log('Approval email sent to', user.email);
+          
+          // สร้างการแจ้งเตือนในระบบเมื่ออนุมัติการแก้ไขที่อยู่
+          try {
+            const addrTypeText = addr_code === '001' ? 'หลัก' : 'โรงงาน';
+            const langText = addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
+            
+            await createNotification(
+              user_id,
+              'address_update',
+              `คำขอแก้ไขที่อยู่${addrTypeText}${langText}ของท่าน [รหัสสมาชิก: ${addressUpdate.member_code}] [บริษัท: ${user.company_name || addressUpdate.company_name || 'บริษัทของท่าน'}] ได้รับการอนุมัติแล้ว`,
+              '/dashboard?tab=address'
+            );
+            console.log('Address update approval notification created for user:', user_id);
+          } catch (notificationError) {
+            console.error('Error creating address update approval notification:', notificationError);
+            // Continue with the process even if notification creation fails
+          }
         }
       } catch (emailError) {
         console.error('Error sending approval email:', emailError);

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { getAdminFromSession, logAdminAction } from '@/app/lib/adminAuth';
 import { sendApprovalEmail, sendRejectionEmail } from '@/app/lib/mailersend';
+import { createNotification } from '@/app/lib/notifications';
 
 export async function POST(request) {
   try {
@@ -166,8 +167,66 @@ export async function POST(request) {
           
           if (action === 'approve') {
             await sendApprovalEmail(email, firstname, lastname, MEMBER_CODE, company_name, comment);
+            
+            // สร้างการแจ้งเตือนในระบบเมื่ออนุมัติ
+            try {
+              console.log('Creating notification for user ID:', userId);
+              
+              // ตรวจสอบว่า userId มีค่าถูกต้องหรือไม่
+              if (!userId) {
+                console.error('userId is undefined or null, using user_id directly from companyResult[0]');
+                userId = companyResult[0].user_id;
+              }
+              
+              console.log('Final user ID for notification:', userId);
+              
+              if (!userId) {
+                console.error('Cannot create notification: No valid user ID found');
+              } else {
+                // สร้างการแจ้งเตือน
+                const notificationResult = await createNotification(
+                  userId,
+                  'member_verification',
+                  `การยืนยันสมาชิกเดิมของท่าน [รหัสสมาชิก: ${MEMBER_CODE}] [บริษัท: ${company_name}] ได้รับการอนุมัติแล้ว`,
+                  '/dashboard?tab=member'
+                );
+                console.log('Member verification approval notification created for user:', userId, 'Result:', notificationResult);
+              }
+            } catch (notificationError) {
+              console.error('Error creating member verification approval notification:', notificationError);
+              // Continue with the process even if notification creation fails
+            }
           } else if (action === 'reject') {
             await sendRejectionEmail(email, firstname, lastname, MEMBER_CODE, company_name, reason || 'ไม่ระบุเหตุผล');
+            
+            // สร้างการแจ้งเตือนในระบบเมื่อปฏิเสธ
+            try {
+              console.log('Creating rejection notification for user ID:', userId);
+              
+              // ตรวจสอบว่า userId มีค่าถูกต้องหรือไม่
+              if (!userId) {
+                console.error('userId is undefined or null, using user_id directly from companyResult[0]');
+                userId = companyResult[0].user_id;
+              }
+              
+              console.log('Final user ID for rejection notification:', userId);
+              
+              if (!userId) {
+                console.error('Cannot create rejection notification: No valid user ID found');
+              } else {
+                // สร้างการแจ้งเตือน
+                const notificationResult = await createNotification(
+                  userId,
+                  'member_verification',
+                  `การยืนยันสมาชิกเดิมของท่าน [รหัสสมาชิก: ${MEMBER_CODE}] [บริษัท: ${company_name}] ถูกปฏิเสธ: ${reason || 'ไม่ระบุเหตุผล'}`,
+                  '/dashboard?tab=status'
+                );
+                console.log('Member verification rejection notification created for user:', userId, 'Result:', notificationResult);
+              }
+            } catch (notificationError) {
+              console.error('Error creating member verification rejection notification:', notificationError);
+              // Continue with the process even if notification creation fails
+            }
           }
           
           console.log(`Email notification sent to ${email}`);

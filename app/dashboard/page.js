@@ -6,6 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
+import NotificationBell from '../components/NotificationBell';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 import UpdateMember from './components/UpdateMember/page';
@@ -22,7 +23,7 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
-  const [activeTab, setActiveTab] = useState('อัพเดตสมาชิก');
+  const [activeTab, setActiveTab] = useState(null); // ไม่ตั้งค่าเริ่มต้น ให้ถูกกำหนดจาก URL parameters เท่านั้น
   const [membershipType, setMembershipType] = useState('ทั่วไป');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   
@@ -77,6 +78,28 @@ export default function Dashboard() {
       } else if (tabParam === 'updatemember') {
         setActiveTab('อัพเดตสมาชิก');
         console.log('Setting active tab to อัพเดตสมาชิก');
+      } else if (tabParam === 'address') {
+        setActiveTab('ข้อมูลสมาชิก');
+        console.log('Setting active tab to ข้อมูลสมาชิก for address');
+        
+        if (menuRefs['ข้อมูลสมาชิก']?.current) {
+          console.log('Programmatically clicking MemberDetail menu item for address');
+          menuRefs['ข้อมูลสมาชิก'].current.click();
+        }
+      } else if (tabParam === 'profile') {
+        setActiveTab('ข้อมูลสมาชิก');
+        console.log('Setting active tab to ข้อมูลสมาชิก for profile');
+        
+        if (menuRefs['ข้อมูลสมาชิก']?.current) {
+          console.log('Programmatically clicking MemberDetail menu item for profile');
+          menuRefs['ข้อมูลสมาชิก'].current.click();
+        }
+      } else {
+        // ถ้าไม่มีพารามิเตอร์ tab ใน URL ให้ตั้งค่าเริ่มต้นเป็น 'อัพเดตสมาชิก'
+        if (!activeTab) {
+          setActiveTab('อัพเดตสมาชิก');
+          console.log('No tab parameter, setting default tab to อัพเดตสมาชิก');
+        }
       }
     };
     
@@ -384,13 +407,13 @@ export default function Dashboard() {
               <div className="flex-1 min-w-0">
                 <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-800 truncate">
                   ยินดีต้อนรับ, {(user.firstname && user.lastname) ? `${user.firstname} ${user.lastname}` : 'สมาชิก'}
-                  <motion.div 
-                    className="w-16 h-1 bg-blue-600 mt-2"
-                    initial={{ width: 0 }}
-                    animate={{ width: 64 }}
-                    transition={{ delay: 0.5, duration: 0.8 }}
-                  />
                 </h2>
+                <motion.div 
+                  className="w-16 h-1 bg-blue-600 mt-2"
+                  initial={{ width: 0 }}
+                  animate={{ width: 64 }}
+                  transition={{ delay: 0.5, duration: 0.8 }}
+                />
                 <div className="flex flex-col sm:flex-row sm:items-center mt-4 gap-2">
                   <span className="text-sm sm:text-base text-gray-600">สถานะผู้ใช้งาน:</span>
                   {user.role === 'member' ? (
@@ -419,6 +442,16 @@ export default function Dashboard() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
                 </button>
+                
+                {/* กระดิ่งแจ้งเตือน */}
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ delay: 0.6, duration: 0.3 }}
+                  className="mr-2"
+                >
+                  <NotificationBell />
+                </motion.div>
                 
                 <button
                   onClick={logout}

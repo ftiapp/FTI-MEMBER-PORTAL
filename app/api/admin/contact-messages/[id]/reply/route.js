@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
+import { createNotification } from '@/app/lib/notifications';
 
 export async function PUT(request, { params }) {
   try {
@@ -124,6 +125,22 @@ export async function PUT(request, { params }) {
         request.headers.get('user-agent') || ''
       ]
     );
+    
+    // สร้างการแจ้งเตือนในระบบเมื่อแอดมินตอบข้อความติดต่อ
+    if (message.user_id) {
+      try {
+        await createNotification(
+          message.user_id,
+          'contact_reply',
+          `ข้อความติดต่อของคุณเรื่อง "${message.subject}" ได้รับการตอบกลับแล้ว`,
+          `/dashboard?tab=contact&messageId=${id}&reply=true`
+        );
+        console.log('Contact reply notification created for user:', message.user_id);
+      } catch (notificationError) {
+        console.error('Error creating contact reply notification:', notificationError);
+        // Continue with the process even if notification creation fails
+      }
+    }
     
     return NextResponse.json({
       success: true,

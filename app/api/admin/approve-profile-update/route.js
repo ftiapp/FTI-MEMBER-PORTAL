@@ -2,6 +2,7 @@ import { query } from '@/app/lib/db';
 import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '@/app/lib/adminAuth';
 import { getClientIp } from '@/app/lib/utils';
+import { createNotification } from '@/app/lib/notifications';
 
 export async function POST(request) {
   try {
@@ -83,6 +84,20 @@ export async function POST(request) {
         userAgent
       ]
     );
+    
+    // สร้างการแจ้งเตือนให้ผู้ใช้
+    try {
+      await createNotification(
+        userId,
+        'profile_update',
+        `คำขอแก้ไขข้อมูลส่วนตัวของคุณได้รับการอนุมัติแล้ว`,
+        '/dashboard?tab=updatemember'
+      );
+      console.log('Profile update approval notification created for user:', userId);
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // ไม่ต้องหยุดการทำงานหากไม่สามารถสร้างการแจ้งเตือนได้
+    }
 
     return NextResponse.json({
       success: true,

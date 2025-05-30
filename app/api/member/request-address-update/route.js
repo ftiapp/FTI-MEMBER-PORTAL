@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 import { query } from '@/app/lib/db';
 import { cookies } from 'next/headers';
+import { createNotification } from '@/app/lib/notifications';
 
 /**
  * API endpoint to handle address update requests
@@ -241,6 +242,23 @@ export async function POST(request) {
       ipAddress,
       request.headers.get('user-agent') || 'unknown'
     ]);
+    
+    // สร้างการแจ้งเตือนเมื่อส่งคำขอแก้ไขที่อยู่
+    try {
+      const addrTypeText = addrCodeValue === '001' ? 'หลัก' : 'โรงงาน';
+      const langText = addrLangValue === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
+      
+      await createNotification(
+        userId,
+        'address_update',
+        `คำขอแก้ไขที่อยู่${addrTypeText}${langText}ของคุณถูกส่งเรียบร้อยแล้ว กรุณารอการอนุมัติจากผู้ดูแลระบบ`,
+        '/dashboard/member-detail'
+      );
+      console.log('Address update request notification created for user:', userId);
+    } catch (notificationError) {
+      console.error('Error creating address update request notification:', notificationError);
+      // Continue with the process even if notification creation fails
+    }
     
     return NextResponse.json({ 
       success: true, 
