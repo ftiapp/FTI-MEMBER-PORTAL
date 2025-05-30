@@ -2,19 +2,24 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaUserCheck, FaClipboardCheck, FaCheckCircle } from 'react-icons/fa';
+import { FaUserCheck, FaClipboardCheck, FaCheckCircle, FaBuilding, FaFileAlt } from 'react-icons/fa';
 
 const WasMemberStepIndicator = ({ currentStep }) => {
   const steps = [
     { 
-      title: 'กรอกข้อมูลสมาชิก', 
-      icon: <FaUserCheck className="w-5 h-5" />,
-      description: 'กรอกข้อมูลสมาชิกเดิมของสภาอุตสาหกรรม'
+      title: 'เลือกบริษัท', 
+      icon: <FaBuilding className="w-5 h-5" />,
+      description: 'เลือกบริษัทสมาชิกเดิม (สูงสุด 10 บริษัท)'
     },
     { 
-      title: 'ตรวจสอบเอกสาร', 
+      title: 'อัพโหลดเอกสาร', 
       icon: <FaClipboardCheck className="w-5 h-5" />,
       description: 'อัพโหลดเอกสารยืนยันตัวตน'
+    },
+    { 
+      title: 'ตรวจสอบข้อมูล', 
+      icon: <FaFileAlt className="w-5 h-5" />,
+      description: 'ตรวจสอบข้อมูลและเอกสารทั้งหมด'
     },
     { 
       title: 'ยืนยันตัวตนสำเร็จ', 
@@ -77,6 +82,16 @@ const WasMemberStepIndicator = ({ currentStep }) => {
               >
                 {step.description}
               </motion.p>
+              
+              {/* Connector Line (except for the last step) */}
+              {index < steps.length - 1 && (
+                <div className="hidden md:block absolute h-0.5 bg-gray-200 top-6 w-full" style={{ left: '60%', zIndex: -1 }}>
+                  <div 
+                    className={`h-full ${isCompleted ? 'bg-green-500' : 'bg-gray-200'}`} 
+                    style={{ width: isCompleted ? '100%' : '0%', transition: 'width 0.5s ease-in-out' }}
+                  ></div>
+                </div>
+              )}
             </div>
           );
         })}

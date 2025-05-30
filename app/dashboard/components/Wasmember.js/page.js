@@ -9,6 +9,8 @@ import MemberInfoForm from './components/MemberInfoForm';
 import EditMemberForm from './components/EditMemberForm';
 import InfoAlert from './components/InfoAlert';
 import WasMemberStepIndicator from './components/WasMemberStepIndicator';
+import CompanyList from './components/CompanyList';
+import ReviewStep from './components/ReviewStep';
 
 import { FaCheckCircle, FaTimesCircle, FaHourglassHalf } from 'react-icons/fa';
 
@@ -43,11 +45,18 @@ export default function WasMember() {
     documentFile: false
   });
   
+  // State for multi-company management
+  const [companies, setCompanies] = useState([]);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isAddingMore, setIsAddingMore] = useState(false);
+  const [editingCompanyIndex, setEditingCompanyIndex] = useState(null);
+  const MAX_COMPANIES = 10;
+  
   const [submissions, setSubmissions] = useState([]);
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [showTemporaryStatus, setShowTemporaryStatus] = useState(false);
-const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-const [successMessage, setSuccessMessage] = useState('');
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [isLoadingSubmissions, setIsLoadingSubmissions] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [submissionToDelete, setSubmissionToDelete] = useState(null);
@@ -61,6 +70,15 @@ const [successMessage, setSuccessMessage] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResult, setSelectedResult] = useState(null);
 
+  // State to track verified companies (to prevent re-selection)
+  const [verifiedCompanies, setVerifiedCompanies] = useState([]);
+  const [nonSelectableCompanies, setNonSelectableCompanies] = useState([]);
+  
+  // For debugging
+  useEffect(() => {
+    console.log('Current non-selectable companies:', nonSelectableCompanies);
+  }, [nonSelectableCompanies]);
+  
   // Filter and paginate submissions when filters or page changes
   useEffect(() => {
     // Apply filters
@@ -92,6 +110,12 @@ const [successMessage, setSuccessMessage] = useState('');
     const paginatedResults = filteredResults.slice(indexOfFirstItem, indexOfLastItem);
     
     setSubmissions(paginatedResults);
+    
+    // Extract verified companies for preventing re-selection
+    const verified = filteredResults
+      .filter(item => item.status === 'approved')
+      .map(item => item.memberNumber);
+    setVerifiedCompanies(verified);
   }, [allSubmissions, statusFilter, typeFilter, searchTerm, currentPage, itemsPerPage]);
 
   // Check for edit parameter in URL and other parameters
@@ -226,6 +250,7 @@ const [successMessage, setSuccessMessage] = useState('');
                 status: sub.Admin_Submit === 0 ? 'pending' : 
                        sub.Admin_Submit === 1 ? 'approved' : 
                        sub.Admin_Submit === 2 ? 'rejected' : 'pending',
+                adminSubmit: sub.Admin_Submit, // เพิ่มฟิลด์นี้เพื่อใช้ในการตรวจสอบสถานะ
                 rejectReason: sub.reject_reason,
                 documentId: sub.document_id,
                 fileName: sub.file_name,
@@ -235,6 +260,43 @@ const [successMessage, setSuccessMessage] = useState('');
               
               console.log('Formatted submissions:', formattedSubmissions);
               setAllSubmissions(formattedSubmissions);
+              
+              // Extract verified companies to prevent re-selection
+              // Group submissions by memberNumber and find the latest submission for each memberNumber
+              const latestSubmissionByMemberCode = {};
+              formattedSubmissions.forEach(sub => {
+                // ใช้ updated_at หรือ created_at เป็นตัวเปรียบเทียบแทน id
+                const subDate = sub.updated_at ? new Date(sub.updated_at) : new Date(sub.created_at);
+                const currentLatest = latestSubmissionByMemberCode[sub.memberNumber];
+                const currentLatestDate = currentLatest ? 
+                  (currentLatest.updated_at ? new Date(currentLatest.updated_at) : new Date(currentLatest.created_at)) : 
+                  new Date(0);
+                
+                // ถ้ายังไม่มีรายการสำหรับรหัสสมาชิกนี้ หรือรายการนี้ใหม่กว่ารายการที่มีอยู่
+                if (!currentLatest || subDate > currentLatestDate) {
+                  latestSubmissionByMemberCode[sub.memberNumber] = sub;
+                  console.log(`Found newer submission for ${sub.memberNumber}: ${subDate} > ${currentLatestDate}`);
+                }
+              });
+              
+              // Create an object with member code as key and status as value
+              const nonSelectableCompaniesWithStatus = {};
+              Object.keys(latestSubmissionByMemberCode).forEach(memberCode => {
+                const latestSubmission = latestSubmissionByMemberCode[memberCode];
+                // Check if the latest submission has Admin_Submit = 0 or 1
+                if (latestSubmission.adminSubmit === 0 || latestSubmission.adminSubmit === 1) {
+                  nonSelectableCompaniesWithStatus[memberCode] = latestSubmission.adminSubmit === 0 ? 'pending' : 'approved';
+                }
+              });
+              
+              // Get array of member codes that cannot be selected
+              const nonSelectableCompanies = Object.keys(nonSelectableCompaniesWithStatus);
+              
+              console.log('Latest submission by member code:', latestSubmissionByMemberCode);
+              console.log('Non-selectable companies with status:', nonSelectableCompaniesWithStatus);
+              console.log('Non-selectable companies:', nonSelectableCompanies);
+              setNonSelectableCompanies(nonSelectableCompaniesWithStatus);
+              
               // Initial submissions will be filtered and paginated in useEffect
             } else {
               setAllSubmissions([]);
@@ -256,7 +318,153 @@ const [successMessage, setSuccessMessage] = useState('');
     fetchPreviousSubmissions();
   }, [user]);
 
-  const handleSubmit = async (formSubmitData) => {
+  // Function to handle adding a company to the list
+  const handleAddCompany = (formSubmitData) => {
+    // When editing, we don't need to check for duplicates of the same company
+    let isDuplicate = false;
+    
+    if (editingCompanyIndex === null) {
+      // Only check for duplicates when adding a new company, not when editing
+      isDuplicate = companies.some(company => company.memberNumber === formSubmitData.memberNumber);
+    }
+    
+    if (isDuplicate) {
+      toast.error('บริษัทนี้ถูกเพิ่มในรายการแล้ว');
+      return;
+    }
+    
+    // Check if the company is already verified or pending
+    if (nonSelectableCompanies && nonSelectableCompanies[formSubmitData.memberNumber]) {
+      const status = nonSelectableCompanies[formSubmitData.memberNumber];
+      const statusText = status === 'pending' ? 'รอการอนุมัติ' : 'ยืนยันแล้ว';
+      toast.error(`บริษัทนี้มีสถานะ ${statusText} ไม่สามารถเพิ่มซ้ำได้`);
+      return;
+    }
+    
+    if (companies.length >= MAX_COMPANIES && editingCompanyIndex === null) {
+      toast.error(`สามารถเพิ่มได้สูงสุด ${MAX_COMPANIES} บริษัทเท่านั้น`);
+      return;
+    }
+    
+    // Create the company object
+    const newCompany = {
+      id: editingCompanyIndex !== null ? companies[editingCompanyIndex].id : Date.now(), // Keep same ID when editing
+      memberSearch: formSubmitData.memberSearch,
+      memberNumber: formSubmitData.memberNumber,
+      compPersonCode: formSubmitData.compPersonCode,
+      registCode: formSubmitData.registCode,
+      memberType: formSubmitData.memberType,
+      companyName: formSubmitData.companyName,
+      taxId: formSubmitData.taxId,
+      documentFile: formSubmitData.documentFile
+    };
+    
+    if (editingCompanyIndex !== null) {
+      // Update existing company
+      const updatedCompanies = [...companies];
+      updatedCompanies[editingCompanyIndex] = newCompany;
+      setCompanies(updatedCompanies);
+      setEditingCompanyIndex(null);
+      toast.success('แก้ไขข้อมูลบริษัทเรียบร้อยแล้ว');
+    } else {
+      // Add new company
+      setCompanies(prev => [...prev, newCompany]);
+      toast.success('เพิ่มบริษัทเรียบร้อยแล้ว');
+    }
+    
+    // Reset form after adding
+    setFormData({
+      memberSearch: '',
+      memberNumber: '',
+      compPersonCode: '',
+      registCode: '',
+      memberType: '',
+      companyName: '',
+      taxId: '',
+      documentFile: null
+    });
+    
+    // Move to next step if this is the first company
+    if (companies.length === 0 && editingCompanyIndex === null) {
+      setCurrentStep(2);
+    }
+  };
+  
+  // Function to handle editing a company
+  const handleEditCompany = (index) => {
+    const companyToEdit = companies[index];
+    console.log('Editing company with document:', companyToEdit.documentFile);
+    
+    // Set form data with all company details including the document file
+    setFormData({
+      memberSearch: companyToEdit.memberSearch,
+      memberNumber: companyToEdit.memberNumber,
+      compPersonCode: companyToEdit.compPersonCode,
+      registCode: companyToEdit.registCode,
+      memberType: companyToEdit.memberType,
+      companyName: companyToEdit.companyName,
+      taxId: companyToEdit.taxId,
+      documentFile: companyToEdit.documentFile
+    });
+    
+    // Set the editing index and move to step 1
+    setEditingCompanyIndex(index);
+    setCurrentStep(1);
+  };
+  
+  // Function to handle removing a company
+  const handleRemoveCompany = (index) => {
+    const updatedCompanies = [...companies];
+    updatedCompanies.splice(index, 1);
+    setCompanies(updatedCompanies);
+    toast.success('ลบบริษัทเรียบร้อยแล้ว');
+    
+    // If we're editing this company, reset the form
+    if (editingCompanyIndex === index) {
+      setEditingCompanyIndex(null);
+      setFormData({
+        memberSearch: '',
+        memberNumber: '',
+        compPersonCode: '',
+        registCode: '',
+        memberType: '',
+        companyName: '',
+        taxId: '',
+        documentFile: null
+      });
+    }
+  };
+  
+  // Function to handle adding more companies
+  const handleAddMore = () => {
+    setIsAddingMore(true);
+    setCurrentStep(1);
+    setEditingCompanyIndex(null);
+    setFormData({
+      memberSearch: '',
+      memberNumber: '',
+      compPersonCode: '',
+      registCode: '',
+      memberType: '',
+      companyName: '',
+      taxId: '',
+      documentFile: null
+    });
+    setTimeout(() => setIsAddingMore(false), 500);
+  };
+  
+  // Function to handle moving to the review step
+  const handleGoToReview = () => {
+    if (companies.length === 0) {
+      toast.error('กรุณาเพิ่มอย่างน้อย 1 บริษัท');
+      return;
+    }
+    
+    setCurrentStep(3);
+  };
+  
+  // Function to handle submitting all companies
+  const handleSubmitAll = async () => {
     // Prevent double submission
     if (isSubmitting) {
       toast.error('กำลังดำเนินการ โปรดรอสักครู่');
@@ -266,114 +474,75 @@ const [successMessage, setSuccessMessage] = useState('');
     try {
       setIsSubmitting(true);
       
-      // Create form data for submission
-      const data = new FormData();
-      data.append('userId', user?.id || '');
-      data.append('memberNumber', formSubmitData.memberNumber);
-      data.append('compPersonCode', formSubmitData.compPersonCode);
-      data.append('registCode', formSubmitData.registCode);
-      data.append('memberType', formSubmitData.memberType);
-      data.append('companyName', formSubmitData.companyName);
-      data.append('taxId', formSubmitData.taxId);
-      data.append('documentFile', formSubmitData.documentFile);
-      
       // Show loading toast
       const loadingToast = toast.loading('กำลังส่งข้อมูล โปรดรอสักครู่...');
       
-      // Submit data to API
-      const response = await fetch('/api/member/submit', {
-        method: 'POST',
-        body: data
+      // Create an array of promises for each company submission
+      const submissionPromises = companies.map(async (company) => {
+        const data = new FormData();
+        data.append('userId', user?.id || '');
+        data.append('memberNumber', company.memberNumber);
+        data.append('compPersonCode', company.compPersonCode);
+        data.append('registCode', company.registCode);
+        data.append('memberType', company.memberType);
+        data.append('companyName', company.companyName);
+        data.append('taxId', company.taxId);
+        data.append('documentFile', company.documentFile);
+        
+        // Submit data to API
+        const response = await fetch('/api/member/submit', {
+          method: 'POST',
+          body: data
+        });
+        
+        return await response.json();
       });
+      
+      // Wait for all submissions to complete
+      const results = await Promise.all(submissionPromises);
       
       // Dismiss loading toast
       toast.dismiss(loadingToast);
       
-      const result = await response.json();
+      // Check if all submissions were successful
+      const allSuccessful = results.every(result => result.success);
       
-      if (result.success) {
-        toast.success('ส่งข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน1-2 วันทำการ');
+      if (allSuccessful) {
+        toast.success('ส่งข้อมูลทั้งหมดเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน 1-2 วันทำการ');
 
         // Show green success message bar
-        setSuccessMessage('ส่งข้อมูลเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน 1-2 วันทำการ');
+        setSuccessMessage('ส่งข้อมูลทั้งหมดเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน 1-2 วันทำการ');
         setShowSuccessMessage(true);
         setTimeout(() => {
           setShowSuccessMessage(false);
         }, 6000);
 
-        // Add the current submission to the list
-        const newSubmission = {
-          id: Date.now(), // Use timestamp as a simple unique ID
-          memberNumber: formSubmitData.memberNumber,
-          memberType: formSubmitData.memberType,
-          companyName: formSubmitData.companyName,
-          taxId: formSubmitData.taxId,
+        // Add all submissions to the list
+        const newSubmissions = companies.map(company => ({
+          id: Date.now() + Math.random(), // Use timestamp + random as a simple unique ID
+          memberNumber: company.memberNumber,
+          memberType: company.memberType,
+          companyName: company.companyName,
+          taxId: company.taxId,
           status: 'pending'
-        };
-        // Add to allSubmissions and let the filter useEffect handle the rest
-        setAllSubmissions(prev => [...prev, newSubmission]);
-        // Reset form immediately after submit
-        setFormData({
-          memberSearch: '',
-          memberNumber: '',
-          compPersonCode: '',
-          registCode: '',
-          memberType: '',
-          companyName: '',
-          taxId: '',
-          documentFile: null
-        });
-      } else {
-        // Show error message
-        toast.error(result.message || 'ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-        
-        // If it's a duplicate member code, show a more prominent notification
-        if (result.message && result.message.includes('รหัสสมาชิก')) {
-          // Create a notification that the member code is already registered
-          const notification = document.createElement('div');
-          notification.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
-          notification.innerHTML = `
-            <div class="flex items-center">
-              <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-              </svg>
-              <p><strong>รหัสสมาชิกนี้ถูกใช้งาน</strong> กรุณาตรวจสอบอีกครั้งง</p>
-            </div>
-            <button class="absolute top-0 right-0 mt-2 mr-2 text-red-700" onclick="this.parentElement.remove()">
-              &times;
-            </button>
-          `;
-          document.body.appendChild(notification);
-          
-          // Remove after 5 seconds
-          setTimeout(() => {
-            if (document.body.contains(notification)) {
-              document.body.removeChild(notification);
-            }
-          }, 5000);
-        }
-        
-        // Reset errors
-        setFormErrors({
-          memberSearch: false,
-          memberNumber: false,
-          memberType: false,
-          taxId: false,
-          documentFile: false
-        });
-        
-        // Update verification status but don't hide form
-        setVerificationStatus(prev => ({
-          ...prev,
-          isLoading: false,
-          submitted: true,
-          approved: false,
-          rejected: false,
-          rejectReason: null
         }));
+        
+        // Add to allSubmissions and let the filter useEffect handle the rest
+        setAllSubmissions(prev => [...prev, ...newSubmissions]);
+        
+        // Reset state
+        setCompanies([]);
+        setCurrentStep(4); // Move to success step
+      } else {
+        // Show error message for failed submissions
+        const failedCompanies = results
+          .map((result, index) => !result.success ? companies[index].memberNumber : null)
+          .filter(Boolean);
+        
+        toast.error(`ไม่สามารถส่งข้อมูลบางบริษัทได้: ${failedCompanies.join(', ')}`);
       }
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error submitting forms:', error);
       toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
     } finally {
       setIsSubmitting(false);
@@ -413,23 +582,128 @@ const [successMessage, setSuccessMessage] = useState('');
     setCurrentPage(newPage);
   };
   
-  // Function to render the member verification form
-  const renderMemberVerificationForm = () => {
-    return (
-      <div className={showTemporaryStatus || isSubmitting ? 'opacity-50 pointer-events-none' : ''}>
-        <MemberInfoForm 
-          formData={formData}
-          setFormData={setFormData}
-          formErrors={formErrors}
-          setFormErrors={setFormErrors}
-          selectedResult={selectedResult}
-          setSelectedResult={setSelectedResult}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          showSubmitButton={!isSubmitting}
-        />
-      </div>
-    );
+  // Function to render the current step content
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1: // Select company step
+        return (
+          <div className={showTemporaryStatus || isSubmitting ? 'opacity-50 pointer-events-none' : ''}>
+            <MemberInfoForm 
+              formData={formData}
+              setFormData={setFormData}
+              formErrors={formErrors}
+              setFormErrors={setFormErrors}
+              selectedResult={selectedResult}
+              setSelectedResult={setSelectedResult}
+              isSubmitting={isSubmitting}
+              onSubmit={handleAddCompany}
+              showSubmitButton={!isSubmitting}
+              submitButtonText={editingCompanyIndex !== null ? 'บันทึกการแก้ไข' : 'เพิ่มบริษัท'}
+              verifiedCompanies={nonSelectableCompanies}
+              selectedCompanies={companies.map(company => company.memberNumber)}
+            />
+            
+            {companies.length > 0 && (
+              <div className="mt-6">
+                <CompanyList 
+                  companies={companies}
+                  onRemove={handleRemoveCompany}
+                  onEdit={handleEditCompany}
+                  maxCompanies={MAX_COMPANIES}
+                  onAddMore={handleAddMore}
+                  isAddingMore={isAddingMore}
+                />
+                
+                <motion.div className="mt-4">
+                  <motion.button
+                    type="button"
+                    onClick={handleGoToReview}
+                    className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    ตรวจสอบข้อมูลและส่งข้อมูลทั้งหมด
+                  </motion.button>
+                </motion.div>
+              </div>
+            )}
+          </div>
+        );
+      
+      case 2: // Document upload step (now merged with step 1)
+        return (
+          <div className="mt-6">
+            <CompanyList 
+              companies={companies}
+              onRemove={handleRemoveCompany}
+              onEdit={handleEditCompany}
+              maxCompanies={MAX_COMPANIES}
+              onAddMore={handleAddMore}
+              isAddingMore={isAddingMore}
+            />
+            
+            <motion.div className="mt-4">
+              <motion.button
+                type="button"
+                onClick={handleGoToReview}
+                className="w-full py-3 px-4 bg-green-600 hover:bg-green-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                ตรวจสอบข้อมูลและส่งข้อมูลทั้งหมด
+              </motion.button>
+            </motion.div>
+          </div>
+        );
+      
+      case 3: // Review step
+        return (
+          <ReviewStep 
+            companies={companies}
+            onSubmit={handleSubmitAll}
+            onBack={() => setCurrentStep(2)}
+            isSubmitting={isSubmitting}
+          />
+        );
+      
+      case 4: // Success step
+        return (
+          <motion.div 
+            className="bg-white shadow-md rounded-lg p-6 text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <motion.div 
+              className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <FaCheckCircle className="w-10 h-10 text-green-600" />
+            </motion.div>
+            
+            <h3 className="text-xl font-medium text-gray-900 mb-2">ส่งข้อมูลเรียบร้อยแล้ว</h3>
+            <p className="text-gray-600 mb-6">เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ</p>
+            
+            <motion.button
+              type="button"
+              onClick={() => {
+                setCurrentStep(1);
+                setCompanies([]);
+              }}
+              className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              ยืนยันสมาชิกเพิ่มเติม
+            </motion.button>
+          </motion.div>
+        );
+      
+      default:
+        return null;
+    }
   };
 
   // Function to handle submission deletion
@@ -521,7 +795,7 @@ const [successMessage, setSuccessMessage] = useState('');
       </motion.div>
       
       {/* Step Indicator */}
-      <WasMemberStepIndicator currentStep={showForm ? 1 : (verificationStatus.submitted ? 3 : 2)} />
+      <WasMemberStepIndicator currentStep={currentStep} />
       
       {/* Success message */}
       <AnimatePresence>
@@ -580,13 +854,13 @@ const [successMessage, setSuccessMessage] = useState('');
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Show member verification form */}
+      {/* Show current step content */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
-        {renderMemberVerificationForm()}
+        {renderStepContent()}
       </motion.div>
       
       {/* Delete Confirmation Modal */}

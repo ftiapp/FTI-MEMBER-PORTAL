@@ -17,8 +17,15 @@ export default function FileUploadField({
 
   // Sync fileName with value prop from parent (reset filename when parent reset)
   useEffect(() => {
-    if (!value) setFileName('');
-    // ถ้า value เป็นไฟล์จริงและอยากโชว์ชื่อไฟล์: else if (value && value.name) setFileName(value.name);
+    if (!value) {
+      setFileName('');
+    } else if (value && value.name) {
+      // If value is a File object, show its name
+      setFileName(value.name);
+    } else if (typeof value === 'string') {
+      // If value is a string (like a filename), show it directly
+      setFileName(value);
+    }
   }, [value]);
   
   const handleFileChange = (e) => {

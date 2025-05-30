@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { debounce } from 'lodash';
-import { FaSearch, FaSpinner } from 'react-icons/fa';
+import { FaSearch, FaSpinner, FaSyncAlt } from 'react-icons/fa';
 
 export default function MemberSearchField({
   value,
   onChange,
   onSelectResult,
   hasError,
-  errorMessage = 'กรุณาค้นหาสมาชิก'
+  errorMessage = 'กรุณาค้นหาสมาชิก',
+  verifiedCompanies = [],
+  selectedCompanies = []
 }) {
   const [searchTerm, setSearchTerm] = useState(value || '');
 
@@ -20,6 +22,7 @@ export default function MemberSearchField({
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showResults, setShowResults] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const searchRef = useRef(null);
 
   // Handle outside click to close results
@@ -38,33 +41,45 @@ export default function MemberSearchField({
 
 
 
+  // Function to perform search
+  const performSearch = async (term) => {
+    if (!term || term.length < 2) { // Match the original 2 character minimum
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+
+    try {
+      setIsSearching(true);
+      const response = await fetch(`/api/member-search?term=${encodeURIComponent(term)}`);
+      const data = await response.json();
+
+      if (data.success && data.data && data.data.companies) {
+        console.log('Search results:', data.data.companies);
+        setSearchResults(data.data.companies);
+      } else {
+        setSearchResults([]);
+      }
+    } catch (error) {
+      console.error('Error searching members:', error);
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  // Function to refresh search results
+  const refreshSearch = async () => {
+    if (!searchTerm || searchTerm.length < 2) return;
+    
+    setIsRefreshing(true);
+    await performSearch(searchTerm);
+    setIsRefreshing(false);
+  };
+
   // Debounced search function using real API
   const debouncedSearch = useRef(
-    debounce(async (term) => {
-      if (!term || term.length < 2) { // Match the original 2 character minimum
-        setSearchResults([]);
-        setIsSearching(false);
-        return;
-      }
-
-      try {
-        setIsSearching(true);
-        const response = await fetch(`/api/member-search?term=${encodeURIComponent(term)}`);
-        const data = await response.json();
-
-        if (data.success && data.data && data.data.companies) {
-          console.log('Search results:', data.data.companies);
-          setSearchResults(data.data.companies);
-        } else {
-          setSearchResults([]);
-        }
-      } catch (error) {
-        console.error('Error searching members:', error);
-        setSearchResults([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300)
+    debounce(performSearch, 300)
   ).current;
 
   const handleSearch = (e) => {
@@ -120,22 +135,54 @@ export default function MemberSearchField({
       
       {showResults && searchResults.length > 0 && (
         <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-60 overflow-y-auto">
+          <div className="flex justify-end px-2 py-1 border-b border-gray-200">
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                refreshSearch();
+              }}
+              className="text-xs flex items-center text-blue-600 hover:text-blue-800 transition-colors"
+              disabled={isRefreshing}
+            >
+              <FaSyncAlt className={`mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? 'กำลังรีเฟรช...' : 'รีเฟรชข้อมูล'}
+            </button>
+          </div>
           <ul className="py-1">
-            {searchResults.map((result, index) => (
-              <li key={index}>
-                <button
-                  type="button"
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100"
-                  onClick={() => handleSelectResult(result)}
-                >
-                  <div className="font-medium">{result.COMPANY_NAME || 'ไม่ระบุชื่อ'}</div>
-                  <div className="text-xs text-gray-500 flex justify-between">
-                    <span>รหัสสมาชิก: {result.MEMBER_CODE || 'ไม่ระบุ'}</span>
-                    <span>ประเภท: {result.MEMBER_TYPE || 'ไม่ระบุ'}</span>
-                  </div>
-                </button>
-              </li>
-            ))}
+            {searchResults.map((result, index) => {
+              // Check if this company is already verified, pending, or selected
+              const isNonSelectable = verifiedCompanies && verifiedCompanies[result.MEMBER_CODE];
+              const status = isNonSelectable ? verifiedCompanies[result.MEMBER_CODE] : null;
+              const isSelected = selectedCompanies.includes(result.MEMBER_CODE);
+              const isDisabled = isNonSelectable || isSelected;
+              
+              return (
+                <li key={index}>
+                  <button
+                    type="button"
+                    className={`w-full text-left px-4 py-2 text-sm ${isDisabled ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'text-gray-700 hover:bg-gray-100'} focus:outline-none`}
+                    onClick={() => !isDisabled && handleSelectResult(result)}
+                    disabled={isDisabled}
+                  >
+                    <div className="flex justify-between">
+                      <div className="font-medium">{result.COMPANY_NAME || 'ไม่ระบุชื่อ'}</div>
+                      {isNonSelectable && (
+                        <span className={`text-xs px-2 py-1 rounded-full ${status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
+                          {status === 'pending' ? 'รอการอนุมัติ' : 'ยืนยันแล้ว'}
+                        </span>
+                      )}
+                      {isSelected && !isNonSelectable && (
+                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">เลือกแล้ว</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500 flex justify-between">
+                      <span>รหัสสมาชิก: {result.MEMBER_CODE || 'ไม่ระบุ'}</span>
+                      <span>ประเภท: {result.MEMBER_TYPE || 'ไม่ระบุ'}</span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
