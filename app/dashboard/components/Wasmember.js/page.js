@@ -94,9 +94,21 @@ const [successMessage, setSuccessMessage] = useState('');
     setSubmissions(paginatedResults);
   }, [allSubmissions, statusFilter, typeFilter, searchTerm, currentPage, itemsPerPage]);
 
-  // Check for edit parameter in URL
+  // Check for edit parameter in URL and other parameters
   useEffect(() => {
     const editId = searchParams.get('edit');
+    const tabParam = searchParams.get('tab');
+    
+    // If we're on this component but URL doesn't have tab=wasmember, update it
+    if (!tabParam || tabParam !== 'wasmember') {
+      // Preserve edit parameter if it exists
+      if (editId) {
+        window.history.pushState({}, '', `/dashboard?tab=wasmember&edit=${editId}`);
+      } else {
+        window.history.pushState({}, '', '/dashboard?tab=wasmember');
+      }
+    }
+    
     if (editId && user) {
       // Find the submission to edit
       const fetchSubmissionToEdit = async () => {
@@ -446,6 +458,9 @@ const [successMessage, setSuccessMessage] = useState('');
         // Remove the deleted submission from the list
         setAllSubmissions(prev => prev.filter(item => item.id !== submissionToDelete.id));
         toast.success('ลบข้อมูลเรียบร้อยแล้ว');
+        
+        // Update URL to remove submission parameter
+        window.history.pushState({}, '', '/dashboard?tab=wasmember');
       } else {
         toast.error(result.message || 'ไม่สามารถลบข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
       }

@@ -35,6 +35,22 @@ export const formatThaiDate = (dateString) => {
 };
 
 /**
+ * Format a date string to Thai date format in dd/MM/yyyy format
+ * @param {string} dateString - The date string to format
+ * @returns {string} Formatted date string in Thai short format (dd/MM/yyyy)
+ */
+export const formatThaiShortDate = (dateString) => {
+  if (!dateString) return '';
+
+  const date = new Date(dateString);
+  const thaiYear = date.getFullYear() + 543;
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+
+  return `${day}/${month}/${thaiYear}`;
+};
+
+/**
  * Format a date string to English date format
  * @param {string} dateString - The date string to format
  * @returns {string} Formatted date string in English format
@@ -143,7 +159,7 @@ export const generateThaiCertificateHTML = (selectedMember) => {
           font-weight: bold;
         }
         .divider {
-          border-bottom: 2px solid #1e40af;
+          border-bottom: 2px dotted #000000;
           width: 200px;
           margin: 20px auto;
         }
@@ -208,17 +224,17 @@ export const generateThaiCertificateHTML = (selectedMember) => {
         <div class="certificate-body">
           <!-- Reference number already moved to the top -->
             
-          <p style="text-align: left;">โดยหนังสือฉบับนี้ สภาอุตสาหกรรมแห่งประเทศไทย ขอรับรองว่า</p>
+          <p style="text-align: center;">โดยหนังสือฉบับนี้ สภาอุตสาหกรรมแห่งประเทศไทย ขอรับรองว่า</p>
             
-          <p class="company-name" style="text-align: center;">บริษัท ${selectedMember?.company_name || '...........................'} จำกัด</p>
+          <p class="company-name" style="text-align: center;">${selectedMember?.company_name || '...........................'}</p>
             
           <p style="text-align: center;">เป็นสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย</p>
             
-          <p style="text-align: center;">ประเภท${memberType} เลขที่สมาชิก${selectedMember?.MEMBER_CODE || '...............'} ตั้งแต่วันที่ ${joinDate}</p>
+          <p style="text-align: center;">ประเภท ${memberType} เลขที่สมาชิก ${selectedMember?.MEMBER_CODE || '...............'} ตั้งแต่วันที่ ${joinDate}</p>
             
           <p style="text-align: center;">ขณะนี้ยังคงเป็นสมาชิกของสภาอุตสาหกรรมแห่งประเทศไทย ตลอดปี ${currentYear}</p>
             
-          <p style="text-align: right;">ออกให้ ณ วันที่ ${currentDate}</p>
+          <p style="text-align: center;">ออกให้ ณ วันที่ ${currentDate}</p>
         </div>
         
         <div class="certificate-footer" style="text-align: center; margin-top: 80px;">
@@ -294,7 +310,7 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
           font-weight: bold;
         }
         .divider {
-          border-bottom: 2px solid #1e40af;
+          border-bottom: 2px dotted #000000;
           width: 200px;
           margin: 20px auto;
         }

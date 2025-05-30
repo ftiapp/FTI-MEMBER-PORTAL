@@ -214,3 +214,11 @@ export async function rollbackTransaction(connection) {
     connection.release();
   }
 }
+
+/**
+ * Get a connection from the pool
+ * @returns {Promise<Object>} Database connection
+ */
+export async function getConnection() {
+  return await pool.getConnection();
+}

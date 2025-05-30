@@ -64,8 +64,8 @@ const StatusCard = ({
     if (type === 'ติดต่อเจ้าหน้าที่' && id) {
       console.log(`Clicked on contact message with ID: ${id}`);
       
-      // First update the URL with the contact tab and messageId parameters
-      router.push(`/dashboard?tab=contact&messageId=${id}`, undefined, { shallow: true });
+      // First update the URL with the contact tab and messageId parameters using window.history
+      window.history.pushState({}, '', `/dashboard?tab=contact&messageId=${id}`);
       
       // Then dispatch a custom event to notify the Dashboard component
       setTimeout(() => {

@@ -49,7 +49,7 @@ const ThaiCertificate = ({ memberData, formatThaiDate }) => {
         
         {/* เลขที่อ้างอิง */}
         <div className="certificate-header-ref text-left mb-8 mt-8">
-          <p>ที่...... /....... .......</p>
+          <p>ที่ {new Date().getDate()}/{new Date().getMonth() + 1}/{new Date().getFullYear() + 543}</p>
         </div>
         
         {/* Header - ส่วนหัวเอกสาร */}
@@ -68,7 +68,7 @@ const ThaiCertificate = ({ memberData, formatThaiDate }) => {
             </p>
             
             <p className="text-center mb-6 font-bold text-xl">
-              บริษัท {memberData?.COMPANY_NAME || '...........................'} จำกัด
+              {memberData?.COMPANY_NAME || '...........................'}
             </p>
             
             <p className="text-center mb-6">
@@ -76,7 +76,7 @@ const ThaiCertificate = ({ memberData, formatThaiDate }) => {
             </p>
             
             <p className="text-center mb-6">
-              ประเภท {getFullMemberType(memberData?.company_type) || '........'} เลขที่สมาชิก {memberData?.MEMBER_CODE || '...............'} ตั้งแต่วันที่ {memberData?.JOIN_DATE ? formatThaiDate(memberData.JOIN_DATE) : '...........................'}
+              ประเภท {getFullMemberType(memberData?.company_type) || '........'}  เลขที่สมาชิก  {memberData?.MEMBER_CODE || '...............'}  ตั้งแต่วันที่ {memberData?.JOIN_DATE ? formatThaiDate(memberData.JOIN_DATE) : '...........................'}
             </p>
             
             <p className="text-center mb-6">

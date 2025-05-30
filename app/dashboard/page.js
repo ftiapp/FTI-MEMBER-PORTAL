@@ -8,7 +8,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
-import UpdateMember from './components/UpdateMember';
+import UpdateMember from './components/UpdateMember/page';
 import Wasmember from './components/Wasmember.js/page';
 import SubmittedMember from './components/SubmittedMember';
 import MemberDetail from './components/MemberDetail/page';
@@ -71,6 +71,12 @@ export default function Dashboard() {
       } else if (tabParam === 'certificatedocument') {
         setActiveTab('เอกสารยืนยันสมาชิก');
         console.log('Setting active tab to เอกสารยืนยันสมาชิก');
+      } else if (tabParam === 'wasmember') {
+        setActiveTab('ยืนยันสมาชิกเดิม');
+        console.log('Setting active tab to ยืนยันสมาชิกเดิม');
+      } else if (tabParam === 'updatemember') {
+        setActiveTab('อัพเดตสมาชิก');
+        console.log('Setting active tab to อัพเดตสมาชิก');
       }
     };
     
@@ -473,20 +479,28 @@ export default function Dashboard() {
                           onClick={() => {
                             setSidebarOpen(false);
                             
+                            // Update URL based on menu item
                             if (item.name === 'ติดต่อเรา') {
                               const searchParams = new URLSearchParams(window.location.search);
                               const messageId = searchParams.get('messageId');
                               
                               if (messageId) {
-                                router.push(`/dashboard?tab=contact&messageId=${messageId}`, undefined, { shallow: true });
+                                window.history.pushState({}, '', `/dashboard?tab=contact&messageId=${messageId}`);
                               } else {
-                                router.push('/dashboard?tab=contact', undefined, { shallow: true });
+                                window.history.pushState({}, '', '/dashboard?tab=contact');
                               }
                             } else if (item.name === 'ข้อมูลสมาชิก') {
-                              router.push('/dashboard?tab=member', undefined, { shallow: true });
+                              window.history.pushState({}, '', '/dashboard?tab=member');
                             } else if (item.name === 'เอกสารยืนยันสมาชิก') {
-                              router.push('/dashboard?tab=certificatedocument', undefined, { shallow: true });
+                              window.history.pushState({}, '', '/dashboard?tab=certificatedocument');
+                            } else if (item.name === 'สถานะการดำเนินการ') {
+                              window.history.pushState({}, '', '/dashboard?tab=status');
+                            } else if (item.name === 'ยืนยันสมาชิกเดิม') {
+                              window.history.pushState({}, '', '/dashboard?tab=wasmember');
+                            } else if (item.name === 'อัพเดตสมาชิก') {
+                              window.history.pushState({}, '', '/dashboard?tab=updatemember');
                             }
+                            
                             setActiveTab(item.name);
                           }}
                           className={`w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg transition-colors text-left ${
