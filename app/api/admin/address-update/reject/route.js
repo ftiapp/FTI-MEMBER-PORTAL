@@ -62,6 +62,13 @@ export async function POST(request) {
         [reason, admin_notes || "", id]
       );
 
+      // ดึงข้อมูลบริษัทเพื่อใช้ในการบันทึก log
+      const companyResult = await dbQuery(
+        'SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1',
+        [addressUpdate.member_code || '']
+      );
+      const company_name = companyResult.length > 0 ? companyResult[0].company_name : 'Unknown Company';
+      
       // บันทึกการกระทำของ admin
       await dbQuery(
         'INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())',
@@ -69,11 +76,32 @@ export async function POST(request) {
           admin.id,
           'reject_address_update',
           id,
-          `ปฏิเสธคำขอแก้ไขที่อยู่${addressUpdate.addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย'}ของสมาชิกรหัส ${addressUpdate.member_code || ''} (${addressUpdate.comp_person_code || ''}) เหตุผล: ${reason}`,
+          `Address update rejected - Member Code: ${addressUpdate.member_code || ''}, Company: ${company_name}, Address Type: ${addressUpdate.addr_code === '001' ? 'Main' : 'Factory'}, Language: ${addressUpdate.addr_lang === 'en' ? 'English' : 'Thai'}, Reason: ${reason}`,
           request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1',
           request.headers.get('user-agent') || 'Unknown',
         ]
       );
+      
+      // บันทึกใน Member_portal_User_log (ถ้ามี user_id)
+      if (addressUpdate.user_id) {
+        try {
+          // กำหนดข้อความสั้นๆ สำหรับการปฏิเสธ
+          const addrTypeText = addressUpdate.addr_code === '001' ? 'หลัก' : 'โรงงาน';
+          const langText = addressUpdate.addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
+          
+          await dbQuery(
+            'INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
+            [
+              addressUpdate.user_id,
+              'reject_address_update',
+              `ปฏิเสธคำขอแก้ไขที่อยู่${addrTypeText}${langText} - รหัสสมาชิก: ${addressUpdate.member_code || ''}, บริษัท: ${company_name}, เหตุผล: ${reason}`
+            ]
+          );
+        } catch (userLogError) {
+          console.error('Error logging user action:', userLogError.message);
+          console.log('Continuing with rejection process despite user logging error');
+        }
+      }
 
       // ส่งอีเมลแจ้งเตือนการปฏิเสธ
       try {

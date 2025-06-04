@@ -2,13 +2,14 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaFileAlt, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaFileAlt, FaCheckCircle, FaTimesCircle, FaEye } from 'react-icons/fa';
 
 const ReviewStep = ({ 
   companies, 
   onSubmit, 
   onBack, 
-  isSubmitting 
+  isSubmitting,
+  onViewDocument
 }) => {
   return (
     <motion.div 
@@ -52,13 +53,15 @@ const ReviewStep = ({
                 <div>
                   <p className="text-sm text-gray-500 mb-1">เอกสารแนบ</p>
                   {company.documentFile ? (
-                    <div className="flex items-center text-sm text-blue-600">
+                    <div className="flex items-center text-sm text-blue-600 cursor-pointer"
+                         onClick={() => onViewDocument && onViewDocument(index)}>
                       <FaFileAlt className="mr-2" />
                       <span className="truncate max-w-[250px]">
                         {typeof company.documentFile === 'string' 
                           ? company.documentFile 
                           : company.documentFile.name}
                       </span>
+                      <FaEye className="ml-2 text-green-600" title="ดูเอกสาร" />
                     </div>
                   ) : (
                     <div className="flex items-center text-sm text-red-600">

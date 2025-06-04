@@ -69,6 +69,8 @@ export default function WasMember() {
   const [typeFilter, setTypeFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedResult, setSelectedResult] = useState(null);
+  const [showDocumentModal, setShowDocumentModal] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState(null);
 
   // State to track verified companies (to prevent re-selection)
   const [verifiedCompanies, setVerifiedCompanies] = useState([]);
@@ -435,6 +437,39 @@ export default function WasMember() {
     }
   };
   
+  // Function to handle viewing document
+  const handleViewDocument = (index) => {
+    const company = companies[index];
+    if (company && company.documentFile) {
+      // ตรวจสอบประเภทของเอกสาร
+      const doc = company.documentFile;
+      
+      // ถ้าเป็น File object ให้สร้าง URL
+      if (doc instanceof File) {
+        // ตรวจสอบประเภทของไฟล์
+        const isPdf = doc.type === 'application/pdf' || doc.name.toLowerCase().endsWith('.pdf');
+        
+        setSelectedDocument({
+          url: URL.createObjectURL(doc),
+          isPdf: isPdf,
+          name: doc.name
+        });
+      } else {
+        // ถ้าเป็น string (URL หรือ data URL)
+        const isPdf = typeof doc === 'string' && 
+          (doc.startsWith('data:application/pdf') || doc.toLowerCase().endsWith('.pdf'));
+        
+        setSelectedDocument({
+          url: doc,
+          isPdf: isPdf,
+          name: 'Document'
+        });
+      }
+      
+      setShowDocumentModal(true);
+    }
+  };
+  
   // Function to handle adding more companies
   const handleAddMore = () => {
     setIsAddingMore(true);
@@ -612,6 +647,7 @@ export default function WasMember() {
                   maxCompanies={MAX_COMPANIES}
                   onAddMore={handleAddMore}
                   isAddingMore={isAddingMore}
+                  onViewDocument={handleViewDocument}
                 />
                 
                 <motion.div className="mt-4">
@@ -640,6 +676,7 @@ export default function WasMember() {
               maxCompanies={MAX_COMPANIES}
               onAddMore={handleAddMore}
               isAddingMore={isAddingMore}
+              onViewDocument={handleViewDocument}
             />
             
             <motion.div className="mt-4">
@@ -663,6 +700,7 @@ export default function WasMember() {
             onSubmit={handleSubmitAll}
             onBack={() => setCurrentStep(2)}
             isSubmitting={isSubmitting}
+            onViewDocument={handleViewDocument}
           />
         );
       
@@ -1018,6 +1056,75 @@ export default function WasMember() {
                 );
               }}
             />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Document Viewing Modal */}
+      <AnimatePresence>
+        {showDocumentModal && selectedDocument && (
+          <motion.div
+            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <motion.div 
+              className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="p-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 className="text-lg font-medium text-gray-900">เอกสารแนบ</h3>
+                <button
+                  onClick={() => {
+                    // ถ้าเป็น object URL ให้เคลียร์ URL เพื่อป้องกัน memory leak
+                    if (selectedDocument && selectedDocument.url && selectedDocument.url.startsWith('blob:')) {
+                      URL.revokeObjectURL(selectedDocument.url);
+                    }
+                    setShowDocumentModal(false);
+                    setSelectedDocument(null);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <div className="p-4 overflow-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
+                {selectedDocument && selectedDocument.isPdf ? (
+                  <div className="w-full h-full">
+                    <iframe 
+                      src={selectedDocument.url} 
+                      className="w-full" 
+                      style={{ height: 'calc(90vh - 120px)' }}
+                      title="PDF Document"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <img 
+                      src={selectedDocument ? selectedDocument.url : ''} 
+                      alt={selectedDocument ? selectedDocument.name : 'Document'} 
+                      className="max-w-full h-auto mx-auto"
+                      onError={(e) => {
+                        // หากไม่สามารถแสดงเป็นรูปภาพได้ ให้แสดงข้อความแทน
+                        e.target.onerror = null;
+                        e.target.src = '';
+                        e.target.alt = 'ไม่สามารถแสดงเอกสารนี้ได้ กรุณาดาวน์โหลดเพื่อเปิดดู';
+                        e.target.style.padding = '20px';
+                        e.target.style.textAlign = 'center';
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

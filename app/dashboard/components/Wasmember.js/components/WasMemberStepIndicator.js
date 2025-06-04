@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { FaUserCheck, FaClipboardCheck, FaCheckCircle, FaBuilding, FaFileAlt } from 'react-icons/fa';
+import { FaUserCheck, FaClipboardCheck, FaCheckCircle, FaBuilding, FaFileAlt, FaEye } from 'react-icons/fa';
 
 const WasMemberStepIndicator = ({ currentStep }) => {
   const steps = [
@@ -18,7 +18,7 @@ const WasMemberStepIndicator = ({ currentStep }) => {
     },
     { 
       title: 'ตรวจสอบข้อมูล', 
-      icon: <FaFileAlt className="w-5 h-5" />,
+      icon: <FaEye className="w-5 h-5" />,
       description: 'ตรวจสอบข้อมูลและเอกสารทั้งหมด'
     },
     { 

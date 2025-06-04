@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FaTrash, FaEdit, FaFileAlt } from 'react-icons/fa';
+import { FaTrash, FaEdit, FaFileAlt, FaEye } from 'react-icons/fa';
 
 const CompanyList = ({ 
   companies, 
@@ -10,8 +10,17 @@ const CompanyList = ({
   onEdit, 
   maxCompanies = 10,
   onAddMore,
-  isAddingMore
+  isAddingMore,
+  onViewDocument
 }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  
+  // Calculate pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentCompanies = companies.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.min(Math.ceil(companies.length / itemsPerPage), 2); // Max 2 pages
   return (
     <div className="bg-white shadow-md rounded-lg p-6">
       <h3 className="text-lg font-medium text-gray-900 mb-4">บริษัทที่เลือก ({companies.length}/{maxCompanies})</h3>
@@ -35,7 +44,7 @@ const CompanyList = ({
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
           >
-            {companies.map((company, index) => (
+            {currentCompanies.map((company, index) => (
               <motion.div 
                 key={company.id || index}
                 className="bg-gray-50 border border-gray-200 rounded-lg p-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3"
@@ -53,21 +62,36 @@ const CompanyList = ({
                   <p className="text-sm text-gray-600">เลขประจำตัวผู้เสียภาษี: {company.taxId}</p>
                   
                   {company.documentFile && (
-                    <div className="mt-2 flex items-center text-sm text-blue-600">
+                    <div className="mt-2 flex items-center text-sm text-blue-600 cursor-pointer" 
+                         onClick={() => onViewDocument && onViewDocument(indexOfFirstItem + index)}>
                       <FaFileAlt className="mr-1" />
                       <span className="truncate max-w-[200px]">
                         {typeof company.documentFile === 'string' 
                           ? company.documentFile 
                           : company.documentFile.name}
                       </span>
+                      <FaEye className="ml-2 text-green-600" title="ดูเอกสาร" />
                     </div>
                   )}
                 </div>
                 
                 <div className="flex space-x-2 w-full sm:w-auto justify-end">
+                  {company.documentFile && (
+                    <motion.button
+                      type="button"
+                      onClick={() => onViewDocument && onViewDocument(indexOfFirstItem + index)}
+                      className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-full"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      title="ดูไฟล์แนบ"
+                    >
+                      <FaEye className="w-4 h-4" />
+                    </motion.button>
+                  )}
+                  
                   <motion.button
                     type="button"
-                    onClick={() => onEdit(index)}
+                    onClick={() => onEdit(indexOfFirstItem + index)}
                     className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -77,7 +101,7 @@ const CompanyList = ({
                   
                   <motion.button
                     type="button"
-                    onClick={() => onRemove(index)}
+                    onClick={() => onRemove(indexOfFirstItem + index)}
                     className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full"
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.95 }}
@@ -110,6 +134,37 @@ const CompanyList = ({
             </div>
           ) : '+ เพิ่มบริษัท'}
         </motion.button>
+      )}
+      
+      {/* Pagination */}
+      {companies.length > itemsPerPage && (
+        <div className="flex justify-center mt-4 space-x-2">
+          <button 
+            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`px-3 py-1 rounded ${currentPage === 1 ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+          >
+            &laquo;
+          </button>
+          
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+            <button
+              key={page}
+              onClick={() => setCurrentPage(page)}
+              className={`px-3 py-1 rounded ${currentPage === page ? 'bg-blue-600 text-white' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+            >
+              {page}
+            </button>
+          ))}
+          
+          <button 
+            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-1 rounded ${currentPage === totalPages ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
+          >
+            &raquo;
+          </button>
+        </div>
       )}
     </div>
   );

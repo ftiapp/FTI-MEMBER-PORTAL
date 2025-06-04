@@ -9,6 +9,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NotificationBell from './NotificationBell';
 
 export default function Navbar() {
+  // Create a logout overlay component
+  const LogoutOverlay = () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+      <div className="flex flex-col items-center">
+        <svg className="animate-spin h-12 w-12 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+        </svg>
+        <div className="text-white text-lg font-semibold">กำลังออกจากระบบ...</div>
+      </div>
+    </div>
+  );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
@@ -69,7 +81,7 @@ export default function Navbar() {
     };
   }, [isMenuOpen]);
 
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
   const router = useRouter();
   
   const toggleMenu = () => {
@@ -86,7 +98,7 @@ export default function Navbar() {
 
   const handleLogout = () => {
     logout();
-    router.push('/');
+    // No need to manually push to '/' as it's now handled in the AuthContext
   };
 
   // Optimized animation variants for mobile
@@ -242,6 +254,9 @@ export default function Navbar() {
 
   return (
     <>
+      {/* Show logout overlay when logging out */}
+      {isLoggingOut && <LogoutOverlay />}
+      
       {/* Add a spacer div to prevent content from being hidden behind the fixed navbar */}
       <div className="h-[80px] w-full"></div>
       <motion.nav 

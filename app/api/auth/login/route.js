@@ -32,12 +32,16 @@ const mockUsers = [
 
 export async function POST(request) {
   try {
-    const { email, password } = await request.json();
-
+    const { email, password, rememberMe } = await request.json();
+    
+    // Log the rememberMe parameter
     console.log('Login attempt:', {
       email: email,
+      rememberMe: !!rememberMe,
       usingMockData: false
     });
+
+    // Log removed as it's now above
 
     // Find user in database
     const users = await query(
@@ -84,30 +88,36 @@ export async function POST(request) {
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
 
-    // สร้าง JWT token
+    // สร้าง JWT token with expiration based on rememberMe
+    const expiresIn = rememberMe ? '30d' : '1d'; // 30 days if remember me, 1 day if not
+    
     const token = jwt.sign(
       { 
         userId: user.id,
-        email: user.email 
+        email: user.email,
+        rememberMe: !!rememberMe
       }, 
       process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '7d' }
+      { expiresIn }
     );
 
     // สร้าง response object
     const response = NextResponse.json({
       message: 'เข้าสู่ระบบสำเร็จ',
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      rememberMe: !!rememberMe
     });
 
-    // เก็บ token ใน cookie
+    // เก็บ token ใน cookie with expiration based on rememberMe
+    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 days or 1 day in seconds
+    
     response.cookies.set({
       name: 'token',
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 60 * 60 * 24 * 7, // 7 วัน
+      maxAge,
       path: '/'
     });
 

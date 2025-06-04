@@ -353,24 +353,20 @@ export async function POST(request) {
 
       // 5. บันทึกการกระทำของ admin
       try {
+        // Get company name for logging
+        const companyResult = await query(
+          'SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1',
+          [member_code]
+        );
+        const company_name = companyResult.length > 0 ? companyResult[0].company_name : 'Unknown Company';
+        
         await query(
           'INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, created_at) VALUES (?, ?, ?, ?, NOW())',
           [
             admin.id,
             'approve_address_update',
             id,
-            JSON.stringify({
-              member_code,
-              comp_person_code,
-              member_type: addressUpdate.member_type,
-              member_group_code,
-              type_code,
-              addr_code,
-              addr_lang,
-              old_address: addressUpdate.old_address,
-              new_address,
-              regist_code: registCode
-            })
+            `Address update approved - Member Code: ${member_code}, Company: ${company_name}, Address Type: ${addr_code === '001' ? 'Main' : 'Factory'}, Language: ${addr_lang === 'en' ? 'English' : 'Thai'}`
           ]
         );
       } catch (logError) {
@@ -384,7 +380,15 @@ export async function POST(request) {
           // กำหนดข้อความสั้นๆ สำหรับการอนุมัติ
           const addrTypeText = addr_code === '001' ? 'หลัก' : 'โรงงาน';
           const langText = addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
-          const detailsText = `อนุมัติคำขอแก้ไขที่อยู่${addrTypeText}${langText}ของสมาชิกรหัส ${member_code} (${comp_person_code})`;
+          
+          // Get company name for logging
+          const companyResult = await query(
+            'SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1',
+            [member_code]
+          );
+          const company_name = companyResult.length > 0 ? companyResult[0].company_name : 'Unknown Company';
+          
+          const detailsText = `อนุมัติคำขอแก้ไขที่อยู่${addrTypeText}${langText} - รหัสสมาชิก: ${member_code}, บริษัท: ${company_name}`;
           
           await query(
             'INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',

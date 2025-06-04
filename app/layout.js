@@ -2,6 +2,7 @@ import { Noto_Sans_Thai, IBM_Plex_Sans_Thai } from 'next/font/google';
 import './globals.css';
 import { Providers } from './providers';
 import JsonLd from './components/JsonLd';
+import ClientLayout from './components/ClientLayout';
 
 const notoSansThai = Noto_Sans_Thai({
   weight: ['300', '400', '500', '600', '700'],
@@ -69,7 +70,9 @@ export default function RootLayout({ children }) {
       </head>
       <body className="font-noto">
         <Providers>
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </Providers>
       </body>
     </html>

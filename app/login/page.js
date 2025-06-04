@@ -21,6 +21,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -64,6 +65,7 @@ export default function Login() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
+          rememberMe: rememberMe
         }),
       });
 
@@ -80,7 +82,7 @@ export default function Login() {
         throw new Error(data.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
       }
 
-      login(data.user);
+      login(data.user, rememberMe);
       try {
         const sessionId = data.sessionId || (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}_${data.user.id}`);
         fetch('/api/auth/log-login', {
@@ -255,6 +257,19 @@ export default function Login() {
                     </div>
 
                     <div className="flex items-center justify-between">
+                      <div className="flex items-center">
+                        <input
+                          id="remember-me"
+                          name="remember-me"
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
+                          จดจำรหัสผ่าน
+                        </label>
+                      </div>
                       <div className="text-sm">
                         <Link 
                           href="/forgot-password" 

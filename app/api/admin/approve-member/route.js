@@ -119,13 +119,13 @@ export async function POST(request) {
       
       if (action === 'approve') {
         actionType = 'approve_member';
-        actionDetails = 'Member approved';
+        actionDetails = `Member approved - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}`;
       } else if (action === 'reject') {
         actionType = 'reject_member';
-        actionDetails = `Member rejected. Reason: ${reason || 'No reason provided'}`;
+        actionDetails = `Member rejected - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}, Reason: ${reason || 'No reason provided'}`;
       } else if (action === 'delete') {
         actionType = 'other';
-        actionDetails = `Member deleted (status changed to 3)`;
+        actionDetails = `Member deleted - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name} (status changed to 3)`;
       }
       
       await logAdminAction(
@@ -140,11 +140,11 @@ export async function POST(request) {
       let logDetails = '';
       
       if (action === 'approve') {
-        logDetails = 'Member verification approved by admin';
+        logDetails = `Member verification approved by admin - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}`;
       } else if (action === 'reject') {
-        logDetails = `Member verification rejected. Reason: ${reason || 'No reason provided'}`;
+        logDetails = `Member verification rejected - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}, Reason: ${reason || 'No reason provided'}`;
       } else if (action === 'delete') {
-        logDetails = 'Member verification deleted by admin';
+        logDetails = `Member verification deleted by admin - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}`;
       }
       
       await query(
