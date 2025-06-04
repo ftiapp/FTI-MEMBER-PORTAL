@@ -1,0 +1,42 @@
+.cookieButton {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #ffffff;
+  color: #333333;
+  border: 1px solid #dddddd;
+  border-radius: 8px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  z-index: 50;
+  transition: all 0.2s ease;
+}
+
+.cookieButton:hover {
+  background-color: #f5f5f5;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.cookieIcon {
+  font-size: 16px;
+}
+
+.cookieText {
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .cookieButton {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  
+  .cookieIcon {
+    font-size: 14px;
+  }
+}

@@ -46,7 +46,7 @@ const MemberDetail = ({ userId }) => {
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10; // Increased from 5 to 10 for better viewing experience
+  const itemsPerPage = 5; // Show 5 items per page
 
   // Function to fetch data - defined outside useEffect so it can be called from handleRetry
   const fetchData = async () => {
@@ -57,7 +57,7 @@ const MemberDetail = ({ userId }) => {
 
     try {
       setLoading(true);
-      console.log('Fetching data for userId:', userId);
+      // Fetching data for userId
       
       // Fetch approved companies
       const companiesResponse = await fetch(`/api/member/approved-companies?userId=${userId}`, {
@@ -68,12 +68,12 @@ const MemberDetail = ({ userId }) => {
       });
 
       if (!companiesResponse.ok) {
-        console.error('API response not OK:', companiesResponse.status, companiesResponse.statusText);
+        // API response error
         throw new Error(`ไม่สามารถดึงข้อมูลบริษัทที่ได้รับการอนุมัติได้ (${companiesResponse.status})`);
       }
 
       const companiesData = await companiesResponse.json();
-      console.log('Approved companies data received:', companiesData);
+      // Process approved companies data
       
       if (companiesData && companiesData.companies) {
         setApprovedCompanies(companiesData.companies);
@@ -84,7 +84,7 @@ const MemberDetail = ({ userId }) => {
       
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching data:', err);
+      // Error handling
       setError(err.message || 'ไม่สามารถดึงข้อมูลได้');
       setLoading(false);
     }

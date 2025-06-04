@@ -6,8 +6,12 @@ import {
   FaBuilding, 
   FaFileAlt, 
   FaCheckCircle, 
-  FaSearch 
+  FaSearch,
+  FaPencilAlt,
+  FaEdit
 } from 'react-icons/fa';
+
+import InfoBox from './InfoBox';
 
 /**
  * ApprovedCompaniesTable component displays a table of approved companies
@@ -23,6 +27,8 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay: 0.2 }}
   >
+    <InfoBox />
+    
     <motion.div 
       className="p-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200"
       initial={{ opacity: 0 }}
@@ -76,6 +82,9 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
             เอกสารยืนยัน
           </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            แก้ไขข้อมูล
+          </th>
         </tr>
       </motion.thead>
       <motion.tbody 
@@ -109,9 +118,10 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                 {company.MEMBER_CODE ? (
                   <Link 
                     href={`/MemberDetail?memberCode=${company.MEMBER_CODE}`}
-                    className="text-blue-600 hover:underline cursor-pointer"
+                    className="text-blue-600 cursor-default"
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent row click
+                      e.preventDefault(); // Prevent navigation
                     }}
                   >
                     {company.MEMBER_CODE}
@@ -171,6 +181,20 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   <span className="text-gray-400 italic">ไม่มีเอกสาร</span>
                 )}
               </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <motion.a 
+                  href={`/MemberDetail?memberCode=${company.MEMBER_CODE}&memberType=000&member_group_code=000&typeCode=000`}
+                  className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent row click
+                  }}
+                >
+                  <FaPencilAlt className="mr-1" size={14} />
+                  แก้ไข
+                </motion.a>
+              </td>
             </motion.tr>
           ))
         ) : (
@@ -179,7 +203,7 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            <td colSpan="6" className="px-6 py-10 text-center">
+            <td colSpan="7" className="px-6 py-10 text-center">
               <div className="flex flex-col items-center justify-center">
                 <motion.div
                   initial={{ scale: 0.5, opacity: 0 }}
