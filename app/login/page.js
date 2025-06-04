@@ -22,6 +22,15 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  
+  // Function to get cookie value
+  const getCookie = (name) => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  };
 
   useEffect(() => {
     const checkMobile = () => {
@@ -30,6 +39,19 @@ export default function Login() {
     
     checkMobile();
     window.addEventListener('resize', checkMobile);
+    
+    // Check for saved email and remember me preference
+    const savedEmail = getCookie('userEmail');
+    const rememberedPref = getCookie('rememberMe');
+    
+    if (savedEmail) {
+      setFormData(prev => ({ ...prev, email: savedEmail }));
+    }
+    
+    if (rememberedPref === '1') {
+      setRememberMe(true);
+    }
+    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
@@ -57,6 +79,13 @@ export default function Login() {
 
     setIsSubmitting(true);
     try {
+      // Store email in localStorage if rememberMe is checked (as a backup)
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', formData.email);
+      } else {
+        localStorage.removeItem('rememberedEmail');
+      }
+      
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
@@ -83,6 +112,11 @@ export default function Login() {
       }
 
       login(data.user, rememberMe);
+      
+      // Save email in localStorage as a backup in case cookies don't work
+      if (rememberMe) {
+        localStorage.setItem('rememberedEmail', formData.email);
+      }
       try {
         const sessionId = data.sessionId || (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}_${data.user.id}`);
         fetch('/api/auth/log-login', {

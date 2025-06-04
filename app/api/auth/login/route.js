@@ -111,15 +111,48 @@ export async function POST(request) {
     // เก็บ token ใน cookie with expiration based on rememberMe
     const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 days or 1 day in seconds
     
+    // Get the hostname from request headers to set domain correctly
+    const host = request.headers.get('host') || '';
+    const domain = host.includes('localhost') ? undefined : host.split(':')[0];
+    
+    // Store credentials in both HTTP-only cookie and regular cookie
     response.cookies.set({
       name: 'token',
       value: token,
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: 'lax', // Changed from 'strict' to 'lax' for better compatibility
       maxAge,
-      path: '/'
+      path: '/',
+      domain
     });
+    
+    // Also store a flag indicating remember me preference in a regular cookie
+    // This is not sensitive data, so it doesn't need to be httpOnly
+    response.cookies.set({
+      name: 'rememberMe',
+      value: rememberMe ? '1' : '0',
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge,
+      path: '/',
+      domain
+    });
+    
+    // Store email in a non-httpOnly cookie for auto-fill functionality
+    if (rememberMe) {
+      response.cookies.set({
+        name: 'userEmail',
+        value: email,
+        httpOnly: false,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'lax',
+        maxAge,
+        path: '/',
+        domain
+      });
+    }
 
     return response;
   } catch (error) {

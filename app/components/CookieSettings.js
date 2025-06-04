@@ -39,8 +39,18 @@ export default function CookieSettings({ onClose, onSave }) {
 
   const handleSave = () => {
     if (isBrowser) {
+      // เพิ่มการตั้งค่าคุกกี้ที่จำเป็นเสมอ
+      const updatedSettings = {
+        ...cookieSettings,
+        essential: true // คุกกี้ที่จำเป็นต้องเปิดใช้งานเสมอ
+      };
+      
       // บันทึกการตั้งค่าคุกกี้โดยใช้ CookieManager
-      CookieManager.savePreferences(cookieSettings, 'custom');
+      CookieManager.savePreferences(updatedSettings, 'custom');
+      
+      // Call the onSave callback with updated settings
+      onSave(updatedSettings);
+      return;
     }
     
     // Call the onSave callback
@@ -127,7 +137,7 @@ export default function CookieSettings({ onClose, onSave }) {
                     คุกกี้ที่มีความจำเป็น (Necessary Cookies)
                   </h3>
                   <p className="text-sm text-gray-500">
-                    คุกกี้เหล่านี้จำเป็นสำหรับการทำงานพื้นฐานของเว็บไซต์
+                    คุกกี้เหล่านี้จำเป็นสำหรับการทำงานพื้นฐานของเว็บไซต์ รวมถึงคุกกี้สำหรับการเข้าสู่ระบบ การจดจำข้อมูลผู้ใช้ และการรักษาสถานะการเข้าสู่ระบบ
                   </p>
                 </div>
                 <div className="flex items-center ml-4">

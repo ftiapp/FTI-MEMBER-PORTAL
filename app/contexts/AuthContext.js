@@ -18,23 +18,73 @@ export function AuthProvider({ children }) {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
+  // Function to get cookie value
+  const getCookie = (name) => {
+    if (typeof document === 'undefined') return null;
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+    return null;
+  };
+
   useEffect(() => {
     setMounted(true);
     
+    // Check if we have a token cookie (this means we're logged in)
+    const hasTokenCookie = getCookie('token') !== null;
+    const rememberMeCookie = getCookie('rememberMe');
+    const isRemembered = rememberMeCookie === '1';
+    
     // First check localStorage (for persistent login)
     const persistentUser = localStorage.getItem('user');
-    if (persistentUser) {
-      setUser(JSON.parse(persistentUser));
-      setIsLoading(false);
-      return;
+    if (persistentUser && (hasTokenCookie || isRemembered)) {
+      try {
+        setUser(JSON.parse(persistentUser));
+        setIsLoading(false);
+        return;
+      } catch (e) {
+        console.error('Error parsing stored user data:', e);
+        localStorage.removeItem('user');
+      }
     }
     
     // Then check sessionStorage (for session-only login)
     const storedUser = sessionStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    if (storedUser && hasTokenCookie) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error('Error parsing session user data:', e);
+        sessionStorage.removeItem('user');
+      }
     }
-    setIsLoading(false);
+    
+    // If we have a token but no user data, try to fetch the user data
+    if (hasTokenCookie && !user) {
+      const fetchUserData = async () => {
+        try {
+          const response = await fetch('/api/auth/me');
+          if (response.ok) {
+            const userData = await response.json();
+            setUser(userData.user);
+            
+            // Store user data based on remember me preference
+            sessionStorage.setItem('user', JSON.stringify(userData.user));
+            if (isRemembered) {
+              localStorage.setItem('user', JSON.stringify(userData.user));
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      fetchUserData();
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   const login = (userData, rememberMe = false) => {
@@ -65,15 +115,27 @@ export function AuthProvider({ children }) {
         })
       });
       
-      // Clear user data
+      // Clear user data from storage
       setUser(null);
       sessionStorage.removeItem('user');
       localStorage.removeItem('user');
+      localStorage.removeItem('rememberedEmail');
+      
+      // Clear cookies by calling the logout API
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include' // Important for cookies
+      });
       
       // Redirect to home page
       router.push('/');
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if there's an error, still clear local data
+      setUser(null);
+      sessionStorage.removeItem('user');
+      localStorage.removeItem('user');
+      router.push('/');
     } finally {
       setIsLoggingOut(false);
     }

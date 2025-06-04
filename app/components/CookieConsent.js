@@ -1,29 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import CookieManager from '../utils/cookieManager';
 import CookieSettings from './CookieSettings.js';
-
-// ฟังก์ชันสำหรับตั้งค่าคุกกี้
-const setCookiePreferences = (preferences) => {
-  const cookiePreferences = {
-    essential: true,
-    functionality: preferences.functionality || false,
-    performance: preferences.performance || false,
-    analytics: preferences.analytics || false,
-    marketing: preferences.marketing || false
-  };
-  
-  // บันทึกลงใน cookie ด้วย expiration 365 วัน
-  Cookies.set('cookiePreferences', JSON.stringify(cookiePreferences), { expires: 365, sameSite: 'strict', path: '/' });
-  
-  // บันทึกลงใน window object สำหรับการใช้งานในปัจจุบัน
-  if (typeof window !== 'undefined') {
-    window.COOKIE_PREFERENCES = cookiePreferences;
-    window.cookiePreferences = JSON.stringify(cookiePreferences);
-  }
-};
 
 export default function CookieConsent() {
   const [showConsent, setShowConsent] = useState(false);
@@ -57,13 +36,19 @@ export default function CookieConsent() {
       functionality: true,
       performance: true,
       analytics: true,
-      marketing: true
+      marketing: true,
+      essential: true // จำเป็นต้องเปิดใช้งานเสมอ
     };
     
     setIsClosing(true);
     
     // ใช้ CookieManager เพื่อบันทึกการตั้งค่าทั้งหมด
     CookieManager.savePreferences(allAccepted, 'all');
+    
+    // ส่ง event เพื่อแจ้งว่ามีการเปลี่ยนแปลงการตั้งค่าคุกกี้
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('cookieConsentChanged'));
+    }
     
     setTimeout(() => {
       setShowConsent(false);
@@ -82,8 +67,19 @@ export default function CookieConsent() {
   const handleSaveSettings = (settings) => {
     setIsClosing(true);
     
+    // เพิ่มการตั้งค่าคุกกี้ที่จำเป็นเสมอ
+    const updatedSettings = {
+      ...settings,
+      essential: true // คุกกี้ที่จำเป็นต้องเปิดใช้งานเสมอ
+    };
+    
     // ใช้ CookieManager เพื่อบันทึกการตั้งค่าแบบกำหนดเอง
-    CookieManager.savePreferences(settings, 'custom');
+    CookieManager.savePreferences(updatedSettings, 'custom');
+    
+    // ส่ง event เพื่อแจ้งว่ามีการเปลี่ยนแปลงการตั้งค่าคุกกี้
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('cookieConsentChanged'));
+    }
     
     setTimeout(() => {
       setShowConsent(false);
@@ -111,14 +107,10 @@ export default function CookieConsent() {
       )}
       
       {/* Cookie Consent Banner */}
-      <AnimatePresence>
-        {showConsent && (
-          <motion.div
-            className="fixed bottom-0 left-0 right-0 bg-slate-800 shadow-2xl z-50 border-t border-slate-700"
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: isClosing ? 100 : 0, opacity: isClosing ? 0 : 1 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-          >
+      {showConsent && (
+        <div
+          className={`fixed bottom-0 left-0 right-0 bg-slate-800 shadow-2xl z-50 border-t border-slate-700 transition-all duration-300 ease-out will-change-transform ${isClosing ? 'translate-y-full opacity-0' : 'translate-y-0 opacity-100'}`}
+        >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 lg:py-5">
               <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                 {/* ข้อความ */}
@@ -163,9 +155,8 @@ export default function CookieConsent() {
                 </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </>
   );
 }

@@ -6,6 +6,16 @@ import Cookies from 'js-cookie';
  * Cookie Manager - ระบบจัดการคุกกี้สำหรับเว็บไซต์
  * ใช้สำหรับบันทึกและอ่านค่าคุกกี้ต่างๆ ในระบบ
  */
+// รายการคุกกี้ที่จำเป็นสำหรับการทำงานของระบบ (จะไม่ถูกลบแม้ผู้ใช้จะไม่ยอมรับคุกกี้)
+const ESSENTIAL_COOKIES = [
+  'token',           // JWT token สำหรับการยืนยันตัวตน
+  'rememberMe',      // สถานะการจดจำรหัสผ่าน
+  'userEmail',       // อีเมลผู้ใช้สำหรับ auto-fill
+  'cookieConsent',   // การยอมรับคุกกี้
+  'cookieConsentDate', // วันที่ยอมรับคุกกี้
+  'cookiePreferences'  // การตั้งค่าคุกกี้
+];
+
 export const CookieManager = {
   /**
    * บันทึกการตั้งค่าคุกกี้
@@ -146,27 +156,49 @@ export const CookieManager = {
   },
   
   /**
-   * ลบการตั้งค่าคุกกี้ทั้งหมด
+   * ลบการตั้งค่าคุกกี้ทั้งหมด ยกเว้นคุกกี้ที่จำเป็น
    * @returns {boolean} สถานะการลบ
    */
   clearAll: () => {
     try {
-      Cookies.remove('cookieConsent', { path: '/' });
-      Cookies.remove('cookieConsentDate', { path: '/' });
-      Cookies.remove('cookiePreferences', { path: '/' });
+      // ลบคุกกี้ทั้งหมดยกเว้นคุกกี้ที่จำเป็น
+      const allCookies = Cookies.get();
+      for (const cookieName in allCookies) {
+        // ตรวจสอบว่าคุกกี้นี้ไม่ใช่คุกกี้ที่จำเป็น
+        if (!ESSENTIAL_COOKIES.includes(cookieName)) {
+          Cookies.remove(cookieName, { path: '/' });
+        }
+      }
       
+      // ลบข้อมูลใน localStorage ยกเว้นข้อมูลที่จำเป็น
       if (typeof window !== 'undefined') {
+        // เก็บข้อมูลที่จำเป็นไว้ก่อน
+        const rememberedEmail = localStorage.getItem('rememberedEmail');
+        
+        // ลบข้อมูลคุกกี้ที่ไม่จำเป็น
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key !== 'rememberedEmail' && key !== 'user' && 
+              !key.startsWith('token') && !key.startsWith('rememberMe')) {
+            keysToRemove.push(key);
+          }
+        }
+        
+        // ลบข้อมูลที่ไม่จำเป็น
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+        });
+        
+        // ลบข้อมูลใน window object ยกเว้นข้อมูลที่จำเป็น
         delete window.cookieConsent;
         delete window.cookieConsentDate;
         delete window.COOKIE_PREFERENCES;
         delete window.cookiePreferences;
         
-        try {
-          localStorage.removeItem('cookiePreferences');
-          localStorage.removeItem('cookieConsent');
-          localStorage.removeItem('cookieConsentDate');
-        } catch (e) {
-          console.error('Error removing cookie preferences from localStorage:', e);
+        // เรียก callback ถ้ามี
+        if (window.onCookieSettingsChange) {
+          window.onCookieSettingsChange(null);
         }
       }
       
