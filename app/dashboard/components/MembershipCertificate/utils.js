@@ -413,6 +413,33 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
 };
 
 /**
+ * Log certificate action to the server
+ * @param {string} actionType - 'print' or 'download'
+ * @param {string} language - 'thai' or 'english'
+ * @param {Object} member - The member data
+ */
+const logCertificateAction = async (actionType, language, member) => {
+  try {
+    if (!member || !member.MEMBER_CODE) return;
+    
+    await fetch('/api/member/certificate-log', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        memberCode: member.MEMBER_CODE,
+        actionType,
+        language
+      }),
+    });
+  } catch (error) {
+    console.error('Failed to log certificate action:', error);
+    // Continue with certificate operation even if logging fails
+  }
+};
+
+/**
  * Handle printing a certificate
  * @param {string} language - 'thai' or 'english'
  * @param {Object} member - The member data
@@ -422,6 +449,9 @@ export const handlePrintCertificate = (language, member, memberData) => {
   // Use the selected member or the first member in the array
   const selectedMember = member || (memberData.length > 0 ? memberData[0] : null);
   if (!selectedMember) return;
+
+  // Log the print action
+  logCertificateAction('print', language, selectedMember);
 
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
@@ -453,6 +483,9 @@ export const handleDownloadCertificate = (language, member, memberData) => {
   // Use the selected member or the first member in the array
   const selectedMember = member || (memberData.length > 0 ? memberData[0] : null);
   if (!selectedMember) return;
+  
+  // Log the download action
+  logCertificateAction('download', language, selectedMember);
   
   // Create a filename based on member information
   const companyName = selectedMember.COMPANY_NAME || selectedMember.company_name || 'certificate';
