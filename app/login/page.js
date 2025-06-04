@@ -94,7 +94,7 @@ export default function Login() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          rememberMe: true
+          rememberMe: true // Always set to true regardless of user choice
         }),
       });
 

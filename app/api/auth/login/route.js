@@ -108,8 +108,8 @@ export async function POST(request) {
       rememberMe: !!rememberMe
     });
 
-    // เก็บ token ใน cookie with expiration based on rememberMe
-    const maxAge = rememberMe ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 days or 1 day in seconds
+    // เก็บ token ใน cookie with expiration - always use 30 days for consistency
+    const maxAge = 60 * 60 * 24 * 30; // Always use 30 days for better session persistence
     
     // Get the hostname from request headers to set domain correctly
     const host = request.headers.get('host') || '';
@@ -146,19 +146,18 @@ export async function POST(request) {
     });
     
     // Store email in a non-httpOnly cookie for auto-fill functionality
-    if (rememberMe) {
-      response.cookies.set({
-        name: 'userEmail',
-        value: email,
-        httpOnly: false,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge,
-        path: '/',
-        domain,
-        expires: expiryDate // Add explicit expiry date
-      });
-    }
+    // Always set userEmail cookie regardless of rememberMe to ensure session persistence
+    response.cookies.set({
+      name: 'userEmail',
+      value: email,
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge,
+      path: '/',
+      domain,
+      expires: expiryDate // Add explicit expiry date
+    });
 
     return response;
   } catch (error) {
