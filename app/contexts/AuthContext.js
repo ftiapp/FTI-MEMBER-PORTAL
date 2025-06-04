@@ -90,13 +90,12 @@ export function AuthProvider({ children }) {
   const login = (userData, rememberMe = false) => {
     setUser(userData);
     
-    // Always store in sessionStorage for the current session
+    // Always store in both sessionStorage and localStorage
+    // This ensures the user stays logged in after refresh (F5)
     sessionStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(userData));
     
-    // If rememberMe is true, also store in localStorage for persistent login
-    if (rememberMe) {
-      localStorage.setItem('user', JSON.stringify(userData));
-    }
+    // rememberMe flag is still used for cookie expiration (30 days vs 1 day)
   };
 
   const logout = async () => {
