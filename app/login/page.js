@@ -94,7 +94,7 @@ export default function Login() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          rememberMe: rememberMe
+          rememberMe: true
         }),
       });
 
@@ -301,7 +301,7 @@ export default function Login() {
                           className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                         />
                         <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                          จดจำรหัสผ่าน
+                        บันทึกผู้ใช้งาน
                         </label>
                       </div>
                       <div className="text-sm">

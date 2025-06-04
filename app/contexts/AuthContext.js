@@ -95,7 +95,8 @@ export function AuthProvider({ children }) {
     sessionStorage.setItem('user', JSON.stringify(userData));
     localStorage.setItem('user', JSON.stringify(userData));
     
-    // rememberMe flag is still used for cookie expiration (30 days vs 1 day)
+    // We're ignoring the rememberMe parameter since we're treating all logins as remembered
+    // The API is always called with rememberMe=true for consistent behavior
   };
 
   const logout = async () => {

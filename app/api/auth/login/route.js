@@ -115,6 +115,9 @@ export async function POST(request) {
     const host = request.headers.get('host') || '';
     const domain = host.includes('localhost') ? undefined : host.split(':')[0];
     
+    // Calculate explicit expiry date
+    const expiryDate = new Date(Date.now() + maxAge * 1000);
+    
     // Store credentials in both HTTP-only cookie and regular cookie
     response.cookies.set({
       name: 'token',
@@ -124,7 +127,8 @@ export async function POST(request) {
       sameSite: 'lax', // Changed from 'strict' to 'lax' for better compatibility
       maxAge,
       path: '/',
-      domain
+      domain,
+      expires: expiryDate // Add explicit expiry date
     });
     
     // Also store a flag indicating remember me preference in a regular cookie
@@ -137,7 +141,8 @@ export async function POST(request) {
       sameSite: 'lax',
       maxAge,
       path: '/',
-      domain
+      domain,
+      expires: expiryDate // Add explicit expiry date
     });
     
     // Store email in a non-httpOnly cookie for auto-fill functionality
@@ -150,7 +155,8 @@ export async function POST(request) {
         sameSite: 'lax',
         maxAge,
         path: '/',
-        domain
+        domain,
+        expires: expiryDate // Add explicit expiry date
       });
     }
 
