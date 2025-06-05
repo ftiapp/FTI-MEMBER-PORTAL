@@ -1,15 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import Script from 'next/script';
+import { FaSpinner } from 'react-icons/fa';
 
 export default function Login() {
+  // Load reCAPTCHA script
+  const recaptchaLoaded = useRef(false);
   const router = useRouter();
   const { login } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
@@ -22,6 +26,11 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [rateLimitInfo, setRateLimitInfo] = useState(null);
+  const [captchaRequired, setCaptchaRequired] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const recaptchaRef = useRef(null);
+  const timerRef = useRef(null);
   
   // Function to get cookie value
   const getCookie = (name) => {
@@ -54,6 +63,54 @@ export default function Login() {
     
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+  
+  // Load reCAPTCHA script
+  useEffect(() => {
+    if (!recaptchaLoaded.current) {
+      // Add reCAPTCHA script dynamically
+      const script = document.createElement('script');
+      script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => {
+        recaptchaLoaded.current = true;
+        // Initialize reCAPTCHA if required
+        if (captchaRequired && window.grecaptcha) {
+          renderReCaptcha();
+        }
+      };
+      document.head.appendChild(script);
+      
+      return () => {
+        // Clean up script when component unmounts
+        document.head.removeChild(script);
+      };
+    }
+  }, [captchaRequired]);
+  
+  // Function to render reCAPTCHA
+  const renderReCaptcha = () => {
+    if (window.grecaptcha && recaptchaRef.current && !recaptchaRef.current.innerHTML) {
+      window.grecaptcha.render(recaptchaRef.current, {
+        sitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // Replace with your actual site key in production
+        callback: (token) => {
+          setCaptchaToken(token);
+          setError('');
+        },
+        'expired-callback': () => {
+          setCaptchaToken('');
+        }
+      });
+    }
+  };
+  
+  // Reset CAPTCHA
+  const resetCaptcha = () => {
+    if (window.grecaptcha && recaptchaRef.current) {
+      window.grecaptcha.reset();
+      setCaptchaToken('');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,10 +125,85 @@ export default function Login() {
     setShowPassword(!showPassword);
   };
 
+  // Rate limit error popup component
+  const RateLimitErrorPopup = ({ seconds, onClose }) => {
+    const [timeLeft, setTimeLeft] = useState(seconds);
+    
+    useEffect(() => {
+      const timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      
+      return () => clearInterval(timer);
+    }, []);
+    
+    // Format time as mm:ss
+    const formatTime = (seconds) => {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+    
+    return (
+      <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+        <motion.div 
+          className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4"
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          <div className="flex items-center mb-4">
+            <div className="bg-red-100 p-2 rounded-full mr-3">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800">เข้าสู่ระบบล้มเหลวหลายครั้งเกินไป</h3>
+          </div>
+          
+          <p className="text-gray-600 mb-4">คุณได้พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณาลองใหม่ในอีก:</p>
+          
+          <div className="bg-gray-100 rounded-lg p-4 mb-5 text-center">
+            <span className="text-2xl font-bold text-red-600">{formatTime(timeLeft)}</span>
+          </div>
+          
+          <div className="flex justify-end">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            >
+              รับทราบ
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  };
+
+  useEffect(() => {
+    // Clear rate limit popup when timer reaches zero
+    if (rateLimitInfo && rateLimitInfo.seconds <= 0) {
+      setRateLimitInfo(null);
+    }
+  }, [rateLimitInfo]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
       setError('กรุณากรอกอีเมลและรหัสผ่าน');
+      return;
+    }
+
+    // Check if CAPTCHA is required but not provided
+    if (captchaRequired && !captchaToken) {
+      setError('กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ');
       return;
     }
 
@@ -94,7 +226,8 @@ export default function Login() {
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          rememberMe: true // Always set to true regardless of user choice
+          rememberMe: true, // Always set to true regardless of user choice
+          captchaToken: captchaToken // Include CAPTCHA token if available
         }),
       });
 
@@ -102,12 +235,49 @@ export default function Login() {
       console.log('Login response:', { status: response.status, data });
 
       if (!response.ok) {
+        // Handle rate limit exceeded
+        if (response.status === 429) {
+          console.log('Rate limit exceeded:', data);
+          setIsSubmitting(false);
+          setRateLimitInfo({
+            seconds: data.retryAfter || 900, // Use retryAfter or default to 15 minutes
+            retryAfter: data.retryAfter,
+            timeRemaining: data.timeRemaining
+          });
+          
+          // If CAPTCHA is required after rate limit
+          if (data.captchaRequired) {
+            setCaptchaRequired(true);
+            // Initialize CAPTCHA if script is already loaded
+            if (recaptchaLoaded.current && window.grecaptcha) {
+              setTimeout(renderReCaptcha, 100); // Small delay to ensure DOM is ready
+            }
+          }
+          return;
+        }
+        
+        // Handle CAPTCHA requirement
+        if (response.status === 400 && data.captchaRequired) {
+          console.log('CAPTCHA required');
+          setIsSubmitting(false);
+          setCaptchaRequired(true);
+          setError(data.error || 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ');
+          
+          // Initialize CAPTCHA if script is already loaded
+          if (recaptchaLoaded.current && window.grecaptcha) {
+            setTimeout(renderReCaptcha, 100); // Small delay to ensure DOM is ready
+          }
+          return;
+        }
+        
+        // Handle email verification requirement
         if (response.status === 403 && data.requiresVerification) {
           console.log('Email verification required, redirecting...');
           setIsSubmitting(false);
           router.push(`/verification-required?email=${encodeURIComponent(formData.email)}`);
           return;
         }
+        
         throw new Error(data.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
       }
 
@@ -158,6 +328,7 @@ export default function Login() {
 
   return (
     <>
+      {/* Loading overlay */}
       {isSubmitting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="flex flex-col items-center">
@@ -169,6 +340,16 @@ export default function Login() {
           </div>
         </div>
       )}
+      
+      {/* Rate limit error popup */}
+      <AnimatePresence>
+        {rateLimitInfo && (
+          <RateLimitErrorPopup 
+            seconds={rateLimitInfo.seconds} 
+            onClose={() => setRateLimitInfo(null)} 
+          />
+        )}
+      </AnimatePresence>
       
       <main className="min-h-screen bg-gray-50">
         <Navbar />
@@ -290,29 +471,48 @@ export default function Login() {
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center">
                         <input
-                          id="remember-me"
-                          name="remember-me"
+                          id="rememberMe"
                           type="checkbox"
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                         />
-                        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
-                        บันทึกผู้ใช้งาน
+                        <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
+                          จดจำรหัสผ่าน
                         </label>
                       </div>
                       <div className="text-sm">
-                        <Link 
-                          href="/forgot-password" 
-                          className="font-medium text-blue-700 hover:text-blue-600"
-                        >
+                        <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
                           ลืมรหัสผ่าน?
                         </Link>
                       </div>
                     </div>
+                    
+                    {/* CAPTCHA Component */}
+                    {captchaRequired && (
+                      <div className="mb-6">
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                          <div className="flex">
+                            <div className="flex-shrink-0">
+                              <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              </svg>
+                            </div>
+                            <div className="ml-3">
+                              <p className="text-sm text-yellow-700">
+                                เนื่องจากมีการพยายามเข้าสู่ระบบหลายครั้ง กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex justify-center">
+                          <div ref={recaptchaRef} className="g-recaptcha"></div>
+                        </div>
+                      </div>
+                    )}
 
                     <button
                       type="submit"

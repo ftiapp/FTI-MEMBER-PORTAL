@@ -21,8 +21,40 @@ export default function Navbar() {
       </div>
     </div>
   );
+  
+  // Logout confirmation dialog component
+  const LogoutConfirmation = ({ onConfirm, onCancel }) => (
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
+      <motion.div 
+        className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        <h3 className="text-xl font-bold text-gray-800 mb-2">ยืนยันออกจากระบบ</h3>
+        <p className="text-gray-600 mb-6">คุณต้องการออกจากระบบใช่หรือไม่?</p>
+        <div className="flex justify-end space-x-3">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition-colors"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+          >
+            ยืนยัน
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const pathname = usePathname();
   const menuButtonRef = useRef(null);
   const mobileMenuRef = useRef(null);
@@ -97,8 +129,16 @@ export default function Navbar() {
   ];
 
   const handleLogout = () => {
+    setShowLogoutConfirmation(true);
+  };
+  
+  const confirmLogout = () => {
+    setShowLogoutConfirmation(false);
     logout();
-    // No need to manually push to '/' as it's now handled in the AuthContext
+  };
+  
+  const cancelLogout = () => {
+    setShowLogoutConfirmation(false);
   };
 
   // Optimized animation variants for mobile
@@ -256,6 +296,16 @@ export default function Navbar() {
     <>
       {/* Show logout overlay when logging out */}
       {isLoggingOut && <LogoutOverlay />}
+      
+      {/* Show logout confirmation dialog */}
+      <AnimatePresence>
+        {showLogoutConfirmation && (
+          <LogoutConfirmation 
+            onConfirm={confirmLogout} 
+            onCancel={cancelLogout} 
+          />
+        )}
+      </AnimatePresence>
       
       {/* Add a spacer div to prevent content from being hidden behind the fixed navbar */}
       <div className="h-[80px] w-full"></div>
