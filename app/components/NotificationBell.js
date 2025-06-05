@@ -5,6 +5,7 @@ import { FaBell } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { handleNotificationClick } from '@/app/dashboard/notifications/utils/notificationHelpers';
 
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -274,17 +275,10 @@ export default function NotificationBell() {
                           
                           // ถ้ามีลิงก์ให้นำทางไปยังลิงก์นั้น
                           if (notification.link) {
-                            // ตรวจสอบว่าเป็นการแจ้งเตือนที่มีสถานะปฏิเสธหรือไม่
-                            let targetLink = notification.link;
-                            if (notification.message.includes('ถูกปฏิเสธ')) {
-                              // ถ้าเป็นการแจ้งเตือนที่มีสถานะปฏิเสธ ให้ไปที่ /dashboard?tab=status
-                              targetLink = '/dashboard?tab=status';
-                            }
-                            
-                            console.log('Navigating to:', targetLink);
-                            // ใช้ window.location.href แทน router.push เพื่อให้แน่ใจว่ามีการโหลดหน้าใหม่ทั้งหมด
+                            // ใช้ฟังก์ชัน handleNotificationClick เหมือนกับในหน้าการแจ้งเตือนหลัก
+                            // เพื่อให้การนำทางทำงานเหมือนกันทั้งสองที่
                             setTimeout(() => {
-                              window.location.href = targetLink;
+                              handleNotificationClick(notification);
                             }, 300); // รอเล็กน้อยเพื่อให้การทำเครื่องหมายว่าอ่านแล้วเสร็จก่อน
                           }
                         }}

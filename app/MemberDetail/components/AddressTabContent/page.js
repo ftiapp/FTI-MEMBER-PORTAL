@@ -22,8 +22,18 @@ import EditAddressForm from '../EditAddressForm';
  * @param {string} memberType - Member type (000, 100, 200)
  * @param {string} memberGroupCode - Member group code
  * @param {string} typeCode - Specific type code within member type
+ * @param {string} initialSelectedAddress - Initial address code to select (from URL)
+ * @param {Function} onAddressChange - Callback when address selection changes
  */
-export default function AddressTabContent({ addresses = {}, memberCode, memberType, memberGroupCode, typeCode }) {
+export default function AddressTabContent({ 
+  addresses = {}, 
+  memberCode, 
+  memberType, 
+  memberGroupCode, 
+  typeCode, 
+  initialSelectedAddress,
+  onAddressChange
+}) {
   // Ensure addresses is an object
   const safeAddresses = addresses && typeof addresses === 'object' ? addresses : {};
   const { user } = useAuth();
@@ -46,6 +56,11 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   const handleAddressSelect = (addrCode) => {
     setSelectedAddress(addrCode);
     setIsEditMode(false); // Reset edit mode when changing address
+    
+    // Call the parent component's callback to update URL
+    if (onAddressChange) {
+      onAddressChange(addrCode);
+    }
     
     // Debug selected address data
     console.log('Selected address data:', {
@@ -79,6 +94,7 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
       const data = await response.json();
       
       setHasPendingRequest(data.hasPendingRequest);
+      console.log(`Checked pending request with language: ${lang}`, data);
     } catch (error) {
       console.error('Error checking pending address update:', error);
     } finally {
@@ -86,18 +102,40 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
     }
   };
   
-  // Initialize with first address if available
+  // Initialize with address from URL or first address if available
   useEffect(() => {
     console.log('Addresses received:', addresses);
+    console.log('Initial selected address from URL:', initialSelectedAddress);
     
     if (addresses && Object.keys(addresses).length > 0) {
-      const firstKey = Object.keys(addresses)[0];
-      console.log('Setting selected address to:', firstKey);
-      setSelectedAddress(firstKey);
+      // If we have an initialSelectedAddress from URL and it exists in our addresses
+      if (initialSelectedAddress && addresses[initialSelectedAddress]) {
+        console.log('Setting selected address from URL param:', initialSelectedAddress);
+        setSelectedAddress(initialSelectedAddress);
+      } else {
+        // Otherwise use the first address
+        const firstKey = Object.keys(addresses)[0];
+        console.log('Setting selected address to first address:', firstKey);
+        setSelectedAddress(firstKey);
+        
+        // Update URL with the first address
+        if (onAddressChange) {
+          onAddressChange(firstKey);
+        }
+      }
     } else {
       console.log('No addresses found in props');
     }
-  }, [addresses]);
+    
+    // อ่านค่า lang จาก URL เมื่อโหลดหน้า
+    const urlParams = new URLSearchParams(window.location.search);
+    const langParam = urlParams.get('lang');
+    if (langParam) {
+      // ตั้งค่าภาษาตามพารามิเตอร์ใน URL (TH -> th, EN -> en)
+      setLanguage(langParam.toLowerCase() === 'th' ? 'th' : 'en');
+      console.log('Language set from URL parameter:', langParam);
+    }
+  }, [addresses, initialSelectedAddress]);
   
   // Debug log current state
   useEffect(() => {
@@ -112,14 +150,14 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
   // Check for pending requests when the selected address changes
   useEffect(() => {
     if (isEditable && selectedAddress) {
-      checkPendingRequest();
+      checkPendingRequest(language);
     } else {
       setHasPendingRequest(false);
     }
     
     // Reset edit mode when changing address
     setIsEditMode(false);
-  }, [selectedAddress, user?.id, memberCode, memberType, memberGroupCode, typeCode]);
+  }, [selectedAddress, user?.id, memberCode, memberType, memberGroupCode, typeCode, language]);
   
   return (
     <motion.div 
@@ -153,14 +191,30 @@ export default function AddressTabContent({ addresses = {}, memberCode, memberTy
             <div className="flex bg-gray-100 rounded-lg p-1">
               <button
                 type="button"
-                onClick={() => setLanguage('th')}
+                onClick={() => {
+                  setLanguage('th');
+                  // อัปเดต URL ด้วยพารามิเตอร์ lang=TH
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('lang', 'TH');
+                  window.history.pushState({}, '', url.toString());
+                  // เรียกใช้ checkPendingRequest กับภาษาใหม่
+                  checkPendingRequest('th');
+                }}
                 className={`px-3 py-1 text-sm rounded-md transition-all ${language === 'th' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-200'}`}
               >
                 TH
               </button>
               <button
                 type="button"
-                onClick={() => setLanguage('en')}
+                onClick={() => {
+                  setLanguage('en');
+                  // อัปเดต URL ด้วยพารามิเตอร์ lang=EN
+                  const url = new URL(window.location.href);
+                  url.searchParams.set('lang', 'EN');
+                  window.history.pushState({}, '', url.toString());
+                  // เรียกใช้ checkPendingRequest กับภาษาใหม่
+                  checkPendingRequest('en');
+                }}
                 className={`px-3 py-1 text-sm rounded-md transition-all ${language === 'en' ? 'bg-blue-500 text-white' : 'text-gray-700 hover:bg-gray-200'}`}
               >
                 EN

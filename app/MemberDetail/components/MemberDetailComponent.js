@@ -44,9 +44,25 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('info');
+  const [activeAddress, setActiveAddress] = useState(null);
   const [membershipTypes, setMembershipTypes] = useState({});
   const [memberTypeTitle, setMemberTypeTitle] = useState('');
   const [selectedFilterCode, setSelectedFilterCode] = useState(null);
+
+  // Parse URL parameters for tab and address selection
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    const addressParam = params.get('address');
+    
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+    
+    if (addressParam) {
+      setActiveAddress(addressParam);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchMemberData = async () => {
@@ -177,6 +193,42 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
     // Update URL with the selected filter code without reloading the page
     const params = new URLSearchParams(window.location.search);
     params.set('typeCode', filterCode);
+    
+    // Preserve other parameters
+    if (activeTab) params.set('tab', activeTab);
+    if (activeAddress && activeTab === 'addresses') params.set('address', activeAddress);
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
+  };
+  
+  // Handle tab change with URL update
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    
+    // Update URL with the selected tab without reloading the page
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', tab);
+    
+    // Add address parameter only if we're on the addresses tab and have an active address
+    if (tab === 'addresses' && activeAddress) {
+      params.set('address', activeAddress);
+    } else {
+      params.delete('address'); // Remove address parameter if not on addresses tab
+    }
+    
+    const newUrl = `${window.location.pathname}?${params.toString()}`;
+    window.history.pushState({}, '', newUrl);
+  };
+  
+  // Handle address change with URL update
+  const handleAddressChange = (address) => {
+    setActiveAddress(address);
+    
+    // Update URL with the selected address without reloading the page
+    const params = new URLSearchParams(window.location.search);
+    params.set('address', address);
+    
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.pushState({}, '', newUrl);
   };
@@ -264,7 +316,7 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
       {/* Tabs */}
       <MemberDetailTabs 
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleTabChange}
         itemVariants={itemVariants}
         showMembershipTab={!selectedMemberType && Object.keys(membershipTypes).length > 0}
       />
@@ -311,6 +363,8 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
                 memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
                 memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
                 typeCode={companyInfo.MEMBER_TYPE_CODE}
+                initialSelectedAddress={activeAddress}
+                onAddressChange={handleAddressChange}
               />
             </motion.div>
           )}

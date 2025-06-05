@@ -440,7 +440,14 @@ export async function POST(request) {
               user_id,
               'address_update',
               `คำขอแก้ไขที่อยู่${addrTypeText}${langText}ของท่าน [รหัสสมาชิก: ${addressUpdate.member_code}] [บริษัท: ${user.company_name || addressUpdate.company_name || 'บริษัทของท่าน'}] ได้รับการอนุมัติแล้ว`,
-              '/dashboard?tab=address'
+              '/dashboard?tab=address',
+              addressUpdate.member_code,
+              user.company_name || addressUpdate.company_name,
+              addressUpdate.member_type,
+              addressUpdate.member_group_code,
+              '000', // ใช้ค่า '000' เสมอแทนที่จะใช้ addressUpdate.type_code ที่มีค่าเป็น 11
+              addressUpdate.addr_code,
+              addressUpdate.addr_lang
             );
             console.log('Address update approval notification created for user:', user_id);
           } catch (notificationError) {
