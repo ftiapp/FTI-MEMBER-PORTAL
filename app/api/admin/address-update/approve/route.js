@@ -14,7 +14,7 @@ export async function POST(request) {
     }
 
     // รับข้อมูลจาก request body
-    const { id, admin_notes } = await request.json();
+    const { id, admin_notes, edited_address } = await request.json();
     if (!id) {
       return NextResponse.json(
         { success: false, message: 'Missing required field: id' },
@@ -63,7 +63,13 @@ export async function POST(request) {
     // แปลง new_address จาก string เป็น object
     let newAddressObj;
     try {
-      newAddressObj = typeof new_address === 'string' ? JSON.parse(new_address) : new_address;
+      // If admin has edited the address, use that instead of the original new_address
+      if (edited_address) {
+        console.log('Using admin-edited address data');
+        newAddressObj = edited_address;
+      } else {
+        newAddressObj = typeof new_address === 'string' ? JSON.parse(new_address) : new_address;
+      }
     } catch (error) {
       console.error('Error parsing new_address JSON:', error);
       return NextResponse.json(

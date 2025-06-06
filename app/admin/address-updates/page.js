@@ -129,20 +129,28 @@ export default function AddressUpdatesPage() {
     setRejectReason('');
   };
   
-  const handleApprove = async () => {
+  const handleApprove = async (editedAddress) => {
     if (!selectedRequest) return;
     
     setIsProcessing(true);
     try {
+      // Prepare request body with edited address data if provided
+      const requestBody = {
+        id: selectedRequest.id,
+        admin_notes: adminNotes
+      };
+      
+      // If editedAddress is provided and different from original, include it in the request
+      if (editedAddress) {
+        requestBody.edited_address = editedAddress;
+      }
+      
       const response = await fetch('/api/admin/address-update/approve', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          id: selectedRequest.id,
-          admin_notes: adminNotes
-        })
+        body: JSON.stringify(requestBody)
       });
       
       if (!response.ok) {

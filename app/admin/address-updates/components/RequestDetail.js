@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
+import EditAddressForm from './EditAddressForm';
 
 export default function RequestDetail({ 
   selectedRequest, 
@@ -14,6 +15,23 @@ export default function RequestDetail({
   onRejectClick 
 }) {
   const [activeTab, setActiveTab] = useState('old');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedAddress, setEditedAddress] = useState(null);
+  
+  // Reset editedAddress whenever selectedRequest changes
+  useEffect(() => {
+    if (selectedRequest) {
+      try {
+        const parsedNewAddress = typeof selectedRequest.new_address === 'string' 
+          ? JSON.parse(selectedRequest.new_address) 
+          : selectedRequest.new_address || {};
+        setEditedAddress(parsedNewAddress);
+      } catch (e) {
+        console.error('Error setting edited address:', e);
+        setEditedAddress({});
+      }
+    }
+  }, [selectedRequest]);
   
   if (!selectedRequest) {
     return (
@@ -144,7 +162,7 @@ export default function RequestDetail({
     
     const fieldLabels = {
       ADDR_NO: 'เลขที่',
-      ADDR_MOO: 'หมู่',
+      ADDR_MOO: 'หมู่ที่',
       ADDR_SOI: 'ซอย',
       ADDR_ROAD: 'ถนน',
       ADDR_SUB_DISTRICT: 'แขวง/ตำบล',
@@ -157,17 +175,36 @@ export default function RequestDetail({
       ADDR_WEBSITE: 'เว็บไซต์'
     };
     
+    // Use editedAddress if we're editing, otherwise use newAddress
+    // Make sure we have a valid object to compare with
+    const compareAddress = (isEditing || (editedAddress && editedAddress !== newAddress)) 
+      ? (editedAddress || {}) 
+      : (newAddress || {});
+    
     Object.keys(fieldLabels).forEach(field => {
-      if (oldAddress[field] !== newAddress[field]) {
+      // Safely compare values, handling null/undefined cases
+      const oldValue = oldAddress[field];
+      const newValue = compareAddress[field];
+      
+      if (oldValue !== newValue) {
         changes.push({
           field: fieldLabels[field],
-          oldValue: oldAddress[field] || '-',
-          newValue: newAddress[field] || '-'
+          oldValue: oldValue || '-',
+          newValue: newValue || '-'
         });
       }
     });
     
     return changes;
+  };
+  
+  // Handle saving edited address
+  const handleSaveEdit = (editedData) => {
+    // Make sure we have a valid object
+    const validEditedData = editedData || {};
+    setEditedAddress(validEditedData);
+    setIsEditing(false);
+    return Promise.resolve(); // Return a resolved promise for the EditAddressForm component
   };
   
   const changes = findChanges();
@@ -315,7 +352,27 @@ export default function RequestDetail({
           {activeTab === 'new' && (
             <div>
               <h3 className="font-bold mb-2">ที่อยู่ใหม่</h3>
-              {formatFullAddress(newAddress)}
+              {isEditing ? (
+                <EditAddressForm 
+                  addressData={editedAddress || newAddress} 
+                  addrLang={selectedRequest.addr_lang}
+                  onSave={handleSaveEdit}
+                  isEditing={isEditing}
+                  setIsEditing={setIsEditing}
+                />
+              ) : (
+                <>
+                  {formatFullAddress(editedAddress || newAddress)}
+                  {selectedRequest.status === 'pending' && (
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="mt-4 px-3 py-1 bg-blue-100 text-blue-700 rounded-md text-sm hover:bg-blue-200 transition-colors"
+                    >
+                      แก้ไขข้อมูลที่อยู่
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
           
@@ -371,8 +428,8 @@ export default function RequestDetail({
           <div className="flex space-x-3">
             <motion.button
               className="px-4 py-2 bg-green-600 text-white rounded-md font-medium flex items-center justify-center disabled:opacity-50"
-              onClick={handleApprove}
-              disabled={isProcessing}
+              onClick={() => handleApprove(editedAddress)}
+              disabled={isProcessing || isEditing}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -392,7 +449,7 @@ export default function RequestDetail({
             <motion.button
               className="px-4 py-2 bg-red-600 text-white rounded-md font-medium flex items-center justify-center disabled:opacity-50"
               onClick={onRejectClick}
-              disabled={isProcessing}
+              disabled={isProcessing || isEditing}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

@@ -481,7 +481,7 @@ export default function Login() {
                           onChange={(e) => setRememberMe(e.target.checked)}
                         />
                         <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
-                          จดจำรหัสผ่าน
+                          บันทึกผู้ใช้งาน
                         </label>
                       </div>
                       <div className="text-sm">
