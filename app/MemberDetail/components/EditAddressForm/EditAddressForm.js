@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { useLoading } from '../../../components/GlobalLoadingOverlay';
 import { FaCheckCircle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
 
@@ -105,8 +107,49 @@ export default function EditAddressForm({
   
   // Handle document file change
   const handleDocumentChange = (file) => {
-    console.log('Document file changed:', file);
-    setDocumentFile(file);
+    if (file) {
+      // Check file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrorMessage('ไฟล์มีขนาดใหญ่เกินไป กรุณาอัพโหลดไฟล์ขนาดไม่เกิน 5MB');
+        return;
+      }
+      
+      // Check file type
+      const fileExt = file.name.split('.').pop().toLowerCase();
+      const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png'];
+      
+      if (!allowedTypes.includes(fileExt)) {
+        setErrorMessage(`ไฟล์ประเภท ${fileExt} ไม่ได้รับการสนับสนุน กรุณาอัพโหลดไฟล์ประเภท PDF, JPG, JPEG, PNG`);
+        return;
+      }
+      
+      // Validate PDF content for address types 001 and 003
+      if (fileExt === 'pdf' && (addrCode === '001' || addrCode === '003')) {
+        // Create a FileReader to check the PDF content
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const content = new Uint8Array(e.target.result);
+          // Check for PDF header signature %PDF-
+          const header = content.subarray(0, 5);
+          const isPDF = header[0] === 37 && header[1] === 80 && header[2] === 68 && header[3] === 70 && header[4] === 45;
+          
+          if (!isPDF) {
+            setErrorMessage('ไฟล์ PDF ไม่ถูกต้อง กรุณาอัพโหลดไฟล์ PDF ที่ถูกต้อง');
+            setDocumentFile(null);
+            return;
+          }
+          
+          // If all checks pass, set the document file
+          setDocumentFile(file);
+          setErrorMessage(''); // Clear any previous error messages
+        };
+        reader.readAsArrayBuffer(file.slice(0, 5)); // Only read the first few bytes for the header check
+      } else {
+        // For non-PDF files, just set the document file
+        setDocumentFile(file);
+        setErrorMessage(''); // Clear any previous error messages
+      }
+    }
   };
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -163,10 +206,15 @@ export default function EditAddressForm({
     }));
   };
   
+  // Get the global loading state
+  const { setLoading } = useLoading();
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    // Show global loading overlay to prevent navigation
+    setLoading(true, 'กำลังส่งข้อมูลการแก้ไขที่อยู่...');
     setErrorMessage(''); // Clear any previous error messages
     
     console.log('Submitting form with language:', activeLanguage);
@@ -176,6 +224,7 @@ export default function EditAddressForm({
       console.error('User object is missing or has no ID');
       setErrorMessage('ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่');
       setIsSubmitting(false);
+      setLoading(false);
       return;
     }
     
@@ -185,6 +234,7 @@ export default function EditAddressForm({
       const documentType = addrCode === '001' ? 'หนังสือรับรองนิติบุคคลจากกระทรวงพาณิชย์' : 'ใบทะเบียนภาษีมูลค่าเพิ่ม (แบบ ภ.พ.20)';
       setErrorMessage(`กรุณาแนบไฟล์ ${documentType}`);
       setIsSubmitting(false);
+      setLoading(false);
       return;
     }
     
@@ -269,6 +319,7 @@ export default function EditAddressForm({
             console.error('Document upload failed:', uploadResult.message || 'Unknown error');
             setErrorMessage(uploadResult.message || 'เกิดข้อผิดพลาดในการอัปโหลดเอกสาร');
             setIsSubmitting(false);
+            setLoading(false); // Hide the global loading overlay on error
             return;
           }
           
@@ -281,6 +332,7 @@ export default function EditAddressForm({
           console.error('Error during document upload:', uploadError);
           setErrorMessage('เกิดข้อผิดพลาดในการอัปโหลดเอกสาร: ' + (uploadError.message || 'ไม่ทราบสาเหตุ'));
           setIsSubmitting(false);
+          setLoading(false); // Hide the global loading overlay on error
           return;
         }
       }
@@ -298,19 +350,27 @@ export default function EditAddressForm({
       
       if (data.success) {
         setSubmitSuccess(true);
-        // Call onSuccess callback after 2 seconds to show success message
+        // Keep the global loading overlay visible for 2 seconds to show success
         setTimeout(() => {
+          // Hide the global loading overlay
+          setLoading(false);
           if (onSuccess) onSuccess();
         }, 2000);
       } else {
         console.error('Failed to submit address update request:', data.message);
         setErrorMessage(data.message || 'เกิดข้อผิดพลาดในการส่งคำขอแก้ไขที่อยู่');
+        // Hide the global loading overlay on error
+        setLoading(false);
       }
     } catch (error) {
       console.error('Error submitting address update request:', error);
       setErrorMessage('เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
+      // Hide the global loading overlay on error
+      setLoading(false);
     } finally {
       setIsSubmitting(false);
+      // Note: We don't hide the global loading overlay here because we want to keep it visible
+      // on success until the redirect happens, but we've already hidden it on error cases above
     }
   };
   
@@ -386,19 +446,22 @@ export default function EditAddressForm({
   
   return (
     <motion.form
-      onSubmit={(e) => {
-        e.preventDefault();
-        if (currentStep === 3) {
-          handleSubmit(e);
-        } else {
-          handleNextStep();
-        }
-      }}
-      className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
-      variants={formVariants}
-      initial="hidden"
-      animate="visible"
-    >
+        onSubmit={(e) => {
+          e.preventDefault();
+          // For address type 002, we have only 2 steps, so submit on step 2
+          // For other address types, we submit on step 3
+          if ((addrCode === '002' && currentStep === 2) || 
+              (addrCode !== '002' && currentStep === 3)) {
+            handleSubmit(e);
+          } else {
+            handleNextStep();
+          }
+        }}
+        className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm"
+        variants={formVariants}
+        initial="hidden"
+        animate="visible"
+      >
       {/* Step Indicator */}
       <StepIndicator currentStep={currentStep} addrCode={addrCode} />
       
@@ -630,7 +693,10 @@ export default function EditAddressForm({
         )}
         
         <div className="ml-auto">
-          {(currentStep < 3 || (skipDocumentStep && currentStep < 2)) && (
+          {/* For address type 002, only show Next button in step 1 */}
+          {/* For other address types, show Next button in steps 1 and 2 */}
+          {((addrCode !== '002' && currentStep < 3) || 
+            (addrCode === '002' && currentStep < 2)) && (
             <button
               type="button"
               onClick={handleNextStep}
@@ -641,6 +707,8 @@ export default function EditAddressForm({
             </button>
           )}
           
+          {/* For address type 002, show Submit button in step 2 */}
+          {/* For other address types, show Submit button in step 3 */}
           {(currentStep === 3 || (skipDocumentStep && currentStep === 2)) && (
             <button
               type="submit"

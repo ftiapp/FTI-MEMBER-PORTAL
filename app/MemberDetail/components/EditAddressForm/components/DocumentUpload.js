@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { FaFileUpload, FaFilePdf, FaFileAlt, FaTrash, FaSpinner } from 'react-icons/fa';
+import { FaFileUpload, FaFilePdf, FaFileAlt, FaTrash, FaSpinner, FaEye, FaTimes } from 'react-icons/fa';
 
 /**
  * Document upload component for address update forms
@@ -16,6 +16,8 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants })
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef(null);
 
   // Get document type requirements based on address code
@@ -61,6 +63,9 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants })
         setUploadError('กรุณาอัปโหลดไฟล์ PDF เท่านั้น');
         setFile(null);
         onFileChange(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         return;
       }
       
@@ -69,12 +74,68 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants })
         setUploadError('ขนาดไฟล์ต้องไม่เกิน 5MB');
         setFile(null);
         onFileChange(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         return;
       }
       
-      setFile(selectedFile);
-      setUploadError('');
-      onFileChange(selectedFile);
+      // Validate PDF content for address types 001 and 003
+      if (addrCode === '001' || addrCode === '003') {
+        setIsUploading(true);
+        setUploadError('');
+        
+        // Create a FileReader to check the PDF content
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          try {
+            const content = new Uint8Array(e.target.result);
+            // Check for PDF header signature %PDF-
+            const header = content.subarray(0, 5);
+            const isPDF = header[0] === 37 && header[1] === 80 && header[2] === 68 && header[3] === 70 && header[4] === 45;
+            
+            if (!isPDF) {
+              setUploadError('ไฟล์ PDF ไม่ถูกต้อง กรุณาอัพโหลดไฟล์ PDF ที่ถูกต้อง');
+              setFile(null);
+              onFileChange(null);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
+            } else {
+              // If all checks pass, set the document file
+              setFile(selectedFile);
+              setUploadError('');
+              onFileChange(selectedFile);
+            }
+          } catch (error) {
+            console.error('Error validating PDF:', error);
+            setUploadError('เกิดข้อผิดพลาดในการตรวจสอบไฟล์ กรุณาลองใหม่อีกครั้ง');
+            setFile(null);
+            onFileChange(null);
+            if (fileInputRef.current) {
+              fileInputRef.current.value = '';
+            }
+          } finally {
+            setIsUploading(false);
+          }
+        };
+        
+        reader.onerror = () => {
+          setUploadError('เกิดข้อผิดพลาดในการอ่านไฟล์ กรุณาลองใหม่อีกครั้ง');
+          setFile(null);
+          onFileChange(null);
+          setIsUploading(false);
+        };
+        
+        // Only read the first few bytes for the header check
+        reader.readAsArrayBuffer(selectedFile.slice(0, 5)); 
+      } else {
+        // For other address types, just set the document file
+        setFile(selectedFile);
+        setUploadError('');
+        onFileChange(selectedFile);
+      }
     }
   };
 
@@ -86,6 +147,30 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants })
     // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
+    }
+    // Clean up preview URL
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
+    }
+  };
+  
+  // Handle preview of PDF file
+  const handlePreviewFile = () => {
+    if (file) {
+      // Create object URL for preview
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setShowPreview(true);
+    }
+  };
+  
+  // Close preview
+  const handleClosePreview = () => {
+    setShowPreview(false);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl('');
     }
   };
 
@@ -103,7 +188,21 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants })
           <span className="text-red-500">*</span> {documentInfo.label}
         </p>
         
-        {!file ? (
+        {isUploading ? (
+          <div className="mt-2">
+            <div className="flex items-center justify-center w-full h-32 px-4 bg-white border-2 border-blue-300 border-dashed rounded-md">
+              <span className="flex flex-col items-center space-y-2">
+                <FaSpinner className="w-6 h-6 text-blue-500 animate-spin" />
+                <span className="font-medium text-blue-600">
+                  กำลังตรวจสอบไฟล์ PDF...
+                </span>
+                <span className="text-xs text-gray-500">
+                  กรุณารอสักครู่
+                </span>
+              </span>
+            </div>
+          </div>
+        ) : !file ? (
           <div className="mt-2">
             <label 
               htmlFor="document-upload" 
@@ -142,25 +241,62 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants })
               </span>
             </div>
             
-            <button
-              type="button"
-              onClick={handleRemoveFile}
-              className="p-1 text-gray-500 rounded-full hover:bg-gray-100"
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <FaSpinner className="animate-spin text-blue-500" />
-              ) : (
-                <FaTrash className="text-red-500" />
-              )}
-            </button>
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={handlePreviewFile}
+                className="p-1 text-blue-500 rounded-full hover:bg-gray-100"
+                title="ดูตัวอย่างเอกสาร"
+              >
+                <FaEye />
+              </button>
+              <button
+                type="button"
+                onClick={handleRemoveFile}
+                className="p-1 text-gray-500 rounded-full hover:bg-gray-100"
+                disabled={isUploading}
+                title="ลบเอกสาร"
+              >
+                {isUploading ? (
+                  <FaSpinner className="animate-spin text-blue-500" />
+                ) : (
+                  <FaTrash className="text-red-500" />
+                )}
+              </button>
+            </div>
           </div>
         )}
         
         {uploadError && (
-          <p className="mt-2 text-sm text-red-600">
+          <div className="mt-2 text-sm text-red-600">
             {uploadError}
-          </p>
+          </div>
+        )}
+        
+        {/* PDF Preview Modal */}
+        {showPreview && previewUrl && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg w-full max-w-4xl h-[80vh] flex flex-col">
+              <div className="flex justify-between items-center p-4 border-b">
+                <h3 className="text-lg font-semibold">
+                  ตัวอย่างเอกสาร: {file?.name}
+                </h3>
+                <button 
+                  onClick={handleClosePreview}
+                  className="text-gray-500 hover:text-gray-700 text-xl"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <iframe 
+                  src={previewUrl} 
+                  className="w-full h-full" 
+                  title="ตัวอย่างเอกสาร PDF"
+                />
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </motion.div>
