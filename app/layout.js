@@ -3,6 +3,7 @@ import './globals.css';
 import { Providers } from './providers';
 import JsonLd from './components/JsonLd';
 import ClientLayout from './components/ClientLayout';
+import FaqBotProvider from './components/FaqBot/FaqBotProvider';
 
 const notoSansThai = Noto_Sans_Thai({
   weight: ['300', '400', '500', '600', '700'],
@@ -67,12 +68,20 @@ export default function RootLayout({ children }) {
     <html lang="th" className={`${notoSansThai.variable} ${plexSansThai.variable}`}>
       <head>
         <JsonLd />
+        <link
+          rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+          integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+          crossOrigin="anonymous"
+          referrerPolicy="no-referrer"
+        />
       </head>
       <body className="font-noto">
         <Providers>
           <ClientLayout>
             {children}
           </ClientLayout>
+          <FaqBotProvider />
         </Providers>
       </body>
     </html>

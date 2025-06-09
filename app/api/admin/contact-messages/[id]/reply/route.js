@@ -14,7 +14,7 @@ export async function PUT(request, { params }) {
     }
     
     // ใช้ parseInt เพื่อแปลง id เป็นตัวเลข
-    const id = parseInt(params.id, 10);
+    const id = parseInt(params?.id, 10);
     
     if (isNaN(id)) {
       return NextResponse.json(

@@ -100,9 +100,13 @@ export async function query(sql, params) {
   
   while (retryCount < maxRetries) {
     try {
+      // ตรวจสอบว่า sql เป็น object หรือไม่ (กรณีที่เรียกใช้แบบ {query: '...', values: [...]})  
+      const queryString = sql.query || sql;
+      const queryParams = sql.values || params;
+      
       console.log(`Executing query (attempt ${retryCount + 1}/${maxRetries}):`, {
-        sql: sql,
-        params: params
+        sql: queryString,
+        params: queryParams
       });
       
       // Get a connection from the pool
@@ -110,7 +114,7 @@ export async function query(sql, params) {
       
       try {
         // ใช้ query แทน execute เพื่อรองรับ LIMIT และ OFFSET ใน prepared statements
-        const [results] = await connection.query(sql, params);
+        const [results] = await connection.query(queryString, queryParams);
         return results;
       } finally {
         // Always release the connection back to the pool

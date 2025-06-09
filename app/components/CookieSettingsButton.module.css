@@ -1,7 +1,7 @@
 .cookieButton {
   position: fixed;
   bottom: 20px;
-  right: 20px;
+  left: 20px;
   background-color: #ffffff;
   color: #333333;
   border: 1px solid #dddddd;

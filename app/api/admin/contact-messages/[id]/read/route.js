@@ -4,8 +4,8 @@ import { getAdminFromSession } from '@/app/lib/adminAuth';
 
 export async function PUT(request, { params }) {
   try {
-    // ใช้ params แบบ asynchronous
-    const id = await params?.id;
+    // ใช้ params โดยไม่ต้อง await เพราะ params ไม่ใช่ Promise
+    const id = params?.id;
     
     if (!id) {
       return NextResponse.json(
