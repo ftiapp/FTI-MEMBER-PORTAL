@@ -82,14 +82,12 @@ export async function GET(request) {
       });
     }
     
-    // If we can't find in companies_Member, allow access anyway for now
-    // This is a fallback to ensure users can access their member details
-    // In a production environment, you might want to be more strict
+    // If we can't find the member in companies_Member, deny access
     return NextResponse.json({
-      success: true,
-      isOwner: true,
-      message: 'อนุญาตให้เข้าถึงข้อมูลสมาชิก'
-    });
+      success: false,
+      isOwner: false,
+      message: 'คุณไม่มีสิทธิ์เข้าถึงข้อมูลสมาชิกนี้'
+    }, { status: 403 });
     
   } catch (error) {
     console.error('Error verifying ownership:', error);
