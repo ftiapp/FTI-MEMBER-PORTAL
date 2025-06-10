@@ -12,24 +12,67 @@ const formatMessageWithLinks = (message) => {
   // Define dashboard sections and their corresponding URLs
   const dashboardLinks = {
     'แดชบอร์ด': '/dashboard',
-    'ข้อมูลสมาชิก': '/dashboard/profile',
-    'ที่อยู่': '/dashboard/address',
-    'สินค้า/บริการ': '/dashboard/products',
-    'โลโก้': '/dashboard/logo',
+    'ข้อมูลสมาชิก': '/dashboard?tab=member',
     'ติดต่อเรา': '/dashboard/contact',
     'ตั้งค่า': '/dashboard/settings',
     'ชำระเงิน': '/dashboard/payment',
   };
   
+  // Terms to bold but not link
+  const boldTerms = [
+    'ที่อยู่', 
+    'สินค้า/บริการ', 
+    'โลโก้', 
+    'Social Media', 
+    'TSIC'
+  ];
+  
   let formattedMessage = message;
   
-  // Replace dashboard section names with links
+  // Replace dashboard section names with links that prevent page refresh
   Object.entries(dashboardLinks).forEach(([section, url]) => {
     const regex = new RegExp(`("${section}"|${section})`, 'g');
-    formattedMessage = formattedMessage.replace(regex, `<a href="${url}" class="${styles.dashboardLink}">${section}</a>`);
+    formattedMessage = formattedMessage.replace(
+      regex, 
+      `<a href="${url}" class="${styles.dashboardLink}" onclick="(function(e) { e.preventDefault(); window.location.href = '${url}'; localStorage.setItem('chatHistory', JSON.stringify(Array.from(document.querySelectorAll('.${styles.message}')).map(el => ({ type: el.classList.contains('${styles.userMessage}') ? 'user' : 'bot', content: el.querySelector('div').innerHTML })))); return false; })(event)">${section}</a>`
+    );
+  });
+  
+  // Replace terms that should be bold but not linked
+  boldTerms.forEach(term => {
+    const regex = new RegExp(`("${term}"|${term})`, 'g');
+    formattedMessage = formattedMessage.replace(regex, `<strong>${term}</strong>`);
+  });
+  
+  // Convert URLs to clickable links
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  formattedMessage = formattedMessage.replace(urlRegex, (url) => {
+    // Remove any trailing punctuation that might have been caught
+    const cleanUrl = url.replace(/[.,;:!?]$/, '');
+    return `<a href="${cleanUrl}" class="${styles.dashboardLink}" target="_blank" rel="noopener noreferrer">${cleanUrl}</a>`;
   });
   
   return formattedMessage;
+};
+
+// Helper function to save chat history to localStorage
+const saveChatHistory = (chatMessages) => {
+  try {
+    localStorage.setItem('chatHistory', JSON.stringify(chatMessages));
+  } catch (error) {
+    console.error('Error saving chat history:', error);
+  }
+};
+
+// Helper function to load chat history from localStorage
+const loadChatHistory = () => {
+  try {
+    const savedHistory = localStorage.getItem('chatHistory');
+    return savedHistory ? JSON.parse(savedHistory) : null;
+  } catch (error) {
+    console.error('Error loading chat history:', error);
+    return null;
+  }
 };
 
 const ChatWidget = () => {
@@ -45,7 +88,21 @@ const ChatWidget = () => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
+    
+    // Save chat history when messages change (except for loading messages)
+    if (messages.length > 0 && !messages.some(msg => msg.isLoading)) {
+      saveChatHistory(messages);
+    }
   }, [messages]);
+  
+  // Load chat history when component mounts
+  useEffect(() => {
+    const savedMessages = loadChatHistory();
+    if (savedMessages && savedMessages.length > 0) {
+      setMessages(savedMessages);
+      setInitialMessageShown(true); // Prevent showing welcome message again
+    }
+  }, []);
   
   // Show initial welcome message and suggested questions when chat opens
   useEffect(() => {

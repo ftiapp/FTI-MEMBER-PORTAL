@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
@@ -21,16 +21,16 @@ export default function FAQ() {
   }, []);
 
   // FAQ Categories
-  const categories = [
+  const categories = useMemo(() => [
     { id: 'general', name: 'คำถามทั่วไป' },
     { id: 'membership', name: 'สมาชิกภาพ' },
     { id: 'services', name: 'บริการ' },
     { id: 'technical', name: 'ด้านเทคนิค' },
     { id: 'contact', name: 'การติดต่อ' }
-  ];
+  ], []);
 
   // FAQ Questions and Answers
-  const faqData = {
+  const faqData = useMemo(() => ({
     general: [
       {
         question: 'สภาอุตสาหกรรมแห่งประเทศไทยคืออะไร?',
@@ -113,56 +113,66 @@ export default function FAQ() {
         answer: 'คุณสามารถดูรายละเอียดกิจกรรมและสัมมนาที่กำลังจะเกิดขึ้นได้ที่เว็บไซต์ของสภาอุตสาหกรรมแห่งประเทศไทย ในส่วนของ "กิจกรรมและข่าวสาร" หรือติดตามผ่านช่องทางโซเชียลมีเดียต่างๆ การลงทะเบียนเข้าร่วมกิจกรรมสามารถทำได้ผ่านเว็บไซต์หรือติดต่อฝ่ายจัดกิจกรรมโดยตรง'
       }
     ]
-  };
+  }), []);
 
-  // Animation variants
+  // Optimized Animation variants
   const fadeInUp = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { 
+      opacity: 0, 
+      y: 15,
+      scale: 0.98
+    },
     visible: { 
       opacity: 1, 
       y: 0,
-      transition: { duration: 0.4, ease: "easeOut" }
+      scale: 1,
+      transition: { 
+        duration: 0.3, 
+        ease: [0.25, 0.25, 0, 1] // Smoother easing
+      }
     }
   };
 
   const staggerContainer = {
     visible: {
       transition: {
-        staggerChildren: 0.1
+        staggerChildren: 0.05 // Reduced stagger for faster feeling
       }
     }
   };
 
-  // Toggle question handler
+  // Toggle question handler with better performance
   const toggleQuestion = (index) => {
-    if (openQuestion === index) {
-      setOpenQuestion(null);
-    } else {
-      setOpenQuestion(index);
-    }
+    setOpenQuestion(prev => prev === index ? null : index);
   };
 
   return (
     <>
       <Navbar />
       <main className="min-h-screen bg-gray-50">
-        {/* Hero Section */}
-        <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
-          {/* Decorative elements */}
+        {/* Hero Section - Simplified Background */}
+        <div className="relative bg-gradient-to-br from-blue-900 via-blue-800 to-blue-700 text-white py-16 md:py-24 overflow-hidden">
+          {/* Simplified decorative elements with better performance */}
           {!isMobile && (
             <>
-              <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+              <div 
+                className="absolute top-0 right-0 w-80 h-80 bg-blue-600/20 rounded-full -mr-20 -mt-20"
+                style={{ willChange: 'transform' }}
+              />
+              <div 
+                className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/20 rounded-full -ml-20 -mb-20"
+                style={{ willChange: 'transform' }}
+              />
             </>
           )}
           
-          {/* Question mark icon */}
+          {/* Question mark icon - Simplified */}
           {!isMobile && (
-            <div className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block opacity-15">
-              <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M9.09 9.00001C9.3251 8.33167 9.78915 7.76811 10.4 7.40914C11.0108 7.05016 11.7289 6.91894 12.4272 7.03872C13.1255 7.15849 13.7588 7.52153 14.2151 8.06353C14.6713 8.60554 14.9211 9.29153 14.92 10C14.92 12 11.92 13 11.92 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 17H12.01" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <div className="absolute right-10 top-1/2 -translate-y-1/2 hidden lg:block opacity-10">
+              <svg width="160" height="160" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="white" strokeWidth="1.5"/>
+                <path d="M9.09 9.00001C9.3251 8.33167 9.78915 7.76811 10.4 7.40914C11.0108 7.05016 11.7289 6.91894 12.4272 7.03872C13.1255 7.15849 13.7588 7.52153 14.2151 8.06353C14.6713 8.60554 14.9211 9.29153 14.92 10C14.92 12 11.92 13 11.92 13" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="12" cy="17" r="0.5" fill="white"/>
               </svg>
             </div>
           )}
@@ -170,23 +180,23 @@ export default function FAQ() {
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <motion.h1 
               className="text-3xl md:text-5xl font-bold mb-4 text-center"
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
             >
               คำถามที่พบบ่อย
             </motion.h1>
             <motion.div 
               className="w-24 h-1 bg-white mx-auto mb-6"
-              initial={{ width: 0 }}
-              animate={{ width: 96 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ delay: 0.2, duration: 0.5, ease: 'easeOut' }}
             />
             <motion.p 
               className="text-lg md:text-xl text-center max-w-3xl mx-auto"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.6 }}
+              transition={{ delay: 0.3, duration: 0.4 }}
             >
               คำตอบสำหรับคำถามที่พบบ่อยเกี่ยวกับสภาอุตสาหกรรมแห่งประเทศไทย
             </motion.p>
@@ -201,7 +211,7 @@ export default function FAQ() {
             initial="hidden"
             animate="visible"
           >
-            {/* Category Tabs */}
+            {/* Category Tabs - Improved styling */}
             <div className="mb-8 border-b border-gray-200">
               <div className="flex flex-wrap -mb-px">
                 {categories.map((category) => (
@@ -211,10 +221,10 @@ export default function FAQ() {
                       setActiveCategory(category.id);
                       setOpenQuestion(null);
                     }}
-                    className={`inline-block p-4 rounded-t-lg mr-2 ${
+                    className={`relative inline-block p-4 mr-2 font-medium transition-all duration-200 ${
                       activeCategory === category.id
                         ? 'text-blue-600 border-b-2 border-blue-600'
-                        : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        : 'text-gray-500 hover:text-gray-700'
                     }`}
                   >
                     {category.name}
@@ -223,8 +233,9 @@ export default function FAQ() {
               </div>
             </div>
 
-            {/* FAQ Accordion */}
+            {/* FAQ Accordion - Optimized */}
             <motion.div
+              key={activeCategory} // Force re-render when category changes
               variants={staggerContainer}
               initial="hidden"
               animate="visible"
@@ -232,69 +243,83 @@ export default function FAQ() {
             >
               {faqData[activeCategory].map((item, index) => (
                 <motion.div
-                  key={index}
+                  key={`${activeCategory}-${index}`}
                   variants={fadeInUp}
                   className="border border-gray-200 rounded-lg overflow-hidden"
+                  style={{ willChange: 'transform' }}
                 >
                   <button
                     onClick={() => toggleQuestion(index)}
-                    className="flex justify-between items-center w-full p-5 text-left bg-white hover:bg-gray-50 transition-colors"
+                    className="flex justify-between items-center w-full p-5 text-left bg-white hover:bg-gray-50 transition-colors duration-150"
                   >
-                    <h3 className="text-lg font-medium text-gray-900">{item.question}</h3>
-                    <svg
-                      className={`w-6 h-6 text-blue-600 transform ${
-                        openQuestion === index ? 'rotate-180' : ''
-                      } transition-transform duration-200`}
+                    <h3 className="text-lg font-medium text-gray-900 pr-4">{item.question}</h3>
+                    <motion.svg
+                      className="w-6 h-6 text-blue-600 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
-                      xmlns="http://www.w3.org/2000/svg"
+                      animate={{ rotate: openQuestion === index ? 180 : 0 }}
+                      transition={{ duration: 0.2, ease: 'easeInOut' }}
                     >
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
                         d="M19 9l-7 7-7-7"
-                      ></path>
-                    </svg>
+                      />
+                    </motion.svg>
                   </button>
-                  <div
-                    className={`overflow-hidden transition-all duration-300 ${
-                      openQuestion === index ? 'max-h-96' : 'max-h-0'
-                    }`}
-                  >
-                    <div className="p-5 border-t border-gray-200 bg-gray-50">
-                      <p className="text-gray-700 whitespace-pre-line">{item.answer}</p>
-                    </div>
-                  </div>
+                  
+                  {/* Improved accordion content animation */}
+                  <AnimatePresence>
+                    {openQuestion === index && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ 
+                          duration: 0.25,
+                          ease: 'easeInOut'
+                        }}
+                        className="overflow-hidden"
+                      >
+                        <div className="p-5 border-t border-gray-200 bg-gray-50">
+                          <p className="text-gray-700 whitespace-pre-line leading-relaxed">
+                            {item.answer}
+                          </p>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               ))}
             </motion.div>
 
             {/* Contact Section */}
             <div className="mt-12 p-6 bg-blue-50 rounded-lg">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">ไม่พบคำตอบที่คุณต้องการ?</h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-4 text-center">
+                ไม่พบคำตอบที่คุณต้องการ?
+              </h3>
               <p className="text-gray-700 text-center mb-6">
                 หากคุณมีคำถามเพิ่มเติมที่ไม่ได้อยู่ในรายการด้านบน คุณสามารถติดต่อเราได้โดยตรง
               </p>
               <div className="flex justify-center">
                 <a
                   href="/contact"
-                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors duration-200"
                 >
                   <svg
                     className="w-5 h-5 mr-2"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth="2"
                       d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    ></path>
+                    />
                   </svg>
                   ติดต่อเรา
                 </a>
