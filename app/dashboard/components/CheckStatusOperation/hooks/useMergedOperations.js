@@ -50,8 +50,8 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
       const newContactMessages = contactMessageStatus
         .filter(msg => !existingContactIds.has(msg.id));
         
-      // Add all contact messages to the operations list
-      mergedOps = [...newContactMessages, ...mergedOps];
+      // Add all contact messages to the operations list without special priority
+      mergedOps = [...mergedOps, ...newContactMessages];
     }
     
     // Add address update requests as operation cards

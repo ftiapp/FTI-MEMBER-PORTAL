@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 /**
  * Custom hook to handle filtering and pagination of operations
@@ -10,7 +11,14 @@ import { useState, useEffect } from 'react';
  * @returns {Object} - The filtered operations and pagination data
  */
 const useOperationsFiltering = (operations, search, statusFilter, typeFilter, dateRange) => {
-  const [currentPage, setCurrentPage] = useState(1);
+  const searchParams = useSearchParams();
+  
+  // Initialize current page from URL query parameter if available
+  const initialPage = searchParams.has('page') 
+    ? parseInt(searchParams.get('page'), 10) 
+    : 1;
+    
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [filteredOperations, setFilteredOperations] = useState([]);
   const itemsPerPage = 3;
 
