@@ -4,6 +4,7 @@ import { query } from './db';
 
 // สร้าง secret key สำหรับ JWT
 const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-admin-auth');
+const userSecretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
 
 /**
  * ตรวจสอบ session ของ admin จาก cookie
@@ -73,4 +74,42 @@ export async function canCreate(admin) {
 export async function canUpdate(admin) {
   if (!admin) return false;
   return admin.canUpdate === 1 || admin.adminLevel === 5;
+}
+
+/**
+ * ตรวจสอบ session ของผู้ใช้จาก cookie
+ * @param {Object} cookieStore - cookie store จาก next/headers
+ * @returns {Promise<Object|null>} ข้อมูลผู้ใช้หรือ null ถ้าไม่มี session
+ */
+export async function checkUserSession(cookieStore) {
+  try {
+    const token = cookieStore.get('token')?.value;
+    
+    if (!token) {
+      return null;
+    }
+
+    const verified = await jwtVerify(token, userSecretKey);
+    const payload = verified.payload;
+    
+    // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
+    const users = await query(
+      'SELECT * FROM users WHERE id = ? AND is_active = TRUE LIMIT 1',
+      [payload.userId]
+    );
+
+    if (users.length === 0) {
+      return null;
+    }
+
+    return {
+      id: payload.id,
+      username: payload.username,
+      email: payload.email,
+      role: payload.role
+    };
+  } catch (error) {
+    console.error('Error checking user session:', error);
+    return null;
+  }
 }

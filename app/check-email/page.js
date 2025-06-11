@@ -9,14 +9,79 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
-export default function VerifyNewEmail() {
+export default function CheckEmail() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
+  const email = searchParams.get('email');
   const [isMobile, setIsMobile] = useState(false);
   
   const [verificationStatus, setVerificationStatus] = useState('verifying'); // verifying, success, error, password_reset
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');useEffect(() => {
+    // เพิ่มการตรวจสอบ email parameter
+    const email = searchParams.get('email');
+    
+    // ถ้ามี email แต่ไม่มี token = มาจากหน้าลงทะเบียน
+    if (email && !token) {
+      setVerificationStatus('registration_success');
+      setNewEmail(email); // เก็บ email ไว้แสดงในหน้า
+      return;
+    }
+    
+    // โค้ดเดิมสำหรับกรณีมี token
+    if (!token) {
+      setVerificationStatus('error');
+      setErrorMessage('ไม่พบโทเคนยืนยัน กรุณาตรวจสอบลิงก์ในอีเมลของคุณอีกครั้ง');
+      return;
+    }
+    
+    // โค้ดเดิมสำหรับการตรวจสอบ token...
+    const verifyNewEmail = async () => {
+      // ...
+    };
+  
+    verifyNewEmail();
+  }, [token, searchParams]);{verificationStatus === 'registration_success' && (
+    <motion.div 
+      className="space-y-6"
+      key="registration_success"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="flex justify-center">
+        <div className="h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-8 w-8 text-blue-600" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </div>
+      </div>
+      <h3 className="text-2xl font-bold text-gray-800">
+        ลงทะเบียนสำเร็จ!
+      </h3>
+      <p className="text-gray-600">
+        เราได้ส่งอีเมลยืนยันไปยัง <span className="font-semibold">{email}</span> แล้ว
+      </p>
+      <p className="text-gray-600">
+        กรุณาตรวจสอบกล่องจดหมายของคุณและคลิกที่ลิงก์ยืนยันเพื่อเปิดใช้งานบัญชีของคุณ
+      </p>
+      <div className="pt-4">
+        <Link 
+          href="/login" 
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-3 transition-colors text-lg"
+        >
+          กลับไปยังหน้าเข้าสู่ระบบ
+        </Link>
+      </div>
+    </motion.div>
+  )}
   const [userId, setUserId] = useState(null);
   const [newEmail, setNewEmail] = useState('');
   const [passwordData, setPasswordData] = useState({
@@ -39,6 +104,14 @@ export default function VerifyNewEmail() {
   }, []);
 
   useEffect(() => {
+    // กรณีมาจากหน้าลงทะเบียน (มี email แต่ไม่มี token)
+    if (email && !token) {
+      setVerificationStatus('registration_success');
+      setNewEmail(email);
+      return;
+    }
+    
+    // กรณีเข้าหน้านี้โดยตรงโดยไม่มี token
     if (!token) {
       setVerificationStatus('error');
       setErrorMessage('ไม่พบโทเคนยืนยัน กรุณาตรวจสอบลิงก์ในอีเมลของคุณอีกครั้ง');
@@ -75,7 +148,7 @@ export default function VerifyNewEmail() {
     };
 
     verifyNewEmail();
-  }, [token]);
+  }, [token, email]);
 
   // Handle password input changes
   const handlePasswordChange = (e) => {
@@ -250,6 +323,45 @@ export default function VerifyNewEmail() {
                 </div>
 
                 <AnimatePresence mode="wait">
+                  {verificationStatus === 'registration_success' && (
+                    <motion.div 
+                      className="text-center"
+                      key="registration_success"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <div className="flex justify-center mb-4">
+                        <div className="h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            className="h-8 w-8 text-green-600" 
+                            fill="none" 
+                            viewBox="0 0 24 24" 
+                            stroke="currentColor"
+                          >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      </div>
+                      <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
+                        ลงทะเบียนสำเร็จ!
+                      </h2>
+                      <p className="text-gray-600 mb-2">
+                        เราได้ส่งอีเมลยืนยันไปยัง <span className="font-semibold">{newEmail || email}</span>
+                      </p>
+                      <p className="text-gray-600 mb-6">
+                        กรุณาตรวจสอบกล่องจดหมายของคุณและคลิกที่ลิงก์ยืนยันเพื่อเปิดใช้งานบัญชีของคุณ
+                      </p>
+                      <Link 
+                        href="/login" 
+                        className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg px-6 py-3 transition-colors"
+                      >
+                        กลับไปยังหน้าเข้าสู่ระบบ
+                      </Link>
+                    </motion.div>
+                  )}
                   {verificationStatus === 'verifying' && (
                     <motion.div 
                       className="text-center"

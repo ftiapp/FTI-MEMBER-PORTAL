@@ -97,6 +97,7 @@ export default function AdminSidebar() {
   const [pendingProfileUpdates, setPendingProfileUpdates] = useState(0);
   const [pendingGuestMessages, setPendingGuestMessages] = useState(0);
   const [pendingAddressUpdates, setPendingAddressUpdates] = useState(0);
+  const [pendingProductUpdates, setPendingProductUpdates] = useState(0);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   
   // Reset loading state when navigation completes
@@ -163,10 +164,25 @@ export default function AdminSidebar() {
       }
     };
     
+    const fetchPendingProductUpdatesCount = async () => {
+      try {
+        const response = await fetch('/api/admin/pending-product-updates-count');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setPendingProductUpdates(data.count);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching pending product updates count:', error);
+      }
+    };
+    
     fetchPendingCount();
     fetchPendingProfileUpdateCount();
     fetchPendingGuestMessagesCount();
     fetchPendingAddressUpdatesCount();
+    fetchPendingProductUpdatesCount();
     
     // Set up interval to refresh count every minute
     const intervalId = setInterval(() => {
@@ -174,6 +190,7 @@ export default function AdminSidebar() {
       fetchPendingProfileUpdateCount();
       fetchPendingGuestMessagesCount();
       fetchPendingAddressUpdatesCount();
+      fetchPendingProductUpdatesCount();
     }, 600000);
     
     return () => clearInterval(intervalId);
@@ -269,6 +286,17 @@ export default function AdminSidebar() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6" />
         </svg>
       ),
+    },
+    {
+      name: 'แจ้งเปลี่ยนสินค้า/บริการสมาชิก',
+      path: '/admin/product-updates',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 11V7a2 2 0 114 0v4" />
+        </svg>
+      ),
+      badge: pendingProductUpdates > 0 ? pendingProductUpdates : null,
     },
     {
       name: 'เปลี่ยนอีเมลผู้ใช้',

@@ -5,14 +5,14 @@ import { jwtVerify } from 'jose';
 import { query } from './db';
 
 // สร้าง secret key สำหรับ JWT
-const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-user-auth');
+const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
 const adminSecretKey = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'your-secret-key-for-admin-auth');
 
 // ฟังก์ชันสำหรับดึงข้อมูลผู้ใช้จาก session
 export async function getSession() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('user_token');
+    const token = cookieStore.get('token');
     
     if (!token) {
       return null;
@@ -21,14 +21,14 @@ export async function getSession() {
     // ตรวจสอบ token
     const { payload } = await jwtVerify(token.value, secretKey);
     
-    if (!payload || !payload.id) {
+    if (!payload || !payload.userId) {
       return null;
     }
     
     // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
     const users = await query(
       'SELECT id, email, name FROM users WHERE id = ? LIMIT 1',
-      [payload.id]
+      [payload.userId]
     );
     
     if (users.length === 0) {
@@ -53,25 +53,25 @@ export async function getUserFromSession(request) {
     const cookieHeader = request.headers.get('cookie');
     if (!cookieHeader) return null;
     
-    // แยก cookies และหา user_token
+    // แยก cookies และหา token
     const cookies = cookieHeader.split(';').reduce((acc, cookie) => {
       const [key, value] = cookie.trim().split('=');
       acc[key] = value;
       return acc;
     }, {});
     
-    const token = cookies.user_token;
+    const token = cookies.token;
     if (!token) return null;
     
     // ตรวจสอบ token
     const { payload } = await jwtVerify(token, secretKey);
     
-    if (!payload || !payload.id) return null;
+    if (!payload || !payload.userId) return null;
     
     // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
     const users = await query(
       'SELECT id, email, name FROM users WHERE id = ? LIMIT 1',
-      [payload.id]
+      [payload.userId]
     );
     
     if (users.length === 0) return null;

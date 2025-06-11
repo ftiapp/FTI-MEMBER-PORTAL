@@ -121,7 +121,12 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
       <section className="bg-white p-6 rounded-lg shadow-md">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">สินค้าและบริการ</h2>
         <div className="border-t border-gray-200 pt-4">
-          <ProductsList companyInfo={companyInfo} />
+          <ProductsList 
+            companyInfo={companyInfo} 
+            memberType={memberType}
+            memberGroupCode={memberGroupCode}
+            typeCode={typeCode}
+          />
         </div>
       </section>
 
