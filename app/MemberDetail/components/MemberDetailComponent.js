@@ -396,7 +396,7 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
                 companyInfo={companyInfo} 
                 memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
                 memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
-                typeCode={companyInfo.MEMBER_TYPE_CODE}
+                typeCode={'000'}
               />
             </motion.div>
           )}

@@ -115,7 +115,11 @@ export async function POST(request) {
         message: notificationMessage,
         type: 'admin',
         link: `/admin/product-updates?id=${requestId}`,
-        status: 'pending'
+        status: 'pending',
+        member_code: member_code,
+        member_type: member_type,
+        member_group_code: member_group_code,
+        type_code: type_code
       });
 
       // Commit the transaction
