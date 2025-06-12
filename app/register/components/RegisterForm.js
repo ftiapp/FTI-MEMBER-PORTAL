@@ -170,7 +170,7 @@ function RegisterForm() {
       if (response.ok) {
         setSuccess('สมัครสมาชิกสำเร็จ! กำลังนำท่านไปยังหน้าตรวจสอบอีเมล');
         setTimeout(() => {
-          router.push('/check-email');
+          router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
         }, 2000);
       } else {
         // แสดง error บนหน้าเว็บ
