@@ -63,7 +63,7 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
   // เมนูสำหรับ Super Admin (admin_level 5) เท่านั้น
   const superAdminMenuItems = [
     {
-      name: 'กิจกรรมล่าสุด',
+      name: 'กิจกรรมของแอดมิน',
       path: '/admin/dashboard/recent-activities',
       icon: MenuIcons.activity,
     },
@@ -76,11 +76,6 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
       name: 'จัดการสิทธิ์แอดมิน',
       path: '/admin/dashboard/admin-permissions',
       icon: MenuIcons.permissions,
-    },
-    {
-      name: 'กิจกรรม',
-      path: '/admin/dashboard/activities',
-      icon: MenuIcons.list,
     },
     {
       name: 'การตั้งค่า',

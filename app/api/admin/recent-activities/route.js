@@ -20,10 +20,10 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get('limit') || '5'); // แสดง 5 รายการต่อหน้า
     const offset = (page - 1) * limit;
 
-    // Query to get total count of activities (excluding login and create_admin)
+    // Query to get total count of activities (excluding login)
     const countResult = await query(
       `SELECT COUNT(*) as total FROM admin_actions_log 
-       WHERE action_type NOT IN ('login', 'create_admin')`
+       WHERE action_type NOT IN ('login')`
     );
     const totalActivities = countResult[0].total;
     const totalPages = Math.ceil(totalActivities / limit);
@@ -37,13 +37,16 @@ export async function GET(request) {
         aal.target_id, 
         aal.description, 
         aal.created_at,
-        au.username as admin_name
+        au.username as admin_name,
+        target_admin.username as target_admin_name
       FROM 
         admin_actions_log aal
       LEFT JOIN 
         admin_users au ON aal.admin_id = au.id
+      LEFT JOIN
+        admin_users target_admin ON aal.target_id = target_admin.id AND aal.action_type IN ('create_admin', 'update_admin')
       WHERE 
-        aal.action_type NOT IN ('login', 'create_admin')
+        aal.action_type NOT IN ('login')
       ORDER BY 
         aal.created_at DESC
       LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`
@@ -126,8 +129,19 @@ export async function GET(request) {
         case 'reject_member':
           formattedActivity.readableAction = `ปฏิเสธสมาชิก ${formattedActivity.user ? formattedActivity.user.name : `ID: ${activity.target_id}`}`;
           break;
+        case 'create_admin':
+          formattedActivity.readableAction = `สร้างผู้ดูแลระบบใหม่ ${activity.target_admin_name || `ID: ${activity.target_id}`}`;
+          break;
         case 'update_admin':
-          formattedActivity.readableAction = `อัปเดตข้อมูลผู้ดูแลระบบ ID: ${activity.target_id}`;
+          if (activity.description && activity.description.includes('Reset Super Admin password')) {
+            formattedActivity.readableAction = `รีเซ็ตรหัสผ่าน Super Admin`;
+          } else if (activity.description && activity.description.includes('Activated')) {
+            formattedActivity.readableAction = `เปิดใช้งานผู้ดูแลระบบ ${activity.target_admin_name || `ID: ${activity.target_id}`}`;
+          } else if (activity.description && activity.description.includes('Deactivated')) {
+            formattedActivity.readableAction = `ปิดใช้งานผู้ดูแลระบบ ${activity.target_admin_name || `ID: ${activity.target_id}`}`;
+          } else {
+            formattedActivity.readableAction = `อัปเดตข้อมูลผู้ดูแลระบบ ${activity.target_admin_name || `ID: ${activity.target_id}`}`;
+          }
           break;
         case 'contact_message_response':
           if (details.message_subject) {
