@@ -12,7 +12,8 @@ import EmptyState from '../Emptystate';
 /**
  * Logo tab content for member detail page
  */
-export default function LogoTabContent({ companyInfo, memberType, memberGroupCode, typeCode }) {
+export default function LogoTabContent(props) {
+  const { companyInfo, memberType, memberGroupCode, typeCode } = props || {};
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [logoData, setLogoData] = useState(null);

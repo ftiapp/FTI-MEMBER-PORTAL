@@ -13,8 +13,13 @@ import EmptyState from '../Emptystate';
 
 /**
  * Social Media tab content for member detail page
+ * @param {Object} props Component properties
  */
-export default function SocialMediaTabContent({ companyInfo, memberType, memberGroupCode, typeCode }) {
+export default function SocialMediaTabContent(props) {
+  const companyInfo = props.companyInfo;
+  const memberType = props.memberType;
+  const memberGroupCode = props.memberGroupCode;
+  const typeCode = props.typeCode;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [socialMediaData, setSocialMediaData] = useState([]);

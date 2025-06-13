@@ -6,7 +6,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ContactForm, UserMessages, ContactInfo, ContactHeader } from './components';
 import './components/styles.css';
 
-export default function ContactUs({ messageId }) {
+export default function ContactUs(props) {
+  const messageId = props?.messageId || null;
   const { user } = useAuth();
   const [userMessages, setUserMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
