@@ -1,28 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { AnimatePresence, motion } from 'framer-motion';
+import { useAuth } from '../../contexts/AuthContext';
 
 function AdminInfo({ collapsed }) {
   const [admin, setAdmin] = useState(null);
+  
   useEffect(() => {
+    let isMounted = true;
+    
     async function fetchAdmin() {
       try {
-        const res = await fetch('/api/admin/check-session', { cache: 'no-store', next: { revalidate: 0 } });
+        const res = await fetch('/api/admin/check-session', { 
+          cache: 'no-store', 
+          next: { revalidate: 0 } 
+        });
         const data = await res.json();
-        if (data.success && data.admin) setAdmin(data.admin);
-      } catch (e) {}
+        if (data.success && data.admin && isMounted) {
+          setAdmin(data.admin);
+        }
+      } catch (error) {
+        console.error('Error fetching admin:', error);
+      }
     }
+    
     fetchAdmin();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
+  
   if (!admin) return null;
+  
   return (
     <div className={`mt-2 mb-4 px-2 py-2 rounded ${collapsed ? 'hidden' : 'block'} bg-gray-900/70`}> 
       <div className="text-sm text-blue-100 font-semibold">{admin.name || 'Admin'}</div>
       <div className="text-xs text-gray-400 font-mono">{admin.username}</div>
+      {admin.admin_level === 5 && (
+        <div className="text-xs mt-1 bg-red-600 text-white px-1 py-0.5 rounded">Super Admin</div>
+      )}
     </div>
   );
 }
@@ -99,105 +118,78 @@ export default function AdminSidebar() {
   const [pendingAddressUpdates, setPendingAddressUpdates] = useState(0);
   const [pendingProductUpdates, setPendingProductUpdates] = useState(0);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [adminLevel, setAdminLevel] = useState(0);
   
   // Reset loading state when navigation completes
   useEffect(() => {
     setLoading(false);
     setActivePath('');
   }, [pathname]);
-
-  // Fetch pending verification count
+  
+  // ตรวจสอบระดับแอดมิน
   useEffect(() => {
-    const fetchPendingCount = async () => {
+    let isMounted = true;
+    
+    async function fetchAdminLevel() {
       try {
-        const response = await fetch('/api/admin/pending-verifications-count');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setPendingVerifications(data.count);
-          }
+        const res = await fetch('/api/admin/check-session', { 
+          cache: 'no-store', 
+          next: { revalidate: 0 } 
+        });
+        const data = await res.json();
+        if (data.success && data.admin && data.admin.admin_level && isMounted) {
+          setAdminLevel(data.admin.admin_level);
         }
       } catch (error) {
-        console.error('Error fetching pending verifications count:', error);
+        console.error('Error fetching admin level:', error);
       }
+    }
+    
+    fetchAdminLevel();
+    
+    return () => {
+      isMounted = false;
     };
-    
-    const fetchPendingProfileUpdateCount = async () => {
-      try {
-        const response = await fetch('/api/admin/pending-profile-update-count');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setPendingProfileUpdates(data.count);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching pending profile update count:', error);
-      }
-    };
-    
-    const fetchPendingGuestMessagesCount = async () => {
-      try {
-        const response = await fetch('/api/admin/pending-guest-messages-count');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setPendingGuestMessages(data.count);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching pending guest messages count:', error);
-      }
-    };
-    
-    const fetchPendingAddressUpdatesCount = async () => {
-      try {
-        const response = await fetch('/api/admin/pending-address-updates-count');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setPendingAddressUpdates(data.count);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching pending address updates count:', error);
-      }
-    };
-    
-    const fetchPendingProductUpdatesCount = async () => {
-      try {
-        const response = await fetch('/api/admin/pending-product-updates-count');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            setPendingProductUpdates(data.count);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching pending product updates count:', error);
-      }
-    };
-    
-    fetchPendingCount();
-    fetchPendingProfileUpdateCount();
-    fetchPendingGuestMessagesCount();
-    fetchPendingAddressUpdatesCount();
-    fetchPendingProductUpdatesCount();
-    
-    // Set up interval to refresh count every minute
-    const intervalId = setInterval(() => {
-      fetchPendingCount();
-      fetchPendingProfileUpdateCount();
-      fetchPendingGuestMessagesCount();
-      fetchPendingAddressUpdatesCount();
-      fetchPendingProductUpdatesCount();
-    }, 600000);
-    
-    return () => clearInterval(intervalId);
   }, []);
 
+  // Fetch pending counts
+  const fetchPendingCounts = useCallback(async () => {
+    const endpoints = [
+      { url: '/api/admin/pending-verifications-count', setter: setPendingVerifications },
+      { url: '/api/admin/pending-profile-update-count', setter: setPendingProfileUpdates },
+      { url: '/api/admin/pending-guest-messages-count', setter: setPendingGuestMessages },
+      { url: '/api/admin/pending-address-updates-count', setter: setPendingAddressUpdates },
+      { url: '/api/admin/pending-product-updates-count', setter: setPendingProductUpdates },
+    ];
+
+    const promises = endpoints.map(async ({ url, setter }) => {
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setter(data.count);
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching ${url}:`, error);
+      }
+    });
+
+    await Promise.all(promises);
+  }, []);
+
+  useEffect(() => {
+    fetchPendingCounts();
+    
+    // Set up interval to refresh count every 10 minutes
+    const intervalId = setInterval(fetchPendingCounts, 600000);
+    
+    return () => clearInterval(intervalId);
+  }, [fetchPendingCounts]);
+
   // Handle navigation without page reload
-  const handleNavigation = (e, path) => {
+  const handleNavigation = useCallback((e, path) => {
     e.preventDefault();
     
     // Prevent navigation if already loading
@@ -212,13 +204,16 @@ export default function AdminSidebar() {
     
     // Add a timeout as a fallback to reset loading state
     // in case the navigation effect doesn't trigger
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
       setLoading(false);
       setActivePath('');
     }, 3000);
-  };
+    
+    return () => clearTimeout(timeoutId);
+  }, [loading, router]);
   
-  const menuItems = [
+  // เมนูสำหรับแอดมินทุกระดับ
+  const commonMenuItems = [
     {
       name: 'แดชบอร์ด',
       path: '/admin/dashboard',
@@ -228,6 +223,10 @@ export default function AdminSidebar() {
         </svg>
       ),
     },
+  ];
+  
+  // เมนูสำหรับ Super Admin (admin_level 5) เท่านั้น
+  const superAdminMenuItems = [
     {
       name: 'กิจกรรมล่าสุด',
       path: '/admin/dashboard/recent-activities',
@@ -237,6 +236,38 @@ export default function AdminSidebar() {
         </svg>
       ),
     },
+    {
+      name: 'จัดการแอดมิน',
+      path: '/admin/dashboard/manage-admins',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'ตั้งค่าระบบ',
+      path: '/admin/dashboard/settings',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      ),
+    },
+    {
+      name: 'รีเซ็ตรหัสผ่าน Super Admin',
+      path: '/admin/reset-password',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+        </svg>
+      ),
+    },
+  ];
+  
+  // เมนูสำหรับแอดมินทั่วไป (admin_level < 5)
+  const regularMenuItems = [
     {
       name: 'จัดการสมาชิก',
       path: '/admin/dashboard/members',
@@ -278,16 +309,6 @@ export default function AdminSidebar() {
       badge: pendingAddressUpdates > 0 ? pendingAddressUpdates : null,
     },
     {
-      name: 'จัดการคำขอแก้ไข TSIC',
-      path: '/admin/tsic-updates',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6" />
-        </svg>
-      ),
-    },
-    {
       name: 'แจ้งเปลี่ยนสินค้า/บริการสมาชิก',
       path: '/admin/product-updates',
       icon: (
@@ -326,62 +347,100 @@ export default function AdminSidebar() {
       ),
       badge: pendingGuestMessages > 0 ? pendingGuestMessages : null,
     },
-    {
-      name: 'ตั้งค่าระบบ',
-      path: '/admin/dashboard/settings',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      ),
-    },
   ];
+  
+  // รวมเมนูตามระดับสิทธิ์
+  const menuItems = [
+    ...commonMenuItems,
+    ...(adminLevel >= 5 ? superAdminMenuItems : regularMenuItems)
+  ];
+  
+  const toggleCollapse = useCallback(() => {
+    setCollapsed(!collapsed);
+  }, [collapsed]);
+
+  const handleLogout = useCallback(async () => {
+    setLoading(true);
+    setActivePath('logout');
+    
+    try {
+      // Clear user data from storage manually instead of using the logout function
+      sessionStorage.removeItem('user');
+      localStorage.removeItem('user');
+      
+      // Clear cookies by calling the logout API directly
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      // Redirect directly to admin login page
+      router.push('/admin');
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Even if there's an error, still redirect to admin page
+      router.push('/admin');
+    }
+  }, [router]);
   
   return (
     <aside className={`bg-gray-800 text-white ${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 ease-in-out min-h-screen h-full flex flex-col`}>
-      <div className="p-4 flex justify-between items-center border-b border-gray-700">
-        <div className={`${collapsed ? 'hidden' : 'block'}`}>
-          <h1 className="text-xl font-bold">เมนู</h1>
+      <div className="p-4 flex justify-between items-center">
+        <div className={`flex items-center ${collapsed ? 'justify-center w-full' : ''}`}>
+         
+          {!collapsed && (
+            <div className="ml-3">
+              <div className="font-semibold text-sm">Menu</div>
+           
+            </div>
+          )}
         </div>
-       
+        <button
+          onClick={toggleCollapse}
+          className={`text-white p-1 rounded-full hover:bg-gray-700 ${collapsed ? 'hidden' : 'block'}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
       </div>
-      
-      <nav className="mt-6">
-        <ul className="space-y-2 px-2">
-          {menuItems.map((item) => (
-            <li key={item.path}>
+
+      <AdminInfo collapsed={collapsed} />
+
+      <div className="overflow-y-auto flex-grow">
+        <nav className="mt-5 px-2">
+          {menuItems.map((item, index) => (
+            <div key={index} className="mb-2 relative">
               <Link
                 href={item.path}
+                className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
+                  pathname === item.path || (item.path !== '/admin/dashboard' && pathname.startsWith(item.path)) 
+                    ? 'bg-gray-900 text-white' 
+                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                } ${loading && activePath === item.path ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={(e) => handleNavigation(e, item.path)}
-                className={`flex items-center p-3 rounded-lg transition-colors ${
-                  pathname === item.path ? 'bg-blue-700' : 'hover:bg-gray-700'
-                } ${loading && activePath === item.path ? 'opacity-70 cursor-not-allowed' : ''}`}
-                aria-disabled={loading && activePath === item.path}
               >
-                <span className="text-gray-300">
-                  {loading && activePath === item.path ? (
-                    <svg className="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                  ) : (
-                    item.icon
-                  )}
-                </span>
-                <span className={`ml-3 ${collapsed ? 'hidden' : 'block'}`}>
-                  {item.name}
-                  {item.badge && (
-                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-600 rounded-full">
-                      {item.badge}
-                    </span>
-                  )}
-                </span>
+                <div className="mr-3">{item.icon}</div>
+                {!collapsed && (
+                  <div className="flex-grow">
+                    <span>{item.name}</span>
+                    {item.badge && (
+                      <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {collapsed && item.badge && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
-            </li>
+            </div>
           ))}
-        </ul>
-      </nav>
+        </nav>
+      </div>
       
       <div className="mt-auto sticky bottom-0 w-full border-t border-gray-700">
         <button
@@ -407,36 +466,12 @@ export default function AdminSidebar() {
           {!collapsed && <span className="ml-3 text-white">ออกจากระบบ</span>}
         </button>
         
-        {showLogoutConfirmation && (
-          <LogoutConfirmationDialog 
-            isOpen={showLogoutConfirmation}
-            onClose={() => setShowLogoutConfirmation(false)}
-            isLoading={loading}
-            onConfirm={async () => {
-              setLoading(true);
-              setActivePath('logout');
-              
-              try {
-                // Clear user data from storage manually instead of using the logout function
-                sessionStorage.removeItem('user');
-                localStorage.removeItem('user');
-                
-                // Clear cookies by calling the logout API directly
-                await fetch('/api/auth/logout', {
-                  method: 'POST',
-                  credentials: 'include'
-                });
-                
-                // Redirect directly to admin login page
-                router.push('/admin');
-              } catch (error) {
-                console.error('Logout error:', error);
-                // Even if there's an error, still redirect to admin page
-                router.push('/admin');
-              }
-            }}
-          />
-        )}
+        <LogoutConfirmationDialog 
+          isOpen={showLogoutConfirmation}
+          onClose={() => setShowLogoutConfirmation(false)}
+          isLoading={loading}
+          onConfirm={handleLogout}
+        />
       </div>
     </aside>
   );

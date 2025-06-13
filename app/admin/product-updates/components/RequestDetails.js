@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { formatDate, formatStatus, getStatusColor } from '../utils/formatters';
 import ProductComparison from './ProductComparison';
+import { FiX, FiCheck, FiXCircle } from 'react-icons/fi';
 
 /**
  * Component for displaying product update request details
@@ -49,45 +50,44 @@ export default function RequestDetails({ request, onApprove, onReject, onClose }
   // No need for product edit handling as admin will update in ERP system
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">รายละเอียดคำขอแก้ไขข้อมูลสินค้า</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
+        <div className="p-6 md:p-8">
+          <div className="flex justify-between items-center mb-6 border-b pb-4">
+            <h2 className="text-xl md:text-2xl font-semibold text-gray-800">รายละเอียดคำขอแก้ไขข้อมูลสินค้า</h2>
             <button
               onClick={onClose}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 p-2 rounded-full hover:bg-gray-100 transition-colors"
+              aria-label="Close"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
+              <FiX className="h-6 w-6" />
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-            <div>
-              <p className="text-sm text-gray-600">รหัสสมาชิก</p>
-              <p className="font-medium">{request.member_code}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 bg-gray-50 p-4 rounded-lg">
+            <div className="bg-white p-3 rounded-md shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">รหัสสมาชิก</p>
+              <p className="font-medium text-gray-900">{request.member_code}</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">ชื่อบริษัท</p>
-              <p className="font-medium">{request.company_name}</p>
+            <div className="bg-white p-3 rounded-md shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">ชื่อบริษัท</p>
+              <p className="font-medium text-gray-900">{request.company_name}</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">ผู้ขอแก้ไข</p>
-              <p className="font-medium">{request.user_name || '-'}</p>
+            <div className="bg-white p-3 rounded-md shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">ผู้ขอแก้ไข</p>
+              <p className="font-medium text-gray-900">{request.user_name || '-'}</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">อีเมล</p>
-              <p className="font-medium">{request.user_email || '-'}</p>
+            <div className="bg-white p-3 rounded-md shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">อีเมล</p>
+              <p className="font-medium text-gray-900">{request.user_email || '-'}</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">วันที่ขอแก้ไข</p>
-              <p className="font-medium">{formatDate(request.created_at)}</p>
+            <div className="bg-white p-3 rounded-md shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">วันที่ขอแก้ไข</p>
+              <p className="font-medium text-gray-900">{formatDate(request.created_at)}</p>
             </div>
-            <div>
-              <p className="text-sm text-gray-600">สถานะ</p>
-              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+            <div className="bg-white p-3 rounded-md shadow-sm">
+              <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">สถานะ</p>
+              <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
                 {formatStatus(request.status)}
               </span>
             </div>
@@ -99,17 +99,17 @@ export default function RequestDetails({ request, onApprove, onReject, onClose }
           />
 
           {request.status === 'pending' && (
-            <div className="mt-6 border-t pt-4">
+            <div className="mt-8 border-t pt-6">
               {!showRejectForm ? (
                 <>
-                  <div className="mb-4">
-                    <label htmlFor="admin-notes" className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="mb-5">
+                    <label htmlFor="admin-notes" className="block text-sm font-medium text-gray-700 mb-2">
                       หมายเหตุ (ไม่บังคับ)
                     </label>
                     <textarea
                       id="admin-notes"
                       rows="3"
-                      className="w-full border rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                       placeholder="เพิ่มหมายเหตุเกี่ยวกับการอนุมัติ"
                       value={adminNotes}
                       onChange={(e) => setAdminNotes(e.target.value)}
@@ -118,30 +118,30 @@ export default function RequestDetails({ request, onApprove, onReject, onClose }
                   <div className="flex justify-end gap-3">
                     <button
                       onClick={() => setShowRejectForm(true)}
-                      className="px-4 py-2 border border-red-600 text-red-600 rounded-md hover:bg-red-50"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-red-600 text-red-600 rounded-lg hover:bg-red-50 font-medium transition-colors focus:ring-2 focus:ring-red-300"
                       disabled={isSubmitting}
                     >
-                      ปฏิเสธคำขอ
+                      <FiXCircle className="w-4 h-4" /> ปฏิเสธคำขอ
                     </button>
                     <button
                       onClick={handleApprove}
-                      className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium transition-colors focus:ring-2 focus:ring-green-300"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติคำขอ'}
+                      <FiCheck className="w-4 h-4" /> {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติคำขอ'}
                     </button>
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="mb-4">
-                    <label htmlFor="reject-reason" className="block text-sm font-medium text-gray-700 mb-1">
+                  <div className="mb-5">
+                    <label htmlFor="reject-reason" className="block text-sm font-medium text-gray-700 mb-2">
                       เหตุผลในการปฏิเสธ <span className="text-red-600">*</span>
                     </label>
                     <textarea
                       id="reject-reason"
                       rows="3"
-                      className="w-full border rounded-md px-3 py-2"
+                      className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-colors"
                       placeholder="ระบุเหตุผลในการปฏิเสธคำขอ"
                       value={rejectReason}
                       onChange={(e) => setRejectReason(e.target.value)}
@@ -151,17 +151,17 @@ export default function RequestDetails({ request, onApprove, onReject, onClose }
                   <div className="flex justify-end gap-3">
                     <button
                       onClick={() => setShowRejectForm(false)}
-                      className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50"
+                      className="px-5 py-2.5 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors focus:ring-2 focus:ring-gray-200"
                       disabled={isSubmitting}
                     >
                       ยกเลิก
                     </button>
                     <button
                       onClick={handleReject}
-                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                      className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors focus:ring-2 focus:ring-red-300"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
+                      <FiXCircle className="w-4 h-4" /> {isSubmitting ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
                     </button>
                   </div>
                 </>
@@ -170,16 +170,20 @@ export default function RequestDetails({ request, onApprove, onReject, onClose }
           )}
 
           {request.status === 'approved' && request.admin_notes && (
-            <div className="mt-6 border-t pt-4">
-              <h3 className="font-medium mb-2">หมายเหตุจากผู้ดูแลระบบ</h3>
-              <p className="text-gray-700 bg-gray-50 p-3 rounded">{request.admin_notes}</p>
+            <div className="mt-8 border-t pt-6">
+              <h3 className="font-medium mb-3 text-gray-800 flex items-center gap-2">
+                <FiCheck className="text-green-600" /> หมายเหตุจากผู้ดูแลระบบ
+              </h3>
+              <p className="text-gray-700 bg-green-50 p-4 rounded-lg border border-green-100">{request.admin_notes}</p>
             </div>
           )}
 
           {request.status === 'rejected' && request.reject_reason && (
-            <div className="mt-6 border-t pt-4">
-              <h3 className="font-medium mb-2 text-red-600">เหตุผลในการปฏิเสธ</h3>
-              <p className="text-gray-700 bg-red-50 p-3 rounded">{request.reject_reason}</p>
+            <div className="mt-8 border-t pt-6">
+              <h3 className="font-medium mb-3 text-red-600 flex items-center gap-2">
+                <FiXCircle className="text-red-600" /> เหตุผลในการปฏิเสธ
+              </h3>
+              <p className="text-gray-700 bg-red-50 p-4 rounded-lg border border-red-100">{request.reject_reason}</p>
             </div>
           )}
         </div>

@@ -5,15 +5,46 @@ import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 import { motion } from 'framer-motion';
-import { useAuth } from '@/app/contexts/AuthContext';
-import AdminLayout from '@/app/admin/components/AdminLayout';
+import { useAuth } from '../../../contexts/AuthContext';
+import AdminLayout from '../../../admin/components/AdminLayout';
+import toast from 'react-hot-toast';
 
 export default function RecentActivities() {
   const router = useRouter();
   const { user } = useAuth();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [admin, setAdmin] = useState(null);
   const [error, setError] = useState(null);
+  
+  // ตรวจสอบสิทธิ์ Super Admin (admin_level 5)
+  useEffect(() => {
+    async function checkAdminLevel() {
+      try {
+        const res = await fetch('/api/admin/check-session', { cache: 'no-store', next: { revalidate: 0 } });
+        const data = await res.json();
+        
+        if (data.success && data.admin) {
+          setAdmin(data.admin);
+          
+          // ถ้าไม่ใช่ Super Admin (admin_level 5) ให้ redirect กลับไปหน้า dashboard
+          if (data.admin.admin_level < 5) {
+            toast.error('คุณไม่มีสิทธิ์เข้าถึงหน้านี้ เฉพาะ Super Admin เท่านั้น');
+            router.push('/admin/dashboard');
+          }
+        } else {
+          // ถ้าไม่มีข้อมูล admin ให้ redirect ไปหน้า login
+          router.push('/admin/login');
+        }
+      } catch (error) {
+        console.error('Error checking admin level:', error);
+        toast.error('เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์');
+        router.push('/admin/dashboard');
+      }
+    }
+    
+    checkAdminLevel();
+  }, [router]);
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,

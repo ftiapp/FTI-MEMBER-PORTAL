@@ -123,7 +123,14 @@ export default function AdminLayout({ children }) {
                   </svg>
                 </button>
                 <div className="flex items-center px-2 lg:px-0">
-                  <h1 className="text-2xl font-semibold text-gray-800">{pageTitle}</h1>
+                  <img src="/FTI-MasterLogo_RGB_forLightBG.png" alt="FTI Logo" className="h-10 w-auto mr-3 flex-shrink-0" />
+                  <div className="mr-6">
+                    <div className="font-semibold text-sm text-gray-800">สภาอุตสาหกรรมแห่งประเทศไทย</div>
+                    <div className="text-xs text-gray-500">The Federation of Thai Industries</div>
+                  </div>
+                  <div className="border-l-2 border-gray-300 pl-6">
+                    <h1 className="text-xl font-semibold text-gray-800">{pageTitle}</h1>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center">
