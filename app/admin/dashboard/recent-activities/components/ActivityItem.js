@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { formatDate, getActionBadgeColor } from '../utils/activityHelpers';
+import { formatDate, getActionBadgeColor, formatActionType } from '../utils/activityHelpers';
 
 export default function ActivityItem({ activity, index }) {
   return (
@@ -30,7 +30,7 @@ export default function ActivityItem({ activity, index }) {
         </div>
         <div className="sm:ml-0 ml-14 mt-2 sm:mt-0">
           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionBadgeColor(activity.actionType)}`}>
-            {activity.actionType}
+            {formatActionType(activity.actionType)}
           </span>
         </div>
       </div>
@@ -41,12 +41,49 @@ export default function ActivityItem({ activity, index }) {
         {activity.details && Object.keys(activity.details).length > 0 && (
           <div className="mt-2">
             <div className="flex flex-wrap gap-2">
-              {Object.entries(activity.details).map(([key, value]) => (
-                <span key={key} className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-xs border border-gray-200">
-                  <span className="font-medium">{key}:</span>
-                  <span className="ml-1">{value}</span>
-                </span>
-              ))}
+              {Object.entries(activity.details).map(([key, value]) => {
+                // แปลชื่อฟิลด์เป็นภาษาไทย
+                let thaiKey = key;
+                switch(key) {
+                  case 'member_code':
+                    thaiKey = 'หมายเลขสมาชิก';
+                    break;
+                  case 'company_name':
+                    thaiKey = 'ชื่อบริษัท';
+                    break;
+                  case 'admin_notes':
+                  case 'admin_note':
+                    thaiKey = 'บันทึกช่วยจำ';
+                    break;
+                  case 'request_id':
+                    thaiKey = 'รหัสคำขอ';
+                    break;
+                  case 'target_id':
+                    thaiKey = 'รหัสเป้าหมาย';
+                    break;
+                  case 'user_id':
+                    thaiKey = 'รหัสผู้ใช้';
+                    break;
+                  case 'description':
+                    thaiKey = 'คำอธิบาย';
+                    break;
+                  case 'status':
+                    thaiKey = 'สถานะ';
+                    break;
+                  case 'reason':
+                    thaiKey = 'เหตุผล';
+                    break;
+                  default:
+                    // คงค่าเดิมถ้าไม่มีการแปล
+                    break;
+                }
+                return (
+                  <span key={key} className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-xs border border-gray-200">
+                    <span className="font-medium">{thaiKey}:</span>
+                    <span className="ml-1">{value}</span>
+                  </span>
+                );
+              })}
             </div>
           </div>
         )}

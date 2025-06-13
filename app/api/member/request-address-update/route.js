@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-import { query } from '@/app/lib/db';
+import { query } from '../../../lib/db';
 import { cookies } from 'next/headers';
-import { createNotification } from '@/app/lib/notifications';
+import { createNotification } from '../../../lib/notifications';
 
 /**
  * API endpoint to handle address update requests

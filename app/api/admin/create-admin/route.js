@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { getAdminFromSession, logAdminAction } from '@/app/lib/adminAuth';
+import { query } from '../../../lib/db';
+import { getAdminFromSession, logAdminAction } from '../../../lib/adminAuth';
 import bcrypt from 'bcrypt';
 
 export async function POST(request) {

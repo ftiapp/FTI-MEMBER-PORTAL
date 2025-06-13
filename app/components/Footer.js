@@ -245,7 +245,7 @@ const Footer = () => {
             <p>{new Date().getFullYear()} ฝ่ายดิจิทัลและเทคโนโลยี สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
             <div className="flex flex-col sm:flex-row items-center mt-2 text-gray-300">
               <span className="mr-1 text-xs">หากท่านมีปัญหาด้านการใช้งาน กรุณาติดต่อ</span>
-              <span className="font-medium">พลวัต ศรีชนะ</span>
+              <span className="font-medium">พลวัต ศรีชนะ สุดหล่อ</span>
               <span className="mx-1 hidden sm:inline">|</span>
               <motion.a 
                 href="tel:0234510750" 

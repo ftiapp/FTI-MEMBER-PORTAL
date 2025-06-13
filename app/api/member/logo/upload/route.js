@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query, beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
-import { uploadToCloudinary, deleteFromCloudinary } from '@/app/lib/cloudinary';
+import { query, beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '../../../../lib/db';
+import { uploadToCloudinary, deleteFromCloudinary } from '../../../../lib/cloudinary';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 

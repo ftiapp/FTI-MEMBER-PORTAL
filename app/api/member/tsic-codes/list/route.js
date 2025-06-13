@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
+import { query } from '../../../../lib/db';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 

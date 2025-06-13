@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminLogout } from '@/app/lib/adminAuth';
+import { adminLogout } from '../../../lib/adminAuth';
 
 export async function POST() {
   try {

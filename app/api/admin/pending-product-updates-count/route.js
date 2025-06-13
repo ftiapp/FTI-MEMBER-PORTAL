@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { checkAdminSession } from '@/app/lib/auth';
-import { pool } from '@/app/lib/db';
+import { checkAdminSession } from '../../../lib/auth';
+import { pool } from '../../../lib/db';
 
 /**
  * API endpoint to count pending product update requests

@@ -1,8 +1,8 @@
-import { query } from '@/app/lib/db';
+import { query } from '../../../lib/db';
 import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
-import { getClientIp } from '@/app/lib/utils';
-import { createNotification } from '@/app/lib/notifications';
+import { getAdminFromSession } from '../../../lib/adminAuth';
+import { getClientIp } from '../../../lib/utils';
+import { createNotification } from '../../../lib/notifications';
 
 export async function POST(request) {
   try {

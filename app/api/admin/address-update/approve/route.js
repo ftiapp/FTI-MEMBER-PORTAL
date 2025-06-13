@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
-import { query } from '@/app/lib/db';
-import { mssqlQuery } from '@/app/lib/mssql';
-import { sendAddressApprovalEmail } from '@/app/lib/mailersend';
-import { createNotification } from '@/app/lib/notifications';
+import { getAdminFromSession } from '../../../../lib/adminAuth';
+import { query } from '../../../../lib/db';
+import { mssqlQuery } from '../../../../lib/mssql';
+import { sendAddressApprovalEmail } from '../../../../lib/mailersend';
+import { createNotification } from '../../../../lib/notifications';
 
 export async function POST(request) {
   try {

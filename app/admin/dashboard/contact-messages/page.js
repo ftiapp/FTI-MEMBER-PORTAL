@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
-import AdminLayout from '../../../components/AdminLayout';
+import AdminLayout from '../../components/AdminLayout';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import MessageList from './components/MessageList';

@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { getAdminFromSession, logAdminAction } from '@/app/lib/adminAuth';
-import { sendApprovalEmail, sendRejectionEmail } from '@/app/lib/mailersend';
-import { createNotification } from '@/app/lib/notifications';
+import { query } from '../../../lib/db';
+import { getAdminFromSession, logAdminAction } from '../../../lib/adminAuth';
+import { sendApprovalEmail, sendRejectionEmail } from '../../../lib/mailersend';
+import { createNotification } from '../../../lib/notifications';
 
 export async function POST(request) {
   try {
@@ -119,13 +119,41 @@ export async function POST(request) {
       
       if (action === 'approve') {
         actionType = 'approve_member';
-        actionDetails = `Member approved - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}`;
+        actionDetails = JSON.stringify({
+          message: `Member approved - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}`,
+          userId: userId,
+          firstname: firstname || '',
+          lastname: lastname || '',
+          email: email || '',
+          phone: companyResult[0].phone || '',
+          member_code: companyResult[0].MEMBER_CODE || '',
+          company_name: companyResult[0].company_name || ''
+        });
       } else if (action === 'reject') {
         actionType = 'reject_member';
-        actionDetails = `Member rejected - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}, Reason: ${reason || 'No reason provided'}`;
+        actionDetails = JSON.stringify({
+          message: `Member rejected - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name}, Reason: ${reason || 'No reason provided'}`,
+          userId: userId,
+          firstname: firstname || '',
+          lastname: lastname || '',
+          email: email || '',
+          phone: companyResult[0].phone || '',
+          member_code: companyResult[0].MEMBER_CODE || '',
+          company_name: companyResult[0].company_name || '',
+          reject_reason: reason || ''
+        });
       } else if (action === 'delete') {
         actionType = 'other';
-        actionDetails = `Member deleted - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name} (status changed to 3)`;
+        actionDetails = JSON.stringify({
+          message: `Member deleted - Member Code: ${companyResult[0].MEMBER_CODE}, Company: ${companyResult[0].company_name} (status changed to 3)`,
+          userId: userId,
+          firstname: firstname || '',
+          lastname: lastname || '',
+          email: email || '',
+          phone: companyResult[0].phone || '',
+          member_code: companyResult[0].MEMBER_CODE || '',
+          company_name: companyResult[0].company_name || ''
+        });
       }
       
       await logAdminAction(

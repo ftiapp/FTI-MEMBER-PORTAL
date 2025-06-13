@@ -1,6 +1,6 @@
-import { query } from '@/app/lib/db';
+import { query } from '../../../lib/db';
 import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
+import { getAdminFromSession } from '../../../lib/adminAuth';
 
 export async function GET() {
   // Auth (optional: only admin can see)

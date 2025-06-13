@@ -60,12 +60,23 @@ export const getDateRange = (range) => {
 // Format action type for display
 export const formatActionType = (actionType) => {
   const actionTypeMap = {
+    'login': 'เข้าสู่ระบบ',
     'approve_member': 'อนุมัติสมาชิก',
     'reject_member': 'ปฏิเสธสมาชิก',
+    'create_admin': 'สร้างผู้ดูแลระบบใหม่',
+    'update_admin': 'อัปเดตผู้ดูแลระบบ',
+    'other': 'การกระทำอื่นๆ',
+    'contact_message_response': 'ตอบกลับข้อความติดต่อ',
     'approve_profile_update': 'อนุมัติการอัปเดตโปรไฟล์',
     'reject_profile_update': 'ปฏิเสธการอัปเดตโปรไฟล์',
-    'contact_message_response': 'ตอบกลับข้อความติดต่อ',
-    'update_admin': 'อัปเดตแอดมิน',
+    'approve_address_update': 'อนุมัติการแก้ไขที่อยู่',
+    'reject_address_update': 'ปฏิเสธการแก้ไขที่อยู่',
+    'approve_tsic_update': 'อนุมัติการอัปเดตรหัส TSIC',
+    'reject_tsic_update': 'ปฏิเสธการอัปเดตรหัส TSIC',
+    'contact_message_direct_reply': 'ตอบกลับข้อความติดต่อโดยตรง',
+    'contact_message_read': 'อ่านข้อความติดต่อ',
+    'approve_product_update': 'อนุมัติการอัปเดตข้อมูลสินค้า',
+    'reject_product_update': 'ปฏิเสธการอัปเดตข้อมูลสินค้า'
   };
   
   return actionTypeMap[actionType] || actionType;

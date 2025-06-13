@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { uploadToCloudinary } from '@/app/lib/cloudinary';
+import { query } from '../../../lib/db';
+import { uploadToCloudinary } from '../../../lib/cloudinary';
 
 /**
  * API endpoint to handle document uploads

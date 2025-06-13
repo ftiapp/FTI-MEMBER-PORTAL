@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { executeQuery, beginTransaction, commitTransaction, rollbackTransaction } from '@/app/lib/db';
-import { getUserFromSession } from '@/app/lib/userAuth';
+import { executeQuery, beginTransaction, commitTransaction, rollbackTransaction } from '../../../../lib/db';
+import { getUserFromSession } from '../../../../lib/userAuth';
 
 /**
  * API endpoint to delete a specific TSIC code for a member

@@ -72,7 +72,7 @@ export async function GET(request) {
     if (userIds.size > 0) {
       const userIdsArray = Array.from(userIds);
       const users = await query(
-        `SELECT id, name, firstname, lastname, email FROM users WHERE id IN (${userIdsArray.map(() => '?').join(',')})`
+        `SELECT id, name, firstname, lastname, email, phone FROM users WHERE id IN (${userIdsArray.map(() => '?').join(',')})`
         , userIdsArray
       );
       
@@ -117,17 +117,18 @@ export async function GET(request) {
           id: user.id,
           name: user.name,
           fullName: `${user.firstname || ''} ${user.lastname || ''}`.trim(),
-          email: user.email
+          email: user.email,
+          phone: user.phone
         };
       }
 
       // Add readable description based on action type
       switch (activity.action_type) {
         case 'approve_member':
-          formattedActivity.readableAction = `อนุมัติสมาชิก ${formattedActivity.user ? formattedActivity.user.name : `ID: ${activity.target_id}`}`;
+          formattedActivity.readableAction = `อนุมัติสมาชิก ${formattedActivity.user ? `${formattedActivity.user.fullName} (${formattedActivity.user.email || '-'}, ${formattedActivity.user.phone || '-'})` : `ID: ${activity.target_id}`}`;
           break;
         case 'reject_member':
-          formattedActivity.readableAction = `ปฏิเสธสมาชิก ${formattedActivity.user ? formattedActivity.user.name : `ID: ${activity.target_id}`}`;
+          formattedActivity.readableAction = `ปฏิเสธสมาชิก ${formattedActivity.user ? `${formattedActivity.user.fullName} (${formattedActivity.user.email || '-'}, ${formattedActivity.user.phone || '-'})` : `ID: ${activity.target_id}`}`;
           break;
         case 'create_admin':
           formattedActivity.readableAction = `สร้างผู้ดูแลระบบใหม่ ${activity.target_admin_name || `ID: ${activity.target_id}`}`;
@@ -151,13 +152,18 @@ export async function GET(request) {
           }
           break;
         case 'approve_profile_update':
-          formattedActivity.readableAction = `อนุมัติการอัปเดตโปรไฟล์ของ ${formattedActivity.user ? formattedActivity.user.name : `ผู้ใช้ ID: ${details.userId || activity.target_id}`}`;
+          formattedActivity.readableAction = `อนุมัติการอัปเดตโปรไฟล์ของ ${formattedActivity.user ? `${formattedActivity.user.fullName} (${formattedActivity.user.email || '-'}, ${formattedActivity.user.phone || '-'})` : `ผู้ใช้ ID: ${details.userId || activity.target_id}`}`;
           break;
         case 'reject_profile_update':
-          formattedActivity.readableAction = `ปฏิเสธการอัปเดตโปรไฟล์ของ ${formattedActivity.user ? formattedActivity.user.name : `ผู้ใช้ ID: ${details.userId || activity.target_id}`}`;
+          formattedActivity.readableAction = `ปฏิเสธการอัปเดตโปรไฟล์ของ ${formattedActivity.user ? `${formattedActivity.user.fullName} (${formattedActivity.user.email || '-'}, ${formattedActivity.user.phone || '-'})` : `ผู้ใช้ ID: ${details.userId || activity.target_id}`}`;
           break;
         default:
-          formattedActivity.readableAction = `${activity.action_type} - ID: ${activity.target_id}`;
+          // ถ้าเป็นกรณีอื่นๆ ที่มี userId
+          if (formattedActivity.user) {
+            formattedActivity.readableAction = `${activity.action_type} - ${formattedActivity.user.fullName} (${formattedActivity.user.email || '-'}, ${formattedActivity.user.phone || '-'})`;
+          } else {
+            formattedActivity.readableAction = `${activity.action_type} - ID: ${activity.target_id}`;
+          }
       }
 
       return formattedActivity;

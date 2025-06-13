@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { checkAdminSession } from '@/app/lib/auth';
-import { pool } from '@/app/lib/db';
-import { createNotification } from '@/app/lib/notifications';
+import { checkAdminSession } from '../../../../lib/auth';
+import { pool } from '../../../../lib/db';
+import { createNotification } from '../../../../lib/notifications';
 
 /**
  * API endpoint to reject a product update request
@@ -36,9 +36,12 @@ export async function POST(request) {
     await pool.query('START TRANSACTION');
 
     try {
-      // Get the request details
+      // Get the request details with all necessary information
       const [requests] = await pool.query(`
-        SELECT * FROM pending_product_updates WHERE id = ?
+        SELECT p.*, u.firstname, u.lastname, u.email, u.phone 
+        FROM pending_product_updates p
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE p.id = ?
       `, [id]);
 
       if (requests.length === 0) {
@@ -62,11 +65,34 @@ export async function POST(request) {
       const adminIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
       const adminAgent = request.headers.get('user-agent') || 'unknown';
       
-      // Format the details for logging
+      // Parse old and new data if available
+      let oldData = {};
+      let newData = {};
+      
+      try {
+        if (request.old_data) {
+          oldData = JSON.parse(request.old_data);
+        }
+        if (request.new_data) {
+          newData = JSON.parse(request.new_data);
+        }
+      } catch (parseError) {
+        console.error('Error parsing old/new data:', parseError);
+      }
+      
+      // Format the details for logging with complete user information
       const logDetails = JSON.stringify({
+        message: `Product update rejected - Member Code: ${request.member_code}, Company: ${request.company_name}, Reason: ${reject_reason}`,
         request_id: id,
+        userId: request.user_id,
+        firstname: request.firstname || '',
+        lastname: request.lastname || '',
+        email: request.email || '',
+        phone: request.phone || '',
         member_code: request.member_code,
         company_name: request.company_name,
+        old_data: oldData,
+        new_data: newData,
         reject_reason: reject_reason
       });
 
