@@ -3,8 +3,8 @@
 'use client';
 
 import { useState } from 'react';
-import AdminLayout from '@/app/admin/components/AdminLayout';
-import GuestContactMessageStats from '@/app/admin/components/GuestContactMessageStats';
+import AdminLayout from '../../../../components/AdminLayout';
+import GuestContactMessageStats from '../../../../components/GuestContactMessageStats';
 import MessageList from './MessageList';
 import MessageDetail from './MessageDetail';
 import { useGuestMessages } from '../hooks/useGuestMessages';

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AdminLayout from '@/app/admin/components/AdminLayout';
+import AdminLayout from '../components/AdminLayout';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { RequestList, RequestDetail, RejectReasonModal } from './components';

@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  * to the appropriate dashboard based on the admin's permission level.
  * 
  * - Regular admins (levels 1-4) are redirected to /admin/dashboard
- * - SuperAdmins (level 5) are redirected to /admin/super
+ * - SuperAdmins (level 5) are redirected to /admin/dashboard/manage-admins
  */
 
 export default function AdminLogin() {
@@ -174,7 +174,7 @@ export default function AdminLogin() {
         toast.success('เข้าสู่ระบบสำเร็จ');
         // Redirect based on admin level with smooth transition
         if (result.adminLevel === 5) {
-          router.push('/admin/super', undefined, { scroll: false });
+          router.push('/admin/dashboard/manage-admins', undefined, { scroll: false });
         } else {
           router.push('/admin/dashboard', undefined, { scroll: false });
         }

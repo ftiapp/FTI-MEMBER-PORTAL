@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AdminInfo } from '@/app/admin/components/AdminSidebar';
-import AdminLayout from '@/app/admin/components/AdminLayout';
-import GuestContactMessageStats from '@/app/admin/components/GuestContactMessageStats';
+import { AdminInfo } from '../../../components/AdminSidebar';
+import AdminLayout from '../../../components/AdminLayout';
+import GuestContactMessageStats from '../../../components/GuestContactMessageStats';
 import { toast } from 'react-hot-toast';
 
 export default function GuestMessagesPage() {
