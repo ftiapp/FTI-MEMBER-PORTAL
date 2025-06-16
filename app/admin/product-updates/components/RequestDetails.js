@@ -94,8 +94,10 @@ export default function RequestDetails({ request, onApprove, onReject, onClose }
           </div>
 
           <ProductComparison
-            oldProducts={request.old_products}
-            newProducts={request.new_products}
+            oldProductsTH={request.old_products_th}
+            newProductsTH={request.new_products_th}
+            oldProductsEN={request.old_products_en}
+            newProductsEN={request.new_products_en}
           />
 
           {request.status === 'pending' && (

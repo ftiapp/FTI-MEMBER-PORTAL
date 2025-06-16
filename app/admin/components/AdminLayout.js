@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminSidebar from './AdminSidebar';
+import { useAdminData } from './hooks/useAdminData';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
@@ -45,35 +46,19 @@ export default function AdminLayout({ children }) {
     setPageTitle(title);
   }, [pathname]);
   
-  // ตรวจสอบสถานะการเข้าสู่ระบบของ admin จาก cookie
+  // Use the optimized hook for admin data
+  const { adminData: adminSessionData, isLoading } = useAdminData();
+  
+  // Update local state when admin data changes
   useEffect(() => {
-    async function checkAdminSession() {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/admin/check-session', {
-          // ใช้ cache: 'no-store' เพื่อป้องกันการใช้ข้อมูลเก่าจาก cache
-          cache: 'no-store',
-          // ใช้ next: { revalidate: 0 } เพื่อให้ข้อมูลถูกดึงใหม่ทุกครั้ง
-          next: { revalidate: 0 }
-        });
-        const data = await response.json();
-        
-        if (data.success && data.admin) {
-          setAdminData(data.admin);
-        } else {
-          // ถ้าไม่มี session ให้ redirect ไปหน้า admin login
-          router.push('/admin', { scroll: false });
-        }
-      } catch (error) {
-        console.error('Error checking admin session:', error);
-        router.push('/admin', { scroll: false });
-      } finally {
-        setLoading(false);
-      }
+    if (adminSessionData) {
+      setAdminData(adminSessionData);
+      setLoading(false);
+    } else if (!isLoading && !adminSessionData) {
+      // If not loading and no admin data, redirect to login
+      router.push('/admin', { scroll: false });
     }
-    
-    checkAdminSession();
-  }, [router]);
+  }, [adminSessionData, isLoading, router]);
   
   // Handle link clicks to prevent full page reloads
   const handleLinkClick = (e, href) => {

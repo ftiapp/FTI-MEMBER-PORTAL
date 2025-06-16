@@ -1,38 +1,48 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AdminLayout from '../components/AdminLayout';
 import { motion } from 'framer-motion';
 import { toast } from 'react-hot-toast';
 import { RequestList, RequestDetail, RejectReasonModal } from './components';
+import useAddressUpdateRequests from './hooks/useAddressUpdateRequests';
 
-export default function AddressUpdatesPage() {
+const AddressUpdatesPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const status = searchParams.get('status') || 'pending';
   
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedRequest, setSelectedRequest] = useState(null);
-  const [adminNotes, setAdminNotes] = useState('');
-  const [rejectReason, setRejectReason] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [showRejectModal, setShowRejectModal] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [pagination, setPagination] = useState({
-    total: 0,
-    limit: 5,
-    page: 1,
-    totalPages: 0
-  });
+  // Use the optimized hook for address update requests
+  const {
+    requests,
+    loading,
+    selectedRequest,
+    adminNotes,
+    rejectReason,
+    isProcessing,
+    showRejectModal,
+    searchTerm,
+    pagination,
+    fetchRequests,
+    setSelectedRequest,
+    setAdminNotes,
+    setRejectReason,
+    setShowRejectModal,
+    setSearchTerm,
+    approveRequest,
+    rejectRequest,
+    getStatusName
+  } = useAddressUpdateRequests();
   
+  // Check admin session and fetch requests when component mounts or status changes
   useEffect(() => {
     const checkAdminSession = async () => {
       try {
         const response = await fetch('/api/admin/check-session', {
           method: 'GET',
           credentials: 'include',
+          cache: 'no-store'
         });
 
         if (!response.ok) {
@@ -40,6 +50,7 @@ export default function AddressUpdatesPage() {
           return;
         }
 
+        // Fetch requests with the current status
         fetchRequests(status);
       } catch (error) {
         console.error('Error checking admin session:', error);
@@ -48,63 +59,7 @@ export default function AddressUpdatesPage() {
     };
 
     checkAdminSession();
-  }, [router, status]);
-  
-  const fetchRequests = async (status, page = 1, search = '') => {
-    try {
-      setLoading(true);
-      
-      // สร้าง URL พร้อมพารามิเตอร์
-      const params = new URLSearchParams();
-      if (status && status !== 'all') {
-        params.append('status', status);
-      }
-      params.append('page', page.toString());
-      params.append('limit', pagination.limit.toString());
-      if (search) {
-        params.append('search', search);
-      }
-      
-      const url = `/api/admin/address-update/list?${params.toString()}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        throw new Error(`Failed to fetch address updates: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      
-      if (data && data.success === true) {
-        if (Array.isArray(data.updates)) {
-          setRequests(data.updates);
-          
-          // อัปเดตข้อมูลการแบ่งหน้า
-          if (data.pagination) {
-            setPagination(data.pagination);
-          }
-        } else {
-          setRequests([]);
-        }
-      } else {
-        setRequests([]);
-      }
-    } catch (error) {
-      console.error('Error fetching address updates:', error);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูลคำขอแก้ไขที่อยู่');
-      setRequests([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [router, status, fetchRequests]);
   
   const handleStatusChange = (newStatus) => {
     router.push(`/admin/address-updates?status=${newStatus}`);
@@ -116,7 +71,7 @@ export default function AddressUpdatesPage() {
   
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchRequests(status, 1, searchTerm);
+    fetchRequests(status, 1, searchTerm, true); // Skip cache when searching
   };
   
   const handleSearchInputChange = (e) => {
@@ -130,77 +85,18 @@ export default function AddressUpdatesPage() {
   };
   
   const handleApprove = async (editedAddress) => {
-    if (!selectedRequest) return;
-    
-    setIsProcessing(true);
-    try {
-      // Prepare request body with edited address data if provided
-      const requestBody = {
-        id: selectedRequest.id,
-        admin_notes: adminNotes
-      };
-      
-      // If editedAddress is provided and different from original, include it in the request
-      if (editedAddress) {
-        requestBody.edited_address = editedAddress;
-      }
-      
-      const response = await fetch('/api/admin/address-update/approve', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestBody)
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to approve address update request');
-      }
-      
-      toast.success('อนุมัติคำขอแก้ไขที่อยู่สำเร็จ');
-      setSelectedRequest(null);
-      fetchRequests(status);
-    } catch (error) {
-      console.error('Error approving address update request:', error);
-      toast.error('เกิดข้อผิดพลาดในการอนุมัติคำขอแก้ไขที่อยู่');
-    } finally {
-      setIsProcessing(false);
+    const success = await approveRequest(editedAddress);
+    if (success) {
+      // Refetch the current status data after successful approval
+      fetchRequests(status, pagination.page, searchTerm, true);
     }
   };
   
   const handleReject = async () => {
-    if (!selectedRequest || !rejectReason) {
-      toast.error('กรุณาระบุเหตุผลในการปฏิเสธ');
-      return;
-    }
-    
-    setIsProcessing(true);
-    try {
-      const response = await fetch('/api/admin/address-update/reject', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: selectedRequest.id,
-          reason: rejectReason,
-          admin_notes: adminNotes
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to reject address update request');
-      }
-      
-      toast.success('ปฏิเสธคำขอแก้ไขที่อยู่สำเร็จ');
-      setSelectedRequest(null);
-      fetchRequests(status);
-      setShowRejectModal(false);
-    } catch (error) {
-      console.error('Error rejecting address update request:', error);
-      toast.error('เกิดข้อผิดพลาดในการปฏิเสธคำขอแก้ไขที่อยู่');
-    } finally {
-      setIsProcessing(false);
+    const success = await rejectRequest();
+    if (success) {
+      // Refetch the current status data after successful rejection
+      fetchRequests(status, pagination.page, searchTerm, true);
     }
   };
 
@@ -217,15 +113,7 @@ export default function AddressUpdatesPage() {
     duration: 0.3
   };
   
-  // Helper function to get status name
-  const getStatusName = (statusValue) => {
-    switch (statusValue) {
-      case 'pending': return 'รอการอนุมัติ';
-      case 'approved': return 'อนุมัติแล้ว';
-      case 'rejected': return 'ปฏิเสธแล้ว';
-      default: return statusValue;
-    }
-  };
+  // Using getStatusName from the hook
 
   return (
     <AdminLayout>
@@ -252,6 +140,17 @@ export default function AddressUpdatesPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.3 }}
           >
+            {/* Refresh button */}
+            <button
+              onClick={() => fetchRequests(status, pagination.page, searchTerm, true)}
+              className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 mr-2"
+              disabled={loading}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {loading ? 'กำลังโหลด...' : 'รีเฟรช'}
+            </button>
             <button
               onClick={() => handleStatusChange('pending')}
               className={`px-4 py-2 text-sm rounded-md transition-all duration-300 ${
@@ -445,4 +344,7 @@ export default function AddressUpdatesPage() {
       />
     </AdminLayout>
   );
-}
+};
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(AddressUpdatesPage);

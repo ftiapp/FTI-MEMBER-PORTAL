@@ -1,15 +1,30 @@
 'use client';
 
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { formatDate } from '../utils/formatters';
 
-export default function RequestDetail({ 
+// Use React.memo to prevent unnecessary re-renders
+export default memo(RequestDetail, (prevProps, nextProps) => {
+  // Only re-render if these props change
+  return (
+    prevProps.selectedRequest?.id === nextProps.selectedRequest?.id &&
+    prevProps.editedRequest?.new_firstname === nextProps.editedRequest?.new_firstname &&
+    prevProps.editedRequest?.new_lastname === nextProps.editedRequest?.new_lastname &&
+    prevProps.comment === nextProps.comment &&
+    prevProps.isProcessing === nextProps.isProcessing
+  );
+});
+
+function RequestDetail({ 
   selectedRequest, 
+  editedRequest,
   comment, 
   setComment, 
   isProcessing, 
-  handleApprove, 
-  onRejectClick 
+  onApprove,
+  onReject,
+  onUpdateNewName
 }) {
   
   if (!selectedRequest) {
@@ -58,10 +73,34 @@ export default function RequestDetail({
           <div>
             <h3 className="text-sm font-bold text-black">ข้อมูลใหม่</h3>
             <div className="mt-2 space-y-2">
-              <p className="text-black font-semibold"><span className="font-bold text-black">ชื่อ:</span> {selectedRequest.new_firstname}</p>
-              <p className="text-black font-semibold"><span className="font-bold text-black">นามสกุล:</span> {selectedRequest.new_lastname}</p>
-              <p className="text-black font-semibold"><span className="font-bold text-black">อีเมล:</span> {selectedRequest.new_email}</p>
-              <p className="text-black font-semibold"><span className="font-bold text-black">เบอร์โทรศัพท์:</span> {selectedRequest.new_phone}</p>
+              <div className="flex items-center">
+                <span className="font-bold text-black min-w-[80px]">ชื่อ:</span>
+                {selectedRequest.status === 'pending' ? (
+                  <input
+                    type="text"
+                    className="ml-2 px-2 py-1 border border-black rounded text-black w-full"
+                    value={editedRequest?.new_firstname || selectedRequest.new_firstname}
+                    onChange={(e) => onUpdateNewName('new_firstname', e.target.value)}
+                  />
+                ) : (
+                  <span className="text-black font-semibold">{selectedRequest.new_firstname}</span>
+                )}
+              </div>
+              <div className="flex items-center">
+                <span className="font-bold text-black min-w-[80px]">นามสกุล:</span>
+                {selectedRequest.status === 'pending' ? (
+                  <input
+                    type="text"
+                    className="ml-2 px-2 py-1 border border-black rounded text-black w-full"
+                    value={editedRequest?.new_lastname || selectedRequest.new_lastname}
+                    onChange={(e) => onUpdateNewName('new_lastname', e.target.value)}
+                  />
+                ) : (
+                  <span className="text-black font-semibold">{selectedRequest.new_lastname}</span>
+                )}
+              </div>
+              <p className="text-black font-semibold"><span className="font-bold text-black min-w-[80px] inline-block">อีเมล:</span> {selectedRequest.new_email}</p>
+              <p className="text-black font-semibold"><span className="font-bold text-black min-w-[80px] inline-block">เบอร์โทรศัพท์:</span> {selectedRequest.new_phone}</p>
             </div>
           </div>
         </div>
@@ -84,7 +123,7 @@ export default function RequestDetail({
             
             <div className="flex space-x-4">
               <motion.button
-                onClick={handleApprove}
+                onClick={onApprove}
                 disabled={isProcessing}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 whileHover={{ scale: 1.03 }}
@@ -94,7 +133,7 @@ export default function RequestDetail({
               </motion.button>
               
               <motion.button
-                onClick={onRejectClick}
+                onClick={onReject}
                 disabled={isProcessing}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 whileHover={{ scale: 1.03 }}

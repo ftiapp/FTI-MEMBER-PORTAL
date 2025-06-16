@@ -1,105 +1,129 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-export function useAdminData() {
-  const [adminData, setAdminData] = useState(null);
-  const [adminLevel, setAdminLevel] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchAdminSession() {
-      try {
-        setIsLoading(true);
-        const response = await fetch('/api/admin/check-session', {
-          cache: 'no-store',
-          next: { revalidate: 0 }
-        });
-        const data = await response.json();
-        
-        if (data.success && data.admin) {
-          setAdminData(data.admin);
-          setAdminLevel(data.admin.adminLevel);
-        }
-      } catch (error) {
-        console.error('Error fetching admin session:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-    
-    fetchAdminSession();
-  }, []);
-
-  return { adminData, adminLevel, isLoading };
-}
-
-export function usePendingCounts() {
-  const [pendingCounts, setPendingCounts] = useState({
+// Create a shared state that persists between component renders
+const globalState = {
+  adminData: null,
+  pendingCounts: {
     verifications: 0,
     profileUpdates: 0,
     addressUpdates: 0,
     guestMessages: 0,
     productUpdates: 0,
+  },
+  lastFetched: 0,
+  listeners: new Set(),
+};
+
+// Function to notify all listeners of state changes
+const notifyListeners = () => {
+  globalState.listeners.forEach(listener => listener());
+};
+
+// Use a single optimized API call for both admin data and pending counts
+const fetchDashboardData = async (force = false) => {
+  // Only fetch if data is stale (older than 5 minutes) or forced
+  const now = Date.now();
+  if (!force && globalState.lastFetched && now - globalState.lastFetched < 300000) {
+    return;
+  }
+
+  try {
+    const response = await fetch('/api/admin/dashboard-data', {
+      // Use cache: 'no-cache' instead of 'no-store' for better performance
+      cache: 'no-cache',
+    });
+    
+    if (!response.ok) {
+      throw new Error('Failed to fetch dashboard data');
+    }
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      globalState.adminData = data.admin;
+      globalState.pendingCounts = data.counts;
+      globalState.lastFetched = now;
+      notifyListeners();
+    }
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+  }
+};
+
+export function useAdminData() {
+  const [state, setState] = useState({
+    adminData: globalState.adminData,
+    adminLevel: globalState.adminData?.adminLevel || 0,
+    isLoading: !globalState.adminData,
   });
 
-  const fetchPendingCounts = useCallback(async () => {
-    const endpoints = [
-      { 
-        url: '/api/admin/pending-verifications-count', 
-        key: 'verifications' 
-      },
-      { 
-        url: '/api/admin/pending-profile-update-count', 
-        key: 'profileUpdates' 
-      },
-      { 
-        url: '/api/admin/pending-guest-messages-count', 
-        key: 'guestMessages' 
-      },
-      { 
-        url: '/api/admin/pending-address-updates-count', 
-        key: 'addressUpdates' 
-      },
-      { 
-        url: '/api/admin/pending-product-updates-count', 
-        key: 'productUpdates' 
-      },
-    ];
+  useEffect(() => {
+    // Function to update local state from global state
+    const updateFromGlobalState = () => {
+      // แสดงค่า adminLevel ที่ได้รับจาก API ในคอนโซล
+      console.log('Admin data from API:', globalState.adminData);
+      console.log('Admin level from API:', globalState.adminData?.adminLevel);
+      
+      setState({
+        adminData: globalState.adminData,
+        adminLevel: globalState.adminData?.adminLevel || 0,
+        isLoading: false,
+      });
+    };
 
-    const promises = endpoints.map(async ({ url, key }) => {
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success) {
-            return { key, count: data.count };
-          }
-        }
-      } catch (error) {
-        console.error(`Error fetching ${url}:`, error);
-      }
-      return { key, count: 0 };
-    });
+    // Add listener to global state
+    globalState.listeners.add(updateFromGlobalState);
 
-    const results = await Promise.all(promises);
-    const newCounts = { ...pendingCounts };
-    
-    results.forEach(({ key, count }) => {
-      newCounts[key] = count;
-    });
-    
-    setPendingCounts(newCounts);
+    // Fetch data if needed
+    if (!globalState.adminData) {
+      fetchDashboardData();
+    } else {
+      updateFromGlobalState();
+    }
+
+    return () => {
+      globalState.listeners.delete(updateFromGlobalState);
+    };
+  }, []);
+
+  return state;
+}
+
+export function usePendingCounts() {
+  const [counts, setCounts] = useState(globalState.pendingCounts);
+  const intervalRef = useRef(null);
+
+  const fetchPendingCounts = useCallback(() => {
+    fetchDashboardData(true);
   }, []);
 
   useEffect(() => {
-    fetchPendingCounts();
-    
-    // Set up interval to refresh count every 10 minutes
-    const intervalId = setInterval(fetchPendingCounts, 600000);
-    
-    return () => clearInterval(intervalId);
-  }, [fetchPendingCounts]);
+    // Function to update local state from global state
+    const updateFromGlobalState = () => {
+      setCounts({...globalState.pendingCounts});
+    };
 
-  return { pendingCounts, fetchPendingCounts };
+    // Add listener to global state
+    globalState.listeners.add(updateFromGlobalState);
+
+    // Set initial state
+    updateFromGlobalState();
+
+    // Set up interval to refresh count every 10 minutes
+    if (!intervalRef.current) {
+      intervalRef.current = setInterval(() => fetchDashboardData(true), 600000);
+    }
+    
+    return () => {
+      globalState.listeners.delete(updateFromGlobalState);
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, []);
+
+  return { pendingCounts: counts, fetchPendingCounts };
 }

@@ -15,9 +15,16 @@ function AdminSidebar() {
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   
   // Custom hooks
-  const { adminData, adminLevel, isLoading } = useAdminData();
+  const { adminData, isLoading } = useAdminData();
   const { pendingCounts } = usePendingCounts();
   const { pathname, loading, activePath, handleNavigation, handleLogout } = useNavigation();
+  
+  // ดึงค่า adminLevel โดยตรงจาก adminData
+  const adminLevel = adminData?.adminLevel || 0;
+  
+  // แสดงค่า adminLevel ในคอนโซล
+  console.log('AdminSidebar - adminData:', adminData);
+  console.log('AdminSidebar - adminLevel:', adminLevel);
   
   // Get menu items based on admin level and pending counts
   const menuItems = getMenuItems(adminLevel, pendingCounts);

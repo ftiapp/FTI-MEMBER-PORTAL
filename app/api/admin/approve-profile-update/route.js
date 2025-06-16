@@ -15,7 +15,7 @@ export async function POST(request) {
       );
     }
 
-    const { requestId, comment } = await request.json();
+    const { requestId, comment, new_firstname, new_lastname } = await request.json();
 
     if (!requestId) {
       return NextResponse.json(
@@ -40,14 +40,15 @@ export async function POST(request) {
     const request_data = requests[0];
     const userId = request_data.user_id;
 
-    // Update user information
+    // Update user information with potentially edited name fields
     await query(
       `UPDATE users 
        SET firstname = ?, lastname = ?, email = ?, phone = ? 
        WHERE id = ?`,
       [
-        request_data.new_firstname,
-        request_data.new_lastname,
+        // Use edited name fields if provided, otherwise use original values
+        new_firstname !== undefined ? new_firstname : request_data.new_firstname,
+        new_lastname !== undefined ? new_lastname : request_data.new_lastname,
         request_data.new_email,
         request_data.new_phone,
         userId
@@ -78,7 +79,11 @@ export async function POST(request) {
         JSON.stringify({
           userId,
           requestId,
-          comment
+          comment,
+          original_firstname: request_data.new_firstname,
+          original_lastname: request_data.new_lastname,
+          edited_firstname: new_firstname,
+          edited_lastname: new_lastname
         }),
         ip,
         userAgent

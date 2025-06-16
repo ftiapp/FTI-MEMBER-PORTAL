@@ -753,7 +753,7 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
           memberCode
         }));
         
-        console.log(`TSIC update cooldown set for ${memberCode}: ${cooldownMinutes} minutes`);
+        console.log(`TSIC update cooldown set for ${memberCode}: ${cooldownSeconds} seconds`);
       } catch (e) {
         console.error('Failed to set cooldown:', e);
       }

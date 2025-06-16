@@ -117,19 +117,21 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
         </div>
       </section>
 
-      {/* Products and Services Section */}
-      <section className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">สินค้าและบริการ</h2>
+      {/* Products List Section */}
+      <section className="bg-white p-6 rounded-lg shadow-md mt-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          {language === 'th' ? 'สินค้าและบริการ' : 'Products and Services'}
+        </h2>
         <div className="border-t border-gray-200 pt-4">
           <ProductsList 
             companyInfo={companyInfo} 
             memberType={memberType}
             memberGroupCode={memberGroupCode}
             typeCode={typeCode}
+            language={language}
           />
         </div>
       </section>
-
 
     </motion.div>
   );

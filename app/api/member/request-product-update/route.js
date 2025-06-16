@@ -29,11 +29,13 @@ export async function POST(request) {
       member_type,
       member_group_code,
       type_code,
-      old_products, 
-      new_products 
+      old_products_th, 
+      new_products_th,
+      old_products_en,
+      new_products_en
     } = body;
 
-    if (!member_code || !new_products) {
+    if (!member_code || !new_products_th) {
       return NextResponse.json({ 
         success: false, 
         message: 'ข้อมูลไม่ครบถ้วน กรุณาระบุข้อมูลให้ครบถ้วน' 
@@ -64,8 +66,10 @@ export async function POST(request) {
         member_type VARCHAR(50),
         member_group_code VARCHAR(50),
         type_code VARCHAR(50),
-        old_products TEXT,
-        new_products TEXT,
+        old_products_th TEXT,
+        new_products_th TEXT,
+        old_products_en TEXT,
+        new_products_en TEXT,
         status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
         admin_id INT,
         admin_notes TEXT,
@@ -84,9 +88,9 @@ export async function POST(request) {
       // Insert the product update request
       const [insertResult] = await pool.query(`
         INSERT INTO pending_product_updates
-        (user_id, member_code, company_name, member_type, member_group_code, type_code, old_products, new_products)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `, [userId, member_code, company_name, member_type, member_group_code, type_code, old_products, new_products]);
+        (user_id, member_code, company_name, member_type, member_group_code, type_code, old_products_th, new_products_th, old_products_en, new_products_en)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [userId, member_code, company_name, member_type, member_group_code, type_code, old_products_th, new_products_th, old_products_en, new_products_en]);
 
       const requestId = insertResult.insertId;
 
@@ -98,8 +102,14 @@ export async function POST(request) {
       const logDetails = JSON.stringify({
         member_code,
         company_name,
-        old_products,
-        new_products
+        products_th: {
+          old: old_products_th,
+          new: new_products_th
+        },
+        products_en: {
+          old: old_products_en,
+          new: new_products_en
+        }
       });
 
       await pool.query(`

@@ -10,11 +10,16 @@ import { toast } from 'react-toastify';
 /**
  * Component for displaying products and services list
  */
-const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode }) => {
+const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, language = 'th' }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  const productsList = formatProductsList(companyInfo.PRODUCT_DESC_TH);
+  
+  // เลือกรายการสินค้าตามภาษาที่เลือก
+  const productsList = language === 'th' 
+    ? formatProductsList(companyInfo.PRODUCT_DESC_TH || '')
+    : formatProductsList(companyInfo.PRODUCT_DESC_EN || '');
+    
   const memberCode = companyInfo.MEMBER_CODE || companyInfo.member_code;
 
   // Check if there's a pending product update request
@@ -78,7 +83,7 @@ const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode }) =>
     >
       <div className="flex justify-between items-center border-b pb-2">
         <h3 className="text-lg font-medium text-blue-600">
-          สินค้าและบริการ
+          {language === 'th' ? 'สินค้าและบริการ' : 'Products and Services'}
         </h3>
         
         <div>
@@ -101,15 +106,16 @@ const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode }) =>
       
       {productsList.length === 0 ? (
         <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200 mt-4">
-          ยังไม่มีข้อมูลสินค้าและบริการ
+          {language === 'th' ? 'ยังไม่มีข้อมูลสินค้าและบริการ' : 'No product and service information'}
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 mt-4">
           <div className="flex items-start mb-3">
             <FaFileAlt className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
-            <p className="font-medium text-gray-800">รายละเอียดสินค้า/บริการ</p>
+            <p className="font-medium text-gray-800">
+              {language === 'th' ? 'รายละเอียดสินค้า/บริการ' : 'Product/Service Details'}
+            </p>
           </div>
-          
           <ul className="pl-8 space-y-2">
             {productsList.map((product, index) => (
               <li key={index} className="flex items-start group">

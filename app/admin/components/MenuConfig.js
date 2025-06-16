@@ -89,10 +89,22 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
     },
   ];
   
+  // แสดงค่า adminLevel ในคอนโซล
+  console.log('MenuConfig - adminLevel:', adminLevel);
+  console.log('MenuConfig - superAdminMenuItems:', superAdminMenuItems);
+  
   // รวมเมนูตามระดับสิทธิ์
+  // ถ้าเป็น superadmin (ตรวจสอบจากชื่อผู้ใช้หรือค่า adminLevel)
+  const isSuperAdmin = adminLevel >= 5 || (typeof window !== 'undefined' && window.localStorage.getItem('is_super_admin') === 'true');
+  
+  // เพิ่มโค้ดบันทึกค่า superadmin ลงใน localStorage
+  if (adminLevel >= 5 && typeof window !== 'undefined') {
+    window.localStorage.setItem('is_super_admin', 'true');
+  }
+  
   return [
     ...commonMenuItems,
     ...regularMenuItems,
-    ...(adminLevel >= 5 ? superAdminMenuItems : [])
+    ...(isSuperAdmin ? superAdminMenuItems : [])
   ];
 };

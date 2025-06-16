@@ -1,88 +1,70 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AdminLayout from '../../components/AdminLayout';
 import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { RequestList, RequestDetail, RejectReasonModal } from './components';
 import { getStatusName } from './utils/formatters';
+import { useProfileUpdateRequests } from './hooks/useProfileUpdateRequests';
 
 export default function ProfileUpdatesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const status = searchParams.get('status') || 'pending';
+  const initialStatus = searchParams.get('status') || 'pending';
   
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Use the optimized hook for profile update requests
+  const {
+    requests,
+    loading,
+    status,
+    isProcessing,
+    handleStatusChange: changeStatus,
+    approveRequest,
+    rejectRequest
+  } = useProfileUpdateRequests(initialStatus);
+  
   const [selectedRequest, setSelectedRequest] = useState(null);
+  const [editedRequest, setEditedRequest] = useState(null);
   const [comment, setComment] = useState('');
   const [rejectReason, setRejectReason] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  
-  useEffect(() => {
-    fetchRequests(status);
-  }, [status]);
-  
-  const fetchRequests = async (status) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/admin/profile-updates?status=${status}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch profile update requests');
-      }
-      
-      const data = await response.json();
-      setRequests(data.requests);
-    } catch (error) {
-      console.error('Error fetching profile update requests:', error);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูลคำขอแก้ไขข้อมูล');
-    } finally {
-      setLoading(false);
-    }
-  };
   
   const handleStatusChange = (newStatus) => {
     router.push(`/admin/dashboard/profile-updates?status=${newStatus}`);
+    changeStatus(newStatus);
   };
   
   const handleViewRequest = (request) => {
     setSelectedRequest(request);
+    setEditedRequest(request);
     setComment('');
     setRejectReason('');
   };
   
   const handleApprove = async () => {
-    if (!selectedRequest) return;
+    if (!selectedRequest || !editedRequest) return;
     
-    setIsProcessing(true);
-    try {
-      const response = await fetch('/api/admin/approve-profile-update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          requestId: selectedRequest.id,
-          comment: comment
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to approve profile update request');
-      }
-      
-      toast.success('อนุมัติคำขอแก้ไขข้อมูลสำเร็จ');
+    const success = await approveRequest(
+      selectedRequest.id,
+      comment,
+      editedRequest.new_firstname,
+      editedRequest.new_lastname
+    );
+    
+    if (success) {
       setSelectedRequest(null);
-      fetchRequests(status);
-    } catch (error) {
-      console.error('Error approving profile update request:', error);
-      toast.error('เกิดข้อผิดพลาดในการอนุมัติคำขอแก้ไขข้อมูล');
-    } finally {
-      setIsProcessing(false);
     }
+  };
+  
+  const handleUpdateNewName = (field, value) => {
+    if (!editedRequest) return;
+    
+    setEditedRequest(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
   
   const handleReject = async () => {
@@ -91,33 +73,15 @@ export default function ProfileUpdatesPage() {
       return;
     }
     
-    setIsProcessing(true);
-    try {
-      const response = await fetch('/api/admin/reject-profile-update', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          requestId: selectedRequest.id,
-          reason: rejectReason,
-          comment: comment
-        })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to reject profile update request');
-      }
-      
-      toast.success('ปฏิเสธคำขอแก้ไขข้อมูลสำเร็จ');
+    const success = await rejectRequest(
+      selectedRequest.id,
+      rejectReason,
+      comment
+    );
+    
+    if (success) {
       setSelectedRequest(null);
-      fetchRequests(status);
       setShowRejectModal(false);
-    } catch (error) {
-      console.error('Error rejecting profile update request:', error);
-      toast.error('เกิดข้อผิดพลาดในการปฏิเสธคำขอแก้ไขข้อมูล');
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -211,29 +175,31 @@ export default function ProfileUpdatesPage() {
             <p className="text-black font-medium">ไม่พบคำขอแก้ไขข้อมูลที่มีสถานะ {getStatusName(status)}</p>
           </motion.div>
         ) : (
-          <motion.div 
-            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.4 }}
-          >
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Request List */}
-            <RequestList 
-              requests={requests} 
-              selectedRequestId={selectedRequest?.id}
-              onViewRequest={handleViewRequest}
+            <RequestList
+              requests={requests}
+              loading={loading}
+              status={status}
+              selectedId={selectedRequest?.id}
+              onStatusChange={handleStatusChange}
+              onSelectRequest={handleViewRequest}
             />
             
-            {/* Request Details */}
-            <RequestDetail 
-              selectedRequest={selectedRequest}
-              comment={comment}
-              setComment={setComment}
-              isProcessing={isProcessing}
-              handleApprove={handleApprove}
-              onRejectClick={() => setShowRejectModal(true)}
-            />
-          </motion.div>
+            {/* Request Detail */}
+            {selectedRequest && (
+              <RequestDetail
+                selectedRequest={selectedRequest}
+                editedRequest={editedRequest}
+                comment={comment}
+                setComment={setComment}
+                onUpdateNewName={handleUpdateNewName}
+                onApprove={handleApprove}
+                onReject={() => setShowRejectModal(true)}
+                isProcessing={isProcessing}
+              />
+            )}
+          </div>
         )}
       </motion.div>
       

@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { memo } from 'react';
 import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
+import useAdminActivities from './hooks/useAdminActivities';
 
 /**
  * Admin Activities Page
@@ -15,191 +15,48 @@ import AdminLayout from '../../components/AdminLayout';
  * - Admin user management actions
  * 
  * Only accessible to admin users with level 5 (SuperAdmin) permissions.
+ * 
+ * Performance optimizations:
+ * - Uses client-side caching with TTL to reduce API calls
+ * - Implements memoization to prevent unnecessary re-renders
+ * - Batches state updates for better UI responsiveness
  */
 
-export default function ActivitiesPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(true);
-  const [activities, setActivities] = useState([]);
-  const [filter, setFilter] = useState('all');
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [dateRange, setDateRange] = useState({
-    start: '',
-    end: ''
-  });
-
-  // Fetch activities when component mounts or filter/page changes
-  useEffect(() => {
-    fetchActivities();
-  }, [filter, page]);
-
-  /**
-   * Fetches the list of admin activities from the API
-   * Handles authentication, loading states, and error handling
-   */
-  const fetchActivities = async () => {
-    try {
-      setIsLoading(true);
-      
-      let url = `/api/admin/activities?page=${page}&filter=${filter}`;
-      
-      if (dateRange.start) {
-        url += `&start=${dateRange.start}`;
-      }
-      
-      if (dateRange.end) {
-        url += `&end=${dateRange.end}`;
-      }
-      
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error('กรุณาเข้าสู่ระบบ');
-          router.push('/admin');
-          return;
-        }
-        throw new Error('Failed to fetch data');
-      }
-      
-      const result = await response.json();
-      
-      if (result.success) {
-        setActivities(result.data);
-        setTotalPages(result.totalPages || 1);
-      } else {
-        toast.error(result.message || 'ไม่สามารถดึงข้อมูลได้');
-      }
-    } catch (error) {
-      console.error('Error fetching activities:', error);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูล');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * Handles filter change
-   * @param {Event} e - The select change event
-   */
-  const handleFilterChange = (e) => {
-    setFilter(e.target.value);
-    setPage(1); // Reset to first page when filter changes
-  };
-
-  /**
-   * Handles date range change
-   * @param {Event} e - The input change event
-   */
-  const handleDateChange = (e) => {
-    const { name, value } = e.target;
-    setDateRange(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  /**
-   * Applies the date filter
-   */
-  const applyDateFilter = () => {
-    setPage(1); // Reset to first page when applying new date filter
-    fetchActivities();
-  };
-
-  /**
-   * Clears the date filter
-   */
-  const clearDateFilter = () => {
-    setDateRange({
-      start: '',
-      end: ''
-    });
-    setPage(1);
-    // The fetchActivities will be triggered by the useEffect when dateRange changes
-  };
-
-  /**
-   * Renders the activity type badge with appropriate color
-   * @param {string} type - The activity type
-   * @returns {JSX.Element} - The rendered badge
-   */
-  const renderActivityTypeBadge = (type) => {
-    let bgColor = 'bg-gray-100';
-    let textColor = 'text-gray-800';
-    
-    switch (type) {
-      case 'login':
-        bgColor = 'bg-blue-100';
-        textColor = 'text-blue-800';
-        break;
-      case 'logout':
-        bgColor = 'bg-purple-100';
-        textColor = 'text-purple-800';
-        break;
-      case 'create':
-        bgColor = 'bg-green-100';
-        textColor = 'text-green-800';
-        break;
-      case 'update':
-        bgColor = 'bg-yellow-100';
-        textColor = 'text-yellow-800';
-        break;
-      case 'delete':
-        bgColor = 'bg-red-100';
-        textColor = 'text-red-800';
-        break;
-      case 'approve':
-        bgColor = 'bg-emerald-100';
-        textColor = 'text-emerald-800';
-        break;
-      case 'reject':
-        bgColor = 'bg-rose-100';
-        textColor = 'text-rose-800';
-        break;
-    }
-    
-    return (
-      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${bgColor} ${textColor}`}>
-        {type}
-      </span>
-    );
-  };
-
-  /**
-   * Formats the activity details for display
-   * @param {Object} activity - The activity object
-   * @returns {string} - Formatted activity details
-   */
-  const formatActivityDetails = (activity) => {
-    try {
-      if (typeof activity.details === 'string') {
-        // Try to parse if it's a JSON string
-        try {
-          const details = JSON.parse(activity.details);
-          return Object.entries(details)
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(', ');
-        } catch {
-          // If not valid JSON, return as is
-          return activity.details;
-        }
-      } else if (typeof activity.details === 'object') {
-        return Object.entries(activity.details)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join(', ');
-      }
-      return 'ไม่มีรายละเอียด';
-    } catch (error) {
-      console.error('Error formatting activity details:', error);
-      return 'ไม่สามารถแสดงรายละเอียดได้';
-    }
-  };
+const ActivitiesPage = () => {
+  // Use the optimized hook for activities data and management
+  const {
+    activities,
+    isLoading,
+    filter,
+    page,
+    totalPages,
+    dateRange,
+    handleFilterChange,
+    handleDateChange,
+    applyDateFilter,
+    clearDateFilter,
+    setPage,
+    refreshActivities,
+    renderActivityTypeBadge,
+    formatActivityDetails
+  } = useAdminActivities();
 
   return (
     <AdminLayout>
       <div className="bg-white shadow rounded-lg p-6">
+        {/* Refresh button */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={refreshActivities}
+            className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2"
+            disabled={isLoading}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            {isLoading ? 'กำลังโหลด...' : 'รีเฟรช'}
+          </button>
+        </div>
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <h2 className="text-xl font-semibold">กิจกรรมของแอดมิน</h2>
           
@@ -295,19 +152,26 @@ export default function ActivitiesPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{activity.admin_username}</div>
-                        <div className="text-xs text-gray-500">ระดับ {activity.admin_level}</div>
+                        <div className="text-sm font-medium text-gray-900">{activity.adminName}</div>
+                        <div className="text-xs text-gray-500">Admin ID: {activity.adminId}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        {renderActivityTypeBadge(activity.action_type)}
+                        {(() => {
+                          const badge = renderActivityTypeBadge(activity.actionType);
+                          return (
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${badge.bgColor} ${badge.textColor}`}>
+                              {badge.type}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-500 max-w-md break-words">
-                          {formatActivityDetails(activity)}
+                          {activity.readableAction || formatActivityDetails(activity)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{activity.ip_address}</div>
+                        <div className="text-sm text-gray-500">{activity.ipAddress || 'N/A'}</div>
                       </td>
                     </tr>
                   ))}
@@ -375,4 +239,7 @@ export default function ActivitiesPage() {
       </div>
     </AdminLayout>
   );
-}
+};
+
+// Memoize the component to prevent unnecessary re-renders
+export default memo(ActivitiesPage);

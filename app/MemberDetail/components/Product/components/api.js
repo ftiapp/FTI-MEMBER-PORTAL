@@ -306,7 +306,9 @@ export async function deleteTsicCode(memberCode, tsicCode) {
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
-        userId = userData.id;
+        // Check both userData.id and userData directly since the structure might vary
+        userId = userData.id || userData.userId || (userData.user && userData.user.id);
+        console.log('Found user ID in session storage:', userId);
       } catch (e) {
         console.error('Error parsing user data from session storage:', e);
       }
@@ -408,7 +410,9 @@ export async function submitTsicUpdate(email, memberCode, tsicCodes, replacingTs
     if (userStr) {
       try {
         const userData = JSON.parse(userStr);
-        userId = userData.id;
+        // Check both userData.id and userData directly since the structure might vary
+        userId = userData.id || userData.userId || (userData.user && userData.user.id);
+        console.log('Found user ID in session storage:', userId);
       } catch (e) {
         console.error('Error parsing user data from session storage:', e);
       }
