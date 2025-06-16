@@ -6,6 +6,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminSidebar from './AdminSidebar';
 import { useAdminData } from './hooks/useAdminData';
+import { useNavigation } from './hooks/useNavigation';
+import { MenuIcons } from './MenuIcons';
+import LogoutConfirmationDialog from './LogoutConfirmationDialog';
 
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
@@ -14,6 +17,8 @@ export default function AdminLayout({ children }) {
   const [loading, setLoading] = useState(true);
   const [pageTitle, setPageTitle] = useState('');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const { loading: navLoading, activePath, handleLogout } = useNavigation();
   
   // Set page title based on current path
   useEffect(() => {
@@ -25,9 +30,7 @@ export default function AdminLayout({ children }) {
       case 'admin':
         title = 'แดชบอร์ด';
         break;
-      case 'members':
-        title = 'จัดการสมาชิก';
-        break;
+      
       case 'verifications':
         title = 'ยืนยันตัวตนสมาชิก';
         break;
@@ -135,7 +138,22 @@ export default function AdminLayout({ children }) {
                   </span>
                 </div>
                 <div className="ml-4 flex items-center md:ml-6">
-                  <div className="relative">
+                  {/* ปุ่มออกจากระบบ */}
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (navLoading) return;
+                      setShowLogoutConfirmation(true);
+                    }}
+                    className={`flex items-center justify-center px-3 py-1 rounded-md text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors ${navLoading && activePath === 'logout' ? 'menu-item-loading cursor-not-allowed' : ''}`}
+                    disabled={navLoading}
+                    title="ออกจากระบบ"
+                  >
+                    <span className="mr-1">{MenuIcons.logout}</span>
+                    <span>ออกจากระบบ</span>
+                  </button>
+                  
+                  <div className="ml-3 relative">
                     <button className="flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                       <span className="sr-only">Open user menu</span>
                       <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
@@ -158,6 +176,14 @@ export default function AdminLayout({ children }) {
           </div>
         </main>
       </div>
+      
+      {/* Logout Confirmation Dialog */}
+      <LogoutConfirmationDialog 
+        isOpen={showLogoutConfirmation}
+        onClose={() => setShowLogoutConfirmation(false)}
+        isLoading={navLoading && activePath === 'logout'}
+        onConfirm={handleLogout}
+      />
     </div>
   );
 }
