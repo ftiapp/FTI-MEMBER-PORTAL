@@ -32,7 +32,7 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
       badge: pendingCounts.addressUpdates > 0 ? pendingCounts.addressUpdates : null,
     },
     {
-      name: 'แจ้งเปลี่ยนสินค้า/บริการสมาชิก',
+      name: 'แจ้งเปลี่ยนข้อมูลสินค้า',
       path: '/admin/product-updates',
       icon: MenuIcons.product,
       badge: pendingCounts.productUpdates > 0 ? pendingCounts.productUpdates : null,

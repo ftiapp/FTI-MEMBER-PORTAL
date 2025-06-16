@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import './styles/animations.css';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AdminSidebar from './AdminSidebar';
@@ -70,7 +71,7 @@ export default function AdminLayout({ children }) {
   
   if (loading || !adminData) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100">
+      <div className="flex justify-center items-center min-h-screen bg-gray-100 fade-in">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -151,7 +152,7 @@ export default function AdminLayout({ children }) {
         {/* Page Content */}
         <main className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6 lg:p-8">
           <div className="mx-auto max-w-7xl">
-            <div className="bg-white shadow-sm rounded-lg p-6">
+            <div className="bg-white shadow-sm rounded-lg p-6 page-transition">
               {children}
             </div>
           </div>

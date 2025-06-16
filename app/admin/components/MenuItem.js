@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import './styles/animations.css';
 
 function MenuItem({ 
   item, 
@@ -13,18 +15,36 @@ function MenuItem({
   const isActive = pathname === item.path || (item.path !== '/admin/dashboard' && pathname.startsWith(item.path));
   const isLoading = loading && activePath === item.path;
 
+  // Animation state for menu item entrance
+  const [mounted, setMounted] = useState(false);
+  
+  useEffect(() => {
+    setMounted(true);
+    return () => setMounted(false);
+  }, []);
+
   return (
-    <div className="mb-2 relative">
+    <div className={`mb-2 relative ${mounted ? 'menu-item-enter' : ''}`}>
       <Link
         href={item.path}
         className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
           isActive 
             ? 'bg-gray-900 text-white' 
             : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-        } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
+        } ${isLoading ? 'menu-item-loading cursor-not-allowed' : ''}`}
         onClick={(e) => onNavigation(e, item.path)}
       >
-        <div className="mr-3">{item.icon}</div>
+        <div className="mr-3">
+          {isLoading ? (
+            <div className="flex items-center justify-center w-5 h-5">
+              <span className="loading-dot"></span>
+              <span className="loading-dot"></span>
+              <span className="loading-dot"></span>
+            </div>
+          ) : (
+            item.icon
+          )}
+        </div>
         {!collapsed && (
           <div className="flex-grow">
             <span>{item.name}</span>

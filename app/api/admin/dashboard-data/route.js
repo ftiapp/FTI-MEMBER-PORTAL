@@ -18,7 +18,7 @@ export async function GET(request) {
     // Get all counts in a single database query using subqueries
     const countsQuery = `
       SELECT
-        0 AS verifications_count, -- ลบการอ้างอิงถึงตาราง member_verifications ที่ไม่มีอยู่จริง
+        (SELECT COUNT(*) FROM companies_Member WHERE Admin_Submit = 0) AS verifications_count,
         (SELECT COUNT(*) FROM profile_update_requests WHERE status = 'pending') AS profile_updates_count,
         (SELECT COUNT(*) FROM pending_address_updates WHERE status = 'pending') AS address_updates_count,
         (SELECT COUNT(*) FROM guest_contact_messages WHERE status = 'unread') AS guest_messages_count,
