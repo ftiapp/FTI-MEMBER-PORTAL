@@ -8,6 +8,8 @@ const config = {
   options: {
     encrypt: false, // ไม่ใช้การเข้ารหัส
     trustServerCertificate: true, // ยอมรับใบรับรองจากเซิร์ฟเวอร์
+    connectTimeout: 30000, // Increase connection timeout
+    requestTimeout: 60000 // Increase request timeout for long-running queries
   },
   pool: {
     max: 10,
@@ -17,24 +19,76 @@ const config = {
 };
 
 let pool;
+let isConnecting = false;
+let connectionPromise = null;
 
-async function getConnection() {
-  try {
-    if (!pool) {
-      pool = await sql.connect(config);
-      console.log('MSSQL connection pool created');
+// Maximum number of connection retry attempts
+const MAX_RETRY_ATTEMPTS = 3;
+
+async function getConnection(retryCount = 0) {
+  // If we're already connecting, wait for that connection
+  if (isConnecting && connectionPromise) {
+    try {
+      return await connectionPromise;
+    } catch (error) {
+      console.error('Error while waiting for existing connection:', error);
+      // Continue to retry logic
     }
+  }
+
+  try {
+    // Check if pool exists and is connected
+    if (pool && !pool.closed) {
+      try {
+        // Test the connection with a simple query
+        await pool.request().query('SELECT 1 AS test');
+        return pool;
+      } catch (testError) {
+        console.warn('Connection test failed, will create new connection:', testError.message);
+        // Connection test failed, close the pool and create a new one
+        try {
+          await pool.close();
+        } catch (closeError) {
+          console.warn('Error closing pool:', closeError.message);
+        }
+        pool = null;
+      }
+    }
+
+    // Create a new connection
+    isConnecting = true;
+    connectionPromise = sql.connect(config);
+    pool = await connectionPromise;
+    console.log('MSSQL connection pool created successfully');
+    isConnecting = false;
+    connectionPromise = null;
     return pool;
   } catch (error) {
-    console.error('MSSQL connection error:', error);
-    throw error;
+    isConnecting = false;
+    connectionPromise = null;
+    console.error(`MSSQL connection error (attempt ${retryCount + 1}/${MAX_RETRY_ATTEMPTS}):`, error);
+    
+    // Retry logic
+    if (retryCount < MAX_RETRY_ATTEMPTS - 1) {
+      console.log(`Retrying connection in 1 second... (attempt ${retryCount + 1})`);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return getConnection(retryCount + 1);
+    }
+    
+    throw new Error(`Failed to connect to database after ${MAX_RETRY_ATTEMPTS} attempts: ${error.message}`);
   }
 }
 
-export async function mssqlQuery(queryText, params = []) {
+export async function mssqlQuery(queryText, params = [], retryCount = 0) {
+  const MAX_QUERY_RETRY = 2; // Maximum number of query retry attempts
+  
   try {
+    // Get a connection from the pool with retry logic built in
     const pool = await getConnection();
     const request = pool.request();
+    
+    // Set timeout for this specific request
+    request.timeout = 60000; // 60 seconds timeout for long queries
     
     // Add parameters to the request
     if (params && params.length > 0) {
@@ -91,7 +145,34 @@ export async function mssqlQuery(queryText, params = []) {
     // Return the recordset or an empty array if no recordset
     return result.recordset || [];
   } catch (error) {
-    console.error('MSSQL query error:', error);
+    console.error(`MSSQL query error (attempt ${retryCount + 1}/${MAX_QUERY_RETRY + 1}):`, error);
+    
+    // Check if this is a connection-related error
+    const isConnectionError = error.message.includes('Connection is closed') || 
+                             error.message.includes('Connection lost') ||
+                             error.message.includes('timeout') ||
+                             error.message.includes('network') ||
+                             error.code === 'ETIMEOUT' ||
+                             error.code === 'ECONNCLOSED';
+    
+    // Retry logic for connection errors
+    if (isConnectionError && retryCount < MAX_QUERY_RETRY) {
+      console.log(`Connection error detected. Retrying query in 1 second... (attempt ${retryCount + 1})`);
+      
+      // Reset the pool to force a new connection on retry
+      if (pool) {
+        try {
+          await pool.close();
+        } catch (closeError) {
+          console.warn('Error closing pool during retry:', closeError.message);
+        }
+        pool = null;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return mssqlQuery(queryText, params, retryCount + 1);
+    }
+    
     throw error;
   }
 }
@@ -105,6 +186,26 @@ export async function closeMssqlPool() {
     }
   } catch (error) {
     console.error('Error closing MSSQL connection pool:', error);
-    throw error;
+    // Don't throw the error, just log it
+    // This prevents issues when closing during server shutdown
+  }
+}
+
+// Function to check connection health
+export async function checkConnectionHealth() {
+  try {
+    const pool = await getConnection();
+    const result = await pool.request().query('SELECT 1 AS connectionTest');
+    return {
+      healthy: true,
+      message: 'Database connection is healthy',
+      details: result.recordset[0]
+    };
+  } catch (error) {
+    return {
+      healthy: false,
+      message: 'Database connection is unhealthy',
+      error: error.message
+    };
   }
 }

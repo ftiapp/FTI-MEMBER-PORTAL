@@ -189,6 +189,16 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent row click
+                    e.preventDefault(); // Prevent default navigation
+                    
+                    // Set access token in session storage to authorize access to member details
+                    // This token will be checked by the MemberDetail page to verify authorized access
+                    if (company.MEMBER_CODE) {
+                      sessionStorage.setItem('memberDetailAccess', `${company.MEMBER_CODE}_${Date.now()}`);
+                      
+                      // Navigate to member detail page with the member code and fixed parameters
+                      window.location.href = `/MemberDetail?memberCode=${encodeURIComponent(company.MEMBER_CODE)}&memberType=000&member_group_code=000&typeCode=000`;
+                    }
                   }}
                 >
                   <FaPencilAlt className="mr-1" size={14} />
