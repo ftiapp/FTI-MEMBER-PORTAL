@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,8 +48,8 @@ const MemberDetail = ({ userId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Show 5 items per page
 
-  // Function to fetch data - defined outside useEffect so it can be called from handleRetry
-  const fetchData = async () => {
+  // Function to fetch data - memoized with useCallback to prevent unnecessary recreations
+  const fetchData = useCallback(async () => {
     if (!userId) {
       setLoading(false);
       return;
@@ -57,56 +57,52 @@ const MemberDetail = ({ userId }) => {
 
     try {
       setLoading(true);
-      // Fetching data for userId
       
-      // Fetch approved companies
+      // Fetch approved companies with AbortController for cleanup
+      const controller = new AbortController();
+      const signal = controller.signal;
+      
       const companiesResponse = await fetch(`/api/member/approved-companies?userId=${userId}`, {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Include cookies in the request
+        credentials: 'include',
+        signal
       });
 
       if (!companiesResponse.ok) {
-        // API response error
         throw new Error(`ไม่สามารถดึงข้อมูลบริษัทที่ได้รับการอนุมัติได้ (${companiesResponse.status})`);
       }
 
       const companiesData = await companiesResponse.json();
-      // Process approved companies data
       
       if (companiesData && companiesData.companies) {
         setApprovedCompanies(companiesData.companies);
       }
       
-      // Fetch member details (if needed in the future)
-      // Here you would fetch member data and set it with setMemberData
+      setLoading(false);
       
-      setLoading(false);
+      return () => controller.abort();
     } catch (err) {
-      // Error handling
-      setError(err.message || 'ไม่สามารถดึงข้อมูลได้');
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    
-    // Check URL parameters for view mode
-    const checkUrlParams = () => {
-      if (typeof window !== 'undefined') {
-        const searchParams = new URLSearchParams(window.location.search);
-        const viewParam = searchParams.get('view');
-        
-        if (viewParam === 'detail') {
-          setTableView(false);
-        } else {
-          setTableView(true);
-        }
+      // Only set error if not an abort error
+      if (err.name !== 'AbortError') {
+        setError(err.message || 'ไม่สามารถดึงข้อมูลได้');
+        setLoading(false);
       }
-    };
-    
+    }
+  }, [userId]);
+
+  // Extract URL parameter checking to a memoized function
+  const checkUrlParams = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const viewParam = searchParams.get('view');
+      setTableView(viewParam !== 'detail');
+    }
+  }, []);
+  
+  useEffect(() => {
+    const cleanup = fetchData();
     checkUrlParams();
     
     // Listen for URL changes
@@ -114,36 +110,64 @@ const MemberDetail = ({ userId }) => {
     
     return () => {
       window.removeEventListener('popstate', checkUrlParams);
+      // Call cleanup function if it exists
+      if (cleanup && typeof cleanup === 'function') {
+        cleanup();
+      }
     };
-  }, [userId]);
+  }, [fetchData, checkUrlParams]);
   
-  // Filter companies based on search and filters
+  // Optimize filtering with memoized date objects and early returns
   const filteredCompanies = useMemo(() => {
+    // Early return if no companies
+    if (!approvedCompanies.length) return [];
+    
+    // Prepare date filters once outside the loop
+    let filterStartDate, filterEndDate;
+    
+    if (startDate) {
+      filterStartDate = new Date(startDate);
+    }
+    
+    if (endDate) {
+      filterEndDate = new Date(endDate);
+      filterEndDate.setHours(23, 59, 59, 999); // Set to end of day
+    }
+    
+    // Optimize search term
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const hasSearchTerm = lowerSearchTerm.length > 0;
+    const hasDateFilter = startDate || endDate;
+    
+    // If no filters are applied, return all companies
+    if (!hasSearchTerm && !hasDateFilter) return approvedCompanies;
+    
     return approvedCompanies.filter(company => {
-      // Search by company name
-      const matchesSearch = company.company_name?.toLowerCase().includes(searchTerm.toLowerCase());
+      // Skip filtering if company is missing
+      if (!company) return false;
       
-      // Filter by date range
-      let matchesDateRange = true;
-      if (startDate && endDate) {
-        const companyDate = new Date(company.updated_at);
-        const filterStartDate = new Date(startDate);
-        const filterEndDate = new Date(endDate);
-        filterEndDate.setHours(23, 59, 59, 999); // Set to end of day
-        
-        matchesDateRange = companyDate >= filterStartDate && companyDate <= filterEndDate;
-      } else if (startDate) {
-        const companyDate = new Date(company.updated_at);
-        const filterStartDate = new Date(startDate);
-        matchesDateRange = companyDate >= filterStartDate;
-      } else if (endDate) {
-        const companyDate = new Date(company.updated_at);
-        const filterEndDate = new Date(endDate);
-        filterEndDate.setHours(23, 59, 59, 999); // Set to end of day
-        matchesDateRange = companyDate <= filterEndDate;
+      // Search by company name (only if search term exists)
+      if (hasSearchTerm) {
+        const companyName = company.company_name || '';
+        if (!companyName.toLowerCase().includes(lowerSearchTerm)) {
+          return false;
+        }
       }
       
-      return matchesSearch && matchesDateRange;
+      // Filter by date range (only if date filters exist)
+      if (hasDateFilter && company.updated_at) {
+        const companyDate = new Date(company.updated_at);
+        
+        if (filterStartDate && companyDate < filterStartDate) {
+          return false;
+        }
+        
+        if (filterEndDate && companyDate > filterEndDate) {
+          return false;
+        }
+      }
+      
+      return true;
     });
   }, [approvedCompanies, searchTerm, startDate, endDate]);
   
@@ -153,36 +177,36 @@ const MemberDetail = ({ userId }) => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredCompanies.slice(indexOfFirstItem, indexOfLastItem);
   
-  // Handle pagination
-  const handlePageChange = (pageNumber) => {
+  // Memoized pagination handler
+  const handlePageChange = useCallback((pageNumber) => {
     setCurrentPage(Math.max(1, Math.min(pageNumber, totalPages)));
-  };
+  }, [totalPages]);
   
-  // Reset filters
-  const resetFilters = () => {
+  // Memoized reset filters function
+  const resetFilters = useCallback(() => {
     setSearchTerm('');
     setStartDate('');
     setEndDate('');
     setCurrentPage(1);
-  };
+  }, []);
 
-  // Handle retry when loading failed
-  const handleRetry = () => {
+  // Memoized retry handler
+  const handleRetry = useCallback(() => {
     if (userId) {
       setError(null);
-      setLoading(true);
       fetchData();
     }
-  };
+  }, [userId, fetchData]);
   
-  // Toggle between table view and detail view
-  const toggleView = () => {
+  // Memoized view toggle function
+  const toggleView = useCallback(() => {
     const newView = !tableView;
     setTableView(newView);
     
     // Update URL with view parameter
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set('tab', 'member');
+    
     if (!newView) {
       searchParams.set('view', 'detail');
     } else {
@@ -191,7 +215,7 @@ const MemberDetail = ({ userId }) => {
     
     // Use shallow routing to update URL without full page reload
     router.push(`/dashboard?${searchParams.toString()}`, undefined, { shallow: true });
-  };
+  }, [tableView, router]);
 
   // Loading state
   if (loading) {
@@ -217,14 +241,15 @@ const MemberDetail = ({ userId }) => {
       transition={{ duration: 0.5 }}
       layout
     >
-      <AnimatePresence mode="wait">
+      {/* Optimize AnimatePresence by using it only when necessary */}
+      <AnimatePresence mode="wait" initial={false}>
         {tableView ? (
           <motion.div
             key="table-view"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
           >
             <FilterSection 
               showFilters={showFilters}
@@ -278,18 +303,6 @@ const MemberDetail = ({ userId }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Add global animation styles */}
-      <style jsx global>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        button:active {
-          transform: translateY(1px);
-        }
-      `}</style>
     </motion.div>
   );
 };

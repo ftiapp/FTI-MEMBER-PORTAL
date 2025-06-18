@@ -46,7 +46,24 @@ export default function MembershipCertificate() {
       }
       
       console.log('Approved members:', approvedMembers);
-      setMemberData(approvedMembers);
+      
+      // กรองข้อมูลซ้ำ - แสดงเพียงรายการเดียวต่อ Member_code (เก็บข้อมูลล่าสุด)
+      const memberMap = new Map();
+      approvedMembers.forEach(member => {
+        if (member.MEMBER_CODE) {
+          // เก็บข้อมูลล่าสุดหรือข้อมูลที่มี ID มากที่สุด
+          const existingMember = memberMap.get(member.MEMBER_CODE);
+          if (!existingMember || (member.id && existingMember.id && member.id > existingMember.id)) {
+            memberMap.set(member.MEMBER_CODE, member);
+          } else if (!existingMember) {
+            memberMap.set(member.MEMBER_CODE, member);
+          }
+        }
+      });
+      
+      const uniqueMembers = Array.from(memberMap.values());
+      console.log('Unique members after deduplication:', uniqueMembers);
+      setMemberData(uniqueMembers);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching member data:', err);

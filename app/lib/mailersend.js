@@ -285,20 +285,20 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
   const emailParams = new EmailParams()
     .setFrom(defaultSender)
     .setTo(recipients)
-    .setSubject("คำขอแก้ไขที่อยู่ไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย")
+    .setSubject("แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย")
     .setHtml(`
       <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
           <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
-          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่</h1>
+          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาการสมัครสมาชิก</h1>
         </div>
         <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
           <p>เรียน คุณ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขที่อยู่ของท่านไม่ได้รับการอนุมัติ</strong></p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ</strong></p>
           
           <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
-            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลที่ท่านยื่น:</strong></p>
+            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลการสมัครของท่าน:</strong></p>
             <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
             <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
           </div>
@@ -308,7 +308,7 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
             <p style="margin: 10px 0 0;">${rejectReason || '-'}</p>
           </div>
           
-          <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอแก้ไขที่อยู่ใหม่ได้จากหน้ารายละเอียดสมาชิก หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+          <p>ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
         </div>
         <div style="text-align: center; margin-bottom: 30px;">
           <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
@@ -321,19 +321,19 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
       </div>
     `)
     .setText(`
-      คำขอแก้ไขที่อยู่ไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
+      แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย
       
       เรียน คุณ${fullName}
       
-      สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขที่อยู่ของท่านไม่ได้รับการอนุมัติ
+      สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ
       
-      ข้อมูลที่ท่านยื่น:
+      ข้อมูลการสมัครของท่าน:
       หมายเลขสมาชิก: ${memberCode}
       ชื่อบริษัท: ${companyName}
       
       เหตุผลที่ไม่ได้รับการอนุมัติ: ${rejectReason}
       
-      ท่านสามารถแก้ไขข้อมูลและส่งคำขอแก้ไขที่อยู่ใหม่ได้จากหน้ารายละเอียดสมาชิก หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+      ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
       
       เข้าสู่ระบบได้ที่: ${loginLink}
       ไปที่แดชบอร์ด: ${dashboardLink}

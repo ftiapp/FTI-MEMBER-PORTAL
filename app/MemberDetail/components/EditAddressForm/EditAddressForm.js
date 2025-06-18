@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useLoading } from '../../../components/GlobalLoadingOverlay';
 import { FaCheckCircle, FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { toast } from 'react-hot-toast';
 
 // Import components
 import { 
@@ -212,8 +213,13 @@ export default function EditAddressForm({
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      return;
+    }
+    
     setIsSubmitting(true);
-    // Show global loading overlay to prevent navigation
     setLoading(true, 'กำลังส่งข้อมูลการแก้ไขที่อยู่...');
     setErrorMessage(''); // Clear any previous error messages
     
@@ -350,6 +356,13 @@ export default function EditAddressForm({
       
       if (data.success) {
         setSubmitSuccess(true);
+        
+        // Show success notification
+        toast.success('ส่งคำขอแก้ไขที่อยู่สำเร็จ', {
+          duration: 5000,
+          position: 'top-center',
+        });
+        
         // Keep the global loading overlay visible for 2 seconds to show success
         setTimeout(() => {
           // Hide the global loading overlay
