@@ -20,7 +20,7 @@ export default function ReviewStep({
           <div className="ml-3">
             <p className="text-sm text-blue-700">
               {language === 'th' 
-                ? 'หมายเหตุ: เมื่อท่านยืนยันการแก้ไขหรืออัพเดทรหัส TSIC ระบบจะทำการลบข้อมูลรหัส TSIC ก่อนหน้าทั้งหมด และบันทึกข้อมูลรหัส TSIC ที่ท่านเลือกในครั้งนี้ลงไปแทน โปรดตรวจสอบข้อมูลให้ถูกต้องก่อนการยืนยัน หลังจากการบันทึกข้อมูล หากต้องการเพิ่ม/แก้ไขข้อมูล กรุณารอ 5 วินาที ขออภัยในความไม่สะดวก' 
+                ? 'หมายเหตุ: เมื่อท่านยืนยันการแก้ไขหรืออัพเดทรหัส TSIC ระบบจะทำการลบข้อมูลรหัส TSIC ก่อนหน้าทั้งหมด และบันทึกข้อมูลรหัส TSIC ที่ท่านเลือกในครั้งนี้ลงไปแทน โปรดตรวจสอบข้อมูลให้ถูกต้องก่อนการยืนยัน' 
                 : 'Note: When you confirm to update TSIC codes, the system will delete all previous TSIC codes and save the currently selected TSIC codes instead. Please verify the information carefully before confirming. After saving, if you want to add/edit data, please wait 5 seconds. We apologize for the inconvenience.'}
             </p>
           </div>

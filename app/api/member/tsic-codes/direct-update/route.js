@@ -38,7 +38,8 @@ export async function POST(request) {
     
     // Try to get user ID from token
     const cookieStore = cookies();
-    const token = cookieStore.get('token')?.value;
+    const tokenCookie = cookieStore.get('token');
+    const token = tokenCookie?.value;
     
     if (token) {
       try {

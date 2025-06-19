@@ -44,18 +44,46 @@ export async function GET(request) {
       }, { status: 400 });
     }
 
-    // Fetch logo updates from the database
-    const query = `
-      SELECT l.id, l.member_code, l.logo_url, l.display_mode, l.created_at, 
-             c.company_name_th as company_name
-      FROM member_logos l
-      LEFT JOIN companies_Member c ON l.member_code = c.MEMBER_CODE
-      WHERE l.user_id = ?
-      ORDER BY l.created_at DESC
+    // First, get member codes associated with this user
+    const memberQuery = `
+      SELECT MEMBER_CODE 
+      FROM companies_Member 
+      WHERE user_id = ?
     `;
     
     const connection = await getConnection();
-    const logoUpdates = await executeQuery(connection, query, [userId]);
+    const memberResults = await executeQuery(connection, memberQuery, [userId]);
+    
+    // If no member codes found, return placeholder
+    if (!memberResults || memberResults.length === 0) {
+      return NextResponse.json({
+        success: true,
+        updates: [{
+          id: Date.now(),
+          title: 'อัปเดตโลโก้บริษัท',
+          description: 'คุณยังไม่มีการอัปเดตโลโก้บริษัท',
+          status: 'none',
+          created_at: new Date().toISOString(),
+          type: 'อัปเดตโลโก้บริษัท'
+        }]
+      });
+    }
+    
+    // Get member codes as array
+    const memberCodes = memberResults.map(result => result.MEMBER_CODE);
+    
+    // Use IN clause to get logo updates for these member codes
+    const placeholders = memberCodes.map(() => '?').join(',');
+    const logoQuery = `
+      SELECT l.id, l.member_code, l.logo_url, l.display_mode, l.created_at, 
+             c.COMPANY_NAME as company_name
+      FROM company_logos l
+      LEFT JOIN companies_Member c ON l.member_code = c.MEMBER_CODE
+      WHERE l.member_code IN (${placeholders})
+      ORDER BY l.created_at DESC
+    `;
+    
+    const logoUpdates = await executeQuery(connection, logoQuery, memberCodes);
     
     // Format the response
     if (logoUpdates && logoUpdates.length > 0) {

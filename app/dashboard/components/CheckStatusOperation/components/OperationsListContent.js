@@ -7,6 +7,10 @@ import {
 } from './utils';
 import { getContactMessageStatusIcon, getContactMessageStatusText, getContactMessageStatusClass } from './contactMessageStatusUtils';
 import { getAddressUpdateStatusIcon, getAddressUpdateStatusText, getAddressUpdateStatusClass } from './addressUpdateStatusUtils';
+import { getProductUpdateStatusIcon, getProductUpdateStatusText, getProductUpdateStatusClass } from './productUpdateStatusUtils';
+import { getSocialMediaStatusIcon, getSocialMediaStatusText, getSocialMediaStatusClass } from './socialMediaStatusUtils';
+import { getLogoStatusIcon, getLogoStatusText, getLogoStatusClass } from '../utils/logoStatusUtils';
+import { getTsicStatusIcon, getTsicStatusText, getTsicStatusClass } from '../utils/tsicStatusUtils';
 import EmptyState from './EmptyState';
 import StatusCard from './StatusCard';
 import Pagination from './Pagination';
@@ -68,6 +72,10 @@ const OperationsListContent = ({
               icon={
                 operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusIcon(operation.status) : 
                 operation.title === 'แก้ไขข้อมูลสมาชิก' ? getAddressUpdateStatusIcon(operation.status) :
+                operation.title === 'แก้ไขข้อมูลสินค้า' ? getProductUpdateStatusIcon(operation.status) :
+                operation.title === 'อัปเดตโซเชียลมีเดีย' ? getSocialMediaStatusIcon(operation.status) :
+                operation.title === 'อัปเดตโลโก้บริษัท' ? getLogoStatusIcon(operation.status) :
+                operation.title === 'อัปเดตรหัส TSIC' ? getTsicStatusIcon(operation.status) :
                 getStatusIcon(operation.status)
               }
               title={operation.title}
@@ -75,11 +83,19 @@ const OperationsListContent = ({
               statusText={
                 operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusText(operation.status) :
                 operation.title === 'แก้ไขข้อมูลสมาชิก' ? getAddressUpdateStatusText(operation.status) :
+                operation.title === 'แก้ไขข้อมูลสินค้า' ? getProductUpdateStatusText(operation.status) :
+                operation.title === 'อัปเดตโซเชียลมีเดีย' ? getSocialMediaStatusText(operation.status) :
+                operation.title === 'อัปเดตโลโก้บริษัท' ? getLogoStatusText(operation.status) :
+                operation.title === 'อัปเดตรหัส TSIC' ? getTsicStatusText(operation.status) :
                 getStatusText(operation.status)
               }
               statusClass={
                 operation.title === 'ติดต่อเจ้าหน้าที่' ? getContactMessageStatusClass(operation.status) :
                 operation.title === 'แก้ไขข้อมูลสมาชิก' ? getAddressUpdateStatusClass(operation.status) :
+                operation.title === 'แก้ไขข้อมูลสินค้า' ? getProductUpdateStatusClass(operation.status) :
+                operation.title === 'อัปเดตโซเชียลมีเดีย' ? getSocialMediaStatusClass(operation.status) :
+                operation.title === 'อัปเดตโลโก้บริษัท' ? getLogoStatusClass(operation.status) :
+                operation.title === 'อัปเดตรหัส TSIC' ? getTsicStatusClass(operation.status) :
                 getStatusClass(operation.status)
               }
               date={operation.created_at}
@@ -88,10 +104,20 @@ const OperationsListContent = ({
               type={operation.type || (
                 operation.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : 
                 operation.title === 'แก้ไขข้อมูลสมาชิก' ? 'แก้ไขข้อมูลสมาชิก' :
+                operation.title === 'แก้ไขข้อมูลสินค้า' ? 'แก้ไขข้อมูลสินค้า' :
+                operation.title === 'อัปเดตโซเชียลมีเดีย' ? 'อัปเดตโซเชียลมีเดีย' :
+                operation.title === 'อัปเดตโลโก้บริษัท' ? 'อัปเดตโลโก้บริษัท' :
+                operation.title === 'อัปเดตรหัส TSIC' ? 'อัปเดตรหัส TSIC' :
                 operation.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 'แก้ไขข้อมูลส่วนตัว'
               )}
               status={operation.status}
               message_content={operation.message_content}
+              old_address={operation.old_address}
+              new_address={operation.new_address}
+              old_product={operation.old_product}
+              new_product={operation.new_product}
+              items={operation.items}
+              member_code={operation.member_code}
             />
           </motion.div>
         ))}

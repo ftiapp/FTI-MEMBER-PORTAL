@@ -55,6 +55,10 @@ const StatusCard = ({
   message_content,
   old_address,
   new_address,
+  old_product,
+  new_product,
+  items, // Social media items
+  member_code, // Member code for navigation
   status
 }) => {
   const router = useRouter();
@@ -72,11 +76,45 @@ const StatusCard = ({
         const event = new CustomEvent('contactMessageClicked', { detail: { messageId: id } });
         window.dispatchEvent(event);
       }, 100); // Small delay to ensure URL is updated first
+    } else if (type === 'แก้ไขข้อมูลสินค้า' && status === 'approved' && id) {
+      // For approved product updates, navigate to the member detail page with products tab
+      if (new_product?.member_code && new_product?.member_type) {
+        const memberCode = new_product.member_code;
+        const memberType = new_product.member_type;
+        const memberGroupCode = new_product.member_group_code || '';
+        
+        console.log(`Navigating to product details for ${memberCode}`);
+        router.push(`/member/${memberCode}?memberType=${memberType}&member_group_code=${memberGroupCode}&tab=products`);
+      }
+    } else if (type === 'อัปเดตโซเชียลมีเดีย' && status === 'approved' && member_code) {
+      // For social media updates, navigate to the member detail page with social-media tab
+      console.log(`Navigating to social media details for ${member_code}`);
+      router.push(`/MemberDetail?memberCode=${member_code}&tab=social-media`);
+    } else if (type === 'อัปเดตโลโก้บริษัท' && status === 'approved' && member_code) {
+      // For logo updates, navigate to the member detail page with company tab
+      console.log(`Navigating to company details for ${member_code}`);
+      router.push(`/MemberDetail?memberCode=${member_code}&tab=company`);
+    } else if (type === 'อัปเดตรหัส TSIC' && status === 'approved' && member_code) {
+      // For TSIC updates, navigate to the member detail page with company tab
+      console.log(`Navigating to company details for TSIC update for ${member_code}`);
+      router.push(`/MemberDetail?memberCode=${member_code}&tab=company`);
     }
   };
   
   // Check if this is an address update card
   const isAddressUpdate = type === 'แก้ไขข้อมูลสมาชิก' && (old_address || new_address);
+  
+  // Check if this is a product update card
+  const isProductUpdate = type === 'แก้ไขข้อมูลสินค้า' && (old_product || new_product);
+  
+  // Check if this is a social media update card
+  const isSocialMediaUpdate = type === 'อัปเดตโซเชียลมีเดีย' && items?.length > 0;
+  
+  // Check if this is a logo update card
+  const isLogoUpdate = type === 'อัปเดตโลโก้บริษัท';
+  
+  // Check if this is a TSIC update card
+  const isTsicUpdate = type === 'อัปเดตรหัส TSIC';
 
   // Animation variants
   const cardVariants = {
@@ -139,7 +177,7 @@ const StatusCard = ({
 
   return (
     <motion.div 
-      className={`border rounded-lg p-4 ${type === 'ติดต่อเจ้าหน้าที่' ? 'cursor-pointer' : ''}`}
+      className={`relative flex flex-col p-4 mb-4 border rounded-lg shadow-sm ${isAddressUpdate || isProductUpdate || isSocialMediaUpdate || (isLogoUpdate && status === 'approved') || (isTsicUpdate && status === 'approved') ? 'cursor-pointer' : ''} ${type === 'ติดต่อเจ้าหน้าที่' ? 'cursor-pointer' : ''}`}
       onClick={handleCardClick}
       variants={cardVariants}
       initial="initial"

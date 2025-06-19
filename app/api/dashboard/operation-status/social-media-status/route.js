@@ -44,18 +44,46 @@ export async function GET(request) {
       }, { status: 400 });
     }
 
-    // Fetch social media updates from the database
-    const query = `
-      SELECT sm.id, sm.member_code, sm.platform, sm.url, sm.display_name, sm.created_at, 
-             c.company_name_th as company_name
-      FROM member_social_media sm
-      LEFT JOIN companies_Member c ON sm.member_code = c.MEMBER_CODE
-      WHERE sm.user_id = ?
-      ORDER BY sm.created_at DESC
+    // First, get member codes associated with this user
+    const memberQuery = `
+      SELECT MEMBER_CODE 
+      FROM companies_Member 
+      WHERE user_id = ?
     `;
     
     const connection = await getConnection();
-    const socialMediaUpdates = await executeQuery(connection, query, [userId]);
+    const memberResults = await executeQuery(connection, memberQuery, [userId]);
+    
+    // If no member codes found, return placeholder
+    if (!memberResults || memberResults.length === 0) {
+      return NextResponse.json({
+        success: true,
+        updates: [{
+          id: Date.now(),
+          title: 'อัปเดตโซเชียลมีเดีย',
+          description: 'คุณยังไม่มีการอัปเดตโซเชียลมีเดีย',
+          status: 'none',
+          created_at: new Date().toISOString(),
+          type: 'อัปเดตโซเชียลมีเดีย'
+        }]
+      });
+    }
+    
+    // Get member codes as array
+    const memberCodes = memberResults.map(result => result.MEMBER_CODE);
+    
+    // Use IN clause to get social media updates for these member codes
+    const placeholders = memberCodes.map(() => '?').join(',');
+    const socialMediaQuery = `
+      SELECT sm.id, sm.member_code, sm.platform, sm.url, sm.display_name, sm.created_at, 
+             c.COMPANY_NAME as company_name
+      FROM member_social_media sm
+      LEFT JOIN companies_Member c ON sm.member_code = c.MEMBER_CODE
+      WHERE sm.member_code IN (${placeholders})
+      ORDER BY sm.created_at DESC
+    `;
+    
+    const socialMediaUpdates = await executeQuery(connection, socialMediaQuery, memberCodes);
     
     // Format the response
     if (socialMediaUpdates && socialMediaUpdates.length > 0) {

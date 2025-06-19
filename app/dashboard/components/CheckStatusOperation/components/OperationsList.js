@@ -8,6 +8,10 @@ import { operationTypeOptions, statusOptions } from '../utils/filterOptions';
 import useContactMessageStatus from '../hooks/useContactMessageStatus';
 import useAddressUpdateStatus from '../hooks/useAddressUpdateStatus';
 import useVerificationStatus from '../hooks/useVerificationStatus';
+import useProductUpdateStatus from '../hooks/useProductUpdateStatus';
+import useSocialMediaStatus from '../hooks/useSocialMediaStatus';
+import useLogoStatus from '../hooks/useLogoStatus';
+import useTsicStatus from '../hooks/useTsicStatus';
 import useMergedOperations from '../hooks/useMergedOperations';
 import useOperationsFiltering from '../hooks/useOperationsFiltering';
 
@@ -27,13 +31,21 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const { contactMessageStatus, isLoading: contactLoading } = useContactMessageStatus(userId);
   const addressUpdates = useAddressUpdateStatus(userId);
   const { verifications, isLoading: verificationsLoading } = useVerificationStatus(userId);
+  const productUpdates = useProductUpdateStatus(userId);
+  const { socialMediaUpdates, isLoading: socialMediaLoading } = useSocialMediaStatus(userId);
+  const { logoUpdates, isLoading: logoLoading } = useLogoStatus(userId);
+  const { tsicUpdates, isLoading: tsicLoading } = useTsicStatus(userId);
   
   // Merge all operations
   const operations = useMergedOperations(
     initialOperations, 
     contactMessageStatus, 
     verifications, 
-    addressUpdates
+    addressUpdates,
+    productUpdates,
+    socialMediaUpdates,
+    logoUpdates,
+    tsicUpdates
   );
 
   // Apply filtering and pagination
@@ -45,7 +57,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   } = useOperationsFiltering(operations, search, statusFilter, typeFilter, dateRange);
 
   // Determine if we're still loading data
-  const isLoading = contactLoading || verificationsLoading;
+  const isLoading = contactLoading || verificationsLoading || socialMediaLoading || logoLoading || tsicLoading;
 
   return (
     <motion.div 

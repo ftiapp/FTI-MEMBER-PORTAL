@@ -52,7 +52,7 @@ export default function SectionFlow({ currentStep, language = 'th' }) {
   // ข้อความตามภาษาที่เลือก
   const title = language === 'th' ? 'เพิ่มรหัส TSIC' : 'Add TSIC Code';
   const description = language === 'th' 
-    ? 'เลือกรหัส TSIC ที่อธิบายกิจกรรมทางธุรกิจของคุณได้ดีที่สุด การเลือกของคุณจะได้รับการตรวจสอบและอนุมัติโดยทีมงานของเราภายใน 2 วันทำการ'
+    ? 'เลือกรหัส TSIC ที่อธิบายกิจกรรมทางธุรกิจของคุณได้ดีที่สุด การเลือกของคุณจะปรากฏบน ระบบค้นหาข้อมูลสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย'
     : 'Select the TSIC code that best describes your business activities. Your selection will be reviewed and approved by our team within 2 business days.';
 
   return (
