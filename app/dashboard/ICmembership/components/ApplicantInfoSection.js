@@ -1,22 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FiChevronDown } from 'react-icons/fi';
-import SearchableDropdown from './SearchableDropdown';
 
-export default function ApplicantInfoSection({
+export default function BusinessInfoSection({
   formData,
   errors,
   handleChange,
   handleCheckboxChange,
-  industryGroups,
-  provinceChapters,
-  isLoading,
-  showErrorNotification = false
+  businessCategories,
+  isLoading
 }) {
-  const [showAllIndustryGroups, setShowAllIndustryGroups] = useState(false);
-  const [showAllProvinceChapters, setShowAllProvinceChapters] = useState(false);
-  
   // Auto scroll to first error
   useEffect(() => {
     if (errors && Object.keys(errors).length > 0) {
@@ -36,280 +29,196 @@ export default function ApplicantInfoSection({
     }
   }, [errors]);
 
-  const displayedIndustryGroups = showAllIndustryGroups 
-    ? industryGroups 
-    : industryGroups.slice(0, 10);
-    
-  const displayedProvinceChapters = showAllProvinceChapters 
-    ? provinceChapters 
-    : provinceChapters.slice(0, 10);
+  // จัดการการเพิ่ม/ลบรายการผลิตภัณฑ์/บริการ
+  const handleAddProduct = () => {
+    if (formData.products && formData.products.length < 10) {
+      const updatedProducts = [...(formData.products || []), { thai: '', english: '' }];
+      handleChange({
+        target: {
+          name: 'products',
+          value: updatedProducts
+        }
+      });
+    }
+  };
 
-  const handleIndustryGroupsChange = (values) => {
+  const handleRemoveProduct = (index) => {
+    const updatedProducts = formData.products.filter((_, i) => i !== index);
     handleChange({
       target: {
-        name: 'selectedIndustryGroups',
-        value: values
+        name: 'products',
+        value: updatedProducts
       }
     });
   };
 
-  const handleProvinceChaptersChange = (values) => {
+  const handleProductChange = (index, field, value) => {
+    const updatedProducts = [...(formData.products || [])];
+    updatedProducts[index] = {
+      ...updatedProducts[index],
+      [field]: value
+    };
     handleChange({
       target: {
-        name: 'selectedProvinceChapters',
-        value: values
+        name: 'products',
+        value: updatedProducts
       }
     });
   };
+
+  // ตรวจสอบว่ามีรายการผลิตภัณฑ์หรือไม่ ถ้าไม่มีให้สร้างรายการแรก
+  const products = formData.products && formData.products.length > 0 
+    ? formData.products 
+    : [{ thai: '', english: '' }];
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">ข้อมูลผู้สมัคร</h2>
+      <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">ข้อมูลธุรกิจ</h2>
       
-      {/* เลขบัตรประชาชน - แยกเป็น field เดี่ยว */}
-      <div className="w-full md:w-1/2 relative">
-        <label htmlFor="idCardNumber" className="block text-sm font-medium text-gray-700 mb-1">
-          เลขบัตรประชาชน <span className="text-red-500">*</span>
+      {/* ประเภทกิจการ */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          ประเภทกิจการ
+          <span className="text-xs text-gray-500 ml-1">(เลือกได้มากกว่า 1)</span>
         </label>
-        <input
-          type="text"
-          id="idCardNumber"
-          name="idCardNumber"
-          value={formData.idCardNumber}
-          onChange={(e) => {
-            // อนุญาตให้กรอกเฉพาะตัวเลขเท่านั้น
-            const value = e.target.value.replace(/[^0-9]/g, '');
-            handleChange({
-              target: {
-                name: 'idCardNumber',
-                value
-              }
-            });
-          }}
-          className={`w-full px-3 py-2 border ${
-            errors.idCardNumber ? 'border-red-500' : 'border-gray-300'
-          } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-          placeholder="เลขบัตรประชาชน 13 หลัก"
-          maxLength={13}
-        />
-        {errors.idCardNumber && (
-          <div className="absolute top-0 right-0 -mt-1 -mr-1">
-            <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
-              <div className="relative">
-                {errors.idCardNumber}
-                {/* Arrow pointing down-left */}
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                  <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
+        
+        {isLoading ? (
+          <div className="flex items-center space-x-2">
+            <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>กำลังโหลดข้อมูล...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+            {businessCategories.map((category) => (
+              <div key={category.id} className="flex items-start">
+                <input
+                  type="checkbox"
+                  id={`business-category-${category.id}`}
+                  name="businessCategories"
+                  value={category.id}
+                  checked={formData.businessCategories && formData.businessCategories.includes(category.id)}
+                  onChange={handleCheckboxChange}
+                  className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <label htmlFor={`business-category-${category.id}`} className="ml-2 text-sm text-gray-700">
+                  {category.name}
+                </label>
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* อื่นๆ โปรดระบุ */}
+        {formData.businessCategories && formData.businessCategories.includes('other') && (
+          <div className="mt-3">
+            <label htmlFor="businessCategoryOther" className="block text-sm font-medium text-gray-700 mb-1">
+              โปรดระบุประเภทกิจการอื่นๆ <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="businessCategoryOther"
+              name="businessCategoryOther"
+              value={formData.businessCategoryOther || ''}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border ${
+                errors.businessCategoryOther ? 'border-red-500' : 'border-gray-300'
+              } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+              placeholder="ระบุประเภทกิจการอื่นๆ"
+            />
+            {errors.businessCategoryOther && (
+              <p className="mt-1 text-sm text-red-500">{errors.businessCategoryOther}</p>
+            )}
+          </div>
+        )}
+      </div>
+      
+      {/* ผลิตภัณฑ์/บริการ */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-gray-700">
+            ผลิตภัณฑ์/บริการ <span className="text-red-500">*</span>
+          </label>
+          <button
+            type="button"
+            onClick={handleAddProduct}
+            disabled={products.length >= 10}
+            className={`inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+              products.length >= 10
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+            }`}
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            เพิ่มรายการ
+          </button>
+        </div>
+
+        <div className="space-y-3">
+          {products.map((product, index) => (
+            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-sm font-medium text-gray-600">รายการที่ {index + 1}</span>
+                {products.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProduct(index)}
+                    className="text-red-500 hover:text-red-700 focus:outline-none"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* ภาษาไทย */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ภาษาไทย <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={product.thai || ''}
+                    onChange={(e) => handleProductChange(index, 'thai', e.target.value)}
+                    className={`w-full px-3 py-2 border ${
+                      errors.products && errors.products[index] && errors.products[index].thai 
+                        ? 'border-red-500' 
+                        : 'border-gray-300'
+                    } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                    placeholder="กรุณาระบุ สินค้า/บริการ ครับ"
+                  />
+                  {errors.products && errors.products[index] && errors.products[index].thai && (
+                    <p className="mt-1 text-sm text-red-500">{errors.products[index].thai}</p>
+                  )}
+                </div>
+
+                {/* ภาษาอังกฤษ */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ภาษาอังกฤษ
+                  </label>
+                  <input
+                    type="text"
+                    value={product.english || ''}
+                    onChange={(e) => handleProductChange(index, 'english', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Please specify your products/services"
+                  />
                 </div>
               </div>
             </div>
-          </div>
+          ))}
+        </div>
+
+        {errors.products && typeof errors.products === 'string' && (
+          <p className="mt-2 text-sm text-red-500">{errors.products}</p>
         )}
-        <p className="text-xs text-gray-500 mt-1">กรอกเฉพาะตัวเลข 13 หลัก</p>
-      </div>
-
-      {/* ชื่อ-นามสกุล ภาษาไทย */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-3">ชื่อ-นามสกุล (ภาษาไทย)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <label htmlFor="firstNameThai" className="block text-sm font-medium text-gray-700 mb-1">
-              ชื่อ <span className="text-red-500">*</span>
-              <span className="text-xs text-red-500 ml-1">(ไม่ต้องใส่คำนำหน้า)</span>
-            </label>
-            <input
-              type="text"
-              id="firstNameThai"
-              name="firstNameThai"
-              value={formData.firstNameThai || ''}
-              onChange={(e) => {
-                // อนุญาตให้กรอกเฉพาะภาษาไทยเท่านั้น
-                const value = e.target.value.replace(/[^ก-๙\s]/g, '');
-                handleChange({
-                  target: {
-                    name: 'firstNameThai',
-                    value
-                  }
-                });
-              }}
-              className={`w-full px-3 py-2 border ${
-                errors.firstNameThai ? 'border-red-500' : 'border-gray-300'
-              } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-              placeholder="ชื่อ (ภาษาไทย)"
-            />
-            {errors.firstNameThai && (
-              <div className="absolute top-0 right-0 -mt-1 -mr-1">
-                <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
-                  <div className="relative">
-                    {errors.firstNameThai}
-                    {/* Arrow pointing down-left */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-1">กรอกเฉพาะภาษาไทยเท่านั้น</p>
-          </div>
-          <div className="relative">
-            <label htmlFor="lastNameThai" className="block text-sm font-medium text-gray-700 mb-1">
-              นามสกุล <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="lastNameThai"
-              name="lastNameThai"
-              value={formData.lastNameThai || ''}
-              onChange={(e) => {
-                // อนุญาตให้กรอกเฉพาะภาษาไทยเท่านั้น
-                const value = e.target.value.replace(/[^ก-๙\s]/g, '');
-                handleChange({
-                  target: {
-                    name: 'lastNameThai',
-                    value
-                  }
-                });
-              }}
-              className={`w-full px-3 py-2 border ${
-                errors.lastNameThai ? 'border-red-500' : 'border-gray-300'
-              } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-              placeholder="นามสกุล (ภาษาไทย)"
-            />
-            {errors.lastNameThai && (
-              <div className="absolute top-0 right-0 -mt-1 -mr-1">
-                <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
-                  <div className="relative">
-                    {errors.lastNameThai}
-                    {/* Arrow pointing down-left */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-1">กรอกเฉพาะภาษาไทยเท่านั้น</p>
-          </div>
-        </div>
-      </div>
-
-      {/* ชื่อ-นามสกุล ภาษาอังกฤษ */}
-      <div>
-        <h3 className="text-sm font-medium text-gray-700 mb-3">ชื่อ-นามสกุล (ภาษาอังกฤษ)</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="relative">
-            <label htmlFor="firstNameEnglish" className="block text-sm font-medium text-gray-700 mb-1">
-              ชื่อ
-              <span className="text-xs text-red-500 ml-1">(ไม่ต้องใส่คำนำหน้า)</span>
-            </label>
-            <input
-              type="text"
-              id="firstNameEnglish"
-              name="firstNameEnglish"
-              value={formData.firstNameEnglish || ''}
-              onChange={(e) => {
-                // อนุญาตให้กรอกเฉพาะภาษาอังกฤษเท่านั้น
-                const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                handleChange({
-                  target: {
-                    name: 'firstNameEnglish',
-                    value
-                  }
-                });
-              }}
-              className={`w-full px-3 py-2 border ${errors.firstNameEnglish ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-              placeholder="First Name"
-            />
-            {errors.firstNameEnglish && (
-              <div className="absolute top-0 right-0 -mt-1 -mr-1">
-                <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
-                  <div className="relative">
-                    {errors.firstNameEnglish}
-                    {/* Arrow pointing down-left */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-1">กรอกเฉพาะภาษาอังกฤษเท่านั้น</p>
-          </div>
-          
-          <div className="relative">
-            <label htmlFor="lastNameEnglish" className="block text-sm font-medium text-gray-700 mb-1">
-              นามสกุล
-            </label>
-            <input
-              type="text"
-              id="lastNameEnglish"
-              name="lastNameEnglish"
-              value={formData.lastNameEnglish || ''}
-              onChange={(e) => {
-                // อนุญาตให้กรอกเฉพาะภาษาอังกฤษเท่านั้น
-                const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
-                handleChange({
-                  target: {
-                    name: 'lastNameEnglish',
-                    value
-                  }
-                });
-              }}
-              className={`w-full px-3 py-2 border ${errors.lastNameEnglish ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-              placeholder="Last Name"
-            />
-            {errors.lastNameEnglish && (
-              <div className="absolute top-0 right-0 -mt-1 -mr-1">
-                <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
-                  <div className="relative">
-                    {errors.lastNameEnglish}
-                    {/* Arrow pointing down-left */}
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
-                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            <p className="text-xs text-gray-500 mt-1">กรอกเฉพาะภาษาอังกฤษเท่านั้น</p>
-          </div>
-        </div>
-      </div>
-      
-      {/* กลุ่มอุตสาหกรรม และ สภาอุตสาหกรรมจังหวัด */}
-      <div className="mb-2 text-sm text-gray-600 italic">หากท่านไม่ประสงค์เข้าร่วมกลุ่มอุตสาหกรรมหรือสภาอุตสาหกรรมจังหวัด สามารถเว้นว่างไว้ได้</div>
-      
-      {/* กลุ่มอุตสาหกรรม */}
-      <SearchableDropdown
-        label="กลุ่มอุตสาหกรรม"
-        placeholder="เลือกกลุ่มอุตสาหกรรม"
-        type="industry"
-        value={formData.selectedIndustryGroups}
-        onChange={handleIndustryGroupsChange}
-        multiple={true}
-        required={false}
-        error={errors.selectedIndustryGroups}
-        className="mb-4"
-      />
-      
-      {/* สภาอุตสาหกรรมจังหวัด */}
-      <SearchableDropdown
-        label="สภาอุตสาหกรรมจังหวัด"
-        placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
-        type="province"
-        value={formData.selectedProvinceChapters}
-        onChange={handleProvinceChaptersChange}
-        multiple={true}
-        required={false}
-        error={errors.selectedProvinceChapters}
-        className="mb-4"
-      />
-      
-      {/* ข้อความแจ้งเตือนเกี่ยวกับเอกสารที่ต้องเตรียม */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-        <h3 className="text-sm font-medium text-blue-800 mb-2">รายการเอกสารที่ท่านต้องเตรียม</h3>
-        <p className="text-sm text-blue-700">บัตรประจำตัวประชาชน พร้อม ลายเซ็นสำเนาถูกต้อง</p>
       </div>
     </div>
   );

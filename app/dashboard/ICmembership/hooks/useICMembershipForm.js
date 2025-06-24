@@ -113,20 +113,33 @@ export const useICMembershipForm = (initialValues = {}) => {
     }
   };
 
-  const handleCheckboxChange = (name, value, isChecked) => {
+  const handleCheckboxChange = (e) => {
+    const { name, value, checked } = e.target;
+    
     setFormData((prev) => {
-      if (isChecked) {
+      // ตรวจสอบว่า prev[name] มีค่าหรือไม่
+      const currentValues = prev[name] || [];
+      
+      if (checked) {
         return {
           ...prev,
-          [name]: [...prev[name], value],
+          [name]: [...currentValues, value],
         };
       } else {
         return {
           ...prev,
-          [name]: prev[name].filter((item) => item !== value),
+          [name]: currentValues.filter((item) => item !== value),
         };
       }
     });
+    
+    // Clear error when field is changed
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: '',
+      }));
+    }
   };
 
   const handleFileChange = (name, file) => {

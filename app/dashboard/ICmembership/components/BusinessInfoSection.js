@@ -8,73 +8,52 @@ export default function BusinessInfoSection({
   businessCategories,
   isLoading
 }) {
-  const businessTypes = [
-    { id: 'manufacturer', label: 'ผู้ผลิต' },
-    { id: 'exporter', label: 'ผู้ส่งออก' },
-    { id: 'importer', label: 'ผู้นำเข้า' },
-    { id: 'wholesaler', label: 'ผู้ค้าส่ง' },
-    { id: 'retailer', label: 'ผู้ค้าปลีก' },
-    { id: 'service', label: 'ผู้ให้บริการ' },
-    { id: 'other', label: 'อื่นๆ' }
-  ];
+
+  // จัดการการเพิ่ม/ลบรายการผลิตภัณฑ์/บริการ
+  const handleAddProduct = () => {
+    if (formData.products && formData.products.length < 10) {
+      const updatedProducts = [...(formData.products || []), { thai: '', english: '' }];
+      handleChange({
+        target: {
+          name: 'products',
+          value: updatedProducts
+        }
+      });
+    }
+  };
+
+  const handleRemoveProduct = (index) => {
+    const updatedProducts = formData.products.filter((_, i) => i !== index);
+    handleChange({
+      target: {
+        name: 'products',
+        value: updatedProducts
+      }
+    });
+  };
+
+  const handleProductChange = (index, field, value) => {
+    const updatedProducts = [...(formData.products || [])];
+    updatedProducts[index] = {
+      ...updatedProducts[index],
+      [field]: value
+    };
+    handleChange({
+      target: {
+        name: 'products',
+        value: updatedProducts
+      }
+    });
+  };
+
+  // ตรวจสอบว่ามีรายการผลิตภัณฑ์หรือไม่ ถ้าไม่มีให้สร้างรายการแรก
+  const products = formData.products && formData.products.length > 0 
+    ? formData.products 
+    : [{ thai: '', english: '' }];
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-gray-800 border-b pb-2">ข้อมูลธุรกิจ</h2>
-      
-      {/* ประเภทธุรกิจ */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          ประเภทธุรกิจ <span className="text-red-500">*</span>
-          <span className="text-xs text-gray-500 ml-1">(เลือกได้มากกว่า 1)</span>
-        </label>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-          {businessTypes.map((type) => (
-            <div key={type.id} className="flex items-start">
-              <input
-                type="checkbox"
-                id={`business-type-${type.id}`}
-                name="businessTypes"
-                value={type.id}
-                checked={formData.businessTypes.includes(type.id)}
-                onChange={handleCheckboxChange}
-                className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-              />
-              <label htmlFor={`business-type-${type.id}`} className="ml-2 text-sm text-gray-700">
-                {type.label}
-              </label>
-            </div>
-          ))}
-        </div>
-        
-        {errors.businessTypes && (
-          <p className="mt-1 text-sm text-red-500">{errors.businessTypes}</p>
-        )}
-        
-        {/* อื่นๆ โปรดระบุ */}
-        {formData.businessTypes.includes('other') && (
-          <div className="mt-3">
-            <label htmlFor="businessTypeOther" className="block text-sm font-medium text-gray-700 mb-1">
-              โปรดระบุประเภทธุรกิจอื่นๆ <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              id="businessTypeOther"
-              name="businessTypeOther"
-              value={formData.businessTypeOther}
-              onChange={handleChange}
-              className={`w-full px-3 py-2 border ${
-                errors.businessTypeOther ? 'border-red-500' : 'border-gray-300'
-              } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-              placeholder="ระบุประเภทธุรกิจอื่นๆ"
-            />
-            {errors.businessTypeOther && (
-              <p className="mt-1 text-sm text-red-500">{errors.businessTypeOther}</p>
-            )}
-          </div>
-        )}
-      </div>
       
       {/* ประเภทกิจการ */}
       <div>
@@ -100,7 +79,7 @@ export default function BusinessInfoSection({
                   id={`business-category-${category.id}`}
                   name="businessCategories"
                   value={category.id}
-                  checked={formData.businessCategories.includes(category.id)}
+                  checked={formData.businessCategories && formData.businessCategories.includes(category.id)}
                   onChange={handleCheckboxChange}
                   className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                 />
@@ -111,45 +90,115 @@ export default function BusinessInfoSection({
             ))}
           </div>
         )}
+        
+        {/* อื่นๆ โปรดระบุ */}
+        {formData.businessCategories && formData.businessCategories.includes('other') && (
+          <div className="mt-3">
+            <label htmlFor="businessCategoryOther" className="block text-sm font-medium text-gray-700 mb-1">
+              โปรดระบุประเภทกิจการอื่นๆ <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="businessCategoryOther"
+              name="businessCategoryOther"
+              value={formData.businessCategoryOther || ''}
+              onChange={handleChange}
+              className={`w-full px-3 py-2 border ${
+                errors.businessCategoryOther ? 'border-red-500' : 'border-gray-300'
+              } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+              placeholder="ระบุประเภทกิจการอื่นๆ"
+            />
+            {errors.businessCategoryOther && (
+              <p className="mt-1 text-sm text-red-500">{errors.businessCategoryOther}</p>
+            )}
+          </div>
+        )}
       </div>
       
-      <div className="grid grid-cols-1 gap-6">
-        {/* ผลิตภัณฑ์/บริการ (ภาษาไทย) */}
-        <div>
-          <label htmlFor="productsThai" className="block text-sm font-medium text-gray-700 mb-1">
-            ผลิตภัณฑ์/บริการ (ภาษาไทย) <span className="text-red-500">*</span>
+      {/* ผลิตภัณฑ์/บริการ */}
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-gray-700">
+            ผลิตภัณฑ์/บริการ <span className="text-red-500">*</span>
           </label>
-          <textarea
-            id="productsThai"
-            name="productsThai"
-            value={formData.productsThai}
-            onChange={handleChange}
-            rows={3}
-            className={`w-full px-3 py-2 border ${
-              errors.productsThai ? 'border-red-500' : 'border-gray-300'
-            } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
-            placeholder="กรุณาระบุผลิตภัณฑ์หรือบริการของท่าน"
-          ></textarea>
-          {errors.productsThai && (
-            <p className="mt-1 text-sm text-red-500">{errors.productsThai}</p>
-          )}
+          <button
+            type="button"
+            onClick={handleAddProduct}
+            disabled={products.length >= 10}
+            className={`inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white ${
+              products.length >= 10
+                ? 'bg-gray-400 cursor-not-allowed'
+                : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+            }`}
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            เพิ่มรายการ
+          </button>
         </div>
-        
-        {/* ผลิตภัณฑ์/บริการ (ภาษาอังกฤษ) */}
-        <div>
-          <label htmlFor="productsEnglish" className="block text-sm font-medium text-gray-700 mb-1">
-            ผลิตภัณฑ์/บริการ (ภาษาอังกฤษ)
-          </label>
-          <textarea
-            id="productsEnglish"
-            name="productsEnglish"
-            value={formData.productsEnglish}
-            onChange={handleChange}
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="Please specify your products or services"
-          ></textarea>
+
+        <div className="space-y-3">
+          {products.map((product, index) => (
+            <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div className="flex items-start justify-between mb-3">
+                <span className="text-sm font-medium text-gray-600">รายการที่ {index + 1}</span>
+                {products.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveProduct(index)}
+                    className="text-red-500 hover:text-red-700 focus:outline-none"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {/* ภาษาไทย */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ภาษาไทย <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={product.thai || ''}
+                    onChange={(e) => handleProductChange(index, 'thai', e.target.value)}
+                    className={`w-full px-3 py-2 border ${
+                      errors.products && errors.products[index] && errors.products[index].thai 
+                        ? 'border-red-500' 
+                        : 'border-gray-300'
+                    } rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500`}
+                    placeholder="กรุณาระบุ สินค้า/บริการ ครับ"
+                  />
+                  {errors.products && errors.products[index] && errors.products[index].thai && (
+                    <p className="mt-1 text-sm text-red-500">{errors.products[index].thai}</p>
+                  )}
+                </div>
+
+                {/* ภาษาอังกฤษ */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    ภาษาอังกฤษ
+                  </label>
+                  <input
+                    type="text"
+                    value={product.english || ''}
+                    onChange={(e) => handleProductChange(index, 'english', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Please specify your products/services"
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
+
+        {errors.products && typeof errors.products === 'string' && (
+          <p className="mt-2 text-sm text-red-500">{errors.products}</p>
+        )}
       </div>
     </div>
   );
