@@ -18,6 +18,7 @@ import RecentActivities from './components/RecentActivities';
 import CheckStatusOperation from './components/CheckStatusOperation/page';
 import UpgradeMembership from './components/UpgradeMembership';
 import MembershipCertificate from './components/MembershipCertificate/page';
+import ICMembership from './ICmembership/page';
 
 export default function Dashboard() {
   const router = useRouter();
@@ -50,8 +51,9 @@ export default function Dashboard() {
       const searchParams = new URLSearchParams(window.location.search);
       const tabParam = searchParams.get('tab');
       const messageId = searchParams.get('messageId');
+      const icMember = searchParams.get('ICmember');
       
-      console.log('URL parameters:', { tabParam, messageId });
+      console.log('URL parameters:', { tabParam, messageId, icMember });
       
       if (tabParam === 'status') {
         setActiveTab('สถานะการดำเนินการ');
@@ -78,6 +80,12 @@ export default function Dashboard() {
       } else if (tabParam === 'updatemember') {
         setActiveTab('อัพเดตสมาชิก');
         console.log('Setting active tab to อัพเดตสมาชิก');
+      } else if (tabParam === 'Membership' && icMember === 'true') {
+        setActiveTab('สมัครสมาชิก');
+        console.log('Setting active tab to สมัครสมาชิก for IC membership');
+      } else if (tabParam === 'สมัครสมาชิกสภาอุตสาหกรรม') {
+        setActiveTab('สมัครสมาชิกสภาอุตสาหกรรม');
+        console.log('Setting active tab to สมัครสมาชิกสภาอุตสาหกรรม');
       } else if (tabParam === 'address') {
         setActiveTab('ข้อมูลสมาชิก');
         console.log('Setting active tab to ข้อมูลสมาชิก for address');
@@ -203,7 +211,7 @@ export default function Dashboard() {
       ),
     },
     {
-      name: 'อัพเกรดสมาชิก',
+      name: 'สมัครสมาชิก',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -282,6 +290,34 @@ export default function Dashboard() {
             </div>
           </div>
         );
+        
+      case 'สมัครสมาชิก':
+        {
+          // Check if ICmember parameter is present
+          const urlParams = new URLSearchParams(window.location.search);
+          const icMember = urlParams.get('ICmember');
+          
+          if (icMember === 'true') {
+            return (
+              <div className="space-y-4 sm:space-y-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">สมัครสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย</h2>
+                <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                  <ICMembership />
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <div className="space-y-4 sm:space-y-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800">สมัครสมาชิก</h2>
+                <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
+                  <UpgradeMembership />
+                </div>
+              </div>
+            );
+          }
+        }
+        
 
       case 'ยืนยันสมาชิกเดิม':
         return (
