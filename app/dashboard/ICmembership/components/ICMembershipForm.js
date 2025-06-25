@@ -540,8 +540,7 @@ export default function ICMembershipForm({ onSubmit, isSubmitting }) {
       scrollToTop();
     } else {
       console.log('Validation failed, staying on current step');
-      // แสดงข้อความแจ้งเตือนเพิ่มเติม
-      alert('กรุณากรอกข้อมูลที่จำเป็นให้ครบถ้วน');
+      // ErrorNotification component will handle displaying the errors
     }
   }, [currentStep, handleStepValidation, setErrors, formData]);
 
@@ -630,6 +629,14 @@ export default function ICMembershipForm({ onSubmit, isSubmitting }) {
 
   return (
     <div className="w-full p-4 bg-white rounded-lg shadow-md">
+      {/* Error notification at the top right */}
+      {Object.keys(errors).length > 0 && (
+        <ErrorNotification 
+          errors={errors} 
+          onClose={() => setErrors({})}
+        />
+      )}
+      
       <div className="bg-white rounded-lg shadow-md p-6">
         <ProgressHeader 
           currentStep={currentStep}

@@ -113,12 +113,13 @@ export const useICMembershipForm = (initialValues = {}) => {
     }
   };
 
-  const handleCheckboxChange = (e) => {
-    const { name, value, checked } = e.target;
+  const handleCheckboxChange = (event) => {
+    // รับค่าจาก event object
+    const { name, value, checked } = event.target;
     
     setFormData((prev) => {
-      // ตรวจสอบว่า prev[name] มีค่าหรือไม่
-      const currentValues = prev[name] || [];
+      // Ensure prev[name] is an array
+      const currentValues = Array.isArray(prev[name]) ? prev[name] : [];
       
       if (checked) {
         return {
@@ -132,21 +133,36 @@ export const useICMembershipForm = (initialValues = {}) => {
         };
       }
     });
-    
-    // Clear error when field is changed
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
   };
 
-  const handleFileChange = (name, file) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: file,
-    }));
+  const handleFileChange = (event, fileOrName, optionalFile) => {
+    // กรณีที่เป็น event object จาก input type="file"
+    if (event && event.target) {
+      const { name, files } = event.target;
+      const file = files && files.length > 0 ? files[0] : null;
+      
+      console.log(`File change detected: ${name}`, file ? file.name : 'No file');
+      
+      setFormData((prev) => ({
+        ...prev,
+        [name]: file,
+      }));
+    }
+    // กรณีที่ส่งชื่อฟิลด์และไฟล์แยกกัน
+    else if (typeof event === 'string' && fileOrName !== undefined) {
+      const name = event;
+      const file = fileOrName;
+      
+      console.log(`File change with params: ${name}`, file ? (file.name || 'File object') : 'No file');
+      
+      setFormData((prev) => ({
+        ...prev,
+        [name]: file,
+      }));
+    } 
+    else {
+      console.error('Invalid arguments for handleFileChange', { event, fileOrName, optionalFile });
+    }
   };
 
   const validateForm = () => {

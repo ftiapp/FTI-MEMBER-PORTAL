@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 export default function BusinessInfoSection({
   formData,
   errors,
@@ -8,6 +10,24 @@ export default function BusinessInfoSection({
   businessCategories,
   isLoading
 }) {
+  // Auto scroll to first error
+  useEffect(() => {
+    if (errors && Object.keys(errors).length > 0) {
+      const errorFields = Object.keys(errors);
+      const firstErrorField = errorFields[0];
+      const firstErrorElement = document.getElementById(firstErrorField);
+      
+      if (firstErrorElement) {
+        firstErrorElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+        // Optional: Focus on the input field
+        firstErrorElement.focus();
+      }
+    }
+  }, [errors]);
 
   // จัดการการเพิ่ม/ลบรายการผลิตภัณฑ์/บริการ
   const handleAddProduct = () => {
@@ -93,7 +113,7 @@ export default function BusinessInfoSection({
         
         {/* อื่นๆ โปรดระบุ */}
         {formData.businessCategories && formData.businessCategories.includes('other') && (
-          <div className="mt-3">
+          <div className="mt-3 relative">
             <label htmlFor="businessCategoryOther" className="block text-sm font-medium text-gray-700 mb-1">
               โปรดระบุประเภทกิจการอื่นๆ <span className="text-red-500">*</span>
             </label>
@@ -109,7 +129,17 @@ export default function BusinessInfoSection({
               placeholder="ระบุประเภทกิจการอื่นๆ"
             />
             {errors.businessCategoryOther && (
-              <p className="mt-1 text-sm text-red-500">{errors.businessCategoryOther}</p>
+              <div className="absolute top-0 right-0 -mt-1 -mr-1">
+                <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
+                  <div className="relative">
+                    {errors.businessCategoryOther}
+                    {/* Arrow pointing down-left */}
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                      <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -158,12 +188,13 @@ export default function BusinessInfoSection({
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {/* ภาษาไทย */}
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     ภาษาไทย <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
+                    id={`product-thai-${index}`}
                     value={product.thai || ''}
                     onChange={(e) => handleProductChange(index, 'thai', e.target.value)}
                     className={`w-full px-3 py-2 border ${
@@ -174,17 +205,28 @@ export default function BusinessInfoSection({
                     placeholder="กรุณาระบุ สินค้า/บริการ ครับ"
                   />
                   {errors.products && errors.products[index] && errors.products[index].thai && (
-                    <p className="mt-1 text-sm text-red-500">{errors.products[index].thai}</p>
+                    <div className="absolute top-0 right-0 -mt-1 -mr-1">
+                      <div className="bg-red-500 text-white text-xs px-2 py-1 rounded-md shadow-lg max-w-xs">
+                        <div className="relative">
+                          {errors.products[index].thai}
+                          {/* Arrow pointing down-left */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2">
+                            <div className="w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-red-500"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
 
                 {/* ภาษาอังกฤษ */}
-                <div>
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     ภาษาอังกฤษ
                   </label>
                   <input
                     type="text"
+                    id={`product-english-${index}`}
                     value={product.english || ''}
                     onChange={(e) => handleProductChange(index, 'english', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -197,7 +239,9 @@ export default function BusinessInfoSection({
         </div>
 
         {errors.products && typeof errors.products === 'string' && (
-          <p className="mt-2 text-sm text-red-500">{errors.products}</p>
+          <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-sm text-red-600">{errors.products}</p>
+          </div>
         )}
       </div>
     </div>

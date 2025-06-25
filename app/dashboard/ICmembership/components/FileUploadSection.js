@@ -27,12 +27,14 @@ export default function FileUploadSection({
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFileChange({
+      // สร้าง event object ที่มีโครงสร้างเหมือนกับ event จาก input type="file"
+      const fileEvent = {
         target: {
           name: 'idCardFile',
           files: [e.dataTransfer.files[0]]
         }
-      });
+      };
+      handleFileChange(fileEvent);
     }
   };
   
@@ -72,15 +74,36 @@ export default function FileUploadSection({
                     <p className="text-xs text-gray-500">{formatFileSize(formData.idCardFile.size)}</p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleFileChange({ target: { name: 'idCardFile', files: [] } })}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
+                <div className="flex space-x-2">
+                  {/* ปุ่มดูไฟล์ (รูปดวงตา) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // สร้าง URL object สำหรับไฟล์
+                      const fileUrl = URL.createObjectURL(formData.idCardFile);
+                      // เปิดไฟล์ในแท็บใหม่
+                      window.open(fileUrl, '_blank');
+                    }}
+                    className="text-blue-500 hover:text-blue-700"
+                    title="ดูไฟล์"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                  </button>
+                  {/* ปุ่มลบไฟล์ */}
+                  <button
+                    type="button"
+                    onClick={() => handleFileChange({ target: { name: 'idCardFile', files: [] } })}
+                    className="text-red-500 hover:text-red-700"
+                    title="ลบไฟล์"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
