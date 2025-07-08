@@ -18,7 +18,7 @@ import RecentActivities from './components/RecentActivities';
 import CheckStatusOperation from './components/CheckStatusOperation/page';
 import UpgradeMembership from './components/UpgradeMembership';
 import MembershipCertificate from './components/MembershipCertificate/page';
-import ICMembership from './ICmembership/page';
+// ICMembership component removed - will be reimplemented later
 
 export default function Dashboard() {
   const router = useRouter();
@@ -302,7 +302,15 @@ export default function Dashboard() {
               <div className="space-y-4 sm:space-y-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-800">สมัครสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย</h2>
                 <div className="bg-white rounded-xl shadow-md p-4 sm:p-6">
-                  <ICMembership />
+                  <div className="text-center py-8">
+                    <div className="mx-auto mb-4 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">ระบบสมัครสมาชิกอยู่ระหว่างการปรับปรุง</h3>
+                    <p className="text-gray-600 mb-4">ขออภัยในความไม่สะดวก กรุณาลองใหม่ในภายหลัง</p>
+                  </div>
                 </div>
               </div>
             );

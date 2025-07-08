@@ -33,50 +33,56 @@ export default function Membership() {
 
   const membershipTypes = [
     {
-      id: 'sn',
-      name: 'สมาชิกสามัญ (สส)',
-      description: 'สำหรับผู้ประกอบการอุตสาหกรรม',
+      id: 'oc',
+      name: 'สน (OC)',
+      description: 'สามัญ-โรงงาน',
       annual_fee: 12000,
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
         'สิทธิในการออกเสียงเลือกตั้ง',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม'
       ],
-      highlight: true
+      highlight: true,
+      path: '/membership/oc'
     },
     {
-      id: 'ss',
-      name: 'สมาชิกวิสามัญ (สม)',
-      description: 'สำหรับผู้ประกอบการที่เกี่ยวข้องกับอุตสาหกรรม',
+      id: 'am',
+      name: 'สส (AM)',
+      description: 'สามัญ-สมาคมการค้า',
       annual_fee: 8000,
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
         'เครือข่ายธุรกิจอุตสาหกรรม'
       ],
-      highlight: true
+      highlight: false,
+      path: '/membership/am'
     },
     {
-      id: 'tn',
-      name: 'สมาชิกไม่มีนิติบุคคล (ทน)',
-      description: 'สำหรับบุคคลทั่วไปที่ทำงานด้านอุตสาหกรรม',
+      id: 'ac',
+      name: 'ทน (AC)',
+      description: 'สมทบ-นิติบุคคล',
       annual_fee: 6000,
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
         'เครือข่ายธุรกิจอุตสาหกรรม'
-      ]
+      ],
+      highlight: true,
+      path: '/membership/ac'
     },
     {
-      id: 'tb',
-      name: 'สมาชิกสมทบ (ทบ)',
-      description: 'สำหรับบุคคลทั่วไปที่สนใจงานด้านอุตสาหกรรม',
+      id: 'ic',
+      name: 'ทบ (IC)',
+      description: 'สมทบ-บุคคลธรรมดา',
       annual_fee: 3000,
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
         'เครือข่ายธุรกิจอุตสาหกรรม'
-      ]
+      ],
+      highlight: false,
+      path: '/membership/ic'
     }
   ];
 
@@ -207,12 +213,12 @@ export default function Membership() {
                     </li>
                   ))}
                 </ul>
-                <button
-                  onClick={() => handleUpgradeClick(type.id, type.name, type.annual_fee)}
+                <Link
+                  href={type.path}
                   className="w-full block text-center py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  {!user ? 'เข้าสู่ระบบเพื่ออัพเกรด' : 'อัพเกรด'}
-                </button>
+                  สมัครสมาชิก
+                </Link>
               </motion.div>
             ))}
           </motion.div>

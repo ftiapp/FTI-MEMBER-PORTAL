@@ -40,7 +40,7 @@ export default function UpgradeMembership() {
               </li>
             </ul>
             <Link
-              href={`/membership/upgrade?type=sn&name=${encodeURIComponent('สน สามัญ-โรงงาน')}&fee=12000`}
+              href="/membership/oc"
               className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors block text-center"
             >
               สมัครสมาชิก
@@ -77,7 +77,7 @@ export default function UpgradeMembership() {
               </li>
             </ul>
             <Link
-              href={`/membership/upgrade?type=ss&name=${encodeURIComponent('สส สามัญ-สมาคมการค้า')}&fee=8000`}
+              href="/membership/am"
               className="w-full bg-purple-600 text-white py-2 rounded hover:bg-purple-700 transition-colors block text-center"
             >
               สมัครสมาชิก
@@ -117,7 +117,7 @@ export default function UpgradeMembership() {
               </li>
             </ul>
             <Link
-              href={`/membership/upgrade?type=tn&name=${encodeURIComponent('ทน สมทบ-นิติบุคคล')}&fee=6000`}
+              href="/membership/ac"
               className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition-colors block text-center"
             >
               สมัครสมาชิก
@@ -153,14 +153,12 @@ export default function UpgradeMembership() {
                 เครือข่ายธุรกิจอุตสาหกรรม
               </li>
             </ul>
-            <button
-              onClick={() => {
-                window.location.href = '/dashboard?tab=Membership&ICmember=true';
-              }}
+            <Link
+              href="/membership/ic"
               className="w-full bg-amber-600 text-white py-2 rounded hover:bg-amber-700 transition-colors block text-center"
             >
               สมัครสมาชิก
-            </button>
+            </Link>
           </div>
         </div>
       </div>

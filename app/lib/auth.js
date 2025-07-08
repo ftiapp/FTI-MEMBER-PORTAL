@@ -102,11 +102,13 @@ export async function checkUserSession(cookieStore) {
       return null;
     }
 
+    // ส่งคืนข้อมูลผู้ใช้จากฐานข้อมูล
+    const user = users[0];
     return {
-      id: payload.id,
-      username: payload.username,
-      email: payload.email,
-      role: payload.role
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role
     };
   } catch (error) {
     console.error('Error checking user session:', error);

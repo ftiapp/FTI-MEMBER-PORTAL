@@ -29,6 +29,11 @@ export async function GET(request) {
     if (ids) {
       const idArray = ids.split(',').map(id => id.trim());
       if (idArray.length > 0) {
+        console.log('Searching for IDs:', idArray);
+        
+        // สร้าง query ที่รองรับทั้ง string และ number
+        console.log('ID array for query:', idArray);
+        
         query = `
           SELECT 
             MEMBER_MAIN_GROUP_CODE,
@@ -37,18 +42,29 @@ export async function GET(request) {
           FROM 
             [FTI].[dbo].[MB_MEMBER_GROUP]
           WHERE 
-            MEMBER_GROUP_CODE IN (${idArray.map(id => `'${id}'`).join(',')})
+            CAST(MEMBER_GROUP_CODE AS NVARCHAR(50)) IN (${idArray.map(id => `'${id}'`).join(',')})
         `;
+        
+        console.log('SQL Query:', query);
         
         // Execute query for specific IDs
         const results = await mssqlQuery(query);
         
         // Format the results
-        const formattedResults = results.map(item => ({
-          id: item.MEMBER_GROUP_CODE,
-          name: item.MEMBER_GROUP_NAME,
-          type: item.MEMBER_MAIN_GROUP_CODE === 100 ? 'industry' : 'province'
-        }));
+        console.log('Raw DB results:', results);
+        
+        const formattedResults = results.map(item => {
+          // แปลง MEMBER_MAIN_GROUP_CODE เป็น number เพื่อเปรียบเทียบ
+          const mainGroupCode = parseInt(item.MEMBER_MAIN_GROUP_CODE, 10);
+          
+          return {
+            id: String(item.MEMBER_GROUP_CODE).trim(),
+            name: item.MEMBER_GROUP_NAME,
+            type: mainGroupCode === 100 ? 'industry' : 'province'
+          };
+        });
+        
+        console.log('Formatted results:', formattedResults);
         
         // Return the results without pagination
         return NextResponse.json({
