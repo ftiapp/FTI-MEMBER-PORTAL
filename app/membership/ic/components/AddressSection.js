@@ -304,7 +304,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
             <div className="space-y-2">
               <SearchableDropdown
                 label="รหัสไปรษณีย์"
-                placeholder="พิมพ์เพื่อค้นหารหัสไปรษณีย์"
+                placeholder="รหัสไปรษณีย์"
                 value={formData.postalCode || ''}
                 onChange={handlePostalCodeChange}
                 onSelect={handlePostalCodeSelect}
@@ -312,6 +312,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 isRequired={true}
                 isReadOnly={true}
                 error={errors?.postalCode}
+                autoFillNote={formData.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
               />
             </div>

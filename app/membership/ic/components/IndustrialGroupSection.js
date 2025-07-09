@@ -49,7 +49,7 @@ export default function IndustrialGroupSection({
             กลุ่มอุตสาหกรรม
           </label>
           <MultiSelectDropdown
-            label="กลุ่มอุตสาหกรรม"
+           
             options={industrialGroups?.data ? industrialGroups.data.map(group => ({
               id: group.MEMBER_GROUP_CODE,
               name_th: group.MEMBER_GROUP_NAME
@@ -67,7 +67,7 @@ export default function IndustrialGroupSection({
             สภาอุตสาหกรรมจังหวัด
           </label>
           <MultiSelectDropdown
-            label="สภาอุตสาหกรรมจังหวัด"
+        
             options={Array.isArray(provincialChapters) ? provincialChapters : []}
             selectedValues={formData.provincialCouncilIds || []}
             onChange={handleProvincialCouncilChange}

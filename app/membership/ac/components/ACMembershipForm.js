@@ -27,6 +27,7 @@ const STEPS = [
 
 const INITIAL_FORM_DATA = {
   companyName: '',
+  companyNameEn: '',
   taxId: '',
   companyEmail: '',
   companyPhone: '',
@@ -56,6 +57,7 @@ const INITIAL_FORM_DATA = {
   memberCount: '',
   registeredCapital: '',
   industrialGroups: [],
+  provincialChapters: [],
   
   companyRegistration: null,
   companyProfile: null,

@@ -29,6 +29,7 @@ const STEPS = [
 const INITIAL_FORM_DATA = {
   // ข้อมูลสมาคม
   associationName: '',
+  associationNameEng: '',
   taxId: '',
   associationEmail: '',
   associationPhone: '',

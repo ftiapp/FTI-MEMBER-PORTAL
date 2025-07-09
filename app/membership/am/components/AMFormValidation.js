@@ -42,7 +42,13 @@ export const validateAMForm = (formData, step) => {
  */
 const validateAssociationInfo = (formData, errors) => {
   if (!formData.associationName) {
-    errors.associationName = 'กรุณากรอกชื่อสมาคม';
+    errors.associationName = 'กรุณากรอกชื่อสมาคมภาษาไทย';
+  }
+  
+  if (!formData.associationNameEng) {
+    errors.associationNameEng = 'กรุณากรอกชื่อสมาคมภาษาอังกฤษ';
+  } else if (!/^[A-Za-z0-9\s.,&()-]+$/.test(formData.associationNameEng)) {
+    errors.associationNameEng = 'ชื่อสมาคมภาษาอังกฤษต้องเป็นภาษาอังกฤษเท่านั้น';
   }
 
   // ตรวจสอบเลขประจำตัวผู้เสียภาษีเท่านั้น ไม่ต้องตรวจสอบเลขทะเบียนสมาคม

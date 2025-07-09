@@ -15,6 +15,7 @@ import SummarySection from './SummarySection';
 import { validateOCForm } from './OCFormValidation';
 import { submitOCMembershipForm } from './OCFormSubmission';
 import { useOCFormNavigation } from './OCFormNavigation';
+import OCStepIndicator from './OCStepIndicator';
 
 // Constants
 const STEPS = [
@@ -117,21 +118,25 @@ const useApiData = () => {
   return data;
 };
 
-export default function OCMembershipForm() {
+export default function OCMembershipForm({ currentStep, setCurrentStep, formData: externalFormData, setFormData: setExternalFormData, totalSteps }) {
   const router = useRouter();
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading } = useApiData();
   
+  // ใช้ค่า currentStep และ setCurrentStep จาก props
   const {
-    currentStep,
     isSubmitting,
     setIsSubmitting,
-    totalSteps,
     handleNextStep,
     handlePrevStep
-  } = useOCFormNavigation((formData, step) => validateOCForm(formData, step));
+  } = useOCFormNavigation(
+    (formData, step) => validateOCForm(formData, step),
+    currentStep,
+    setCurrentStep,
+    totalSteps
+  );
 
   // Check tax ID uniqueness
   const checkTaxIdUniqueness = useCallback(async (taxId) => {

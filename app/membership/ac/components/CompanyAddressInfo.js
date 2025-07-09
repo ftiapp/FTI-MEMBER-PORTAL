@@ -403,14 +403,15 @@ export default function CompanyAddressInfo({
             <div className="space-y-2">
               <SearchableDropdown
                 label="รหัสไปรษณีย์"
-                placeholder="พิมพ์เพื่อค้นหารหัสไปรษณีย์"
+                placeholder="รหัสไปรษณีย์"
                 value={formData.postalCode || ''}
                 onChange={handlePostalCodeChange}
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
                 isRequired={true}
-                isReadOnly={false}
+                isReadOnly={true}
                 error={errors?.postalCode}
+                autoFillNote={isAutofill && formData.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
               />
             </div>

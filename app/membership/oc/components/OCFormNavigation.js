@@ -9,10 +9,15 @@ import { checkTaxIdUniqueness, checkIdCardUniqueness } from './OCFormSubmission'
  * @param {Function} validateForm ฟังก์ชันตรวจสอบความถูกต้องของข้อมูล
  * @returns {Object} ฟังก์ชันและ state ที่ใช้ในการนำทาง
  */
-export const useOCFormNavigation = (validateForm) => {
-  const [currentStep, setCurrentStep] = useState(1);
+export const useOCFormNavigation = (validateForm, externalCurrentStep, externalSetCurrentStep, externalTotalSteps) => {
+  // ใช้ค่าจากภายนอกถ้ามี หรือสร้าง state ใหม่ถ้าไม่มี
+  const [internalCurrentStep, setInternalCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const totalSteps = 5;
+  
+  // ใช้ค่าจากภายนอกถ้ามี
+  const currentStep = externalCurrentStep !== undefined ? externalCurrentStep : internalCurrentStep;
+  const setCurrentStep = externalSetCurrentStep || setInternalCurrentStep;
+  const totalSteps = externalTotalSteps || 5;
 
   /**
    * ไปยังขั้นตอนถัดไป พร้อมตรวจสอบข้อมูล

@@ -138,11 +138,8 @@ export const validateACForm = (formData, step) => {
   }
   
   else if (step === 4) {
-    // ตรวจสอบเอกสารแนบ
-    if (!formData.companyRegistration) errors.companyRegistration = 'กรุณาอัพโหลดหนังสือรับรองบริษัท';
-    if (!formData.companyProfile) errors.companyProfile = 'กรุณาอัพโหลด Company Profile';
-    if (!formData.shareholderList) errors.shareholderList = 'กรุณาอัพโหลดบัญชีรายชื่อผู้ถือหุ้น';
-    if (!formData.vatRegistration) errors.vatRegistration = 'กรุณาอัพโหลดใบทะเบียนภาษีมูลค่าเพิ่ม';
+    // ตรวจสอบเอกสารแนบ - เฉพาะสำเนาหนังสือรับรองการจดทะเบียนนิติบุคคลเท่านั้น
+    if (!formData.companyRegistration) errors.companyRegistration = 'กรุณาอัพโหลดสำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล';
   }
   
   return errors;
