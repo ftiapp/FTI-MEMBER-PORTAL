@@ -43,6 +43,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
         lastNameThai: '',
         firstNameEnglish: '',
         lastNameEnglish: '',
+        position: '',
         email: '',
         phone: '',
         isPrimary: false
@@ -166,6 +167,25 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   />
                   {representativeErrors[index]?.firstNameEnglish && (
                     <p className="text-sm text-red-600 mt-1">{representativeErrors[index].firstNameEnglish}</p>
+                  )}
+                </div>
+
+                {/* Position */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    ตำแหน่ง <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={rep.position}
+                    onChange={(e) => updateRepresentative(rep.id, 'position', e.target.value)}
+                    placeholder="ตำแหน่งในบริษัท"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                      representativeErrors[index]?.position ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                    }`}
+                  />
+                  {representativeErrors[index]?.position && (
+                    <p className="text-sm text-red-600 mt-1">{representativeErrors[index].position}</p>
                   )}
                 </div>
 

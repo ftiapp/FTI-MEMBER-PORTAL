@@ -1,120 +1,84 @@
-'use client';
-
-import { toast } from 'react-hot-toast';
-
 /**
- * ตรวจสอบ Tax ID ว่าซ้ำในระบบหรือไม่
- * @param {string} taxId เลขประจำตัวผู้เสียภาษี
- * @returns {Promise<boolean>} ผลการตรวจสอบ (true = ไม่ซ้ำ, false = ซ้ำ)
+ * Submits the OC membership form data to the server.
+ * @param {object} data - The form data object to submit.
+ * @returns {Promise<{success: boolean, data: any, error: string | null}>}
  */
-export const checkTaxIdUniqueness = async (taxId) => {
+export async function submitOCMembershipForm(data) {
   try {
-    const response = await fetch('/api/membership/check-tax-id', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ taxId, memberType: 'OC' }),
-    });
+    const formData = new FormData();
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      toast.error(data.message);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error checking tax ID:', error);
-    toast.error('เกิดข้อผิดพลาดในการตรวจสอบข้อมูล กรุณาลองใหม่อีกครั้ง');
-    return false;
-  }
-};
-
-/**
- * ตรวจสอบเลขบัตรประชาชนว่าซ้ำในระบบหรือไม่
- * @param {string} idCardNumber เลขบัตรประชาชน
- * @returns {Promise<boolean>} ผลการตรวจสอบ (true = ไม่ซ้ำ, false = ซ้ำ)
- */
-export const checkIdCardUniqueness = async (idCardNumber) => {
-  try {
-    const response = await fetch('/api/membership/check-id-card', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ idCardNumber, memberType: 'OC' }),
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      toast.error(data.message);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('Error checking ID card:', error);
-    toast.error('เกิดข้อผิดพลาดในการตรวจสอบข้อมูล กรุณาลองใหม่อีกครั้ง');
-    return false;
-  }
-};
-
-/**
- * ส่งข้อมูลการสมัครสมาชิก OC ไปยัง API
- * @param {Object} formData ข้อมูลฟอร์มทั้งหมด
- * @returns {Promise<{success: boolean, message: string}>} ผลการส่งข้อมูล
- */
-export const submitOCMembershipForm = async (formData) => {
-  try {
-    const formDataToSend = new FormData();
-    
-    // เพิ่มข้อมูลทั่วไป
-    Object.keys(formData).forEach(key => {
-      if (key === 'businessTypes') {
-        formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (
-        key !== 'companyRegistration' && 
-        key !== 'companyProfile' && 
-        key !== 'shareholderList' && 
-        key !== 'vatRegistration' && 
-        key !== 'idCard' && 
-        key !== 'authorityLetter'
-      ) {
-        formDataToSend.append(key, formData[key]);
+    // Helper to append data, handles files, arrays, and objects
+    const appendToFormData = (key, value) => {
+      // Handle single file object: { file: File, ... }
+      if (value && typeof value === 'object' && value.file instanceof File) {
+        formData.append(key, value.file, value.name);
+      } 
+      // Handle array of file objects for productionImages
+      else if (key === 'productionImages' && Array.isArray(value)) {
+        value.forEach((fileObj, index) => {
+          if (fileObj && fileObj.file instanceof File) {
+            formData.append(`${key}[${index}]`, fileObj.file, fileObj.name);
+          }
+        });
+      } 
+      // Handle other arrays and objects
+      else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+        formData.append(key, JSON.stringify(value));
+      } 
+      // Handle other primitive values
+      else if (value !== null && value !== undefined) {
+        formData.append(key, value);
       }
-    });
-    
-    // เพิ่มไฟล์เอกสาร
-    if (formData.companyRegistration) formDataToSend.append('companyRegistration', formData.companyRegistration);
-    if (formData.companyProfile) formDataToSend.append('companyProfile', formData.companyProfile);
-    if (formData.shareholderList) formDataToSend.append('shareholderList', formData.shareholderList);
-    if (formData.vatRegistration) formDataToSend.append('vatRegistration', formData.vatRegistration);
-    if (formData.idCard) formDataToSend.append('idCard', formData.idCard);
-    if (formData.authorityLetter) formDataToSend.append('authorityLetter', formData.authorityLetter);
-    
-    // ระบุประเภทสมาชิก
-    formDataToSend.append('memberType', 'OC');
-    
-    const response = await fetch('/api/membership/register', {
-      method: 'POST',
-      body: formDataToSend,
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      return { success: true, message: 'ส่งข้อมูลการสมัครสมาชิกเรียบร้อยแล้ว' };
-    } else {
-      return { success: false, message: data.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล' };
-    }
-  } catch (error) {
-    console.error('Error submitting form:', error);
-    return { 
-      success: false, 
-      message: error.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง' 
     };
+
+    // Convert the plain object to FormData
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        appendToFormData(key, data[key]);
+      }
+    }
+
+    const response = await fetch('/api/member/oc-membership/submit', {
+      method: 'POST',
+      body: formData, // body is now a FormData object
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      return { success: false, data: null, error: result.error || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ' };
+    }
+
+    return { success: true, data: result, error: null };
+  } catch (error) {
+    console.error('Error submitting OC membership form:', error);
+    return { success: false, data: null, error: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์' };
   }
-};
+}
+
+/**
+ * Checks if a Tax ID is already registered or pending.
+ * @param {string} taxId - The Tax ID to check.
+ * @returns {Promise<{isUnique: boolean, message: string | null}>}
+ */
+export async function checkTaxIdUniqueness(taxId) {
+  try {
+    const response = await fetch(`/api/member/oc-membership/check-tax-id?taxId=${taxId}`);
+    const result = await response.json();
+
+    if (!response.ok) {
+      // The API should return a 409 status if not unique
+      if (response.status === 409) {
+        return { isUnique: false, message: result.error };
+      }
+      // For other errors, treat as a generic error
+      return { isUnique: false, message: result.error || 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' };
+    }
+
+    // If response is ok (e.g., 200), it means the ID is unique
+    return { isUnique: true, message: null };
+  } catch (error) {
+    console.error('Error checking tax ID uniqueness:', error);
+    return { isUnique: false, message: 'เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อตรวจสอบข้อมูล' };
+  }
+}

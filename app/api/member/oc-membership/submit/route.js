@@ -1,323 +1,341 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { db } from '@/app/lib/db';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
+import { NextResponse } from 'next/server';
+import { getSession } from '@/app/lib/session';
+import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
+import { uploadToCloudinary } from '@/app/lib/cloudinary';
 
 export async function POST(request) {
+  let trx;
+  
   try {
-    // Check if user is authenticated
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const session = await getSession();
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
     }
 
-    const formData = await request.formData();
-    const jsonData = formData.get('data');
+    const userId = session.user.id;
     
-    if (!jsonData) {
-      return new Response(JSON.stringify({ error: 'ข้อมูลไม่ถูกต้อง' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    // ✅ ตรวจสอบ Content-Type และ FormData
+    let formData;
+    try {
+      formData = await request.formData();
+      console.log('📥 FormData received successfully');
+    } catch (formError) {
+      console.error('❌ Error parsing FormData:', formError);
+      return NextResponse.json({ 
+        error: 'ไม่สามารถประมวลผลข้อมูลที่ส่งมาได้', 
+        details: formError.message 
+      }, { status: 400 });
     }
-
-    const data = JSON.parse(jsonData);
     
-    // Validate required fields
-    if (!data.companyRegNumber || data.companyRegNumber.length !== 13) {
-      return new Response(JSON.stringify({ error: 'กรุณากรอกเลขทะเบียนนิติบุคคลให้ถูกต้อง' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    trx = await beginTransaction();
+    console.log('🔄 Database transaction started');
+
+    // Step 1: Extract all data and files from FormData
+    const data = {};
+    const files = {};
+    const productionImages = [];
+
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File && value.size > 0) {
+        if (key.startsWith('productionImages[')) {
+          productionImages.push(value);
+        } else {
+          files[key] = value;
+        }
+      } else {
+        data[key] = value;
+      }
     }
 
-    if (!data.companyNameThai) {
-      return new Response(JSON.stringify({ error: 'กรุณากรอกชื่อบริษัทภาษาไทย' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    if (productionImages.length > 0) {
+      files['productionImages'] = productionImages;
     }
 
-    if (!data.employeeCount) {
-      return new Response(JSON.stringify({ error: 'กรุณากรอกจำนวนพนักงาน' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
+    console.log('📁 Files detected:', Object.keys(files));
+    console.log('📄 Data fields:', Object.keys(data));
 
-    // Check if at least one representative is provided
-    if (!data.representatives || !data.representatives[0] || 
-        !data.representatives[0].firstNameThai || 
-        !data.representatives[0].lastNameThai || 
-        !data.representatives[0].email || 
-        !data.representatives[0].phone) {
-      return new Response(JSON.stringify({ error: 'กรุณากรอกข้อมูลผู้แทนอย่างน้อย 1 คน' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Check if address is provided
-    if (!data.address || 
-        !data.address.addressNumber || 
-        !data.address.subDistrict || 
-        !data.address.district || 
-        !data.address.province || 
-        !data.address.postalCode || 
-        !data.address.email || 
-        !data.address.telephone) {
-      return new Response(JSON.stringify({ error: 'กรุณากรอกข้อมูลที่อยู่ให้ครบถ้วน' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Check if at least one business type is selected
-    const hasBusinessType = Object.values(data.businessTypes).some(value => value === true);
-    if (!hasBusinessType) {
-      return new Response(JSON.stringify({ error: 'กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ประเภท' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Check if products are provided
-    if (!data.products) {
-      return new Response(JSON.stringify({ error: 'กรุณากรอกข้อมูลสินค้า/บริการหลัก' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Check if company registration document is uploaded
-    const companyRegistrationFile = formData.get('companyRegistration');
-    if (!companyRegistrationFile) {
-      return new Response(JSON.stringify({ error: 'กรุณาอัพโหลดหนังสือรับรองการจดทะเบียนนิติบุคคล' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-
-    // Check if company registration number already exists
-    const existingApplication = await db.query(
-      `SELECT status FROM OCmember_Info WHERE company_reg_number = ? AND (status = 1 OR status = 2) LIMIT 1`,
-      [data.companyRegNumber]
+    // Step 2: Check for duplicate Tax ID
+    const { taxId } = data;
+    const [existingMember] = await executeQuery(trx, 
+      'SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', 
+      [taxId]
     );
 
-    if (existingApplication.length > 0) {
-      const status = existingApplication[0].status;
-      
-      if (status === 1) { // Pending
-        return new Response(JSON.stringify({ 
-          error: 'เลขทะเบียนนิติบุคคลนี้มีการสมัครที่อยู่ระหว่างการพิจารณา' 
-        }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      } else if (status === 2) { // Approved
-        return new Response(JSON.stringify({ 
-          error: 'เลขทะเบียนนิติบุคคลนี้เป็นสมาชิกอยู่แล้ว' 
-        }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
+    if (existingMember) {
+      await rollbackTransaction(trx);
+      const message = existingMember.status === 0
+        ? `คำขอสมัครสมาชิกของท่านสำหรับเลขประจำตัวผู้เสียภาษี ${taxId} อยู่ระหว่างการพิจารณา`
+        : `เลขประจำตัวผู้เสียภาษี ${taxId} นี้ได้เป็นสมาชิกแล้ว`;
+      return NextResponse.json({ error: message }, { status: 409 });
     }
 
-    // Begin transaction
-    await db.beginTransaction();
+    // Step 3: Insert Main Data
+    const mainResult = await executeQuery(trx, 
+      `INSERT INTO MemberRegist_OC_Main (user_id, company_name_th, company_name_en, tax_id, company_email, company_phone, factory_type, number_of_employees, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+      [
+        userId,
+        data.companyName,
+        data.companyNameEng,
+        data.taxId,
+        data.companyEmail,
+        data.companyPhone,
+        data.factoryType,
+        data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
+      ]
+    );
+    const mainId = mainResult.insertId;
+    console.log('✅ Main record created with ID:', mainId);
 
-    try {
-      // Insert into OCmember_Info table
-      const infoResult = await db.query(
-        `INSERT INTO OCmember_Info (
-          company_reg_number, 
-          company_name_thai, 
-          company_name_english, 
-          employee_count,
-          user_id, 
-          status, 
-          created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, NOW())`,
-        [
-          data.companyRegNumber,
-          data.companyNameThai,
-          data.companyNameEnglish || null,
-          data.employeeCount,
-          session.user.id,
-          1 // Status: 1 = Pending
-        ]
-      );
+    // Step 4: Insert Address
+    await executeQuery(trx, 
+      `INSERT INTO MemberRegist_OC_Address (main_id, address_number, moo, soi, street, sub_district, district, province, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [mainId, data.addressNumber, data.moo, data.soi, data.street, data.subDistrict, data.district, data.province, data.postalCode]
+    );
 
-      const memberId = infoResult.insertId;
+    // Step 5: Insert Contact Person
+    await executeQuery(trx, 
+      `INSERT INTO MemberRegist_OC_ContactPerson (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+      [mainId, data.contactPersonFirstName, data.contactPersonLastName, data.contactPersonFirstNameEng, data.contactPersonLastNameEng, data.contactPersonPosition, data.contactPersonEmail, data.contactPersonPhone]
+    );
 
-      // Insert industry groups if selected
-      if (data.selectedIndustryGroups && data.selectedIndustryGroups.length > 0) {
-        for (const groupId of data.selectedIndustryGroups) {
-          await db.query(
-            `INSERT INTO OCmember_Industry_Group (member_id, industry_group_id) VALUES (?, ?)`,
-            [memberId, groupId]
-          );
-        }
-      }
-
-      // Insert province chapters if selected
-      if (data.selectedProvinceChapters && data.selectedProvinceChapters.length > 0) {
-        for (const chapterId of data.selectedProvinceChapters) {
-          await db.query(
-            `INSERT INTO OCmember_Province_Chapter (member_id, province_chapter_id) VALUES (?, ?)`,
-            [memberId, chapterId]
-          );
-        }
-      }
-
-      // Insert representatives
-      for (const rep of data.representatives) {
-        if (rep && rep.firstNameThai && rep.lastNameThai) {
-          await db.query(
-            `INSERT INTO OCmember_Representatives (
-              member_id, 
-              first_name_thai, 
-              last_name_thai, 
-              first_name_english, 
-              last_name_english, 
-              email, 
-              phone
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-            [
-              memberId,
-              rep.firstNameThai,
-              rep.lastNameThai,
-              rep.firstNameEnglish || null,
-              rep.lastNameEnglish || null,
-              rep.email,
-              rep.phone
-            ]
-          );
-        }
-      }
-
-      // Insert address
-      await db.query(
-        `INSERT INTO OCmember_Addr (
-          member_id, 
-          address_number, 
-          building, 
-          moo, 
-          soi, 
-          road, 
-          sub_district, 
-          district, 
-          province, 
-          postal_code, 
-          email, 
-          telephone, 
-          fax, 
-          website, 
-          facebook
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          memberId,
-          data.address.addressNumber,
-          data.address.building || null,
-          data.address.moo || null,
-          data.address.soi || null,
-          data.address.road || null,
-          data.address.subDistrict,
-          data.address.district,
-          data.address.province,
-          data.address.postalCode,
-          data.address.email,
-          data.address.telephone,
-          data.address.fax || null,
-          data.address.website || null,
-          data.address.facebook || null
-        ]
-      );
-
-      // Insert business types
-      for (const typeId in data.businessTypes) {
-        if (data.businessTypes[typeId] && typeId !== 'other') {
-          await db.query(
-            `INSERT INTO OCmember_Business_Type (member_id, business_type_id) VALUES (?, ?)`,
-            [memberId, typeId]
-          );
-        }
-      }
-
-      // Insert other business type if selected
-      if (data.businessTypes.other && data.otherBusinessType) {
-        await db.query(
-          `INSERT INTO OCmember_Business_Type (member_id, business_type_id, other_type) VALUES (?, 'other', ?)`,
-          [memberId, data.otherBusinessType]
+    // Step 6: Insert Representatives
+    if (data.representatives) {
+      const representatives = JSON.parse(data.representatives);
+      for (const rep of representatives) {
+        await executeQuery(trx,
+          `INSERT INTO MemberRegist_OC_Representatives (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, is_primary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [mainId, rep.firstNameThai, rep.lastNameThai, rep.firstNameEnglish, rep.lastNameEnglish, rep.position, rep.email, rep.phone, rep.isPrimary]
         );
       }
-
-      // Insert products
-      await db.query(
-        `INSERT INTO OCmember_Products (member_id, products) VALUES (?, ?)`,
-        [memberId, data.products]
-      );
-
-      // Save uploaded files
-      const uploadDir = join(process.cwd(), 'public', 'uploads', 'oc-membership', memberId.toString());
-      
-      // Create directory if it doesn't exist
-      try {
-        await writeFile(join(uploadDir, '.gitkeep'), '');
-      } catch (error) {
-        // Directory creation error is not critical, continue
-        console.error('Error creating upload directory:', error);
-      }
-
-      // Save company registration document
-      if (companyRegistrationFile) {
-        const buffer = Buffer.from(await companyRegistrationFile.arrayBuffer());
-        const fileName = `company_registration_${uuidv4()}.${companyRegistrationFile.name.split('.').pop()}`;
-        const filePath = join(uploadDir, fileName);
-        
-        try {
-          await writeFile(filePath, buffer);
-          
-          // Insert document record
-          await db.query(
-            `INSERT INTO OCmember_Document (member_id, document_type, file_path, original_filename) VALUES (?, ?, ?, ?)`,
-            [memberId, 'company_registration', `/uploads/oc-membership/${memberId}/${fileName}`, companyRegistrationFile.name]
-          );
-        } catch (error) {
-          console.error('Error saving file:', error);
-          throw new Error('ไม่สามารถบันทึกไฟล์เอกสารได้');
-        }
-      }
-
-      // Commit transaction
-      await db.commit();
-
-      return new Response(JSON.stringify({ 
-        success: true, 
-        message: 'บันทึกข้อมูลสำเร็จ',
-        memberId
-      }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-
-    } catch (error) {
-      // Rollback transaction on error
-      await db.rollback();
-      throw error;
     }
 
+    // Helper function to parse and ensure data is an array
+    const parseAndEnsureArray = (input) => {
+      if (!input) return [];
+      try {
+        const parsed = JSON.parse(input);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        return [input];
+      }
+    };
+
+    // Step 7: Insert Business Types
+    if (data.businessTypes) {
+      const businessTypesObject = JSON.parse(data.businessTypes);
+      const selectedTypes = Object.keys(businessTypesObject).filter(key => businessTypesObject[key] === true);
+      
+      for (const type of selectedTypes) {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_OC_BusinessTypes (main_id, business_type) VALUES (?, ?);`, 
+          [mainId, type]
+        );
+      }
+    }
+    if (data.otherBusinessTypeDetail) {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_OC_BusinessTypeOther (main_id, detail) VALUES (?, ?);`, 
+          [mainId, data.otherBusinessTypeDetail]
+        );
+    }
+
+    // Step 8: Insert Products
+    const products = parseAndEnsureArray(data.products);
+    if (products.length > 0) {
+      for (const product of products) {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_OC_Products (main_id, name_th, name_en) VALUES (?, ?, ?);`, 
+          [mainId, product.nameTh, product.nameEn]
+        );
+      }
+    } else {
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_OC_Products (main_id, name_th, name_en) VALUES (?, ?, ?);`, 
+        [mainId, 'ไม่ระบุ', 'Not specified']
+      );
+    }
+
+    // Step 9: Insert Industry Groups
+    const industrialGroupIds = parseAndEnsureArray(data.industrialGroupIds);
+    if (industrialGroupIds.length > 0) {
+        for (const group of industrialGroupIds) {
+            await executeQuery(trx, 
+              `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
+              [mainId, group]
+            );
+        }
+    } else {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
+          [mainId, '000']
+        );
+    }
+
+    // Step 10: Insert Province Chapters
+    const provincialChapterIds = parseAndEnsureArray(data.provincialChapterIds);
+    if (provincialChapterIds.length > 0) {
+        for (const chapter of provincialChapterIds) {
+            await executeQuery(trx, 
+              `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
+              [mainId, chapter]
+            );
+        }
+    } else {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
+          [mainId, '000']
+        );
+    }
+
+    // ✅ Step 11: Handle Document Uploads
+    console.log('📤 Processing document uploads...');
+    const uploadedDocuments = {};
+
+    // Part 1: Upload files to Cloudinary
+    for (const fieldName of Object.keys(files)) {
+      const fileValue = files[fieldName];
+      
+      // ✅ จัดการ productionImages (multiple files)
+      if (fieldName === 'productionImages' && Array.isArray(fileValue)) {
+        console.log(`📷 Processing ${fileValue.length} production images`);
+        
+        for (let index = 0; index < fileValue.length; index++) {
+          const file = fileValue[index];
+          try {
+            console.log(`📤 Uploading production image ${index + 1}: ${file.name}`);
+            const buffer = await file.arrayBuffer();
+            const result = await uploadToCloudinary(Buffer.from(buffer), file.name, 'FTI_PORTAL_IC_member_DOC');
+            
+            // ✅ ตรวจสอบผลลัพธ์การอัปโหลด
+            if (result.success) {
+              const documentKey = `productionImages_${index}`;
+              uploadedDocuments[documentKey] = {
+                document_type: 'productionImages',
+                file_name: file.name,
+                file_path: result.url,
+                file_size: file.size,
+                mime_type: file.type,
+                cloudinary_id: result.public_id,
+                cloudinary_url: result.url
+              };
+              console.log(`✅ Successfully uploaded production image ${index + 1}: ${result.url}`);
+            } else {
+              console.error(`❌ Failed to upload production image ${index + 1}:`, result.error);
+            }
+
+          } catch (uploadError) {
+            console.error(`❌ Error uploading production image ${index + 1}:`, uploadError);
+          }
+        }
+      } 
+      // ✅ จัดการไฟล์เดี่ยว
+      else if (fileValue instanceof File) {
+        try {
+          console.log(`📤 Uploading ${fieldName}: ${fileValue.name}`);
+          const buffer = await fileValue.arrayBuffer();
+          const result = await uploadToCloudinary(Buffer.from(buffer), fileValue.name, 'FTI_PORTAL_IC_member_DOC');
+          
+          // ✅ ตรวจสอบผลลัพธ์การอัปโหลด
+          if (result.success) {
+            uploadedDocuments[fieldName] = {
+              document_type: fieldName,
+              file_name: fileValue.name,
+              file_path: result.url,
+              file_size: fileValue.size,
+              mime_type: fileValue.type,
+              cloudinary_id: result.public_id,
+              cloudinary_url: result.url
+            };
+            console.log(`✅ Successfully uploaded ${fieldName}: ${result.url}`);
+          } else {
+            console.error(`❌ Failed to upload ${fieldName}:`, result.error);
+          }
+
+        } catch (uploadError) {
+          console.error(`❌ Error uploading file for ${fieldName}:`, uploadError);
+        }
+      }
+    }
+
+    // ✅ Part 2: Insert uploaded document info into the database
+    console.log(`💾 Inserting ${Object.keys(uploadedDocuments).length} documents into database`);
+    
+    for (const documentKey in uploadedDocuments) {
+      const doc = uploadedDocuments[documentKey];
+      try {
+        const insertResult = await executeQuery(trx,
+          `INSERT INTO MemberRegist_OC_Documents 
+            (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId,
+            doc.document_type,
+            doc.file_name,
+            doc.file_path,
+            doc.file_size,
+            doc.mime_type,
+            doc.cloudinary_id,
+            doc.cloudinary_url
+          ]
+        );
+        
+        console.log(`✅ Document inserted: ${doc.document_type} - ID: ${insertResult.insertId}`);
+        
+      } catch (dbError) {
+        console.error(`❌ Error inserting document ${documentKey} into database:`, dbError);
+        // Continue with other documents instead of failing completely
+      }
+    }
+
+    // Step 12: Add status log
+    await executeQuery(trx,
+      `INSERT INTO MemberRegist_OC_StatusLogs (main_id, status, note, created_by) VALUES (?, ?, ?, ?);`,
+      [
+        mainId,
+        0, // Pending approval
+        'สมัครสมาชิกใหม่',
+        userId
+      ]
+    );
+
+    await commitTransaction(trx);
+
+    console.log('🎉 OC Membership submission completed successfully');
+    return NextResponse.json({ 
+      message: 'การสมัครสมาชิก OC สำเร็จ', 
+      registrationId: mainId,
+      documentsUploaded: Object.keys(uploadedDocuments).length,
+      timestamp: new Date().toISOString()
+    }, { 
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
   } catch (error) {
-    console.error('Error submitting OC membership:', error);
-    return new Response(JSON.stringify({ error: error.message || 'เกิดข้อผิดพลาดในการบันทึกข้อมูล' }), {
+    console.error('❌ OC Membership Submission Error:', error);
+    
+    // ✅ Rollback transaction if it exists
+    if (trx) {
+      try {
+        await rollbackTransaction(trx);
+        console.log('🔄 Transaction rolled back successfully');
+      } catch (rollbackError) {
+        console.error('❌ Rollback error:', rollbackError);
+      }
+    }
+    
+    // ✅ ส่ง JSON response ที่ถูกต้องเสมอ
+    return NextResponse.json({ 
+      error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 
+      details: error.message,
+      timestamp: new Date().toISOString()
+    }, { 
       status: 500,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
   }
 }

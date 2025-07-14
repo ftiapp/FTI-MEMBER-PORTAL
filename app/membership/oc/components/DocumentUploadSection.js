@@ -1,37 +1,20 @@
-// components/DocumentUploadSection.js
-'use client';
-
 import { useState, useEffect } from 'react';
-import FileUploadInput from './FileUploadInput';
 import FactoryTypeSelector from './FactoryTypeSelector';
 import MultipleFileManager from './MultipleFileManager';
 
 export default function DocumentUploadSection({ formData, setFormData, errors }) {
-  // ใช้ข้อมูลจาก formData เป็นค่าเริ่มต้นเพื่อให้แสดงไฟล์ที่เคยอัปโหลดไว้
+  // ใช้ข้อมูลจาก formData เป็นค่าเริ่มต้น
   const [selectedFiles, setSelectedFiles] = useState({
-    companyRegistration: formData.companyRegistration || null,
-    companyProfile: formData.companyProfile || null,
-    shareholderList: formData.shareholderList || null,
-    vatRegistration: formData.vatRegistration || null,
-    idCard: formData.idCard || null,
-    authorityLetter: formData.authorityLetter || null,
     factoryLicense: formData.factoryLicense || null,
     industrialEstateLicense: formData.industrialEstateLicense || null,
     productionImages: formData.productionImages || []
   });
 
-  // ใช้ค่าจาก formData เป็นค่าเริ่มต้นสำหรับ factoryType
   const [factoryType, setFactoryType] = useState(formData.factoryType || '');
 
   // Sync selectedFiles with formData when component mounts or formData changes
   useEffect(() => {
     setSelectedFiles({
-      companyRegistration: formData.companyRegistration || null,
-      companyProfile: formData.companyProfile || null,
-      shareholderList: formData.shareholderList || null,
-      vatRegistration: formData.vatRegistration || null,
-      idCard: formData.idCard || null,
-      authorityLetter: formData.authorityLetter || null,
       factoryLicense: formData.factoryLicense || null,
       industrialEstateLicense: formData.industrialEstateLicense || null,
       productionImages: formData.productionImages || []
@@ -50,40 +33,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     };
   };
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    if (files && files[0]) {
-      const fileObj = createFileObject(files[0]);
-      
-      setSelectedFiles(prev => ({ ...prev, [name]: fileObj }));
-      setFormData(prev => ({ ...prev, [name]: fileObj }));
-    }
-  };
-
-  const handleMultipleFileChange = (e) => {
-    const { files } = e.target;
-    if (files && files.length > 0) {
-      const newFiles = Array.from(files).map(file => createFileObject(file));
-      const currentFiles = selectedFiles.productionImages || [];
-      const totalFiles = [...currentFiles, ...newFiles].slice(0, 5);
-      
-      setSelectedFiles(prev => ({ ...prev, productionImages: totalFiles }));
-      setFormData(prev => ({ ...prev, productionImages: totalFiles }));
-    }
-  };
-
-  const removeProductionImage = (index) => {
-    const updatedFiles = selectedFiles.productionImages.filter((_, i) => i !== index);
-    setSelectedFiles(prev => ({ ...prev, productionImages: updatedFiles }));
-    setFormData(prev => ({ ...prev, productionImages: updatedFiles }));
-  };
-
   const handleFactoryTypeChange = (type) => {
     setFactoryType(type);
     setFormData(prev => ({
       ...prev,
       factoryType: type,
-      // Only clear license files if changing factory type, preserve other files
+      // Clear opposite type files when switching
       factoryLicense: type === 'type1' ? prev.factoryLicense : null,
       industrialEstateLicense: type === 'type1' ? prev.industrialEstateLicense : null,
       productionImages: type === 'type2' ? prev.productionImages : []
@@ -99,7 +54,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
   const viewFile = (fileObj) => {
     if (fileObj) {
-      const file = fileObj.file || fileObj; // Handle both old and new format
+      const file = fileObj.file || fileObj;
       if (file && file.type && file.type.startsWith('image/')) {
         const img = new Image();
         img.src = URL.createObjectURL(file);
@@ -130,7 +85,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     return size ? `${(size / 1024 / 1024).toFixed(2)} MB` : 'ไฟล์ถูกอัปโหลดแล้ว';
   };
 
-  // Helper function for single file upload with drag & drop UI
+  // Single file upload component
   const SingleFileUploadZone = ({ title, description, name, file, icon, iconColor, bgColor }) => {
     const handleSingleFileChange = (e) => {
       const { files } = e.target;
@@ -229,6 +184,25 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     );
   };
 
+  // Multiple file upload for production images
+  const handleMultipleFileChange = (e) => {
+    const { files } = e.target;
+    if (files && files.length > 0) {
+      const newFiles = Array.from(files).map(file => createFileObject(file));
+      const currentFiles = selectedFiles.productionImages || [];
+      const totalFiles = [...currentFiles, ...newFiles].slice(0, 5);
+      
+      setSelectedFiles(prev => ({ ...prev, productionImages: totalFiles }));
+      setFormData(prev => ({ ...prev, productionImages: totalFiles }));
+    }
+  };
+
+  const removeProductionImage = (index) => {
+    const updatedFiles = selectedFiles.productionImages.filter((_, i) => i !== index);
+    setSelectedFiles(prev => ({ ...prev, productionImages: updatedFiles }));
+    setFormData(prev => ({ ...prev, productionImages: updatedFiles }));
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
       {/* Header Section */}
@@ -237,7 +211,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
           เอกสารใบอนุญาต
         </h2>
         <p className="text-blue-100 text-sm mt-1">
-          เอกสารประกอบการประกอบกิจการโรงงาน
+          เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ
         </p>
       </div>
       

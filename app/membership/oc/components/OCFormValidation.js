@@ -1,6 +1,38 @@
 'use client';
 
 /**
+ * ฟังก์ชันสำหรับตรวจสอบความถูกต้องของเลขประจำตัวผู้เสียภาษีกับ API
+ * @param {string} taxId เลขประจำตัวผู้เสียภาษี
+ * @returns {Promise<{valid: boolean, message: string}>} ผลการตรวจสอบ
+ */
+export const validateTaxId = async (taxId) => {
+  if (!taxId || taxId.length !== 13) {
+    return { valid: false, message: 'เลขประจำตัวผู้เสียภาษีต้องมี 13 หลัก' };
+  }
+  
+  try {
+    const response = await fetch('/api/member/oc-membership/check-tax-id', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ taxId })
+    });
+    
+    const data = await response.json();
+    console.log('Tax ID validation response:', data);
+    
+    return {
+      valid: data.valid === true,
+      message: data.message || 'ไม่สามารถตรวจสอบเลขประจำตัวผู้เสียภาษีได้'
+    };
+  } catch (error) {
+    console.error('Error validating tax ID:', error);
+    return { valid: false, message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี' };
+  }
+};
+
+/**
  * ฟังก์ชันสำหรับตรวจสอบความถูกต้องของข้อมูลในฟอร์มสมัครสมาชิกประเภท OC
  * @param {Object} formData ข้อมูลฟอร์มทั้งหมด
  * @param {number} step ขั้นตอนปัจจุบันที่ต้องการตรวจสอบ
@@ -45,61 +77,43 @@ export const validateOCForm = (formData, step) => {
       errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
     }
     
-    // ตรวจสอบข้อมูลผู้ให้ข้อมูล
-    if (!formData.contactPerson) {
-      errors.contactPerson = { _error: 'กรุณากรอกข้อมูลผู้ให้ข้อมูล' };
-    } else {
-      const contactPersonErrors = {};
-      
-      // ตรวจสอบชื่อภาษาไทย
-      if (!formData.contactPerson.firstNameThai) {
-        contactPersonErrors.firstNameThai = 'กรุณากรอกชื่อภาษาไทย';
-      } else if (!/^[\u0E00-\u0E7F\s]+$/.test(formData.contactPerson.firstNameThai)) {
-        contactPersonErrors.firstNameThai = 'กรุณากรอกชื่อเป็นภาษาไทยเท่านั้น';
-      }
-      
-      // ตรวจสอบนามสกุลภาษาไทย
-      if (!formData.contactPerson.lastNameThai) {
-        contactPersonErrors.lastNameThai = 'กรุณากรอกนามสกุลภาษาไทย';
-      } else if (!/^[\u0E00-\u0E7F\s]+$/.test(formData.contactPerson.lastNameThai)) {
-        contactPersonErrors.lastNameThai = 'กรุณากรอกนามสกุลเป็นภาษาไทยเท่านั้น';
-      }
-      
-      // ตรวจสอบชื่อภาษาอังกฤษ
-      if (!formData.contactPerson.firstNameEng) {
-        contactPersonErrors.firstNameEng = 'กรุณากรอกชื่อภาษาอังกฤษ';
-      } else if (!/^[a-zA-Z\s]+$/.test(formData.contactPerson.firstNameEng)) {
-        contactPersonErrors.firstNameEng = 'กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น';
-      }
-      
-      // ตรวจสอบนามสกุลภาษาอังกฤษ
-      if (!formData.contactPerson.lastNameEng) {
-        contactPersonErrors.lastNameEng = 'กรุณากรอกนามสกุลภาษาอังกฤษ';
-      } else if (!/^[a-zA-Z\s]+$/.test(formData.contactPerson.lastNameEng)) {
-        contactPersonErrors.lastNameEng = 'กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น';
-      }
-      
-      // ตรวจสอบตำแหน่ง
-      if (!formData.contactPerson.position) {
-        contactPersonErrors.position = 'กรุณากรอกตำแหน่ง';
-      }
-      
-      // ตรวจสอบเบอร์โทรศัพท์
-      if (!formData.contactPerson.phone) {
-        contactPersonErrors.phone = 'กรุณากรอกเบอร์โทรศัพท์';
-      }
-      
-      // ตรวจสอบอีเมล
-      if (!formData.contactPerson.email) {
-        contactPersonErrors.email = 'กรุณากรอกอีเมล';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactPerson.email)) {
-        contactPersonErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
-      }
-      
-      // ถ้ามีข้อผิดพลาด
-      if (Object.keys(contactPersonErrors).length > 0) {
-        errors.contactPerson = contactPersonErrors;
-      }
+    // ตรวจสอบข้อมูลผู้ให้ข้อมูล (Contact Person)
+    if (!formData.contactPersonFirstName) {
+      errors.contactPersonFirstName = 'กรุณากรอกชื่อ (ภาษาไทย)';
+    } else if (!/^[\u0E00-\u0E7F\s]+$/.test(formData.contactPersonFirstName)) {
+      errors.contactPersonFirstName = 'ชื่อผู้ให้ข้อมูลต้องเป็นภาษาไทยเท่านั้น';
+    }
+
+    if (!formData.contactPersonLastName) {
+      errors.contactPersonLastName = 'กรุณากรอกนามสกุล (ภาษาไทย)';
+    } else if (!/^[\u0E00-\u0E7F\s]+$/.test(formData.contactPersonLastName)) {
+      errors.contactPersonLastName = 'นามสกุลผู้ให้ข้อมูลต้องเป็นภาษาไทยเท่านั้น';
+    }
+
+    if (!formData.contactPersonFirstNameEng) {
+      errors.contactPersonFirstNameEng = 'กรุณากรอกชื่อ (ภาษาอังกฤษ)';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.contactPersonFirstNameEng)) {
+      errors.contactPersonFirstNameEng = 'ชื่อผู้ให้ข้อมูลต้องเป็นภาษาอังกฤษเท่านั้น';
+    }
+
+    if (!formData.contactPersonLastNameEng) {
+      errors.contactPersonLastNameEng = 'กรุณากรอกนามสกุล (ภาษาอังกฤษ)';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.contactPersonLastNameEng)) {
+      errors.contactPersonLastNameEng = 'นามสกุลผู้ให้ข้อมูลต้องเป็นภาษาอังกฤษเท่านั้น';
+    }
+
+    if (!formData.contactPersonPosition) {
+      errors.contactPersonPosition = 'กรุณากรอกตำแหน่ง';
+    }
+
+    if (!formData.contactPersonEmail) {
+      errors.contactPersonEmail = 'กรุณากรอกอีเมลผู้ให้ข้อมูล';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactPersonEmail)) {
+      errors.contactPersonEmail = 'รูปแบบอีเมลไม่ถูกต้อง';
+    }
+
+    if (!formData.contactPersonPhone) {
+      errors.contactPersonPhone = 'กรุณากรอกเบอร์โทรศัพท์ผู้ให้ข้อมูล';
     }
   }
   

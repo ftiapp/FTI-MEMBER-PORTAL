@@ -98,8 +98,8 @@ export async function destroySession() {
 // ฟังก์ชันสำหรับดึงข้อมูล admin จาก session
 export async function getServerSession() {
   try {
-    const cookieStore = cookies();
-    const token = await cookieStore.get('admin_token');
+    const cookieStore = await cookies();
+    const token = cookieStore.get('admin_token');
     
     if (!token) {
       return null;

@@ -19,16 +19,18 @@ export const checkTaxIdUniqueness = async (taxId) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
+    // ตรวจสอบสถานะจาก API โดยดูจาก status ที่ส่งกลับมา
+    if (response.status !== 200 || data.status === 'pending' || data.status === 'approved') {
       return {
         isUnique: false,
         message: data.message || 'เลขประจำตัวผู้เสียภาษีนี้มีในระบบแล้ว'
       };
     }
     
+    // ถ้า status เป็น available แสดงว่าสามารถใช้งานได้
     return {
-      isUnique: true,
-      message: 'เลขประจำตัวผู้เสียภาษีสามารถใช้งานได้'
+      isUnique: data.status === 'available',
+      message: data.message || 'เลขประจำตัวผู้เสียภาษีสามารถใช้งานได้'
     };
   } catch (error) {
     console.error('Error checking tax ID:', error);

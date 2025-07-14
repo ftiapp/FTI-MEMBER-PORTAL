@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'react-hot-toast';
-import { checkTaxIdUniqueness, checkIdCardUniqueness } from './OCFormSubmission';
+import { checkTaxIdUniqueness } from './OCFormSubmission';
 
 /**
  * Hook สำหรับจัดการการนำทางและ state ของฟอร์มสมัครสมาชิก OC
@@ -40,11 +40,6 @@ export const useOCFormNavigation = (validateForm, externalCurrentStep, externalS
       if (!isUnique) return;
     }
 
-    // ตรวจสอบเลขบัตรประชาชนในขั้นตอนที่ 2
-    if (currentStep === 2 && formData.idCardNumber && formData.idCardNumber.length === 13) {
-      const isUnique = await checkIdCardUniqueness(formData.idCardNumber);
-      if (!isUnique) return;
-    }
 
     // ไปยังขั้นตอนถัดไป
     setCurrentStep(prev => prev + 1);

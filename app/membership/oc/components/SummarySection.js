@@ -126,25 +126,26 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       .join(', ') || 'ไม่ได้ระบุ';
   };
 
-  const getFullName = (person, isEnglish = false) => {
-    if (!person) return '-';
+  const getContactPersonFullName = (isEnglish = false) => {
     if (isEnglish) {
-      return person.firstNameEng && person.lastNameEng ? `${person.firstNameEng} ${person.lastNameEng}` : '-';
+      return formData.contactPersonFirstNameEng && formData.contactPersonLastNameEng 
+        ? `${formData.contactPersonFirstNameEng} ${formData.contactPersonLastNameEng}` 
+        : '-';
     }
-    return person.firstNameThai && person.lastNameThai ? `${person.firstNameThai} ${person.lastNameThai}` : '-';
+    return formData.contactPersonFirstName && formData.contactPersonLastName 
+      ? `${formData.contactPersonFirstName} ${formData.contactPersonLastName}` 
+      : '-';
   };
 
   const getAddress = () => {
     const parts = [
       formData.addressNumber,
-      formData.moo ? `หมู่ ${formData.moo}` : null,
-      formData.soi ? `ซอย ${formData.soi}` : null,
-      formData.road ? `ถนน ${formData.road}` : null,
+      formData.street,
       formData.subDistrict,
       formData.district,
       formData.province,
       formData.postalCode
-    ].filter(Boolean);
+    ].filter(Boolean).filter(part => part.trim() !== '');
     return parts.length > 0 ? parts.join(' ') : '-';
   };
 
@@ -176,11 +177,11 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       {/* ข้อมูลผู้ให้ข้อมูล */}
       <Section title="ข้อมูลผู้ให้ข้อมูล">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getFullName(formData.contactPerson, false)} />
-          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getFullName(formData.contactPerson, true)} />
-          <InfoCard title="ตำแหน่ง" value={formData.contactPerson?.position} />
-          <InfoCard title="อีเมล" value={formData.contactPerson?.email} />
-          <InfoCard title="เบอร์โทรศัพท์" value={formData.contactPerson?.phone} />
+          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getContactPersonFullName(false)} />
+          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
+          <InfoCard title="ตำแหน่ง" value={formData.contactPersonPosition} />
+          <InfoCard title="อีเมล" value={formData.contactPersonEmail} />
+          <InfoCard title="เบอร์โทรศัพท์" value={formData.contactPersonPhone} />
         </div>
       </Section>
 

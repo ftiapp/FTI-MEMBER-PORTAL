@@ -139,8 +139,20 @@ export default function ACMembershipForm() {
   // Check tax ID uniqueness
   const checkTaxIdUniqueness = useCallback(async (taxId) => {
     try {
-      const response = await fetch(`/api/ac-membership/check-tax-id?taxId=${taxId}`);
-      return await response.json();
+      // ใช้ API endpoint เดียวกับที่ใช้ใน ACFormSubmission.js
+      const response = await fetch('/api/membership/check-tax-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taxId, memberType: 'AC' })
+      });
+      
+      const data = await response.json();
+      
+      // ปรับรูปแบบข้อมูลให้เข้ากับโค้ดที่มีอยู่
+      return {
+        isUnique: response.status === 200 && data.status === 'available',
+        message: data.message
+      };
     } catch (error) {
       console.error('Error checking tax ID uniqueness:', error);
       throw new Error('เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี');

@@ -10,57 +10,85 @@ export default function CompanyBasicInfo({
   setErrors, 
   isAutofill, 
   setIsAutofill,
-  isLoading,
-  isCheckingTaxId
+  isLoading
 }) {
-  // เพิ่ม state สำหรับ throttling
+  // State for throttling and TAX_ID validation
   const [isThrottled, setIsThrottled] = useState(false);
+  const [validationStatus, setValidationStatus] = useState({ status: 'idle', message: '' }); // idle, checking, valid, invalid
   const lastFetchTime = useRef(0);
-  const throttleTime = 5000; // 5 วินาที
+  const throttleTime = 5000; // 5 seconds
+  const taxIdTimeoutRef = useRef(null);
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const checkTaxIdUniqueness = async (taxId) => {
-    if (!taxId || taxId.length !== 13) return;
-
+    if (!taxId || taxId.length !== 13) {
+      setValidationStatus({ status: 'idle', message: '' });
+      return false;
+    }
+    
+    setValidationStatus({ status: 'checking', message: 'กำลังตรวจสอบเลขประจำตัวผู้เสียภาษี...' });
+    
     try {
-      const response = await fetch(`/api/oc-membership/check-tax-id?taxId=${taxId}`);
+      const response = await fetch('/api/member/oc-membership/check-tax-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taxId })
+      });
+      
       const data = await response.json();
       
-      if (!data.isUnique) {
+      if (!data.valid) {
         setErrors(prev => ({ ...prev, taxId: data.message }));
+        setValidationStatus({ status: 'invalid', message: data.message });
         toast.error(data.message);
         return false;
       }
       
-      // ถ้า Tax ID ไม่ซ้ำ ให้ล้างข้อความ error
       setErrors(prev => ({ ...prev, taxId: undefined }));
+      setValidationStatus({ status: 'valid', message: 'เลขประจำตัวผู้เสียภาษีสามารถใช้สมัครสมาชิกได้' });
+      toast.success('เลขประจำตัวผู้เสียภาษีสามารถใช้สมัครสมาชิกได้');
       return true;
     } catch (error) {
       console.error('Error checking tax ID uniqueness:', error);
-      toast.error('เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี');
+      const errorMessage = 'เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี';
+      setErrors(prev => ({ ...prev, taxId: errorMessage }));
+      setValidationStatus({ status: 'invalid', message: errorMessage });
+      toast.error(errorMessage);
       return false;
     }
   };
 
   const handleTaxIdChange = (e) => {
     const { value } = e.target;
-    setFormData(prev => ({ ...prev, taxId: value }));
+    const numericValue = value.replace(/\D/g, '').slice(0, 13);
     
-    if (value.length === 13) {
-      checkTaxIdUniqueness(value);
-      if (isAutofill) {
-        fetchCompanyInfo(value);
-      }
+    setFormData(prev => ({ ...prev, taxId: numericValue }));
+    setValidationStatus({ status: 'idle', message: '' });
+    if (errors.taxId) {
+      setErrors(prev => ({ ...prev, taxId: undefined }));
+    }
+    
+    if (taxIdTimeoutRef.current) clearTimeout(taxIdTimeoutRef.current);
+    
+    if (numericValue.length === 13) {
+      taxIdTimeoutRef.current = setTimeout(() => {
+        checkTaxIdUniqueness(numericValue).then(isValid => {
+          if (isValid && isAutofill) {
+            fetchCompanyInfo(numericValue);
+          }
+        });
+      }, 500);
     }
   };
 
   const fetchCompanyInfo = async (taxId) => {
     if (!taxId || taxId.length !== 13) return;
     
-    // ตรวจสอบ throttling
+    // Check throttling
     const now = Date.now();
     const timeSinceLastFetch = now - lastFetchTime.current;
     
@@ -70,11 +98,11 @@ export default function CompanyBasicInfo({
       return;
     }
     
-    // บันทึกเวลาที่ดึงข้อมูลล่าสุด
+    // Record the time of the last fetch
     lastFetchTime.current = now;
     setIsThrottled(true);
     
-    // ตั้งเวลาให้สามารถกดได้อีกครั้งหลังจากเวลาที่กำหนด
+    // Set timer to allow clicking again after the specified time
     setTimeout(() => {
       setIsThrottled(false);
     }, throttleTime);
@@ -105,7 +133,6 @@ export default function CompanyBasicInfo({
         
         setErrors(prev => ({
           ...prev,
-          taxId: '',
           companyName: '',
           companyNameEng: ''
         }));
@@ -146,8 +173,40 @@ export default function CompanyBasicInfo({
   };
 
   const toggleAutofill = () => {
-    setIsAutofill(!isAutofill);
+    const newIsAutofill = !isAutofill;
+    setIsAutofill(newIsAutofill);
+
+    // If switching to manual mode, clear related fields and stop any pending validation
+    if (!newIsAutofill) {
+      if (taxIdTimeoutRef.current) {
+        clearTimeout(taxIdTimeoutRef.current);
+      }
+      setValidationStatus({ status: 'idle', message: '' });
+      setErrors(prev => ({ ...prev, taxId: undefined }));
+      // Optionally clear form data that was auto-filled
+      setFormData(prev => ({
+        ...prev,
+        companyName: '',
+        companyNameEng: '',
+        addressNumber: '',
+        street: '',
+        subDistrict: '',
+        district: '',
+        province: '',
+        postalCode: '',
+      }));
+      toast('โหมดกรอกข้อมูลเอง: กรุณากรอกข้อมูลบริษัทด้วยตนเอง');
+    }
   };
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (taxIdTimeoutRef.current) {
+        clearTimeout(taxIdTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -239,19 +298,45 @@ export default function CompanyBasicInfo({
                     placeholder-gray-400
                     transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                    ${errors.taxId 
+                    ${validationStatus.status === 'invalid'
                       ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300 hover:border-gray-400'
+                      : validationStatus.status === 'valid'
+                        ? 'border-green-300 bg-green-50'
+                        : 'border-gray-300 hover:border-gray-400'
                     }
-                    ${isAutofill ? 'pr-24' : ''}
+                    ${(isAutofill || validationStatus.status === 'checking') ? 'pr-28' : ''}
                   `}
+                  disabled={validationStatus.status === 'checking'}
                 />
                 
-                {isAutofill && (
+                {/* Status Badge or Fetch Button - Only show one at a time */}
+                {validationStatus.status === 'checking' ? (
+                  <div className="absolute right-2 top-2 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-md flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    ตรวจสอบ
+                  </div>
+                ) : validationStatus.status === 'invalid' ? (
+                  <div className="absolute right-2 top-2 px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-md flex items-center gap-2">
+                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                    </svg>
+                    ไม่ผ่าน
+                  </div>
+                ) : validationStatus.status === 'valid' ? (
+                  <div className="absolute right-2 top-2 px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-md flex items-center gap-2">
+                    <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    ผ่าน
+                  </div>
+                ) : isAutofill ? (
                   <button
                     type="button"
                     onClick={() => fetchCompanyInfo(formData.taxId)}
-                    disabled={isLoading || isCheckingTaxId || !formData.taxId || formData.taxId.length !== 13 || isThrottled}
+                    disabled={isLoading || !formData.taxId || formData.taxId.length !== 13 || isThrottled}
                     className="
                       absolute right-2 top-2 
                       px-3 py-1.5 
@@ -265,15 +350,32 @@ export default function CompanyBasicInfo({
                   >
                     {isLoading ? 'กำลังดึง...' : isThrottled ? 'รอสักครู่...' : 'ดึงข้อมูล'}
                   </button>
-                )}
+                ) : null}
               </div>
               
-              {errors.taxId && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.taxId}
+              {/* Status Messages */}
+              {validationStatus.message && (
+                <p className={`mt-1 text-sm flex items-center gap-2 ${ 
+                  validationStatus.status === 'invalid' ? 'text-red-600' : 
+                  validationStatus.status === 'valid' ? 'text-green-600' : 'text-blue-600'
+                }`}>
+                  {validationStatus.status === 'checking' && (
+                    <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  )}
+                  {validationStatus.status === 'valid' && (
+                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                     </svg>
+                  )}
+                   {validationStatus.status === 'invalid' && (
+                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                     </svg>
+                  )}
+                  {validationStatus.message}
                 </p>
               )}
             </div>
@@ -373,6 +475,15 @@ export default function CompanyBasicInfo({
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   {errors.companyNameEng}
+                </p>
+              )}
+              
+              {isAutofill && formData.companyNameEng && (
+                <p className="text-xs text-blue-600 flex items-center gap-2">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  ข้อมูลถูกดึงอัตโนมัติ
                 </p>
               )}
             </div>

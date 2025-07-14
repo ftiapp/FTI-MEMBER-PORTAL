@@ -11,7 +11,7 @@ const cloudinaryConfig = {
 };
 
 // Default folder for uploads
-const DEFAULT_FOLDER = process.env.CLOUDINARY_FOLDER || 'FTI_Portal-Document';
+const DEFAULT_FOLDER = process.env.CLOUDINARY_FOLDER || 'FTI_PORTAL_IC_member_DOC';
 
 // Log Cloudinary configuration (without secrets)
 console.log('Cloudinary configuration:', {

@@ -30,16 +30,23 @@ export default function CompanyBasicInfo({
     if (!taxId || taxId.length !== 13) return;
 
     try {
-      const response = await fetch(`/api/ac-membership/check-tax-id?taxId=${taxId}`);
+      // ใช้ API endpoint เดียวกับที่ใช้ใน ACFormSubmission.js
+      const response = await fetch('/api/membership/check-tax-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taxId, memberType: 'AC' })
+      });
+      
       const data = await response.json();
       
-      if (!data.isUnique) {
+      // ตรวจสอบสถานะจาก API
+      if (response.status !== 200 || data.status === 'pending' || data.status === 'approved') {
         setErrors(prev => ({ ...prev, taxId: data.message }));
         toast.error(data.message);
         return false;
       }
       
-      // ถ้า Tax ID ไม่ซ้ำ ให้ล้างข้อความ error
+      // ถ้า Tax ID ไม่ซ้ำ (status === 'available') ให้ล้างข้อความ error
       setErrors(prev => ({ ...prev, taxId: undefined }));
       return true;
     } catch (error) {
