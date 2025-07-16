@@ -46,48 +46,55 @@ export const checkTaxIdUniqueness = async (taxId) => {
  * @param {Object} formData ข้อมูลฟอร์มทั้งหมด
  * @returns {Promise<{success: boolean, message: string}>} ผลการส่งข้อมูล
  */
-export const submitACMembershipForm = async (formData) => {
+export const submitACMembershipForm = async (data) => {
   try {
     const formDataToSend = new FormData();
-    
-    // เพิ่มข้อมูลทั่วไป
-    Object.keys(formData).forEach(key => {
-      if (key === 'businessTypes' || key === 'industrialGroups') {
-        formDataToSend.append(key, JSON.stringify(formData[key]));
-      } else if (
-        key !== 'companyRegistration' && 
-        key !== 'companyProfile' && 
-        key !== 'shareholderList' && 
-        key !== 'vatRegistration'
-      ) {
-        formDataToSend.append(key, formData[key]);
+
+    // Robust helper (from OC)
+    const appendToFormData = (key, value) => {
+      // Single file object: { file: File, ... }
+      if (value && typeof value === 'object' && value.file instanceof File) {
+        formDataToSend.append(key, value.file, value.name);
       }
-    });
-    
-    // เพิ่มไฟล์เอกสาร
-    if (formData.companyRegistration) formDataToSend.append('companyRegistration', formData.companyRegistration);
-    if (formData.companyProfile) formDataToSend.append('companyProfile', formData.companyProfile);
-    if (formData.shareholderList) formDataToSend.append('shareholderList', formData.shareholderList);
-    if (formData.vatRegistration) formDataToSend.append('vatRegistration', formData.vatRegistration);
-    
-    // ระบุประเภทสมาชิก
+      // Array of file objects (e.g., productionImages)
+      else if (key === 'productionImages' && Array.isArray(value)) {
+        value.forEach((fileObj, index) => {
+          if (fileObj && fileObj.file instanceof File) {
+            formDataToSend.append(`${key}[${index}]`, fileObj.file, fileObj.name);
+          }
+        });
+      }
+      // Other arrays/objects
+      else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+        formDataToSend.append(key, JSON.stringify(value));
+      }
+      // Primitives
+      else if (value !== null && value !== undefined) {
+        formDataToSend.append(key, value);
+      }
+    };
+
+    // Convert the plain object to FormData
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        appendToFormData(key, data[key]);
+      }
+    }
+
+    // Always include memberType for AC
     formDataToSend.append('memberType', 'AC');
-    
-    // ส่งข้อมูลไปยัง API
-    const response = await fetch('/api/ac-membership/submit', {
+
+    const response = await fetch('/api/member/ac-membership/submit', {
       method: 'POST',
       body: formDataToSend,
     });
-    
     const result = await response.json();
-    
     if (!response.ok) {
       return {
         success: false,
         message: result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง'
       };
     }
-    
     return {
       success: true,
       message: 'ส่งข้อมูลการสมัครสมาชิกเรียบร้อยแล้ว'

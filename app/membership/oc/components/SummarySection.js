@@ -31,7 +31,79 @@ const BusinessTypesCard = ({ title, businessTypes }) => (
   </div>
 );
 
-// Simplified file display
+// Industrial Groups card with tags (similar to BusinessTypesCard)
+const IndustrialGroupsCard = ({ title, industrialGroups }) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <h4 className="text-sm font-medium text-gray-700 mb-3">{title}</h4>
+    {industrialGroups.length > 0 ? (
+      <div className="flex flex-wrap gap-2">
+        {industrialGroups.map((group, index) => (
+          <span 
+            key={index}
+            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+          >
+            {group}
+          </span>
+        ))}
+      </div>
+    ) : (
+      <p className="text-sm text-gray-500">ไม่ได้เลือก</p>
+    )}
+  </div>
+);
+
+// Products/Services card
+const ProductsCard = ({ products }) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <h4 className="text-sm font-medium text-gray-700 mb-3">สินค้า/บริการ</h4>
+    {products && products.length > 0 ? (
+      <div className="space-y-2">
+        {products.map((product, index) => (
+          <div key={index} className="border-b border-gray-100 pb-2 last:border-0 last:pb-0">
+            <p className="text-sm font-medium">{product.nameTh || '-'}</p>
+            <p className="text-xs text-gray-500">{product.nameEn || '-'}</p>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
+    )}
+  </div>
+);
+
+// Representative card
+const RepresentativeCard = ({ representative, index }) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-4">
+    <div className="mb-2">
+      <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
+    </div>
+    
+    {representative ? (
+      <div className="space-y-2">
+        <div>
+          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
+          <p className="text-sm">{representative.firstNameThai} {representative.lastNameThai}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
+          <p className="text-sm">{representative.firstNameEnglish} {representative.lastNameEnglish}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">อีเมล</p>
+          <p className="text-sm">{representative.email || '-'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
+          <p className="text-sm">{representative.phone || '-'}</p>
+        </div>
+      </div>
+    ) : (
+      <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
+    )}
+  </div>
+);
+
+// Simplified file display (from file 1)
 const FileCard = ({ fileName, description }) => (
   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
     <div className="flex items-center gap-3">
@@ -56,8 +128,8 @@ const FileCard = ({ fileName, description }) => (
 );
 
 // Simplified section with consistent blue theme
-const Section = ({ title, children }) => (
-  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+const Section = ({ title, children, className }) => (
+  <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className || ''}`}>
     <div className="bg-blue-600 px-6 py-4 rounded-t-lg">
       <h3 className="text-lg font-semibold text-white">{title}</h3>
     </div>
@@ -111,19 +183,28 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
     return result;
   };
 
-  const getProductsText = () => {
-    if (!formData.products || !Array.isArray(formData.products) || formData.products.length === 0) {
-      return 'ไม่ได้ระบุ';
+  // ฟังก์ชันสำหรับแสดงกลุ่มอุตสาหกรรมที่เลือกแบบ array
+  const getSelectedIndustrialGroupsArray = () => {
+    if (!formData.industrialGroupIds || formData.industrialGroupIds.length === 0) {
+      return [];
     }
-    return formData.products
-      .map(product => {
-        const thName = product.nameTh || '';
-        const enName = product.nameEn || '';
-        if (thName && enName) return `${thName} / ${enName}`;
-        return thName || enName || 'ไม่ได้ระบุชื่อ';
-      })
-      .filter(name => name.trim() !== '')
-      .join(', ') || 'ไม่ได้ระบุ';
+    
+    return formData.industrialGroupIds.map(groupId => {
+      const group = industrialGroups.find(g => String(g.id) === String(groupId));
+      return group ? group.name_th : `กลุ่มอุตสาหกรรม ${groupId}`;
+    });
+  };
+
+  // ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัดแบบ array
+  const getSelectedProvincialChaptersArray = () => {
+    if (!formData.provincialChapterIds || formData.provincialChapterIds.length === 0) {
+      return [];
+    }
+    
+    return formData.provincialChapterIds.map(chapterId => {
+      const chapter = provincialChapters.find(c => String(c.id) === String(chapterId));
+      return chapter ? chapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapterId}`;
+    });
   };
 
   const getContactPersonFullName = (isEnglish = false) => {
@@ -137,16 +218,18 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       : '-';
   };
 
-  const getAddress = () => {
-    const parts = [
-      formData.addressNumber,
-      formData.street,
-      formData.subDistrict,
-      formData.district,
-      formData.province,
-      formData.postalCode
-    ].filter(Boolean).filter(part => part.trim() !== '');
-    return parts.length > 0 ? parts.join(' ') : '-';
+  // สร้างข้อมูลที่อยู่แยกเป็นฟิลด์ย่อย
+  const getAddressFields = () => {
+    return {
+      addressNumber: formData.addressNumber || '-',
+      moo: formData.moo || '-',
+      soi: formData.soi || '-',
+      road: formData.road || '-',
+      subDistrict: formData.subDistrict || '-',
+      district: formData.district || '-',
+      province: formData.province || '-',
+      postalCode: formData.postalCode || '-'
+    };
   };
 
   const getFactoryTypeLabel = () => {
@@ -154,6 +237,8 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
     if (formData.factoryType === 'type2') return 'ไม่มีเครื่องจักร / มีเครื่องจักรต่ำกว่า 5 แรงม้า';
     return 'ไม่ได้เลือก';
   };
+
+  const addressFields = getAddressFields();
 
   return (
     <div className="space-y-6">
@@ -170,12 +255,26 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
           <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.taxId} />
           <InfoCard title="อีเมล" value={formData.companyEmail} />
           <InfoCard title="เบอร์โทรศัพท์" value={formData.companyPhone} />
-          <InfoCard title="ที่ตั้งบริษัท" value={getAddress()} />
+          <InfoCard title="เว็บไซต์" value={formData.companyWebsite} />
+        </div>
+      </Section>
+
+      {/* ที่อยู่บริษัท - แยกเป็นข้อย่อยๆ เหมือน file 2 */}
+      <Section title="ที่อยู่บริษัท" className="mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoCard title="เลขที่" value={addressFields.addressNumber} />
+          <InfoCard title="หมู่" value={addressFields.moo} />
+          <InfoCard title="ซอย" value={addressFields.soi} />
+          <InfoCard title="ถนน" value={addressFields.road} />
+          <InfoCard title="ตำบล/แขวง" value={addressFields.subDistrict} />
+          <InfoCard title="อำเภอ/เขต" value={addressFields.district} />
+          <InfoCard title="จังหวัด" value={addressFields.province} />
+          <InfoCard title="รหัสไปรษณีย์" value={addressFields.postalCode} />
         </div>
       </Section>
 
       {/* ข้อมูลผู้ให้ข้อมูล */}
-      <Section title="ข้อมูลผู้ให้ข้อมูล">
+      <Section title="ข้อมูลผู้ให้ข้อมูล" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getContactPersonFullName(false)} />
           <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
@@ -185,42 +284,40 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         </div>
       </Section>
 
-      {/* ข้อมูลผู้แทน */}
+      {/* ข้อมูลผู้แทน - ใช้ RepresentativeCard แบบ file 2 */}
       {formData.representatives && formData.representatives.length > 0 && (
-        <Section title="ข้อมูลผู้แทน">
-          <div className="space-y-6">
+        <Section title="ข้อมูลผู้แทน" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {formData.representatives.map((rep, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                <h4 className="font-medium text-gray-900 mb-3">ผู้แทน {index + 1}</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={`${rep.firstNameThai} ${rep.lastNameThai}`} />
-                  <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={`${rep.firstNameEnglish} ${rep.lastNameEnglish}`} />
-                  <InfoCard title="อีเมล" value={rep.email} />
-                  <InfoCard title="เบอร์โทรศัพท์" value={rep.phone} />
-                </div>
-              </div>
+              <RepresentativeCard key={index} representative={rep} index={index} />
             ))}
           </div>
         </Section>
       )}
 
-      {/* ข้อมูลธุรกิจ - ใช้ BusinessTypesCard แบบ tags */}
-      <Section title="ข้อมูลธุรกิจ">
-        <div className="grid grid-cols-1 gap-4">
+      {/* ข้อมูลธุรกิจ - ใช้ tags แบบ file 2 แต่เก็บ BusinessTypesCard จาก file 1 */}
+      <Section title="ข้อมูลธุรกิจ" className="mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <BusinessTypesCard 
             title="ประเภทธุรกิจ" 
             businessTypes={getSelectedBusinessTypesArray()} 
           />
           <InfoCard title="จำนวนพนักงาน" value={formData.numberOfEmployees} />
-          <InfoCard title="สินค้าและบริการ" value={getProductsText()} />
-          <InfoCard title="กลุ่มอุตสาหกรรม" value={getSelectedItemsName(formData.industrialGroupIds, industrialGroups)} />
-          <InfoCard title="สภาอุตสาหกรรมจังหวัด" value={getSelectedItemsName(formData.provincialChapterIds, provincialChapters)} />
+          <ProductsCard products={formData.products || []} />
+          <IndustrialGroupsCard 
+            title="กลุ่มอุตสาหกรรม" 
+            industrialGroups={getSelectedIndustrialGroupsArray()} 
+          />
+          <IndustrialGroupsCard 
+            title="สภาอุตสาหกรรมจังหวัด" 
+            industrialGroups={getSelectedProvincialChaptersArray()} 
+          />
         </div>
       </Section>
 
-      {/* เอกสารใบอนุญาต */}
+      {/* เอกสารใบอนุญาต - เก็บ UI แบบ file 1 */}
       {formData.factoryType && (
-        <Section title="เอกสารใบอนุญาต">
+        <Section title="เอกสารใบอนุญาต" className="mt-6">
           <div className="space-y-4">
             <InfoCard title="ประเภทโรงงาน" value={getFactoryTypeLabel()} />
 

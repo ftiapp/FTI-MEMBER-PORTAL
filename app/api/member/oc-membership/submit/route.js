@@ -88,8 +88,8 @@ export async function POST(request) {
 
     // Step 4: Insert Address
     await executeQuery(trx, 
-      `INSERT INTO MemberRegist_OC_Address (main_id, address_number, moo, soi, street, sub_district, district, province, postal_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      [mainId, data.addressNumber, data.moo, data.soi, data.street, data.subDistrict, data.district, data.province, data.postalCode]
+      `INSERT INTO MemberRegist_OC_Address (main_id, address_number, moo, soi, street, sub_district, district, province, postal_code, phone, email, website) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [mainId, data.addressNumber, data.moo, data.soi, data.street, data.subDistrict, data.district, data.province, data.postalCode, data.companyPhone, data.companyEmail, data.companyWebsite]
     );
 
     // Step 5: Insert Contact Person
@@ -204,7 +204,7 @@ export async function POST(request) {
           try {
             console.log(`📤 Uploading production image ${index + 1}: ${file.name}`);
             const buffer = await file.arrayBuffer();
-            const result = await uploadToCloudinary(Buffer.from(buffer), file.name, 'FTI_PORTAL_IC_member_DOC');
+            const result = await uploadToCloudinary(Buffer.from(buffer), file.name, 'FTI_PORTAL_OC_member_DOC');
             
             // ✅ ตรวจสอบผลลัพธ์การอัปโหลด
             if (result.success) {
@@ -233,7 +233,7 @@ export async function POST(request) {
         try {
           console.log(`📤 Uploading ${fieldName}: ${fileValue.name}`);
           const buffer = await fileValue.arrayBuffer();
-          const result = await uploadToCloudinary(Buffer.from(buffer), fileValue.name, 'FTI_PORTAL_IC_member_DOC');
+          const result = await uploadToCloudinary(Buffer.from(buffer), fileValue.name, 'FTI_PORTAL_OC_member_DOC');
           
           // ✅ ตรวจสอบผลลัพธ์การอัปโหลด
           if (result.success) {

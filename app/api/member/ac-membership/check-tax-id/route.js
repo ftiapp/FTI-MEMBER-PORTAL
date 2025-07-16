@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 
-// Helper function to check tax ID in database
+// Helper function to check tax ID in database (ตรวจสอบทั้ง OC และ AC)
 async function checkTaxIdInDatabase(taxId) {
   try {
-    // 1. Check in OC table (MemberRegist_OC_Main)
+    // 1. ตรวจสอบในตาราง OC (MemberRegist_OC_Main)
     const ocResult = await query(
       'SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
       [taxId]
@@ -13,7 +13,7 @@ async function checkTaxIdInDatabase(taxId) {
       return { exists: true, status: ocResult[0].status, memberType: 'OC' };
     }
 
-    // 2. Check in AC table (MemberRegist_AC_Main)
+    // 2. ตรวจสอบในตาราง AC (MemberRegist_AC_Main)
     const acResult = await query(
       'SELECT status FROM MemberRegist_AC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
       [taxId]
@@ -57,7 +57,7 @@ function generateResponseMessage(taxId, status, memberType) {
   const messages = {
     0: `เลขประจำตัวผู้เสียภาษีนี้ได้ยื่นสมัครเป็น ${memberTypeThai[memberType]} แล้ว และกำลังรอการอนุมัติ`,
     1: `เลขประจำตัวผู้เสียภาษีนี้เป็น ${memberTypeThai[memberType]} แล้ว`,
-    available: `เลขประจำตัวผู้เสียภาษีนี้สามารถใช้ได้`
+    available: `เลขประจำตัวผู้เสียภาษีนี้สามารถใช้สมัครสมาชิกได้`
   };
   
   return messages[status] || messages.available;
@@ -98,7 +98,8 @@ export async function GET(request) {
           valid: false,
           exists: true,
           status: result.status,
-          message: generateResponseMessage(taxId, result.status)
+          memberType: result.memberType,
+          message: generateResponseMessage(taxId, result.status, result.memberType)
         }, 
         { status: 409 }
       );
@@ -131,7 +132,7 @@ export async function POST(request) {
     const data = await request.json();
     const { taxId } = data;
 
-    console.log(`Checking TAX_ID: ${taxId}`);
+    console.log(`Checking AC TAX_ID: ${taxId}`);
 
     // Validate tax ID format
     if (!validateTaxId(taxId)) {
@@ -146,7 +147,7 @@ export async function POST(request) {
 
     const result = await checkTaxIdInDatabase(taxId);
     
-    console.log('Database check result:', result);
+    console.log('AC Database check result:', result);
 
     if (result.exists) {
       return NextResponse.json(
@@ -154,7 +155,8 @@ export async function POST(request) {
           valid: false,
           exists: true,
           status: result.status,
-          message: generateResponseMessage(taxId, result.status)
+          memberType: result.memberType,
+          message: generateResponseMessage(taxId, result.status, result.memberType)
         }, 
         { status: 409 }
       );
@@ -171,7 +173,7 @@ export async function POST(request) {
     );
 
   } catch (error) {
-    console.error('Error checking tax ID:', error);
+    console.error('Error checking AC tax ID:', error);
     return NextResponse.json(
       { 
         valid: false,
