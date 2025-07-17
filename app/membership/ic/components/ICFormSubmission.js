@@ -58,15 +58,12 @@ export const submitICMembershipForm = async (formData) => {
     // Create FormData object for file uploads
     const submitData = new FormData();
     
-    // Add member type
-    submitData.append('memberType', 'IC'); // IC = สมทบ-บุคคลธรรมดา
-    
-    // Add applicant info
+    // Add applicant info with aligned field names
     submitData.append('idCardNumber', formData.idCardNumber);
-    submitData.append('firstNameThai', formData.firstNameThai);
-    submitData.append('lastNameThai', formData.lastNameThai);
-    submitData.append('firstNameEng', formData.firstNameEng);
-    submitData.append('lastNameEng', formData.lastNameEng);
+    submitData.append('firstNameTh', formData.firstNameThai);
+    submitData.append('lastNameTh', formData.lastNameThai);
+    submitData.append('firstNameEn', formData.firstNameEng);
+    submitData.append('lastNameEn', formData.lastNameEng);
     submitData.append('phone', formData.phone);
     submitData.append('email', formData.email);
     
@@ -80,34 +77,44 @@ export const submitICMembershipForm = async (formData) => {
     submitData.append('province', formData.province);
     submitData.append('postalCode', formData.postalCode);
     
-    // Add industrial group and provincial chapter (optional for IC)
-    if (formData.industrialGroupId) {
-      submitData.append('industrialGroupId', formData.industrialGroupId);
+    // Add industrial groups and provincial chapters
+    if (formData.industryGroups) {
+      submitData.append('industryGroups', JSON.stringify(formData.industryGroups));
     }
     
-    if (formData.provincialChapterId) {
-      submitData.append('provincialChapterId', formData.provincialChapterId);
+    if (formData.provinceChapters) {
+      submitData.append('provinceChapters', JSON.stringify(formData.provinceChapters));
     }
     
-    // Add representative info (only one for IC)
-    submitData.append('representative', JSON.stringify(formData.representative));
+    // Add representative info as individual fields
+    if (formData.representative) {
+      const rep = formData.representative;
+      submitData.append('representativeFirstNameTh', rep.firstNameThai);
+      submitData.append('representativeLastNameTh', rep.lastNameThai);
+      submitData.append('representativeFirstNameEn', rep.firstNameEng);
+      submitData.append('representativeLastNameEn', rep.lastNameEng);
+      submitData.append('representativeIdCardNumber', rep.idCardNumber);
+      submitData.append('representativePhone', rep.phone);
+      submitData.append('representativeEmail', rep.email);
+      submitData.append('relationship', rep.relationship);
+    }
     
-    // Add business info
+    // Add business types
     submitData.append('businessTypes', JSON.stringify(formData.businessTypes));
-    if (formData.businessTypes.other) {
-      submitData.append('otherBusinessTypeDetail', formData.otherBusinessTypeDetail);
+    if (formData.businessCategoryOther) {
+      submitData.append('businessCategoryOther', formData.businessCategoryOther);
     }
     
     // Add products
     submitData.append('products', JSON.stringify(formData.products));
     
-    // Add document (ID card)
+    // Add document with correct field name
     if (formData.idCardDocument) {
-      submitData.append('idCardDocument', formData.idCardDocument);
+      submitData.append('idCardFile', formData.idCardDocument);
     }
     
-    // Submit form data
-    const response = await fetch('/api/ic-membership', {
+    // Submit form data to correct endpoint
+    const response = await fetch('/api/member/ic-membership/submit', {
       method: 'POST',
       body: submitData,
     });

@@ -17,9 +17,9 @@ export async function POST(request) {
       );
     }
     
-    // ตรวจสอบว่าเลขบัตรประชาชนมีในระบบแล้วหรือไม่
+    // ตรวจสอบว่าเลขบัตรประชาชนมีในระบบใหม่แล้วหรือไม่
     const checkIdCardQuery = `
-      SELECT id, status FROM ICmember_Info WHERE id_card_number = ?
+      SELECT id, status FROM MemberRegist_IC_Main WHERE id_card_number = ?
     `;
     
     const idCardResult = await query(checkIdCardQuery, [idCardNumber]);

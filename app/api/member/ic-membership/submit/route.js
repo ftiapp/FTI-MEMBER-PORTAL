@@ -1,192 +1,260 @@
 import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { getSession } from '@/app/lib/session';
+import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
+import { uploadToCloudinary } from '@/app/lib/cloudinary';
 
 export async function POST(request) {
+  let trx;
+  
   try {
-    // Get user session
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json(
-        { success: false, message: 'กรุณาเข้าสู่ระบบก่อนดำเนินการ' },
-        { status: 401 }
-      );
+    console.log('--- Received IC Membership Submission ---');
+    
+    const session = await getSession();
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
     }
 
     const userId = session.user.id;
-    const data = await request.json();
     
-    // Combine first name and last name for database compatibility
-    const nameThai = `${data.firstNameThai || ''} ${data.lastNameThai || ''}`.trim();
-    const nameEnglish = `${data.firstNameEnglish || ''} ${data.lastNameEnglish || ''}`.trim();
-    const representativeNameThai = `${data.representativeFirstNameThai || ''} ${data.representativeLastNameThai || ''}`.trim();
-    const representativeNameEnglish = `${data.representativeFirstNameEnglish || ''} ${data.representativeLastNameEnglish || ''}`.trim();
+    let formData;
+    try {
+      formData = await request.formData();
+      
+      // Debug: Log all form data keys
+      console.log('FormData Keys:');
+      for (const [key] of formData.entries()) {
+        console.log(key);
+      }
+      
+    } catch (formError) {
+      console.error('FormData Error:', formError);
+      return NextResponse.json({ 
+        error: 'ไม่สามารถประมวลผลข้อมูลที่ส่งมาได้', 
+        details: formError.message 
+      }, { status: 400 });
+    }
     
-    // Validate required fields
-    if (!data.idCardNumber || !data.firstNameThai || !data.lastNameThai) {
-      return NextResponse.json(
-        { success: false, message: 'กรุณากรอกข้อมูลให้ครบถ้วน' },
-        { status: 400 }
-      );
-    }
+    trx = await beginTransaction();
 
-    if (!data.representativeFirstNameThai || !data.representativeLastNameThai || !data.representativeEmail) {
-      return NextResponse.json(
-        { success: false, message: 'กรุณากรอกข้อมูลผู้แทนให้ครบถ้วน' },
-        { status: 400 }
-      );
-    }
-
-    // Check if industry groups and province chapters are selected
-    const selectedGroups = data.selectedIndustryGroups || [];
-    const selectedChapters = data.selectedProvinceChapters || [];
+    // Extract data from FormData
+    const data = {};
+    const files = {};
+    const products = JSON.parse(formData.get('products'));
     
-    if (selectedGroups.length === 0 || selectedChapters.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'กรุณาเลือกกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด' },
-        { status: 400 }
-      );
+    for (const [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        files[key] = value;
+      } else if (key !== 'products') {
+        data[key] = value;
+      }
     }
 
-    // Check if user already has a pending application
-    const existingApplication = await query(
-      `SELECT * FROM ic_membership_applications WHERE user_id = ? AND status = 'pending'`,
-      [userId]
-    );
-
-    if (existingApplication.length > 0) {
-      return NextResponse.json(
-        { success: false, message: 'คุณมีคำขอสมัครสมาชิกที่รอการพิจารณาอยู่แล้ว' },
-        { status: 400 }
-      );
-    }
-
-    // Insert application into database
-    const result = await query(
-      `INSERT INTO ic_membership_applications (
-        user_id, 
-        id_card_number, 
-        name_thai, 
-        name_english, 
-        representative_name_thai, 
-        representative_name_english, 
-        representative_email, 
-        representative_mobile,
-        address_number,
-        address_building,
-        address_moo,
-        address_soi,
-        address_road,
-        address_subdistrict,
-        address_district,
-        address_province,
-        address_postal_code,
-        website,
-        facebook,
-        phone,
-        email,
-        fax,
-        products_thai,
-        products_english,
-        status,
-        created_at,
-        first_name_thai,
-        last_name_thai,
-        first_name_english,
-        last_name_english,
-        representative_first_name_thai,
-        representative_last_name_thai,
-        representative_first_name_english,
-        representative_last_name_english
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)`,
+    // Insert main IC member data (without address fields)
+    const result = await executeQuery(
+      trx,
+      `INSERT INTO MemberRegist_IC_Main (
+        user_id, id_card_number, first_name_th, last_name_th, 
+        first_name_en, last_name_en, phone, email, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         userId,
         data.idCardNumber,
-        nameThai,
-        nameEnglish,
-        representativeNameThai,
-        representativeNameEnglish,
-        data.representativeEmail,
-        data.representativeMobile,
+        data.firstNameTh,
+        data.lastNameTh,
+        data.firstNameEn,
+        data.lastNameEn,
+        data.phone,
+        data.email
+      ]
+    );
+    
+    const icMemberId = result.insertId;
+
+    // Insert address to correct table with all fields
+    await executeQuery(
+      trx,
+      `INSERT INTO MemberRegist_IC_Address (
+        main_id, address_number, moo, soi, road,
+        sub_district, district, province, postal_code,
+        phone, email, website
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        icMemberId,
         data.addressNumber,
-        data.addressBuilding,
-        data.addressMoo,
-        data.addressSoi,
-        data.addressRoad,
-        data.addressSubdistrict,
-        data.addressDistrict,
-        data.addressProvince,
-        data.addressPostalCode,
-        data.website,
-        data.facebook,
+        data.moo,
+        data.soi,
+        data.road,
+        data.subDistrict,
+        data.district,
+        data.province,
+        data.postalCode,
         data.phone,
         data.email,
-        data.fax,
-        data.productsThai,
-        data.productsEnglish,
-        'pending',
-        data.firstNameThai,
-        data.lastNameThai,
-        data.firstNameEnglish || '',
-        data.lastNameEnglish || '',
-        data.representativeFirstNameThai,
-        data.representativeLastNameThai,
-        data.representativeFirstNameEnglish || '',
-        data.representativeLastNameEnglish || ''
+        data.website || ''
       ]
     );
 
-    const applicationId = result.insertId;
-
-    // Insert industry groups
-    for (const groupId of (data.selectedIndustryGroups || [])) {
-      await query(
-        `INSERT INTO ic_membership_industry_groups (application_id, industry_group_id) VALUES (?, ?)`,
-        [applicationId, groupId]
-      );
+    // Insert business types if exists
+    if (data.businessTypes) {
+      let businessTypes;
+      try {
+        businessTypes = JSON.parse(data.businessTypes);
+        // แปลงเป็น array หากเป็น object
+        if (businessTypes && typeof businessTypes === 'object' && !Array.isArray(businessTypes)) {
+          businessTypes = Object.values(businessTypes);
+        }
+        
+        if (Array.isArray(businessTypes)) {
+          for (const type of businessTypes) {
+            if (type) {
+              await executeQuery(
+                trx,
+                'INSERT INTO MemberRegist_IC_BusinessTypes (main_id, business_type) VALUES (?, ?)',
+                [icMemberId, type]
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing businessTypes:', error);
+      }
     }
+
+    // Handle business category other
+    if (data.businessTypes) {
+      let businessTypes;
+      try {
+        businessTypes = JSON.parse(data.businessTypes);
+        // แปลงเป็น array หากเป็น object
+        if (businessTypes && typeof businessTypes === 'object' && !Array.isArray(businessTypes)) {
+          businessTypes = Object.values(businessTypes);
+        }
+        
+        if (Array.isArray(businessTypes) && businessTypes.includes('other') && data.businessCategoryOther) {
+          await executeQuery(
+            trx,
+            `INSERT INTO ICmember_Business_Info (main_id, business_category_other) VALUES (?, ?)`,
+            [icMemberId, data.businessCategoryOther]
+          );
+        }
+      } catch (error) {
+        console.error('Error parsing businessTypes:', error);
+      }
+    }
+
+    // Insert products
+    if (products && products.length > 0) {
+      for (const product of products) {
+        await executeQuery(
+          trx,
+          `INSERT INTO MemberRegist_IC_Products (main_id, name_th, name_en) VALUES (?, ?, ?)`,
+          [
+            icMemberId,
+            product.name_th || product.nameTh || '',
+            product.name_en || product.nameEn || ''
+          ]
+        );
+      }
+    }
+
+    // Insert representative
+    await executeQuery(
+      trx,
+      `INSERT INTO MemberRegist_IC_Representatives (
+        main_id, first_name_th, last_name_th, first_name_en, last_name_en,
+        phone, email, position
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        icMemberId,
+        data.representativeFirstNameTh,
+        data.representativeLastNameTh,
+        data.representativeFirstNameEn,
+        data.representativeLastNameEn,
+        data.representativePhone,
+        data.representativeEmail,
+        data.relationship || ''
+      ]
+    );
 
     // Insert province chapters
-    for (const chapterId of (data.selectedProvinceChapters || [])) {
-      await query(
-        `INSERT INTO ic_membership_province_chapters (application_id, province_chapter_id) VALUES (?, ?)`,
-        [applicationId, chapterId]
-      );
-    }
-
-    // Insert business types
-    if (data.businessTypes && data.businessTypes.length > 0) {
-      for (const type of data.businessTypes) {
-        await query(
-          `INSERT INTO ic_membership_business_types (application_id, type_name) VALUES (?, ?)`,
-          [applicationId, type]
+    if (data.provinceChapters) {
+      const provinceChapters = JSON.parse(data.provinceChapters);
+      for (const chapter of provinceChapters) {
+        await executeQuery(
+          trx,
+          `INSERT INTO ICmember_Province_Group (main_id, province_group_id) VALUES (?, ?)`,
+          [icMemberId, chapter.id || chapter.province_group_id]
         );
       }
     }
 
-    // Insert business categories
-    if (data.businessCategories && data.businessCategories.length > 0) {
-      for (const category of data.businessCategories) {
-        await query(
-          `INSERT INTO ic_membership_business_categories (application_id, category_id) VALUES (?, ?)`,
-          [applicationId, category]
+    // Insert industry groups
+    if (data.industryGroups) {
+      const industryGroups = JSON.parse(data.industryGroups);
+      for (const group of industryGroups) {
+        await executeQuery(
+          trx,
+          `INSERT INTO ICmember_Industry_Group (main_id, industry_group_id) VALUES (?, ?)`,
+          [icMemberId, group.id]
         );
       }
     }
 
-    // Return success response
+    // Handle document upload
+    if (files.idCardFile) {
+      try {
+        const fileBuffer = await files.idCardFile.arrayBuffer();
+        const uploadResult = await uploadToCloudinary(
+          Buffer.from(fileBuffer),
+          'id_card',
+          `ic_member_${icMemberId}`
+        );
+        
+        await executeQuery(
+          trx,
+          `INSERT INTO MemberRegist_IC_Documents (
+            main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            icMemberId,
+            'id_card',
+            files.idCardFile.name,
+            uploadResult.url,
+            files.idCardFile.size,
+            files.idCardFile.type,
+            uploadResult.public_id,
+            uploadResult.url
+          ]
+        );
+      } catch (error) {
+        console.error('Document upload failed:', error);
+        await rollbackTransaction(trx);
+        return NextResponse.json(
+          { error: 'Failed to upload document' },
+          { status: 500 }
+        );
+      }
+    }
+
+    await commitTransaction(trx);
+    
     return NextResponse.json({
       success: true,
-      message: 'ส่งข้อมูลการสมัครสมาชิกเรียบร้อยแล้ว',
-      applicationId
+      message: 'ส่งแบบฟอร์มสมัครสมาชิกเรียบร้อยแล้ว',
+      data: {
+        memberId: icMemberId,
+        document: {
+          idCard: uploadResult.url || null
+        }
+      }
     });
 
   } catch (error) {
-    console.error('Error submitting IC membership application:', error);
-    return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการส่งข้อมูล: ' + error.message },
-      { status: 500 }
-    );
+    if (trx) await rollbackTransaction(trx);
+    console.error('Error submitting IC membership:', error);
+    return NextResponse.json({ 
+      error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
+      details: error.message
+    }, { status: 500 });
   }
 }
