@@ -231,6 +231,54 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               )}
             </div>
 
+            {/* Moo */}
+            <div className="space-y-2">
+              <label htmlFor="moo" className="block text-sm font-medium text-gray-900">
+                หมู่
+              </label>
+              <input
+                type="text"
+                id="moo"
+                name="moo"
+                value={formData.moo || ''}
+                onChange={handleInputChange}
+                placeholder="กรอกหมู่ที่"
+                disabled={isLoading}
+                className="
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  bg-white
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  border-gray-300 hover:border-gray-400
+                "
+              />
+            </div>
+
+            {/* Soi */}
+            <div className="space-y-2">
+              <label htmlFor="soi" className="block text-sm font-medium text-gray-900">
+                ซอย
+              </label>
+              <input
+                type="text"
+                id="soi"
+                name="soi"
+                value={formData.soi || ''}
+                onChange={handleInputChange}
+                placeholder="กรอกซอย"
+                disabled={isLoading}
+                className="
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  bg-white
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  border-gray-300 hover:border-gray-400
+                "
+              />
+            </div>
+
             {/* Street */}
             <div className="space-y-2">
               <label htmlFor="street" className="block text-sm font-medium text-gray-900">

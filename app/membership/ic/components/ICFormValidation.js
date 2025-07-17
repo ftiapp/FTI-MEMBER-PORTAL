@@ -89,7 +89,7 @@ const validateApplicantInfo = (formData) => {
     errors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
   }
 
-  // Address validation
+  // Address validation - required fields only
   if (!formData.addressNumber) {
     errors.addressNumber = 'กรุณากรอกบ้านเลขที่';
   }
@@ -112,6 +112,7 @@ const validateApplicantInfo = (formData) => {
     errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
   }
 
+  // Note: moo, soi, street are optional fields - no validation required
   // Note: Industrial group and provincial chapter are not required fields for IC
   
   // Website validation (optional field but must be valid if provided)

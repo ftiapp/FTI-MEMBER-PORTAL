@@ -67,23 +67,28 @@ export const submitICMembershipForm = async (formData) => {
     submitData.append('phone', formData.phone);
     submitData.append('email', formData.email);
     
-    // Add address info
+    // Add address info - including optional fields
     submitData.append('addressNumber', formData.addressNumber);
-    submitData.append('moo', formData.moo || '');
-    submitData.append('soi', formData.soi || '');
-    submitData.append('road', formData.road || '');
+    submitData.append('moo', formData.moo || ''); // Optional
+    submitData.append('soi', formData.soi || ''); // Optional
+    submitData.append('road', formData.street || ''); // Optional - API expects 'road'
     submitData.append('subDistrict', formData.subDistrict);
     submitData.append('district', formData.district);
     submitData.append('province', formData.province);
     submitData.append('postalCode', formData.postalCode);
     
-    // Add industrial groups and provincial chapters
-    if (formData.industryGroups) {
-      submitData.append('industryGroups', JSON.stringify(formData.industryGroups));
+    // Add optional website
+    if (formData.website) {
+      submitData.append('website', formData.website);
     }
     
-    if (formData.provinceChapters) {
-      submitData.append('provinceChapters', JSON.stringify(formData.provinceChapters));
+    // Add industrial groups and provincial chapters with correct field names
+    if (formData.industrialGroupIds) {
+      submitData.append('industryGroups', JSON.stringify(formData.industrialGroupIds));
+    }
+    
+    if (formData.provincialCouncilIds) {
+      submitData.append('provinceChapters', JSON.stringify(formData.provincialCouncilIds));
     }
     
     // Add representative info as individual fields
@@ -99,10 +104,15 @@ export const submitICMembershipForm = async (formData) => {
       submitData.append('relationship', rep.relationship);
     }
     
-    // Add business types
-    submitData.append('businessTypes', JSON.stringify(formData.businessTypes));
-    if (formData.businessCategoryOther) {
-      submitData.append('businessCategoryOther', formData.businessCategoryOther);
+    // Add business types - convert from object to array
+    if (formData.businessTypes) {
+      const businessTypesArray = Object.keys(formData.businessTypes).filter(key => formData.businessTypes[key]);
+      submitData.append('businessTypes', JSON.stringify(businessTypesArray));
+    }
+    
+    // Add other business type detail
+    if (formData.otherBusinessTypeDetail) {
+      submitData.append('businessCategoryOther', formData.otherBusinessTypeDetail);
     }
     
     // Add products

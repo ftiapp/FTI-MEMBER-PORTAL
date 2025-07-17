@@ -120,21 +120,6 @@ const Section = ({ title, children, className }) => (
 );
 
 export default function SummarySection({ formData }) {
-  // Format address for display
-  const formatAddress = () => {
-    const address = formData.address || {};
-    const parts = [
-      address.addressLine1,
-      address.addressLine2,
-      address.subDistrict && `ตำบล/แขวง ${address.subDistrict}`,
-      address.district && `อำเภอ/เขต ${address.district}`,
-      address.province && `จังหวัด ${address.province}`,
-      address.postalCode && `รหัสไปรษณีย์ ${address.postalCode}`
-    ].filter(Boolean);
-    
-    return parts.join(' ') || '-';
-  };
-
   // Get selected business types
   const getSelectedBusinessTypes = () => {
     if (!formData.businessTypes) return [];
@@ -195,7 +180,7 @@ export default function SummarySection({ formData }) {
           <InfoCard title="เลขที่" value={formData.addressNumber} />
           <InfoCard title="หมู่" value={formData.moo} />
           <InfoCard title="ซอย" value={formData.soi} />
-          <InfoCard title="ถนน" value={formData.road} />
+          <InfoCard title="ถนน" value={formData.street} />
           <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
           <InfoCard title="อำเภอ/เขต" value={formData.district} />
           <InfoCard title="จังหวัด" value={formData.province} />
@@ -285,7 +270,7 @@ SummarySection.propTypes = {
     addressNumber: PropTypes.string,
     moo: PropTypes.string,
     soi: PropTypes.string,
-    road: PropTypes.string,
+    street: PropTypes.string, // Fixed: Changed from 'road' to 'street'
     subDistrict: PropTypes.string,
     district: PropTypes.string,
     province: PropTypes.string,
