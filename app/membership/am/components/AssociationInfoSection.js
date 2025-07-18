@@ -33,6 +33,7 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
         setIsAutofill={setIsAutofill}
         isLoading={isLoading}
         isCheckingTaxId={isCheckingTaxId}
+        setIsCheckingTaxId={setIsCheckingTaxId}
       />
       
       {/* ที่อยู่สมาคมและข้อมูลติดต่อ */}

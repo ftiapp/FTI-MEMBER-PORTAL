@@ -5,10 +5,51 @@ import PropTypes from 'prop-types';
 import SearchableAddressDropdown from './SearchableAddressDropdown';
 import AddressSection from './AddressSection';
 import IndustrialGroupSection from './IndustrialGroupSection';
+import { checkIdCard } from './ICFormSubmission'; 
 
 export default function ApplicantInfoSection({ formData, setFormData, errors, industrialGroups, provincialChapters, isLoading }) {
   const [subDistricts, setSubDistricts] = useState([]);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  const [idCardValidation, setIdCardValidation] = useState({
+    isChecking: false,
+    exists: null,
+    message: '',
+    status: null
+  });
+
+  // ฟังก์ชันตรวจสอบเลขบัตรประชาชน
+  const checkIdCardNumber = async (idCardNumber) => {
+    if (idCardNumber.length !== 13) {
+      setIdCardValidation({
+        isChecking: false,
+        exists: null,
+        message: '',
+        status: null
+      });
+      return;
+    }
+
+    setIdCardValidation(prev => ({ ...prev, isChecking: true }));
+
+    try {
+      const result = await checkIdCard(idCardNumber);
+      
+      setIdCardValidation({
+        isChecking: false,
+        exists: !result.valid, // valid: true หมายความว่าไม่มีการสมัครแล้ว (exists: false)
+        message: result.message,
+        status: null
+      });
+    } catch (error) {
+      console.error('Error checking ID card:', error);
+      setIdCardValidation({
+        isChecking: false,
+        exists: null,
+        message: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
+        status: null
+      });
+    }
+  };
 
   // Handle input change
   const handleInputChange = (e) => {
@@ -18,6 +59,18 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
     if (name === 'idCardNumber') {
       const onlyDigits = value.replace(/\D/g, '').slice(0, 13);
       setFormData(prev => ({ ...prev, [name]: onlyDigits }));
+      
+      // ตรวจสอบเลขบัตรประชาชนแบบทันที
+      if (onlyDigits.length === 13) {
+        checkIdCardNumber(onlyDigits);
+      } else {
+        setIdCardValidation({
+          isChecking: false,
+          exists: null,
+          message: '',
+          status: null
+        });
+      }
       return;
     }
     
@@ -76,6 +129,60 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
     fetchAddressData();
   }, [formData.subDistrict, setFormData]);
 
+  // ฟังก์ชันสำหรับแสดงสถานะการตรวจสอบเลขบัตรประชาชน
+  const renderIdCardValidationMessage = () => {
+    if (idCardValidation.isChecking) {
+      return (
+        <p className="text-sm text-blue-600 flex items-center gap-2">
+          <svg className="animate-spin w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          กำลังตรวจสอบเลขบัตรประชาชน...
+        </p>
+      );
+    }
+
+    if (idCardValidation.exists === true) {
+      return (
+        <p className="text-sm text-red-600 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+          {idCardValidation.message}
+          {idCardValidation.status && (
+            <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
+              สถานะ: {idCardValidation.status}
+            </span>
+          )}
+        </p>
+      );
+    }
+
+    if (idCardValidation.exists === false) {
+      return (
+        <p className="text-sm text-green-600 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+          ✓ สามารถใช้เลขบัตรประชาชนนี้ได้
+        </p>
+      );
+    }
+
+    if (idCardValidation.message && idCardValidation.exists === null) {
+      return (
+        <p className="text-sm text-red-600 flex items-center gap-2">
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          {idCardValidation.message}
+        </p>
+      );
+    }
+
+    return null;
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
       {/* Header */}
@@ -112,14 +219,21 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
                   border rounded-lg
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.idCardNumber 
+                  ${errors?.idCardNumber || idCardValidation.exists === true
                     ? 'border-red-300 bg-red-50' 
+                    : idCardValidation.exists === false
+                    ? 'border-green-300 bg-green-50'
                     : 'border-gray-300 hover:border-gray-400'
                   }
                   bg-white
                 `}
               />
-              {errors?.idCardNumber && (
+              
+              {/* แสดงข้อความตรวจสอบเลขบัตรประชาชน */}
+              {renderIdCardValidationMessage()}
+              
+              {/* แสดง error จาก validation ปกติ */}
+              {errors?.idCardNumber && !idCardValidation.message && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />

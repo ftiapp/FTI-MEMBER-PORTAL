@@ -76,7 +76,7 @@ const RepresentativeCard = ({ representative, index }) => (
         </div>
         <div>
           <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-          <p className="text-sm">{representative.phone || '-'}</p>
+          <p className="text-sm">{String(representative.phone) || '-'}</p>
         </div>
       </div>
     ) : (

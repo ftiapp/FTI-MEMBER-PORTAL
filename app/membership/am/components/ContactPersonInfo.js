@@ -16,6 +16,30 @@ export default function ContactPersonInfo({
     }));
   };
 
+  const validateThaiOnly = (value) => {
+    const thaiPattern = /^[\u0E00-\u0E7F\s]*$/;
+    return thaiPattern.test(value);
+  };
+
+  const handleThaiInput = (e) => {
+    if (e.target.value && !validateThaiOnly(e.target.value)) {
+      return;
+    }
+    handleInputChange(e);
+  };
+
+  const validateEnglishOnly = (value) => {
+    const englishPattern = /^[A-Za-z\s]*$/;
+    return englishPattern.test(value);
+  };
+
+  const handleEnglishInput = (e) => {
+    if (e.target.value && !validateEnglishOnly(e.target.value)) {
+      return;
+    }
+    handleInputChange(e);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header Section */}
@@ -74,22 +98,22 @@ export default function ContactPersonInfo({
               )}
             </div>
 
-            {/* First Name and Last Name - Side by side */}
+            {/* Thai Names - Side by side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* First Name */}
+              {/* First Name (Thai) */}
               <div className="space-y-2">
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-900">
-                  ชื่อ
+                <label htmlFor="firstNameTh" className="block text-sm font-medium text-gray-900">
+                  ชื่อ (ภาษาไทย)
                   <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.contactPerson?.firstName || ''}
-                  onChange={handleInputChange}
+                  id="firstNameTh"
+                  name="firstNameTh"
+                  value={formData.contactPerson?.firstNameTh || ''}
+                  onChange={handleThaiInput}
                   required
-                  placeholder="ชื่อ"
+                  placeholder="ระบุชื่อจริง"
                   className={`
                     w-full px-4 py-3 text-sm
                     border rounded-lg
@@ -97,36 +121,36 @@ export default function ContactPersonInfo({
                     placeholder-gray-400
                     transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                    ${errors.contactPerson?.firstName 
+                    ${errors.contactPerson?.firstNameTh 
                       ? 'border-red-300 bg-red-50' 
                       : 'border-gray-300 hover:border-gray-400'
                     }
                   `}
                 />
-                {errors.contactPerson?.firstName && (
+                {errors.contactPerson?.firstNameTh && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {errors.contactPerson.firstName}
+                    {errors.contactPerson.firstNameTh}
                   </p>
                 )}
               </div>
 
-              {/* Last Name */}
+              {/* Last Name (Thai) */}
               <div className="space-y-2">
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-900">
-                  นามสกุล
+                <label htmlFor="lastNameTh" className="block text-sm font-medium text-gray-900">
+                  นามสกุล (ภาษาไทย)
                   <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.contactPerson?.lastName || ''}
-                  onChange={handleInputChange}
+                  id="lastNameTh"
+                  name="lastNameTh"
+                  value={formData.contactPerson?.lastNameTh || ''}
+                  onChange={handleThaiInput}
                   required
-                  placeholder="นามสกุล"
+                  placeholder="ระบุนามสกุล"
                   className={`
                     w-full px-4 py-3 text-sm
                     border rounded-lg
@@ -134,18 +158,95 @@ export default function ContactPersonInfo({
                     placeholder-gray-400
                     transition-all duration-200
                     focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                    ${errors.contactPerson?.lastName 
+                    ${errors.contactPerson?.lastNameTh 
                       ? 'border-red-300 bg-red-50' 
                       : 'border-gray-300 hover:border-gray-400'
                     }
                   `}
                 />
-                {errors.contactPerson?.lastName && (
+                {errors.contactPerson?.lastNameTh && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {errors.contactPerson.lastName}
+                    {errors.contactPerson.lastNameTh}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* English Names - Side by side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* First Name (English) */}
+              <div className="space-y-2">
+                <label htmlFor="firstNameEn" className="block text-sm font-medium text-gray-900">
+                  ชื่อ (ภาษาอังกฤษ)
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstNameEn"
+                  name="firstNameEn"
+                  value={formData.contactPerson?.firstNameEn || ''}
+                  onChange={handleEnglishInput}
+                  required
+                  placeholder="First Name"
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    bg-white
+                    placeholder-gray-400
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors.contactPerson?.firstNameEn 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                  `}
+                />
+                {errors.contactPerson?.firstNameEn && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.contactPerson.firstNameEn}
+                  </p>
+                )}
+              </div>
+
+              {/* Last Name (English) */}
+              <div className="space-y-2">
+                <label htmlFor="lastNameEn" className="block text-sm font-medium text-gray-900">
+                  นามสกุล (ภาษาอังกฤษ)
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastNameEn"
+                  name="lastNameEn"
+                  value={formData.contactPerson?.lastNameEn || ''}
+                  onChange={handleEnglishInput}
+                  required
+                  placeholder="Last Name"
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    bg-white
+                    placeholder-gray-400
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors.contactPerson?.lastNameEn 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                  `}
+                />
+                {errors.contactPerson?.lastNameEn && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.contactPerson.lastNameEn}
                   </p>
                 )}
               </div>

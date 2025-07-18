@@ -226,3 +226,23 @@ export async function rollbackTransaction(connection) {
 export async function getConnection() {
   return await pool.getConnection();
 }
+
+/**
+ * ฟังก์ชันสำหรับ query ที่ไม่ต้องใช้ transaction
+ * @param {string} sql - SQL query
+ * @param {Array} params - Query parameters
+ * @returns {Promise<Array>} Query results
+ */
+export async function executeQueryWithoutTransaction(sql, params) {
+  let connection;
+  try {
+    connection = await getConnection();
+    const [results] = await connection.query(sql, params);
+    return results;
+  } catch (error) {
+    console.error('Error executing query:', { sql, params, error });
+    throw error;
+  } finally {
+    if (connection) connection.release();
+  }
+}

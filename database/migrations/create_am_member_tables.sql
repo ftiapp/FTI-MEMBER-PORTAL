@@ -69,6 +69,7 @@ CREATE TABLE `MemberRegist_AM_Representatives` (
   `position` varchar(255) DEFAULT NULL,
   `email` varchar(255) DEFAULT NULL,
   `phone` varchar(50) DEFAULT NULL,
+  `rep_order` int(11) DEFAULT 1,
   `is_primary` tinyint(1) DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),

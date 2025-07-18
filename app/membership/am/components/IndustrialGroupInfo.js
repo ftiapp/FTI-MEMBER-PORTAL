@@ -49,13 +49,37 @@ export default function IndustrialGroupInfo({
     fetchData();
   }, []);
 
-  const handleIndustrialGroupChange = (selectedIds) => {
-    setFormData(prev => ({ ...prev, industrialGroups: selectedIds }));
-  };
+  // เพิ่ม debug logs ใน IndustrialGroupInfo.js
+
+const handleIndustrialGroupChange = (selectedIds) => {
+  console.log('🏭 Industrial Groups changed:', selectedIds);
+  console.log('🏭 Type:', typeof selectedIds, 'Is Array:', Array.isArray(selectedIds));
   
-  const handleProvincialCouncilChange = (selectedIds) => {
-    setFormData(prev => ({ ...prev, provincialCouncils: selectedIds }));
-  };
+  setFormData(prev => {
+    const newData = { ...prev, industrialGroups: selectedIds };
+    console.log('🏭 Updated formData.industrialGroups:', newData.industrialGroups);
+    return newData;
+  });
+};
+
+const handleProvincialCouncilChange = (selectedIds) => {
+  console.log('🏛️ Provincial Councils changed:', selectedIds);
+  console.log('🏛️ Type:', typeof selectedIds, 'Is Array:', Array.isArray(selectedIds));
+  
+  setFormData(prev => {
+    const newData = { ...prev, provincialCouncils: selectedIds };
+    console.log('🏛️ Updated formData.provincialCouncils:', newData.provincialCouncils);
+    return newData;
+  });
+};
+
+// เพิ่ม useEffect เพื่อ debug ข้อมูลทั้งหมด
+useEffect(() => {
+  console.log('📊 Current formData:', {
+    industrialGroups: formData.industrialGroups,
+    provincialCouncils: formData.provincialCouncils
+  });
+}, [formData.industrialGroups, formData.provincialCouncils]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 
-// Helper function to check tax ID in database
+// Helper function to check tax ID in database (ตรวจสอบทั้ง OC, AC และ AM)
 async function checkTaxIdInDatabase(taxId) {
   try {
-    // 1. Check in OC table (MemberRegist_OC_Main)
+    // 1. ตรวจสอบในตาราง OC (MemberRegist_OC_Main)
     const ocResult = await query(
       'SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
       [taxId]
@@ -13,13 +13,22 @@ async function checkTaxIdInDatabase(taxId) {
       return { exists: true, status: ocResult[0].status, memberType: 'OC' };
     }
 
-    // 2. Check in AC table (MemberRegist_AC_Main)
+    // 2. ตรวจสอบในตาราง AC (MemberRegist_AC_Main)
     const acResult = await query(
       'SELECT status FROM MemberRegist_AC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
       [taxId]
     );
     if (acResult.length > 0) {
       return { exists: true, status: acResult[0].status, memberType: 'AC' };
+    }
+
+    // 3. ตรวจสอบในตาราง AM (MemberRegist_AM_Main)
+    const amResult = await query(
+      'SELECT status FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
+      [taxId]
+    );
+    if (amResult.length > 0) {
+      return { exists: true, status: amResult[0].status, memberType: 'AM' };
     }
 
     return {
@@ -51,7 +60,8 @@ function validateTaxId(taxId) {
 function generateResponseMessage(taxId, status, memberType) {
   const memberTypeThai = {
     'OC': 'สมาชิกสามัญ (โรงงาน)',
-    'AC': 'สมาชิกสมทบ (นิติบุคคล)'
+    'AC': 'สมาชิกสมทบ (นิติบุคคล)',
+    'AM': 'สมาชิกสามัญ (สมาคมการค้า)'
   };
 
   const messages = {

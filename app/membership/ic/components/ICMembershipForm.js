@@ -8,7 +8,7 @@ import BusinessInfoSection from './BusinessInfoSection';
 import DocumentUploadSection from './DocumentUploadSection';
 import SummarySection from './SummarySection';
 import { validateCurrentStep } from './ICFormValidation';
-import { checkIdCardUniqueness, submitICMembershipForm } from './ICFormSubmission';
+import { checkIdCardUniqueness, submitICMembershipForm, checkIdCard } from './ICFormSubmission';
 import { useICFormNavigation } from './ICFormNavigation';
 
 // Constants
@@ -118,6 +118,7 @@ const useApiData = () => {
 export default function ICMembershipForm({ currentStep, setCurrentStep, formData, setFormData, totalSteps }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading } = useApiData();
 
@@ -227,24 +228,20 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
       return;
     }
 
-    // Check ID card uniqueness on step 1
-    if (currentStep === 1 && formData.idCardNumber?.length === 13) {
-      try {
-        const data = await checkIdCardUniquenessFn(formData.idCardNumber);
-        
-        if (!data.success) {
-          setErrors(prev => ({ ...prev, idCardNumber: data.message }));
-          toast.error(data.message);
-          return;
-        }
-      } catch (error) {
-        toast.error(error.message);
+    if (currentStep === 1 && formData.idCardNumber) {
+      const { valid, message } = await checkIdCard(formData.idCardNumber);
+      if (!valid) {
+        toast.error(message); // แสดงข้อความ error ผ่าน toast
         return;
       }
     }
     
-    setCurrentStep(currentStep + 1);
-  }, [formData, currentStep, checkIdCardUniquenessFn, setCurrentStep]);
+    setErrorMessage('');
+    
+    if (currentStep < totalSteps - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  }, [formData, currentStep, setCurrentStep]);
 
   // Handle previous step
   const handlePrev = useCallback(() => {
@@ -306,6 +303,13 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
                   </li>
                 ))}
             </ul>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {errorMessage && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl" role="alert">
+            <strong className="font-bold text-lg">{errorMessage}</strong>
           </div>
         )}
 

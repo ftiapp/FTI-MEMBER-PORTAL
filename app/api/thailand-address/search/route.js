@@ -1,11 +1,34 @@
 // app/api/thailand-address/search/route.js
 import { NextResponse } from 'next/server';
+import rateLimiter from '../../../lib/rate-limiter';
 
 export async function GET(request) {
   try {
+    // Get client IP
+    const ip = request.headers.get('x-forwarded-for') || 
+              request.headers.get('x-real-ip') || 
+              'unknown';
+
+    // Rate limiting: 60 requests per minute per IP
+    const rateCheck = rateLimiter.checkRateLimit(ip, 60000, 60);
+    
+    if (!rateCheck.allowed) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'คำขอมากเกินไป กรุณาลองใหม่ในอีกสักครู่',
+        retryAfter: Math.ceil((rateCheck.resetTime - Date.now()) / 1000)
+      }, { 
+        status: 429,
+        headers: {
+          'X-RateLimit-Remaining': '0',
+          'Retry-After': Math.ceil((rateCheck.resetTime - Date.now()) / 1000).toString()
+        }
+      });
+    }
+
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('query');
-    const type = searchParams.get('type') || 'subdistrict'; // subdistrict, district, province
+    const type = searchParams.get('type') || 'subdistrict';
     
     if (!query || query.length < 2) {
       return NextResponse.json({ 
@@ -15,7 +38,19 @@ export async function GET(request) {
       });
     }
 
-    // เรียกใช้ API thailand-address ที่มีอยู่แล้ว
+    // Check cache first
+    const cacheKey = `address_${type}_${query.toLowerCase()}`;
+    const cached = rateLimiter.getCached(cacheKey);
+    
+    if (cached) {
+      return NextResponse.json({
+        success: true,
+        data: cached,
+        cached: true
+      });
+    }
+
+    // เรียกใช้ API thailand-address ที่มีอยู่แล้ว (เหมือนเดิม)
     const url = new URL(request.url);
     const baseUrl = `${url.protocol}//${url.host}`;
     const apiUrl = `${baseUrl}/api/thailand-address?query=${encodeURIComponent(query)}&type=${type}`;
@@ -56,6 +91,9 @@ export async function GET(request) {
           };
         }
       });
+      
+      // Cache the result (5 minutes)
+      rateLimiter.setCache(cacheKey, formattedData, 300000);
       
       return NextResponse.json({
         success: true,

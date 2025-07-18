@@ -2,333 +2,361 @@ import { NextResponse } from 'next/server';
 import { getSession } from '@/app/lib/session';
 import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
 import { uploadToCloudinary } from '@/app/lib/cloudinary';
-import { mkdir, writeFile } from 'fs/promises';
-import { join } from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import db from '@/app/lib/db';
 
 export async function POST(request) {
   let trx;
+  
   try {
-    // 1. Auth
+    console.log('🚀 [AM API] Starting membership submission...');
+    
+    // ตรวจสอบ session
     const session = await getSession();
     if (!session || !session.user) {
+      console.log('❌ [AM API] Unauthorized access attempt');
       return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
     }
-    const userId = session.user.id;
 
-    // 2. Parse FormData
+    const userId = session.user.id;
+    console.log('👤 [AM API] User ID:', userId);
+    
+    // รับ FormData
     let formData;
     try {
       formData = await request.formData();
+      console.log('✅ [AM API] FormData received successfully');
     } catch (formError) {
-      return NextResponse.json({ error: 'ไม่สามารถอ่านข้อมูลฟอร์ม', details: formError.message }, { status: 400 });
+      console.error('❌ [AM API] Error parsing FormData:', formError);
+      return NextResponse.json({ 
+        error: 'ไม่สามารถประมวลผลข้อมูลที่ส่งมาได้', 
+        details: formError.message 
+      }, { status: 400 });
     }
+    
+    // เริ่ม transaction
+    trx = await beginTransaction();
+    console.log('🔄 [AM API] Database transaction started');
 
-    // 3. Extract fields
+    // Step 1: แยกข้อมูลและไฟล์จาก FormData
     const data = {};
     const files = {};
-    const productionImages = [];
+    
+    console.log('📋 [AM API] Processing FormData entries...');
     for (const [key, value] of formData.entries()) {
       if (value instanceof File && value.size > 0) {
-        if (key.startsWith('productionImages[')) {
-          productionImages.push(value);
+        // จัดการไฟล์ที่มีชื่อเดียวกันหลายไฟล์ (เช่น productionImages)
+        if (files[key]) {
+          if (!Array.isArray(files[key])) {
+            files[key] = [files[key]];
+          }
+          files[key].push(value);
         } else {
           files[key] = value;
         }
+        console.log(`📎 [AM API] File detected: ${key} - ${value.name} (${value.size} bytes)`);
       } else {
         data[key] = value;
+        console.log(`📝 [AM API] Data field: ${key} = ${value}`);
       }
     }
-    if (productionImages.length > 0) files.productionImages = productionImages;
 
-    // 4. Validate required fields
-    if (!data.taxId || !data.companyName || !data.companyNameEng) {
-      return NextResponse.json({ error: 'กรุณากรอกข้อมูลสำคัญให้ครบถ้วน' }, { status: 400 });
-    }
+    console.log('📊 [AM API] Files detected:', Object.keys(files));
+    console.log('📋 [AM API] Data fields:', Object.keys(data));
 
-    // Check address validation
-    if (!data.address || !data.address.addressNumber || !data.address.subDistrict || 
-        !data.address.district || !data.address.province || !data.address.postalCode || 
-        !data.address.email || !data.address.telephone) {
-      return NextResponse.json({ error: 'กรุณาระบุข้อมูลที่อยู่ให้ครบถ้วน' }, { status: 400 });
-    }
-    
-    // Check if business types are selected
-    if (!data.businessTypes || data.businessTypes.length === 0) {
-      return NextResponse.json({ error: 'กรุณาเลือกประเภทกิจการอย่างน้อย 1 รายการ' }, { status: 400 });
-    }
-    
-    // Check if products are provided
-    if (!data.products) {
-      return NextResponse.json({ error: 'กรุณาระบุผลิตภัณฑ์/บริการ' }, { status: 400 });
-    }
-    
-    // Check if ID card document is uploaded
-    const idCardFile = formData.get('idCard');
-    if (!idCardFile) {
-      return NextResponse.json({ error: 'กรุณาอัพโหลดสำเนาบัตรประชาชน' }, { status: 400 });
-    }
+    // Helper function to parse and ensure data is an array
+    const parseAndEnsureArray = (input) => {
+      if (!input) return [];
+      try {
+        const parsed = JSON.parse(input);
+        return Array.isArray(parsed) ? parsed : [parsed];
+      } catch (e) {
+        return [input];
+      }
+    };
 
-    // 5. Duplicate Tax ID check (OC/AC/AM)
-    const [oc] = await executeQuery(null, 'SELECT id FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', [data.taxId]);
-    if (oc) return NextResponse.json({ error: 'เลขประจำตัวผู้เสียภาษีนี้ถูกใช้ในสมาชิกสามัญแล้ว' }, { status: 409 });
+    // Step 2: ตรวจสอบเลขประจำตัวผู้เสียภาษีซ้ำ
+    const { taxId } = data;
+    console.log('🔍 [AM API] Checking duplicate Tax ID:', taxId);
     
-    const [ac] = await executeQuery(null, 'SELECT id FROM MemberRegist_AC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', [data.taxId]);
-    if (ac) return NextResponse.json({ error: 'เลขประจำตัวผู้เสียภาษีนี้ถูกใช้ในสมาชิกสมทบแล้ว' }, { status: 409 });
-    
-    const [am] = await executeQuery(null, 'SELECT id FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', [data.taxId]);
-    if (am) return NextResponse.json({ error: 'เลขประจำตัวผู้เสียภาษีนี้ถูกใช้ในสมาชิกสมาคมแล้ว' }, { status: 409 });
-
-    // Check if the ID card number already exists
-    const [existingMember] = await db.query(
-      'SELECT id FROM AMmember_Info WHERE id_card_number = ? AND status IN (1, 2)',
-      [data.idCardNumber]
+    const [existingMember] = await executeQuery(trx, 
+      'SELECT status FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', 
+      [taxId]
     );
-    
-    if (existingMember.length > 0) {
-      return NextResponse.json({ error: 'เลขบัตรประชาชนนี้มีในระบบแล้ว' }, { status: 400 });
+
+    if (existingMember) {
+      await rollbackTransaction(trx);
+      const message = existingMember.status === 0
+        ? `คำขอสมัครสมาชิกของท่านสำหรับเลขประจำตัวผู้เสียภาษี ${taxId} อยู่ระหว่างการพิจารณา`
+        : `เลขประจำตัวผู้เสียภาษี ${taxId} นี้ได้เป็นสมาชิกแล้ว`;
+      console.log('❌ [AM API] Duplicate Tax ID found:', message);
+      return NextResponse.json({ error: message }, { status: 409 });
     }
 
-    // 6. Begin transaction
-    trx = await beginTransaction();
-    const connection = await db.getConnection();
-    await connection.beginTransaction();
-
-    try {
-      // 7. Insert main
-      const mainResult = await executeQuery(trx, `INSERT INTO MemberRegist_AM_Main (user_id, company_name_th, company_name_en, tax_id, company_email, company_phone, factory_type, number_of_employees, number_of_member, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW(), NOW())`, [
+    // Step 3: บันทึกข้อมูลหลัก
+    console.log('💾 [AM API] Inserting main data...');
+    const mainResult = await executeQuery(trx, 
+      `INSERT INTO MemberRegist_AM_Main (
+        user_id, company_name_th, company_name_en, tax_id, 
+        company_email, company_phone, factory_type, number_of_employees, 
+        number_of_member, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+      [
         userId,
-        data.companyName,
-        data.companyNameEng,
+        data.associationName || '',
+        data.associationNameEng || '',
         data.taxId,
-        data.companyEmail,
-        data.companyPhone,
-        data.factoryType,
+        data.associationEmail || '',
+        data.associationPhone || '',
+        data.factoryType || '',
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
-        data.numberOfMember ? parseInt(data.numberOfMember, 10) : null
-      ]);
-      const mainId = mainResult.insertId;
+        data.memberCount ? parseInt(data.memberCount, 10) : null,
+      ]
+    );
+    const mainId = mainResult.insertId;
+    console.log('✅ [AM API] Main record created with ID:', mainId);
 
-      // Insert into AMmember_Info
-      const [infoResult] = await connection.query(
-        'INSERT INTO AMmember_Info (id_card_number, first_name_thai, last_name_thai, first_name_english, last_name_english, email, phone, employee_count, association_member_count, user_id, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, NOW())',
-        [data.idCardNumber, data.firstNameThai, data.lastNameThai, data.firstNameEnglish, data.lastNameEnglish, data.email, data.phone, data.employeeCount, data.associationMemberCount, userId]
+    // Step 4: บันทึกข้อมูลที่อยู่
+    console.log('🏠 [AM API] Inserting address data...');
+    await executeQuery(trx, 
+      `INSERT INTO MemberRegist_AM_Address (main_id, address_number, moo, soi, street, sub_district, district, province, postal_code, phone, email, website) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      [mainId, data.addressNumber, data.moo, data.soi, data.road, data.subDistrict, data.district, data.province, data.postalCode, data.associationPhone, data.associationEmail, data.website]
+    );
+
+    // Step 5: บันทึกข้อมูลผู้ติดต่อ
+    if (data.contactPerson) {
+      console.log('👥 [AM API] Inserting contact person data...');
+      const contactPerson = JSON.parse(data.contactPerson);
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AM_ContactPerson (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+        [mainId, contactPerson.firstNameTh, contactPerson.lastNameTh, contactPerson.firstNameEn, contactPerson.lastNameEn, contactPerson.position, contactPerson.email, contactPerson.phone]
       );
-      
-      const memberId = infoResult.insertId;
-
-      // 8. Insert address
-      await executeQuery(trx, `INSERT INTO MemberRegist_AM_Address (main_id, address_number, building, moo, soi, road, sub_district, district, province, postal_code, phone, email, website, fax, facebook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, [
-        mainId,
-        data.addressNumber || '',
-        data.building || '',
-        data.moo || '',
-        data.soi || '',
-        data.road || '',
-        data.subDistrict || '',
-        data.district || '',
-        data.province || '',
-        data.postalCode || '',
-        data.companyPhone || '',
-        data.companyEmail || '',
-        data.companyWebsite || '',
-        data.companyFax || '',
-        data.companyFacebook || ''
-      ]);
-
-      // Insert address into AMmember_Addr
-      await connection.query(
-        'INSERT INTO AMmember_Addr (member_id, address_number, building, moo, soi, road, sub_district, district, province, postal_code, email, telephone, fax, website, facebook) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-          memberId, 
-          data.address.addressNumber, 
-          data.address.building, 
-          data.address.moo, 
-          data.address.soi, 
-          data.address.road, 
-          data.address.subDistrict, 
-          data.address.district, 
-          data.address.province, 
-          data.address.postalCode, 
-          data.address.email, 
-          data.address.telephone, 
-          data.address.fax, 
-          data.address.website, 
-          data.address.facebook
-        ]
-      );
-
-      // 9. Insert contact person
-      await executeQuery(trx, `INSERT INTO MemberRegist_AM_ContactPerson (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
-        mainId,
-        data.contactPersonFirstName || '',
-        data.contactPersonLastName || '',
-        data.contactPersonFirstNameEng || '',
-        data.contactPersonLastNameEng || '',
-        data.contactPersonPosition || '',
-        data.contactPersonEmail || '',
-        data.contactPersonPhone || ''
-      ]);
-
-      // 10. Insert representatives
-      if (data.representatives) {
-        let reps = data.representatives;
-        if (typeof reps === 'string') reps = JSON.parse(reps);
-        for (const rep of Array.isArray(reps) ? reps : []) {
-          await executeQuery(trx, `INSERT INTO MemberRegist_AM_Representatives (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`, [
-            mainId,
-            rep.firstName || '',
-            rep.lastName || '',
-            rep.firstNameEng || rep.firstNameEnglish || '',
-            rep.lastNameEng || rep.lastNameEnglish || '',
-            rep.position || '',
-            rep.email || '',
-            rep.phone || ''
-          ]);
-        }
-      }
-
-      // Insert representatives into AMmember_Representatives
-      if (data.representatives && Array.isArray(data.representatives)) {
-        for (const rep of data.representatives) {
-          if (rep.firstNameThai && rep.lastNameThai && rep.email && rep.phone) {
-            await connection.query(
-              'INSERT INTO AMmember_Representatives (member_id, first_name_thai, last_name_thai, first_name_english, last_name_english, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?)',
-              [memberId, rep.firstNameThai, rep.lastNameThai, rep.firstNameEnglish, rep.lastNameEnglish, rep.email, rep.phone]
-            );
-          }
-        }
-      }
-
-      // 11. Insert province chapters
-      if (data.provincialChapters) {
-        let chapters = data.provincialChapters;
-        if (typeof chapters === 'string') chapters = JSON.parse(chapters);
-        for (const chapterId of Array.isArray(chapters) ? chapters : []) {
-          await executeQuery(trx, `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?)`, [mainId, chapterId]);
-        }
-      }
-
-      // Insert province chapters into AMmember_Province_Chapter
-      if (data.selectedProvinceChapters && data.selectedProvinceChapters.length > 0) {
-        for (const chapterId of data.selectedProvinceChapters) {
-          await connection.query(
-            'INSERT INTO AMmember_Province_Chapter (member_id, province_chapter_id) VALUES (?, ?)',
-            [memberId, chapterId]
-          );
-        }
-      }
-
-      // 12. Insert industry groups
-      if (data.industrialGroups) {
-        let groups = data.industrialGroups;
-        if (typeof groups === 'string') groups = JSON.parse(groups);
-        for (const groupId of Array.isArray(groups) ? groups : []) {
-          await executeQuery(trx, `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id) VALUES (?, ?)`, [mainId, groupId]);
-        }
-      }
-
-      // Insert industry groups into AMmember_Industry_Group
-      if (data.selectedIndustryGroups && data.selectedIndustryGroups.length > 0) {
-        for (const groupId of data.selectedIndustryGroups) {
-          await connection.query(
-            'INSERT INTO AMmember_Industry_Group (member_id, industry_group_id) VALUES (?, ?)',
-            [memberId, groupId]
-          );
-        }
-      }
-
-      // 13. Insert products
-      if (data.products) {
-        let products = data.products;
-        if (typeof products === 'string') products = JSON.parse(products);
-        await executeQuery(trx, `INSERT INTO MemberRegist_AM_Products (main_id, products) VALUES (?, ?)`, [mainId, JSON.stringify(products)]);
-        
-        // Also insert into AMmember_Products
-        await connection.query(
-          'INSERT INTO AMmember_Products (member_id, products) VALUES (?, ?)',
-          [memberId, JSON.stringify(products)]
-        );
-      }
-
-      // 14. Insert business types
-      if (data.businessTypes) {
-        let types = data.businessTypes;
-        if (typeof types === 'string') types = JSON.parse(types);
-        for (const type of Array.isArray(types) ? types : []) {
-          await executeQuery(trx, `INSERT INTO MemberRegist_AM_BusinessTypes (main_id, business_type_id) VALUES (?, ?)`, [mainId, type]);
-          
-          // Also insert into AMmember_Business_Type
-          await connection.query(
-            'INSERT INTO AMmember_Business_Type (member_id, business_type_id, other_type) VALUES (?, ?, ?)',
-            [memberId, type, type === 'other' ? data.businessCategoryOther : null]
-          );
-        }
-      }
-
-      // 15. Insert business type other
-      if (data.businessTypeOther) {
-        await executeQuery(trx, `INSERT INTO MemberRegist_AM_BusinessTypeOther (main_id, other_type) VALUES (?, ?)`, [mainId, data.businessTypeOther]);
-      }
-
-      // 16. Insert documents (file uploads)
-      for (const [key, file] of Object.entries(files)) {
-        if (file instanceof File) {
-          const uploadResult = await uploadToCloudinary(file);
-          await executeQuery(trx, `INSERT INTO MemberRegist_AM_Documents (main_id, file_url, file_name, file_type, created_at) VALUES (?, ?, ?, ?, NOW())`, [mainId, uploadResult.secure_url, file.name, file.type]);
-        } else if (Array.isArray(file)) {
-          for (const f of file) {
-            const uploadResult = await uploadToCloudinary(f);
-            await executeQuery(trx, `INSERT INTO MemberRegist_AM_Documents (main_id, file_url, file_name, file_type, created_at) VALUES (?, ?, ?, ?, NOW())`, [mainId, uploadResult.secure_url, f.name, f.type]);
-          }
-        }
-      }
-
-      // Save uploaded ID card file
-      if (idCardFile) {
-        // Create directory if it doesn't exist
-        const uploadDir = join(process.cwd(), 'public', 'uploads', 'am-membership', memberId.toString());
-        await mkdir(uploadDir, { recursive: true });
-        
-        // Generate unique filename
-        const fileExtension = idCardFile.name.split('.').pop();
-        const fileName = `id_card_${uuidv4()}.${fileExtension}`;
-        const filePath = join(uploadDir, fileName);
-        
-        // Write file to disk
-        const fileBuffer = Buffer.from(await idCardFile.arrayBuffer());
-        await writeFile(filePath, fileBuffer);
-        
-        // Save file reference in database
-        await connection.query(
-          'INSERT INTO AMmember_Document (member_id, document_type, file_path, original_filename) VALUES (?, ?, ?, ?)',
-          [memberId, 'id_card', `/uploads/am-membership/${memberId}/${fileName}`, idCardFile.name]
-        );
-      }
-
-      // 17. Commit both transactions
-      await commitTransaction(trx);
-      await connection.commit();
-      
-      return NextResponse.json({ 
-        success: true, 
-        message: 'สมัครสมาชิกสมาคมสำเร็จ',
-        memberId,
-        mainId
-      });
-
-    } catch (error) {
-      // Rollback both transactions on error
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
     }
 
-  } catch (err) {
-    if (trx) await rollbackTransaction(trx);
-    console.error('Error submitting AM membership:', err);
-    return NextResponse.json({ error: 'เกิดข้อผิดพลาดในการสมัครสมาชิก', details: err.message }, { status: 500 });
+    // Step 6: บันทึกข้อมูลผู้แทน
+    if (data.representatives) {
+      console.log('👤 [AM API] Inserting representatives data...');
+      const representatives = JSON.parse(data.representatives);
+      for (let index = 0; index < representatives.length; index++) {
+        const rep = representatives[index];
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_AM_Representatives (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, rep_order, is_primary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId, 
+            rep.firstNameTh, 
+            rep.lastNameTh, 
+            rep.firstNameEn, 
+            rep.lastNameEn, 
+            rep.position, 
+            rep.email, 
+            rep.phone, 
+            index + 1,
+            rep.isPrimary ? 1 : 0
+          ]
+        );
+      }
+    }
+
+    // Step 7: บันทึกประเภทธุรกิจ
+    if (data.businessTypes) {
+      console.log('🏢 [AM API] Inserting business types data...');
+      const businessTypesObject = JSON.parse(data.businessTypes);
+      const selectedTypes = Object.keys(businessTypesObject).filter(key => businessTypesObject[key] === true);
+      
+      for (const type of selectedTypes) {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_AM_BusinessTypes (main_id, business_type) VALUES (?, ?);`, 
+          [mainId, type]
+        );
+      }
+    }
+    
+    if (data.otherBusinessTypeDetail) {
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AM_BusinessTypeOther (main_id, detail) VALUES (?, ?);`, 
+        [mainId, data.otherBusinessTypeDetail]
+      );
+    }
+
+    // Step 8: บันทึกข้อมูลผลิตภัณฑ์
+    console.log('📦 [AM API] Inserting products data...');
+    const products = parseAndEnsureArray(data.products);
+    if (products.length > 0) {
+      for (const product of products) {
+        if (product.nameTh || product.nameEn) {
+          await executeQuery(trx, 
+            `INSERT INTO MemberRegist_AM_Products (main_id, name_th, name_en) VALUES (?, ?, ?);`, 
+            [mainId, product.nameTh || '', product.nameEn || '']
+          );
+        }
+      }
+    } else {
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AM_Products (main_id, name_th, name_en) VALUES (?, ?, ?);`, 
+        [mainId, 'ไม่ระบุ', 'Not specified']
+      );
+    }
+
+    // Step 9: บันทึกกลุ่มอุตสาหกรรม
+    console.log('🏭 [AM API] Inserting industry groups data...');
+    const industrialGroups = parseAndEnsureArray(data.industrialGroupIds);
+    if (industrialGroups.length > 0) {
+      for (const groupId of industrialGroups) {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
+          [mainId, groupId]
+        );
+      }
+    } else {
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
+        [mainId, '000']
+      );
+    }
+
+    // Step 10: บันทึกสภาจังหวัด
+    console.log('🌏 [AM API] Inserting province chapters data...');
+    const provincialChapters = parseAndEnsureArray(data.provincialChapterIds);
+    if (provincialChapters.length > 0) {
+      for (const chapterId of provincialChapters) {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
+          [mainId, chapterId]
+        );
+      }
+    } else {
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
+        [mainId, '000']
+      );
+    }
+
+    // Step 11: อัปโหลดเอกสารไปยัง Cloudinary และบันทึกลงฐานข้อมูล
+    console.log('📤 [AM API] Processing document uploads...');
+    const uploadedDocuments = {};
+    let uploadCount = 0;
+
+    // ฟังก์ชันสำหรับอัปโหลดไฟล์เดี่ยว
+    const uploadSingleFile = async (file, documentType, fileKey) => {
+      try {
+        console.log(`📤 [AM API] Uploading ${documentType}: ${file.name} (${file.size} bytes)`);
+        
+        const buffer = await file.arrayBuffer();
+        const result = await uploadToCloudinary(
+          Buffer.from(buffer), 
+          file.name, 
+          'FTI_PORTAL_AM_member_DOC'
+        );
+        
+        if (result.success) {
+          const docData = {
+            document_type: documentType,
+            file_name: file.name,
+            file_path: result.url,
+            file_size: file.size,
+            mime_type: file.type,
+            cloudinary_id: result.public_id,
+            cloudinary_url: result.url
+          };
+          
+          uploadedDocuments[fileKey] = docData;
+          console.log(`✅ [AM API] Successfully uploaded ${documentType}: ${result.url}`);
+          return docData;
+        } else {
+          console.error(`❌ [AM API] Failed to upload ${documentType}:`, result.error);
+          return null;
+        }
+      } catch (uploadError) {
+        console.error(`❌ [AM API] Error uploading ${documentType}:`, uploadError);
+        return null;
+      }
+    };
+
+    // อัปโหลดไฟล์แต่ละประเภท
+    for (const [fieldName, fileValue] of Object.entries(files)) {
+      if (Array.isArray(fileValue)) {
+        // จัดการไฟล์หลายไฟล์ (เช่น productionImages)
+        console.log(`📸 [AM API] Processing ${fileValue.length} files for ${fieldName}...`);
+        for (let index = 0; index < fileValue.length; index++) {
+          const file = fileValue[index];
+          const documentKey = `${fieldName}_${index}`;
+          const docData = await uploadSingleFile(file, fieldName, documentKey);
+          if (docData) uploadCount++;
+        }
+      } else if (fileValue instanceof File) {
+        // จัดการไฟล์เดี่ยว
+        const docData = await uploadSingleFile(fileValue, fieldName, fieldName);
+        if (docData) uploadCount++;
+      }
+    }
+
+    // Step 12: บันทึก metadata ของเอกสารลงฐานข้อมูล
+    console.log(`💾 [AM API] Inserting ${Object.keys(uploadedDocuments).length} documents into database`);
+    for (const [fieldName, docData] of Object.entries(uploadedDocuments)) {
+      try {
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_AM_Documents (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId,
+            docData.document_type,
+            docData.file_name,
+            docData.file_path,
+            docData.file_size,
+            docData.mime_type,
+            docData.cloudinary_id,
+            docData.cloudinary_url
+          ]
+        );
+        console.log(`✅ [AM API] Document metadata saved for ${fieldName}`);
+      } catch (dbError) {
+        console.error(`❌ [AM API] Error saving document metadata for ${fieldName}:`, dbError);
+      }
+    }
+
+    // Commit transaction
+    await commitTransaction(trx);
+    console.log('🎉 [AM API] Transaction committed successfully');
+
+    const response = { 
+      message: 'การสมัครสมาชิก AM สำเร็จ', 
+      registrationId: mainId,
+      documentsUploaded: uploadCount,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('✅ [AM API] AM Membership submission completed successfully:', response);
+    
+    return NextResponse.json(response, { 
+      status: 201,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+  } catch (error) {
+    console.error('💥 [AM API] AM Membership Submission Error:', error);
+    
+    // Rollback transaction if it exists
+    if (trx) {
+      try {
+        await rollbackTransaction(trx);
+        console.log('🔄 [AM API] Transaction rolled back successfully');
+      } catch (rollbackError) {
+        console.error('❌ [AM API] Rollback error:', rollbackError);
+      }
+    }
+    
+    const errorResponse = { 
+      error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 
+      details: error.message,
+      timestamp: new Date().toISOString()
+    };
+    
+    console.log('❌ [AM API] Sending error response:', errorResponse);
+    
+    return NextResponse.json(errorResponse, { 
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
   }
 }

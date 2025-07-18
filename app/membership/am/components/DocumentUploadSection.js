@@ -18,30 +18,34 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     });
   }, [formData]);
 
-  // Helper function to create consistent file object
+  // ✅ แก้ไขฟังก์ชัน createFileObject
   const createFileObject = (file) => {
-    return {
-      file: file,
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      lastModified: file.lastModified
-    };
+    // ถ้าไฟล์มีอยู่แล้วและเป็น File object ให้ return ตรงๆ
+    if (file instanceof File) {
+      return file;
+    }
+    
+    // ถ้าเป็น object ที่มี file property
+    if (file && file.file instanceof File) {
+      return file.file;
+    }
+    
+    return file;
   };
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
-      const fileObj = createFileObject(files[0]);
+      const file = files[0]; // ใช้ File object โดยตรง
       
-      setSelectedFiles(prev => ({ ...prev, [name]: fileObj }));
-      setFormData(prev => ({ ...prev, [name]: fileObj }));
+      setSelectedFiles(prev => ({ ...prev, [name]: file }));
+      setFormData(prev => ({ ...prev, [name]: file }));
     }
   };
 
   const viewFile = (fileObj) => {
     if (fileObj) {
-      const file = fileObj.file || fileObj; // Handle both old and new format
+      const file = fileObj instanceof File ? fileObj : (fileObj.file || fileObj);
       if (file && file.type && file.type.startsWith('image/')) {
         const img = new Image();
         img.src = URL.createObjectURL(file);
@@ -56,19 +60,55 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
   // Helper function to check if file exists
   const hasFile = (fileObj) => {
-    return fileObj && (fileObj.file || fileObj.name);
+    if (!fileObj) return false;
+    
+    // ถ้าเป็น File object โดยตรง
+    if (fileObj instanceof File) return true;
+    
+    // ถ้าเป็น object ที่มี file property
+    if (fileObj.file instanceof File) return true;
+    
+    // ถ้าเป็น object ที่มี name property (สำหรับไฟล์ที่อัปโหลดแล้ว)
+    if (fileObj.name) return true;
+    
+    return false;
   };
 
   // Helper function to get file name
   const getFileName = (fileObj) => {
     if (!fileObj) return '';
-    return fileObj.name || (fileObj.file && fileObj.file.name) || 'ไฟล์ที่อัปโหลด';
+    
+    // ถ้าเป็น File object โดยตรง
+    if (fileObj instanceof File) return fileObj.name;
+    
+    // ถ้าเป็น object ที่มี file property
+    if (fileObj.file instanceof File) return fileObj.file.name;
+    
+    // ถ้าเป็น object ที่มี name property
+    if (fileObj.name) return fileObj.name;
+    
+    return 'ไฟล์ที่อัปโหลด';
   };
 
   // Helper function to get file size
   const getFileSize = (fileObj) => {
     if (!fileObj) return '';
-    const size = fileObj.size || (fileObj.file && fileObj.file.size);
+    
+    let size = 0;
+    
+    // ถ้าเป็น File object โดยตรง
+    if (fileObj instanceof File) {
+      size = fileObj.size;
+    }
+    // ถ้าเป็น object ที่มี file property
+    else if (fileObj.file instanceof File) {
+      size = fileObj.file.size;
+    }
+    // ถ้าเป็น object ที่มี size property
+    else if (fileObj.size) {
+      size = fileObj.size;
+    }
+    
     return size ? `${(size / 1024 / 1024).toFixed(2)} MB` : 'ไฟล์ถูกอัปโหลดแล้ว';
   };
 
@@ -77,9 +117,25 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     const handleSingleFileChange = (e) => {
       const { files } = e.target;
       if (files && files[0]) {
-        const fileObj = createFileObject(files[0]);
-        setSelectedFiles(prev => ({ ...prev, [name]: fileObj }));
-        setFormData(prev => ({ ...prev, [name]: fileObj }));
+        const selectedFile = files[0];
+        
+        // ✅ ตรวจสอบขนาดไฟล์ (5MB = 5 * 1024 * 1024 bytes)
+        if (selectedFile.size > 5 * 1024 * 1024) {
+          alert('ไฟล์มีขนาดเกิน 5MB กรุณาเลือกไฟล์ที่มีขนาดเล็กกว่า');
+          return;
+        }
+        
+        // ✅ ตรวจสอบประเภทไฟล์
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+        if (!allowedTypes.includes(selectedFile.type)) {
+          alert('กรุณาเลือกไฟล์ประเภท PDF, JPG หรือ PNG เท่านั้น');
+          return;
+        }
+        
+        console.log(`📁 Selected file for ${name}:`, selectedFile.name, selectedFile.size, selectedFile.type);
+        
+        setSelectedFiles(prev => ({ ...prev, [name]: selectedFile }));
+        setFormData(prev => ({ ...prev, [name]: selectedFile }));
       }
     };
 
@@ -151,7 +207,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    ดูไฟล์
+                    ดู
                   </button>
                   <button
                     type="button"
@@ -162,7 +218,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                     </svg>
-                    ลบไฟล์
+                    ลบ
                   </button>
                 </div>
               </div>
