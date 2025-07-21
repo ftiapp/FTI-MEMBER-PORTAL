@@ -180,6 +180,10 @@ export default function OCMembershipForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
+  // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
+  console.log('OC Current Step:', currentStep);
+  console.log('OC Total Steps:', totalSteps);
+
   // Use navigation hook
   const {
     handleNextStep,
@@ -247,9 +251,15 @@ export default function OCMembershipForm({
     }
   }, []);
 
-  // Handle form submission with better error handling
+  // Handle form submission - เฉพาะสำหรับขั้นตอนสุดท้าย (step 5)
   const handleSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
+
+    // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
+    if (currentStep !== 5) {
+      console.log('OC Form submit prevented - not on final step');
+      return;
+    }
 
     // Re-validate all fields before final submission
     const formErrors = validateOCForm(formData, STEPS.length);
@@ -267,9 +277,19 @@ export default function OCMembershipForm({
       return;
     }
 
+    // Show warning toast and set submitting state
+    toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
+      id: 'submitting',
+      duration: Infinity
+    });
     setIsSubmitting(true);
+    
     try {
       const result = await submitOCMembershipForm(formData);
+      
+      // Dismiss loading toast
+      toast.dismiss('submitting');
+      
       if (result.success) {
         toast.success(result.message || 'ส่งข้อมูลการสมัครเรียบร้อยแล้ว');
         setTimeout(() => router.push('/dashboard?tab=status'), 2000);
@@ -279,13 +299,20 @@ export default function OCMembershipForm({
       }
     } catch (error) {
       console.error('Submission error:', error);
+      toast.dismiss('submitting');
       toast.error('เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง');
       setIsSubmitting(false);
     }
-  }, [formData, router, setCurrentStep]);
+  }, [formData, router, setCurrentStep, currentStep]);
 
-  // Handle next step with tax ID validation
-  const handleNext = useCallback(async () => {
+  // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
+  const handleNext = useCallback(async (e) => {
+    // ✅ ป้องกัน form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+
     const formErrors = validateOCForm(formData, currentStep);
     setErrors(formErrors);
 
@@ -305,8 +332,18 @@ export default function OCMembershipForm({
     }
 
     setCurrentStep(prev => prev + 1);
-
   }, [formData, currentStep, checkTaxIdUniqueness, setCurrentStep]);
+
+  // Handle previous step - ป้องกันการ submit โดยไม่ตั้งใจ
+  const handlePrev = useCallback((e) => {
+    // ✅ ป้องกัน form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    setCurrentStep(prev => prev - 1);
+  }, [setCurrentStep]);
 
   // Render current step component
   const currentStepComponent = useMemo(() => {
@@ -410,22 +447,32 @@ export default function OCMembershipForm({
         <div className="flex justify-between items-center pt-6">
           <button
             type="button"
-            onClick={() => setCurrentStep(prev => prev - 1)}
+            onClick={handlePrev}
             disabled={currentStep === 1 || isSubmitting}
             className="px-8 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 shadow-sm"
           >
             ย้อนกลับ
           </button>
-          <button
-            type={currentStep === STEPS.length ? 'submit' : 'button'}
-            onClick={currentStep === STEPS.length ? handleSubmit : handleNext}
-            disabled={isSubmitting}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-lg"
-          >
-            {isSubmitting 
-              ? 'กำลังส่งข้อมูล...'
-              : currentStep === STEPS.length ? 'ยืนยันการสมัคร' : 'ถัดไป'}
-          </button>
+
+          {/* ✅ แก้ไขเงื่อนไขการแสดงปุ่ม */}
+          {currentStep < 5 ? (
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-lg"
+            >
+              ถัดไป
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-lg"
+            >
+              {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ยืนยันการสมัคร'}
+            </button>
+          )}
         </div>
 
         {/* Document preparation hint */}

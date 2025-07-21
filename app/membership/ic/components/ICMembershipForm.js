@@ -122,6 +122,10 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading } = useApiData();
 
+  // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
+  console.log('IC Current Step:', currentStep);
+  console.log('IC Total Steps:', totalSteps);
+
   // Custom hook for form navigation
   const { StepIndicator, NavigationButtons } = useICFormNavigation({
     currentStep,
@@ -150,11 +154,23 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     }
   }, []);
 
-  // Handle form submission
+  // Handle form submission - เฉพาะสำหรับขั้นตอนสุดท้าย (step 5)
   const handleSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
     
+    // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
+    if (currentStep !== 5) {
+      console.log('IC Form submit prevented - not on final step');
+      return;
+    }
+    
+    // Show warning toast and set submitting state
+    toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
+      id: 'submitting',
+      duration: Infinity
+    });
     setIsSubmitting(true);
+    
     try {
       // Validate all steps before submission
       let allErrors = {};
@@ -165,34 +181,43 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
 
       if (Object.keys(allErrors).length > 0) {
         setErrors(allErrors);
+        toast.dismiss('submitting');
         toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน');
         // Scroll to the first error field
         scrollToFirstError(allErrors);
+        setIsSubmitting(false);
         return;
       }
 
       // Check ID card uniqueness before submission
       const idCardCheckResult = await checkIdCardUniquenessFn(formData.idCardNumber);
       if (!idCardCheckResult.success) {
+        toast.dismiss('submitting');
         toast.error(idCardCheckResult.message);
+        setIsSubmitting(false);
         return;
       }
 
       // Submit form data
       const result = await submitICMembershipForm(formData);
+      
+      // Dismiss loading toast
+      toast.dismiss('submitting');
+      
       if (result.success) {
         toast.success('ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่');
         // Reset form or redirect to success page
       } else {
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Error submitting form:', error);
+      toast.dismiss('submitting');
       toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
-    } finally {
       setIsSubmitting(false);
     }
-  }, [formData, totalSteps, checkIdCardUniquenessFn]);
+  }, [formData, totalSteps, checkIdCardUniquenessFn, currentStep]);
 
   // Function to scroll to the first error field
   const scrollToFirstError = useCallback((errors) => {
@@ -216,13 +241,37 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     }
   }, []);
 
-  // Handle next step
-  const handleNext = useCallback(async () => {
+  // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
+  const handleNext = useCallback(async (e) => {
+    // ✅ ป้องกัน form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('=== DEBUG handleNext ===');
+    console.log('Current Step:', currentStep);
+    console.log('Form Data:', formData);
+    
     const formErrors = validateCurrentStep(currentStep, formData);
+    console.log('Form Errors:', formErrors);
     setErrors(formErrors);
     
     if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+      console.log('Validation failed with errors:', formErrors);
+      
+      // แสดงข้อผิดพลาดที่เฉพาะเจาะจงสำหรับแต่ละขั้นตอน
+      if (currentStep === 4 && formErrors.idCardDocument) {
+        toast.error('กรุณาอัพโหลดสำเนาบัตรประชาชนก่อนดำเนินการต่อ', {
+          position: 'top-right',
+          duration: 4000
+        });
+      } else {
+        toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', {
+          position: 'top-right'
+        });
+      }
+      
       // Scroll to the first error field
       scrollToFirstError(formErrors);
       return;
@@ -231,20 +280,27 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     if (currentStep === 1 && formData.idCardNumber) {
       const { valid, message } = await checkIdCard(formData.idCardNumber);
       if (!valid) {
-        toast.error(message); // แสดงข้อความ error ผ่าน toast
+        toast.error(message, { position: 'top-right' }); // แสดงข้อความ error ผ่าน toast
         return;
       }
     }
     
     setErrorMessage('');
     
-    if (currentStep < totalSteps - 1) {
+    if (currentStep < totalSteps) {
+      console.log('Moving to next step:', currentStep + 1);
       setCurrentStep(currentStep + 1);
     }
-  }, [formData, currentStep, setCurrentStep]);
+  }, [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError]);
 
   // Handle previous step
-  const handlePrev = useCallback(() => {
+  const handlePrev = useCallback((e) => {
+    // ✅ ป้องกัน form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     setCurrentStep(currentStep - 1);
   }, [currentStep, setCurrentStep]);
 
@@ -288,7 +344,15 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="relative max-w-7xl mx-auto px-6 py-8">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center z-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+          <p className="mt-4 text-white text-xl font-semibold">กำลังดำเนินการส่งข้อมูล...</p>
+          <p className="mt-2 text-white text-md">กรุณาอย่าปิดหน้าต่างนี้</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Error Messages */}
         {Object.keys(errors).length > 0 && (
@@ -342,6 +406,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
               </div>
             </div>
 
+            {/* ✅ แก้ไขเงื่อนไขการแสดงปุ่ม */}
             {currentStep < totalSteps ? (
               <button
                 type="button"

@@ -1,4 +1,14 @@
-import mysql from 'mysql2/promise';
+// Use dynamic import to avoid module parsing issues
+let mysql;
+
+// Initialize mysql connection dynamically
+const initMysql = async () => {
+  if (!mysql) {
+    mysql = await import('mysql2/promise');
+    mysql = mysql.default || mysql;
+  }
+  return mysql;
+};
 
 // Log environment variables (mask sensitive data)
 console.log('Database connection attempt:', {
@@ -50,8 +60,16 @@ dbConfig = {
   // acquireTimeout ไม่ใช่ option ที่ถูกต้องสำหรับ mysql2
 };
 
-// Create connection pool
-export const pool = mysql.createPool(dbConfig);
+// Create connection pool with dynamic import
+let pool;
+
+const initPool = async () => {
+  if (!pool) {
+    const mysqlModule = await initMysql();
+    pool = mysqlModule.createPool(dbConfig);
+  }
+  return pool;
+};
 
 // Test connection on startup with retry
 async function testConnection() {
@@ -60,7 +78,8 @@ async function testConnection() {
   
   while (retryCount < maxRetries) {
     try {
-      const connection = await pool.getConnection();
+      const connectionPool = await initPool();
+      const connection = await connectionPool.getConnection();
       console.log('Database connection successful');
       connection.release();
       return true;
@@ -99,7 +118,10 @@ export async function query(sql, params) {
   let lastError = null;
   
   while (retryCount < maxRetries) {
+    let connection;
     try {
+      const connectionPool = await initPool();
+      connection = await connectionPool.getConnection();
       // ตรวจสอบว่า sql เป็น object หรือไม่ (กรณีที่เรียกใช้แบบ {query: '...', values: [...]})  
       const queryString = sql.query || sql;
       const queryParams = sql.values || params;
@@ -108,9 +130,6 @@ export async function query(sql, params) {
         sql: queryString,
         params: queryParams
       });
-      
-      // Get a connection from the pool
-      const connection = await pool.getConnection();
       
       try {
         // ใช้ query แทน execute เพื่อรองรับ LIMIT และ OFFSET ใน prepared statements
@@ -161,7 +180,8 @@ export async function query(sql, params) {
  * @returns {Promise<Object>} Connection object with transaction
  */
 export async function beginTransaction() {
-  const connection = await pool.getConnection();
+  const connectionPool = await initPool();
+  const connection = await connectionPool.getConnection();
   try {
     await connection.beginTransaction();
     return connection;
@@ -224,7 +244,8 @@ export async function rollbackTransaction(connection) {
  * @returns {Promise<Object>} Database connection
  */
 export async function getConnection() {
-  return await pool.getConnection();
+  const connectionPool = await initPool();
+  return await connectionPool.getConnection();
 }
 
 /**

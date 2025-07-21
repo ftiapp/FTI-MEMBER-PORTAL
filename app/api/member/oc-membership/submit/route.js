@@ -101,10 +101,14 @@ export async function POST(request) {
     // Step 6: Insert Representatives
     if (data.representatives) {
       const representatives = JSON.parse(data.representatives);
-      for (const rep of representatives) {
+      for (let index = 0; index < representatives.length; index++) {
+        const rep = representatives[index];
         await executeQuery(trx,
-          `INSERT INTO MemberRegist_OC_Representatives (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, is_primary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-          [mainId, rep.firstNameThai, rep.lastNameThai, rep.firstNameEnglish, rep.lastNameEnglish, rep.position, rep.email, rep.phone, rep.isPrimary]
+          `INSERT INTO MemberRegist_OC_Representatives (
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
+            position, email, phone, is_primary, rep_order
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [mainId, rep.firstNameThai, rep.lastNameThai, rep.firstNameEnglish, rep.lastNameEnglish, rep.position, rep.email, rep.phone, rep.isPrimary, index + 1]
         );
       }
     }

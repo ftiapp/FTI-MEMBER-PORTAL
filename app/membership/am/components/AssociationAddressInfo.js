@@ -487,29 +487,28 @@ export default function AssociationAddressInfo({
               )}
             </div>
 
-            {/* Association Website */}
             <div className="space-y-2 lg:col-span-2">
-              <label htmlFor="associationWebsite" className="block text-sm font-medium text-gray-900">
-                เว็บไซต์
-              </label>
-              <input
-                type="url"
-                id="associationWebsite"
-                name="associationWebsite"
-                value={formData.associationWebsite || ''}
-                onChange={handleInputChange}
-                placeholder="https://example.com"
-                className="
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  bg-white
-                  placeholder-gray-400
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  border-gray-300 hover:border-gray-400
-                "
-              />
-            </div>
+  <label htmlFor="website" className="block text-sm font-medium text-gray-900">
+    เว็บไซต์
+  </label>
+  <input
+    type="url"
+    id="website"
+    name="website"  // ✅ เปลี่ยนจาก "associationWebsite" เป็น "website"
+    value={formData.website || ''}
+    onChange={handleInputChange}
+    placeholder="https://example.com"
+    className="
+      w-full px-4 py-3 text-sm
+      border rounded-lg
+      bg-white
+      placeholder-gray-400
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+      border-gray-300 hover:border-gray-400
+    "
+  />
+</div>
           </div>
         </div>
       </div>

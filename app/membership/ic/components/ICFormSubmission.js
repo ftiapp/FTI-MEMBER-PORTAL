@@ -41,7 +41,92 @@ export const checkIdCard = async (idCardNumber) => {
 };
 
 // Check if ID card number is unique
-const checkIdCardUniqueness = checkIdCard; // สำหรับความเข้ากันได้กับโค้ดเดิม
+export const checkIdCardUniqueness = checkIdCard; // สำหรับความเข้ากันได้กับโค้ดเดิม
+
+// Submit IC membership form
+export const submitICMembershipForm = async (formData) => {
+  console.log('=== DEBUG submitICMembershipForm ===');
+  console.log('Form Data:', formData);
+  
+  try {
+    const formDataToSubmit = new FormData();
+    
+    // Add all form fields
+    Object.keys(formData).forEach(key => {
+      console.log(`Processing field: ${key}`, formData[key]);
+      
+      if (key === 'idCardDocument' && formData[key]) {
+        // Handle file upload
+        console.log('Adding file:', formData[key].name, formData[key].size);
+        formDataToSubmit.append('idCardDocument', formData[key]);
+      } else if (key === 'representative') {
+        // Handle representative data
+        const repData = JSON.stringify(formData[key]);
+        console.log('Representative data:', repData);
+        formDataToSubmit.append('representative', repData);
+      } else if (key === 'businessTypes') {
+        // Handle business types
+        const businessData = JSON.stringify(formData[key]);
+        console.log('Business types data:', businessData);
+        formDataToSubmit.append('businessTypes', businessData);
+      } else if (key === 'products') {
+        // Handle products
+        const productsData = JSON.stringify(formData[key]);
+        console.log('Products data:', productsData);
+        formDataToSubmit.append('products', productsData);
+      } else if (typeof formData[key] === 'object' && formData[key] !== null) {
+        // Handle other objects
+        const objData = JSON.stringify(formData[key]);
+        console.log(`Object data for ${key}:`, objData);
+        formDataToSubmit.append(key, objData);
+      } else {
+        // Handle primitive values
+        console.log(`Primitive value for ${key}:`, formData[key]);
+        formDataToSubmit.append(key, formData[key] || '');
+      }
+    });
+    
+    console.log('Sending request to /api/ic-membership...');
+    
+    const response = await fetch('/api/ic-membership', {
+      method: 'POST',
+      body: formDataToSubmit
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', response.headers);
+    
+    if (!response.ok) {
+      let errorMessage = 'เกิดข้อผิดพลาดในการส่งข้อมูล';
+      try {
+        const errorData = await response.json();
+        console.log('Error response data:', errorData);
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        console.log('Could not parse error response as JSON');
+        const errorText = await response.text();
+        console.log('Error response text:', errorText);
+        errorMessage = errorText || errorMessage;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    console.log('Success response:', result);
+    
+    return {
+      success: true,
+      message: result.message || 'ส่งข้อมูลสำเร็จ'
+    };
+  } catch (error) {
+    console.error('Error submitting IC membership form:', error);
+    console.error('Error stack:', error.stack);
+    return {
+      success: false,
+      message: error.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล'
+    };
+  }
+};
 
 export default function ApplicantInfoSection({ formData, setFormData, errors, industrialGroups, provincialChapters, isLoading }) {
   const [subDistricts, setSubDistricts] = useState([]);

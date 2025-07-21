@@ -57,7 +57,8 @@ export default function IndustrialGroupInfo({
   };
   
   const handleProvincialCouncilChange = (selectedIds) => {
-    setFormData(prev => ({ ...prev, provincialCouncils: selectedIds }));
+    // ✅ เปลี่ยนจาก provincialCouncils เป็น provincialChapters เพื่อให้ตรงกับ Backend
+    setFormData(prev => ({ ...prev, provincialChapters: selectedIds }));
   };
 
   return (
@@ -129,18 +130,18 @@ export default function IndustrialGroupInfo({
               </label>
               <MultiSelectDropdown
                 options={provincialCouncils}
-                selectedIds={formData.provincialCouncils || []}
+                selectedIds={formData.provincialChapters || []} // ✅ เปลี่ยนจาก provincialCouncils
                 onChange={handleProvincialCouncilChange}
                 placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
                 isLoading={isLoading}
-                error={errors.provincialCouncils}
+                error={errors.provincialChapters} // ✅ เปลี่ยนจาก provincialCouncils
               />
-              {errors.provincialCouncils && (
+              {errors.provincialChapters && ( // ✅ เปลี่ยนจาก provincialCouncils
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.provincialCouncils}
+                  {errors.provincialChapters} // ✅ เปลี่ยนจาก provincialCouncils
                 </p>
               )}
             </div>

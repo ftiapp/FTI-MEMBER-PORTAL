@@ -136,6 +136,10 @@ export default function ACMembershipForm() {
     handlePrevStep
   } = useACFormNavigation((formData, step) => validateACForm(formData, step));
 
+  // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
+  console.log('Current Step:', currentStep);
+  console.log('Total Steps:', totalSteps);
+
   // Check tax ID uniqueness
   const checkTaxIdUniqueness = useCallback(async (taxId) => {
     try {
@@ -159,9 +163,15 @@ export default function ACMembershipForm() {
     }
   }, []);
 
-  // Handle form submission
+  // Handle form submission - เฉพาะสำหรับขั้นตอนสุดท้าย (step 5)
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
+    
+    // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
+    if (currentStep !== 5) {
+      console.log('Form submit prevented - not on final step');
+      return;
+    }
     
     const formErrors = validateACForm(formData, currentStep);
     setErrors(formErrors);
@@ -171,27 +181,42 @@ export default function ACMembershipForm() {
       return;
     }
     
+    // Show warning toast and set submitting state
+    toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
+      id: 'submitting',
+      duration: Infinity
+    });
     setIsSubmitting(true);
     
     try {
       const result = await submitACMembershipForm(formData);
+      
+      // Dismiss loading toast
+      toast.dismiss('submitting');
       
       if (result.success) {
         toast.success(result.message);
         setTimeout(() => router.push('/dashboard?tab=status'), 2000);
       } else {
         toast.error(result.message);
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Submission error:', error);
+      toast.dismiss('submitting');
       toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล');
-    } finally {
       setIsSubmitting(false);
     }
   }, [formData, currentStep, router]);
 
-  // Handle next step
-  const handleNext = useCallback(async () => {
+  // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
+  const handleNext = useCallback(async (e) => {
+    // ✅ ป้องกัน form submission
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
     const formErrors = validateACForm(formData, currentStep);
     setErrors(formErrors);
     
@@ -244,7 +269,15 @@ export default function ACMembershipForm() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
+    <div className="relative max-w-7xl mx-auto px-6 py-8">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center z-50">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
+          <p className="mt-4 text-white text-xl font-semibold">กำลังดำเนินการส่งข้อมูล...</p>
+          <p className="mt-2 text-white text-md">กรุณาอย่าปิดหน้าต่างนี้</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Error Messages */}
         {Object.keys(errors).length > 0 && (
@@ -289,7 +322,8 @@ export default function ACMembershipForm() {
               </div>
             </div>
 
-            {currentStep < totalSteps ? (
+            {/* ✅ แก้ไขเงื่อนไขการแสดงปุ่ม */}
+            {currentStep < 5 ? (
               <button
                 type="button"
                 onClick={handleNext}

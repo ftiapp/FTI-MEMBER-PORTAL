@@ -52,46 +52,49 @@ export const validateACForm = (formData, step) => {
       formData.representatives.forEach((rep, index) => {
         const repError = {};
         
-        // ตรวจสอบชื่อภาษาไทย - แก้ไข regex ให้ตรงกับ component
-        if (!rep.firstNameThai || rep.firstNameThai.trim() === '') {
-          repError.firstNameThai = 'กรุณากรอกชื่อภาษาไทย';
-        } else if (!/^[ก-๙\s]+$/.test(rep.firstNameThai)) {
-          repError.firstNameThai = 'กรุณากรอกเฉพาะภาษาไทยเท่านั้น';
+        // ตรวจสอบชื่อภาษาไทย - ใช้ regex ที่ตรงกับ component
+        if (!rep.firstNameTh || rep.firstNameTh.trim() === '') {
+          repError.firstNameTh = 'กรุณากรอกชื่อภาษาไทย';
+        } else if (!/^[ก-๙\s]+$/.test(rep.firstNameTh)) {
+          repError.firstNameTh = 'กรุณากรอกเฉพาะภาษาไทยเท่านั้น';
         }
         
-        // ตรวจสอบนามสกุลภาษาไทย - แก้ไข regex ให้ตรงกับ component
-        if (!rep.lastNameThai || rep.lastNameThai.trim() === '') {
-          repError.lastNameThai = 'กรุณากรอกนามสกุลภาษาไทย';
-        } else if (!/^[ก-๙\s]+$/.test(rep.lastNameThai)) {
-          repError.lastNameThai = 'กรุณากรอกเฉพาะภาษาไทยเท่านั้น';
+        // ตรวจสอบนามสกุลภาษาไทย - ใช้ regex ที่ตรงกับ component
+        if (!rep.lastNameTh || rep.lastNameTh.trim() === '') {
+          repError.lastNameTh = 'กรุณากรอกนามสกุลภาษาไทย';
+        } else if (!/^[ก-๙\s]+$/.test(rep.lastNameTh)) {
+          repError.lastNameTh = 'กรุณากรอกเฉพาะภาษาไทยเท่านั้น';
         }
         
-        // ตรวจสอบชื่อภาษาอังกฤษ
-        if (!rep.firstNameEng || rep.firstNameEng.trim() === '') {
-          repError.firstNameEng = 'กรุณากรอกชื่อภาษาอังกฤษ';
-        } else if (!/^[a-zA-Z\s]+$/.test(rep.firstNameEng)) {
-          repError.firstNameEng = 'กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น';
+        // ตรวจสอบชื่อภาษาอังกฤษ - ใช้ regex ที่ตรงกับ component
+        if (!rep.firstNameEn || rep.firstNameEn.trim() === '') {
+          repError.firstNameEn = 'กรุณากรอกชื่อภาษาอังกฤษ';
+        } else if (!/^[a-zA-Z\s]+$/.test(rep.firstNameEn)) {
+          repError.firstNameEn = 'กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น';
         }
         
-        // ตรวจสอบนามสกุลภาษาอังกฤษ
-        if (!rep.lastNameEng || rep.lastNameEng.trim() === '') {
-          repError.lastNameEng = 'กรุณากรอกนามสกุลภาษาอังกฤษ';
-        } else if (!/^[a-zA-Z\s]+$/.test(rep.lastNameEng)) {
-          repError.lastNameEng = 'กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น';
+        // ตรวจสอบนามสกุลภาษาอังกฤษ - ใช้ regex ที่ตรงกับ component
+        if (!rep.lastNameEn || rep.lastNameEn.trim() === '') {
+          repError.lastNameEn = 'กรุณากรอกนามสกุลภาษาอังกฤษ';
+        } else if (!/^[a-zA-Z\s]+$/.test(rep.lastNameEn)) {
+          repError.lastNameEn = 'กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น';
         }
         
-        // ตรวจสอบอีเมล - แก้ไขข้อความให้ตรงกับ component
+        // ตรวจสอบอีเมล - ใช้ข้อความที่ตรงกับ component
         if (!rep.email || rep.email.trim() === '') {
           repError.email = 'กรุณากรอกอีเมล';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rep.email)) {
-          repError.email = 'กรุณากรอกอีเมลให้ถูกต้อง';
+          repError.email = 'รูปแบบอีเมลไม่ถูกต้อง'; // เปลี่ยนจาก 'กรุณากรอกอีเมลให้ถูกต้อง'
         }
         
-        // ตรวจสอบเบอร์โทรศัพท์ - แก้ไขให้ตรงกับ component
+        // ตรวจสอบเบอร์โทรศัพท์ - ใช้ regex ที่ตรงกับ component
         if (!rep.phone || rep.phone.trim() === '') {
           repError.phone = 'กรุณากรอกเบอร์โทรศัพท์';
-        } else if (!/^[0-9]{9,10}$/.test(rep.phone.replace(/[- ]/g, ''))) {
-          repError.phone = 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง';
+        } else {
+          // ใช้ regex ที่ตรงกับ component: /^[0-9\-\s\+\(\)]{10,15}$/
+          if (!/^[0-9\-\s\+\(\)]{10,15}$/.test(rep.phone)) {
+            repError.phone = 'รูปแบบเบอร์โทรไม่ถูกต้อง'; // เปลี่ยนจาก 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'
+          }
         }
         
         // เพิ่มข้อผิดพลาดของผู้แทนคนนี้เข้าไปใน array

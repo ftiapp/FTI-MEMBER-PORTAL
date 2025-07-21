@@ -224,7 +224,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       addressNumber: formData.addressNumber || '-',
       moo: formData.moo || '-',
       soi: formData.soi || '-',
-      road: formData.road || '-',
+      road: formData.street || '-',  // ✅ ถูกต้อง - ใช้ formData.street
       subDistrict: formData.subDistrict || '-',
       district: formData.district || '-',
       province: formData.province || '-',

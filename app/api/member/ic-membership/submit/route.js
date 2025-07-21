@@ -172,8 +172,8 @@ export async function POST(request) {
         trx,
         `INSERT INTO MemberRegist_IC_Representatives (
           main_id, first_name_th, last_name_th, first_name_en, last_name_en,
-          phone, email, position
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          phone, email, position, rep_order
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           icMemberId,
           data.representativeFirstNameTh || '',

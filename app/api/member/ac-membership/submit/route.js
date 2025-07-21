@@ -137,35 +137,39 @@ export async function POST(request) {
       ]
     );
 
-    // Step 6: Insert Representatives
-    console.log('👥 [AC] Inserting representatives...');
-    if (data.representatives) {
-      try {
-        const representatives = JSON.parse(data.representatives);
-        for (const rep of representatives) {
-          // ✅ แก้ไข field mapping ให้ตรงกับ Frontend
-          await executeQuery(trx,
-            `INSERT INTO MemberRegist_AC_Representatives (
-              main_id, first_name_th, last_name_th, first_name_en, 
-              last_name_en, position, email, phone, is_primary
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-            [
-              mainId, 
-              rep.firstNameThai || '', 
-              rep.lastNameThai || '', 
-              rep.firstNameEng || '',   // ✅ ใช้ firstNameEng แทน firstNameEnglish
-              rep.lastNameEng || '',    // ✅ ใช้ lastNameEng แทน lastNameEnglish
-              rep.position || '', 
-              rep.email || '', 
-              rep.phone || '', 
-              rep.isPrimary || false
-            ]
-          );
-        }
-      } catch (repError) {
-        console.error('❌ [AC] Error parsing representatives:', repError);
-      }
+// Step 6: Insert Representatives
+console.log('👥 [AC] Inserting representatives...');
+if (data.representatives) {
+  try {
+    const representatives = JSON.parse(data.representatives);
+    for (let index = 0; index < representatives.length; index++) {
+      const rep = representatives[index];
+      
+      // ✅ เพิ่ม rep_order โดยใช้ index + 1 (เริ่มจาก 1)
+      await executeQuery(trx,
+        `INSERT INTO MemberRegist_AC_Representatives (
+          main_id, first_name_th, last_name_th, first_name_en, 
+          last_name_en, position, email, phone, rep_order, is_primary
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          mainId, 
+          rep.firstNameTh || rep.firstNameThai || '', 
+          rep.lastNameTh || rep.lastNameThai || '', 
+          rep.firstNameEn || rep.firstNameEng || '',   
+          rep.lastNameEn || rep.lastNameEng || '',    
+          rep.position || '', 
+          rep.email || '', 
+          rep.phone || '', 
+          index + 1, // ✅ rep_order เริ่มจาก 1, 2, 3...
+          rep.isPrimary || false
+        ]
+      );
     }
+    console.log(`✅ [AC] Inserted ${representatives.length} representatives with proper order`);
+  } catch (repError) {
+    console.error('❌ [AC] Error parsing representatives:', repError);
+  }
+}
 
     // Helper functions for parsing data
     const parseProducts = (input) => {
@@ -268,30 +272,36 @@ export async function POST(request) {
 
     // Step 9: Insert Industry Groups
     console.log('🏭 [AC] Inserting industry groups...');
-console.log('🔍 [AC] Raw industrialGroups data:', data.industrialGroups);
-const industrialGroups = parseAndEnsureArray(data.industrialGroups, 'industrialGroups');
+    console.log('🔍 [AC] Raw industrialGroups data:', data.industrialGroups);
+    const industrialGroups = parseAndEnsureArray(data.industrialGroups, 'industrialGroups');
 
-if (industrialGroups.length > 0) {
-  for (const groupId of industrialGroups) {
-    console.log(`💾 [AC] Inserting industrial group ID: ${groupId}`);
-    await executeQuery(trx, 
-      `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-      [mainId, groupId]
-    );
-  }
-  console.log(`✅ [AC] Inserted ${industrialGroups.length} industry groups:`, industrialGroups);
-} else {
-  console.log('⚠️ [AC] No industrial groups selected, inserting default');
-  await executeQuery(trx, 
-    `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-    [mainId, '000']
-  );
-}
+    if (industrialGroups.length > 0) {
+      for (const groupId of industrialGroups) {
+        console.log(`💾 [AC] Inserting industrial group ID: ${groupId}`);
+        await executeQuery(trx, 
+          `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
+          [mainId, groupId]
+        );
+      }
+      console.log(`✅ [AC] Inserted ${industrialGroups.length} industry groups:`, industrialGroups);
+    } else {
+      console.log('⚠️ [AC] No industrial groups selected, inserting default');
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
+        [mainId, '000']
+      );
+    }
 
-    // Step 10: Insert Province Chapters
+    // Step 10: Insert Province Chapters (แก้ไขตรงนี้)
     console.log('🌍 [AC] Inserting provincial chapters...');
-    console.log('🔍 [AC] Raw provincialChapters data:', data.provincialChapters);
-    const provincialChapters = parseAndEnsureArray(data.provincialChapters, 'provincialChapters');
+    
+    // ✅ รองรับทั้ง provincialCouncils และ provincialChapters
+    let provincialData = data.provincialChapters || data.provincialCouncils;
+    console.log('🔍 [AC] Raw provincial data (provincialChapters):', data.provincialChapters);
+    console.log('🔍 [AC] Raw provincial data (provincialCouncils):', data.provincialCouncils);
+    console.log('🔍 [AC] Final provincial data used:', provincialData);
+    
+    const provincialChapters = parseAndEnsureArray(provincialData, 'provincialChapters');
     
     if (provincialChapters.length > 0) {
       for (const chapterId of provincialChapters) {
@@ -309,6 +319,7 @@ if (industrialGroups.length > 0) {
         [mainId, '000']
       );
     }
+
     // Step 11: Handle Document Uploads
     console.log('📤 [AC] Processing document uploads...');
     const uploadedDocuments = {};

@@ -11,23 +11,29 @@ export async function submitOCMembershipForm(data) {
     const appendToFormData = (key, value) => {
       // Handle single file object: { file: File, ... }
       if (value && typeof value === 'object' && value.file instanceof File) {
-        formData.append(key, value.file, value.name);
+        formData.append(key, value.file, value.name || value.file.name);
       } 
+      // Handle File objects directly
+      else if (value instanceof File) {
+        formData.append(key, value, value.name);
+      }
       // Handle array of file objects for productionImages
       else if (key === 'productionImages' && Array.isArray(value)) {
         value.forEach((fileObj, index) => {
           if (fileObj && fileObj.file instanceof File) {
-            formData.append(`${key}[${index}]`, fileObj.file, fileObj.name);
+            formData.append(`productionImages[${index}]`, fileObj.file, fileObj.name || fileObj.file.name);
+          } else if (fileObj instanceof File) {
+            formData.append(`productionImages[${index}]`, fileObj, fileObj.name);
           }
         });
       } 
-      // Handle other arrays and objects
+      // Handle other arrays and objects (stringify them as API expects)
       else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
         formData.append(key, JSON.stringify(value));
       } 
       // Handle other primitive values
-      else if (value !== null && value !== undefined) {
-        formData.append(key, value);
+      else if (value !== null && value !== undefined && value !== '') {
+        formData.append(key, String(value));
       }
     };
 
@@ -35,6 +41,16 @@ export async function submitOCMembershipForm(data) {
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         appendToFormData(key, data[key]);
+      }
+    }
+
+    // Debug: Log what's being sent
+    console.log('📤 Sending form data to API...');
+    for (let [key, value] of formData.entries()) {
+      if (value instanceof File) {
+        console.log(`${key}: File(${value.name}, ${value.size} bytes)`);
+      } else {
+        console.log(`${key}: ${value}`);
       }
     }
 
@@ -46,39 +62,73 @@ export async function submitOCMembershipForm(data) {
     const result = await response.json();
 
     if (!response.ok) {
-      return { success: false, data: null, error: result.error || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ' };
+      console.error('❌ API Error:', response.status, result);
+      return { 
+        success: false, 
+        data: null, 
+        error: result.error || `เกิดข้อผิดพลาด (${response.status})`,
+        message: result.error || 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ'
+      };
     }
 
-    return { success: true, data: result, error: null };
+    console.log('✅ API Success:', result);
+    return { 
+      success: true, 
+      data: result, 
+      error: null,
+      message: result.message || 'การสมัครสมาชิก OC สำเร็จ'
+    };
+
   } catch (error) {
-    console.error('Error submitting OC membership form:', error);
-    return { success: false, data: null, error: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์' };
+    console.error('❌ Error submitting OC membership form:', error);
+    return { 
+      success: false, 
+      data: null, 
+      error: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์',
+      message: 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์'
+    };
   }
 }
 
 /**
  * Checks if a Tax ID is already registered or pending.
  * @param {string} taxId - The Tax ID to check.
- * @returns {Promise<{isUnique: boolean, message: string | null}>}
+ * @returns {Promise<{valid: boolean, message: string}>}
  */
 export async function checkTaxIdUniqueness(taxId) {
   try {
-    const response = await fetch(`/api/member/oc-membership/check-tax-id?taxId=${taxId}`);
+    const response = await fetch('/api/member/oc-membership/check-tax-id', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ taxId }),
+    });
+
     const result = await response.json();
+    
+    console.log('Tax ID validation response:', result);
 
     if (!response.ok) {
       // The API should return a 409 status if not unique
       if (response.status === 409) {
-        return { isUnique: false, message: result.error };
+        return { valid: false, message: result.error };
       }
       // For other errors, treat as a generic error
-      return { isUnique: false, message: result.error || 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' };
+      return { valid: false, message: result.error || 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' };
     }
 
-    // If response is ok (e.g., 200), it means the ID is unique
-    return { isUnique: true, message: null };
+    // If response is ok, check the result structure based on API
+    return { 
+      valid: result.valid === true, 
+      message: result.message || (result.valid ? 'เลขประจำตัวผู้เสียภาษีสามารถใช้ได้' : 'ไม่สามารถตรวจสอบได้')
+    };
+
   } catch (error) {
     console.error('Error checking tax ID uniqueness:', error);
-    return { isUnique: false, message: 'เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อตรวจสอบข้อมูล' };
+    return { 
+      valid: false, 
+      message: 'เกิดข้อผิดพลาดในการเชื่อมต่อเพื่อตรวจสอบข้อมูล' 
+    };
   }
 }

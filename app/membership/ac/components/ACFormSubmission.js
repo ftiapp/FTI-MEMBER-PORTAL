@@ -50,13 +50,25 @@ export const submitACMembershipForm = async (data) => {
   try {
     const formDataToSend = new FormData();
 
-    // Robust helper (from OC)
+    // ✅ Map Contact Person fields ให้ตรงกับที่ API คาดหวัง
+    const mappedData = { ...data };
+    
+    if (data.contactPerson) {
+      mappedData.contactPersonPosition = data.contactPerson.position;
+      mappedData.contactPersonFirstName = data.contactPerson.firstNameThai;
+      mappedData.contactPersonLastName = data.contactPerson.lastNameThai;
+      mappedData.contactPersonFirstNameEng = data.contactPerson.firstNameEng;
+      mappedData.contactPersonLastNameEng = data.contactPerson.lastNameEng;
+      mappedData.contactPersonEmail = data.contactPerson.email;
+      mappedData.contactPersonPhone = data.contactPerson.phone;
+      
+      delete mappedData.contactPerson;
+    }
+
     const appendToFormData = (key, value) => {
-      // Single file object: { file: File, ... }
       if (value && typeof value === 'object' && value.file instanceof File) {
         formDataToSend.append(key, value.file, value.name);
       }
-      // Array of file objects (e.g., productionImages)
       else if (key === 'productionImages' && Array.isArray(value)) {
         value.forEach((fileObj, index) => {
           if (fileObj && fileObj.file instanceof File) {
@@ -64,37 +76,36 @@ export const submitACMembershipForm = async (data) => {
           }
         });
       }
-      // Other arrays/objects
       else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
         formDataToSend.append(key, JSON.stringify(value));
       }
-      // Primitives
       else if (value !== null && value !== undefined) {
         formDataToSend.append(key, value);
       }
     };
 
-    // Convert the plain object to FormData
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        appendToFormData(key, data[key]);
+    for (const key in mappedData) {
+      if (Object.prototype.hasOwnProperty.call(mappedData, key)) {
+        appendToFormData(key, mappedData[key]);
       }
     }
 
-    // Always include memberType for AC
     formDataToSend.append('memberType', 'AC');
 
     const response = await fetch('/api/member/ac-membership/submit', {
       method: 'POST',
       body: formDataToSend,
     });
+    
     const result = await response.json();
+    
     if (!response.ok) {
       return {
         success: false,
         message: result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง'
       };
     }
+    
     return {
       success: true,
       message: 'ส่งข้อมูลการสมัครสมาชิกเรียบร้อยแล้ว'

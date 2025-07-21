@@ -28,7 +28,7 @@
     "lucide-react": "^0.487.0",
     "mailersend": "^2.5.0",
     "mssql": "^11.0.1",
-    "mysql2": "^3.12.0",
+    "mysql2": "^3.14.2",
     "next": "15.1.7",
     "next-auth": "^4.24.11",
     "next-cloudinary": "^6.16.0",
