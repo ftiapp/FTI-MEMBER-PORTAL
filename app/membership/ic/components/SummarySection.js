@@ -119,7 +119,14 @@ const Section = ({ title, children, className }) => (
   </div>
 );
 
-export default function SummarySection({ formData }) {
+export default function SummarySection({ 
+  formData, 
+  industrialGroups = [], 
+  provincialChapters = [], 
+  isSubmitting = false, 
+  onSubmit,
+  onBack 
+}) {
   // Get selected business types
   const getSelectedBusinessTypes = () => {
     if (!formData.businessTypes) return [];
@@ -134,11 +141,12 @@ export default function SummarySection({ formData }) {
     };
     
     return Object.keys(formData.businessTypes)
+      .filter(key => formData.businessTypes[key]) // เฉพาะที่เลือกแล้ว
       .map(key => {
         if (key === 'other') {
           return `${BUSINESS_TYPE_LABELS[key]} (${formData.otherBusinessTypeDetail || ''})`;
         }
-        return BUSINESS_TYPE_LABELS[key] || key; // ถ้าไม่พบ key ในตาราง ให้แสดง key เดิม
+        return BUSINESS_TYPE_LABELS[key] || key;
       });
   };
 
@@ -161,6 +169,51 @@ export default function SummarySection({ formData }) {
     return 'ไฟล์ถูกอัปโหลดแล้ว';
   };
 
+  // Get industrial group names
+  const getIndustrialGroupNames = () => {
+    if (!formData.industrialGroupId) return [];
+    const selectedIds = Array.isArray(formData.industrialGroupId) 
+      ? formData.industrialGroupId 
+      : [formData.industrialGroupId];
+    
+    return selectedIds.map(id => {
+      const group = industrialGroups.find(g => g.id === id);
+      return group ? group.name_th : id;
+    });
+  };
+
+  // Get provincial chapter names
+  const getProvincialChapterNames = () => {
+    if (!formData.provincialChapterId) return [];
+    const selectedIds = Array.isArray(formData.provincialChapterId) 
+      ? formData.provincialChapterId 
+      : [formData.provincialChapterId];
+    
+    return selectedIds.map(id => {
+      const chapter = provincialChapters.find(c => c.id === id);
+      return chapter ? chapter.name_th : id;
+    });
+  };
+
+  // Handle submit button click
+  const handleSubmitClick = (e) => {
+    console.log('=== Submit button clicked in SummarySection ===');
+    console.log('onSubmit function:', onSubmit);
+    console.log('isSubmitting:', isSubmitting);
+    
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    if (onSubmit && typeof onSubmit === 'function') {
+      console.log('Calling onSubmit...');
+      onSubmit(e);
+    } else {
+      console.error('onSubmit function not provided or not a function:', onSubmit);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* ข้อมูลผู้สมัคร */}
@@ -174,13 +227,13 @@ export default function SummarySection({ formData }) {
         </div>
       </Section>
 
-      {/* ที่อยู่ - แยกเป็นข้อย่อยๆ เหมือน OC */}
+      {/* ที่อยู่ */}
       <Section title="ที่อยู่" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="เลขที่" value={formData.addressNumber} />
           <InfoCard title="หมู่" value={formData.moo} />
           <InfoCard title="ซอย" value={formData.soi} />
-          <InfoCard title="ถนน" value={formData.street} />
+          <InfoCard title="ถนน" value={formData.road} />
           <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
           <InfoCard title="อำเภอ/เขต" value={formData.district} />
           <InfoCard title="จังหวัด" value={formData.province} />
@@ -193,9 +246,9 @@ export default function SummarySection({ formData }) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">กลุ่มอุตสาหกรรม</h4>
-            {formData.industrialGroupNames && formData.industrialGroupNames.length > 0 ? (
+            {getIndustrialGroupNames().length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {formData.industrialGroupNames.map((name, index) => (
+                {getIndustrialGroupNames().map((name, index) => (
                   <span 
                     key={index}
                     className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
@@ -211,9 +264,9 @@ export default function SummarySection({ formData }) {
           
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <h4 className="text-sm font-medium text-gray-700 mb-3">สภาอุตสาหกรรมจังหวัด</h4>
-            {formData.provincialCouncilNames && formData.provincialCouncilNames.length > 0 ? (
+            {getProvincialChapterNames().length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {formData.provincialCouncilNames.map((name, index) => (
+                {getProvincialChapterNames().map((name, index) => (
                   <span 
                     key={index}
                     className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
@@ -253,6 +306,56 @@ export default function SummarySection({ formData }) {
           />
         </div>
       </Section>
+
+      {/* ปุ่มนำทางและส่งข้อมูล */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">ยืนยันการส่งข้อมูล</h3>
+          <p className="text-sm text-gray-600 mb-6">
+            กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดส่ง หลังจากส่งแล้วจะไม่สามารถแก้ไขได้
+          </p>
+          
+          {/* Navigation Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {/* Back Button */}
+            <button
+              type="button"
+              onClick={onBack}
+              disabled={isSubmitting}
+              className={`px-6 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
+                isSubmitting
+                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                  : 'bg-gray-500 hover:bg-gray-600 hover:shadow-lg text-white'
+              }`}
+            >
+              ← ย้อนกลับ
+            </button>
+            
+            {/* Submit Button */}
+            <button
+              type="button"
+              onClick={handleSubmitClick}
+              disabled={isSubmitting}
+              className={`px-8 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
+                isSubmitting
+                  ? 'bg-gray-400 cursor-not-allowed text-white'
+                  : 'bg-green-600 hover:bg-green-700 hover:shadow-lg text-white'
+              }`}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  กำลังส่งข้อมูล...
+                </span>
+              ) : (
+                '✓ ส่งข้อมูลสมัครสมาชิก'
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -266,23 +369,25 @@ SummarySection.propTypes = {
     lastNameEng: PropTypes.string,
     email: PropTypes.string,
     phone: PropTypes.string,
-
     addressNumber: PropTypes.string,
     moo: PropTypes.string,
     soi: PropTypes.string,
-    street: PropTypes.string, // Fixed: Changed from 'road' to 'street'
+    road: PropTypes.string,
     subDistrict: PropTypes.string,
     district: PropTypes.string,
     province: PropTypes.string,
     postalCode: PropTypes.string,
-    industrialGroupIds: PropTypes.array,
-    industrialGroupNames: PropTypes.array,
-    provincialCouncilIds: PropTypes.array,
-    provincialCouncilNames: PropTypes.array,
+    industrialGroupId: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
+    provincialChapterId: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
     representative: PropTypes.object,
     businessTypes: PropTypes.object,
     otherBusinessTypeDetail: PropTypes.string,
     products: PropTypes.array,
     idCardDocument: PropTypes.object
-  }).isRequired
+  }).isRequired,
+  industrialGroups: PropTypes.array,
+  provincialChapters: PropTypes.array,
+  isSubmitting: PropTypes.bool,
+  onSubmit: PropTypes.func.isRequired,
+  onBack: PropTypes.func
 };

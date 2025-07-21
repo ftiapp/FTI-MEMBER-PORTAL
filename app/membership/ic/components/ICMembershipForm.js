@@ -9,7 +9,7 @@ import DocumentUploadSection from './DocumentUploadSection';
 import SummarySection from './SummarySection';
 import { validateCurrentStep } from './ICFormValidation';
 import { checkIdCardUniqueness, submitICMembershipForm, checkIdCard } from './ICFormSubmission';
-import { useICFormNavigation } from './ICFormNavigation';
+// ✅ ลบการ import useICFormNavigation ออกเพราะไม่ใช้แล้ว
 
 // Constants
 const STEPS = [
@@ -118,6 +118,13 @@ const useApiData = () => {
 export default function ICMembershipForm({ currentStep, setCurrentStep, formData, setFormData, totalSteps }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Handle previous step navigation
+  const handlePrevStep = useCallback(() => {
+    if (currentStep <= 1) return;
+    setCurrentStep(prev => prev - 1);
+    window.scrollTo(0, 0);
+  }, [currentStep, setCurrentStep]);
   const [errorMessage, setErrorMessage] = useState('');
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading } = useApiData();
@@ -126,16 +133,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
   console.log('IC Current Step:', currentStep);
   console.log('IC Total Steps:', totalSteps);
 
-  // Custom hook for form navigation
-  const { StepIndicator, NavigationButtons } = useICFormNavigation({
-    currentStep,
-    setCurrentStep,
-    formData,
-    errors,
-    totalSteps,
-    validateCurrentStep,
-    checkIdCardUniqueness
-  });
+  // ✅ ลบการใช้ useICFormNavigation hook ออก เพราะเราจะใช้ navigation ภายในแล้ว
 
   // Initialize form data with empty values
   useEffect(() => {
@@ -144,35 +142,35 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     }
   }, [formData, setFormData]);
 
-  // Check ID card uniqueness
-  const checkIdCardUniquenessFn = useCallback(async (idCardNumber) => {
-    try {
-      return await checkIdCardUniqueness(idCardNumber);
-    } catch (error) {
-      console.error('Error checking ID card uniqueness:', error);
-      throw new Error('เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวประชาชน');
-    }
-  }, []);
-
-  // Handle form submission - เฉพาะสำหรับขั้นตอนสุดท้าย (step 5)
+  // ✅ ลบ checkIdCardUniquenessFn ออกเพราะใช้ checkIdCard โดยตรง
+  
+  // ✅ แก้ไขฟังก์ชัน handleSubmit เพื่อให้ทำงานได้ถูกต้อง
   const handleSubmit = useCallback(async (e) => {
-    if (e) e.preventDefault();
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     
-    // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
-    if (currentStep !== 5) {
-      console.log('IC Form submit prevented - not on final step');
+    console.log('=== handleSubmit called ===');
+    console.log('Current Step:', currentStep);
+    console.log('Is Submitting:', isSubmitting);
+    
+    // ป้องกันการ submit ซ้ำ
+    if (isSubmitting) {
+      console.log('Already submitting, preventing duplicate submission');
       return;
     }
     
-    // Show warning toast and set submitting state
-    toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
-      id: 'submitting',
+    // แสดง toast loading
+    const loadingToastId = toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
       duration: Infinity
     });
+    
     setIsSubmitting(true);
     
     try {
-      // Validate all steps before submission
+      // ตรวจสอบ validation ทุก step
+      console.log('Validating all steps...');
       let allErrors = {};
       for (let step = 1; step <= totalSteps - 1; step++) {
         const stepErrors = validateCurrentStep(step, formData);
@@ -180,44 +178,84 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
       }
 
       if (Object.keys(allErrors).length > 0) {
+        console.log('Validation failed:', allErrors);
         setErrors(allErrors);
-        toast.dismiss('submitting');
+        toast.dismiss(loadingToastId);
         toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน');
-        // Scroll to the first error field
         scrollToFirstError(allErrors);
-        setIsSubmitting(false);
         return;
       }
 
-      // Check ID card uniqueness before submission
-      const idCardCheckResult = await checkIdCardUniquenessFn(formData.idCardNumber);
-      if (!idCardCheckResult.success) {
-        toast.dismiss('submitting');
+      // ตรวจสอบเลขบัตรประชาชนอีกครั้ง
+      console.log('Checking ID card uniqueness...');
+      const idCardCheckResult = await checkIdCard(formData.idCardNumber); // ✅ ใช้ checkIdCard แทน
+      if (!idCardCheckResult.valid) {
+        console.log('ID card check failed:', idCardCheckResult);
+        toast.dismiss(loadingToastId);
         toast.error(idCardCheckResult.message);
-        setIsSubmitting(false);
         return;
       }
 
-      // Submit form data
-      const result = await submitICMembershipForm(formData);
+      // เตรียมข้อมูลสำหรับส่ง
+      console.log('Preparing form data for submission...');
+      const submissionData = {
+        ...formData,
+        // แปลงข้อมูล representative จาก object เป็น flat fields
+        representativeFirstNameTh: formData.representative?.firstNameThai || '',
+        representativeLastNameTh: formData.representative?.lastNameThai || '',
+        representativeFirstNameEn: formData.representative?.firstNameEng || '',
+        representativeLastNameEn: formData.representative?.lastNameEng || '',
+        representativeEmail: formData.representative?.email || '',
+        representativePhone: formData.representative?.phone || '',
+        
+        // แปลงข้อมูล business types
+        businessTypes: Object.keys(formData.businessTypes || {}).filter(key => formData.businessTypes[key]),
+        
+        // แปลงข้อมูลเอกสาร
+        idCardFile: formData.idCardDocument,
+        
+        // แปลงข้อมูลกลุ่มอุตสาหกรรม
+        industryGroups: Array.isArray(formData.industrialGroupId) 
+          ? formData.industrialGroupId 
+          : [formData.industrialGroupId].filter(Boolean),
+          
+        // แปลงข้อมูลสภาอุตสาหกรรมจังหวัด
+        provinceChapters: Array.isArray(formData.provincialChapterId) 
+          ? formData.provincialChapterId 
+          : [formData.provincialChapterId].filter(Boolean)
+      };
+
+      console.log('Submission data prepared:', submissionData);
+
+      // ส่งข้อมูล
+      console.log('Submitting form...');
+      const result = await submitICMembershipForm(submissionData);
       
-      // Dismiss loading toast
-      toast.dismiss('submitting');
+      // ปิด loading toast
+      toast.dismiss(loadingToastId);
       
       if (result.success) {
-        toast.success('ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่');
-        // Reset form or redirect to success page
+        toast.success('ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่', {
+          duration: 5000
+        });
+        
+        // รีเซ็ตฟอร์มหรือไปหน้าสำเร็จ
+        // setFormData(INITIAL_FORM_DATA);
+        // setCurrentStep(1);
+        
       } else {
+        console.error('Submission failed:', result);
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
-        setIsSubmitting(false);
       }
+      
     } catch (error) {
-      console.error('Error submitting form:', error);
-      toast.dismiss('submitting');
+      console.error('Error in handleSubmit:', error);
+      toast.dismiss(loadingToastId);
       toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+    } finally {
       setIsSubmitting(false);
     }
-  }, [formData, totalSteps, checkIdCardUniquenessFn, currentStep]);
+  }, [formData, totalSteps, currentStep, isSubmitting]); // ✅ ลบ checkIdCardUniquenessFn ออกจาก dependencies
 
   // Function to scroll to the first error field
   const scrollToFirstError = useCallback((errors) => {
@@ -280,7 +318,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     if (currentStep === 1 && formData.idCardNumber) {
       const { valid, message } = await checkIdCard(formData.idCardNumber);
       if (!valid) {
-        toast.error(message, { position: 'top-right' }); // แสดงข้อความ error ผ่าน toast
+        toast.error(message, { position: 'top-right' });
         return;
       }
     }
@@ -327,12 +365,13 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
           provincialChapters={provincialChapters}
           isSubmitting={isSubmitting}
           onSubmit={handleSubmit}
+          onBack={handlePrevStep}
         />
       )
     };
 
     return stepComponents[currentStep] || null;
-  }, [currentStep, formData, errors, industrialGroups, provincialChapters, isLoading, isSubmitting, handleSubmit]);
+  }, [currentStep, formData, setFormData, errors, industrialGroups, provincialChapters, isLoading, isSubmitting, handleSubmit]);
 
   // Show loading state
   if (isLoading) {
@@ -353,7 +392,9 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
           <p className="mt-2 text-white text-md">กรุณาอย่าปิดหน้าต่างนี้</p>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-8">
+      
+      {/* ✅ ลบ onSubmit ออกจาก form tag เพื่อป้องกันการ submit ที่ไม่พึงประสงค์ */}
+      <div className="space-y-8">
         {/* Error Messages */}
         {Object.keys(errors).length > 0 && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl" role="alert">
@@ -382,32 +423,31 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
           {currentStepComponent}
         </div>
 
-        {/* Navigation Buttons - Fixed positioning */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={currentStep === 1}
-              className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                currentStep === 1
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md'
-              }`}
-            >
-              ← ย้อนกลับ
-            </button>
+        {/* Navigation Buttons - Fixed positioning - แสดงเฉพาะเมื่อไม่ใช่ step สุดท้าย */}
+        {currentStep < totalSteps && (
+          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
+            <div className="max-w-7xl mx-auto flex justify-between items-center">
+              <button
+                type="button"
+                onClick={handlePrev}
+                disabled={currentStep === 1}
+                className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
+                  currentStep === 1
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md'
+                }`}
+              >
+                ← ย้อนกลับ
+              </button>
 
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                <span className="text-lg text-blue-700 font-semibold">
-                  ขั้นตอนที่ {currentStep} จาก {totalSteps}
-                </span>
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                  <span className="text-lg text-blue-700 font-semibold">
+                    ขั้นตอนที่ {currentStep} จาก {totalSteps}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* ✅ แก้ไขเงื่อนไขการแสดงปุ่ม */}
-            {currentStep < totalSteps ? (
               <button
                 type="button"
                 onClick={handleNext}
@@ -415,21 +455,9 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
               >
                 ถัดไป →
               </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                  isSubmitting
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700 hover:shadow-md'
-                } text-white`}
-              >
-                {isSubmitting ? '⏳ กำลังส่ง...' : '✓ ส่งข้อมูล'}
-              </button>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Document preparation hint */}
         {currentStep === 1 && (
@@ -439,7 +467,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
             </p>
           </div>
         )}
-      </form>
+      </div>
     </div>
   );
 }

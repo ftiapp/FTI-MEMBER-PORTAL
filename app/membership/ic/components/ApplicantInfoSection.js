@@ -5,11 +5,18 @@ import PropTypes from 'prop-types';
 import SearchableAddressDropdown from './SearchableAddressDropdown';
 import AddressSection from './AddressSection';
 import IndustrialGroupSection from './IndustrialGroupSection';
-import { checkIdCard } from './ICFormSubmission'; 
+import { checkIdCard } from './ICFormSubmission'; // ✅ import จากไฟล์ที่ถูกต้อง
 
 export default function ApplicantInfoSection({ formData, setFormData, errors, industrialGroups, provincialChapters, isLoading }) {
   const [subDistricts, setSubDistricts] = useState([]);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  // Debug: เพิ่ม useEffect เพื่อ debug formData
+  useEffect(() => {
+    console.log('=== DEBUG ApplicantInfoSection formData ===');
+    console.log('idCardDocument:', formData.idCardDocument);
+    console.log('All formData:', formData);
+  }, [formData]);
+
   const [idCardValidation, setIdCardValidation] = useState({
     isChecking: false,
     exists: null,

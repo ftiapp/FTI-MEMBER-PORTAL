@@ -121,10 +121,10 @@ export async function POST(request) {
         const result = await executeQuery(connection, insertInfoQuery, [
           userId,
           formData.idCardNumber,
-          formData.firstNameThai || null,
-          formData.lastNameThai || null,
-          formData.firstNameEnglish || null,
-          formData.lastNameEnglish || null,
+          formData.firstNameTh || null,
+          formData.lastNameTh || null,
+          formData.firstNameEn || null,
+          formData.lastNameEn || null,
           0 // สถานะเริ่มต้น: รอพิจารณา
         ]);
         mainId = result.insertId;
@@ -135,31 +135,29 @@ export async function POST(request) {
       }
       
       // 2. บันทึกข้อมูลผู้แทนลงตารางใหม่ MemberRegist_IC_Representatives
-      if (Array.isArray(formData.representatives)) {
-        for (const rep of formData.representatives) {
-          const insertRepQuery = `
-            INSERT INTO MemberRegist_IC_Representatives (
-              main_id, first_name_th, last_name_th, first_name_en, last_name_en,
-              email, phone, position, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-          `;
-          try {
-            await executeQuery(connection, insertRepQuery, [
-              mainId,
-              rep.firstNameThai || null,
-              rep.lastNameThai || null,
-              rep.firstNameEnglish || null,
-              rep.lastNameEnglish || null,
-              rep.email || null,
-              rep.phone || null,
-              rep.position || null,
-              0
-            ]);
-            console.log('Inserted representative successfully');
-          } catch (repError) {
-            console.error('Error inserting representative:', repError);
-            throw new Error(`ไม่สามารถบันทึกข้อมูลผู้แทนได้: ${repError.message}`);
-          }
+      // Handle representative data (single representative for IC membership)
+      if (formData.representativeFirstNameTh || formData.representativeFirstNameEn) {
+        const insertRepQuery = `
+          INSERT INTO MemberRegist_IC_Representatives (
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en,
+            email, phone, position
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+        try {
+          await executeQuery(connection, insertRepQuery, [
+            mainId,
+            formData.representativeFirstNameTh || null,
+            formData.representativeLastNameTh || null,
+            formData.representativeFirstNameEn || null,
+            formData.representativeLastNameEn || null,
+            formData.representativeEmail || null,
+            formData.representativePhone || null,
+            'ผู้แทน' // Default position
+          ]);
+          console.log('Inserted representative successfully');
+        } catch (repError) {
+          console.error('Error inserting representative:', repError);
+          throw new Error(`ไม่สามารถบันทึกข้อมูลผู้แทนได้: ${repError.message}`);
         }
       }
       // 3. บันทึกที่อยู่ลง MemberRegist_IC_Address (ที่อยู่หลัก)
@@ -194,16 +192,15 @@ export async function POST(request) {
         try {
           const insertProvinceQuery = `
             INSERT INTO MemberRegist_IC_ProvinceChapters (
-              main_id, province_chapter_id, status
-            ) VALUES (?, ?, ?)
+              main_id, province_chapter_id
+            ) VALUES (?, ?)
           `;
           
           const provincePromises = formData.provinceChapters.map(chapter => {
             if (!chapter.id) return Promise.resolve();
             return executeQuery(connection, insertProvinceQuery, [
               mainId,
-              chapter.id,
-              0
+              chapter.id
             ]);
           });
           
@@ -222,16 +219,15 @@ export async function POST(request) {
         try {
           const insertIndustryQuery = `
             INSERT INTO MemberRegist_IC_IndustryGroups (
-              main_id, industry_group_id, status
-            ) VALUES (?, ?, ?)
+              main_id, industry_group_id
+            ) VALUES (?, ?)
           `;
           
           const industryPromises = formData.industryGroups.map(group => {
             if (!group.id) return Promise.resolve();
             return executeQuery(connection, insertIndustryQuery, [
               mainId,
-              group.id,
-              0
+              group.id
             ]);
           });
           
@@ -247,7 +243,7 @@ export async function POST(request) {
       
       // 6. บันทึกข้อมูลประเภทธุรกิจ
       try {
-        const businessTypes = formData.businessTypes || {};
+        const businessTypes = formData.businessTypes || [];
         
         // Insert each selected business type
         const insertBusinessTypeQuery = `
@@ -262,25 +258,26 @@ export async function POST(request) {
           distributor: 'ผู้จัดจำหน่าย (Distributor)',
           exporter: 'ผู้ส่งออก (Exporter)',
           importer: 'ผู้นำเข้า (Importer)',
-          service_provider: 'ผู้ให้บริการ (Service Provider)'
+          service_provider: 'ผู้ให้บริการ (Service Provider)',
+          other: 'อื่นๆ (Other)'
         };
         
-        // Insert each selected business type
-        for (const [type, isSelected] of Object.entries(businessTypes)) {
-          if (isSelected && type !== 'other_detail' && businessTypeLabels[type]) {
-            await executeQuery(connection, insertBusinessTypeQuery, [
-              mainId,
-              businessTypeLabels[type] || type
-            ]);
+        // Handle business types array
+        if (Array.isArray(businessTypes)) {
+          for (const type of businessTypes) {
+            if (type === 'other' && formData.businessCategoryOther) {
+              // Handle 'other' business type with details
+              await executeQuery(connection, insertBusinessTypeQuery, [
+                mainId,
+                `อื่นๆ (Other): ${formData.businessCategoryOther}`
+              ]);
+            } else if (businessTypeLabels[type]) {
+              await executeQuery(connection, insertBusinessTypeQuery, [
+                mainId,
+                businessTypeLabels[type]
+              ]);
+            }
           }
-        }
-        
-        // Handle 'other' business type with details
-        if (businessTypes.other && businessTypes.other_detail) {
-          await executeQuery(connection, insertBusinessTypeQuery, [
-            mainId,
-            `อื่นๆ (Other): ${businessTypes.other_detail}`
-          ]);
         }
         
         console.log('Inserted business types for member ID:', mainId);
@@ -294,21 +291,20 @@ export async function POST(request) {
         try {
           const insertProductsQuery = `
             INSERT INTO MemberRegist_IC_Products (
-              main_id, name_th, name_en, status
-            ) VALUES (?, ?, ?, ?)
+              main_id, name_th, name_en
+            ) VALUES (?, ?, ?)
           `;
           
           const productPromises = formData.products.map(product => {
-            if ((!product.thai || product.thai.trim() === '') && 
-                (!product.english || product.english.trim() === '')) {
+            if ((!product.nameTh || product.nameTh.trim() === '') && 
+                (!product.nameEn || product.nameEn.trim() === '')) {
               return Promise.resolve();
             }
             
             return executeQuery(connection, insertProductsQuery, [
               mainId,
-              product.thai || null,
-              product.english || null,
-              0
+              product.nameTh || null,
+              product.nameEn || null
             ]);
           });
           
@@ -327,14 +323,18 @@ export async function POST(request) {
       const documents = [];
       
       // ตรวจสอบเอกสารแต่ละประเภท
-      if (formData.idCardFile && formData.idCardFile.cloudinaryPath) {
+      // ตรวจสอบทั้ง idCardFile และ idCardDocument (frontend อาจใช้ชื่อต่างกัน)
+      const idCardDoc = formData.idCardFile || formData.idCardDocument;
+      if (idCardDoc && (idCardDoc.cloudinaryPath || idCardDoc.cloudinary_url)) {
         documents.push({
           type: 'id_card',
-          file: formData.idCardFile
+          file: idCardDoc
         });
         console.log('Added ID card document for upload');
       } else {
         console.log('No ID card document found or missing cloudinary path');
+        console.log('idCardFile:', formData.idCardFile);
+        console.log('idCardDocument:', formData.idCardDocument);
       }
       
       // ตรวจสอบเอกสารทะเบียนบริษัท
@@ -364,19 +364,22 @@ export async function POST(request) {
         try {
           const insertDocumentQuery = `
             INSERT INTO MemberRegist_IC_Documents (
-              main_id, doc_type, doc_url, doc_name, status
-            ) VALUES (?, ?, ?, ?, ?)
+              main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
           `;
           
           const documentPromises = documents.map(doc => {
-            if (!doc.file?.cloudinaryPath) return Promise.resolve();
+            if (!doc.file?.cloudinaryPath && !doc.file?.cloudinary_url) return Promise.resolve();
             
             return executeQuery(connection, insertDocumentQuery, [
               mainId,
               doc.type,
-              doc.file.cloudinaryPath,
-              doc.file.fileName || `document_${Date.now()}`,
-              0
+              doc.file.fileName || doc.file.file_name || `document_${Date.now()}`,
+              doc.file.cloudinaryPath || doc.file.cloudinary_url || '',
+              doc.file.fileSize || doc.file.file_size || 0,
+              doc.file.mimeType || doc.file.mime_type || 'application/octet-stream',
+              doc.file.cloudinaryId || doc.file.cloudinary_id || '',
+              doc.file.cloudinaryPath || doc.file.cloudinary_url || ''
             ]);
           });
           
