@@ -3,8 +3,11 @@
 import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
+import Head from 'next/head';
 import AdminLayout from '../../../../components/AdminLayout';
 import { formatDate } from '../../../../product-updates/utils/formatters';
+import MembershipDetailView from './components/MembershipDetailView';
+import RejectModal from './components/RejectModal';
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
@@ -15,36 +18,6 @@ export default function MembershipRequestDetail({ params }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
-  const [industrialGroups, setIndustrialGroups] = useState({});
-  const [provincialChapters, setProvincialChapters] = useState({});
-
-  // Fetch group names from MSSQL APIs
-  const fetchGroupNames = async (groupIds, apiEndpoint) => {
-    if (!groupIds || groupIds.length === 0) return {};
-    
-    try {
-      const groupNames = {};
-      // Fetch all groups from the API
-      const response = await fetch(`${apiEndpoint}?limit=1000`);
-      if (response.ok) {
-        const data = await response.json();
-        const groups = data.data || [];
-        
-        // Map each group ID to its name
-        groupIds.forEach(groupItem => {
-          const groupId = groupItem.id;
-          const group = groups.find(g => g.MEMBER_GROUP_CODE === groupId);
-          if (group) {
-            groupNames[groupId] = group.MEMBER_GROUP_NAME;
-          }
-        });
-      }
-      return groupNames;
-    } catch (error) {
-      console.error('Error fetching group names:', error);
-      return {};
-    }
-  };
 
   // Fetch application details
   useEffect(() => {
@@ -61,17 +34,6 @@ export default function MembershipRequestDetail({ params }) {
         const data = await response.json();
         if (data.success) {
           setApplication(data.data);
-          
-          // Fetch group names if this is OC type
-          if (type === 'oc' && data.data) {
-            const [industrialGroupNames, provincialChapterNames] = await Promise.all([
-              fetchGroupNames(data.data.industrialGroupIds, '/api/industrial-groups'),
-              fetchGroupNames(data.data.provincialChapterIds, '/api/provincial-chapters')
-            ]);
-            
-            setIndustrialGroups(industrialGroupNames);
-            setProvincialChapters(provincialChapterNames);
-          }
         } else {
           toast.error(data.message || 'ไม่สามารถดึงข้อมูลการสมัครสมาชิกได้');
           router.push('/admin/dashboard/membership-requests');
@@ -120,7 +82,12 @@ export default function MembershipRequestDetail({ params }) {
     }
   };
 
-  // Handle reject application
+  // Handle reject application (show modal first)
+  const handleRejectClick = () => {
+    setShowRejectModal(true);
+  };
+
+  // Handle actual reject after confirmation
   const handleReject = async () => {
     if (isSubmitting) return;
     
@@ -156,12 +123,8 @@ export default function MembershipRequestDetail({ params }) {
     } finally {
       setIsSubmitting(false);
       setShowRejectModal(false);
+      setRejectionReason('');
     }
-  };
-
-  // Handle print
-  const handlePrint = () => {
-    window.print();
   };
 
   // Handle view document
@@ -196,612 +159,495 @@ export default function MembershipRequestDetail({ params }) {
     }
   };
 
-  // Render application details based on type
-  const renderApplicationDetails = () => {
-    if (!application) return null;
-
-    switch (type) {
-      case 'oc':
-        return renderOCDetails();
-      case 'am':
-        return renderAMDetails();
-      case 'ac':
-        return renderACDetails();
-      case 'ic':
-        return renderICDetails();
-      default:
-        return <p>ไม่พบข้อมูลประเภทสมาชิกที่ระบุ</p>;
-    }
+  // Enhanced print function
+  const handlePrint = () => {
+    // Create a new window for printing with all content
+    const printWindow = window.open('', '_blank');
+    
+    // Get the main content
+    const content = document.querySelector('.container').innerHTML;
+    
+    // Create the print document
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>รายละเอียดการสมัครสมาชิก ${getMemberTypeText(type)}</title>
+        <style>
+          /* Reset and base styles */
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          body {
+            font-family: 'Sarabun', 'Tahoma', sans-serif;
+            font-size: 12pt;
+            line-height: 1.5;
+            color: #2d3748;
+            background: white;
+            padding: 0;
+            margin: 0;
+          }
+          
+          @page {
+            size: A4;
+            margin: 20mm;
+          }
+          
+          /* Hide interactive elements */
+          button,
+          textarea,
+          input,
+          svg,
+          .print\\:hidden,
+          [class*="hover:"],
+          [class*="focus:"],
+          .bg-blue-600,
+          .bg-red-600,
+          .bg-green-600,
+          .bg-gray-600 {
+            display: none !important;
+          }
+          
+          /* Container and layout */
+          .container {
+            width: 100%;
+            max-width: none;
+            margin: 0;
+            padding: 0;
+          }
+          
+          /* Headers */
+          h1 {
+            font-size: 20pt;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 25pt;
+            padding: 15pt 0;
+            background: linear-gradient(135deg, #1e40af, #3b82f6);
+            color: white;
+            border-radius: 8pt;
+            page-break-after: avoid;
+            box-shadow: 0 2pt 4pt rgba(0,0,0,0.1);
+          }
+          
+          h2, h3 {
+            font-size: 14pt;
+            font-weight: 600;
+            margin: 20pt 0 12pt 0;
+            color: #1e40af;
+            padding: 8pt 0 4pt 0;
+            border-bottom: 1pt solid #e2e8f0;
+            page-break-after: avoid;
+          }
+          
+          h4 {
+            font-size: 12pt;
+            font-weight: 600;
+            margin: 15pt 0 8pt 0;
+            color: #374151;
+          }
+          
+          /* Sections */
+          .bg-white,
+          .rounded-lg,
+          .border,
+          .border-gray-200 {
+            display: block;
+            background: #fafbff;
+            border: 1pt solid #cbd5e1;
+            border-radius: 6pt;
+            margin-bottom: 15pt;
+            padding: 12pt;
+            page-break-inside: avoid;
+            box-shadow: 0 1pt 3pt rgba(0,0,0,0.05);
+          }
+          
+          /* Grid layouts */
+          .grid,
+          .grid-cols-1,
+          .grid-cols-2,
+          .md\\:grid-cols-2 {
+            display: block;
+            width: 100%;
+          }
+          
+          .grid > div,
+          .grid-cols-2 > div,
+          .md\\:grid-cols-2 > div {
+            display: inline-block;
+            width: 48%;
+            vertical-align: top;
+            margin-right: 2%;
+            margin-bottom: 10pt;
+            padding: 6pt;
+            background: white;
+            border-radius: 4pt;
+          }
+          
+          .grid > div:nth-child(2n),
+          .grid-cols-2 > div:nth-child(2n),
+          .md\\:grid-cols-2 > div:nth-child(2n) {
+            margin-right: 0;
+          }
+          
+          /* Text styles */
+          .text-gray-600 {
+            color: #64748b;
+            font-size: 10pt;
+            font-weight: 500;
+            margin-bottom: 3pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5pt;
+          }
+          
+          .font-medium,
+          .font-semibold {
+            font-weight: 600;
+            font-size: 11pt;
+            color: #1f2937;
+            margin-bottom: 6pt;
+          }
+          
+          /* Tags and badges */
+          .rounded-full,
+          .bg-blue-100,
+          .bg-orange-100,
+          .bg-green-100,
+          .bg-yellow-100,
+          .bg-red-100 {
+            display: inline-block;
+            border: 1pt solid #3b82f6;
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 3pt 8pt;
+            margin: 2pt 3pt;
+            font-size: 9pt;
+            font-weight: 500;
+            border-radius: 12pt;
+          }
+          
+          /* Representatives and contacts */
+          .border-gray-200,
+          .border-gray-100 {
+            border: 1pt solid #e2e8f0;
+            background: white;
+            border-radius: 6pt;
+            margin-bottom: 12pt;
+            padding: 10pt;
+          }
+          
+          /* Spacing */
+          .space-y-6 > * {
+            margin-bottom: 18pt;
+          }
+          
+          .space-y-4 > * {
+            margin-bottom: 12pt;
+          }
+          
+          .space-y-2 > * {
+            margin-bottom: 8pt;
+          }
+          
+          .mb-6 { margin-bottom: 18pt; }
+          .mb-4 { margin-bottom: 12pt; }
+          .mb-3 { margin-bottom: 10pt; }
+          .mb-2 { margin-bottom: 6pt; }
+          .p-6 { padding: 12pt; }
+          .p-4 { padding: 10pt; }
+          .p-3 { padding: 8pt; }
+          
+          /* Flex to block */
+          .flex,
+          .flex-wrap,
+          .items-center,
+          .justify-between {
+            display: block;
+          }
+          
+          /* Page breaks */
+          .avoid-break {
+            page-break-inside: avoid;
+          }
+          
+          /* Print header */
+          .print-header {
+            text-align: center;
+            margin-bottom: 25pt;
+            padding: 0;
+          }
+          
+          /* Document info */
+          .document-info {
+            margin-bottom: 20pt;
+            padding: 12pt;
+            border: 1pt solid #3b82f6;
+            background: #eff6ff;
+            border-radius: 6pt;
+            color: #1e40af;
+            font-weight: 500;
+          }
+          
+          .document-info p {
+            margin: 4pt 0;
+          }
+          
+          /* Table-like styling for better organization */
+          .field-group {
+            background: white;
+            border-left: 3pt solid #3b82f6;
+            padding-left: 8pt;
+          }
+          
+          /* Better typography */
+          p {
+            margin: 0 0 6pt 0;
+          }
+          
+          strong {
+            color: #1e40af;
+            font-weight: 600;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="print-header">
+          <h1>รายละเอียดการสมัครสมาชิก ${getMemberTypeText(type)}</h1>
+          ${application ? `
+            <div class="document-info">
+              <p><strong>วันที่สมัคร:</strong> ${formatDate(application.created_at || application.createdAt)}</p>
+              <p><strong>สถานะ:</strong> ${
+                (application.status === 'pending' || application.status === 0 || application.status === '0') ? 'รอการอนุมัติ' :
+                (application.status === 'approved' || application.status === 1 || application.status === '1') ? 'อนุมัติแล้ว' : 'ปฏิเสธแล้ว'
+              }</p>
+            </div>
+          ` : ''}
+        </div>
+        ${content}
+      </body>
+      </html>
+    `;
+    
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    
+    // Wait for content to load then print
+    setTimeout(() => {
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }, 1000);
   };
 
-  // Render OC (สามัญ-โรงงาน) details
-  const renderOCDetails = () => {
+  if (isLoading) {
     return (
-      <div className="space-y-8">
-        {/* ข้อมูลบริษัท */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลบริษัท</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-600 text-sm">ชื่อบริษัท (ไทย)</p>
-              <p className="font-medium">{application.companyNameTh || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">ชื่อบริษัท (อังกฤษ)</p>
-              <p className="font-medium">{application.companyNameEn || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">เลขประจำตัวผู้เสียภาษี</p>
-              <p className="font-medium">{application.taxId || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">ประเภทโรงงาน</p>
-              <p className="font-medium">
-                {application.factoryType === 'type1' 
-                  ? 'เครื่องจักร > 50 แรงม้า' 
-                  : application.factoryType === 'type2' 
-                  ? 'ไม่มีเครื่องจักรหรือ < 50 แรงม้า' 
-                  : application.factoryType || '-'
-                }
-              </p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">จำนวนพนักงาน</p>
-              <p className="font-medium">{application.numberOfEmployees || '-'}</p>
-            </div>
+      <AdminLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto"></div>
+            <p className="mt-4 text-gray-600">กำลังโหลดข้อมูล...</p>
           </div>
         </div>
-
-        {/* ข้อมูลที่อยู่ */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลที่อยู่</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <p className="text-gray-600 text-sm">เลขที่</p>
-              <p className="font-medium">{application.address_number || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">หมู่</p>
-              <p className="font-medium">{application.moo || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">ซอย</p>
-              <p className="font-medium">{application.soi || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">ถนน</p>
-              <p className="font-medium">{application.street || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">ตำบล/แขวง</p>
-              <p className="font-medium">{application.sub_district || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">อำเภอ/เขต</p>
-              <p className="font-medium">{application.district || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">จังหวัด</p>
-              <p className="font-medium">{application.province || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">รหัสไปรษณีย์</p>
-              <p className="font-medium">{application.postal_code || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">เบอร์โทรศัพท์</p>
-              <p className="font-medium">{application.companyPhone || application.company_phone || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">อีเมล</p>
-              <p className="font-medium">{application.companyEmail || application.company_email || '-'}</p>
-            </div>
-            <div>
-              <p className="text-gray-600 text-sm">เว็บไซต์</p>
-              <p className="font-medium">
-                {application.companyWebsite || application.company_website || application.website || '-'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* ข้อมูลผู้ติดต่อ */}
-        {application.contactPerson && application.contactPerson.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลผู้ติดต่อ</h3>
-            <div className="space-y-4">
-              {application.contactPerson.map((contact, index) => (
-                <div key={index} className="border-l-4 border-blue-500 pl-4 py-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-gray-600 text-sm">ชื่อ (ไทย)</p>
-                      <p className="font-medium">{contact.first_name_th || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">นามสกุล (ไทย)</p>
-                      <p className="font-medium">{contact.last_name_th || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">ชื่อ (อังกฤษ)</p>
-                      <p className="font-medium">{contact.first_name_en || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">นามสกุล (อังกฤษ)</p>
-                      <p className="font-medium">{contact.last_name_en || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">ตำแหน่ง</p>
-                      <p className="font-medium">{contact.position || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">อีเมล</p>
-                      <p className="font-medium">{contact.email || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">เบอร์โทรศัพท์</p>
-                      <p className="font-medium">{contact.phone || '-'}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ข้อมูลผู้แทน */}
-        {application.representatives && application.representatives.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลผู้แทน</h3>
-            <div className="space-y-4">
-              {application.representatives.map((rep, index) => (
-                <div key={index} className={`border-l-4 pl-4 py-2 ${
-                  rep.is_primary ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                }`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      ผู้แทนคนที่ {rep.rep_order || index + 1}
-                    </span>
-                    {rep.is_primary && (
-                      <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                        ผู้แทนหลัก
-                      </span>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-gray-600 text-sm">ชื่อ (ไทย)</p>
-                      <p className="font-medium">{rep.first_name_th || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">นามสกุล (ไทย)</p>
-                      <p className="font-medium">{rep.last_name_th || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">ชื่อ (อังกฤษ)</p>
-                      <p className="font-medium">{rep.first_name_en || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">นามสกุล (อังกฤษ)</p>
-                      <p className="font-medium">{rep.last_name_en || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">ตำแหน่ง</p>
-                      <p className="font-medium">{rep.position || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">อีเมล</p>
-                      <p className="font-medium">{rep.email || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-gray-600 text-sm">เบอร์โทรศัพท์</p>
-                      <p className="font-medium">{rep.phone || '-'}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ข้อมูลธุรกิจ */}
-        {((application.businessTypes && application.businessTypes.length > 0) || (application.products && application.products.length > 0)) && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลธุรกิจ</h3>
-            
-            {/* ประเภทธุรกิจ */}
-            {application.businessTypes && application.businessTypes.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-lg font-medium mb-3 text-gray-700">ประเภทธุรกิจ</h4>
-                <div className="flex flex-wrap gap-2">
-                  {application.businessTypes.map((businessType, index) => {
-                    const getBusinessTypeName = (type) => {
-                      const types = {
-                        'manufacturer': 'ผู้ผลิต',
-                        'distributor': 'ผู้จัดจำหน่าย',
-                        'importer': 'ผู้นำเข้า',
-                        'exporter': 'ผู้ส่งออก',
-                        'service': 'ผู้ให้บริการ',
-                        'other': 'อื่นๆ'
-                      };
-                      return types[type] || type;
-                    };
-                    
-                    return (
-                      <span key={index} className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                        {getBusinessTypeName(businessType.business_type)}
-                      </span>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            
-            {/* สินค้าและบริการ */}
-            {application.products && application.products.length > 0 && (
-              <div>
-                <h4 className="text-lg font-medium mb-3 text-gray-700">สินค้าและบริการ</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {application.products.map((product, index) => (
-                    <div key={index} className="border border-gray-200 rounded-lg p-3">
-                      <div className="space-y-2">
-                        <div>
-                          <p className="text-gray-600 text-sm">ชื่อสินค้า/บริการ (ไทย)</p>
-                          <p className="font-medium">{product.name_th || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600 text-sm">ชื่อสินค้า/บริการ (อังกฤษ)</p>
-                          <p className="font-medium">{product.name_en || '-'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
-        {((application.industrialGroupIds && application.industrialGroupIds.length > 0) || (application.provincialChapterIds && application.provincialChapterIds.length > 0)) && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด</h3>
-            
-            {/* กลุ่มอุตสาหกรรม */}
-            {application.industrialGroupIds && application.industrialGroupIds.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-lg font-medium mb-3 text-gray-700">กลุ่มอุตสาหกรรม</h4>
-                <div className="space-y-2">
-                  {application.industrialGroupIds.map((group, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-orange-50 rounded-lg">
-                      <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">
-                          {industrialGroups[group.id] || `รหัส: ${group.id}`}
-                        </span>
-                        {industrialGroups[group.id] && (
-                          <span className="text-xs text-gray-500 ml-2">(รหัส: {group.id})</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* สภาอุตสาหกรรมจังหวัด */}
-            {application.provincialChapterIds && application.provincialChapterIds.length > 0 && (
-              <div>
-                <h4 className="text-lg font-medium mb-3 text-gray-700">สภาอุตสาหกรรมจังหวัด</h4>
-                <div className="space-y-2">
-                  {application.provincialChapterIds.map((chapter, index) => (
-                    <div key={index} className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                      <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <div className="flex-1">
-                        <span className="text-sm font-medium">
-                          {provincialChapters[chapter.id] || `รหัส: ${chapter.id}`}
-                        </span>
-                        {provincialChapters[chapter.id] && (
-                          <span className="text-xs text-gray-500 ml-2">(รหัส: {chapter.id})</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ข้อมูลเอกสาร */}
-        {application.documents && application.documents.length > 0 && (
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
-            <h3 className="text-xl font-semibold mb-4 text-blue-600">เอกสารแนบ</h3>
-            <div className="space-y-2">
-              {application.documents.map((doc, index) => (
-                <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{doc.document_name || `เอกสาร ${index + 1}`}</p>
-                    <p className="text-gray-500 text-xs">{doc.file_path || '-'}</p>
-                  </div>
-                  {doc.file_path && (
-                    <button 
-                      onClick={() => handleViewDocument(doc.file_path)}
-                      className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors"
-                      title="ดูเอกสาร"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      ดู
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      </AdminLayout>
     );
-  };
-
-  // Render AM (สามัญ-สมาคมการค้า) details
-  const renderAMDetails = () => {
-    return (
-      <div className="space-y-6">
-        <h3 className="text-xl font-semibold">ข้อมูลสมาคมการค้า</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-gray-600">ชื่อสมาคม (ไทย)</p>
-            <p className="font-medium">{application.associationNameTh || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">ชื่อสมาคม (อังกฤษ)</p>
-            <p className="font-medium">{application.associationNameEn || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">เลขประจำตัวผู้เสียภาษี</p>
-            <p className="font-medium">{application.taxId || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">อีเมล</p>
-            <p className="font-medium">{application.email || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">เบอร์โทรศัพท์</p>
-            <p className="font-medium">{application.phone || '-'}</p>
-          </div>
-        </div>
-
-        {/* Additional sections for AM like address, representatives, etc. would go here */}
-      </div>
-    );
-  };
-
-  // Render AC (สมทบ-นิติบุคคล) details
-  const renderACDetails = () => {
-    return (
-      <div className="space-y-6">
-        <h3 className="text-xl font-semibold">ข้อมูลบริษัท</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-gray-600">ชื่อบริษัท (ไทย)</p>
-            <p className="font-medium">{application.companyNameTh || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">ชื่อบริษัท (อังกฤษ)</p>
-            <p className="font-medium">{application.companyNameEn || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">เลขประจำตัวผู้เสียภาษี</p>
-            <p className="font-medium">{application.taxId || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">อีเมล</p>
-            <p className="font-medium">{application.companyEmail || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">เบอร์โทรศัพท์</p>
-            <p className="font-medium">{application.companyPhone || '-'}</p>
-          </div>
-        </div>
-
-        {/* Additional sections for AC like address, representatives, etc. would go here */}
-      </div>
-    );
-  };
-
-  // Render IC (สมทบ-บุคคลธรรมดา) details
-  const renderICDetails = () => {
-    return (
-      <div className="space-y-6">
-        <h3 className="text-xl font-semibold">ข้อมูลผู้สมัคร</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <p className="text-gray-600">ชื่อ (ไทย)</p>
-            <p className="font-medium">{application.firstNameTh || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">นามสกุล (ไทย)</p>
-            <p className="font-medium">{application.lastNameTh || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">ชื่อ (อังกฤษ)</p>
-            <p className="font-medium">{application.firstNameEn || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">นามสกุล (อังกฤษ)</p>
-            <p className="font-medium">{application.lastNameEn || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">เลขบัตรประชาชน</p>
-            <p className="font-medium">{application.idCard || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">อีเมล</p>
-            <p className="font-medium">{application.email || '-'}</p>
-          </div>
-          <div>
-            <p className="text-gray-600">เบอร์โทรศัพท์</p>
-            <p className="font-medium">{application.phone || '-'}</p>
-          </div>
-        </div>
-
-        {/* Additional sections for IC like address, business info, etc. would go here */}
-      </div>
-    );
-  };
-
-  // Render rejection modal
-  const renderRejectModal = () => {
-    if (!showRejectModal) return null;
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-xl font-semibold mb-4">ปฏิเสธการสมัครสมาชิก</h3>
-          <div className="mb-4">
-            <label className="block text-gray-700 mb-2">เหตุผลในการปฏิเสธ <span className="text-red-500">*</span></label>
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="4"
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              placeholder="ระบุเหตุผลในการปฏิเสธ"
-            ></textarea>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <button
-              onClick={() => setShowRejectModal(false)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-              disabled={isSubmitting}
-            >
-              ยกเลิก
-            </button>
-            <button
-              onClick={handleReject}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  }
 
   return (
-    <AdminLayout>
-      <div className="container mx-auto px-4 py-8 print:py-0">
-        {/* Back button - hide when printing */}
-        <div className="mb-6 print:hidden">
-          <button
-            onClick={() => router.push('/admin/dashboard/membership-requests')}
-            className="flex items-center text-blue-600 hover:text-blue-800"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            กลับไปยังรายการคำขอสมาชิก
-          </button>
-        </div>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="flex items-center">
-              <svg className="animate-spin h-8 w-8 mr-3 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    <>
+      <Head>
+        <link rel="stylesheet" href="/print.css" media="print" />
+        <style jsx>{`
+          @media print {
+            /* Force all elements to be visible */
+            * {
+              visibility: visible !important;
+              display: block !important;
+              overflow: visible !important;
+              height: auto !important;
+              max-height: none !important;
+              position: static !important;
+            }
+            
+            /* Hide only specific elements */
+            .print\\:hidden,
+            button,
+            textarea,
+            input,
+            svg,
+            [class*="hover:"],
+            [class*="focus:"],
+            .bg-blue-600,
+            .bg-red-600,
+            .bg-green-600,
+            .bg-gray-600 {
+              display: none !important;
+              visibility: hidden !important;
+            }
+            
+            /* Page setup */
+            @page { 
+              size: A4; 
+              margin: 15mm; 
+            }
+            
+            body { 
+              font-size: 12pt; 
+              line-height: 1.4; 
+              color: #000; 
+              background: white;
+              width: 100%;
+              height: auto;
+              overflow: visible;
+            }
+            
+            /* Ensure content flows properly */
+            .container,
+            .space-y-6,
+            .space-y-4 {
+              display: block !important;
+              width: 100% !important;
+              height: auto !important;
+              overflow: visible !important;
+              page-break-inside: auto !important;
+            }
+            
+            /* Section styling */
+            .bg-white { 
+              background: white !important; 
+              border: 1pt solid #ccc; 
+              margin-bottom: 15pt; 
+              padding: 10pt; 
+              page-break-inside: avoid;
+              display: block !important;
+            }
+            
+            /* Grid adjustments */
+            .grid { 
+              display: block !important; 
+            }
+            
+            .grid > div { 
+              display: inline-block !important; 
+              width: 48% !important; 
+              vertical-align: top !important; 
+              margin-right: 2% !important; 
+              margin-bottom: 8pt !important; 
+            }
+            
+            .grid > div:nth-child(2n) { 
+              margin-right: 0 !important; 
+            }
+            
+            /* Headers */
+            h1 { 
+              font-size: 18pt; 
+              text-align: center; 
+              margin-bottom: 20pt; 
+              border-bottom: 2pt solid #000; 
+              padding-bottom: 10pt; 
+            }
+            
+            h3 { 
+              font-size: 14pt; 
+              font-weight: bold; 
+              margin-top: 15pt; 
+              margin-bottom: 10pt; 
+            }
+            
+            /* Text styles */
+            .text-gray-600 { 
+              color: #666 !important; 
+              font-size: 10pt; 
+            }
+            
+            .font-medium { 
+              font-weight: bold; 
+              font-size: 11pt; 
+              color: #000; 
+            }
+            
+            /* Force content to be visible */
+            .space-y-6 > * {
+              display: block !important;
+              visibility: visible !important;
+              margin-bottom: 15pt !important;
+              page-break-inside: avoid;
+            }
+            
+            /* Inline elements */
+            span, em, strong, b, i {
+              display: inline !important;
+            }
+          }
+        `}</style>
+      </Head>
+      <AdminLayout>
+        <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <button
+              onClick={() => router.push('/admin/dashboard/membership-requests')}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
               </svg>
-              <span className="text-lg">กำลังโหลดข้อมูล...</span>
-            </div>
+            </button>
+            <h1 className="text-2xl font-bold text-gray-800">
+              รายละเอียดการสมัครสมาชิก {getMemberTypeText(type)}
+            </h1>
           </div>
-        ) : application ? (
-          <div>
-            <div className="flex justify-between items-center mb-6">
-              <h1 className="text-3xl font-bold">รายละเอียดการสมัครสมาชิก</h1>
-              
-              {/* Print button - hide when printing */}
-              <button
-                onClick={handlePrint}
-                className="print:hidden px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-                </svg>
-                พิมพ์
-              </button>
+          {application && (
+            <div className="flex items-center gap-4 text-sm text-gray-600">
+              <span>วันที่สมัคร: {formatDate(application.created_at || application.createdAt)}</span>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                (application.status === 'pending' || application.status === 0 || application.status === '0') ? 'bg-yellow-100 text-yellow-800' :
+                (application.status === 'approved' || application.status === 1 || application.status === '1') ? 'bg-green-100 text-green-800' :
+                'bg-red-100 text-red-800'
+              }`}>
+                {(application.status === 'pending' || application.status === 0 || application.status === '0') ? 'รอการอนุมัติ' :
+                 (application.status === 'approved' || application.status === 1 || application.status === '1') ? 'อนุมัติแล้ว' : 'ปฏิเสธแล้ว'}
+              </span>
             </div>
+          )}
+        </div>
+
+        {/* Main Content */}
+        {application ? (
+          <>
+            <MembershipDetailView 
+              application={application}
+              type={type}
+              handleViewDocument={handleViewDocument}
+              handleApprove={handleApprove}
+              handleReject={handleRejectClick}
+              isSubmitting={isSubmitting}
+              adminNote={adminNote}
+              setAdminNote={setAdminNote}
+              handlePrint={handlePrint}
+            />
             
-            {/* Application summary */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <p className="text-gray-600">ประเภทสมาชิก</p>
-                  <p className="font-medium">{getMemberTypeText(type)}</p>
-                </div>
-                <div>
-                  <p className="text-gray-600">วันที่สมัคร</p>
-                  <p className="font-medium">{formatDate(application.createdAt)}</p>
-                </div>
-              </div>
-              
-              <hr className="my-6" />
-              
-              {/* Render application details based on type */}
-              {renderApplicationDetails()}
-            </div>
-            
-            {/* Admin actions - hide when printing */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8 print:hidden">
-              <h3 className="text-xl font-semibold mb-4">การดำเนินการของผู้ดูแลระบบ</h3>
-              
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">บันทึกช่วยจำ</label>
-                <textarea
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  rows="3"
-                  value={adminNote}
-                  onChange={(e) => setAdminNote(e.target.value)}
-                  placeholder="บันทึกช่วยจำสำหรับผู้ดูแลระบบ (ไม่แสดงให้ผู้สมัครเห็น)"
-                ></textarea>
-              </div>
-              
-              <div className="flex justify-end space-x-4">
-                <button
-                  onClick={() => setShowRejectModal(true)}
-                  className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                  disabled={isSubmitting}
-                >
-                  ปฏิเสธ
-                </button>
-                <button
-                  onClick={handleApprove}
-                  className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-                  disabled={isSubmitting}
-                >
-                  อนุมัติ
-                </button>
-              </div>
-            </div>
-          </div>
+            <RejectModal 
+              showRejectModal={showRejectModal}
+              setShowRejectModal={setShowRejectModal}
+              rejectionReason={rejectionReason}
+              setRejectionReason={setRejectionReason}
+              handleReject={handleReject}
+              isSubmitting={isSubmitting}
+            />
+          </>
         ) : (
           <div className="bg-white rounded-lg shadow-md p-6">
             <p className="text-center text-gray-500">ไม่พบข้อมูลการสมัครสมาชิก</p>
           </div>
         )}
-        
-        {/* Render rejection modal */}
-        {renderRejectModal()}
-      </div>
-    </AdminLayout>
+        </div>
+      </AdminLayout>
+    </>
   );
 }

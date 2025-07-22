@@ -235,7 +235,7 @@ export async function GET(request, { params }) {
             a.email,
             a.website
           FROM MemberRegist_AM_Main m
-          LEFT JOIN MemberRegist_AM_Address a ON m.id = a.member_id
+          LEFT JOIN MemberRegist_AM_Address a ON m.id = a.main_id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -254,7 +254,7 @@ export async function GET(request, { params }) {
             a.email AS company_email,
             a.website AS company_website
           FROM MemberRegist_AC_Main m
-          LEFT JOIN MemberRegist_AC_Address a ON m.id = a.member_id
+          LEFT JOIN MemberRegist_AC_Address a ON m.id = a.main_id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -264,13 +264,19 @@ export async function GET(request, { params }) {
         query = `
           SELECT 
             i.*,
-            a.address,
-            a.province,
-            a.district,
+            a.address_number,
+            a.moo,
+            a.soi,
+            a.road as street,
             a.sub_district,
-            a.postal_code
-          FROM ICmember_Info i
-          LEFT JOIN ICmember_Address a ON i.id = a.member_id
+            a.district,
+            a.province,
+            a.postal_code,
+            a.phone,
+            a.email,
+            a.website
+          FROM MemberRegist_IC_Main i
+          LEFT JOIN MemberRegist_IC_Address a ON i.id = a.main_id
           WHERE i.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -327,7 +333,7 @@ export async function GET(request, { params }) {
     if (['oc', 'ac', 'ic'].includes(type)) {
       try {
         const businessStart = Date.now();
-        const businessTablePrefix = type === 'ic' ? 'ICmember' : `MemberRegist_${type.toUpperCase()}`;
+        const businessTablePrefix = `MemberRegist_${type.toUpperCase()}`;
         
         // Execute business types and products queries in parallel
         const [businessTypesResult, productsResult] = await Promise.all([
@@ -348,6 +354,22 @@ export async function GET(request, { params }) {
         console.error('Error fetching business types/products:', businessError);
         additionalData.businessTypes = [];
         additionalData.products = [];
+      }
+    }
+    
+    // For OC: Get other business type data
+    if (type === 'oc') {
+      try {
+        const otherBusinessStart = Date.now();
+        const [businessTypeOtherResult] = await connection.execute(
+          `SELECT * FROM MemberRegist_OC_BusinessTypeOther WHERE main_id = ?`,
+          [id]
+        );
+        console.log(`[PERF] Other business type query took: ${Date.now() - otherBusinessStart}ms`);
+        additionalData.businessTypeOther = businessTypeOtherResult || [];
+      } catch (otherBusinessError) {
+        console.error('Error fetching other business type:', otherBusinessError);
+        additionalData.businessTypeOther = [];
       }
     }
     
@@ -390,7 +412,7 @@ export async function GET(request, { params }) {
     // For all types: Get documents
     try {
       const documentsStart = Date.now();
-      const documentsTableName = type === 'ic' ? 'ICmember_Documents' : `MemberRegist_${type.toUpperCase()}_Documents`;
+      const documentsTableName = `MemberRegist_${type.toUpperCase()}_Documents`;
       const [documents] = await connection.execute(
         `SELECT * FROM ${documentsTableName} WHERE main_id = ?`,
         [id]
