@@ -12,9 +12,11 @@ const DocumentsSection = ({ documents, handleViewDocument }) => {
             <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="font-medium text-sm">{doc.document_name || `เอกสาร ${index + 1}`}</p>
-              <p className="text-gray-500 text-xs">{doc.file_path || '-'}</p>
+              <p className="text-gray-500 text-xs truncate" title={doc.file_path || '-'}>
+                {doc.file_path || '-'}
+              </p>
             </div>
             {doc.file_path && (
               <button 

@@ -258,10 +258,13 @@ export async function GET(request, { params }) {
         query = `
           SELECT 
             m.*,
-            a.address_number AS company_address,
-            a.province,
-            a.district,
+            a.address_number,
+            a.moo,
+            a.soi,
+            a.road,
             a.sub_district,
+            a.district,
+            a.province,
             a.postal_code,
             a.phone AS company_phone,
             a.email AS company_email,
@@ -309,12 +312,13 @@ export async function GET(request, { params }) {
     let additionalData = {};
     const additionalDataStart = Date.now();
     
-    // For OC: Get contact person
-    if (type === 'oc') {
+    // For OC and AC: Get contact person
+    if (['oc', 'ac'].includes(type)) {
       try {
         const contactStart = Date.now();
+        const contactTableName = `MemberRegist_${type.toUpperCase()}_ContactPerson`;
         const [contactPerson] = await connection.execute(
-          `SELECT * FROM MemberRegist_OC_ContactPerson WHERE main_id = ?`,
+          `SELECT * FROM ${contactTableName} WHERE main_id = ?`,
           [id]
         );
         console.log(`[PERF] Contact person query took: ${Date.now() - contactStart}ms`);
@@ -370,12 +374,13 @@ export async function GET(request, { params }) {
       }
     }
     
-    // For OC: Get other business type data
-    if (type === 'oc') {
+    // For OC and AC: Get other business type data
+    if (['oc', 'ac'].includes(type)) {
       try {
         const otherBusinessStart = Date.now();
+        const otherBusinessTableName = `MemberRegist_${type.toUpperCase()}_BusinessTypeOther`;
         const [businessTypeOtherResult] = await connection.execute(
-          `SELECT * FROM MemberRegist_OC_BusinessTypeOther WHERE main_id = ?`,
+          `SELECT * FROM ${otherBusinessTableName} WHERE main_id = ?`,
           [id]
         );
         console.log(`[PERF] Other business type query took: ${Date.now() - otherBusinessStart}ms`);

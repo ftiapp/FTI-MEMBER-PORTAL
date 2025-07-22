@@ -173,7 +173,7 @@ const MembershipDetailView = ({
       <BusinessInfoSection 
         businessTypes={application.businessTypes} 
         products={application.products} 
-        businessTypeOther={type === 'oc' ? application.businessTypeOther : null}
+        businessTypeOther={['oc', 'ac'].includes(type) ? application.businessTypeOther : null}
       />
       
       {/* Industrial Groups and Provincial Chapters */}

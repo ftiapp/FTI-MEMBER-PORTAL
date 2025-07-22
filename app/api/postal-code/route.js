@@ -13,68 +13,101 @@ async function fetchThailandData() {
     return cachedData;
   }
 
-  try {
-    console.log('Fetching Thailand address data from server...');
-    
-    // ปรับปรุงการ fetch ให้รองรับ production environment
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-    
-    const response = await fetch(
-      'https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json',
-      {
+  // รายการ Proxy URLs สำหรับ fallback
+  const proxyUrls = [
+    // ลองเข้าถึงโดยตรงก่อน
+    'https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json',
+    // CORS Proxy services
+    'https://cors-anywhere.herokuapp.com/https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json',
+    'https://api.allorigins.win/get?url=' + encodeURIComponent('https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json'),
+    'https://corsproxy.io/?' + encodeURIComponent('https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json')
+  ];
+
+  let lastError = null;
+
+  for (let i = 0; i < proxyUrls.length; i++) {
+    try {
+      console.log(`Attempt ${i + 1}: Fetching Thailand address data from ${proxyUrls[i].includes('allorigins') ? 'AllOrigins proxy' : proxyUrls[i].includes('cors-anywhere') ? 'CORS Anywhere proxy' : proxyUrls[i].includes('corsproxy') ? 'CorsProxy.io' : 'GitHub direct'}...`);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout per attempt
+      
+      const response = await fetch(proxyUrls[i], {
         method: 'GET',
         headers: {
           'User-Agent': 'Mozilla/5.0 (compatible; Thailand-Address-API/1.0)',
           'Accept': 'application/json',
           'Cache-Control': 'no-cache',
+          // เพิ่ม header สำหรับ CORS Anywhere
+          ...(proxyUrls[i].includes('cors-anywhere') && {
+            'X-Requested-With': 'XMLHttpRequest'
+          })
         },
         signal: controller.signal,
-        // เพิ่ม options สำหรับ production
         mode: 'cors',
         credentials: 'omit',
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status} - ${response.statusText}`);
       }
-    );
-    
-    clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error(`GitHub API error! status: ${response.status} - ${response.statusText}`);
-    }
+      let rawData;
+      
+      // Handle different proxy response formats
+      if (proxyUrls[i].includes('allorigins')) {
+        const proxyResponse = await response.json();
+        if (proxyResponse.contents) {
+          rawData = JSON.parse(proxyResponse.contents);
+        } else {
+          throw new Error('Invalid AllOrigins response format');
+        }
+      } else {
+        rawData = await response.json();
+      }
+      
+      if (!rawData || !Array.isArray(rawData)) {
+        throw new Error('Invalid data format received');
+      }
+      
+      const processedData = processThailandData(rawData);
+      
+      if (processedData.length === 0) {
+        throw new Error('No valid data processed from response');
+      }
+      
+      cachedData = processedData;
+      lastFetch = Date.now();
+      console.log(`Successfully loaded ${processedData.length} records from attempt ${i + 1}`);
+      
+      return cachedData;
 
-    const rawData = await response.json();
-    
-    if (!rawData || !Array.isArray(rawData)) {
-      throw new Error('Invalid data format received from GitHub');
+    } catch (error) {
+      console.error(`Attempt ${i + 1} failed:`, error.message);
+      lastError = error;
+      
+      // ถ้าเป็น AbortError (timeout) ให้ลองต่อ
+      if (error.name === 'AbortError') {
+        console.log(`Attempt ${i + 1} timed out, trying next proxy...`);
+        continue;
+      }
+      
+      // ถ้าเป็น network error ให้ลองต่อ
+      if (error.message.includes('fetch') || error.message.includes('network')) {
+        console.log(`Attempt ${i + 1} network error, trying next proxy...`);
+        continue;
+      }
+      
+      // ถ้าเป็น error อื่นๆ ให้ลองต่อ
+      continue;
     }
-    
-    const processedData = processThailandData(rawData);
-    
-    if (processedData.length === 0) {
-      throw new Error('No valid data processed from GitHub response');
-    }
-    
-    cachedData = processedData;
-    lastFetch = Date.now();
-    console.log(`Successfully loaded ${processedData.length} records`);
-    
-    return cachedData;
-
-  } catch (error) {
-    console.error('Error fetching Thailand data:', error);
-    
-    // ถ้าเป็น AbortError (timeout)
-    if (error.name === 'AbortError') {
-      throw new Error('Request timeout - GitHub API took too long to respond');
-    }
-    
-    // ถ้าเป็น network error
-    if (error.message.includes('fetch')) {
-      throw new Error('Network error - Unable to connect to GitHub API');
-    }
-    
-    throw error;
   }
+
+  // ถ้าทุก proxy ล้มเหลว
+  console.error('All proxy attempts failed');
+  throw new Error(`Failed to fetch Thailand address data after ${proxyUrls.length} attempts. Last error: ${lastError?.message || 'Unknown error'}`);
 }
 
 function processThailandData(rawData) {
