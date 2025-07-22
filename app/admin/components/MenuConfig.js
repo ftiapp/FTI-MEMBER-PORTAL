@@ -8,6 +8,11 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
       path: '/admin/dashboard',
       icon: MenuIcons.dashboard,
     },
+    {
+      name: 'จัดการคำขอสมาชิกใหม่',
+      path: '/admin/dashboard/membership-requests',
+      icon: MenuIcons.manageAdmins,
+    },
    
     {
       name: 'ยืนยันตัวตนสมาชิกเดิม',
