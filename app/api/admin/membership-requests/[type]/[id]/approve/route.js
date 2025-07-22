@@ -57,39 +57,45 @@ export async function POST(request, { params }) {
         [id]
       );
 
-      // Save admin note if provided
+      // Save admin note directly to the main table if provided
       if (adminNote && adminNote.trim()) {
-        // Check if admin_notes table exists for this type
-        const adminNotesTable = type === 'ic' ? 'ICmember_AdminNotes' : `MemberRegist_${type.toUpperCase()}_AdminNotes`;
-        
-        // Check if table exists
-        const [tables] = await connection.execute(
-          `SHOW TABLES LIKE '${adminNotesTable}'`
+        await connection.execute(
+          `UPDATE ${tableName} SET admin_note = ?, admin_note_by = ?, admin_note_at = NOW() WHERE id = ?`,
+          [adminNote, adminData.id, id]
         );
-        
-        if (tables.length > 0) {
-          // Check if note already exists
-          const [existingNote] = await connection.execute(
-            `SELECT * FROM ${adminNotesTable} WHERE member_id = ?`,
-            [id]
-          );
-          
-          if (existingNote && existingNote.length > 0) {
-            // Update existing note
-            await connection.execute(
-              `UPDATE ${adminNotesTable} SET note = ?, updated_at = NOW() WHERE member_id = ?`,
-              [adminNote, id]
-            );
-          } else {
-            // Insert new note
-            await connection.execute(
-              `INSERT INTO ${adminNotesTable} (member_id, note, created_at, updated_at) VALUES (?, ?, NOW(), NOW())`,
-              [id, adminNote]
-            );
-          }
-        }
       }
 
+      // Fetch tax ID and company name for the description
+      let taxId = '';
+      let companyName = '';
+      
+      try {
+        let query;
+        if (type === 'ic') {
+          // For IC, use id_card instead of tax_id and name instead of company_name
+          query = `SELECT id_card as tax_id, CONCAT(first_name_th, ' ', last_name_th) as company_name FROM ICmember_Info WHERE id = ?`;
+        } else {
+          // For OC, AM, AC
+          const fieldMap = {
+            'oc': { table: 'MemberRegist_OC_Main', taxField: 'tax_id', nameField: 'company_name_th' },
+            'am': { table: 'MemberRegist_AM_Main', taxField: 'tax_id', nameField: 'association_name_th' },
+            'ac': { table: 'MemberRegist_AC_Main', taxField: 'tax_id', nameField: 'company_name_th' }
+          };
+          
+          const { table, taxField, nameField } = fieldMap[type];
+          query = `SELECT ${taxField} as tax_id, ${nameField} as company_name FROM ${table} WHERE id = ?`;
+        }
+        
+        const [rows] = await connection.execute(query, [id]);
+        if (rows && rows.length > 0) {
+          taxId = rows[0].tax_id || '';
+          companyName = rows[0].company_name || '';
+        }
+      } catch (error) {
+        console.error('Error fetching member details:', error);
+        // Continue with empty values if there's an error
+      }
+      
       // Log admin action
       const memberTypeMap = {
         'oc': 'สน (สามัญ-โรงงาน)',
@@ -98,16 +104,15 @@ export async function POST(request, { params }) {
         'ic': 'ทบ (สมทบ-บุคคลธรรมดา)'
       };
       
-      const description = `อนุมัติคำขอสมัครสมาชิกประเภท ${memberTypeMap[type]} ID: ${id}`;
+      const description = `อนุมัติคำขอสมัครสมาชิกประเภท ${memberTypeMap[type]} ID: ${id} TAX ID: ${taxId} ชื่อ: ${companyName}`;
       
       await connection.execute(
-        `INSERT INTO admin_actions_log (admin_id, action_type, target_id, target_type, description, ip_address, user_agent, created_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+        `INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
+         VALUES (?, ?, ?, ?, ?, ?, NOW())`,
         [
           adminData.id,
-          'approve_membership',
+          'approve_member',
           id,
-          type,
           description,
           request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown',
           request.headers.get('user-agent') || 'unknown'

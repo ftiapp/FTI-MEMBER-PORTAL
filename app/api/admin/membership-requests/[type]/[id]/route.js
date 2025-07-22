@@ -29,6 +29,19 @@ function convertFieldNames(data, type) {
     converted.userId = converted.user_id;
     delete converted.user_id;
   }
+  // Admin note fields
+  if (converted.admin_note !== undefined) {
+    converted.adminNote = converted.admin_note;
+    delete converted.admin_note;
+  }
+  if (converted.admin_note_by !== undefined) {
+    converted.adminNoteBy = converted.admin_note_by;
+    delete converted.admin_note_by;
+  }
+  if (converted.admin_note_at !== undefined) {
+    converted.adminNoteAt = converted.admin_note_at;
+    delete converted.admin_note_at;
+  }
   
   // Type-specific conversions based on actual database schema
   switch (type) {
@@ -245,7 +258,7 @@ export async function GET(request, { params }) {
         query = `
           SELECT 
             m.*,
-            a.address AS company_address,
+            a.address_number AS company_address,
             a.province,
             a.district,
             a.sub_district,
@@ -409,12 +422,65 @@ export async function GET(request, { params }) {
       }
     }
     
+    // For IC: Get representatives, industrial groups, and provincial chapters
+    if (type === 'ic') {
+      try {
+        const icDataStart = Date.now();
+        
+        // Execute all IC-specific queries in parallel
+        const [representativesResult, industrialGroupsResult, provincialChaptersResult] = await Promise.all([
+          // Get representatives
+          connection.execute(`
+            SELECT * FROM ICmember_Representatives WHERE ic_member_id = ?
+          `, [id]).catch(err => {
+            console.error('Error fetching IC representatives:', err);
+            return [[]]; // Return empty result
+          }),
+          // Get industrial groups
+          connection.execute(`
+            SELECT industry_group_id as id FROM ICmember_Industry_Group WHERE ic_member_id = ?
+          `, [id]).catch(err => {
+            console.error('Error fetching IC industrial groups:', err);
+            return [[]]; // Return empty result
+          }),
+          // Get provincial chapters
+          connection.execute(`
+            SELECT province_group_id as id FROM ICmember_Province_Group WHERE ic_member_id = ?
+          `, [id]).catch(err => {
+            console.error('Error fetching IC provincial chapters:', err);
+            return [[]]; // Return empty result
+          })
+        ]);
+        
+        console.log(`[PERF] IC-specific data queries took: ${Date.now() - icDataStart}ms`);
+        additionalData.representatives = representativesResult[0] || [];
+        additionalData.industrialGroupIds = industrialGroupsResult[0] || [];
+        additionalData.provincialChapterIds = provincialChaptersResult[0] || [];
+      } catch (icError) {
+        console.error('Error fetching IC-specific data:', icError);
+        additionalData.representatives = [];
+        additionalData.industrialGroupIds = [];
+        additionalData.provincialChapterIds = [];
+      }
+    }
+    
     // For all types: Get documents
     try {
       const documentsStart = Date.now();
-      const documentsTableName = `MemberRegist_${type.toUpperCase()}_Documents`;
+      let documentsTableName, documentIdField;
+      
+      if (type === 'ic') {
+        // IC uses different table structure
+        documentsTableName = 'ICmember_Document';
+        documentIdField = 'ic_member_id';
+      } else {
+        // OC, AM, AC use standard structure
+        documentsTableName = `MemberRegist_${type.toUpperCase()}_Documents`;
+        documentIdField = 'main_id';
+      }
+      
       const [documents] = await connection.execute(
-        `SELECT * FROM ${documentsTableName} WHERE main_id = ?`,
+        `SELECT * FROM ${documentsTableName} WHERE ${documentIdField} = ?`,
         [id]
       );
       console.log(`[PERF] Documents query took: ${Date.now() - documentsStart}ms`);

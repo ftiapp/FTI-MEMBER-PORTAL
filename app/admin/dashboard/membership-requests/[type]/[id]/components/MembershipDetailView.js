@@ -13,6 +13,7 @@ const MembershipDetailView = ({
   handleViewDocument, 
   handleApprove, 
   handleReject,
+  handleSaveNote,
   isSubmitting,
   adminNote,
   setAdminNote,
@@ -73,48 +74,41 @@ const MembershipDetailView = ({
           industrialGroups={industrialGroups}
           provincialChapters={provincialChapters}
           handleViewDocument={handleViewDocument}
+          handlePrint={handlePrint}
+          handleSaveNote={handleSaveNote}
+          adminNote={adminNote}
+          setAdminNote={setAdminNote}
+          isSubmitting={isSubmitting}
         />
         
-        {/* Admin Actions */}
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">การดำเนินการของผู้ดูแลระบบ</h3>
-          
-          {/* Admin Note */}
-          <div className="mb-6">
-            <label className="block text-gray-700 mb-2">หมายเหตุของผู้ดูแลระบบ</label>
-            <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              rows="3"
-              value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
-              placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
-            ></textarea>
+        {/* Admin Action Buttons - Only approve/reject buttons */}
+        {application.status !== 1 && (
+          <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6 print:hidden">
+            <h3 className="text-xl font-semibold mb-4 text-blue-600">การดำเนินการ</h3>
+            <div className="flex justify-end space-x-4">
+              <button
+                onClick={handleReject}
+                className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 transition-colors"
+                disabled={isSubmitting}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
+              </button>
+              <button
+                onClick={handleApprove}
+                className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+                disabled={isSubmitting}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
+              </button>
+            </div>
           </div>
-          
-          {/* Action Buttons */}
-          <div className="flex justify-end space-x-4">
-            <button
-              onClick={handleReject}
-              className="px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
-            </button>
-            <button
-              onClick={handleApprove}
-              className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
-            </button>
-            <button
-              onClick={handlePrint}
-              className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              พิมพ์
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -146,22 +140,14 @@ const MembershipDetailView = ({
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
           <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลผู้ติดต่อ</h3>
           {(application.contactPersons || application.contactPerson || []).map((contact, index) => (
-            <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 border border-gray-100 rounded-lg">
+            <div key={index} className="grid grid-cols-1 md:grid-cols-3 gap-2 mb-2 p-2 border border-gray-100 rounded-lg">
               <div>
-                <p className="text-gray-600 text-sm">ชื่อ (ภาษาไทย)</p>
-                <p className="font-medium">{contact.first_name_th || contact.firstNameTh || '-'}</p>
+                <p className="text-gray-600 text-sm">ชื่อ-สกุล (ไทย)</p>
+                <p className="font-medium">{(contact.first_name_th || contact.firstNameTh || '') + ' ' + (contact.last_name_th || contact.lastNameTh || '')}</p>
               </div>
               <div>
-                <p className="text-gray-600 text-sm">นามสกุล (ภาษาไทย)</p>
-                <p className="font-medium">{contact.last_name_th || contact.lastNameTh || '-'}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm">ชื่อ (ภาษาอังกฤษ)</p>
-                <p className="font-medium">{contact.first_name_en || contact.firstNameEn || '-'}</p>
-              </div>
-              <div>
-                <p className="text-gray-600 text-sm">นามสกุล (ภาษาอังกฤษ)</p>
-                <p className="font-medium">{contact.last_name_en || contact.lastNameEn || '-'}</p>
+                <p className="text-gray-600 text-sm">ชื่อ-สกุล (อังกฤษ)</p>
+                <p className="font-medium">{(contact.first_name_en || contact.firstNameEn || '') + ' ' + (contact.last_name_en || contact.lastNameEn || '')}</p>
               </div>
               <div>
                 <p className="text-gray-600 text-sm">ตำแหน่ง</p>
@@ -206,13 +192,20 @@ const MembershipDetailView = ({
         />
       </div>
       
-      {/* Admin Actions */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
+      {/* Admin Actions - Hidden in print */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6 print:hidden">
         <h3 className="text-xl font-semibold mb-4 text-blue-600">การดำเนินการของผู้ดูแลระบบ</h3>
         
         {/* Admin Note */}
         <div className="mb-6">
-          <label className="block text-gray-700 mb-2">หมายเหตุของผู้ดูแลระบบ</label>
+          <div className="flex justify-between items-center mb-2">
+            <label className="block text-gray-700">หมายเหตุของผู้ดูแลระบบ</label>
+            {application.adminNoteAt && (
+              <span className="text-sm text-gray-500">
+                บันทึกเมื่อ: {new Date(application.adminNoteAt).toLocaleString('th-TH')}
+              </span>
+            )}
+          </div>
           <textarea
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows="3"
@@ -220,30 +213,43 @@ const MembershipDetailView = ({
             onChange={(e) => setAdminNote(e.target.value)}
             placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
           ></textarea>
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={handleSaveNote}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}
+            </button>
+          </div>
         </div>
         
         {/* Action Buttons */}
         <div className="flex justify-end space-x-4">
-          <button
-            onClick={handleReject}
-            className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
-            disabled={isSubmitting}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
-          </button>
-          <button
-            onClick={handleApprove}
-            className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
-            disabled={isSubmitting}
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-            {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
-          </button>
+          {application.status !== 1 && (
+            <>
+              <button
+                onClick={handleReject}
+                className="flex items-center gap-2 px-6 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
+                disabled={isSubmitting}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
+              </button>
+              <button
+                onClick={handleApprove}
+                className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50"
+                disabled={isSubmitting}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

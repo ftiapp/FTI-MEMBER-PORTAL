@@ -1,392 +1,156 @@
-/* Professional Print Styles for Membership Request Detail View */
+/* Ultra-Compact Print Styles - Maximum 2-3 Pages */
 @media print {
-  /* Reset all display properties */
-  * {
-    visibility: visible !important;
-    display: block !important;
-    position: static !important;
-    overflow: visible !important;
-    height: auto !important;
-    max-height: none !important;
-    min-height: auto !important;
-    width: auto !important;
-    max-width: none !important;
-    min-width: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    transform: none !important;
-    opacity: 1 !important;
-  }
-
-  /* Page setup - Compact margins */
   @page {
     size: A4;
-    margin: 15mm;
+    margin: 8mm;
+  }
+
+  * {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
   }
 
   html, body {
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    font-family: 'Sarabun', 'Tahoma', 'Arial', sans-serif !important;
-    font-size: 10pt !important;
-    line-height: 1.3 !important;
-    color: #2d3748 !important;
-    background: white !important;
-    overflow: visible !important;
-  }
-
-  /* Hide interactive and non-essential elements */
-  .print\\:hidden,
-  button,
-  textarea,
-  input,
-  .hover\\:bg-blue-700,
-  .hover\\:bg-red-700,
-  .hover\\:bg-green-700,
-  .hover\\:text-blue-800,
-  .cursor-pointer,
-  .cursor-not-allowed,
-  [class*="hover:"],
-  [class*="focus:"],
-  svg,
-  .bg-blue-600,
-  .bg-red-600,
-  .bg-green-600,
-  .bg-gray-600 {
-    display: none !important;
-    visibility: hidden !important;
-  }
-
-  /* Container resets - Compact */
-  .container,
-  .mx-auto,
-  .px-4,
-  .py-8,
-  .space-y-6,
-  .space-y-4,
-  .mb-6,
-  .mb-4,
-  .p-6,
-  .p-4 {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 3pt !important;
-    max-width: none !important;
-  }
-
-  /* Main content container - Compact */
-  .space-y-6 {
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .space-y-6 > * {
-    display: block !important;
-    margin-bottom: 8pt !important;
-    page-break-inside: avoid;
-  }
-
-  /* Header styling - Compact */
-  h1 {
-    font-size: 16pt !important;
-    font-weight: 600 !important;
-    text-align: center !important;
-    margin: 0 0 12pt 0 !important;
-    padding: 8pt 0 !important;
-    background: linear-gradient(135deg, #1e40af, #3b82f6) !important;
-    color: white !important;
-    border-radius: 4pt !important;
-    page-break-after: avoid !important;
-  }
-
-  h2, h3 {
-    font-size: 12pt !important;
-    font-weight: 600 !important;
-    margin: 10pt 0 6pt 0 !important;
-    padding: 4pt 0 2pt 0 !important;
-    color: #1e40af !important;
-    border-bottom: 1pt solid #e2e8f0 !important;
-    page-break-after: avoid !important;
-  }
-
-  h4 {
-    font-size: 10pt !important;
-    font-weight: 600 !important;
-    margin: 8pt 0 4pt 0 !important;
-    color: #374151 !important;
-  }
-
-  /* Section styling - Compact */
-  .bg-white,
-  .rounded-lg,
-  .border,
-  .border-gray-200,
-  div[class*="bg-white"] {
-    display: block !important;
-    background: #fafbff !important;
-    border: 1pt solid #cbd5e1 !important;
-    border-radius: 3pt !important;
-    margin: 0 0 6pt 0 !important;
-    padding: 6pt !important;
-    page-break-inside: avoid;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-
-  /* Grid layouts - more refined */
-  .grid,
-  .grid-cols-1,
-  .grid-cols-2,
-  .md\\:grid-cols-2,
-  div[class*="grid"] {
-    display: block !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  .grid > div,
-  .grid-cols-1 > div,
-  .grid-cols-2 > div,
-  .md\\:grid-cols-2 > div,
-  div[class*="grid"] > div {
-    display: inline-block !important;
-    width: 48% !important;
-    vertical-align: top !important;
-    margin: 0 1% 4pt 0 !important;
-    padding: 3pt !important;
-    background: white !important;
-    border-radius: 2pt !important;
-    box-sizing: border-box !important;
-  }
-
-  .grid > div:nth-child(2n),
-  .grid-cols-2 > div:nth-child(2n),
-  .md\\:grid-cols-2 > div:nth-child(2n) {
-    margin-right: 0 !important;
-  }
-
-  /* Text styling - Compact */
-  .text-gray-600,
-  .text-sm {
-    color: #64748b !important;
-    font-size: 8pt !important;
-    font-weight: 500 !important;
-    margin: 0 0 1pt 0 !important;
-    text-transform: uppercase !important;
-    letter-spacing: 0.3pt !important;
-  }
-
-  .font-medium,
-  .font-semibold {
-    font-weight: 600 !important;
-    font-size: 9pt !important;
-    color: #1f2937 !important;
-    margin: 0 0 3pt 0 !important;
-  }
-
-  .text-xl {
-    font-size: 12pt !important;
-    font-weight: 600 !important;
-    color: #1e40af !important;
-  }
-
-  .text-lg {
-    font-size: 10pt !important;
-    font-weight: 600 !important;
-    color: #374151 !important;
-  }
-
-  /* Badge/tag styling - Compact */
-  .rounded-full,
-  .bg-blue-100,
-  .bg-orange-100,
-  .bg-green-100,
-  .bg-yellow-100,
-  .bg-red-100,
-  span[class*="bg-"],
-  .px-3,
-  .py-1 {
-    display: inline-block !important;
-    border: 1pt solid #3b82f6 !important;
-    background: #dbeafe !important;
-    color: #1e40af !important;
-    padding: 1pt 4pt !important;
-    margin: 1pt 2pt !important;
+    font-family: Arial, sans-serif !important;
     font-size: 7pt !important;
-    font-weight: 500 !important;
-    border-radius: 6pt !important;
+    line-height: 1.1 !important;
+    color: #000 !important;
   }
 
-  /* Representative and contact sections - Compact */
-  .border-gray-200,
-  .border-gray-100 {
-    border: 1pt solid #e2e8f0 !important;
-    background: white !important;
-    border-radius: 3pt !important;
-    margin: 0 0 4pt 0 !important;
-    padding: 4pt !important;
-    display: block !important;
+  /* Hide all non-essential elements */
+  button, input, textarea, .print\:hidden, .screen-only,
+  [class*="hover:"], [class*="focus:"], [class*="shadow"],
+  .bg-gray-50, .bg-gray-100, .bg-gray-200, .bg-gray-300,
+  .bg-gray-400, .bg-gray-500, .bg-gray-600 {
+    display: none !important;
   }
 
-  /* Compact spacing */
-  .mb-6 { margin-bottom: 8pt !important; }
-  .mb-4 { margin-bottom: 6pt !important; }
-  .mb-3 { margin-bottom: 4pt !important; }
-  .mb-2 { margin-bottom: 3pt !important; }
-  .mt-4 { margin-top: 6pt !important; }
-  .mt-6 { margin-top: 8pt !important; }
-  .p-6 { padding: 6pt !important; }
-  .p-4 { padding: 4pt !important; }
-  .p-3 { padding: 3pt !important; }
-  .p-2 { padding: 2pt !important; }
-
-  /* Better spacing for content groups */
-  .space-y-4 > * {
-    margin-bottom: 4pt !important;
+  /* Ultra-compact containers */
+  .container, .mx-auto, .px-4, .px-6, .py-4, .py-6,
+  .max-w-7xl, .max-w-6xl, .max-w-5xl, .max-w-4xl {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 1pt !important;
   }
 
-  .space-y-2 > * {
+  /* Minimal spacing */
+  .space-y-6 > *, .space-y-4 > *, .space-y-2 > * {
     margin-bottom: 2pt !important;
   }
 
-  /* Compact document info box */
-  .document-info {
-    margin-bottom: 8pt !important;
-    padding: 6pt !important;
-    border: 1pt solid #3b82f6 !important;
-    background: #eff6ff !important;
-    border-radius: 3pt !important;
-    color: #1e40af !important;
-    font-weight: 500 !important;
-  }
-
-  .document-info p {
-    margin: 2pt 0 !important;
-  }
-
-  /* Compact typography */
-  p {
+  /* Ultra-compact headers */
+  h1 {
+    font-size: 10pt !important;
+    font-weight: bold !important;
+    text-align: center !important;
     margin: 0 0 3pt 0 !important;
+    padding: 2pt !important;
+    border-bottom: 1pt solid #000 !important;
   }
 
-  strong {
-    color: #1e40af !important;
-    font-weight: 600 !important;
+  h2, h3 {
+    font-size: 8pt !important;
+    font-weight: bold !important;
+    margin: 2pt 0 1pt 0 !important;
+    border-bottom: 0.5pt solid #666 !important;
   }
 
-  /* Field groups with accent border */
-  .field-group {
-    background: white !important;
-    border-left: 3pt solid #3b82f6 !important;
-    padding-left: 8pt !important;
+  h4 {
+    font-size: 7pt !important;
+    font-weight: bold !important;
+    margin: 1pt 0 !important;
   }
 
-  /* Links remain professional */
-  a,
-  .text-blue-600 {
-    color: #1e40af !important;
-    text-decoration: underline !important;
+  /* Ultra-compact sections */
+  .bg-white, .rounded-lg, .border, .border-gray-200,
+  div[class*="bg-white"] {
+    border: 0.5pt solid #ccc !important;
+    margin: 0 0 2pt 0 !important;
+    padding: 2pt !important;
+    page-break-inside: avoid;
   }
 
-  /* Flex to block conversion */
-  .flex,
-  .flex-wrap,
-  .flex-col,
-  .items-center,
-  .justify-between,
-  .justify-end {
+  /* Inline grid layout for maximum space efficiency */
+  .grid, .grid-cols-1, .grid-cols-2, .md\:grid-cols-2,
+  div[class*="grid"] {
     display: block !important;
   }
 
-  /* Gap utilities */
-  .gap-4 > *,
-  .gap-3 > *,
-  .gap-2 > * {
-    margin-right: 5pt !important;
-    margin-bottom: 5pt !important;
+  .grid > div, .grid-cols-1 > div, .grid-cols-2 > div,
+  .md\:grid-cols-2 > div, div[class*="grid"] > div {
+    display: inline-block !important;
+    width: 32% !important;
+    vertical-align: top !important;
+    margin: 0 1% 1pt 0 !important;
+    padding: 1pt !important;
+    box-sizing: border-box !important;
   }
 
-  /* Ensure all content is visible */
-  div,
-  section,
-  article,
-  main {
-    display: block !important;
-    visibility: visible !important;
-    overflow: visible !important;
-    height: auto !important;
-    max-height: none !important;
+  /* Ultra-compact text */
+  .text-gray-600, .text-sm {
+    font-size: 6pt !important;
+    color: #666 !important;
+    margin: 0 !important;
   }
 
-  /* Page breaks for better organization */
-  .page-break-before {
-    page-break-before: always !important;
+  .font-medium, .font-semibold {
+    font-weight: bold !important;
+    font-size: 7pt !important;
+    margin: 0 0 1pt 0 !important;
   }
 
-  .page-break-after {
-    page-break-after: always !important;
+  .text-xl {
+    font-size: 8pt !important;
+    font-weight: bold !important;
   }
 
-  .avoid-page-break {
-    page-break-inside: avoid !important;
+  .text-lg {
+    font-size: 7pt !important;
+    font-weight: bold !important;
   }
 
-  /* Force display of all child elements */
-  * > * {
+  /* Minimal badges */
+  .rounded-full, .bg-blue-100, .bg-orange-100, .bg-green-100,
+  .bg-yellow-100, .bg-red-100, span[class*="bg-"],
+  .px-3, .py-1 {
+    display: inline !important;
+    border: 0.5pt solid #666 !important;
+    padding: 0pt 2pt !important;
+    margin: 0pt 1pt !important;
+    font-size: 6pt !important;
+  }
+
+  /* Minimal spacing utilities */
+  .mb-6, .mb-4, .mb-3, .mb-2 { margin-bottom: 1pt !important; }
+  .mt-4, .mt-6 { margin-top: 1pt !important; }
+  .p-6, .p-4, .p-3, .p-2 { padding: 1pt !important; }
+
+  /* Compact paragraphs */
+  p {
+    margin: 0 0 1pt 0 !important;
+    font-size: 7pt !important;
+  }
+
+  /* Force everything to be visible and compact */
+  div, section, article, main {
     display: block !important;
     visibility: visible !important;
   }
 
   /* Keep inline elements inline */
-  span,
-  em,
-  strong,
-  b,
-  i {
+  span, a, em, strong, b, i {
     display: inline !important;
   }
 
-  /* Print utilities */
+  /* Print-only utilities */
   .print-only {
     display: block !important;
   }
 
   .screen-only {
     display: none !important;
-  }
-
-  /* Ensure proper page flow */
-  body * {
-    page-break-inside: auto !important;
-  }
-
-  /* Specific overrides for common hiding classes */
-  .hidden,
-  .invisible,
-  .opacity-0,
-  [style*="display: none"],
-  [style*="visibility: hidden"] {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
-  }
-
-  /* Ensure specific sections are visible - Compact */
-  [class*="ApplicantInfoSection"],
-  [class*="AddressSection"],
-  [class*="BusinessInfoSection"],
-  [class*="RepresentativesSection"],
-  [class*="GroupsSection"] {
-    display: block !important;
-    visibility: visible !important;
-    margin-bottom: 6pt !important;
-    page-break-inside: avoid !important;
   }
 }
 

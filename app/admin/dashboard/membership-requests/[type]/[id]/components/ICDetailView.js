@@ -1,11 +1,40 @@
 import React from 'react';
 
-const ICDetailView = ({ application, industrialGroups, provincialChapters, handleViewDocument }) => {
+const ICDetailView = ({ 
+  application, 
+  industrialGroups, 
+  provincialChapters, 
+  handleViewDocument,
+  handlePrint,
+  handleSaveNote,
+  adminNote,
+  setAdminNote,
+  isSubmitting 
+}) => {
   return (
     <div className="space-y-6">
+      {/* Header with Print Button */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">ข้อมูลการสมัครสมาชิก IC</h2>
+        <button
+          onClick={handlePrint}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          title="พิมพ์เอกสาร"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+          </svg>
+          พิมพ์
+        </button>
+      </div>
       {/* ข้อมูลผู้สมัคร */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลผู้สมัคร</h3>
+        <div className="flex items-center gap-2 mb-4">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <h3 className="text-xl font-semibold text-blue-600">ข้อมูลผู้สมัคร</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600 text-sm">ชื่อ (ไทย)</p>
@@ -44,7 +73,13 @@ const ICDetailView = ({ application, industrialGroups, provincialChapters, handl
 
       {/* ข้อมูลที่อยู่ */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลที่อยู่</h3>
+        <div className="flex items-center gap-2 mb-4">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <h3 className="text-xl font-semibold text-blue-600">ข้อมูลที่อยู่</h3>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600 text-sm">บ้านเลขที่</p>
@@ -84,7 +119,12 @@ const ICDetailView = ({ application, industrialGroups, provincialChapters, handl
       {/* ข้อมูลธุรกิจ */}
       {application.businessTypes && application.businessTypes.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลธุรกิจ</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <h3 className="text-xl font-semibold text-blue-600">ข้อมูลธุรกิจ</h3>
+          </div>
           
           {/* ประเภทธุรกิจ */}
           <div className="mb-6">
@@ -140,7 +180,12 @@ const ICDetailView = ({ application, industrialGroups, provincialChapters, handl
       {/* ข้อมูลผู้แทน */}
       {application.representatives && application.representatives.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลผู้แทน</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <h3 className="text-xl font-semibold text-blue-600">ข้อมูลผู้แทน</h3>
+          </div>
           <div className="space-y-4">
             {application.representatives.map((rep, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4">
@@ -183,7 +228,12 @@ const ICDetailView = ({ application, industrialGroups, provincialChapters, handl
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
       {((application.industrialGroupIds && application.industrialGroupIds.length > 0) || (application.provincialChapterIds && application.provincialChapterIds.length > 0)) && (
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+            <h3 className="text-xl font-semibold text-blue-600">กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด</h3>
+          </div>
           
           {/* กลุ่มอุตสาหกรรม */}
           {application.industrialGroupIds && application.industrialGroupIds.length > 0 && (
@@ -238,7 +288,12 @@ const ICDetailView = ({ application, industrialGroups, provincialChapters, handl
       {/* ข้อมูลเอกสาร */}
       {application.documents && application.documents.length > 0 && (
         <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h3 className="text-xl font-semibold mb-4 text-blue-600">เอกสารแนบ</h3>
+          <div className="flex items-center gap-2 mb-4">
+            <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <h3 className="text-xl font-semibold text-blue-600">เอกสารแนบ</h3>
+          </div>
           <div className="space-y-2">
             {application.documents.map((doc, index) => (
               <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
@@ -267,6 +322,39 @@ const ICDetailView = ({ application, industrialGroups, provincialChapters, handl
           </div>
         </div>
       )}
+
+      {/* Admin Note Section */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6 print:hidden">
+        <div className="flex items-center gap-2 mb-4">
+          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          <h3 className="text-xl font-semibold text-blue-600">หมายเหตุของผู้ดูแลระบบ</h3>
+        </div>
+        
+        <div className="mb-4">
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows="3"
+            value={adminNote}
+            onChange={(e) => setAdminNote(e.target.value)}
+            placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
+          ></textarea>
+        </div>
+        
+        <div className="flex justify-end">
+          <button
+            onClick={handleSaveNote}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors"
+            disabled={isSubmitting}
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -34,6 +34,10 @@ export default function MembershipRequestDetail({ params }) {
         const data = await response.json();
         if (data.success) {
           setApplication(data.data);
+          // Initialize admin note from application data if available
+          if (data.data.adminNote) {
+            setAdminNote(data.data.adminNote);
+          }
         } else {
           toast.error(data.message || 'ไม่สามารถดึงข้อมูลการสมัครสมาชิกได้');
           router.push('/admin/dashboard/membership-requests');
@@ -51,6 +55,41 @@ export default function MembershipRequestDetail({ params }) {
       fetchApplicationDetails();
     }
   }, [type, id, router]);
+
+  // Handle save admin note separately
+  const handleSaveNote = async () => {
+    if (isSubmitting) return;
+    
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/admin/membership-requests/${type}/${id}/save-note`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ adminNote }),
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success('บันทึกหมายเหตุเรียบร้อยแล้ว');
+        // Update the application object to include the updated admin note
+        setApplication({
+          ...application,
+          adminNote: adminNote,
+          adminNoteAt: new Date().toISOString()
+        });
+      } else {
+        toast.error(data.message || 'ไม่สามารถบันทึกหมายเหตุได้');
+      }
+    } catch (error) {
+      console.error('Error saving admin note:', error);
+      toast.error('ไม่สามารถบันทึกหมายเหตุได้');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Handle approve application
   const handleApprove = async () => {
@@ -70,14 +109,17 @@ export default function MembershipRequestDetail({ params }) {
       
       if (data.success) {
         toast.success('อนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
-        router.push('/admin/dashboard/membership-requests');
+        // Add a small delay before redirecting to ensure the toast is seen
+        setTimeout(() => {
+          router.push('/admin/dashboard/membership-requests');
+        }, 1500);
       } else {
         toast.error(data.message || 'ไม่สามารถอนุมัติการสมัครสมาชิกได้');
+        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Error approving application:', error);
       toast.error('ไม่สามารถอนุมัติการสมัครสมาชิกได้');
-    } finally {
       setIsSubmitting(false);
     }
   };
@@ -626,6 +668,7 @@ export default function MembershipRequestDetail({ params }) {
               handleViewDocument={handleViewDocument}
               handleApprove={handleApprove}
               handleReject={handleRejectClick}
+              handleSaveNote={handleSaveNote}
               isSubmitting={isSubmitting}
               adminNote={adminNote}
               setAdminNote={setAdminNote}

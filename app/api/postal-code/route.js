@@ -2,6 +2,94 @@
 import { NextResponse } from 'next/server';
 import rateLimiter from '../../lib/rate-limiter';
 
+// Import the thailand address data fetching function directly
+let cachedData = null;
+let lastFetch = null;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 ชั่วโมง
+
+async function fetchThailandData() {
+  // ถ้ามี cache และยังไม่หมดอายุ
+  if (cachedData && lastFetch && (Date.now() - lastFetch < CACHE_DURATION)) {
+    return cachedData;
+  }
+
+  try {
+    console.log('Fetching Thailand address data from server...');
+    
+    // ปรับปรุงการ fetch ให้รองรับ production environment
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+    
+    const response = await fetch(
+      'https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json',
+      {
+        method: 'GET',
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Thailand-Address-API/1.0)',
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+        },
+        signal: controller.signal,
+        // เพิ่ม options สำหรับ production
+        mode: 'cors',
+        credentials: 'omit',
+      }
+    );
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`GitHub API error! status: ${response.status} - ${response.statusText}`);
+    }
+
+    const rawData = await response.json();
+    
+    if (!rawData || !Array.isArray(rawData)) {
+      throw new Error('Invalid data format received from GitHub');
+    }
+    
+    const processedData = processThailandData(rawData);
+    
+    if (processedData.length === 0) {
+      throw new Error('No valid data processed from GitHub response');
+    }
+    
+    cachedData = processedData;
+    lastFetch = Date.now();
+    console.log(`Successfully loaded ${processedData.length} records`);
+    
+    return cachedData;
+
+  } catch (error) {
+    console.error('Error fetching Thailand data:', error);
+    
+    // ถ้าเป็น AbortError (timeout)
+    if (error.name === 'AbortError') {
+      throw new Error('Request timeout - GitHub API took too long to respond');
+    }
+    
+    // ถ้าเป็น network error
+    if (error.message.includes('fetch')) {
+      throw new Error('Network error - Unable to connect to GitHub API');
+    }
+    
+    throw error;
+  }
+}
+
+function processThailandData(rawData) {
+  if (!rawData || !Array.isArray(rawData)) {
+    return [];
+  }
+
+  return rawData.map(item => ({
+    subdistrict: item[0] || '',
+    district: item[1] || '',
+    province: item[2] || '',
+    postalCode: item[3] || ''
+  }));
+}
+
 export async function GET(request) {
   try {
     const ip = request.headers.get('x-forwarded-for') || 'unknown';
@@ -37,28 +125,32 @@ export async function GET(request) {
       });
     }
 
-    // เรียกใช้ API เหมือนเดิม
-    const url = new URL(request.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
-    const apiUrl = `${baseUrl}/api/thailand-address?query=${encodeURIComponent(subDistrict)}&type=subdistrict`;
+    // Directly fetch and process thailand data instead of making internal HTTP call
+    const data = await fetchThailandData();
+    const searchTerm = subDistrict.toLowerCase().trim();
     
-    const response = await fetch(apiUrl, {
-      next: { revalidate: 0 }
-    });
+    const filteredData = data
+      .filter(item => 
+        item.subdistrict.toLowerCase().includes(searchTerm)
+      )
+      .sort((a, b) => {
+        const aStartsWith = a.subdistrict.toLowerCase().startsWith(searchTerm);
+        const bStartsWith = b.subdistrict.toLowerCase().startsWith(searchTerm);
+        
+        if (aStartsWith && !bStartsWith) return -1;
+        if (!aStartsWith && bStartsWith) return 1;
+        
+        return a.subdistrict.localeCompare(b.subdistrict, 'th');
+      })
+      .slice(0, 10);
     
-    if (!response.ok) {
-      throw new Error(`ไม่สามารถดึงข้อมูลรหัสไปรษณีย์ได้: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    if (data.success && data.data && data.data.length > 0) {
+    if (filteredData && filteredData.length > 0) {
       // Cache for 10 minutes
-      rateLimiter.setCache(cacheKey, data.data, 600000);
+      rateLimiter.setCache(cacheKey, filteredData, 600000);
       
       return NextResponse.json({
         success: true,
-        data: data.data
+        data: filteredData
       });
     } else {
       return NextResponse.json({
