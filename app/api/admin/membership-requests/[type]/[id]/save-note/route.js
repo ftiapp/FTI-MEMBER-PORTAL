@@ -5,7 +5,7 @@ import { checkAdminSession } from '@/app/lib/auth';
 export async function POST(request, { params }) {
   try {
     // Get params and request body
-    const { type, id } = params;
+    const { type, id } = await params;
     const { adminNote } = await request.json();
     
     // Validate parameters
@@ -44,6 +44,37 @@ export async function POST(request, { params }) {
     // Get database connection
     const connection = await getConnection();
 
+    // Get company info for logging
+    let companyInfo = '';
+    try {
+      let companyQuery = '';
+      let companyFields = [];
+      
+      switch (type) {
+        case 'oc':
+          companyQuery = 'SELECT tax_id, company_name_th FROM MemberRegist_OC_Main WHERE id = ?';
+          break;
+        case 'am':
+          companyQuery = 'SELECT tax_id, association_name_th as company_name_th FROM MemberRegist_AM_Main WHERE id = ?';
+          break;
+        case 'ac':
+          companyQuery = 'SELECT tax_id, company_name_th FROM MemberRegist_AC_Main WHERE id = ?';
+          break;
+        case 'ic':
+          companyQuery = 'SELECT id_card_number as tax_id, CONCAT(first_name_th, " ", last_name_th) as company_name_th FROM ICmember_Info WHERE id = ?';
+          break;
+      }
+      
+      const [companyRows] = await connection.execute(companyQuery, [id]);
+      if (companyRows.length > 0) {
+        const company = companyRows[0];
+        companyInfo = `TAX_ID: ${company.tax_id || 'N/A'}, Company: ${company.company_name_th || 'N/A'}`;
+      }
+    } catch (error) {
+      console.error('Error getting company info:', error);
+      companyInfo = `ID: ${id}`;
+    }
+
     // Save admin note to the main table
     await connection.execute(
       `UPDATE ${tableName} SET admin_note = ?, admin_note_by = ?, admin_note_at = NOW() WHERE id = ?`,
@@ -56,9 +87,9 @@ export async function POST(request, { params }) {
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
         adminData.id,
-        'update_note',
+        'save_note_member_regist',
         id,
-        `บันทึกหมายเหตุสำหรับคำขอสมัครสมาชิก ID: ${id}`,
+        `บันทึกหมายเหตุสำหรับคำขอสมัครสมาชิก ${companyInfo}, หมายเหตุ: "${adminNote}"`,
         request.headers.get('x-forwarded-for') || '',
         request.headers.get('user-agent') || '',
       ]

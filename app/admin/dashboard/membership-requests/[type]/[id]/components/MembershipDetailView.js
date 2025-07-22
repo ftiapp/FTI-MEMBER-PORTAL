@@ -21,6 +21,7 @@ const MembershipDetailView = ({
 }) => {
   const [industrialGroups, setIndustrialGroups] = useState({});
   const [provincialChapters, setProvincialChapters] = useState({});
+  const [noteSaved, setNoteSaved] = useState(false);
 
   // Fetch industrial groups and provincial chapters data
   useEffect(() => {
@@ -221,6 +222,9 @@ const MembershipDetailView = ({
             >
               {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}
             </button>
+            {noteSaved && (
+              <div className="text-green-600 text-sm mt-2">บันทึกหมายเหตุสำเร็จแล้ว</div>
+            )}
           </div>
         </div>
         
