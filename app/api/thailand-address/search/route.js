@@ -2,6 +2,70 @@
 import { NextResponse } from 'next/server';
 import rateLimiter from '../../../lib/rate-limiter';
 
+// Import the data fetching function directly
+let cachedData = null;
+let lastFetch = null;
+const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+
+async function fetchThailandData() {
+  // If we have cache and it's not expired
+  if (cachedData && lastFetch && (Date.now() - lastFetch < CACHE_DURATION)) {
+    return cachedData;
+  }
+
+  try {
+    console.log('Fetching Thailand address data from server...');
+    
+    // Fetch data from GitHub (server-side won't be affected by CORS)
+    const response = await fetch(
+      'https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json',
+      {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; Thailand-Address-API/1.0)',
+        },
+        cache: 'no-store'
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const rawData = await response.json();
+    const processedData = processThailandData(rawData);
+    
+    cachedData = processedData;
+    lastFetch = Date.now();
+    console.log(`Successfully loaded ${processedData.length} records`);
+    
+    return cachedData;
+
+  } catch (error) {
+    console.error('Error fetching Thailand data:', error);
+    throw error;
+  }
+}
+
+function processThailandData(rawData) {
+  if (!rawData || !Array.isArray(rawData)) {
+    return [];
+  }
+
+  return rawData
+    .map(item => ({
+      subdistrict: (item.district || item.tambon || '').trim(),
+      district: (item.amphoe || item.amphur || '').trim(),
+      province: (item.province || item.changwat || '').trim(),
+      postalCode: (item.zipcode || item.postal_code || '').toString().trim()
+    }))
+    .filter(item => 
+      item.subdistrict && 
+      item.district && 
+      item.province && 
+      item.postalCode
+    );
+}
+
 export async function GET(request) {
   try {
     // Get client IP
@@ -50,24 +114,62 @@ export async function GET(request) {
       });
     }
 
-    // เรียกใช้ API thailand-address ที่มีอยู่แล้ว (เหมือนเดิม)
-    const url = new URL(request.url);
-    const baseUrl = `${url.protocol}//${url.host}`;
-    const apiUrl = `${baseUrl}/api/thailand-address?query=${encodeURIComponent(query)}&type=${type}`;
+    // ดึงข้อมูลโดยตรงจากฟังก์ชัน fetchThailandData แทนการเรียก API
+    const allData = await fetchThailandData();
     
-    const response = await fetch(apiUrl, {
-      next: { revalidate: 0 }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`ไม่สามารถดึงข้อมูลได้: ${response.status}`);
+    // กรองข้อมูลตามประเภทและคำค้นหา
+    let filteredData = [];
+    const searchTerm = query.toLowerCase().trim();
+
+    if (type === 'subdistrict') {
+      filteredData = allData
+        .filter(item => 
+          item.subdistrict.toLowerCase().includes(searchTerm)
+        )
+        .sort((a, b) => {
+          const aStartsWith = a.subdistrict.toLowerCase().startsWith(searchTerm);
+          const bStartsWith = b.subdistrict.toLowerCase().startsWith(searchTerm);
+          
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+          
+          return a.subdistrict.localeCompare(b.subdistrict, 'th');
+        })
+        .slice(0, 10);
+    } else if (type === 'district') {
+      filteredData = allData
+        .filter(item => 
+          item.district.toLowerCase().includes(searchTerm)
+        )
+        .sort((a, b) => {
+          const aStartsWith = a.district.toLowerCase().startsWith(searchTerm);
+          const bStartsWith = b.district.toLowerCase().startsWith(searchTerm);
+          
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+          
+          return a.district.localeCompare(b.district, 'th');
+        })
+        .slice(0, 10);
+    } else if (type === 'province') {
+      filteredData = allData
+        .filter(item => 
+          item.province.toLowerCase().includes(searchTerm)
+        )
+        .sort((a, b) => {
+          const aStartsWith = a.province.toLowerCase().startsWith(searchTerm);
+          const bStartsWith = b.province.toLowerCase().startsWith(searchTerm);
+          
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+          
+          return a.province.localeCompare(b.province, 'th');
+        })
+        .slice(0, 10);
     }
     
-    const data = await response.json();
-    
-    if (data.success && data.data) {
-      // แปลงข้อมูลให้อยู่ในรูปแบบที่ SearchableDropdown ต้องการ
-      const formattedData = data.data.map(item => {
+    // แปลงข้อมูลให้อยู่ในรูปแบบที่ SearchableDropdown ต้องการ
+    const formattedData = filteredData.map(item => {
         if (type === 'subdistrict') {
           return {
             id: item.subdistrict,
@@ -99,12 +201,6 @@ export async function GET(request) {
         success: true,
         data: formattedData
       });
-    } else {
-      return NextResponse.json({
-        success: true,
-        data: []
-      });
-    }
   } catch (error) {
     console.error('Error searching address data:', error);
     return NextResponse.json({ 
