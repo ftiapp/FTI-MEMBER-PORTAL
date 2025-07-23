@@ -239,7 +239,10 @@ export async function GET(request, { params }) {
         query = `
           SELECT 
             m.*,
-            a.address AS association_address,
+            a.address_number,
+            a.moo,
+            a.soi,
+            a.street,
             a.province,
             a.district,
             a.sub_district,
@@ -312,8 +315,8 @@ export async function GET(request, { params }) {
     let additionalData = {};
     const additionalDataStart = Date.now();
     
-    // For OC and AC: Get contact person
-    if (['oc', 'ac'].includes(type)) {
+    // For OC, AC, and AM: Get contact person
+    if (['oc', 'ac', 'am'].includes(type)) {
       try {
         const contactStart = Date.now();
         const contactTableName = `MemberRegist_${type.toUpperCase()}_ContactPerson`;
@@ -346,8 +349,8 @@ export async function GET(request, { params }) {
       }
     }
     
-    // For OC, AC, IC: Get business types and products in parallel
-    if (['oc', 'ac', 'ic'].includes(type)) {
+    // For OC, AC, AM: Get business types and products in parallel
+    if (['oc', 'ac', 'am'].includes(type)) {
       try {
         const businessStart = Date.now();
         const businessTablePrefix = `MemberRegist_${type.toUpperCase()}`;
@@ -374,8 +377,50 @@ export async function GET(request, { params }) {
       }
     }
     
-    // For OC and AC: Get other business type data
-    if (['oc', 'ac'].includes(type)) {
+    // For IC: Get business types and products using IC-specific tables
+    if (type === 'ic') {
+      try {
+        const businessStart = Date.now();
+        
+        // Execute business types and products queries in parallel
+        const [businessTypesResult, businessTypeOtherResult, productsResult] = await Promise.all([
+          connection.execute(
+            `SELECT business_type FROM MemberRegist_IC_BusinessTypes WHERE main_id = ?`,
+            [id]
+          ).catch(err => {
+            console.error('Error fetching IC business types:', err);
+            return [[]]; // Return empty result
+          }),
+          connection.execute(
+            `SELECT other_type as detail FROM MemberRegist_IC_BusinessTypeOther WHERE main_id = ?`,
+            [id]
+          ).catch(err => {
+            console.error('Error fetching IC business type other:', err);
+            return [[]]; // Return empty result
+          }),
+          connection.execute(
+            `SELECT name_th as nameTh, name_en as nameEn FROM MemberRegist_IC_Products WHERE main_id = ?`,
+            [id]
+          ).catch(err => {
+            console.error('Error fetching IC products:', err);
+            return [[]]; // Return empty result
+          })
+        ]);
+        
+        console.log(`[PERF] IC business types and products queries took: ${Date.now() - businessStart}ms`);
+        additionalData.businessTypes = businessTypesResult[0] || [];
+        additionalData.businessTypeOther = businessTypeOtherResult[0][0] || null;
+        additionalData.products = productsResult[0] || [];
+      } catch (businessError) {
+        console.error('Error fetching IC business types/products:', businessError);
+        additionalData.businessTypes = [];
+        additionalData.businessTypeOther = null;
+        additionalData.products = [];
+      }
+    }
+    
+    // For OC, AC, and AM: Get other business type data
+    if (['oc', 'ac', 'am'].includes(type)) {
       try {
         const otherBusinessStart = Date.now();
         const otherBusinessTableName = `MemberRegist_${type.toUpperCase()}_BusinessTypeOther`;
@@ -436,21 +481,24 @@ export async function GET(request, { params }) {
         const [representativesResult, industrialGroupsResult, provincialChaptersResult] = await Promise.all([
           // Get representatives
           connection.execute(`
-            SELECT * FROM ICmember_Representatives WHERE ic_member_id = ?
+            SELECT first_name_th as firstNameTh, last_name_th as lastNameTh, 
+                   first_name_en as firstNameEn, last_name_en as lastNameEn,
+                   position, email, phone
+            FROM MemberRegist_IC_Representatives WHERE main_id = ?
           `, [id]).catch(err => {
             console.error('Error fetching IC representatives:', err);
             return [[]]; // Return empty result
           }),
           // Get industrial groups
           connection.execute(`
-            SELECT industry_group_id as id FROM ICmember_Industry_Group WHERE ic_member_id = ?
+            SELECT industry_group_id as id FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?
           `, [id]).catch(err => {
             console.error('Error fetching IC industrial groups:', err);
             return [[]]; // Return empty result
           }),
           // Get provincial chapters
           connection.execute(`
-            SELECT province_group_id as id FROM ICmember_Province_Group WHERE ic_member_id = ?
+            SELECT province_chapter_id as id FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?
           `, [id]).catch(err => {
             console.error('Error fetching IC provincial chapters:', err);
             return [[]]; // Return empty result

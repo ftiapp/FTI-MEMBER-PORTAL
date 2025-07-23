@@ -7,6 +7,7 @@ import Head from 'next/head';
 import AdminLayout from '../../../../components/AdminLayout';
 import { formatDate } from '../../../../product-updates/utils/formatters';
 import MembershipDetailView from './components/MembershipDetailView';
+import ICDetailView from './components/ICDetailView';
 import RejectModal from './components/RejectModal';
 
 export default function MembershipRequestDetail({ params }) {
@@ -18,6 +19,8 @@ export default function MembershipRequestDetail({ params }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [industrialGroups, setIndustrialGroups] = useState({});
+  const [provincialChapters, setProvincialChapters] = useState({});
 
   // Fetch application details
   useEffect(() => {
@@ -38,6 +41,11 @@ export default function MembershipRequestDetail({ params }) {
           if (data.data.adminNote) {
             setAdminNote(data.data.adminNote);
           }
+          
+          // Fetch additional data for IC type
+          if (type === 'ic') {
+            await fetchAdditionalData();
+          }
         } else {
           toast.error(data.message || 'ไม่สามารถดึงข้อมูลการสมัครสมาชิกได้');
           router.push('/admin/dashboard/membership-requests');
@@ -55,6 +63,39 @@ export default function MembershipRequestDetail({ params }) {
       fetchApplicationDetails();
     }
   }, [type, id, router]);
+  
+  // Fetch additional data for IC type
+  const fetchAdditionalData = async () => {
+    try {
+      // Fetch industrial groups
+      const industrialGroupsResponse = await fetch('/api/industrial-groups');
+      if (industrialGroupsResponse.ok) {
+        const industrialGroupsData = await industrialGroupsResponse.json();
+        if (industrialGroupsData.success) {
+          const groupsMap = {};
+          industrialGroupsData.data.forEach(group => {
+            groupsMap[group.id] = group.name;
+          });
+          setIndustrialGroups(groupsMap);
+        }
+      }
+      
+      // Fetch provincial chapters
+      const provincialChaptersResponse = await fetch('/api/provincial-chapters');
+      if (provincialChaptersResponse.ok) {
+        const provincialChaptersData = await provincialChaptersResponse.json();
+        if (provincialChaptersData.success) {
+          const chaptersMap = {};
+          provincialChaptersData.data.forEach(chapter => {
+            chaptersMap[chapter.id] = chapter.name;
+          });
+          setProvincialChapters(chaptersMap);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching additional data:', error);
+    }
+  };
 
   // Handle save admin note separately
   const handleSaveNote = async () => {
@@ -662,18 +703,32 @@ export default function MembershipRequestDetail({ params }) {
         {/* Main Content */}
         {application ? (
           <>
-            <MembershipDetailView 
-              application={application}
-              type={type}
-              handleViewDocument={handleViewDocument}
-              handleApprove={handleApprove}
-              handleReject={handleRejectClick}
-              handleSaveNote={handleSaveNote}
-              isSubmitting={isSubmitting}
-              adminNote={adminNote}
-              setAdminNote={setAdminNote}
-              handlePrint={handlePrint}
-            />
+            {type === 'ic' ? (
+              <ICDetailView 
+                application={application}
+                industrialGroups={industrialGroups}
+                provincialChapters={provincialChapters}
+                handleViewDocument={handleViewDocument}
+                handlePrint={handlePrint}
+                handleSaveNote={handleSaveNote}
+                adminNote={adminNote}
+                setAdminNote={setAdminNote}
+                isSubmitting={isSubmitting}
+              />
+            ) : (
+              <MembershipDetailView 
+                application={application}
+                type={type}
+                handleViewDocument={handleViewDocument}
+                handleApprove={handleApprove}
+                handleReject={handleRejectClick}
+                handleSaveNote={handleSaveNote}
+                isSubmitting={isSubmitting}
+                adminNote={adminNote}
+                setAdminNote={setAdminNote}
+                handlePrint={handlePrint}
+              />
+            )}
             
             <RejectModal 
               showRejectModal={showRejectModal}

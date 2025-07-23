@@ -13,6 +13,7 @@ CREATE TABLE `MemberRegist_IC_Main` (
   `status` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_id_card` (`id_card_number`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -86,10 +87,13 @@ CREATE TABLE `MemberRegist_IC_BusinessTypeOther` (
 CREATE TABLE `MemberRegist_IC_Products` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `main_id` int(11) NOT NULL,
-  `products` text DEFAULT NULL,
+  `name_th` varchar(255) NOT NULL,
+  `name_en` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   FOREIGN KEY (`main_id`) REFERENCES `MemberRegist_IC_Main`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 CREATE TABLE `MemberRegist_IC_Documents` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

@@ -55,7 +55,7 @@ export async function POST(request, { params }) {
           companyQuery = 'SELECT tax_id, company_name_th FROM MemberRegist_OC_Main WHERE id = ?';
           break;
         case 'am':
-          companyQuery = 'SELECT tax_id, association_name_th as company_name_th FROM MemberRegist_AM_Main WHERE id = ?';
+          companyQuery = 'SELECT tax_id, company_name_th FROM MemberRegist_AM_Main WHERE id = ?';
           break;
         case 'ac':
           companyQuery = 'SELECT tax_id, company_name_th FROM MemberRegist_AC_Main WHERE id = ?';
