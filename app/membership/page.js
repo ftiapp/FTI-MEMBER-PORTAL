@@ -34,8 +34,8 @@ export default function Membership() {
   const membershipTypes = [
     {
       id: 'oc',
-      name: 'สน (OC)',
-      description: 'สามัญ-โรงงาน',
+      name: 'สามัญ-โรงงาน',
+      description: 'สน (OC)',
       annual_fee: 12000,
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
@@ -47,8 +47,8 @@ export default function Membership() {
     },
     {
       id: 'am',
-      name: 'สส (AM)',
-      description: 'สามัญ-สมาคมการค้า',
+      name: 'สมาชิกสามัญ-โรงงาน',
+      description: 'สส (AM)',
       annual_fee: 8000,
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
@@ -60,8 +60,8 @@ export default function Membership() {
     },
     {
       id: 'ac',
-      name: 'ทน (AC)',
-      description: 'สมทบ-นิติบุคคล',
+      name: 'สมทบ-บุคคลธรรมดา',
+      description: 'ทน (AC)',
       annual_fee: 6000,
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
@@ -73,8 +73,8 @@ export default function Membership() {
     },
     {
       id: 'ic',
-      name: 'ทบ (IC)',
-      description: 'สมทบ-บุคคลธรรมดา',
+      name: 'สมทบ-นิติบุคคล',
+      description: 'ทบ (IC)',
       annual_fee: 3000,
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',

@@ -76,6 +76,8 @@ export const formatDate = (dateString) => {
         return 'การอัปเดตที่อยู่';
       case 'profile_update':
         return 'การอัปเดตโปรไฟล์';
+      case 'member_connection':
+        return 'การเชื่อมต่อสมาชิก';
       default:
         return 'การแจ้งเตือน';
     }

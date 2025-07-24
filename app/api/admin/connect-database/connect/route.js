@@ -180,7 +180,7 @@ export async function POST(request) {
 
       await mysqlConnection.commit();
 
-      // ส่งอีเมลแจ้งเตือนให้ผู้ใช้หลังจากเชื่อมต่อสำเร็จ
+      // ส่งอีเมลแจ้งเตือนและสร้างการแจ้งเตือนในระบบหลังจากเชื่อมต่อสำเร็จ
       try {
         if (member.user_id) {
           // ดึงข้อมูลผู้ใช้จากตาราง users
@@ -199,13 +199,31 @@ export async function POST(request) {
               member_type: memberType
             };
             
+            // ส่งอีเมลแจ้งเตือน
             await sendMemberConnectionEmail(user.email, userName, emailMemberData);
             console.log(`Email notification sent to ${user.email} for member code ${memberCode}`);
+            
+            // สร้างการแจ้งเตือนในระบบ
+            const companyName = member.company_name_th || member.company_name_en || memberData.COMPANY_NAME || '';
+            const notificationMessage = `หมายเลขสมาชิก ${memberCode} ${companyName} เป็นสมาชิกสภาอุตสาหกรรมแห่งประเทศไทยเรียบร้อยแล้ว`;
+            const insertNotificationQuery = `
+              INSERT INTO notifications (user_id, type, message, member_code, link, status, created_at, updated_at)
+              VALUES (?, 'member_connection', ?, ?, ?, 'approved', NOW(), NOW())
+            `;
+            
+            await mysqlConnection.execute(insertNotificationQuery, [
+              member.user_id,
+              notificationMessage,
+              memberCode || '',
+              '/dashboard?tab=member'
+            ]);
+            
+            console.log(`Notification created for user ${member.user_id} for member code ${memberCode}`);
           }
         }
-      } catch (emailError) {
-        // Log email error but don't fail the main operation
-        console.error('Failed to send email notification:', emailError);
+      } catch (notificationError) {
+        // Log error but don't fail the main operation
+        console.error('Failed to create notification:', notificationError);
       }
 
       return NextResponse.json({
