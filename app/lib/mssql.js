@@ -209,3 +209,6 @@ export async function checkConnectionHealth() {
     };
   }
 }
+
+// Export getConnection as connectMSSQL for compatibility with connect route
+export const connectMSSQL = getConnection;

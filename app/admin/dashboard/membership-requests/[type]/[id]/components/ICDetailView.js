@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const ICDetailView = ({ 
   application, 
@@ -11,8 +11,21 @@ const ICDetailView = ({
   handleReject,
   adminNote,
   setAdminNote,
-  isSubmitting 
+  isSubmitting,
+  handleConnectMemberCode
 }) => {
+  const [isConnecting, setIsConnecting] = useState(false);
+  
+  const onConnectMemberCode = async () => {
+    if (!application || !application.id_card_number) return;
+    
+    setIsConnecting(true);
+    try {
+      await handleConnectMemberCode(application.id);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
@@ -433,6 +446,16 @@ const ICDetailView = ({
                   {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
                 </button>
               </div>
+            </div>
+          )}
+          
+          
+          {/* Show Member Code if available */}
+          {application.status === 1 && application.member_code && (
+            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <h4 className="text-lg font-semibold mb-2 text-green-800">หมายเลขสมาชิก</h4>
+              <p className="text-xl font-bold text-green-700">{application.member_code}</p>
+              <p className="text-sm text-green-600 mt-1">เชื่อมต่อฐานข้อมูลสำเร็จแล้ว</p>
             </div>
           )}
         </div>

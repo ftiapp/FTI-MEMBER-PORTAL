@@ -112,6 +112,83 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
 }
 
 /**
+ * Send member connection notification email to user
+ * @param {string} email - User's email address
+ * @param {string} name - User's name or company name
+ * @param {Object} memberData - Member data object
+ * @param {string} memberData.company_name - Company name
+ * @param {string} memberData.tax_id - Tax ID or personal ID
+ * @param {string} memberData.member_code - Member code
+ * @param {string} memberData.member_type - Member type (OC, IC, AM, AC)
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendMemberConnectionEmail(email, name, memberData) {
+  // Use the default sender
+  const recipients = [new Recipient(email, name)];
+  
+  // Create member search link
+  const memberSearchUrl = `https://membersearch.fti.or.th/member/${memberData.member_code}`;
+  
+  // Get member type description
+  let idTypeText = 'หมายเลขทะเบียนนิติบุคคล';
+  if (memberData.member_type === 'IC') {
+    idTypeText = 'หมายเลขบัตรประชาชน';
+  }
+
+  const emailParams = new EmailParams()
+    .setFrom(defaultSender)
+    .setTo(recipients)
+    .setSubject("ข้อมูลสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย")
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "ข้อมูลสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย",
+      bodyContent: `
+        <p>เรียน คุณ${name},</p>
+        <div style="background-color: #f8fafc; border-left: 4px solid #1a56db; padding: 16px; margin: 20px 0; border-radius: 4px;">
+          <p style="margin-top: 0;"><strong>บริษัท ${memberData.company_name}</strong></p>
+          <p>${idTypeText} ${memberData.tax_id}</p>
+          <p>ได้เป็นสมาชิกสภาอุตสาหกรรมแห่งประเทศไทยเรียบร้อยแล้ว</p>
+          <p><strong>หมายเลขสมาชิก: ${memberData.member_code}</strong></p>
+        </div>
+        <p>ท่านสามารถตรวจสอบข้อมูลได้ที่ เมนู จัดการสมาชิก -> ข้อมูลสมาชิก บนเว็บไซต์</p>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="https://ftimemberportal-529sy.kinsta.app/" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-bottom: 12px;">เข้าสู่ระบบ</a>
+        </div>
+        <p>หรือตรวจสอบข้อมูลสมาชิกได้ที่:</p>
+        <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">
+          <a href="${memberSearchUrl}" style="color: #1a56db; text-decoration: none;">${memberSearchUrl}</a>
+        </p>
+        <p style="margin-top: 32px;">ขอขอบคุณท่านที่เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย</p>
+      `
+    }))
+    .setText(`
+      ข้อมูลสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย
+      
+      เรียน คุณ${name},
+      
+      บริษัท ${memberData.company_name}
+      ${idTypeText} ${memberData.tax_id}
+      ได้เป็นสมาชิกสภาอุตสาหกรรมแห่งประเทศไทยเรียบร้อยแล้ว
+      หมายเลขสมาชิก: ${memberData.member_code}
+      
+      ท่านสามารถตรวจสอบข้อมูลได้ที่ เมนู จัดการสมาชิก -> ข้อมูลสมาชิก บนเว็บไซต์
+      https://ftimemberportal-529sy.kinsta.app/
+      
+      หรือตรวจสอบข้อมูลสมาชิกได้ที่:
+      ${memberSearchUrl}
+      
+      ขอขอบคุณท่านที่เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+    `);
+
+  try {
+    const response = await mailerSend.email.send(emailParams);
+    return response;
+  } catch (error) {
+    console.error("Error sending member connection email:", error);
+    throw error;
+  }
+}
+
+/**
  * Send password reset email to user
  * @param {string} email - User's email address
  * @param {string} name - User's name

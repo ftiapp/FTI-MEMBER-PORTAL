@@ -267,3 +267,14 @@ export async function executeQueryWithoutTransaction(sql, params) {
     if (connection) connection.release();
   }
 }
+
+// Function to get a database connection
+// @returns {Promise<Object>} Database connection
+export async function connectDB() {
+  try {
+    return await getConnection();
+  } catch (error) {
+    console.error('Error connecting to database:', error);
+    throw error;
+  }
+}
