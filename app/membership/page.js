@@ -13,6 +13,7 @@ export default function Membership() {
   const { user } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
 
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -23,6 +24,8 @@ export default function Membership() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+
+
   const handleUpgradeClick = (type, name, fee) => {
     if (!user) {
       router.push('/login');
@@ -30,6 +33,8 @@ export default function Membership() {
     }
     router.push(`/membership/upgrade?type=${type}&name=${encodeURIComponent(name)}&fee=${fee}`);
   };
+
+
 
   const membershipTypes = [
     {
@@ -259,12 +264,6 @@ export default function Membership() {
             >
               <a 
                 href="/contact" 
-                className="inline-block bg-blue-900 text-white font-semibold px-8 py-3 rounded-full hover:bg-blue-800 transition-colors"
-              >
-                ติดต่อเรา
-              </a>
-              <a 
-                href="/about" 
                 className="inline-block bg-white text-blue-900 font-semibold px-8 py-3 rounded-full border-2 border-blue-900 hover:bg-blue-900 hover:text-white transition-colors"
               >
                 เรียนรู้เพิ่มเติม
@@ -273,8 +272,9 @@ export default function Membership() {
           </div>
         </div>
 
-        <Footer />
+
       </main>
+      <Footer />
     </>
   );
 }

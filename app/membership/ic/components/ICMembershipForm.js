@@ -112,13 +112,46 @@ const useApiData = () => {
     fetchData();
   }, []);
 
+  // Load draft data on mount
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get('draftId');
+      
+      if (draftId) {
+        setData(prev => ({ ...prev, isLoadingDraft: true }));
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=ic`);
+          const data = await response.json();
+          
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find(d => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              setData(prev => ({ ...prev, formData: { ...prev.formData, ...draft.draftData } }));
+              setData(prev => ({ ...prev, currentStep: draft.currentStep || 1 }));
+              toast.success('โหลดข้อมูลร่างสำเร็จ');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          toast.error('ไม่สามารถโหลดข้อมูลร่างได้');
+        } finally {
+          setData(prev => ({ ...prev, isLoadingDraft: false }));
+        }
+      }
+    };
+
+    loadDraftData();
+  }, []);
+
   return data;
 };
 
 export default function ICMembershipForm({ currentStep, setCurrentStep, formData, setFormData, totalSteps }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+  const abortControllerRef = useRef(null);
+
   // Handle previous step navigation
   const handlePrevStep = useCallback(() => {
     if (currentStep <= 1) return;
@@ -378,6 +411,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
       </div>
     );
   }

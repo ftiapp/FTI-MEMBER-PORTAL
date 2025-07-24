@@ -311,7 +311,21 @@ export async function POST(request) {
       }
     }
 
-    // Commit transaction
+    // Delete draft if this was a resumed application
+    const draftId = formData.get('draftId');
+    if (draftId) {
+      try {
+        await executeQuery(
+          'DELETE FROM MemberRegist_AM_Draft WHERE id = ? AND user_id = ?',
+          [draftId, userId]
+        );
+        console.log('🗑️ AM Draft deleted successfully after submission');
+      } catch (draftError) {
+        console.warn('⚠️ Could not delete AM draft:', draftError.message);
+        // Continue with success - draft deletion is not critical
+      }
+    }
+
     await commitTransaction(trx);
     console.log('🎉 [AM API] Transaction committed successfully');
 
@@ -330,33 +344,16 @@ export async function POST(request) {
         'Content-Type': 'application/json'
       }
     });
-
   } catch (error) {
-    console.error('💥 [AM API] AM Membership Submission Error:', error);
+    console.error('❌ [AM API] Error in AM membership submission:', error);
     
-    // Rollback transaction if it exists
-    if (trx) {
-      try {
-        await rollbackTransaction(trx);
-        console.log('🔄 [AM API] Transaction rolled back successfully');
-      } catch (rollbackError) {
-        console.error('❌ [AM API] Rollback error:', rollbackError);
-      }
+    if (connection) {
+      await rollbackTransaction(connection);
     }
     
-    const errorResponse = { 
-      error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล', 
-      details: error.message,
-      timestamp: new Date().toISOString()
-    };
-    
-    console.log('❌ [AM API] Sending error response:', errorResponse);
-    
-    return NextResponse.json(errorResponse, { 
-      status: 500,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
+    return NextResponse.json({ 
+      error: 'เกิดข้อผิดพลาดในการสมัครสมาชิก AM',
+      details: error.message 
+    }, { status: 500 });
   }
 }

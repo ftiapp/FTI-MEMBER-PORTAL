@@ -77,29 +77,30 @@ const RepresentativeCard = ({ representative, index }) => (
     <div className="mb-2">
       <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
     </div>
-    
-    {representative ? (
+    <InfoCard title="ข้อมูลบริษัท">
       <div className="space-y-2">
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-          <p className="text-sm">{representative.firstNameThai} {representative.lastNameThai}</p>
+          <p className="text-sm">{representative.first_name_th} {representative.last_name_th}</p>
         </div>
-        <div>
-          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-          <p className="text-sm">{representative.firstNameEnglish} {representative.lastNameEnglish}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">อีเมล</p>
-          <p className="text-sm">{representative.email || '-'}</p>
+        <div className="ml-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            {representative.company_name || '-'}
+          </h3>
+          <p className="text-sm text-gray-600">
+            {representative.company_name_eng || '-'}
+          </p>
+          <p className="text-sm text-gray-500 mt-1">
+            เลขประจำตัวผู้เสียภาษี: {representative.tax_id || '-'}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
           <p className="text-sm">{representative.phone || '-'}</p>
+          <span className="ml-2">{representative.company_website || '-'}</span>
         </div>
       </div>
-    ) : (
-      <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
-    )}
+    </InfoCard>
   </div>
 );
 
@@ -209,26 +210,26 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
 
   const getContactPersonFullName = (isEnglish = false) => {
     if (isEnglish) {
-      return formData.contactPersonFirstNameEng && formData.contactPersonLastNameEng 
-        ? `${formData.contactPersonFirstNameEng} ${formData.contactPersonLastNameEng}` 
+      return formData.contact_person_first_name_eng && formData.contact_person_last_name_eng 
+        ? `${formData.contact_person_first_name_eng} ${formData.contact_person_last_name_eng}` 
         : '-';
     }
-    return formData.contactPersonFirstName && formData.contactPersonLastName 
-      ? `${formData.contactPersonFirstName} ${formData.contactPersonLastName}` 
+    return formData.contact_person_first_name && formData.contact_person_last_name 
+      ? `${formData.contact_person_first_name} ${formData.contact_person_last_name}` 
       : '-';
   };
 
   // สร้างข้อมูลที่อยู่แยกเป็นฟิลด์ย่อย
   const getAddressFields = () => {
     return {
-      addressNumber: formData.addressNumber || '-',
+      addressNumber: formData.address_number || '-',
       moo: formData.moo || '-',
       soi: formData.soi || '-',
-      road: formData.street || '-',  // ✅ ถูกต้อง - ใช้ formData.street
-      subDistrict: formData.subDistrict || '-',
+      road: formData.street || '-',
+      subDistrict: formData.sub_district || '-',
       district: formData.district || '-',
       province: formData.province || '-',
-      postalCode: formData.postalCode || '-'
+      postalCode: formData.postal_code || '-'
     };
   };
 
@@ -250,12 +251,12 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       {/* ข้อมูลบริษัท */}
       <Section title="ข้อมูลบริษัท">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="ชื่อบริษัท (ไทย)" value={formData.companyName} />
-          <InfoCard title="ชื่อบริษัท (อังกฤษ)" value={formData.companyNameEng} />
-          <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.taxId} />
-          <InfoCard title="อีเมล" value={formData.companyEmail} />
-          <InfoCard title="เบอร์โทรศัพท์" value={formData.companyPhone} />
-          <InfoCard title="เว็บไซต์" value={formData.companyWebsite} />
+          <InfoCard title="ชื่อบริษัท (ไทย)" value={formData.company_name} />
+          <InfoCard title="ชื่อบริษัท (อังกฤษ)" value={formData.company_name_eng} />
+          <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.tax_id} />
+          <InfoCard title="อีเมล" value={formData.company_email} />
+          <InfoCard title="เบอร์โทรศัพท์" value={formData.company_phone} />
+          <InfoCard title="เว็บไซต์" value={formData.company_website} />
         </div>
       </Section>
 
@@ -278,9 +279,9 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getContactPersonFullName(false)} />
           <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
-          <InfoCard title="ตำแหน่ง" value={formData.contactPersonPosition} />
-          <InfoCard title="อีเมล" value={formData.contactPersonEmail} />
-          <InfoCard title="เบอร์โทรศัพท์" value={formData.contactPersonPhone} />
+          <InfoCard title="ตำแหน่ง" value={formData.contact_person_position} />
+          <InfoCard title="อีเมล" value={formData.contact_person_email} />
+          <InfoCard title="เบอร์โทรศัพท์" value={formData.contact_person_phone} />
         </div>
       </Section>
 
@@ -302,7 +303,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             title="ประเภทธุรกิจ" 
             businessTypes={getSelectedBusinessTypesArray()} 
           />
-          <InfoCard title="จำนวนพนักงาน" value={formData.numberOfEmployees} />
+          <InfoCard title="จำนวนพนักงาน" value={formData.number_of_employees} />
           <ProductsCard products={formData.products || []} />
           <IndustrialGroupsCard 
             title="กลุ่มอุตสาหกรรม" 

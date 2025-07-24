@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
+import DraftApplications from './DraftApplications';
 
 export default function UpgradeMembership() {
   const { user } = useAuth();

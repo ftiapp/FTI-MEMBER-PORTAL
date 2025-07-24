@@ -16,6 +16,7 @@ import { validateOCForm } from './OCFormValidation';
 import { submitOCMembershipForm } from './OCFormSubmission';
 import { useOCFormNavigation } from './OCFormNavigation';
 import OCStepIndicator from './OCStepIndicator';
+import { saveDraft } from './OCDraftService';
 
 // Constants
 const STEPS = [
@@ -178,6 +179,7 @@ export default function OCMembershipForm({
   const [errors, setErrors] = useState({});
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
   // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
@@ -203,6 +205,39 @@ export default function OCMembershipForm({
       }
     };
   }, []);
+
+  // Load draft data on mount
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get('draftId');
+      
+      if (draftId) {
+        setIsLoadingDraft(true);
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=oc`);
+          const data = await response.json();
+          
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find(d => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              // Merge draft data with initial form data
+              setFormData(prev => ({ ...prev, ...draft.draftData }));
+              setCurrentStep(draft.currentStep || 1);
+              toast.success('โหลดข้อมูลร่างสำเร็จ');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          toast.error('ไม่สามารถโหลดข้อมูลร่างได้');
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      }
+    };
+
+    loadDraftData();
+  }, [setCurrentStep, setFormData]);
 
   // Check tax ID uniqueness with better error handling
   const checkTaxIdUniqueness = useCallback(async (taxId) => {
@@ -307,7 +342,6 @@ export default function OCMembershipForm({
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
   const handleNext = useCallback(async (e) => {
-    // ✅ ป้องกัน form submission
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -334,9 +368,7 @@ export default function OCMembershipForm({
     setCurrentStep(prev => prev + 1);
   }, [formData, currentStep, checkTaxIdUniqueness, setCurrentStep]);
 
-  // Handle previous step - ป้องกันการ submit โดยไม่ตั้งใจ
-  const handlePrev = useCallback((e) => {
-    // ✅ ป้องกัน form submission
+  const handlePrevious = useCallback((e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
@@ -344,6 +376,33 @@ export default function OCMembershipForm({
     
     setCurrentStep(prev => prev - 1);
   }, [setCurrentStep]);
+
+  const handleSaveDraft = useCallback(async () => {
+    try {
+      const response = await fetch('/api/membership/save-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          memberType: 'oc',
+          draftData: formData,
+          currentStep: currentStep
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success('บันทึกร่างสำเร็จ');
+      } else {
+        toast.error('ไม่สามารถบันทึกร่างได้');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('เกิดข้อผิดพลาดในการบันทึกร่าง');
+    }
+  }, [formData, currentStep]);
 
   // Render current step component
   const currentStepComponent = useMemo(() => {
@@ -390,7 +449,7 @@ export default function OCMembershipForm({
   };
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || isLoadingDraft) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -447,30 +506,36 @@ export default function OCMembershipForm({
         <div className="flex justify-between items-center pt-6">
           <button
             type="button"
-            onClick={handlePrev}
-            disabled={currentStep === 1 || isSubmitting}
-            className="px-8 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 shadow-sm"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             ย้อนกลับ
           </button>
-
-          {/* ✅ แก้ไขเงื่อนไขการแสดงปุ่ม */}
-          {currentStep < 5 ? (
+          {currentStep !== 4 && currentStep !== 5 && (
             <button
               type="button"
-              onClick={handleNext}
-              disabled={isSubmitting}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-lg"
+              onClick={handleSaveDraft}
+              className="px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
             >
-              ถัดไป
+              บันทึกร่าง
             </button>
-          ) : (
+          )}
+          {currentStep === totalSteps ? (
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-lg"
             >
               {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ยืนยันการสมัคร'}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleNext}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              ถัดไป
             </button>
           )}
         </div>

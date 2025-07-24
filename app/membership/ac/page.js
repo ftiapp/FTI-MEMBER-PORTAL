@@ -12,6 +12,11 @@ export default function ACMembership() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [taxIdValidating, setTaxIdValidating] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -22,7 +27,38 @@ export default function ACMembership() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get('draftId');
+      
+      if (draftId) {
+        setIsLoadingDraft(true);
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=ac`);
+          const data = await response.json();
+          
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find(d => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              setFormData(prev => ({ ...prev, ...draft.draftData }));
+              setCurrentStep(draft.currentStep || 1);
+              // toast.success('โหลดข้อมูลร่างสำเร็จ');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          // toast.error('ไม่สามารถโหลดข้อมูลร่างได้');
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      }
+    };
+
+    loadDraftData();
+  }, []);
+
   const steps = [
     { id: 1, name: 'ข้อมูลบริษัท' },
     { id: 2, name: 'ข้อมูลผู้แทน' },
@@ -91,9 +127,16 @@ export default function ACMembership() {
               </>
             )}
             
-            <div className="relative z-10">
-              <ACStepIndicator steps={steps} currentStep={currentStep} />
-            </div>
+            {isLoadingDraft ? (
+              <div className="flex justify-center items-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
+              </div>
+            ) : (
+              <div className="relative z-10">
+                <ACStepIndicator steps={steps} currentStep={currentStep} />
+              </div>
+            )}
           </motion.div>
           
           {/* Form Content */}
@@ -111,15 +154,22 @@ export default function ACMembership() {
               </>
             )}
             
-            <div className="relative z-10">
-              <ACMembershipForm 
-                currentStep={currentStep} 
-                setCurrentStep={setCurrentStep} 
-                formData={formData}
-                setFormData={setFormData}
-                totalSteps={steps.length}
-              />
-            </div>
+            {isLoadingDraft ? (
+              <div className="flex justify-center items-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
+              </div>
+            ) : (
+              <div className="relative z-10">
+                <ACMembershipForm 
+                  currentStep={currentStep} 
+                  setCurrentStep={setCurrentStep} 
+                  formData={formData}
+                  setFormData={setFormData}
+                  totalSteps={steps.length}
+                />
+              </div>
+            )}
           </motion.div>
         </div>
       </main>

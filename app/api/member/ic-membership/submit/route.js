@@ -283,6 +283,21 @@ export async function POST(request) {
       }
     }
 
+    // Delete draft if this was a resumed application
+    const draftId = formData.get('draftId');
+    if (draftId) {
+      try {
+        await executeQuery(
+          'DELETE FROM MemberRegist_IC_Draft WHERE id = ? AND user_id = ?',
+          [draftId, userId]
+        );
+        console.log('🗑️ IC Draft deleted successfully after submission');
+      } catch (draftError) {
+        console.warn('⚠️ Could not delete IC draft:', draftError.message);
+        // Continue with success - draft deletion is not critical
+      }
+    }
+
     await commitTransaction(trx);
     
     console.log('IC Membership submission completed successfully');
@@ -299,7 +314,7 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    if (trx) await rollbackTransaction(trx);
+    console.error('Error processing industry groups:', error);
     console.error('Error submitting IC membership:', error);
     return NextResponse.json({ 
       error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',

@@ -302,6 +302,21 @@ export async function POST(request) {
       ]
     );
 
+    // Delete draft if this was a resumed application
+    const draftId = formData.get('draftId');
+    if (draftId) {
+      try {
+        await executeQuery(
+          'DELETE FROM MemberRegist_OC_Draft WHERE id = ? AND user_id = ?',
+          [draftId, userId]
+        );
+        console.log('🗑️ Draft deleted successfully after submission');
+      } catch (draftError) {
+        console.warn('⚠️ Could not delete draft:', draftError.message);
+        // Continue with success - draft deletion is not critical
+      }
+    }
+
     await commitTransaction(trx);
 
     console.log('🎉 OC Membership submission completed successfully');

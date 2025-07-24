@@ -399,48 +399,40 @@ if (data.representatives) {
       [
         mainId,
         0, // Pending approval
-        'สมัครสมาชิกใหม่',
+        'สมัครสมาชิก AC',
         userId
       ]
     );
 
     await commitTransaction(trx);
+    console.log('🎉 [AC] Transaction committed successfully');
 
-    console.log('🎉 [AC] Membership submission completed successfully');
-    console.log('📊 [AC] Final summary:', {
-      mainId,
-      industrialGroupsCount: industrialGroups.length,
-      provincialChaptersCount: provincialChapters.length,
-      documentsCount: Object.keys(uploadedDocuments).length,
-      productsCount: products.length
-    });
-
-    return NextResponse.json({ 
-      message: 'การสมัครสมาชิก AC สำเร็จ',
+    const response = { 
+      message: 'การสมัครสมาชิก AC สำเร็จ', 
       registrationId: mainId,
-      industrialGroupsInserted: industrialGroups.length,
-      provincialChaptersInserted: provincialChapters.length,
-      documentsUploaded: Object.keys(uploadedDocuments).length,
+      documentsUploaded: uploadCount,
       timestamp: new Date().toISOString()
-    }, { 
+    };
+    
+    console.log('✅ [AC] AC Membership submission completed successfully:', response);
+    
+    return NextResponse.json(response, { 
       status: 201,
-      headers: { 'Content-Type': 'application/json' }
+      headers: {
+        'Content-Type': 'application/json'
+      }
     });
-
   } catch (error) {
-    console.error('❌ [AC] Membership Submission Error:', error);
-    console.error('❌ [AC] Error stack:', error.stack);
+    console.error('❌ [AC] Error in AC membership submission:', error);
+    
     if (trx) {
       await rollbackTransaction(trx);
       console.log('🔄 [AC] Transaction rolled back due to error');
     }
+    
     return NextResponse.json({ 
-      error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
-      details: error.message,
-      timestamp: new Date().toISOString()
-    }, { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+      error: 'เกิดข้อผิดพลาดในการสมัครสมาชิก AC',
+      details: error.message 
+    }, { status: 500 });
   }
 }
