@@ -85,71 +85,121 @@ export default function CompanyBasicInfo({
     }
   };
 
-  const fetchCompanyInfo = async (taxId) => {
-    if (!taxId || taxId.length !== 13) return;
+  // ใน CompanyBasicInfo.js
+// แค่แก้ฟังก์ชัน fetchCompanyInfo เดิม
+
+// ใน CompanyBasicInfo.js
+// แก้ฟังก์ชัน fetchCompanyInfo เดิม - เพิ่มแค่ท้ายฟังก์ชัน
+
+const fetchCompanyInfo = async (taxId) => {
+  if (!taxId || taxId.length !== 13) return;
+  
+  // Check throttling
+  const now = Date.now();
+  const timeSinceLastFetch = now - lastFetchTime.current;
+  
+  if (timeSinceLastFetch < throttleTime) {
+    const remainingTime = Math.ceil((throttleTime - timeSinceLastFetch) / 1000);
+    toast.error(`กรุณารอ ${remainingTime} วินาทีก่อนดึงข้อมูลอีกครั้ง`);
+    return;
+  }
+  
+  lastFetchTime.current = now;
+  setIsThrottled(true);
+  
+  setTimeout(() => {
+    setIsThrottled(false);
+  }, throttleTime);
+
+  try {
+    const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`);
     
-    // Check throttling
-    const now = Date.now();
-    const timeSinceLastFetch = now - lastFetchTime.current;
-    
-    if (timeSinceLastFetch < throttleTime) {
-      const remainingTime = Math.ceil((throttleTime - timeSinceLastFetch) / 1000);
-      toast.error(`กรุณารอ ${remainingTime} วินาทีก่อนดึงข้อมูลอีกครั้ง`);
-      return;
+    if (!response.ok) {
+      throw new Error('ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
     }
     
-    // Record the time of the last fetch
-    lastFetchTime.current = now;
-    setIsThrottled(true);
+    const data = await response.json();
     
-    // Set timer to allow clicking again after the specified time
-    setTimeout(() => {
-      setIsThrottled(false);
-    }, throttleTime);
-
-    try {
-      const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`);
+    if (data && data.status?.code === '1000' && data.data && data.data.length > 0) {
+      const companyData = data.data[0]['cd:OrganizationJuristicPerson'];
+      const address = companyData['cd:OrganizationJuristicAddress']?.['cr:AddressType'];
       
-      if (!response.ok) {
-        throw new Error('ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
-      }
+      const subDistrictName = address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '';
       
-      const data = await response.json();
+      setFormData(prev => ({
+        ...prev,
+        companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
+        companyNameEng: companyData['cd:OrganizationJuristicNameEN'] || '',
+        addressNumber: address?.['cd:AddressNo'] || '',
+        street: address?.['cd:Road'] || '',
+        subDistrict: subDistrictName,
+        district: address?.['cd:City']?.['cr:CityTextTH'] || '',
+        province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || ''
+      }));
       
-      if (data && data.status?.code === '1000' && data.data && data.data.length > 0) {
-        const companyData = data.data[0]['cd:OrganizationJuristicPerson'];
-        const address = companyData['cd:OrganizationJuristicAddress']?.['cr:AddressType'];
-        
-        setFormData(prev => ({
-          ...prev,
-          companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
-          companyNameEng: companyData['cd:OrganizationJuristicNameEN'] || '',
-          addressNumber: address?.['cd:AddressNo'] || '',
-          street: address?.['cd:Road'] || '',
-          subDistrict: address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '',
-          district: address?.['cd:City']?.['cr:CityTextTH'] || '',
-          province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || ''
-        }));
-        
-        setErrors(prev => ({
-          ...prev,
-          companyName: '',
-          companyNameEng: ''
-        }));
-        
-        toast.success('ดึงข้อมูลสำเร็จ');
-        
-        if (address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH']) {
-          fetchPostalCode(address['cd:CitySubDivision']['cr:CitySubDivisionTextTH']);
+      setErrors(prev => ({
+        ...prev,
+        companyName: '',
+        companyNameEng: ''
+      }));
+      
+      toast.success('ดึงข้อมูลสำเร็จ');
+      
+      // ✅ เพิ่มส่วนนี้: ดึง postal code จาก API เดียวกันกับ dropdown
+      if (subDistrictName && subDistrictName.length >= 2) {
+        try {
+          console.log(`🔍 กำลังหา postal code สำหรับ: ${subDistrictName}`);
+          
+          const postalResponse = await fetch(
+            `/api/thailand-address/search?query=${encodeURIComponent(subDistrictName)}&type=subdistrict`
+          );
+          
+          if (postalResponse.ok) {
+            const postalData = await postalResponse.json();
+            console.log('📬 ผลการค้นหา postal code:', postalData);
+            
+            if (postalData.success && postalData.data && postalData.data.length > 0) {
+              // หาตำบลที่ตรงกันที่สุด (exact match หรือใกล้เคียงที่สุด)
+              const exactMatch = postalData.data.find(item => 
+                item.text === subDistrictName
+              );
+              
+              const selectedItem = exactMatch || postalData.data[0];
+              
+              if (selectedItem && selectedItem.postalCode) {
+                console.log(`✅ เจอ postal code: ${selectedItem.postalCode}`);
+                
+                setFormData(prev => ({
+                  ...prev,
+                  postalCode: selectedItem.postalCode
+                }));
+                
+                toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');
+              } else {
+                console.log('❌ ไม่มี postal code ในข้อมูล');
+              }
+            } else {
+              console.log('❌ ไม่เจอข้อมูลตำบล');
+            }
+          } else {
+            console.log('❌ API response ไม่ ok');
+          }
+        } catch (postalError) {
+          console.log('❌ Error ในการดึง postal code:', postalError);
+          // ไม่แสดง error toast เพื่อไม่รบกวนผู้ใช้
         }
       } else {
-        toast.error(data.status?.description || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
+        console.log('❌ ไม่มีชื่อตำบลหรือสั้นเกินไป');
       }
-    } catch (error) {
-      console.error('Error fetching company info:', error);
-      toast.error('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+      
+    } else {
+      toast.error(data.status?.description || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
     }
-  };
+  } catch (error) {
+    console.error('Error fetching company info:', error);
+    toast.error('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+  }
+};
 
   const fetchPostalCode = async (subDistrict) => {
     try {

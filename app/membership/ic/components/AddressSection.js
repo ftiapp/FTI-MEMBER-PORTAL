@@ -19,37 +19,43 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     if (!subDistrict || subDistrict.trim() === '') return;
     
     try {
-      console.log(`Fetching postal code for subdistrict: ${subDistrict}`);
-      const response = await fetch(`/api/postal-code?subDistrict=${encodeURIComponent(subDistrict.trim())}`);
+      console.log(`🔍 กำลังหา postal code สำหรับ: ${subDistrict}`);
+      
+      const response = await fetch(`/api/thailand-address/search?query=${encodeURIComponent(subDistrict.trim())}&type=subdistrict`);
       
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Error response: ${response.status} ${errorText}`);
         throw new Error(`ไม่สามารถดึงข้อมูลรหัสไปรษณีย์ได้: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Postal code API response:', data);
+      console.log('📬 ผลการค้นหา postal code:', data);
       
       if (data.success && data.data && data.data.length > 0) {
-        const postalCode = data.data[0].postalCode;
-        console.log(`Found postal code: ${postalCode}`);
+        // หาตำบลที่ตรงกันที่สุด
+        const exactMatch = data.data.find(item => item.text === subDistrict);
+        const selectedItem = exactMatch || data.data[0];
         
-        setFormData(prev => ({
-          ...prev,
-          postalCode: postalCode
-        }));
-        toast.success('ดึงรหัสไปรษณีย์สำเร็จ');
+        if (selectedItem && selectedItem.postalCode) {
+          console.log(`✅ เจอ postal code: ${selectedItem.postalCode}`);
+          
+          setFormData(prev => ({
+            ...prev,
+            postalCode: selectedItem.postalCode
+          }));
+          
+          toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');
+        } else {
+          console.log('❌ ไม่มี postal code ในข้อมูล');
+        }
       } else {
-        console.log(`No postal code found for subdistrict: ${subDistrict}`);
-        toast.error('ไม่พบรหัสไปรษณีย์สำหรับตำบล/แขวงนี้');
+        console.log('❌ ไม่เจอข้อมูลตำบล');
       }
     } catch (error) {
       console.error('Error fetching postal code:', error);
-      toast.error(`ไม่สามารถดึงข้อมูลรหัสไปรษณีย์ได้: ${error.message}`);
+      // ไม่แสดง error toast เพื่อไม่รบกวนผู้ใช้
     }
   }, [setFormData]);
-
+  
   const fetchSubDistricts = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.trim().length < 2) return [];
     

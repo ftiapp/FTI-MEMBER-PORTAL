@@ -156,23 +156,39 @@ export default function CompanyBasicInfo({
   };
 
   const fetchPostalCode = async (subDistrict) => {
+    if (!subDistrict || subDistrict.length < 2) return;
+    
     try {
-      const response = await fetch(`/api/postal-code?subDistrict=${encodeURIComponent(subDistrict)}`);
+      console.log(`🔍 กำลังหา postal code สำหรับ: ${subDistrict}`);
+      
+      const response = await fetch(`/api/thailand-address/search?query=${encodeURIComponent(subDistrict)}&type=subdistrict`);
       
       if (!response.ok) {
         throw new Error('ไม่สามารถดึงข้อมูลรหัสไปรษณีย์ได้');
       }
       
       const data = await response.json();
+      console.log('📬 ผลการค้นหา postal code:', data);
       
       if (data.success && data.data && data.data.length > 0) {
-        setFormData(prev => ({
-          ...prev,
-          postalCode: data.data[0].postalCode
-        }));
+        // หาตำบลที่ตรงกันที่สุด
+        const exactMatch = data.data.find(item => item.text === subDistrict);
+        const selectedItem = exactMatch || data.data[0];
+        
+        if (selectedItem && selectedItem.postalCode) {
+          console.log(`✅ เจอ postal code: ${selectedItem.postalCode}`);
+          
+          setFormData(prev => ({
+            ...prev,
+            postalCode: selectedItem.postalCode
+          }));
+          
+          toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');
+        }
       }
     } catch (error) {
       console.error('Error fetching postal code:', error);
+      // ไม่แสดง error toast เพื่อไม่รบกวนผู้ใช้
     }
   };
 
