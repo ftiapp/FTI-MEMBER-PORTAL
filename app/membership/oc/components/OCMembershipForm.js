@@ -327,6 +327,10 @@ export default function OCMembershipForm({
       
       if (result.success) {
         toast.success(result.message || 'ส่งข้อมูลการสมัครเรียบร้อยแล้ว');
+        
+        // ลบ draft หลังจากสมัครสำเร็จ
+        await deleteDraft();
+        
         setTimeout(() => router.push('/dashboard?tab=status'), 2000);
       } else {
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
@@ -403,6 +407,54 @@ export default function OCMembershipForm({
       toast.error('เกิดข้อผิดพลาดในการบันทึกร่าง');
     }
   }, [formData, currentStep]);
+
+  // ฟังก์ชันสำหรับลบ draft หลังจากสมัครสำเร็จ
+  const deleteDraft = useCallback(async () => {
+    try {
+      // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ tax ID
+      const response = await fetch('/api/membership/get-drafts?type=oc', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch drafts for deletion');
+        return;
+      }
+
+      const drafts = await response.json();
+      
+      // หา draft ที่ตรงกับ tax ID ของผู้สมัคร
+      const draftToDelete = drafts.find(draft => 
+        draft.draftData?.taxId === formData.taxId
+      );
+
+      if (draftToDelete) {
+        const deleteResponse = await fetch('/api/membership/delete-draft', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            memberType: 'oc',
+            draftId: draftToDelete.id
+          })
+        });
+
+        const deleteResult = await deleteResponse.json();
+        
+        if (deleteResult.success) {
+          console.log('Draft deleted successfully');
+        } else {
+          console.error('Failed to delete draft:', deleteResult.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+    }
+  }, [formData.taxId]);
 
   // Render current step component
   const currentStepComponent = useMemo(() => {

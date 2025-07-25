@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import ApplicantInfoSection from './ApplicantInfoSection';
 import RepresentativeInfoSection from './RepresentativeInfoSection';
@@ -8,8 +8,7 @@ import BusinessInfoSection from './BusinessInfoSection';
 import DocumentUploadSection from './DocumentUploadSection';
 import SummarySection from './SummarySection';
 import { validateCurrentStep } from './ICFormValidation';
-import { checkIdCardUniqueness, submitICMembershipForm, checkIdCard } from './ICFormSubmission';
-// ✅ ลบการ import useICFormNavigation ออกเพราะไม่ใช้แล้ว
+import { submitICMembershipForm, saveDraft } from './ICFormSubmission';
 
 // Constants
 const STEPS = [
@@ -64,22 +63,34 @@ const INITIAL_FORM_DATA = {
   idCardDocument: null
 };
 
-// Custom hook for API data
+// Custom hook for API data with better error handling
 const useApiData = () => {
   const [data, setData] = useState({
     businessTypes: [],
     industrialGroups: [],
     provincialChapters: [],
-    isLoading: true
+    isLoading: true,
+    error: null
   });
+  
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      // Cancel previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      abortControllerRef.current = new AbortController();
+      
       try {
+        setData(prev => ({ ...prev, isLoading: true, error: null }));
+        
         const [businessTypesRes, industrialGroupsRes, provincialChaptersRes] = await Promise.all([
-          fetch('/api/business-types'),
-          fetch('/api/industrial-groups'),
-          fetch('/api/provincial-chapters')
+          fetch('/api/business-types', { signal: abortControllerRef.current.signal }),
+          fetch('/api/industrial-groups', { signal: abortControllerRef.current.signal }),
+          fetch('/api/provincial-chapters', { signal: abortControllerRef.current.signal })
         ]);
 
         const businessTypes = businessTypesRes.ok ? await businessTypesRes.json() : [];
@@ -100,73 +111,89 @@ const useApiData = () => {
           businessTypes,
           industrialGroups,
           provincialChapters,
-          isLoading: false
+          isLoading: false,
+          error: null
         });
       } catch (error) {
+        if (error.name === 'AbortError') {
+          return; // Request was cancelled, don't update state
+        }
+        
         console.error('Error fetching data:', error);
-        toast.error('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-        setData(prev => ({ ...prev, isLoading: false }));
+        const errorMessage = 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง';
+        toast.error(errorMessage);
+        setData(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          error: errorMessage 
+        }));
       }
     };
 
     fetchData();
-  }, []);
-
-  // Load draft data on mount
-  useEffect(() => {
-    const loadDraftData = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const draftId = urlParams.get('draftId');
-      
-      if (draftId) {
-        setData(prev => ({ ...prev, isLoadingDraft: true }));
-        try {
-          const response = await fetch(`/api/membership/get-drafts?type=ic`);
-          const data = await response.json();
-          
-          if (data.success && data.drafts && data.drafts.length > 0) {
-            const draft = data.drafts.find(d => d.id === parseInt(draftId));
-            if (draft && draft.draftData) {
-              setData(prev => ({ ...prev, formData: { ...prev.formData, ...draft.draftData } }));
-              setData(prev => ({ ...prev, currentStep: draft.currentStep || 1 }));
-              toast.success('โหลดข้อมูลร่างสำเร็จ');
-            }
-          }
-        } catch (error) {
-          console.error('Error loading draft:', error);
-          toast.error('ไม่สามารถโหลดข้อมูลร่างได้');
-        } finally {
-          setData(prev => ({ ...prev, isLoadingDraft: false }));
-        }
+    
+    // Cleanup function
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
-
-    loadDraftData();
   }, []);
 
   return data;
 };
 
+// Check ID card uniqueness
+const checkIdCard = async (idCardNumber) => {
+  if (!idCardNumber || idCardNumber.length !== 13) {
+    return { valid: false, message: 'เลขบัตรประจำตัวประชาชนไม่ถูกต้อง' };
+  }
+
+  try {
+    const response = await fetch('/api/member/ic-membership/check-id-card', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ idCardNumber })
+    });
+    
+    const data = await response.json();
+    
+    return {
+      valid: data.valid === true,
+      message: data.message || 'ไม่สามารถตรวจสอบเลขบัตรประจำตัวประชาชนได้'
+    };
+  } catch (error) {
+    console.error('Error checking ID card:', error);
+    return { 
+      valid: false, 
+      message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขบัตรประจำตัวประชาชน' 
+    };
+  }
+};
+
 export default function ICMembershipForm({ currentStep, setCurrentStep, formData, setFormData, totalSteps }) {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const abortControllerRef = useRef(null);
-
-  // Handle previous step navigation
-  const handlePrevStep = useCallback(() => {
-    if (currentStep <= 1) return;
-    setCurrentStep(prev => prev - 1);
-    window.scrollTo(0, 0);
-  }, [currentStep, setCurrentStep]);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const abortControllerRef = useRef(null);
   
-  const { businessTypes, industrialGroups, provincialChapters, isLoading } = useApiData();
+  const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
 
   // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
   console.log('IC Current Step:', currentStep);
   console.log('IC Total Steps:', totalSteps);
 
-  // ✅ ลบการใช้ useICFormNavigation hook ออก เพราะเราจะใช้ navigation ภายในแล้ว
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Initialize form data with empty values
   useEffect(() => {
@@ -175,8 +202,49 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     }
   }, [formData, setFormData]);
 
-  // ✅ ลบ checkIdCardUniquenessFn ออกเพราะใช้ checkIdCard โดยตรง
-  
+  // ✅ Load draft data on mount - แยกออกจาก useApiData
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get('draftId');
+      
+      if (draftId) {
+        setIsLoadingDraft(true);
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=ic`);
+          const data = await response.json();
+          
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find(d => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              // Merge draft data with initial form data
+              setFormData(prev => ({ ...prev, ...draft.draftData }));
+              // ตั้งค่า currentStep ถ้ามี
+              if (setCurrentStep && draft.currentStep) {
+                setCurrentStep(draft.currentStep);
+              }
+              toast.success('โหลดข้อมูลร่างสำเร็จ');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          toast.error('ไม่สามารถโหลดข้อมูลร่างได้');
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      }
+    };
+
+    loadDraftData();
+  }, []); // dependencies อาจต้องเพิ่ม setCurrentStep, setFormData ถ้าจำเป็น
+
+  // Handle previous step navigation
+  const handlePrevStep = useCallback(() => {
+    if (currentStep <= 1) return;
+    setCurrentStep(prev => prev - 1);
+    window.scrollTo(0, 0);
+  }, [currentStep, setCurrentStep]);
+
   // ✅ แก้ไขฟังก์ชัน handleSubmit เพื่อให้ทำงานได้ถูกต้อง
   const handleSubmit = useCallback(async (e) => {
     if (e) {
@@ -221,7 +289,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
 
       // ตรวจสอบเลขบัตรประชาชนอีกครั้ง
       console.log('Checking ID card uniqueness...');
-      const idCardCheckResult = await checkIdCard(formData.idCardNumber); // ✅ ใช้ checkIdCard แทน
+      const idCardCheckResult = await checkIdCard(formData.idCardNumber);
       if (!idCardCheckResult.valid) {
         console.log('ID card check failed:', idCardCheckResult);
         toast.dismiss(loadingToastId);
@@ -272,9 +340,8 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
           duration: 5000
         });
         
-        // รีเซ็ตฟอร์มหรือไปหน้าสำเร็จ
-        // setFormData(INITIAL_FORM_DATA);
-        // setCurrentStep(1);
+        // ลบ draft หลังจากสมัครสำเร็จ
+        await deleteDraft();
         
       } else {
         console.error('Submission failed:', result);
@@ -288,7 +355,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, totalSteps, currentStep, isSubmitting]); // ✅ ลบ checkIdCardUniquenessFn ออกจาก dependencies
+  }, [formData, totalSteps, currentStep, isSubmitting]);
 
   // Function to scroll to the first error field
   const scrollToFirstError = useCallback((errors) => {
@@ -364,6 +431,81 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     }
   }, [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError]);
 
+  const handleSaveDraft = useCallback(async () => {
+    try {
+      const response = await fetch('/api/membership/save-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          memberType: 'ic',
+          draftData: formData,
+          currentStep: currentStep
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success('บันทึกร่างสำเร็จ');
+      } else {
+        toast.error('ไม่สามารถบันทึกร่างได้');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('เกิดข้อผิดพลาดในการบันทึกร่าง');
+    }
+  }, [formData, currentStep]);
+
+  // ฟังก์ชันสำหรับลบ draft หลังจากสมัครสำเร็จ
+  const deleteDraft = useCallback(async () => {
+    try {
+      // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ ID card number
+      const response = await fetch('/api/membership/get-drafts?type=ic', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch drafts for deletion');
+        return;
+      }
+
+      const drafts = await response.json();
+      
+      // หา draft ที่ตรงกับ ID card number ของผู้สมัคร
+      const draftToDelete = drafts.find(draft => 
+        draft.draftData?.idCardNumber === formData.idCardNumber
+      );
+
+      if (draftToDelete) {
+        const deleteResponse = await fetch('/api/membership/delete-draft', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            memberType: 'ic',
+            draftId: draftToDelete.id
+          })
+        });
+
+        const deleteResult = await deleteResponse.json();
+        
+        if (deleteResult.success) {
+          console.log('Draft deleted successfully');
+        } else {
+          console.error('Failed to delete draft:', deleteResult.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+    }
+  }, [formData.idCardNumber]);
+
   // Handle previous step
   const handlePrev = useCallback((e) => {
     // ✅ ป้องกัน form submission
@@ -404,14 +546,39 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     };
 
     return stepComponents[currentStep] || null;
-  }, [currentStep, formData, setFormData, errors, industrialGroups, provincialChapters, isLoading, isSubmitting, handleSubmit]);
+  }, [currentStep, formData, setFormData, errors, industrialGroups, provincialChapters, isLoading, isSubmitting, handleSubmit, handlePrevStep]);
+
+  // Render error message helper
+  const renderErrorMessage = (errorValue, key, index) => {
+    if (typeof errorValue === 'object' && errorValue !== null) {
+      return <li key={`${key}-${index}`} className="text-base">{JSON.stringify(errorValue)}</li>;
+    }
+    return <li key={`${key}-${index}`} className="text-base">{String(errorValue)}</li>;
+  };
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || isLoadingDraft) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
+      </div>
+    );
+  }
+
+  // Show API error
+  if (apiError) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-4">{apiError}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
       </div>
     );
   }
@@ -436,11 +603,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
             <ul className="mt-4 list-disc list-inside space-y-2">
               {Object.keys(errors)
                 .filter(key => key !== 'representativeErrors')
-                .map((key, index) => (
-                  <li key={index} className="text-base">
-                    {typeof errors[key] === 'object' ? JSON.stringify(errors[key]) : String(errors[key])}
-                  </li>
-                ))}
+                .map((key, index) => renderErrorMessage(errors[key], key, index))}
             </ul>
           </div>
         )}
@@ -482,13 +645,38 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
-              >
-                ถัดไป →
-              </button>
+              <div className="flex items-center space-x-3">
+                {currentStep !== 4 && currentStep !== 5 && (
+                  <button
+                    type="button"
+                    onClick={handleSaveDraft}
+                    className="px-10 py-4 bg-yellow-500 text-white rounded-xl font-semibold text-base hover:bg-yellow-600 transition-all duration-200 hover:shadow-md"
+                  >
+                    บันทึกร่าง
+                  </button>
+                )}
+                {currentStep < totalSteps ? (
+                  <button
+                    type="button"
+                    onClick={handleNext}
+                    className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
+                  >
+                    ถัดไป →
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
+                      isSubmitting
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-green-600 hover:bg-green-700 hover:shadow-md'
+                    } text-white`}
+                  >
+                    {isSubmitting ? '⏳ กำลังส่ง...' : '✓ ส่งข้อมูล'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

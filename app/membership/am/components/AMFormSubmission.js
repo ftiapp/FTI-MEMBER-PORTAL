@@ -187,27 +187,57 @@ export const submitAMMembershipForm = async (formData) => {
       }
     }
     
-    // ส่งข้อมูลไปยัง API
+    // ส่งข้อมูลไปยัง API พร้อม retry logic สำหรับ lock wait timeout
     console.log('🌐 [AM] Sending data to API...');
-    const response = await fetch('/api/member/am-membership/submit', {
-      method: 'POST',
-      body: formDataToSubmit
-    });
     
-    console.log('📡 [AM] API Response status:', response.status);
+    const maxRetries = 3;
+    let retryCount = 0;
     
-    const result = await response.json();
-    console.log('📥 [AM] API Response data:', result);
-    
-    if (!response.ok) {
-      console.error('❌ [AM] API Error:', result);
-      throw new Error(result.error || result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
+    let result;
+    while (retryCount < maxRetries) {
+      try {
+        const response = await fetch('/api/member/am-membership/submit', {
+          method: 'POST',
+          body: formDataToSubmit
+        });
+        
+        console.log('📡 [AM] API Response status:', response.status);
+        
+        result = await response.json();
+        console.log('📥 [AM] API Response data:', result);
+        
+        if (!response.ok) {
+          // จัดการ lock wait timeout ด้วย retry
+          if (response.status === 429 && result.retryAfter) {
+            const delay = Math.min(1000 * Math.pow(2, retryCount), 5000); // exponential backoff
+            console.log(`⏳ [AM] Lock wait timeout, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            retryCount++;
+            continue;
+          }
+          
+          console.error('❌ [AM] API Error:', result);
+          throw new Error(result.error || result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
+        }
+        
+        break; // Success, exit retry loop
+      } catch (error) {
+        // Network errors or other exceptions
+        if (retryCount < maxRetries - 1) {
+          const delay = Math.min(1000 * Math.pow(2, retryCount), 5000);
+          console.log(`⏳ [AM] Network error, retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          retryCount++;
+          continue;
+        }
+        throw error;
+      }
     }
     
     console.log('🎉 [AM] Form submission successful!');
     return {
       success: true,
-      message: result.message || 'ส่งข้อมูลสำเร็จ',
+      message: result?.message || 'ส่งข้อมูลสำเร็จ',
       data: result
     };
   } catch (error) {

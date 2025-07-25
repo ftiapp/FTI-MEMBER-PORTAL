@@ -147,6 +147,7 @@ export const StepIndicator = ({ currentStep, totalSteps }) => {
  * @param {Function} props.onPrev ฟังก์ชันเมื่อกดปุ่มย้อนกลับ
  * @param {Function} props.onNext ฟังก์ชันเมื่อกดปุ่มถัดไป
  * @param {Function} props.onSubmit ฟังก์ชันเมื่อกดปุ่มยืนยัน
+ * @param {Function} props.onSaveDraft ฟังก์ชันเมื่อกดปุ่มบันทึกร่าง
  * @param {boolean} props.isSubmitting สถานะกำลังส่งข้อมูล
  */
 export const NavigationButtons = ({ 
@@ -155,6 +156,7 @@ export const NavigationButtons = ({
   onPrev, 
   onNext, 
   onSubmit, 
+  onSaveDraft,
   isSubmitting 
 }) => {
   return (
@@ -168,7 +170,16 @@ export const NavigationButtons = ({
           ย้อนกลับ
         </button>
       )}
-      <div className="ml-auto">
+      <div className="ml-auto flex gap-3">
+        {currentStep !== totalSteps && (
+          <button
+            type="button"
+            onClick={onSaveDraft}
+            className="px-4 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition-colors"
+          >
+            บันทึกร่าง
+          </button>
+        )}
         {currentStep < totalSteps ? (
           <button
             type="button"

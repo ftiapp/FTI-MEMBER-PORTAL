@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
@@ -12,6 +12,7 @@ export default function ICMembership() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -22,7 +23,36 @@ export default function ICMembership() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-  
+
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get('draftId');
+      
+      if (draftId) {
+        setIsLoadingDraft(true);
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=ic`);
+          const data = await response.json();
+          
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find(d => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              setFormData(prev => ({ ...prev, ...draft.draftData }));
+              setCurrentStep(draft.currentStep || 1);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      }
+    };
+
+    loadDraftData();
+  }, []);
+
   const steps = [
     { id: 1, name: 'ข้อมูลผู้สมัคร' },
     { id: 2, name: 'ข้อมูลผู้แทน' },
@@ -112,6 +142,12 @@ export default function ICMembership() {
             )}
             
             <div className="relative z-10">
+              {isLoadingDraft && (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  <span className="ml-2 text-gray-600">กำลังโหลดข้อมูลร่าง...</span>
+                </div>
+              )}
               <ICMembershipForm 
                 currentStep={currentStep} 
                 setCurrentStep={setCurrentStep} 

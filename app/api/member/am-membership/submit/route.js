@@ -73,12 +73,12 @@ export async function POST(request) {
       }
     };
 
-    // Step 2: ตรวจสอบเลขประจำตัวผู้เสียภาษีซ้ำ
+    // Step 2: ตรวจสอบเลขประจำตัวผู้เสียภาษีซ้ำ (ใช้ SELECT ... FOR UPDATE เพื่อลด lock time)
     const { taxId } = data;
     console.log('🔍 [AM API] Checking duplicate Tax ID:', taxId);
     
     const [existingMember] = await executeQuery(trx, 
-      'SELECT status FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', 
+      'SELECT status FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1 FOR UPDATE', 
       [taxId]
     );
 
@@ -127,7 +127,7 @@ export async function POST(request) {
       const contactPerson = JSON.parse(data.contactPerson);
       await executeQuery(trx, 
         `INSERT INTO MemberRegist_AM_ContactPerson (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-        [mainId, contactPerson.firstNameTh, contactPerson.lastNameTh, contactPerson.firstNameEn, contactPerson.lastNameEn, contactPerson.position, contactPerson.email, contactPerson.phone]
+        [mainId, contactPerson.firstNameTh || '', contactPerson.lastNameTh || '', contactPerson.firstNameEn || '', contactPerson.lastNameEn || '', contactPerson.position || '', contactPerson.email || '', contactPerson.phone || '']
       );
     }
 
@@ -141,13 +141,13 @@ export async function POST(request) {
           `INSERT INTO MemberRegist_AM_Representatives (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, rep_order, is_primary) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
             mainId, 
-            rep.firstNameTh, 
-            rep.lastNameTh, 
-            rep.firstNameEn, 
-            rep.lastNameEn, 
-            rep.position, 
-            rep.email, 
-            rep.phone, 
+            rep.firstNameTh || '', 
+            rep.lastNameTh || '', 
+            rep.firstNameEn || '', 
+            rep.lastNameEn || '', 
+            rep.position || '', 
+            rep.email || '', 
+            rep.phone || '', 
             index + 1,
             rep.isPrimary ? 1 : 0
           ]
@@ -306,28 +306,38 @@ export async function POST(request) {
           ]
         );
         console.log(`✅ [AM API] Document metadata saved for ${fieldName}`);
-      } catch (dbError) {
-        console.error(`❌ [AM API] Error saving document metadata for ${fieldName}:`, dbError);
-      }
-    }
-
-    // Delete draft if this was a resumed application
-    const draftId = formData.get('draftId');
-    if (draftId) {
-      try {
-        await executeQuery(
-          'DELETE FROM MemberRegist_AM_Draft WHERE id = ? AND user_id = ?',
-          [draftId, userId]
-        );
-        console.log('🗑️ AM Draft deleted successfully after submission');
-      } catch (draftError) {
-        console.warn('⚠️ Could not delete AM draft:', draftError.message);
-        // Continue with success - draft deletion is not critical
+      } catch (error) {
+        console.error(`❌ [AM API] Error saving document metadata for ${fieldName}:`, error);
       }
     }
 
     await commitTransaction(trx);
     console.log('🎉 [AM API] Transaction committed successfully');
+
+    // ลบ draft หลังจากสมัครสำเร็จ - ใช้ tax_id ที่บันทึกไว้ในตาราง
+    const taxIdFromData = data.taxId;
+    
+    console.log('🗑️ [AM API] Attempting to delete draft...');
+    console.log('🗑️ [AM API] taxId from data:', taxIdFromData);
+    
+    try {
+      let deletedRows = 0;
+      
+      if (taxIdFromData) {
+        // ลบ draft โดยใช้ tax_id ที่บันทึกไว้ในตาราง
+        const deleteResult = await executeQuery(trx, 
+          'DELETE FROM MemberRegist_AM_Draft WHERE tax_id = ? AND user_id = ?',
+          [taxIdFromData, userId]
+        );
+        deletedRows = deleteResult.affectedRows || 0;
+        console.log(`✅ [AM API] Draft deleted by tax_id: ${taxIdFromData}, affected rows: ${deletedRows}`);
+      } else {
+        console.warn('⚠️ [AM API] No taxId provided, cannot delete draft');
+      }
+    } catch (draftError) {
+      console.error('❌ [AM API] Error deleting draft:', draftError.message);
+      // ไม่ throw error เพราะการลบ draft ไม่ควรบล็อกการสมัครสำเร็จ
+    }
 
     const response = { 
       message: 'การสมัครสมาชิก AM สำเร็จ', 
@@ -347,8 +357,16 @@ export async function POST(request) {
   } catch (error) {
     console.error('❌ [AM API] Error in AM membership submission:', error);
     
-    if (connection) {
-      await rollbackTransaction(connection);
+    if (trx) {
+      await rollbackTransaction(trx);
+    }
+    
+    // จัดการ lock wait timeout ด้วยข้อความที่ชัดเจน
+    if (error.code === 'ER_LOCK_WAIT_TIMEOUT') {
+      return NextResponse.json({ 
+        error: 'ระบบกำลังประมวลผลคำขออื่นอยู่ กรุณาลองใหม่อีกครั้งในอีกไม่กี่วินาที',
+        retryAfter: 3
+      }, { status: 429 });
     }
     
     return NextResponse.json({ 

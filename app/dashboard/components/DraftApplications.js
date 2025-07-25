@@ -92,7 +92,7 @@ export default function DraftApplications() {
   return (
     <div className="space-y-4">
       {drafts.map((draft) => (
-        <div key={draft.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+        <div key={`${draft.memberType}-${draft.id}`} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start">
             <div>
               <h4 className="font-medium text-black">

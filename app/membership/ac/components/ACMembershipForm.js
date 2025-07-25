@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +15,7 @@ import SummarySection from './SummarySection';
 import { validateACForm } from './ACFormValidation';
 import { submitACMembershipForm } from './ACFormSubmission';
 import { useACFormNavigation } from './ACFormNavigation';
+import { saveDraft } from './ACDraftService';
 
 // Constants
 const STEPS = [
@@ -65,22 +66,34 @@ const INITIAL_FORM_DATA = {
   vatRegistration: null
 };
 
-// Custom hook for API data
+// Custom hook for API data with better error handling
 const useApiData = () => {
   const [data, setData] = useState({
     businessTypes: [],
     industrialGroups: [],
     provincialChapters: [],
-    isLoading: true
+    isLoading: true,
+    error: null
   });
+  
+  const abortControllerRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      // Cancel previous request if it exists
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      
+      abortControllerRef.current = new AbortController();
+      
       try {
+        setData(prev => ({ ...prev, isLoading: true, error: null }));
+        
         const [businessTypesRes, industrialGroupsRes, provincialChaptersRes] = await Promise.all([
-          fetch('/api/business-types'),
-          fetch('/api/industrial-groups'),
-          fetch('/api/provincial-chapters')
+          fetch('/api/business-types', { signal: abortControllerRef.current.signal }),
+          fetch('/api/industrial-groups', { signal: abortControllerRef.current.signal }),
+          fetch('/api/provincial-chapters', { signal: abortControllerRef.current.signal })
         ]);
 
         const businessTypes = businessTypesRes.ok ? await businessTypesRes.json() : [];
@@ -105,16 +118,33 @@ const useApiData = () => {
           businessTypes,
           industrialGroups,
           provincialChapters,
-          isLoading: false
+          isLoading: false,
+          error: null
         });
       } catch (error) {
+        if (error.name === 'AbortError') {
+          return; // Request was cancelled, don't update state
+        }
+        
         console.error('Error fetching data:', error);
-        toast.error('ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-        setData(prev => ({ ...prev, isLoading: false }));
+        const errorMessage = 'ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง';
+        toast.error(errorMessage);
+        setData(prev => ({ 
+          ...prev, 
+          isLoading: false, 
+          error: errorMessage 
+        }));
       }
     };
 
     fetchData();
+    
+    // Cleanup function
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
   }, []);
 
   return data;
@@ -122,10 +152,14 @@ const useApiData = () => {
 
 export default function ACMembershipForm() {
   const router = useRouter();
+  const abortControllerRef = useRef(null);
+  
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
+  const [taxIdValidating, setTaxIdValidating] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   
-  const { businessTypes, industrialGroups, provincialChapters, isLoading } = useApiData();
+  const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
   const {
     currentStep,
@@ -133,54 +167,132 @@ export default function ACMembershipForm() {
     setIsSubmitting,
     totalSteps,
     handleNextStep,
-    handlePrevStep
+    handlePrevStep,
+    setCurrentStep // เพิ่มถ้า hook รองรับ
   } = useACFormNavigation((formData, step) => validateACForm(formData, step));
 
   // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
-  console.log('Current Step:', currentStep);
-  console.log('Total Steps:', totalSteps);
+  console.log('AC Current Step:', currentStep);
+  console.log('AC Total Steps:', totalSteps);
 
-  // Check tax ID uniqueness
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Load draft data on mount - ✅ เพิ่มฟังก์ชันนี้
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get('draftId');
+      
+      if (draftId) {
+        setIsLoadingDraft(true);
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=ac`);
+          const data = await response.json();
+          
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find(d => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              // Merge draft data with initial form data
+              setFormData(prev => ({ ...prev, ...draft.draftData }));
+              // ถ้า navigation hook รองรับการตั้งค่า currentStep
+              if (setCurrentStep && draft.currentStep) {
+                setCurrentStep(draft.currentStep);
+              }
+              toast.success('โหลดข้อมูลร่างสำเร็จ');
+            }
+          }
+        } catch (error) {
+          console.error('Error loading draft:', error);
+          toast.error('ไม่สามารถโหลดข้อมูลร่างได้');
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      }
+    };
+
+    loadDraftData();
+  }, []); // dependencies อาจต้องเพิ่ม setCurrentStep ถ้ามี
+
+  // Check tax ID uniqueness with better error handling
   const checkTaxIdUniqueness = useCallback(async (taxId) => {
+    if (!taxId || taxId.length !== 13) {
+      return { isUnique: false, message: 'เลขประจำตัวผู้เสียภาษีไม่ถูกต้อง' };
+    }
+
+    // Cancel previous request if it exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    
     try {
+      setTaxIdValidating(true);
+      
       // ใช้ API endpoint เดียวกับที่ใช้ใน ACFormSubmission.js
       const response = await fetch('/api/membership/check-tax-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taxId, memberType: 'AC' })
+        body: JSON.stringify({ taxId, memberType: 'AC' }),
+        signal: abortControllerRef.current.signal
       });
       
       const data = await response.json();
+      console.log('Tax ID validation response:', data);
       
       // ปรับรูปแบบข้อมูลให้เข้ากับโค้ดที่มีอยู่
       return {
         isUnique: response.status === 200 && data.status === 'available',
-        message: data.message
+        message: data.message || 'ไม่สามารถตรวจสอบเลขประจำตัวผู้เสียภาษีได้'
       };
     } catch (error) {
+      if (error.name === 'AbortError') {
+        return { isUnique: false, message: 'การตรวจสอบถูกยกเลิก' };
+      }
+      
       console.error('Error checking tax ID uniqueness:', error);
-      throw new Error('เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี');
+      return { 
+        isUnique: false, 
+        message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี' 
+      };
+    } finally {
+      setTaxIdValidating(false);
     }
   }, []);
 
   // Handle form submission - เฉพาะสำหรับขั้นตอนสุดท้าย (step 5)
   const handleSubmit = useCallback(async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     
     // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
     if (currentStep !== 5) {
-      console.log('Form submit prevented - not on final step');
+      console.log('AC Form submit prevented - not on final step');
       return;
     }
-    
-    const formErrors = validateACForm(formData, currentStep);
+
+    // Re-validate all fields before final submission
+    const formErrors = validateACForm(formData, STEPS.length);
     setErrors(formErrors);
-    
+
     if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+      toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
+      // Optionally, navigate to the first step with an error
+      const firstErrorStep = STEPS.find(step => 
+        Object.keys(validateACForm(formData, step.id)).length > 0
+      );
+      if (firstErrorStep && setCurrentStep) {
+        setCurrentStep(firstErrorStep.id);
+      }
       return;
     }
-    
+
     // Show warning toast and set submitting state
     toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
       id: 'submitting',
@@ -195,19 +307,23 @@ export default function ACMembershipForm() {
       toast.dismiss('submitting');
       
       if (result.success) {
-        toast.success(result.message);
+        toast.success(result.message || 'ส่งข้อมูลการสมัครเรียบร้อยแล้ว');
+        
+        // ลบ draft หลังจากสมัครสำเร็จ
+        await deleteDraft();
+        
         setTimeout(() => router.push('/dashboard?tab=status'), 2000);
       } else {
-        toast.error(result.message);
+        toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
         setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Submission error:', error);
       toast.dismiss('submitting');
-      toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล');
+      toast.error('เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง');
       setIsSubmitting(false);
     }
-  }, [formData, currentStep, router]);
+  }, [formData, currentStep, router, setCurrentStep]);
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
   const handleNext = useCallback(async (e) => {
@@ -227,16 +343,10 @@ export default function ACMembershipForm() {
 
     // Check tax ID uniqueness on step 1
     if (currentStep === 1 && formData.taxId?.length === 13) {
-      try {
-        const data = await checkTaxIdUniqueness(formData.taxId);
-        
-        if (!data.isUnique) {
-          setErrors(prev => ({ ...prev, taxId: data.message }));
-          toast.error(data.message);
-          return;
-        }
-      } catch (error) {
-        toast.error(error.message);
+      const taxIdResult = await checkTaxIdUniqueness(formData.taxId);
+      if (!taxIdResult.isUnique) {
+        setErrors(prev => ({ ...prev, taxId: taxIdResult.message }));
+        toast.error(taxIdResult.message);
         return;
       }
     }
@@ -244,26 +354,156 @@ export default function ACMembershipForm() {
     handleNextStep(formData, setErrors);
   }, [formData, currentStep, checkTaxIdUniqueness, handleNextStep]);
 
+  const handlePrevious = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    handlePrevStep();
+  }, [handlePrevStep]);
+
+  const handleSaveDraft = useCallback(async () => {
+    try {
+      const response = await fetch('/api/membership/save-draft', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          memberType: 'ac',
+          draftData: formData,
+          currentStep: currentStep
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        toast.success('บันทึกร่างสำเร็จ');
+      } else {
+        toast.error('ไม่สามารถบันทึกร่างได้');
+      }
+    } catch (error) {
+      console.error('Error saving draft:', error);
+      toast.error('เกิดข้อผิดพลาดในการบันทึกร่าง');
+    }
+  }, [formData, currentStep]);
+
+  // ฟังก์ชันสำหรับลบ draft หลังจากสมัครสำเร็จ
+  const deleteDraft = useCallback(async () => {
+    try {
+      // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ tax ID
+      const response = await fetch('/api/membership/get-drafts?type=ac', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      if (!response.ok) {
+        console.error('Failed to fetch drafts for deletion');
+        return;
+      }
+
+      const drafts = await response.json();
+      
+      // หา draft ที่ตรงกับ tax ID ของผู้สมัคร
+      const draftToDelete = drafts.find(draft => 
+        draft.draftData?.taxId === formData.taxId
+      );
+
+      if (draftToDelete) {
+        const deleteResponse = await fetch('/api/membership/delete-draft', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify({
+            memberType: 'ac',
+            draftId: draftToDelete.id
+          })
+        });
+
+        const deleteResult = await deleteResponse.json();
+        
+        if (deleteResult.success) {
+          console.log('Draft deleted successfully');
+        } else {
+          console.error('Failed to delete draft:', deleteResult.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting draft:', error);
+    }
+  }, [formData.taxId]);
+
   // Render current step component
   const currentStepComponent = useMemo(() => {
     const commonProps = { formData, setFormData, errors };
 
     const stepComponents = {
-      1: <CompanyInfoSection {...commonProps} setErrors={setErrors} />,
+      1: <CompanyInfoSection 
+          {...commonProps} 
+          setErrors={setErrors} 
+          taxIdValidating={taxIdValidating}
+        />,
       2: <RepresentativeSection {...commonProps} />,
-      3: <BusinessInfoSection {...commonProps} businessTypes={businessTypes} industrialGroups={industrialGroups} provincialChapters={provincialChapters} isLoading={isLoading} />,
+      3: <BusinessInfoSection 
+          {...commonProps} 
+          businessTypes={businessTypes} 
+          industrialGroups={industrialGroups} 
+          provincialChapters={provincialChapters} 
+          isLoading={isLoading} 
+        />,
       4: <DocumentsSection {...commonProps} />,
-      5: <SummarySection formData={formData} businessTypes={businessTypes} industrialGroups={industrialGroups} provincialChapters={provincialChapters} />
+      5: <SummarySection 
+          formData={formData} 
+          businessTypes={businessTypes} 
+          industrialGroups={industrialGroups} 
+          provincialChapters={provincialChapters} 
+        />
     };
 
     return stepComponents[currentStep] || null;
-  }, [currentStep, formData, errors, businessTypes, industrialGroups, provincialChapters, isLoading]);
+  }, [currentStep, formData, errors, businessTypes, industrialGroups, provincialChapters, isLoading, taxIdValidating]);
+
+  // Render error message helper
+  const renderErrorMessage = (errorValue, key, index) => {
+    if (typeof errorValue === 'object' && errorValue !== null) {
+      // Handle nested error objects
+      const firstErrorKey = Object.keys(errorValue)[0];
+      const message = firstErrorKey === '_error' 
+        ? errorValue._error 
+        : `${key}: ${errorValue[firstErrorKey]}`;
+      return <li key={`${key}-${index}`} className="text-base">{message}</li>;
+    }
+    return <li key={`${key}-${index}`} className="text-base">{errorValue}</li>;
+  };
 
   // Show loading state
-  if (isLoading) {
+  if (isLoading || isLoadingDraft) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
+      </div>
+    );
+  }
+
+  // Show API error
+  if (apiError) {
+    return (
+      <div className="flex justify-center items-center min-h-[400px]">
+        <div className="text-center">
+          <div className="text-red-600 text-lg mb-4">{apiError}</div>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            ลองใหม่อีกครั้ง
+          </button>
+        </div>
       </div>
     );
   }
@@ -286,9 +526,7 @@ export default function ACMembershipForm() {
             <ul className="mt-4 list-disc list-inside space-y-2">
               {Object.keys(errors)
                 .filter(key => key !== 'representativeErrors')
-                .map((key, index) => (
-                  <li key={index} className="text-base">{errors[key]}</li>
-                ))}
+                .map((key, index) => renderErrorMessage(errors[key], key, index))}
             </ul>
           </div>
         )}
@@ -303,7 +541,7 @@ export default function ACMembershipForm() {
           <div className="max-w-7xl mx-auto flex justify-between items-center">
             <button
               type="button"
-              onClick={handlePrevStep}
+              onClick={handlePrevious}
               disabled={currentStep === 1}
               className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
                 currentStep === 1
@@ -322,28 +560,38 @@ export default function ACMembershipForm() {
               </div>
             </div>
 
-            {/* ✅ แก้ไขเงื่อนไขการแสดงปุ่ม */}
-            {currentStep < 5 ? (
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
-              >
-                ถัดไป →
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                  isSubmitting
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-green-600 hover:bg-green-700 hover:shadow-md'
-                } text-white`}
-              >
-                {isSubmitting ? '⏳ กำลังส่ง...' : '✓ ยืนยันการสมัคร'}
-              </button>
-            )}
+            <div className="flex items-center space-x-3">
+              {currentStep !== 4 && currentStep !== 5 && (
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  className="px-10 py-4 bg-yellow-500 text-white rounded-xl font-semibold text-base hover:bg-yellow-600 transition-all duration-200 hover:shadow-md"
+                >
+                  บันทึกร่าง
+                </button>
+              )}
+              {currentStep < 5 ? (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
+                >
+                  ถัดไป →
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
+                    isSubmitting
+                      ? 'bg-gray-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700 hover:shadow-md'
+                  } text-white`}
+                >
+                  {isSubmitting ? '⏳ กำลังส่ง...' : '✓ ยืนยันการสมัคร'}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
