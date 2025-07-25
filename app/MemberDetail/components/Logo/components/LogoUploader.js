@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { FaUpload, FaImage, FaCircle, FaSquare, FaSave, FaTimes, FaSpinner } from 'react-icons/fa';
+import { FaUpload, FaImage, FaCircle, FaSquare, FaSave, FaTimes, FaSpinner, FaCrop } from 'react-icons/fa';
+import ImageCropper from './ImageCropper';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -9,10 +10,13 @@ const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'
 export default function LogoUploader({ memberCode, existingLogo = null, onUpdate, onCancel }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(existingLogo?.logo_url || null);
-  const [displayMode, setDisplayMode] = useState(existingLogo?.display_mode || 'circle');
+  const [displayMode, setDisplayMode] = useState(existingLogo?.display_mode || 'square');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
+  const [croppedImage, setCroppedImage] = useState(null);
   const fileInputRef = useRef(null);
 
   // Handle file selection
@@ -35,12 +39,32 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
     setFile(selectedFile);
     setError(null);
     
-    // Create preview
+    // Create preview and open cropper
     const reader = new FileReader();
     reader.onloadend = () => {
-      setPreview(reader.result);
+      setImageToCrop(reader.result);
+      setShowCropper(true);
     };
     reader.readAsDataURL(selectedFile);
+  };
+
+  // Handle crop completion
+  const handleCropComplete = (croppedImageData) => {
+    setPreview(croppedImageData);
+    setCroppedImage(croppedImageData);
+    setShowCropper(false);
+    
+    // Convert base64 to file
+    const byteString = atob(croppedImageData.split(',')[1]);
+    const mimeString = croppedImageData.split(',')[0].split(':')[1].split(';')[0];
+    const ab = new ArrayBuffer(byteString.length);
+    const ia = new Uint8Array(ab);
+    for (let i = 0; i < byteString.length; i++) {
+      ia[i] = byteString.charCodeAt(i);
+    }
+    const blob = new Blob([ab], { type: mimeString });
+    const croppedFile = new File([blob], `cropped_${file?.name || 'logo.jpg'}`, { type: mimeString });
+    setFile(croppedFile);
   };
 
   // Handle form submission
@@ -160,14 +184,27 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
             )}
           </div>
           
-          <button
-            type="button"
-            onClick={() => fileInputRef.current.click()}
-            className="mt-4 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center"
-          >
-            <FaUpload className="mr-2" /> 
-            {existingLogo ? 'เปลี่ยนโลโก้' : 'เลือกไฟล์'}
-          </button>
+          <div className="flex gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current.click()}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center"
+            >
+              <FaUpload className="mr-2" /> 
+              {existingLogo ? 'เปลี่ยนโลโก้' : 'เลือกไฟล์'}
+            </button>
+            
+            {croppedImage && (
+              <button
+                type="button"
+                onClick={() => setShowCropper(true)}
+                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+              >
+                <FaCrop className="mr-2" />
+                ปรับแต่งรูป
+              </button>
+            )}
+          </div>
           
           <input
             type="file"
@@ -181,25 +218,11 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
             รองรับไฟล์ JPEG, PNG, GIF, WebP ขนาดไม่เกิน 5MB
           </p>
         </div>
-        
+
         {/* Display mode selection */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700">รูปแบบการแสดงผล</label>
           <div className="flex space-x-4">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="displayMode"
-                value="circle"
-                checked={displayMode === 'circle'}
-                onChange={() => setDisplayMode('circle')}
-                className="text-blue-600 focus:ring-blue-500"
-              />
-              <span className="flex items-center">
-                <FaCircle className="text-blue-600 mr-1" /> วงกลม
-              </span>
-            </label>
-            
             <label className="flex items-center space-x-2 cursor-pointer">
               <input
                 type="radio"
@@ -244,6 +267,29 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
           </button>
         </div>
       </form>
+
+      {/* Cropper Modal */}
+      {showCropper && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">ปรับแต่งรูปโลโก้</h3>
+              <button
+                onClick={() => setShowCropper(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <ImageCropper
+              image={imageToCrop}
+              onCropComplete={handleCropComplete}
+              onCancel={() => setShowCropper(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

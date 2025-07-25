@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '../../../../lib/db';
+import { initPool } from '../../../../lib/db';
 
 export async function GET(request, { params }) {
   try {
@@ -13,6 +13,7 @@ export async function GET(request, { params }) {
       );
     }
     
+    const pool = await initPool();
     const sql = `
       SELECT id, tsic_code, description, description_EN, positive_list
       FROM tsic_categories
@@ -20,7 +21,7 @@ export async function GET(request, { params }) {
       ORDER BY description ASC
     `;
     
-    const rows = await query(sql, [categoryCode]);
+    const [rows] = await pool.execute(sql, [categoryCode]);
     
     if (!rows) {
       return NextResponse.json(

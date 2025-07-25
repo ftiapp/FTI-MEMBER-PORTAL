@@ -16,7 +16,43 @@ export default function LogoDisplay({ logoData, onDelete }) {
 
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
-    await onDelete();
+    
+    try {
+      // Extract public_id from Cloudinary URL including folder path
+      const urlParts = logoData.logo_url.split('/');
+      const uploadIndex = urlParts.findIndex(part => part === 'upload');
+      
+      let publicId;
+      if (uploadIndex !== -1 && urlParts.length > uploadIndex + 1) {
+        // Handle full Cloudinary URL with folder structure
+        const pathParts = urlParts.slice(uploadIndex + 1);
+        const versionFolder = pathParts[0]; // v1234567890
+        const folderAndFile = pathParts.slice(1).join('/'); // company_logos/filename
+        publicId = folderAndFile.split('.')[0]; // Remove file extension
+      } else {
+        // Handle simple public ID
+        publicId = urlParts[urlParts.length - 1].split('.')[0];
+      }
+      
+      // Delete from Cloudinary first
+      const deleteResponse = await fetch(`/api/member/delete-logo?publicId=${publicId}`, {
+        method: 'DELETE',
+      });
+      
+      const deleteResult = await deleteResponse.json();
+      
+      if (deleteResult.success) {
+        // Then delete from database via parent callback
+        await onDelete();
+      } else {
+        console.error('Failed to delete from Cloudinary:', deleteResult);
+        alert('ไม่สามารถลบรูปจากระบบได้ กรุณาลองใหม่อีกครั้ง');
+      }
+    } catch (error) {
+      console.error('Error deleting logo:', error);
+      alert('เกิดข้อผิดพลาดในการลบรูป');
+    }
+    
     setIsDeleting(false);
     setShowConfirmDelete(false);
   };

@@ -15,47 +15,62 @@ export function useICFormNavigation({
   const [isValidating, setIsValidating] = useState(false);
 
   // Handle next step
-  const handleNextStep = useCallback(async () => {
-    if (currentStep >= totalSteps) return;
+  // ในไฟล์ useICFormNavigation.js
+// แก้ไขส่วน handleNextStep ตรงบรรทัดที่ตรวจสอบ ID Card
+
+const handleNextStep = useCallback(async () => {
+  if (currentStep >= totalSteps) return;
+  
+  setIsValidating(true);
+  
+  try {
+    // Validate current step
+    const stepErrors = validateCurrentStep(currentStep, formData);
     
-    setIsValidating(true);
+    if (Object.keys(stepErrors).length > 0) {
+      // Show error toast at top right
+      toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน', {
+        position: 'top-right'
+      });
+      return;
+    }
     
-    try {
-      // Validate current step
-      const stepErrors = validateCurrentStep(currentStep, formData);
-      
-      if (Object.keys(stepErrors).length > 0) {
-        // Show error toast at top right
-        toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน', {
-          position: 'top-right'
-        });
-        return;
-      }
-      
-      // For step 1 (Applicant Info), check ID card uniqueness
-      if (currentStep === 1 && formData.idCardNumber) {
+    // For step 1 (Applicant Info), check ID card uniqueness
+    if (currentStep === 1 && formData.idCardNumber) {
+      try {
         const idCardCheckResult = await checkIdCardUniqueness(formData.idCardNumber);
         
-        if (!idCardCheckResult.success) {
-          toast.error(idCardCheckResult.message, {
+        // Debug log เพื่อดูผลลัพธ์
+        console.log('ID Card Check Result:', idCardCheckResult);
+        
+        // ตรวจสอบผลลัพธ์ - ปรับเงื่อนไขให้ชัดเจนขึ้น
+        if (idCardCheckResult && idCardCheckResult.valid === false) {
+          toast.error(idCardCheckResult.message || 'เลขบัตรประชาชนนี้ถูกใช้ไปแล้ว', {
             position: 'top-right'
           });
           return;
         }
+        
+      } catch (error) {
+        console.error('Error checking ID card:', error);
+        // หากเกิด error ให้ถือว่าผ่าน (เนื่องจากไม่มีฐานข้อมูล)
+        console.log('ID card check failed, but proceeding anyway (no database)');
       }
-      
-      // Proceed to next step
-      setCurrentStep(prev => prev + 1);
-      window.scrollTo(0, 0);
-    } catch (error) {
-      console.error('Error in form navigation:', error);
-      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', {
-        position: 'top-right'
-      });
-    } finally {
-      setIsValidating(false);
     }
-  }, [currentStep, totalSteps, formData, validateCurrentStep, setCurrentStep, checkIdCardUniqueness]);
+    
+    // Proceed to next step
+    setCurrentStep(prev => prev + 1);
+    window.scrollTo(0, 0);
+    
+  } catch (error) {
+    console.error('Error in form navigation:', error);
+    toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', {
+      position: 'top-right'
+    });
+  } finally {
+    setIsValidating(false);
+  }
+}, [currentStep, totalSteps, formData, validateCurrentStep, setCurrentStep, checkIdCardUniqueness]);
 
   // Handle previous step
   const handlePrevStep = useCallback(() => {

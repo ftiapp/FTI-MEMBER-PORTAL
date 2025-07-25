@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { pool } from '@/app/lib/db'; // Using path alias from jsconfig.json
+import { initPool } from '../../../lib/db';
 
 export async function GET() {
   try {
+    // Initialize database pool
+    const pool = await initPool();
+    
     // เปลี่ยนจากตาราง tsic_description เป็น tsic_categories
     // และใช้ DISTINCT เพื่อให้ได้หมวดหมู่ใหญ่ที่ไม่ซ้ำกัน
     const query = `

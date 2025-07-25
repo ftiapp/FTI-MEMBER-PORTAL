@@ -278,3 +278,6 @@ export async function connectDB() {
     throw error;
   }
 }
+
+// Export the initPool function for direct use in API routes
+export { initPool };

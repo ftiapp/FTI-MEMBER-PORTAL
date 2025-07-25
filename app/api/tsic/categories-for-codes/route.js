@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { query } from '../../../lib/db';
+import { initPool } from '../../../lib/db';
 
 /**
  * API endpoint to get category codes for a list of TSIC codes
@@ -19,13 +19,14 @@ export async function POST(request) {
     const placeholders = tsicCodes.map(() => '?').join(',');
     
     // Query to get category codes for each TSIC code
+    const pool = await initPool();
     const sql = `
       SELECT tsic_code, category_code 
       FROM tsic_categories 
       WHERE tsic_code IN (${placeholders})
     `;
     
-    const results = await query(sql, tsicCodes);
+    const [results] = await pool.execute(sql, tsicCodes);
     
     // Create a mapping of TSIC code to category code
     const categoryMap = {};

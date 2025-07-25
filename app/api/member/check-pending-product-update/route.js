@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { checkUserSession } from '@/app/lib/auth';
-import { pool } from '@/app/lib/db';
+import { initPool } from '../../../lib/db';
 
 /**
  * API endpoint to check if a member has pending product update requests
@@ -32,8 +32,10 @@ export async function GET(request) {
       }, { status: 401 });
     }
 
+    const pool = await initPool();
+    
     // Check if the table exists
-    const [tableExists] = await pool.query(`
+    const [tableExists] = await pool.execute(`
       SELECT COUNT(*) as count
       FROM information_schema.tables
       WHERE table_schema = DATABASE()
@@ -48,12 +50,11 @@ export async function GET(request) {
       });
     }
 
-    // Check for pending product update requests
-    const [pendingRequests] = await pool.query(`
+    // Check for pending requests
+    const [pendingRequests] = await pool.execute(`
       SELECT COUNT(*) as count
       FROM pending_product_updates
-      WHERE member_code = ?
-      AND status = 'pending'
+      WHERE member_code = ? AND status = 'pending'
     `, [memberCode]);
 
     const hasPendingRequest = pendingRequests[0].count > 0;
