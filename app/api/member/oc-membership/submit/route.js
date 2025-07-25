@@ -302,22 +302,43 @@ export async function POST(request) {
       ]
     );
 
-    // Delete draft if this was a resumed application
-    const draftId = formData.get('draftId');
-    if (draftId) {
-      try {
-        await executeQuery(
-          'DELETE FROM MemberRegist_OC_Draft WHERE id = ? AND user_id = ?',
-          [draftId, userId]
-        );
-        console.log('🗑️ Draft deleted successfully after submission');
-      } catch (draftError) {
-        console.warn('⚠️ Could not delete draft:', draftError.message);
-        // Continue with success - draft deletion is not critical
-      }
+    await commitTransaction(trx);
+    console.log('🎉 [OC API] Transaction committed successfully');
+
+    // บันทึก user log สำหรับการสมัครสมาชิก OC
+    try {
+      const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
+      await executeQuery(trx, 
+        'INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+        [userId, 'OC_membership_submit', logDetails, request.headers.get('x-forwarded-for') || 'unknown', request.headers.get('user-agent') || 'unknown']
+      );
+      console.log('✅ [OC API] User log recorded successfully');
+    } catch (logError) {
+      console.error('❌ [OC API] Error recording user log:', logError.message);
     }
 
-    await commitTransaction(trx);
+    // ลบ draft หลังจากสมัครสำเร็จ
+    const taxIdFromData = data.taxId;
+    
+    console.log('🗑️ [OC API] Attempting to delete draft...');
+    console.log('🗑️ [OC API] taxId from data:', taxIdFromData);
+    
+    try {
+      let deletedRows = 0;
+      
+      if (taxIdFromData) {
+        const deleteResult = await executeQuery(trx, 
+          'DELETE FROM MemberRegist_OC_Draft WHERE tax_id = ? AND user_id = ?',
+          [taxIdFromData, userId]
+        );
+        deletedRows = deleteResult.affectedRows || 0;
+        console.log(`✅ [OC API] Draft deleted by tax_id: ${taxIdFromData}, affected rows: ${deletedRows}`);
+      } else {
+        console.warn('⚠️ [OC API] No taxId provided, cannot delete draft');
+      }
+    } catch (draftError) {
+      console.error('❌ [OC API] Error deleting draft:', draftError.message);
+    }
 
     console.log('🎉 OC Membership submission completed successfully');
     return NextResponse.json({ 

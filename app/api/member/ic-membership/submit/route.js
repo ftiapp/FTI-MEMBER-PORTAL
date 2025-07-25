@@ -88,7 +88,7 @@ export async function POST(request) {
         data.addressNumber || '',
         data.moo || '',
         data.soi || '',
-        data.road || '', // This should now receive the street data
+        data.road || '',
         data.subDistrict || '',
         data.district || '',
         data.province || '',
@@ -166,7 +166,7 @@ export async function POST(request) {
       }
     }
 
-    // Insert representative
+    // Insert representative - FIX: Add missing rep_order value
     if (data.representativeFirstNameTh) {
       await executeQuery(
         trx,
@@ -182,7 +182,8 @@ export async function POST(request) {
           data.representativeLastNameEn || '',
           data.representativePhone || '',
           data.representativeEmail || '',
-          data.relationship || ''
+          data.relationship || '',
+          1 // FIX: Added missing rep_order value
         ]
       );
     }
@@ -271,37 +272,54 @@ export async function POST(request) {
             uploadResult.url
           ]
         );
-        
-        console.log('Document uploaded successfully:', uploadResult.url);
       } catch (error) {
-        console.error('Document upload failed:', error);
-        await rollbackTransaction(trx);
-        return NextResponse.json(
-          { error: 'Failed to upload document' },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Delete draft if this was a resumed application
-    const draftId = formData.get('draftId');
-    if (draftId) {
-      try {
-        await executeQuery(
-          'DELETE FROM MemberRegist_IC_Draft WHERE id = ? AND user_id = ?',
-          [draftId, userId]
-        );
-        console.log('🗑️ IC Draft deleted successfully after submission');
-      } catch (draftError) {
-        console.warn('⚠️ Could not delete IC draft:', draftError.message);
-        // Continue with success - draft deletion is not critical
+        console.error('Error uploading document:', error);
       }
     }
 
     await commitTransaction(trx);
-    
-    console.log('IC Membership submission completed successfully');
-    
+    console.log(' [IC API] Transaction committed successfully');
+
+    // FIX: Move user log recording OUTSIDE of transaction (after commit)
+    try {
+      // FIX: Use correct field name - data.idCardNumber instead of data.idcard
+      const logDetails = `ID CARD: ${data.idCardNumber} - ${data.firstNameTh} ${data.lastNameTh} (TH)`;
+      
+      // Create new transaction for logging (or use connection without transaction)
+      await executeQuery(null, // Pass null to use default connection without transaction
+        'INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+        [userId, 'IC_membership_submit', logDetails, request.headers.get('x-forwarded-for') || 'unknown', request.headers.get('user-agent') || 'unknown']
+      );
+      console.log(' [IC API] User log recorded successfully');
+    } catch (logError) {
+      console.error(' [IC API] Error recording user log:', logError.message);
+    }
+
+    // FIX: Delete draft OUTSIDE of transaction and use correct field name
+    try {
+      // FIX: Use correct field name - data.idCardNumber instead of data.idcard
+      const idcardFromData = data.idCardNumber;
+      
+      console.log(' [IC API] Attempting to delete draft...');
+      console.log(' [IC API] idcard from data:', idcardFromData);
+      
+      let deletedRows = 0;
+      
+      if (idcardFromData) {
+        const deleteResult = await executeQuery(null, // Pass null to use default connection
+          'DELETE FROM MemberRegist_IC_Draft WHERE idcard = ? AND user_id = ?',
+          [idcardFromData, userId]
+        );
+        deletedRows = deleteResult.affectedRows || 0;
+        console.log(` [IC API] Draft deleted by idcard: ${idcardFromData}, affected rows: ${deletedRows}`);
+      } else {
+        console.warn(' [IC API] No idcard provided, cannot delete draft');
+      }
+    } catch (draftError) {
+      console.error(' [IC API] Error deleting draft:', draftError.message);
+      // Don't throw error as draft deletion shouldn't block successful submission
+    }
+
     return NextResponse.json({
       success: true,
       message: 'ส่งแบบฟอร์มสมัครสมาชิกเรียบร้อยแล้ว',
@@ -314,8 +332,13 @@ export async function POST(request) {
     });
 
   } catch (error) {
-    console.error('Error processing industry groups:', error);
     console.error('Error submitting IC membership:', error);
+    
+    if (trx) {
+      await rollbackTransaction(trx);
+      console.log(' [IC] Transaction rolled back due to error');
+    }
+    
     return NextResponse.json({ 
       error: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล',
       details: error.message

@@ -407,21 +407,40 @@ if (data.representatives) {
     await commitTransaction(trx);
     console.log('🎉 [AC] Transaction committed successfully');
 
-    const response = { 
-      message: 'การสมัครสมาชิก AC สำเร็จ', 
-      registrationId: mainId,
-      documentsUploaded: uploadCount,
-      timestamp: new Date().toISOString()
-    };
+    // บันทึก user log สำหรับการสมัครสมาชิก AC
+    try {
+      const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
+      await executeQuery(trx, 
+        'INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+        [userId, 'AC_membership_submit', logDetails, request.headers.get('x-forwarded-for') || 'unknown', request.headers.get('user-agent') || 'unknown']
+      );
+      console.log('✅ [AC API] User log recorded successfully');
+    } catch (logError) {
+      console.error('❌ [AC API] Error recording user log:', logError.message);
+    }
+
+    // ลบ draft หลังจากสมัครสำเร็จ
+    const taxIdFromData = data.taxId;
     
-    console.log('✅ [AC] AC Membership submission completed successfully:', response);
+    console.log('🗑️ [AC API] Attempting to delete draft...');
+    console.log('🗑️ [AC API] taxId from data:', taxIdFromData);
     
-    return NextResponse.json(response, { 
-      status: 201,
-      headers: {
-        'Content-Type': 'application/json'
+    try {
+      let deletedRows = 0;
+      
+      if (taxIdFromData) {
+        const deleteResult = await executeQuery(trx, 
+          'DELETE FROM MemberRegist_AC_Draft WHERE tax_id = ? AND user_id = ?',
+          [taxIdFromData, userId]
+        );
+        deletedRows = deleteResult.affectedRows || 0;
+        console.log(`✅ [AC API] Draft deleted by tax_id: ${taxIdFromData}, affected rows: ${deletedRows}`);
+      } else {
+        console.warn('⚠️ [AC API] No taxId provided, cannot delete draft');
       }
-    });
+    } catch (draftError) {
+      console.error('❌ [AC API] Error deleting draft:', draftError.message);
+    }
   } catch (error) {
     console.error('❌ [AC] Error in AC membership submission:', error);
     

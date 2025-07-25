@@ -314,6 +314,18 @@ export async function POST(request) {
     await commitTransaction(trx);
     console.log('🎉 [AM API] Transaction committed successfully');
 
+    // บันทึก user log สำหรับการสมัครสมาชิก AM
+    try {
+      const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
+      await executeQuery(trx, 
+        'INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
+        [userId, 'AM_membership_submit', logDetails, request.headers.get('x-forwarded-for') || 'unknown', request.headers.get('user-agent') || 'unknown']
+      );
+      console.log('✅ [AM API] User log recorded successfully');
+    } catch (logError) {
+      console.error('❌ [AM API] Error recording user log:', logError.message);
+    }
+
     // ลบ draft หลังจากสมัครสำเร็จ - ใช้ tax_id ที่บันทึกไว้ในตาราง
     const taxIdFromData = data.taxId;
     
