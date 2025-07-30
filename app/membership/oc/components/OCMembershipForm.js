@@ -551,12 +551,22 @@ export default function OCMembershipForm({
       )}
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Error Messages */}
-        {Object.keys(errors).length > 0 && (
+        {Object.keys(errors).filter(key => 
+          errors[key] && 
+          errors[key] !== '' && 
+          key !== 'representativeErrors' && 
+          key !== 'contactPerson'
+        ).length > 0 && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl" role="alert">
             <strong className="font-bold text-lg">กรุณาแก้ไขข้อมูลให้ถูกต้อง:</strong>
             <ul className="mt-4 list-disc list-inside space-y-2">
               {Object.keys(errors)
-                .filter(key => key !== 'representativeErrors' && key !== 'contactPerson')
+                .filter(key => 
+                  errors[key] && 
+                  errors[key] !== '' && 
+                  key !== 'representativeErrors' && 
+                  key !== 'contactPerson'
+                )
                 .map((key, index) => renderErrorMessage(errors[key], key, index))}
             </ul>
           </div>

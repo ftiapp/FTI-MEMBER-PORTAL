@@ -81,168 +81,191 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
           <h3 className="text-lg font-semibold text-gray-800 mb-6">ข้อมูลผู้แทน</h3>
           <p className="text-sm text-gray-600 mb-6">กรุณากรอกข้อมูลผู้แทนที่สามารถติดต่อได้</p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Thai Name */}
+          <div className="space-y-8">
+            {/* Thai Name Section - ด้านบน */}
             <div>
-              <label htmlFor="firstNameThai" className="block text-sm font-medium text-gray-700 mb-1">
-                ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="firstNameThai"
-                  value={representative.firstNameThai || ''}
-                  onChange={(e) => handleRepresentativeChange('firstNameThai', e.target.value)}
-                  placeholder="กรอกชื่อภาษาไทย"
-                  className={`w-full px-4 py-2 border ${
-                    representativeErrors?.firstNameThai ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {representativeErrors?.firstNameThai && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    {ErrorIcon}
-                  </div>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
+                <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาไทย</h4>
               </div>
-              {representativeErrors?.firstNameThai && (
-                <p className="mt-1 text-sm text-red-600">{representativeErrors.firstNameThai}</p>
-              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="firstNameThai" className="block text-sm font-medium text-gray-700 mb-1">
+                    ชื่อ <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="firstNameThai"
+                      value={representative.firstNameThai || ''}
+                      onChange={(e) => handleRepresentativeChange('firstNameThai', e.target.value)}
+                      placeholder="กรอกชื่อภาษาไทย"
+                      className={`w-full px-4 py-2 border ${
+                        representativeErrors?.firstNameThai ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                    />
+                    {representativeErrors?.firstNameThai && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        {ErrorIcon}
+                      </div>
+                    )}
+                  </div>
+                  {representativeErrors?.firstNameThai && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.firstNameThai}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="lastNameThai" className="block text-sm font-medium text-gray-700 mb-1">
+                    นามสกุล <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="lastNameThai"
+                      value={representative.lastNameThai || ''}
+                      onChange={(e) => handleRepresentativeChange('lastNameThai', e.target.value)}
+                      placeholder="กรอกนามสกุลภาษาไทย"
+                      className={`w-full px-4 py-2 border ${
+                        representativeErrors?.lastNameThai ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                    />
+                    {representativeErrors?.lastNameThai && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        {ErrorIcon}
+                      </div>
+                    )}
+                  </div>
+                  {representativeErrors?.lastNameThai && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.lastNameThai}</p>
+                  )}
+                </div>
+              </div>
             </div>
-            
+
+            {/* English Name Section - ด้านล่าง */}
             <div>
-              <label htmlFor="lastNameThai" className="block text-sm font-medium text-gray-700 mb-1">
-                นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="lastNameThai"
-                  value={representative.lastNameThai || ''}
-                  onChange={(e) => handleRepresentativeChange('lastNameThai', e.target.value)}
-                  placeholder="กรอกนามสกุลภาษาไทย"
-                  className={`w-full px-4 py-2 border ${
-                    representativeErrors?.lastNameThai ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {representativeErrors?.lastNameThai && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    {ErrorIcon}
-                  </div>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาอังกฤษ</h4>
               </div>
-              {representativeErrors?.lastNameThai && (
-                <p className="mt-1 text-sm text-red-600">{representativeErrors.lastNameThai}</p>
-              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="firstNameEng" className="block text-sm font-medium text-gray-700 mb-1">
+                    ชื่อ <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="firstNameEng"
+                      value={representative.firstNameEng || ''}
+                      onChange={(e) => handleRepresentativeChange('firstNameEng', e.target.value)}
+                      placeholder="Enter first name"
+                      className={`w-full px-4 py-2 border ${
+                        representativeErrors?.firstNameEng ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                    />
+                    {representativeErrors?.firstNameEng && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        {ErrorIcon}
+                      </div>
+                    )}
+                  </div>
+                  {representativeErrors?.firstNameEng && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.firstNameEng}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="lastNameEng" className="block text-sm font-medium text-gray-700 mb-1">
+                    นามสกุล <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      id="lastNameEng"
+                      value={representative.lastNameEng || ''}
+                      onChange={(e) => handleRepresentativeChange('lastNameEng', e.target.value)}
+                      placeholder="Enter last name"
+                      className={`w-full px-4 py-2 border ${
+                        representativeErrors?.lastNameEng ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                    />
+                    {representativeErrors?.lastNameEng && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        {ErrorIcon}
+                      </div>
+                    )}
+                  </div>
+                  {representativeErrors?.lastNameEng && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.lastNameEng}</p>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            {/* English Name */}
+
+            {/* Contact Information Section */}
             <div>
-              <label htmlFor="firstNameEng" className="block text-sm font-medium text-gray-700 mb-1">
-                ชื่อ (ภาษาอังกฤษ) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="firstNameEng"
-                  value={representative.firstNameEng || ''}
-                  onChange={(e) => handleRepresentativeChange('firstNameEng', e.target.value)}
-                  placeholder="Enter first name"
-                  className={`w-full px-4 py-2 border ${
-                    representativeErrors?.firstNameEng ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {representativeErrors?.firstNameEng && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    {ErrorIcon}
-                  </div>
-                )}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+                <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ข้อมูลติดต่อ</h4>
               </div>
-              {representativeErrors?.firstNameEng && (
-                <p className="mt-1 text-sm text-red-600">{representativeErrors.firstNameEng}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="lastNameEng" className="block text-sm font-medium text-gray-700 mb-1">
-                นามสกุล (ภาษาอังกฤษ) <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  id="lastNameEng"
-                  value={representative.lastNameEng || ''}
-                  onChange={(e) => handleRepresentativeChange('lastNameEng', e.target.value)}
-                  placeholder="Enter last name"
-                  className={`w-full px-4 py-2 border ${
-                    representativeErrors?.lastNameEng ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {representativeErrors?.lastNameEng && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    {ErrorIcon}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                    อีเมล <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      id="email"
+                      value={representative.email || ''}
+                      onChange={(e) => handleRepresentativeChange('email', e.target.value)}
+                      placeholder="กรอกอีเมล"
+                      className={`w-full px-4 py-2 border ${
+                        representativeErrors?.email ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                    />
+                    {representativeErrors?.email && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        {ErrorIcon}
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
-              {representativeErrors?.lastNameEng && (
-                <p className="mt-1 text-sm text-red-600">{representativeErrors.lastNameEng}</p>
-              )}
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-            {/* Contact Information */}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                อีเมล <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="email"
-                  id="email"
-                  value={representative.email || ''}
-                  onChange={(e) => handleRepresentativeChange('email', e.target.value)}
-                  placeholder="กรอกอีเมล"
-                  className={`w-full px-4 py-2 border ${
-                    representativeErrors?.email ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {representativeErrors?.email && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    {ErrorIcon}
+                  {representativeErrors?.email && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.email}</p>
+                  )}
+                </div>
+                
+                <div>
+                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                    เบอร์โทรศัพท์ <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="tel"
+                      id="phone"
+                      value={representative.phone || ''}
+                      onChange={(e) => handleRepresentativeChange('phone', e.target.value)}
+                      placeholder="กรอกเบอร์โทรศัพท์"
+                      className={`w-full px-4 py-2 border ${
+                        representativeErrors?.phone ? 'border-red-300' : 'border-gray-300'
+                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                    />
+                    {representativeErrors?.phone && (
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                        {ErrorIcon}
+                      </div>
+                    )}
                   </div>
-                )}
+                  {representativeErrors?.phone && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.phone}</p>
+                  )}
+                </div>
               </div>
-              {representativeErrors?.email && (
-                <p className="mt-1 text-sm text-red-600">{representativeErrors.email}</p>
-              )}
-            </div>
-            
-            <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                เบอร์โทรศัพท์ <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="tel"
-                  id="phone"
-                  value={representative.phone || ''}
-                  onChange={(e) => handleRepresentativeChange('phone', e.target.value)}
-                  placeholder="กรอกเบอร์โทรศัพท์"
-                  className={`w-full px-4 py-2 border ${
-                    representativeErrors?.phone ? 'border-red-300' : 'border-gray-300'
-                  } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                />
-                {representativeErrors?.phone && (
-                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                    {ErrorIcon}
-                  </div>
-                )}
-              </div>
-              {representativeErrors?.phone && (
-                <p className="mt-1 text-sm text-red-600">{representativeErrors.phone}</p>
-              )}
             </div>
           </div>
         </div>

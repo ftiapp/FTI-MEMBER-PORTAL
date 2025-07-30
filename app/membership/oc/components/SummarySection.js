@@ -77,30 +77,28 @@ const RepresentativeCard = ({ representative, index }) => (
     <div className="mb-2">
       <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
     </div>
-    <InfoCard title="ข้อมูลบริษัท">
-      <div className="space-y-2">
-        <div>
-          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-          <p className="text-sm">{representative.first_name_th} {representative.last_name_th}</p>
-        </div>
-        <div className="ml-4">
-          <h3 className="text-lg font-semibold text-gray-900">
-            {representative.company_name || '-'}
-          </h3>
-          <p className="text-sm text-gray-600">
-            {representative.company_name_eng || '-'}
-          </p>
-          <p className="text-sm text-gray-500 mt-1">
-            เลขประจำตัวผู้เสียภาษี: {representative.tax_id || '-'}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-          <p className="text-sm">{representative.phone || '-'}</p>
-          <span className="ml-2">{representative.company_website || '-'}</span>
-        </div>
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
+        <p className="text-sm">{representative.firstNameThai || '-'} {representative.lastNameThai || '-'}</p>
       </div>
-    </InfoCard>
+      <div>
+        <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
+        <p className="text-sm">{representative.firstNameEnglish || '-'} {representative.lastNameEnglish || '-'}</p>
+      </div>
+      <div>
+        <p className="text-xs text-gray-500">ตำแหน่ง</p>
+        <p className="text-sm">{representative.position || '-'}</p>
+      </div>
+      <div>
+        <p className="text-xs text-gray-500">อีเมล</p>
+        <p className="text-sm">{representative.email || '-'}</p>
+      </div>
+      <div>
+        <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
+        <p className="text-sm">{representative.phone || '-'}</p>
+      </div>
+    </div>
   </div>
 );
 
@@ -158,57 +156,80 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
     return ids.map(id => items.find(item => String(item.id) === String(id))?.name_th || id).join(', ');
   };
   
-  // แก้ไขให้ return array แทน string
+  // ฟังก์ชันสำหรับแสดงประเภทธุรกิจที่เลือกแบบ array
   const getSelectedBusinessTypesArray = () => {
-    if (!formData.businessTypes || Object.keys(formData.businessTypes).length === 0) return [];
+    // Check if formData or businessTypes exists
+    if (!formData || !formData.businessTypes) {
+      return [];
+    }
     
-    // ใช้ข้อมูลเดียวกับ BusinessInfoSection
+    // If businessTypes is already an array of objects
+    if (Array.isArray(formData.businessTypes)) {
+      return formData.businessTypes.map(type => {
+        if (typeof type === 'object' && type.name_th) {
+          return type.name_th;
+        }
+        return String(type);
+      });
+    }
+    
+    // If businessTypes is an object with keys
     const BUSINESS_TYPES = [
       { id: 'manufacturer', nameTh: 'ผู้ผลิต' },
-      { id: 'distributor', nameTh: 'ผู้จัดจำหน่าย' },
-      { id: 'importer', nameTh: 'ผู้นำเข้า' },
-      { id: 'exporter', nameTh: 'ผู้ส่งออก' },
+      { id: 'trader', nameTh: 'ผู้ค้า' },
       { id: 'service', nameTh: 'ผู้ให้บริการ' },
       { id: 'other', nameTh: 'อื่นๆ' }
     ];
     
     const selectedTypes = Object.keys(formData.businessTypes);
-    let result = selectedTypes.map(typeId => {
+    return selectedTypes.map(typeId => {
       const businessType = BUSINESS_TYPES.find(type => type.id === typeId);
-      if (typeId === 'other' && formData.otherBusinessTypeDetail && formData.otherBusinessTypeDetail.trim() !== '') {
-        return `อื่นๆ (${formData.otherBusinessTypeDetail})`;
+      if (typeId === 'other' && formData.businessTypeOther && formData.businessTypeOther.trim() !== '') {
+        return `อื่นๆ (${formData.businessTypeOther})`;
       }
       return businessType ? businessType.nameTh : typeId;
     });
-    
-    return result;
   };
 
   // ฟังก์ชันสำหรับแสดงกลุ่มอุตสาหกรรมที่เลือกแบบ array
   const getSelectedIndustrialGroupsArray = () => {
-    if (!formData.industrialGroupIds || formData.industrialGroupIds.length === 0) {
+    if (!formData || !formData.industryGroups || formData.industryGroups.length === 0) {
       return [];
     }
     
-    return formData.industrialGroupIds.map(groupId => {
-      const group = industrialGroups.find(g => String(g.id) === String(groupId));
-      return group ? group.name_th : `กลุ่มอุตสาหกรรม ${groupId}`;
+    return formData.industryGroups.map(group => {
+      // Handle if industryGroups is already an array of objects with name_th
+      if (group && typeof group === 'object' && group.name_th) {
+        return group.name_th;
+      }
+      
+      // Otherwise try to find the industry group in the industryGroups array
+      const industryGroup = industryGroups.find(g => String(g.id) === String(group));
+      return industryGroup ? industryGroup.name_th : `กลุ่มอุตสาหกรรม ${group}`;
     });
   };
 
   // ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัดแบบ array
   const getSelectedProvincialChaptersArray = () => {
-    if (!formData.provincialChapterIds || formData.provincialChapterIds.length === 0) {
+    if (!formData || !formData.provinceChapters || formData.provinceChapters.length === 0) {
       return [];
     }
     
-    return formData.provincialChapterIds.map(chapterId => {
-      const chapter = provincialChapters.find(c => String(c.id) === String(chapterId));
-      return chapter ? chapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapterId}`;
+    return formData.provinceChapters.map(chapter => {
+      // Handle if provinceChapters is already an array of objects with name_th
+      if (chapter && typeof chapter === 'object' && chapter.name_th) {
+        return chapter.name_th;
+      }
+      
+      // Otherwise try to find the province chapter in the provincialChapters array
+      const provinceChapter = provincialChapters.find(c => String(c.id) === String(chapter));
+      return provinceChapter ? provinceChapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapter}`;
     });
   };
 
   const getContactPersonFullName = (isEnglish = false) => {
+    if (!formData) return '-';
+    
     if (isEnglish) {
       return formData.contact_person_first_name_eng && formData.contact_person_last_name_eng 
         ? `${formData.contact_person_first_name_eng} ${formData.contact_person_last_name_eng}` 
@@ -221,21 +242,37 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
 
   // สร้างข้อมูลที่อยู่แยกเป็นฟิลด์ย่อย
   const getAddressFields = () => {
+    // Check if formData and address exist
+    if (!formData || !formData.address) {
+      return {
+        addressNumber: '-',
+        moo: '-',
+        soi: '-',
+        road: '-',
+        subDistrict: '-',
+        district: '-',
+        province: '-',
+        postalCode: '-'
+      };
+    }
+    
+    const address = formData.address;
     return {
-      addressNumber: formData.address_number || '-',
-      moo: formData.moo || '-',
-      soi: formData.soi || '-',
-      road: formData.street || '-',
-      subDistrict: formData.sub_district || '-',
-      district: formData.district || '-',
-      province: formData.province || '-',
-      postalCode: formData.postal_code || '-'
+      addressNumber: address.address_number || '-',
+      moo: address.moo || '-',
+      soi: address.soi || '-',
+      road: address.road || '-',
+      subDistrict: address.sub_district || '-',
+      district: address.district || '-',
+      province: address.province || '-',
+      postalCode: address.postal_code || '-'
     };
   };
 
   const getFactoryTypeLabel = () => {
-    if (formData.factoryType === 'type1') return 'มีเครื่องจักรมากกว่า 50 แรงม้า';
-    if (formData.factoryType === 'type2') return 'ไม่มีเครื่องจักร / มีเครื่องจักรต่ำกว่า 5 แรงม้า';
+    if (!formData) return 'ไม่ได้เลือก';
+    if (formData.factory_type === 'type1') return 'มีเครื่องจักรมากกว่า 50 แรงม้า';
+    if (formData.factory_type === 'type2') return 'ไม่มีเครื่องจักร / มีเครื่องจักรต่ำกว่า 5 แรงม้า';
     return 'ไม่ได้เลือก';
   };
 
@@ -251,12 +288,12 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       {/* ข้อมูลบริษัท */}
       <Section title="ข้อมูลบริษัท">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="ชื่อบริษัท (ไทย)" value={formData.company_name} />
-          <InfoCard title="ชื่อบริษัท (อังกฤษ)" value={formData.company_name_eng} />
-          <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.tax_id} />
-          <InfoCard title="อีเมล" value={formData.company_email} />
-          <InfoCard title="เบอร์โทรศัพท์" value={formData.company_phone} />
-          <InfoCard title="เว็บไซต์" value={formData.company_website} />
+          <InfoCard title="ชื่อบริษัท (ไทย)" value={formData?.companyName} />
+          <InfoCard title="ชื่อบริษัท (อังกฤษ)" value={formData?.company_name_eng} />
+          <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData?.taxId} />
+          <InfoCard title="อีเมล" value={formData?.company_email} />
+          <InfoCard title="เบอร์โทรศัพท์" value={formData?.company_phone} />
+          <InfoCard title="เว็บไซต์" value={formData?.company_website} />
         </div>
       </Section>
 
@@ -279,14 +316,14 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getContactPersonFullName(false)} />
           <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
-          <InfoCard title="ตำแหน่ง" value={formData.contact_person_position} />
-          <InfoCard title="อีเมล" value={formData.contact_person_email} />
-          <InfoCard title="เบอร์โทรศัพท์" value={formData.contact_person_phone} />
+          <InfoCard title="ตำแหน่ง" value={formData?.contact_person_position} />
+          <InfoCard title="อีเมล" value={formData?.contact_person_email} />
+          <InfoCard title="เบอร์โทรศัพท์" value={formData?.contact_person_phone} />
         </div>
       </Section>
 
       {/* ข้อมูลผู้แทน - ใช้ RepresentativeCard แบบ file 2 */}
-      {formData.representatives && formData.representatives.length > 0 && (
+      {formData?.representatives && formData.representatives.length > 0 && (
         <Section title="ข้อมูลผู้แทน" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {formData.representatives.map((rep, index) => (
@@ -303,8 +340,8 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             title="ประเภทธุรกิจ" 
             businessTypes={getSelectedBusinessTypesArray()} 
           />
-          <InfoCard title="จำนวนพนักงาน" value={formData.number_of_employees} />
-          <ProductsCard products={formData.products || []} />
+          <InfoCard title="จำนวนพนักงาน" value={formData?.number_of_employees} />
+          <ProductsCard products={formData?.products || []} />
           <IndustrialGroupsCard 
             title="กลุ่มอุตสาหกรรม" 
             industrialGroups={getSelectedIndustrialGroupsArray()} 
@@ -317,20 +354,20 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       </Section>
 
       {/* เอกสารใบอนุญาต - เก็บ UI แบบ file 1 */}
-      {formData.factoryType && (
+      {formData?.factory_type && (
         <Section title="เอกสารใบอนุญาต" className="mt-6">
           <div className="space-y-4">
             <InfoCard title="ประเภทโรงงาน" value={getFactoryTypeLabel()} />
 
-            {formData.factoryType === 'type1' && (
+            {formData?.factory_type === 'type1' && (
               <div className="space-y-3">
                 <h4 className="font-medium text-gray-900">เอกสารใบอนุญาต</h4>
                 <FileCard
-                  fileName={getFileName(formData.factoryLicense)}
+                  fileName={getFileName(formData?.factory_license)}
                   description="ใบอนุญาตประกอบกิจการโรงงาน (รง.4)"
                 />
                 <FileCard
-                  fileName={getFileName(formData.industrialEstateLicense)}
+                  fileName={getFileName(formData?.industrial_estate_license)}
                   description="ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (กนอ.)"
                 />
               </div>

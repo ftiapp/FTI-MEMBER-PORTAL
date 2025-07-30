@@ -105,14 +105,16 @@ export default function IndustrialGroupInfo({
                 กลุ่มอุตสาหกรรม
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <MultiSelectDropdown
-                options={industrialGroups}
-                selectedIds={formData.industrialGroups || []}
-                onChange={handleIndustrialGroupChange}
-                placeholder="เลือกกลุ่มอุตสาหกรรม"
-                isLoading={isLoading}
-                error={errors.industrialGroups}
-              />
+              <div className="relative z-50">
+                <MultiSelectDropdown
+                  options={industrialGroups}
+                  selectedIds={formData.industrialGroups || []}
+                  onChange={handleIndustrialGroupChange}
+                  placeholder="เลือกกลุ่มอุตสาหกรรม"
+                  isLoading={isLoading}
+                  error={errors.industrialGroups}
+                />
+              </div>
               {errors.industrialGroups && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -128,25 +130,120 @@ export default function IndustrialGroupInfo({
               <label className="block text-sm font-medium text-gray-900 mb-3">
                 สภาอุตสาหกรรมจังหวัด
               </label>
-              <MultiSelectDropdown
-                options={provincialCouncils}
-                selectedIds={formData.provincialChapters || []} // ✅ เปลี่ยนจาก provincialCouncils
-                onChange={handleProvincialCouncilChange}
-                placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
-                isLoading={isLoading}
-                error={errors.provincialChapters} // ✅ เปลี่ยนจาก provincialCouncils
-              />
+              <div className="relative z-40">
+                <MultiSelectDropdown
+                  options={provincialCouncils}
+                  selectedIds={formData.provincialChapters || []} // ✅ เปลี่ยนจาก provincialCouncils
+                  onChange={handleProvincialCouncilChange}
+                  placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
+                  isLoading={isLoading}
+                  error={errors.provincialChapters} // ✅ เปลี่ยนจาก provincialCouncils
+                />
+              </div>
               {errors.provincialChapters && ( // ✅ เปลี่ยนจาก provincialCouncils
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.provincialChapters} // ✅ เปลี่ยนจาก provincialCouncils
+                  {errors.provincialChapters} {/* ✅ เปลี่ยนจาก provincialCouncils */}
                 </p>
               )}
             </div>
           </div>
+
+          {/* Selected Items Display */}
+          {(formData.industrialGroups?.length > 0 || formData.provincialChapters?.length > 0) && (
+            <div className="mt-8">
+              <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <h5 className="text-lg font-semibold text-gray-900">
+                    รายการที่เลือก
+                  </h5>
+                  <div className="flex-1"></div>
+                  <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
+                    {(formData.industrialGroups?.length || 0) + (formData.provincialChapters?.length || 0)} รายการ
+                  </div>
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Industrial Groups Selected */}
+                  {formData.industrialGroups?.length > 0 && (
+                    <div className="group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
+                        <p className="text-sm font-semibold text-gray-800">กลุ่มอุตสาหกรรม</p>
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-medium">
+                          {formData.industrialGroups.length}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2.5">
+                        {formData.industrialGroups.map(id => {
+                          const group = industrialGroups.find(g => g.id === id);
+                          return group ? (
+                            <div
+                              key={id}
+                              className="group/tag relative inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-800 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5"
+                            >
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                              <span className="text-sm font-medium">{group.name_th}</span>
+                              <div className="w-0.5 h-4 bg-blue-300 rounded-full opacity-0 group-hover/tag:opacity-100 transition-opacity"></div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Provincial Chapters Selected */}
+                  {formData.provincialChapters?.length > 0 && (
+                    <div className="group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                        <p className="text-sm font-semibold text-gray-800">สภาอุตสาหกรรมจังหวัด</p>
+                        <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">
+                          {formData.provincialChapters.length}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2.5">
+                        {formData.provincialChapters.map(id => {
+                          const council = provincialCouncils.find(c => c.id === id);
+                          return council ? (
+                            <div
+                              key={id}
+                              className="group/tag relative inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 text-emerald-800 rounded-xl border border-emerald-200 hover:border-emerald-300 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5"
+                            >
+                              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                              <span className="text-sm font-medium">{council.name_th}</span>
+                              <div className="w-0.5 h-4 bg-emerald-300 rounded-full opacity-0 group-hover/tag:opacity-100 transition-opacity"></div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
+            <div className="flex items-center justify-center gap-3">
+              <svg className="animate-spin w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p className="text-sm text-gray-600">กำลังโหลดข้อมูล...</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

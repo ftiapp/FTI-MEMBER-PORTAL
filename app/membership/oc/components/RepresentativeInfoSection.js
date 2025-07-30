@@ -143,127 +143,131 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
               
               {/* Card Content */}
               <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Thai Name Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
+                <div className="space-y-8">
+                  {/* Thai Name Section - ย้ายขึ้นมาด้านบน */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาไทย</h4>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        ชื่อ <span className="text-red-500">*</span>
-                        <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.firstNameThai}
-                        onChange={(e) => updateRepresentative(rep.id, 'firstNameThai', e.target.value)}
-                        placeholder="ชื่อภาษาไทย"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          representativeErrors[index]?.firstNameThai ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {representativeErrors[index]?.firstNameThai && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {representativeErrors[index].firstNameThai}
-                        </p>
-                      )}
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          ชื่อ <span className="text-red-500">*</span>
+                          <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.firstNameThai}
+                          onChange={(e) => updateRepresentative(rep.id, 'firstNameThai', e.target.value)}
+                          placeholder="ชื่อภาษาไทย"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            representativeErrors[index]?.firstNameThai ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {representativeErrors[index]?.firstNameThai && (
+                          <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {representativeErrors[index].firstNameThai}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        นามสกุล <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.lastNameThai}
-                        onChange={(e) => updateRepresentative(rep.id, 'lastNameThai', e.target.value)}
-                        placeholder="นามสกุลภาษาไทย"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          representativeErrors[index]?.lastNameThai ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {representativeErrors[index]?.lastNameThai && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {representativeErrors[index].lastNameThai}
-                        </p>
-                      )}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          นามสกุล <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.lastNameThai}
+                          onChange={(e) => updateRepresentative(rep.id, 'lastNameThai', e.target.value)}
+                          placeholder="นามสกุลภาษาไทย"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            representativeErrors[index]?.lastNameThai ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {representativeErrors[index]?.lastNameThai && (
+                          <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {representativeErrors[index].lastNameThai}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* English Name Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
+                  {/* English Name Section - ย้ายลงมาด้านล่าง */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-green-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาอังกฤษ</h4>
                     </div>
                     
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        ชื่อ <span className="text-red-500">*</span>
-                        <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.firstNameEnglish}
-                        onChange={(e) => updateRepresentative(rep.id, 'firstNameEnglish', e.target.value)}
-                        placeholder="First Name"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          representativeErrors[index]?.firstNameEnglish ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {representativeErrors[index]?.firstNameEnglish && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {representativeErrors[index].firstNameEnglish}
-                        </p>
-                      )}
-                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          ชื่อ <span className="text-red-500">*</span>
+                          <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.firstNameEnglish}
+                          onChange={(e) => updateRepresentative(rep.id, 'firstNameEnglish', e.target.value)}
+                          placeholder="First Name"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            representativeErrors[index]?.firstNameEnglish ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {representativeErrors[index]?.firstNameEnglish && (
+                          <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {representativeErrors[index].firstNameEnglish}
+                          </p>
+                        )}
+                      </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        นามสกุล <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.lastNameEnglish}
-                        onChange={(e) => updateRepresentative(rep.id, 'lastNameEnglish', e.target.value)}
-                        placeholder="Last Name"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          representativeErrors[index]?.lastNameEnglish ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {representativeErrors[index]?.lastNameEnglish && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {representativeErrors[index].lastNameEnglish}
-                        </p>
-                      )}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          นามสกุล <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.lastNameEnglish}
+                          onChange={(e) => updateRepresentative(rep.id, 'lastNameEnglish', e.target.value)}
+                          placeholder="Last Name"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            representativeErrors[index]?.lastNameEnglish ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {representativeErrors[index]?.lastNameEnglish && (
+                          <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
+                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                            {representativeErrors[index].lastNameEnglish}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Contact Info Section */}
-                  <div className="lg:col-span-2">
+                  <div>
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ข้อมูลติดต่อ</h4>

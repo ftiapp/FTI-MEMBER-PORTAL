@@ -125,29 +125,86 @@ export default function IndustrialGroupSection({
             </div>
           </div>
 
-          {/* Selected Summary */}
+          {/* Selected Items Display */}
           {(formData.industrialGroupIds?.length > 0 || formData.provincialChapterIds?.length > 0) && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <h5 className="text-sm font-medium text-gray-900 mb-3">
-                สรุปรายการที่เลือก
-              </h5>
-              <div className="space-y-2">
-                {formData.industrialGroupIds?.length > 0 && (
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">กลุ่มอุตสาหกรรม:</span>{' '}
-                    <span className="text-blue-600">
-                      {formData.industrialGroupIds.length} รายการ
-                    </span>
+            <div className="mt-8">
+              <div className="bg-gradient-to-r from-slate-50 to-gray-50 rounded-xl p-6 border border-gray-200">
+                <div className="flex items-center gap-3 mb-5">
+                  <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
+                    <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    </svg>
                   </div>
-                )}
-                {formData.provincialChapterIds?.length > 0 && (
-                  <div className="text-sm text-gray-600">
-                    <span className="font-medium">สภาอุตสาหกรรมจังหวัด:</span>{' '}
-                    <span className="text-blue-600">
-                      {formData.provincialChapterIds.length} รายการ
-                    </span>
+                  <h5 className="text-lg font-semibold text-gray-900">
+                    รายการที่เลือก
+                  </h5>
+                  <div className="flex-1"></div>
+                  <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
+                    {(formData.industrialGroupIds?.length || 0) + (formData.provincialChapterIds?.length || 0)} รายการ
                   </div>
-                )}
+                </div>
+                
+                <div className="space-y-6">
+                  {/* Industrial Groups Selected */}
+                  {formData.industrialGroupIds?.length > 0 && (
+                    <div className="group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
+                        <p className="text-sm font-semibold text-gray-800">กลุ่มอุตสาหกรรม</p>
+                        <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-medium">
+                          {formData.industrialGroupIds.length}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2.5">
+                        {formData.industrialGroupIds.map(id => {
+                          const group = Array.isArray(industrialGroups) 
+                            ? industrialGroups.find(g => g.id === id)
+                            : null;
+                          return group ? (
+                            <div
+                              key={id}
+                              className="group/tag relative inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-indigo-50 hover:from-blue-100 hover:to-indigo-100 text-blue-800 rounded-xl border border-blue-200 hover:border-blue-300 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5"
+                            >
+                              <div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>
+                              <span className="text-sm font-medium">{group.name_th}</span>
+                              <div className="w-0.5 h-4 bg-blue-300 rounded-full opacity-0 group-hover/tag:opacity-100 transition-opacity"></div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Provincial Chapters Selected */}
+                  {formData.provincialChapterIds?.length > 0 && (
+                    <div className="group">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-2 h-2 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full"></div>
+                        <p className="text-sm font-semibold text-gray-800">สภาอุตสาหกรรมจังหวัด</p>
+                        <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">
+                          {formData.provincialChapterIds.length}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-2.5">
+                        {formData.provincialChapterIds.map(id => {
+                          const chapter = Array.isArray(provincialChapters) 
+                            ? provincialChapters.find(c => c.id === id)
+                            : null;
+                          return chapter ? (
+                            <div
+                              key={id}
+                              className="group/tag relative inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-50 to-teal-50 hover:from-emerald-100 hover:to-teal-100 text-emerald-800 rounded-xl border border-emerald-200 hover:border-emerald-300 transition-all duration-200 hover:shadow-sm hover:-translate-y-0.5"
+                            >
+                              <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                              <span className="text-sm font-medium">{chapter.name_th}</span>
+                              <div className="w-0.5 h-4 bg-emerald-300 rounded-full opacity-0 group-hover/tag:opacity-100 transition-opacity"></div>
+                            </div>
+                          ) : null;
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
