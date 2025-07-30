@@ -26,7 +26,7 @@ export default function DraftApplications() {
       setDrafts(data.drafts || []);
     } catch (err) {
       console.error('Error fetching drafts:', err);
-      setError('ไม่สามารถโหลดใบสมัครที่ยังไม่เสร็จได้');
+      setError('ไม่สามารถโหลดเอกสารสมัครสมาชิกที่บันทึกร่างไว้');
     } finally {
       setLoading(false);
     }
@@ -68,7 +68,7 @@ export default function DraftApplications() {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-        <p>กำลังโหลดใบสมัครที่ยังไม่เสร็จ...</p>
+        <p>กำลังโหลดเอกสารสมัครที่บันทึกร่างไว้...</p>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function DraftApplications() {
   if (!drafts || drafts.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500">
-        <p>ไม่มีใบสมัครที่ยังไม่เสร็จ</p>
+        <p>ไม่มีเอกสารสมัครสมาชิกที่บัทึกร่างไว้</p>
       </div>
     );
   }

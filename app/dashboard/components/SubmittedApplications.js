@@ -38,10 +38,10 @@ export default function SubmittedApplications({ userId }) {
 
   const getMemberTypeInfo = (type) => {
     const typeMap = {
-      IC: { text: 'ทบ - สมทบ (บุคคลธรรมดา)', color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600' },
-      OC: { text: 'สน - สามัญ (โรงงาน)', color: 'bg-green-50 border-green-200', iconColor: 'text-green-600' },
-      AC: { text: 'ทน - สมทบ (นิติบุคคล)', color: 'bg-purple-50 border-purple-200', iconColor: 'text-purple-600' },
-      AM: { text: 'สส - สามัญ (สมาคมการค้า)', color: 'bg-orange-50 border-orange-200', iconColor: 'text-orange-600' }
+      IC: { text: 'สมทบ (บุคคลธรรมดา)', color: 'bg-blue-50 border-blue-200', iconColor: 'text-blue-600' },
+      OC: { text: 'สามัญ (โรงงาน)', color: 'bg-green-50 border-green-200', iconColor: 'text-green-600' },
+      AC: { text: 'สมทบ (นิติบุคคล)', color: 'bg-purple-50 border-purple-200', iconColor: 'text-purple-600' },
+      AM: { text: 'สามัญ (สมาคมการค้า)', color: 'bg-orange-50 border-orange-200', iconColor: 'text-orange-600' }
     };
     return typeMap[type] || { text: type, color: 'bg-gray-50 border-gray-200', iconColor: 'text-gray-600' };
   };
@@ -78,8 +78,8 @@ export default function SubmittedApplications({ userId }) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">ไม่มีใบสมัครที่ส่งแล้ว</h3>
-        <p className="text-sm text-gray-500">คุณยังไม่มีใบสมัครที่ส่งไปแล้ว หรือใบสมัครของคุณยังไม่ได้รับการพิจารณา</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">ไม่มีเอกสารสมัครสมาชิกที่ส่งแล้ว</h3>
+        <p className="text-sm text-gray-500">คุณยังไม่มีเอกสารสมัครที่ส่งไปแล้ว หรือเอกสารสมัครสมาชิกของคุณยังไม่ได้รับการพิจารณา</p>
       </div>
     );
   }
@@ -98,7 +98,10 @@ export default function SubmittedApplications({ userId }) {
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
                     <span className={`text-lg font-bold ${memberTypeInfo.iconColor}`}>
-                      {app.memberType}
+                      {app.memberType === 'IC' ? 'ทบ' : 
+                       app.memberType === 'OC' ? 'สน' : 
+                       app.memberType === 'AC' ? 'ทน' : 
+                       app.memberType === 'AM' ? 'สส' : app.memberType}
                     </span>
                   </div>
                   <div>
@@ -111,91 +114,32 @@ export default function SubmittedApplications({ userId }) {
                   </div>
                 </div>
                 
-                <div className="text-right">
-                  <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}>
-                    {statusBadge.text}
-                  </div>
-                  <p className="text-blue-100 text-xs mt-1">
-                    ส่งเมื่อ {format(new Date(app.createdAt), 'dd MMM yyyy', { locale: th })}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Content Preview */}
-            <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                {/* Basic Info */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลพื้นฐาน</h4>
-                  {app.memberType === 'IC' ? (
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-900">เลขบัตรประชาชน: {app.idCardNumber || '-'}</p>
-                      <p className="text-sm text-gray-900">อีเมล: {app.email || '-'}</p>
-                      <p className="text-sm text-gray-900">โทรศัพท์: {app.phone || '-'}</p>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}>
+                      {statusBadge.text}
                     </div>
-                  ) : (
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-900">เลขประจำตัวผู้เสียภาษี: {app.taxId || '-'}</p>
-                      <p className="text-sm text-gray-900">อีเมล: {app.address?.email || '-'}</p>
-                      <p className="text-sm text-gray-900">โทรศัพท์: {app.address?.phone || '-'}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Address Info */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">ที่อยู่</h4>
-                  <div className="space-y-1">
-                    <p className="text-sm text-gray-900">
-                      {app.address?.sub_district || '-'} {app.address?.district || '-'}
-                    </p>
-                    <p className="text-sm text-gray-900">
-                      {app.address?.province || '-'} {app.address?.postal_code || '-'}
+                    <p className="text-blue-100 text-xs mt-1">
+                      ส่งเมื่อ {format(new Date(app.createdAt), 'dd MMM yyyy', { locale: th })}
                     </p>
                   </div>
+                  
+                  <button
+                    onClick={() => openDetailPage(app)}
+                    className="inline-flex items-center px-4 py-2 border border-white text-sm font-medium rounded-lg text-white bg-transparent hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    ดูรายละเอียด
+                  </button>
                 </div>
-
-                {/* Additional Info */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">ข้อมูลเพิ่มเติม</h4>
-                  <div className="space-y-1">
-                    {app.memberType === 'IC' ? (
-                      <>
-                        <p className="text-sm text-gray-900">ผู้แทน: {app.representative ? 'มี' : 'ไม่มี'}</p>
-                        <p className="text-sm text-gray-900">สินค้า/บริการ: {app.products?.length || 0} รายการ</p>
-                        <p className="text-sm text-gray-900">ประเภทธุรกิจ: {app.businessTypes?.length || 0} ประเภท</p>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-sm text-gray-900">ผู้แทน: {app.representatives?.length || 0} คน</p>
-                        <p className="text-sm text-gray-900">สินค้า/บริการ: {app.products?.length || 0} รายการ</p>
-                        <p className="text-sm text-gray-900">เอกสาร: {app.documents?.length || 0} ไฟล์</p>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Button */}
-              <div className="flex justify-center">
-                <button
-                  onClick={() => openDetailPage(app)}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                  ดูรายละเอียดทั้งหมด
-                </button>
               </div>
             </div>
           </div>
         );
       })}
-
-
     </div>
   );
 }

@@ -59,16 +59,11 @@ export async function GET(request, { params }) {
       'other': 'อื่นๆ'
     };
     
-    console.log('Debug - BUSINESS_TYPES_MAP:', BUSINESS_TYPES_MAP);
-    
     const businessTypesQuery = `
       SELECT * FROM MemberRegist_IC_BusinessTypes 
       WHERE main_id = ?
     `;
     const businessTypesRaw = await query(businessTypesQuery, [id]);
-    
-    console.log('Debug - businessTypesRaw:', businessTypesRaw);
-    console.log('Debug - businessTypesRaw length:', businessTypesRaw.length);
     
     // ดึงข้อมูลประเภทธุรกิจอื่นๆ ก่อนที่จะใช้ใน mapping
     const businessTypeOtherQuery = `
@@ -79,8 +74,7 @@ export async function GET(request, { params }) {
     
     // แปลง business types ให้มี businessTypeName และรวมข้อมูล "อื่นๆ" จาก BusinessTypeOther
     const businessTypes = businessTypesRaw.map(bt => {
-      console.log('Debug - raw business type record:', bt);
-      let mappedName = BUSINESS_TYPES_MAP[bt.business_type]; // แก้ไข: ใช้ business_type
+      let mappedName = BUSINESS_TYPES_MAP[bt.business_type];
       
       // ถ้าเป็น "อื่นๆ" ให้หาข้อมูลจาก BusinessTypeOther table
       if (bt.business_type === 'other' && businessTypeOtherResult.length > 0) {
@@ -88,16 +82,13 @@ export async function GET(request, { params }) {
         mappedName = `อื่นๆ (${otherType})`;
       }
       
-      console.log(`Debug - mapping business_type '${bt.business_type}' (type: ${typeof bt.business_type}) to '${mappedName}'`);
       return {
         ...bt,
-        id: bt.business_type, // ใช้ business_type เป็น id
+        id: bt.business_type,
         businessTypeName: mappedName || bt.business_type,
         otherTypeDetail: bt.business_type === 'other' && businessTypeOtherResult.length > 0 ? businessTypeOtherResult[0].other_type : null
       };
     });
-    
-    console.log('Debug - businessTypes after mapping:', businessTypes);
 
     // ดึงข้อมูลผลิตภัณฑ์
     const productsQuery = `
@@ -137,7 +128,7 @@ export async function GET(request, { params }) {
         const industrialGroupsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/industrial-groups?limit=1000`);
         if (industrialGroupsResponse.ok) {
           const industrialGroupsData = await industrialGroupsResponse.json();
-          console.log('Debug - industrialGroupsData from MSSQL:', industrialGroupsData);
+
           
           industrialGroupsWithNames = industryGroupsResult.map(ig => {
             const groupData = industrialGroupsData.data?.find(g => g.MEMBER_GROUP_CODE == ig.industry_group_id);
@@ -154,7 +145,7 @@ export async function GET(request, { params }) {
         const provinceChaptersResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/member/ic-membership/province-chapters?limit=1000`);
         if (provinceChaptersResponse.ok) {
           const provinceChaptersData = await provinceChaptersResponse.json();
-          console.log('Debug - provinceChaptersData from MSSQL:', provinceChaptersData);
+
           
           provinceChaptersWithNames = provinceChaptersResult.map(pc => {
             // API สำหรับ province chapters ใช้ format ต่างจาก industrial groups

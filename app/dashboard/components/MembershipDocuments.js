@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DraftApplications from './DraftApplications';
 import SubmittedApplications from './SubmittedApplications';
@@ -10,9 +10,29 @@ import ApplicationDetailView from './ApplicationDetailView';
 export default function MembershipDocuments() {
   const [activeSection, setActiveSection] = useState('drafts');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // เปลี่ยนเป็น 5 รายการต่อหน้า
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 5;
   const searchParams = useSearchParams();
   const detail = searchParams.get('detail');
+
+  // ดึงจำนวนรายการจาก API
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`/api/membership/count?type=${activeSection}`);
+        if (response.ok) {
+          const data = await response.json();
+          setTotalItems(data.count || 0);
+        } else {
+          setTotalItems(0);
+        }
+      } catch (error) {
+        console.error('Error fetching count:', error);
+        setTotalItems(0);
+      }
+    };
+    fetchData();
+  }, [activeSection]);
 
   const handleTabChange = (section) => {
     setActiveSection(section);
@@ -23,7 +43,6 @@ export default function MembershipDocuments() {
   const SimplePagination = ({ totalItems, currentPage, itemsPerPage, onPageChange }) => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
-    // ไม่แสดง pagination ถ้ามีหน้าเดียว
     if (totalPages <= 1) return null;
 
     return (
@@ -96,7 +115,7 @@ export default function MembershipDocuments() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span>ใบสมัครที่ยังไม่ส่ง</span>
+                <span>เอกสารสมัครสมาชิกที่ยังไม่ส่ง</span>
               </button>
               
               <button
@@ -110,7 +129,7 @@ export default function MembershipDocuments() {
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
-                <span>ใบสมัครที่ส่งแล้ว</span>
+                <span>เอกสารสมัครสมาชิกที่ส่งแล้ว</span>
               </button>
             </nav>
           </div>
@@ -126,8 +145,8 @@ export default function MembershipDocuments() {
                     </svg>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">ใบสมัครที่ยังไม่ส่ง</h2>
-                    <p className="text-gray-600 text-sm mt-1">ใบสมัครที่ยังกรอกไม่เสร็จ สามารถแก้ไขและส่งได้</p>
+                    <h2 className="text-xl font-bold text-gray-900">เอกสารสมัครสมาชิกที่ยังไม่ส่ง</h2>
+                    <p className="text-gray-600 text-sm mt-1">เอกสารสมัครสมาชิกที่ยังกรอกไม่เสร็จ สามารถแก้ไขและส่งได้</p>
                   </div>
                 </div>
                 
@@ -137,7 +156,7 @@ export default function MembershipDocuments() {
                 />
                 
                 <SimplePagination
-                  totalItems={12} // ตัวอย่างจำนวนรายการ
+                  totalItems={totalItems}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
@@ -154,12 +173,22 @@ export default function MembershipDocuments() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">ใบสมัครที่ส่งแล้ว</h2>
-                    <p className="text-gray-600 text-sm mt-1">ใบสมัครที่ส่งไปแล้ว พร้อมสถานะการตรวจสอบ</p>
+                    <h2 className="text-xl font-bold text-gray-900">เอกสารสมัครสมาชิกที่ส่งแล้ว</h2>
+                    <p className="text-gray-600 text-sm mt-1">เอกสารสมัครสมาชิกที่ส่งไปแล้ว พร้อมสถานะการตรวจสอบ</p>
                   </div>
                 </div>
                 
-                <SubmittedApplications />
+                <SubmittedApplications 
+                  currentPage={currentPage}
+                  itemsPerPage={itemsPerPage}
+                />
+                
+                <SimplePagination
+                  totalItems={totalItems}
+                  currentPage={currentPage}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                />
               </div>
             )}
           </div>
