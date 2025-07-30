@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { query } from '@/lib/db';
+import { cookies } from 'next/headers';
+import { checkUserSession } from '../../../../../lib/auth';
+import { query } from '../../../../../lib/db';
 
 const BUSINESS_TYPE_MAP = {
   '1': 'ผู้ผลิต',

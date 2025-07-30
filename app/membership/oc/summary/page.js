@@ -8,7 +8,7 @@ import Footer from '../../../components/Footer';
 import SummarySection from '@/app/membership/oc/components/SummarySection';
 
 export default function OCSummaryPage() {
-  const [data, setData] = useState(null);
+  const [applicationData, setApplicationData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -38,11 +38,18 @@ export default function OCSummaryPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('Fetching data for ID:', id);
+      
       const response = await fetch(`/api/membership/oc/summary/${id}`);
       const result = await response.json();
       
+      console.log('API Response:', result);
+      console.log('API Response Data:', result.data);
+      console.log('Company Name:', result.data?.companyName);
+      
       if (result.success) {
-        setData(result.data);
+        setApplicationData(result.data);
+        console.log('Data set to state:', result.data);
       } else {
         setError(result.message || 'ไม่สามารถโหลดข้อมูลได้');
       }
@@ -190,7 +197,7 @@ export default function OCSummaryPage() {
     );
   }
 
-  if (!data) {
+  if (!applicationData) {
     return (
       <>
         <Navbar />
@@ -290,7 +297,7 @@ export default function OCSummaryPage() {
               transition={{ delay: 0.3, duration: 0.8 }}
             />
             <p className="text-lg md:text-xl text-center max-w-3xl mx-auto">
-              สมาชิกประเภทสามัญ (โรงงาน) - {data?.companyName || 'กำลังโหลด...'}
+              สมาชิกประเภทสามัญ (โรงงาน) - {applicationData?.companyName || 'กำลังโหลด...'}
             </p>
           </div>
         </div>
@@ -318,10 +325,10 @@ export default function OCSummaryPage() {
                   เอกสารสมัครสมาชิกประเภท: สามัญ (โรงงาน)
                 </h2>
                 <p className="text-gray-600 mb-1">
-                  บริษัท: {data?.companyName || '-'}
+                  บริษัท: {applicationData?.companyName || '-'}
                 </p>
                 <p className="text-gray-600">
-                  วันที่สมัครสมาชิก: {data?.createdAt ? new Date(data.createdAt).toLocaleDateString('th-TH') : '-'}
+                  วันที่สมัครสมาชิก: {applicationData?.createdAt ? new Date(applicationData.createdAt).toLocaleDateString('th-TH') : '-'}
                 </p>
               </div>
               <div className="flex gap-3">
@@ -363,11 +370,12 @@ export default function OCSummaryPage() {
             )}
             
             <div className="relative z-10 p-6 md:p-8">
-              <SummarySection 
-                memberType="OC"
-                data={data}
-                isViewMode={true}
-              />
+            <SummarySection 
+  formData={applicationData}  // เปลี่ยน data เป็น formData
+  businessTypes={[]}
+  industrialGroups={[]}
+  provincialChapters={[]}
+/>
             </div>
           </motion.div>
         </div>

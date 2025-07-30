@@ -92,7 +92,7 @@ export default function ICSummaryPage() {
             
             <div className="container mx-auto px-4 relative z-10 max-w-5xl">
               <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-                ใบสมัครสมาชิก: สมทบ-บุคคลธรรมดา 
+                เอกสารสมัครสมาชิก: สมทบ-บุคคลธรรมดา 
               </h1>
               <motion.div 
                 className="w-24 h-1 bg-white mx-auto mb-6"
@@ -212,7 +212,7 @@ export default function ICSummaryPage() {
                 transition={{ delay: 0.3, duration: 0.8 }}
               />
               <p className="text-lg md:text-xl text-center max-w-3xl mx-auto">
-                ไม่พบข้อมูลใบสมัครที่ท่านต้องการดู
+                ไม่พบข้อมูลเอกสารสมัครสมาชิกที่ท่านต้องการดู
               </p>
             </div>
           </div>
@@ -232,7 +232,7 @@ export default function ICSummaryPage() {
                   </svg>
                   <span className="font-medium">ไม่พบข้อมูล</span>
                 </div>
-                <p>ไม่พบข้อมูลใบสมัครที่ท่านต้องการดู</p>
+                <p>ไม่พบข้อมูลเอกสารสมัครสมาชิกที่ท่านต้องการดู</p>
               </div>
               <button 
                 onClick={handleClose}
@@ -311,10 +311,10 @@ export default function ICSummaryPage() {
             <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div>
                 <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                ใบสมัครสมาชิกประเภท: สมทบ-บุคคลธรรมดา 
+                เอกสารสมัครสมาชิกประเภท: สมทบ-บุคคลธรรมดา 
                 </h2>
                 <p className="text-gray-600">
-                  วันที่สมัคร: {applicationData?.createdAt ? new Date(applicationData.createdAt).toLocaleDateString('th-TH') : '-'}
+                  วันที่สมัคสมาชิก: {applicationData?.createdAt ? new Date(applicationData.createdAt).toLocaleDateString('th-TH') : '-'}
                 </p>
               </div>
               <div className="flex gap-3">
