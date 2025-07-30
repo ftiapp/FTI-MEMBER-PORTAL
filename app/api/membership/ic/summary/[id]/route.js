@@ -55,9 +55,11 @@ export async function GET(request, { params }) {
       'distributor': 'ผู้จัดจำหน่าย', 
       'importer': 'ผู้นำเข้า',
       'exporter': 'ผู้ส่งออก',
-      'service': 'ผู้ให้บริการ',
+      'service_provider': 'ผู้ให้บริการ', // แก้ไข: ใช้ service_provider แทน service
       'other': 'อื่นๆ'
     };
+    
+    console.log('Debug - BUSINESS_TYPES_MAP:', BUSINESS_TYPES_MAP);
     
     const businessTypesQuery = `
       SELECT * FROM MemberRegist_IC_BusinessTypes 
@@ -65,18 +67,37 @@ export async function GET(request, { params }) {
     `;
     const businessTypesRaw = await query(businessTypesQuery, [id]);
     
-    // แปลง business types ให้มี businessTypeName
-    const businessTypes = businessTypesRaw.map(bt => ({
-      ...bt,
-      businessTypeName: BUSINESS_TYPES_MAP[bt.business_type_id] || bt.business_type_id
-    }));
-
-    // ดึงข้อมูลประเภทธุรกิจอื่นๆ
+    console.log('Debug - businessTypesRaw:', businessTypesRaw);
+    console.log('Debug - businessTypesRaw length:', businessTypesRaw.length);
+    
+    // ดึงข้อมูลประเภทธุรกิจอื่นๆ ก่อนที่จะใช้ใน mapping
     const businessTypeOtherQuery = `
       SELECT * FROM MemberRegist_IC_BusinessTypeOther 
       WHERE main_id = ?
     `;
     const businessTypeOtherResult = await query(businessTypeOtherQuery, [id]);
+    
+    // แปลง business types ให้มี businessTypeName และรวมข้อมูล "อื่นๆ" จาก BusinessTypeOther
+    const businessTypes = businessTypesRaw.map(bt => {
+      console.log('Debug - raw business type record:', bt);
+      let mappedName = BUSINESS_TYPES_MAP[bt.business_type]; // แก้ไข: ใช้ business_type
+      
+      // ถ้าเป็น "อื่นๆ" ให้หาข้อมูลจาก BusinessTypeOther table
+      if (bt.business_type === 'other' && businessTypeOtherResult.length > 0) {
+        const otherType = businessTypeOtherResult[0].other_type;
+        mappedName = `อื่นๆ (${otherType})`;
+      }
+      
+      console.log(`Debug - mapping business_type '${bt.business_type}' (type: ${typeof bt.business_type}) to '${mappedName}'`);
+      return {
+        ...bt,
+        id: bt.business_type, // ใช้ business_type เป็น id
+        businessTypeName: mappedName || bt.business_type,
+        otherTypeDetail: bt.business_type === 'other' && businessTypeOtherResult.length > 0 ? businessTypeOtherResult[0].other_type : null
+      };
+    });
+    
+    console.log('Debug - businessTypes after mapping:', businessTypes);
 
     // ดึงข้อมูลผลิตภัณฑ์
     const productsQuery = `
@@ -106,15 +127,70 @@ export async function GET(request, { params }) {
     `;
     const documentsResult = await query(documentsQuery, [id]);
 
-    // รวมข้อมูลทั้งหมด
+    // ดึงชื่อ Industry Groups และ Province Chapters จาก MSSQL APIs
+    let industrialGroupsWithNames = [];
+    let provinceChaptersWithNames = [];
+    
+    try {
+      // ดึงข้อมูล Industrial Groups จาก MSSQL API
+      if (industryGroupsResult.length > 0) {
+        const industrialGroupsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/industrial-groups?limit=1000`);
+        if (industrialGroupsResponse.ok) {
+          const industrialGroupsData = await industrialGroupsResponse.json();
+          console.log('Debug - industrialGroupsData from MSSQL:', industrialGroupsData);
+          
+          industrialGroupsWithNames = industryGroupsResult.map(ig => {
+            const groupData = industrialGroupsData.data?.find(g => g.MEMBER_GROUP_CODE == ig.industry_group_id);
+            return {
+              id: ig.industry_group_id,
+              industryGroupName: groupData ? groupData.MEMBER_GROUP_NAME : ig.industry_group_id
+            };
+          });
+        }
+      }
+      
+      // ดึงข้อมูล Province Chapters จาก MSSQL API  
+      if (provinceChaptersResult.length > 0) {
+        const provinceChaptersResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/member/ic-membership/province-chapters?limit=1000`);
+        if (provinceChaptersResponse.ok) {
+          const provinceChaptersData = await provinceChaptersResponse.json();
+          console.log('Debug - provinceChaptersData from MSSQL:', provinceChaptersData);
+          
+          provinceChaptersWithNames = provinceChaptersResult.map(pc => {
+            // API สำหรับ province chapters ใช้ format ต่างจาก industrial groups
+            const chapterData = provinceChaptersData.data?.find(c => c.id == pc.province_chapter_id);
+            console.log(`Debug - mapping province chapter ${pc.province_chapter_id} to ${chapterData ? chapterData.name : 'not found'}`);
+            return {
+              id: pc.province_chapter_id,
+              provinceChapterName: chapterData ? chapterData.name : pc.province_chapter_id
+            };
+          });
+        }
+      }
+    } catch (apiError) {
+      console.error('Error fetching names from MSSQL APIs:', apiError);
+      // Fallback to using IDs as names
+      industrialGroupsWithNames = industryGroupsResult.map(ig => ({
+        id: ig.industry_group_id,
+        industryGroupName: ig.industry_group_id
+      }));
+      provinceChaptersWithNames = provinceChaptersResult.map(pc => ({
+        id: pc.province_chapter_id,
+        provinceChapterName: pc.province_chapter_id
+      }));
+    }
+
+    // สร้างข้อมูลที่จะส่งกลับงหมด
     const applicationData = {
-      // ข้อมูลหลัก
-      id: mainData.id,
+      // ข้อมูลหลักของผู้สมัคร
       idCardNumber: mainData.id_card_number,
       firstNameTh: mainData.first_name_th,
       lastNameTh: mainData.last_name_th,
       firstNameEn: mainData.first_name_en,
       lastNameEn: mainData.last_name_en,
+      // ชื่อเต็มสำหรับการแสดงผล
+      fullNameTh: `${mainData.first_name_th || ''} ${mainData.last_name_th || ''}`.trim(),
+      fullNameEn: `${mainData.first_name_en || ''} ${mainData.last_name_en || ''}`.trim(),
       phone: mainData.phone,
       email: mainData.email,
       status: mainData.status,
@@ -142,15 +218,18 @@ export async function GET(request, { params }) {
         lastNameTh: representativeResult[0].last_name_th,
         firstNameEn: representativeResult[0].first_name_en,
         lastNameEn: representativeResult[0].last_name_en,
+        // ชื่อเต็มสำหรับการแสดงผล
+        fullNameTh: `${representativeResult[0].first_name_th || ''} ${representativeResult[0].last_name_th || ''}`.trim(),
+        fullNameEn: `${representativeResult[0].first_name_en || ''} ${representativeResult[0].last_name_en || ''}`.trim(),
         position: representativeResult[0].position,
         email: representativeResult[0].email,
         phone: representativeResult[0].phone
       } : null,
 
-      // ข้อมูลประเภทธุรกิจ
+      // ข้อมูลประเภทธุรกิจ (ใช้ field business_type)
       businessTypes: businessTypes.map(bt => ({
-        id: bt.business_type_id,
-        businessTypeName: bt.businessTypeName || bt.business_type_id
+        id: bt.business_type, // แก้ไข: ใช้ business_type
+        businessTypeName: bt.businessTypeName || bt.business_type
       })),
 
       // ข้อมูลประเภทธุรกิจอื่นๆ
@@ -164,24 +243,20 @@ export async function GET(request, { params }) {
         nameEn: p.name_en
       })),
 
-      // ข้อมูลกลุ่มอุตสาหกรรม (ใช้ข้อมูลจากตาราง MemberRegist_IC_IndustryGroups โดยตรง)
-      industryGroups: industryGroupsResult.map(ig => ({
-        id: ig.industry_group_id,
-        industryGroupName: ig.industry_group_id // ใช้ ID เป็นชื่อเพราะไม่มีตาราง IndustryGroups
-      })),
+      // ข้อมูลกลุ่มอุตสาหกรรม (ดึงชื่อจาก MSSQL API)
+      industryGroups: industrialGroupsWithNames,
 
-      // ข้อมูลสภาอุตสาหกรรมจังหวัด (ใช้ข้อมูลจากตาราง MemberRegist_IC_ProvinceChapters โดยตรง)
-      provinceChapters: provinceChaptersResult.map(pc => ({
-        id: pc.province_chapter_id,
-        provinceChapterName: pc.province_chapter_id // ใช้ ID เป็นชื่อเพราะไม่มีตาราง ProvinceChapters
-      })),
+      // ข้อมูลสภาอุตสาหกรรมจังหวัด (ดึงชื่อจาก MSSQL API)
+      provinceChapters: provinceChaptersWithNames,
 
-      // ข้อมูลเอกสาร
+      // ข้อมูลเอกสาร (ใช้ field ที่ถูกต้องตามโครงสร้างตาราง)
       documents: documentsResult.map(d => ({
         fileName: d.file_name,
-        fileUrl: d.file_url,
-        fileType: d.file_type,
-        createdAt: d.created_at
+        fileUrl: d.cloudinary_url || d.file_path, // ใช้ cloudinary_url หรือ file_path
+        fileType: d.mime_type,
+        documentType: d.document_type,
+        fileSize: d.file_size,
+        cloudinaryId: d.cloudinary_id
       }))
     };
 

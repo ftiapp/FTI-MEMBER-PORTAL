@@ -62,11 +62,19 @@ const RepresentativeCard = ({ representative }) => (
       <div className="space-y-2">
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-          <p className="text-sm">{representative.firstNameThai} {representative.lastNameThai}</p>
+          <p className="text-sm">{
+            representative.fullNameTh || 
+            `${representative.firstNameTh || representative.firstNameThai || ''} ${representative.lastNameTh || representative.lastNameThai || ''}`.trim() ||
+            '-'
+          }</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-          <p className="text-sm">{representative.firstNameEng} {representative.lastNameEng}</p>
+          <p className="text-sm">{
+            representative.fullNameEn || 
+            `${representative.firstNameEn || representative.firstNameEng || ''} ${representative.lastNameEn || representative.lastNameEng || ''}`.trim() ||
+            '-'
+          }</p>
         </div>
         <div>
           <p className="text-xs text-gray-500">อีเมล</p>
@@ -83,29 +91,71 @@ const RepresentativeCard = ({ representative }) => (
   </div>
 );
 
-// Simplified file display
-const FileCard = ({ fileName, description }) => (
-  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+// Enhanced file display with view functionality
+const FileCard = ({ fileName, description, fileUrl, fileType, documentType }) => {
+  const handleViewFile = () => {
+    if (fileUrl) {
+      window.open(fileUrl, '_blank');
+    }
+  };
+
+  const getFileIcon = () => {
+    if (fileType?.includes('pdf')) {
+      return (
+        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+        </svg>
+      );
+    } else if (fileType?.includes('image')) {
+      return (
+        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+      );
+    } else {
+      return (
         <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-900">{description}</p>
-        <p className="text-xs text-gray-500">{fileName !== 'ไม่ได้อัปโหลด' ? fileName : 'ไม่ได้อัปโหลด'}</p>
-      </div>
-      {fileName !== 'ไม่ได้อัปโหลด' && (
-        <div className="w-4 h-4 text-green-500">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+      );
+    }
+  };
+
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+          {getFileIcon()}
         </div>
-      )}
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-900">{description}</p>
+          <p className="text-xs text-gray-500">
+            {fileName && fileName !== 'ไม่ได้อัปโหลด' && fileName !== 'ไม่มีเอกสาร' ? fileName : 'ไม่ได้อัปโหลด'}
+          </p>
+        </div>
+        {fileName && fileName !== 'ไม่ได้อัปโหลด' && fileName !== 'ไม่มีเอกสาร' && fileUrl && (
+          <button
+            onClick={handleViewFile}
+            className="w-8 h-8 bg-blue-100 hover:bg-blue-200 rounded-lg flex items-center justify-center transition-colors"
+            title="ดูไฟล์"
+          >
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
+        )}
+        {fileName && fileName !== 'ไม่ได้อัปโหลด' && fileName !== 'ไม่มีเอกสาร' && (
+          <div className="w-4 h-4 text-green-500">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Simplified section with consistent blue theme
 const Section = ({ title, children, className }) => (
@@ -209,8 +259,16 @@ export default function SummarySection({
       <Section title="ข้อมูลผู้สมัคร">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="เลขบัตรประจำตัวประชาชน" value={formData.idCardNumber} />
-          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={`${formData.firstNameThai || ''} ${formData.lastNameThai || ''}`} />
-          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={`${formData.firstNameEng || ''} ${formData.lastNameEng || ''}`} />
+          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={
+            viewMode ? 
+              (formData.fullNameTh || `${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()) :
+              `${formData.firstNameThai || ''} ${formData.lastNameThai || ''}`.trim()
+          } />
+          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={
+            viewMode ? 
+              (formData.fullNameEn || `${formData.firstNameEn || ''} ${formData.lastNameEn || ''}`.trim()) :
+              `${formData.firstNameEng || ''} ${formData.lastNameEng || ''}`.trim()
+          } />
           <InfoCard title="อีเมล" value={formData.email} />
           <InfoCard title="เบอร์โทรศัพท์" value={formData.phone} />
         </div>
@@ -289,10 +347,28 @@ export default function SummarySection({
       {/* เอกสารแนบ */}
       <Section title="เอกสารแนบ">
         <div className="space-y-3">
-          <FileCard 
-            fileName={getFileName(formData.idCardDocument)} 
-            description="สำเนาบัตรประชาชน" 
-          />
+          {viewMode && formData.documents && formData.documents.length > 0 ? (
+            // โหมดดูข้อมูล - แสดงเอกสารจากฐานข้อมูล
+            formData.documents.map((doc, index) => (
+              <FileCard 
+                key={index}
+                fileName={doc.fileName || doc.original_name || 'ไม่ทราบชื่อไฟล์'}
+                description={doc.documentType === 'id_card' ? 'สำเนาบัตรประชาชน' : doc.document_type || 'เอกสารแนบ'}
+                fileUrl={doc.fileUrl || doc.cloudinary_url || doc.file_path}
+                fileType={doc.fileType || doc.mime_type}
+                documentType={doc.documentType || doc.document_type}
+              />
+            ))
+          ) : (
+            // โหมดสมัคร - แสดงเอกสารจากฟอร์ม
+            <FileCard 
+              fileName={getFileName(formData.idCardDocument)} 
+              description="สำเนาบัตรประชาชน"
+              fileUrl={formData.idCardDocument?.file ? URL.createObjectURL(formData.idCardDocument.file) : null}
+              fileType={formData.idCardDocument?.file?.type}
+              documentType="id_card"
+            />
+          )}
         </div>
       </Section>
 
