@@ -37,6 +37,50 @@ export const checkIdCard = async (idCardNumber) => {
 // Check if ID card number is unique (alias สำหรับ backward compatibility)
 export const checkIdCardUniqueness = checkIdCard;
 
+import { toast } from 'react-hot-toast';
+
+// ✅ Cloudinary upload configuration - ใช้เหมือนกับ OC/AC
+const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/dyq1xftjr/upload';
+const UPLOAD_PRESET = 'fti_portal';
+
+// ✅ ฟังก์ชัน upload document แบบเดียวกับ OC/AC
+const uploadDocumentToCloudinary = async (file, documentType) => {
+  if (!file) return { success: false };
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    formData.append('folder', 'FTI_PORTAL_IC_member_DOC');
+
+    const response = await fetch(CLOUDINARY_URL, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    if (data.secure_url) {
+      return {
+        success: true,
+        secure_url: data.secure_url,
+        public_id: data.public_id,
+        original_filename: data.original_filename,
+        format: data.format,
+        size: data.bytes
+      };
+    } else {
+      throw new Error(data.error?.message || 'Upload failed');
+    }
+  } catch (error) {
+    console.error(`Error uploading ${documentType}:`, error);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+};
+
 // ฟังก์ชันส่งข้อมูลสมัครสมาชิก IC
 export const submitICMembershipForm = async (formData) => {
   console.log('=== DEBUG submitICMembershipForm ===');
@@ -95,43 +139,65 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('products', JSON.stringify([]));
     }
     
-    // กลุ่มอุตสาหกรรม
+    // ✅ FIX: แก้ไขการส่งข้อมูลกลุ่มอุตสาหกรรม
+    console.log('=== Processing Industry Groups ===');
+    console.log('formData.industryGroups:', formData.industryGroups);
+    console.log('formData.industrialGroupId:', formData.industrialGroupId);
+    
+    let industryGroupsToSend = [];
+    
+    // ลองหาข้อมูลจาก field ต่างๆ
     if (formData.industryGroups && Array.isArray(formData.industryGroups)) {
-      formDataToSubmit.append('industryGroups', JSON.stringify(formData.industryGroups));
-      console.log('Industry groups to submit:', formData.industryGroups);
+      industryGroupsToSend = formData.industryGroups;
     } else if (formData.industrialGroupId) {
-      const industryGroups = Array.isArray(formData.industrialGroupId) 
+      industryGroupsToSend = Array.isArray(formData.industrialGroupId) 
         ? formData.industrialGroupId 
         : [formData.industrialGroupId];
-      formDataToSubmit.append('industryGroups', JSON.stringify(industryGroups));
-      console.log('Industry groups (from industrialGroupId):', industryGroups);
-    } else {
-      formDataToSubmit.append('industryGroups', JSON.stringify([]));
     }
     
-    // สภาอุตสาหกรรมจังหวัด
+    // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
+    industryGroupsToSend = industryGroupsToSend.filter(id => id && id.toString().trim());
+    
+    formDataToSubmit.append('industryGroups', JSON.stringify(industryGroupsToSend));
+    console.log('Industry groups to submit:', industryGroupsToSend);
+    
+    // ✅ FIX: แก้ไขการส่งข้อมูลสภาอุตสาหกรรมจังหวัด
+    console.log('=== Processing Province Chapters ===');
+    console.log('formData.provinceChapters:', formData.provinceChapters);
+    console.log('formData.provincialChapterId:', formData.provincialChapterId);
+    
+    let provinceChaptersToSend = [];
+    
+    // ลองหาข้อมูลจาก field ต่างๆ
     if (formData.provinceChapters && Array.isArray(formData.provinceChapters)) {
-      formDataToSubmit.append('provinceChapters', JSON.stringify(formData.provinceChapters));
-      console.log('Province chapters to submit:', formData.provinceChapters);
+      provinceChaptersToSend = formData.provinceChapters;
     } else if (formData.provincialChapterId) {
-      const provinceChapters = Array.isArray(formData.provincialChapterId) 
+      provinceChaptersToSend = Array.isArray(formData.provincialChapterId) 
         ? formData.provincialChapterId 
         : [formData.provincialChapterId];
-      formDataToSubmit.append('provinceChapters', JSON.stringify(provinceChapters));
-      console.log('Province chapters (from provincialChapterId):', provinceChapters);
-    } else {
-      formDataToSubmit.append('provinceChapters', JSON.stringify([]));
     }
     
-    // เอกสารแนบ
-    if (formData.idCardFile && formData.idCardFile instanceof File) {
-      formDataToSubmit.append('idCardFile', formData.idCardFile);
-      console.log('ID card file to upload:', formData.idCardFile.name, formData.idCardFile.size);
-    } else if (formData.idCardDocument && formData.idCardDocument instanceof File) {
-      formDataToSubmit.append('idCardFile', formData.idCardDocument);
-      console.log('ID card document to upload:', formData.idCardDocument.name, formData.idCardDocument.size);
-    } else {
-      console.log('No ID card file found');
+    // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
+    provinceChaptersToSend = provinceChaptersToSend.filter(id => id && id.toString().trim());
+    
+    formDataToSubmit.append('provinceChapters', JSON.stringify(provinceChaptersToSend));
+    console.log('Province chapters to submit:', provinceChaptersToSend);
+    
+    // ✅ Phase 3: Send files directly to backend - Remove frontend Cloudinary upload
+    // Files are now handled by the backend API route like OC
+    console.log('=== Preparing files for backend upload ===');
+    
+    // Append actual files to FormData for backend processing
+    if (formData.idCardDocument && formData.idCardDocument instanceof File) {
+      formDataToSubmit.append('idCardDocument', formData.idCardDocument);
+    }
+
+    if (formData.companyRegistrationDocument && formData.companyRegistrationDocument instanceof File) {
+      formDataToSubmit.append('companyRegistrationDocument', formData.companyRegistrationDocument);
+    }
+
+    if (formData.taxRegistrationDocument && formData.taxRegistrationDocument instanceof File) {
+      formDataToSubmit.append('taxRegistrationDocument', formData.taxRegistrationDocument);
     }
     
     // Debug: แสดงข้อมูลทั้งหมดที่จะส่ง
@@ -144,9 +210,9 @@ export const submitICMembershipForm = async (formData) => {
       }
     }
     
-    console.log('Sending request to /api/ic-membership...');
+    console.log('Sending request to /api/member/ic-membership/submit...');
     
-    const response = await fetch('/api/ic-membership', {
+    const response = await fetch('/api/member/ic-membership/submit', {
       method: 'POST',
       body: formDataToSubmit
     });
@@ -170,12 +236,18 @@ export const submitICMembershipForm = async (formData) => {
     }
     
     const result = await response.json();
-    console.log('Success response:', result);
+    console.log('=== IC Form Submission Complete ===');
+    
+    // Redirect to documents page after successful submission
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard?tab=documents';
+    }
     
     return {
       success: true,
-      message: result.message || 'ส่งข้อมูลสำเร็จ',
-      data: result.data
+      message: 'ส่งข้อมูลสมัครสมาชิก IC สำเร็จ',
+      memberId: result.memberId,
+      redirectUrl: '/dashboard?tab=documents'
     };
     
   } catch (error) {

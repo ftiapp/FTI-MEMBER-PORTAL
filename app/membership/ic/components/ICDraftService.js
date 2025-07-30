@@ -39,8 +39,12 @@ export async function loadDraft(draftId) {
 // Delete draft
 export const deleteDraft = async () => {
   try {
-    const response = await fetch('/api/member/ic-membership/draft', {
+    const response = await fetch('/api/membership/delete-draft', {
       method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ memberType: 'ic' }),
     });
 
     if (!response.ok) {

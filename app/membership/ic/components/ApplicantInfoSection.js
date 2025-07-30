@@ -27,37 +27,62 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
   // ฟังก์ชันตรวจสอบเลขบัตรประชาชน
   const checkIdCardNumber = async (idCardNumber) => {
     if (idCardNumber.length !== 13) {
-      setIdCardValidation({
-        isChecking: false,
-        exists: null,
-        message: '',
-        status: null
-      });
+      setIdCardValidation({ isChecking: false, exists: null, isValid: false, message: 'เลขบัตรประชาชนต้องมี 13 หลัก' });
       return;
     }
 
-    setIdCardValidation(prev => ({ ...prev, isChecking: true }));
+    setIdCardValidation({ isChecking: true, exists: null, isValid: null, message: '' });
 
     try {
-      const result = await checkIdCard(idCardNumber);
-      
-      setIdCardValidation({
-        isChecking: false,
-        exists: !result.valid, // valid: true หมายความว่าไม่มีการสมัครแล้ว (exists: false)
-        message: result.message,
-        status: null
+      const response = await fetch('/api/member/ic-membership/check-id-card', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ idCardNumber }),
       });
+
+      const result = await response.json();
+      
+      // ใช้ field ใหม่ที่ standardized
+      const validationResult = {
+        isChecking: false,
+        exists: result.exists,
+        isValid: result.valid,
+        status: result.status,
+        message: result.message
+      };
+
+      setIdCardValidation(validationResult);
+      
+      // ส่งผลการตรวจสอบไปยัง parent component
+      if (setFormData) {
+        setFormData(prev => ({
+          ...prev,
+          _idCardValidation: validationResult,
+          idCardNumber: idCardNumber // บันทึก idCardNumber ใน draft
+        }));
+      }
+
     } catch (error) {
       console.error('Error checking ID card:', error);
-      setIdCardValidation({
-        isChecking: false,
-        exists: null,
-        message: 'เกิดข้อผิดพลาดในการเชื่อมต่อ',
-        status: null
+      setIdCardValidation({ 
+        isChecking: false, 
+        exists: null, 
+        isValid: true, // ถ้า API ล้มเหลว ให้ผ่านไปก่อน
+        message: 'ไม่สามารถตรวจสอบเลขบัตรประชาชนได้ กรุณาลองใหม่' 
       });
     }
   };
 
+  // เพิ่มฟังก์ชัน handleIdCardBlur ที่หายไป
+  const handleIdCardBlur = (e) => {
+    const value = e.target.value;
+    if (value && value.length === 13) {
+      checkIdCardNumber(value);
+    }
+  };
+  
   // Handle input change
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -148,14 +173,15 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
         </p>
       );
     }
-
-    if (idCardValidation.exists === true) {
+  
+    // ✅ แก้ไขเงื่อนไขให้ถูกต้อง - ตรวจสอบ isValid แทน exists
+    if (idCardValidation.isValid === false) { // ใช้ไม่ได้
       return (
         <p className="text-sm text-red-600 flex items-center gap-2">
           <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
           </svg>
-          {idCardValidation.message}
+          ❌ {idCardValidation.message}
           {idCardValidation.status && (
             <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded">
               สถานะ: {idCardValidation.status}
@@ -164,19 +190,19 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
         </p>
       );
     }
-
-    if (idCardValidation.exists === false) {
+  
+    if (idCardValidation.isValid === true) { // ใช้ได้
       return (
         <p className="text-sm text-green-600 flex items-center gap-2">
           <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
           </svg>
-          ✓ สามารถใช้เลขบัตรประชาชนนี้ได้
+          ✅ สามารถใช้เลขบัตรประชาชนนี้ได้
         </p>
       );
     }
-
-    if (idCardValidation.message && idCardValidation.exists === null) {
+  
+    if (idCardValidation.message && idCardValidation.isValid === null) {
       return (
         <p className="text-sm text-red-600 flex items-center gap-2">
           <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -186,10 +212,52 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
         </p>
       );
     }
-
+  
     return null;
   };
+  
+  // แก้ไข CSS class สำหรับ input field
+  const getInputClassName = () => {
+    let className = `
+      w-full px-4 py-3 text-sm
+      border rounded-lg
+      transition-all duration-200
+      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+      bg-white
+    `;
+    
+    if (errors?.idCardNumber) {
+      className += ' border-red-300 bg-red-50';
+    } else if (idCardValidation.isValid === false) {
+      className += ' border-red-300 bg-red-50';
+    } else if (idCardValidation.isValid === true) {
+      className += ' border-green-300 bg-green-50';
+    } else {
+      className += ' border-gray-300 hover:border-gray-400';
+    }
+    
+    return className;
+  };
 
+  const getIdCardValidationStatus = () => {
+    return {
+      isChecking: idCardValidation.isChecking,
+      isValid: idCardValidation.isValid,
+      exists: idCardValidation.exists,
+      message: idCardValidation.message
+    };
+  };
+  
+  // ส่ง function นี้ไปให้ parent component ใช้
+  useEffect(() => {
+    if (typeof setFormData === 'function') {
+      setFormData(prev => ({
+        ...prev,
+        _idCardValidation: getIdCardValidationStatus() // เพิ่ม validation status
+      }));
+    }
+  }, [idCardValidation, setFormData]);
+  
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
       {/* Header */}
@@ -219,21 +287,10 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
                 name="idCardNumber"
                 value={formData.idCardNumber || ''}
                 onChange={handleInputChange}
+                onBlur={handleIdCardBlur}
+                maxLength="13"
+                className={getInputClassName()}
                 placeholder="กรอกเลขบัตรประชาชน 13 หลัก"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.idCardNumber || idCardValidation.exists === true
-                    ? 'border-red-300 bg-red-50' 
-                    : idCardValidation.exists === false
-                    ? 'border-green-300 bg-green-50'
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
               />
               
               {/* แสดงข้อความตรวจสอบเลขบัตรประชาชน */}

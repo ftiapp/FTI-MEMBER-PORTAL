@@ -18,6 +18,11 @@ export function useICFormNavigation({
   // ในไฟล์ useICFormNavigation.js
 // แก้ไขส่วน handleNextStep ตรงบรรทัดที่ตรวจสอบ ID Card
 
+// แก้ไขใน useICFormNavigation.js
+
+// ในไฟล์ useICFormNavigation.js
+// แก้ไขส่วน handleNextStep
+
 const handleNextStep = useCallback(async () => {
   if (currentStep >= totalSteps) return;
   
@@ -28,39 +33,67 @@ const handleNextStep = useCallback(async () => {
     const stepErrors = validateCurrentStep(currentStep, formData);
     
     if (Object.keys(stepErrors).length > 0) {
-      // Show error toast at top right
+      console.log('Validation errors:', stepErrors);
       toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน', {
         position: 'top-right'
       });
       return;
     }
     
-    // For step 1 (Applicant Info), check ID card uniqueness
-    if (currentStep === 1 && formData.idCardNumber) {
-      try {
-        const idCardCheckResult = await checkIdCardUniqueness(formData.idCardNumber);
-        
-        // Debug log เพื่อดูผลลัพธ์
-        console.log('ID Card Check Result:', idCardCheckResult);
-        
-        // ตรวจสอบผลลัพธ์ - ปรับเงื่อนไขให้ชัดเจนขึ้น
-        if (idCardCheckResult && idCardCheckResult.valid === false) {
-          toast.error(idCardCheckResult.message || 'เลขบัตรประชาชนนี้ถูกใช้ไปแล้ว', {
-            position: 'top-right'
-          });
-          return;
+    // ✅ For step 1, check ID card validation status
+    if (currentStep === 1) {
+      const idCardValidation = formData._idCardValidation;
+      
+      // ถ้ายังตรวจสอบอยู่
+      if (idCardValidation?.isChecking) {
+        toast.error('กรุณารอให้การตรวจสอบเลขบัตรประชาชนเสร็จสิ้น', {
+          position: 'top-right'
+        });
+        return;
+      }
+      
+      // ✅ ตรวจสอบ isValid แทน exists
+      if (idCardValidation?.isValid === false) {
+        toast.error(idCardValidation.message || 'เลขบัตรประชาชนนี้ไม่สามารถใช้ได้', {
+          position: 'top-right'
+        });
+        return;
+      }
+      
+      // ถ้ายังไม่ได้ตรวจสอบ ID Card เลย (กรณีไม่มี _idCardValidation)
+      if (!idCardValidation && formData.idCardNumber) {
+        try {
+          const idCardCheckResult = await checkIdCardUniqueness(formData.idCardNumber);
+          
+          // ✅ ตรวจสอบ valid แทน exists
+          if (idCardCheckResult && idCardCheckResult.valid === false) {
+            toast.error(idCardCheckResult.message || 'เลขบัตรประชาชนนี้ไม่สามารถใช้ได้', {
+              position: 'top-right'
+            });
+            return;
+          }
+        } catch (error) {
+          console.error('Error checking ID card:', error);
+          // หากเกิด error ให้ผ่านไป (สำหรับกรณีไม่มีฐานข้อมูล)
         }
-        
-      } catch (error) {
-        console.error('Error checking ID card:', error);
-        // หากเกิด error ให้ถือว่าผ่าน (เนื่องจากไม่มีฐานข้อมูล)
-        console.log('ID card check failed, but proceeding anyway (no database)');
+      }
+      
+      // ✅ ตรวจสอบให้แน่ใจว่า ID Card valid (เพิ่มการตรวจสอบเพิ่มเติม)
+      if (idCardValidation?.isValid !== true && formData.idCardNumber) {
+        toast.error('กรุณาตรวจสอบเลขบัตรประชาชนให้ถูกต้อง', {
+          position: 'top-right'
+        });
+        return;
       }
     }
     
-    // Proceed to next step
+    // ✅ ถ้าผ่านทุกการตรวจสอบแล้ว ให้ไปขั้นตอนต่อไป
     setCurrentStep(prev => prev + 1);
     window.scrollTo(0, 0);
+    
+    toast.success('ข้อมูลถูกต้อง กำลังไปขั้นตอนต่อไป', {
+      position: 'top-right'
+    });
     
   } catch (error) {
     console.error('Error in form navigation:', error);

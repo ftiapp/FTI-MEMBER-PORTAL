@@ -125,42 +125,43 @@ export default function SummarySection({
   provincialChapters = [], 
   isSubmitting = false, 
   onSubmit,
-  onBack 
+  onBack,
+  viewMode = false  // เพิ่ม viewMode สำหรับโหมดดูข้อมูล
 }) {
-  // Get selected business types
+  // Get selected business types from database
   const getSelectedBusinessTypes = () => {
-    if (!formData.businessTypes) return [];
+    if (!formData.businessTypes || !Array.isArray(formData.businessTypes)) return [];
     
-    const BUSINESS_TYPE_LABELS = {
-      manufacturer: 'ผู้ผลิต',
-      distributor: 'ผู้จัดจำหน่าย',
-      importer: 'ผู้นำเข้า',
-      exporter: 'ผู้ส่งออก',
-      service: 'ผู้ให้บริการ',
-      other: 'อื่นๆ'
-    };
-    
-    return Object.keys(formData.businessTypes)
-      .filter(key => formData.businessTypes[key]) // เฉพาะที่เลือกแล้ว
-      .map(key => {
-        if (key === 'other') {
-          return `${BUSINESS_TYPE_LABELS[key]} (${formData.otherBusinessTypeDetail || ''})`;
-        }
-        return BUSINESS_TYPE_LABELS[key] || key;
-      });
+    return formData.businessTypes.map(bt => bt.businessTypeName || bt.id || '-');
   };
 
-  // Format products for display
+  // Get business type other from database
+  const getBusinessTypeOther = () => {
+    if (!formData.businessTypeOther || !Array.isArray(formData.businessTypeOther)) return [];
+    
+    return formData.businessTypeOther.map(bto => bto.otherType || '-');
+  };
+
+  // Format products for display from database
   const formatProducts = () => {
-    return formData.products?.map(product => ({
+    if (!formData.products || !Array.isArray(formData.products)) return [];
+    
+    return formData.products.map(product => ({
       nameTh: product.nameTh || '-',
       nameEn: product.nameEn || '-'
-    })) || [];
+    }));
   };
 
-  // Helper function to get file name
+  // Helper function to get file name - รองรับทั้งโหมดสมัครและโหมดดูข้อมูล
   const getFileName = (fileObj) => {
     if (!fileObj) return 'ไม่ได้อัปโหลด';
+    
+    // สำหรับโหมดดูข้อมูล (จากฐานข้อมูล)
+    if (viewMode && formData.documents && Array.isArray(formData.documents)) {
+      return formData.documents.length > 0 ? formData.documents[0].fileName : 'ไม่มีเอกสาร';
+    }
+    
+    // สำหรับโหมดสมัคร (จากฟอร์ม)
     if (typeof fileObj === 'object') {
       if (fileObj instanceof File) return fileObj.name;
       if (fileObj.name) return fileObj.name;
@@ -169,30 +170,18 @@ export default function SummarySection({
     return 'ไฟล์ถูกอัปโหลดแล้ว';
   };
 
-  // Get industrial group names
+  // Get industrial group names from database
   const getIndustrialGroupNames = () => {
-    if (!formData.industrialGroupId) return [];
-    const selectedIds = Array.isArray(formData.industrialGroupId) 
-      ? formData.industrialGroupId 
-      : [formData.industrialGroupId];
+    if (!formData.industryGroups || !Array.isArray(formData.industryGroups)) return [];
     
-    return selectedIds.map(id => {
-      const group = industrialGroups.find(g => g.id === id);
-      return group ? group.name_th : id;
-    });
+    return formData.industryGroups.map(ig => ig.industryGroupName || ig.id || '-');
   };
 
-  // Get provincial chapter names
+  // Get provincial chapter names from database
   const getProvincialChapterNames = () => {
-    if (!formData.provincialChapterId) return [];
-    const selectedIds = Array.isArray(formData.provincialChapterId) 
-      ? formData.provincialChapterId 
-      : [formData.provincialChapterId];
+    if (!formData.provinceChapters || !Array.isArray(formData.provinceChapters)) return [];
     
-    return selectedIds.map(id => {
-      const chapter = provincialChapters.find(c => c.id === id);
-      return chapter ? chapter.name_th : id;
-    });
+    return formData.provinceChapters.map(pc => pc.provinceChapterName || pc.id || '-');
   };
 
   // Handle submit button click
@@ -230,14 +219,14 @@ export default function SummarySection({
       {/* ที่อยู่ */}
       <Section title="ที่อยู่" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="เลขที่" value={formData.addressNumber} />
-          <InfoCard title="หมู่" value={formData.moo} />
-          <InfoCard title="ซอย" value={formData.soi} />
-          <InfoCard title="ถนน" value={formData.road} />
-          <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
-          <InfoCard title="อำเภอ/เขต" value={formData.district} />
-          <InfoCard title="จังหวัด" value={formData.province} />
-          <InfoCard title="รหัสไปรษณีย์" value={formData.postalCode} />
+          <InfoCard title="เลขที่" value={formData.address?.addressNumber} />
+          <InfoCard title="หมู่" value={formData.address?.moo} />
+          <InfoCard title="ซอย" value={formData.address?.soi} />
+          <InfoCard title="ถนน" value={formData.address?.road} />
+          <InfoCard title="ตำบล/แขวง" value={formData.address?.subDistrict} />
+          <InfoCard title="อำเภอ/เขต" value={formData.address?.district} />
+          <InfoCard title="จังหวัด" value={formData.address?.province} />
+          <InfoCard title="รหัสไปรษณีย์" value={formData.address?.postalCode} />
         </div>
       </Section>
 
@@ -310,50 +299,106 @@ export default function SummarySection({
       {/* ปุ่มนำทางและส่งข้อมูล */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">ยืนยันการส่งข้อมูล</h3>
-          <p className="text-sm text-gray-600 mb-6">
-            กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดส่ง หลังจากส่งแล้วจะไม่สามารถแก้ไขได้
-          </p>
-          
-          {/* Navigation Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {/* Back Button */}
-            <button
-              type="button"
-              onClick={onBack}
-              disabled={isSubmitting}
-              className={`px-6 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
-                isSubmitting
-                  ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                  : 'bg-gray-500 hover:bg-gray-600 hover:shadow-lg text-white'
-              }`}
-            >
-              ← ย้อนกลับ
-            </button>
-            
-            {/* Submit Button */}
-            <button
-              type="button"
-              onClick={handleSubmitClick}
-              disabled={isSubmitting}
-              className={`px-8 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
-                isSubmitting
-                  ? 'bg-gray-400 cursor-not-allowed text-white'
-                  : 'bg-green-600 hover:bg-green-700 hover:shadow-lg text-white'
-              }`}
-            >
-              {isSubmitting ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  กำลังส่งข้อมูล...
-                </span>
-              ) : (
-                '✓ ส่งข้อมูลสมัครสมาชิก'
-              )}
-            </button>
-          </div>
+          {viewMode ? (
+            // โหมดดูข้อมูล - แสดงสถานะใบสมัคร
+            <>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">สถานะใบสมัคร</h3>
+              <div className="mb-6">
+                {formData.status === 0 && (
+                  <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    รอพิจารณา
+                  </div>
+                )}
+                {formData.status === 1 && (
+                  <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    อนุมัติแล้ว
+                  </div>
+                )}
+                {formData.status === 2 && (
+                  <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                    ปฏิเสธ
+                  </div>
+                )}
+              </div>
+              <p className="text-sm text-gray-600 mb-6">
+                ข้อมูลใบสมัครที่ส่งเมื่อวันที่ {formData.createdAt ? new Date(formData.createdAt).toLocaleDateString('th-TH', {
+                  year: 'numeric',
+                  month: 'long', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) : '-'}
+              </p>
+              <button
+                type="button"
+                onClick={() => window.close()}
+                className="px-6 py-3 rounded-xl font-semibold text-base bg-gray-500 hover:bg-gray-600 hover:shadow-lg text-white transition-all duration-200"
+              >
+                ปิดหน้าต่าง
+              </button>
+            </>
+          ) : (
+            // โหมดสมัคร - แสดงปุ่ม Submit
+            <>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">ยืนยันการส่งข้อมูล</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดส่ง หลังจากส่งแล้วจะไม่สามารถแก้ไขได้
+              </p>
+              
+              {/* Navigation Buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                {/* Back Button */}
+                {onBack && (
+                  <button
+                    type="button"
+                    onClick={onBack}
+                    disabled={isSubmitting}
+                    className={`px-6 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
+                      isSubmitting
+                        ? 'bg-gray-300 cursor-not-allowed text-gray-500'
+                        : 'bg-gray-500 hover:bg-gray-600 hover:shadow-lg text-white'
+                    }`}
+                  >
+                    ← ย้อนกลับ
+                  </button>
+                )}
+                
+                {/* Submit Button */}
+                {onSubmit && (
+                  <button
+                    type="button"
+                    onClick={handleSubmitClick}
+                    disabled={isSubmitting}
+                    className={`px-8 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
+                      isSubmitting
+                        ? 'bg-gray-400 cursor-not-allowed text-white'
+                        : 'bg-green-600 hover:bg-green-700 hover:shadow-lg text-white'
+                    }`}
+                  >
+                    {isSubmitting ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="animate-spin w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        กำลังส่งข้อมูล...
+                      </span>
+                    ) : (
+                      '✓ ส่งข้อมูลสมัครสมาชิก'
+                    )}
+                  </button>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -372,7 +417,7 @@ SummarySection.propTypes = {
     addressNumber: PropTypes.string,
     moo: PropTypes.string,
     soi: PropTypes.string,
-    road: PropTypes.string,
+    street: PropTypes.string,  // เปลี่ยนจาก road เป็น street
     subDistrict: PropTypes.string,
     district: PropTypes.string,
     province: PropTypes.string,

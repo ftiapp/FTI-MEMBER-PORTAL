@@ -381,7 +381,20 @@ export default function OCMembershipForm({
     setCurrentStep(prev => prev - 1);
   }, [setCurrentStep]);
 
+  // ฟังก์ชันสำหรับบันทึก draft
   const handleSaveDraft = useCallback(async () => {
+    // ตรวจสอบว่ามี Tax ID หรือไม่
+    if (!formData.taxId || formData.taxId.trim() === '') {
+      toast.error('กรุณากรอกเลขประจำตัวผู้เสียภาษีก่อนบันทึกร่าง');
+      return;
+    }
+
+    // ตรวจสอบความถูกต้องของ Tax ID (13 หลัก)
+    if (formData.taxId.length !== 13 || !/^\d{13}$/.test(formData.taxId)) {
+      toast.error('เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก');
+      return;
+    }
+
     try {
       const response = await fetch('/api/membership/save-draft', {
         method: 'POST',
@@ -398,9 +411,9 @@ export default function OCMembershipForm({
       const result = await response.json();
       
       if (result.success) {
-        toast.success('บันทึกร่างสำเร็จ');
+        toast.success(`บันทึกร่างสำหรับ Tax ID: ${formData.taxId} สำเร็จ`);
       } else {
-        toast.error('ไม่สามารถบันทึกร่างได้');
+        toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message || 'กรุณาลองใหม่'}`);
       }
     } catch (error) {
       console.error('Error saving draft:', error);

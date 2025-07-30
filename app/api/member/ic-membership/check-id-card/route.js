@@ -8,7 +8,11 @@ export async function POST(request) {
     
     if (!idCardNumber || idCardNumber.length !== 13) {
       return NextResponse.json(
-        { error: 'เลขบัตรประชาชนต้องมี 13 หลัก' },
+        { 
+          valid: false, 
+          exists: null,
+          message: 'เลขบัตรประชาชนต้องมี 13 หลัก' 
+        },
         { status: 400 }
       );
     }
@@ -21,26 +25,37 @@ export async function POST(request) {
     );
     
     if (results.length > 0) {
+      // พบเลขบัตรประชาชนในระบบแล้ว = ไม่สามารถใช้ได้
       const member = results[0];
       return NextResponse.json(
         { 
-          exists: true,
+          valid: false,  // ไม่ valid เพราะใช้ไปแล้ว
+          exists: true,  // มีอยู่ในระบบแล้ว
           status: member.status,
-          message: 'เลขบัตรประชาชนนี้มีการสมัครแล้ว' 
+          message: `เลขบัตรประชาชนนี้ถูกใช้ไปแล้ว${member.status ? ` (สถานะ: ${member.status})` : ''}` 
         },
         { status: 200 }
       );
     }
     
+    // ไม่พบในระบบ = สามารถใช้ได้
     return NextResponse.json(
-      { exists: false, message: 'สามารถใช้เลขบัตรประชาชนนี้ได้' },
+      { 
+        valid: true,   // valid เพราะยังไม่ถูกใช้
+        exists: false, // ไม่มีในระบบ
+        message: 'สามารถใช้เลขบัตรประชาชนนี้ได้' 
+      },
       { status: 200 }
     );
     
   } catch (error) {
     console.error('Error checking ID card:', error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการตรวจสอบเลขบัตรประชาชน' },
+      { 
+        valid: false,
+        exists: null,
+        message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขบัตรประชาชน' 
+      },
       { status: 500 }
     );
   } finally {

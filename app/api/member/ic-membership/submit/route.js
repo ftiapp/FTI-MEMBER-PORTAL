@@ -53,13 +53,13 @@ export async function POST(request) {
     console.log('Extracted data:', data);
     console.log('Products:', products);
 
-    // Insert main IC member data (without address fields)
+    // ✅ FIX: เพิ่ม website ในตาราง Main
     const result = await executeQuery(
       trx,
       `INSERT INTO MemberRegist_IC_Main (
         user_id, id_card_number, first_name_th, last_name_th, 
-        first_name_en, last_name_en, phone, email, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        first_name_en, last_name_en, phone, email, website, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         userId,
         data.idCardNumber,
@@ -67,15 +67,17 @@ export async function POST(request) {
         data.lastNameTh,
         data.firstNameEn,
         data.lastNameEn,
-        data.phone,
-        data.email
+        data.phone || '', // ✅ FIX: ให้แน่ใจว่ามีค่า
+        data.email || '', // ✅ FIX: ให้แน่ใจว่ามีค่า
+        data.website || '', // ✅ FIX: เพิ่ม website
       ]
     );
     
     const icMemberId = result.insertId;
     console.log('Created IC Member ID:', icMemberId);
+    console.log('Saved main data - phone:', data.phone, 'email:', data.email, 'website:', data.website);
 
-    // Insert address to correct table with all fields (including street/road)
+    // Insert address to correct table with all fields
     await executeQuery(
       trx,
       `INSERT INTO MemberRegist_IC_Address (
@@ -133,7 +135,7 @@ export async function POST(request) {
       }
     }
     
-    // Handle business category other - use correct table
+    // Handle business category other
     if (data.businessCategoryOther) {
       try {
         await executeQuery(
@@ -151,11 +153,10 @@ export async function POST(request) {
     if (products && products.length > 0) {
       console.log('Inserting products:', products);
       for (const product of products) {
-        // Handle both possible field name formats
         const nameTh = product.nameTh || product.name_th || '';
         const nameEn = product.nameEn || product.name_en || '';
         
-        if (nameTh.trim()) { // Only insert if Thai name is provided
+        if (nameTh.trim()) {
           await executeQuery(
             trx,
             `INSERT INTO MemberRegist_IC_Products (main_id, name_th, name_en) VALUES (?, ?, ?)`,
@@ -166,7 +167,7 @@ export async function POST(request) {
       }
     }
 
-    // Insert representative - FIX: Add missing rep_order value
+    // Insert representative
     if (data.representativeFirstNameTh) {
       await executeQuery(
         trx,
@@ -183,16 +184,19 @@ export async function POST(request) {
           data.representativePhone || '',
           data.representativeEmail || '',
           data.relationship || '',
-          1 // FIX: Added missing rep_order value
+          1
         ]
       );
     }
 
-    // Insert province chapters - use correct table and column names
+    // ✅ FIX: แก้ไขการบันทึก province chapters ให้ตรงกับ field ที่ส่งมา
+    console.log('=== Processing Province Chapters ===');
+    console.log('Raw provinceChapters data:', data.provinceChapters);
+    
     if (data.provinceChapters) {
       try {
         const provinceChapters = JSON.parse(data.provinceChapters) || [];
-        console.log('Province chapters to save:', provinceChapters);
+        console.log('Parsed province chapters:', provinceChapters);
         
         if (provinceChapters.length === 0) {
           await executeQuery(
@@ -200,6 +204,7 @@ export async function POST(request) {
             `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?)`,
             [icMemberId, '000']
           );
+          console.log('Saved default province chapter: 000');
         } else {
           for (const chapterId of provinceChapters) {
             if (chapterId) {
@@ -214,14 +219,26 @@ export async function POST(request) {
         }
       } catch (error) {
         console.error('Error processing province chapters:', error);
+        console.error('Error details:', error.message);
       }
+    } else {
+      // ไม่มีข้อมูล province chapters ส่งมา
+      await executeQuery(
+        trx,
+        `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?)`,
+        [icMemberId, '000']
+      );
+      console.log('No province chapters data, saved default: 000');
     }
 
-    // Insert industry groups - use correct table and column names
+    // ✅ FIX: แก้ไขการบันทึก industry groups ให้ตรงกับ field ที่ส่งมา
+    console.log('=== Processing Industry Groups ===');
+    console.log('Raw industryGroups data:', data.industryGroups);
+    
     if (data.industryGroups) {
       try {
         const industryGroups = JSON.parse(data.industryGroups) || [];
-        console.log('Industry groups to save:', industryGroups);
+        console.log('Parsed industry groups:', industryGroups);
         
         if (industryGroups.length === 0) {
           await executeQuery(
@@ -229,6 +246,7 @@ export async function POST(request) {
             `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?)`,
             [icMemberId, '000']
           );
+          console.log('Saved default industry group: 000');
         } else {
           for (const groupId of industryGroups) {
             if (groupId) {
@@ -243,81 +261,168 @@ export async function POST(request) {
         }
       } catch (error) {
         console.error('Error processing industry groups:', error);
+        console.error('Error details:', error.message);
+      }
+    } else {
+      // ไม่มีข้อมูล industry groups ส่งมา
+      await executeQuery(
+        trx,
+        `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?)`,
+        [icMemberId, '000']
+      );
+      console.log('No industry groups data, saved default: 000');
+    }
+
+    // ✅ Phase 2: Handle Document Uploads - Move Cloudinary upload to backend like OC
+    console.log('=== Processing document uploads ===');
+    const uploadedDocuments = {};
+
+    // Process ID Card Document
+    if (files.idCardDocument) {
+      try {
+        console.log('📤 Uploading ID card document:', files.idCardDocument.name);
+        const buffer = await files.idCardDocument.arrayBuffer();
+        const result = await uploadToCloudinary(
+          Buffer.from(buffer), 
+          files.idCardDocument.name, 
+          'FTI_PORTAL_IC_member_DOC'
+        );
+        
+        if (result.success) {
+          uploadedDocuments.idCardDocument = {
+            document_type: 'idCardDocument',
+            file_name: files.idCardDocument.name,
+            file_path: result.url,
+            file_size: files.idCardDocument.size,
+            mime_type: files.idCardDocument.type,
+            cloudinary_id: result.public_id,
+            cloudinary_url: result.url
+          };
+          console.log('✅ Successfully uploaded ID card:', result.url);
+        } else {
+          console.error('❌ Failed to upload ID card:', result.error);
+        }
+      } catch (uploadError) {
+        console.error('❌ Error uploading ID card:', uploadError);
       }
     }
 
-    // Handle document upload
-    if (files.idCardFile) {
+    // Process Company Registration Document
+    if (files.companyRegistrationDocument) {
       try {
-        const fileBuffer = await files.idCardFile.arrayBuffer();
-        uploadResult = await uploadToCloudinary(
-          Buffer.from(fileBuffer),
-          'id_card',
-          `ic_member_${icMemberId}`
+        console.log('📤 Uploading company registration document:', files.companyRegistrationDocument.name);
+        const buffer = await files.companyRegistrationDocument.arrayBuffer();
+        const result = await uploadToCloudinary(
+          Buffer.from(buffer), 
+          files.companyRegistrationDocument.name, 
+          'FTI_PORTAL_IC_member_DOC'
         );
         
+        if (result.success) {
+          uploadedDocuments.companyRegistrationDocument = {
+            document_type: 'companyRegistrationDocument',
+            file_name: files.companyRegistrationDocument.name,
+            file_path: result.url,
+            file_size: files.companyRegistrationDocument.size,
+            mime_type: files.companyRegistrationDocument.type,
+            cloudinary_id: result.public_id,
+            cloudinary_url: result.url
+          };
+          console.log('✅ Successfully uploaded company registration:', result.url);
+        } else {
+          console.error('❌ Failed to upload company registration:', result.error);
+        }
+      } catch (uploadError) {
+        console.error('❌ Error uploading company registration:', uploadError);
+      }
+    }
+
+    // Process Tax Registration Document
+    if (files.taxRegistrationDocument) {
+      try {
+        console.log('📤 Uploading tax registration document:', files.taxRegistrationDocument.name);
+        const buffer = await files.taxRegistrationDocument.arrayBuffer();
+        const result = await uploadToCloudinary(
+          Buffer.from(buffer), 
+          files.taxRegistrationDocument.name, 
+          'FTI_PORTAL_IC_member_DOC'
+        );
+        
+        if (result.success) {
+          uploadedDocuments.taxRegistrationDocument = {
+            document_type: 'taxRegistrationDocument',
+            file_name: files.taxRegistrationDocument.name,
+            file_path: result.url,
+            file_size: files.taxRegistrationDocument.size,
+            mime_type: files.taxRegistrationDocument.type,
+            cloudinary_id: result.public_id,
+            cloudinary_url: result.url
+          };
+          console.log('✅ Successfully uploaded tax registration:', result.url);
+        } else {
+          console.error('❌ Failed to upload tax registration:', result.error);
+        }
+      } catch (uploadError) {
+        console.error('❌ Error uploading tax registration:', uploadError);
+      }
+    }
+
+    // Store document metadata in database like OC
+    console.log('=== Storing document metadata ===');
+    for (const [key, document] of Object.entries(uploadedDocuments)) {
+      try {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_IC_Documents (
-            main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url
+            main_id, document_type, file_name, file_path, 
+            file_size, mime_type, cloudinary_id, cloudinary_url
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             icMemberId,
-            'id_card',
-            files.idCardFile.name,
-            uploadResult.url,
-            files.idCardFile.size,
-            files.idCardFile.type,
-            uploadResult.public_id,
-            uploadResult.url
+            document.document_type,
+            document.file_name,
+            document.file_path,
+            document.file_size,
+            document.mime_type,
+            document.cloudinary_id,
+            document.cloudinary_url
           ]
         );
-      } catch (error) {
-        console.error('Error uploading document:', error);
+        console.log(`✅ Document metadata stored: ${document.document_type}`);
+      } catch (dbError) {
+        console.error(`❌ Error storing document metadata: ${document.document_type}`, dbError);
       }
     }
 
     await commitTransaction(trx);
-    console.log(' [IC API] Transaction committed successfully');
+    console.log('Transaction committed successfully');
 
-    // FIX: Move user log recording OUTSIDE of transaction (after commit)
+    // Record user log
     try {
-      // FIX: Use correct field name - data.idCardNumber instead of data.idcard
       const logDetails = `ID CARD: ${data.idCardNumber} - ${data.firstNameTh} ${data.lastNameTh} (TH)`;
       
-      // Create new transaction for logging (or use connection without transaction)
-      await executeQuery(null, // Pass null to use default connection without transaction
+      await executeQuery(null,
         'INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
         [userId, 'IC_membership_submit', logDetails, request.headers.get('x-forwarded-for') || 'unknown', request.headers.get('user-agent') || 'unknown']
       );
-      console.log(' [IC API] User log recorded successfully');
+      console.log('User log recorded successfully');
     } catch (logError) {
-      console.error(' [IC API] Error recording user log:', logError.message);
+      console.error('Error recording user log:', logError.message);
     }
 
-    // FIX: Delete draft OUTSIDE of transaction and use correct field name
+    // Delete draft
     try {
-      // FIX: Use correct field name - data.idCardNumber instead of data.idcard
       const idcardFromData = data.idCardNumber;
       
-      console.log(' [IC API] Attempting to delete draft...');
-      console.log(' [IC API] idcard from data:', idcardFromData);
-      
-      let deletedRows = 0;
-      
       if (idcardFromData) {
-        const deleteResult = await executeQuery(null, // Pass null to use default connection
+        const deleteResult = await executeQuery(null,
           'DELETE FROM MemberRegist_IC_Draft WHERE idcard = ? AND user_id = ?',
           [idcardFromData, userId]
         );
-        deletedRows = deleteResult.affectedRows || 0;
-        console.log(` [IC API] Draft deleted by idcard: ${idcardFromData}, affected rows: ${deletedRows}`);
-      } else {
-        console.warn(' [IC API] No idcard provided, cannot delete draft');
+        console.log(`Draft deleted by idcard: ${idcardFromData}, affected rows: ${deleteResult.affectedRows || 0}`);
       }
     } catch (draftError) {
-      console.error(' [IC API] Error deleting draft:', draftError.message);
-      // Don't throw error as draft deletion shouldn't block successful submission
+      console.error('Error deleting draft:', draftError.message);
     }
 
     return NextResponse.json({
@@ -336,7 +441,7 @@ export async function POST(request) {
     
     if (trx) {
       await rollbackTransaction(trx);
-      console.log(' [IC] Transaction rolled back due to error');
+      console.log('Transaction rolled back due to error');
     }
     
     return NextResponse.json({ 

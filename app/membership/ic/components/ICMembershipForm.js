@@ -144,9 +144,16 @@ const useApiData = () => {
 };
 
 // Check ID card uniqueness
+// ในไฟล์ ICMembershipForm.js
+// แก้ไข checkIdCard function
+
 const checkIdCard = async (idCardNumber) => {
   if (!idCardNumber || idCardNumber.length !== 13) {
-    return { valid: false, message: 'เลขบัตรประจำตัวประชาชนไม่ถูกต้อง' };
+    return { 
+      valid: false, 
+      exists: null,
+      message: 'เลขบัตรประจำตัวประชาชนไม่ถูกต้อง' 
+    };
   }
 
   try {
@@ -160,14 +167,18 @@ const checkIdCard = async (idCardNumber) => {
     
     const data = await response.json();
     
+    // ✅ ส่งค่าตรงตามที่ API ส่งมา
     return {
-      valid: data.valid === true,
-      message: data.message || 'ไม่สามารถตรวจสอบเลขบัตรประจำตัวประชาชนได้'
+      valid: data.valid,         // true = ใช้ได้, false = ใช้ไม่ได้
+      exists: data.exists,       // true = มีอยู่แล้ว, false = ไม่มี
+      message: data.message,
+      status: data.status
     };
   } catch (error) {
     console.error('Error checking ID card:', error);
     return { 
-      valid: false, 
+      valid: false,
+      exists: null,
       message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขบัตรประจำตัวประชาชน' 
     };
   }
@@ -246,116 +257,138 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
   }, [currentStep, setCurrentStep]);
 
   // ✅ แก้ไขฟังก์ชัน handleSubmit เพื่อให้ทำงานได้ถูกต้อง
-  const handleSubmit = useCallback(async (e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+  // ส่วนของ handleSubmit function ใน ICMembershipForm.js ที่ต้องแก้ไข
+
+const handleSubmit = useCallback(async (e) => {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  console.log('=== handleSubmit called ===');
+  console.log('Current Step:', currentStep);
+  console.log('Is Submitting:', isSubmitting);
+  
+  // ป้องกันการ submit ซ้ำ
+  if (isSubmitting) {
+    console.log('Already submitting, preventing duplicate submission');
+    return;
+  }
+  
+  // แสดง toast loading
+  const loadingToastId = toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
+    duration: Infinity
+  });
+  
+  setIsSubmitting(true);
+  
+  try {
+    // ตรวจสอบ validation ทุก step
+    console.log('Validating all steps...');
+    let allErrors = {};
+    for (let step = 1; step <= totalSteps - 1; step++) {
+      const stepErrors = validateCurrentStep(step, formData);
+      allErrors = { ...allErrors, ...stepErrors };
     }
-    
-    console.log('=== handleSubmit called ===');
-    console.log('Current Step:', currentStep);
-    console.log('Is Submitting:', isSubmitting);
-    
-    // ป้องกันการ submit ซ้ำ
-    if (isSubmitting) {
-      console.log('Already submitting, preventing duplicate submission');
+
+    if (Object.keys(allErrors).length > 0) {
+      console.log('Validation failed:', allErrors);
+      setErrors(allErrors);
+      toast.dismiss(loadingToastId);
+      toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน');
+      scrollToFirstError(allErrors);
       return;
     }
-    
-    // แสดง toast loading
-    const loadingToastId = toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
-      duration: Infinity
-    });
-    
-    setIsSubmitting(true);
-    
-    try {
-      // ตรวจสอบ validation ทุก step
-      console.log('Validating all steps...');
-      let allErrors = {};
-      for (let step = 1; step <= totalSteps - 1; step++) {
-        const stepErrors = validateCurrentStep(step, formData);
-        allErrors = { ...allErrors, ...stepErrors };
-      }
 
-      if (Object.keys(allErrors).length > 0) {
-        console.log('Validation failed:', allErrors);
-        setErrors(allErrors);
-        toast.dismiss(loadingToastId);
-        toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน');
-        scrollToFirstError(allErrors);
-        return;
-      }
-
-      // ตรวจสอบเลขบัตรประชาชนอีกครั้ง
-      console.log('Checking ID card uniqueness...');
-      const idCardCheckResult = await checkIdCard(formData.idCardNumber);
-      if (!idCardCheckResult.valid) {
-        console.log('ID card check failed:', idCardCheckResult);
-        toast.dismiss(loadingToastId);
-        toast.error(idCardCheckResult.message);
-        return;
-      }
-
-      // เตรียมข้อมูลสำหรับส่ง
-      console.log('Preparing form data for submission...');
-      const submissionData = {
-        ...formData,
-        // แปลงข้อมูล representative จาก object เป็น flat fields
-        representativeFirstNameTh: formData.representative?.firstNameThai || '',
-        representativeLastNameTh: formData.representative?.lastNameThai || '',
-        representativeFirstNameEn: formData.representative?.firstNameEng || '',
-        representativeLastNameEn: formData.representative?.lastNameEng || '',
-        representativeEmail: formData.representative?.email || '',
-        representativePhone: formData.representative?.phone || '',
-        
-        // แปลงข้อมูล business types
-        businessTypes: Object.keys(formData.businessTypes || {}).filter(key => formData.businessTypes[key]),
-        
-        // แปลงข้อมูลเอกสาร
-        idCardFile: formData.idCardDocument,
-        
-        // แปลงข้อมูลกลุ่มอุตสาหกรรม
-        industryGroups: Array.isArray(formData.industrialGroupId) 
-          ? formData.industrialGroupId 
-          : [formData.industrialGroupId].filter(Boolean),
-          
-        // แปลงข้อมูลสภาอุตสาหกรรมจังหวัด
-        provinceChapters: Array.isArray(formData.provincialChapterId) 
-          ? formData.provincialChapterId 
-          : [formData.provincialChapterId].filter(Boolean)
-      };
-
-      console.log('Submission data prepared:', submissionData);
-
-      // ส่งข้อมูล
-      console.log('Submitting form...');
-      const result = await submitICMembershipForm(submissionData);
-      
-      // ปิด loading toast
+    // ตรวจสอบเลขบัตรประชาชนอีกครั้ง
+    console.log('Checking ID card uniqueness...');
+    const idCardCheckResult = await checkIdCard(formData.idCardNumber);
+    if (!idCardCheckResult.valid) {
+      console.log('ID card check failed:', idCardCheckResult);
       toast.dismiss(loadingToastId);
-      
-      if (result.success) {
-        toast.success('ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่', {
-          duration: 5000
-        });
-        
-        // ลบ draft หลังจากสมัครสำเร็จ
-        await deleteDraft();
-        
-      } else {
-        console.error('Submission failed:', result);
-        toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
-      }
-      
-    } catch (error) {
-      console.error('Error in handleSubmit:', error);
-      toast.dismiss(loadingToastId);
-      toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
-    } finally {
-      setIsSubmitting(false);
+      toast.error(idCardCheckResult.message);
+      return;
     }
-  }, [formData, totalSteps, currentStep, isSubmitting]);
+
+    // ✅ FIX: เตรียมข้อมูลสำหรับส่งให้ครบถ้วนและถูกต้อง
+    console.log('Preparing form data for submission...');
+    const submissionData = {
+      // ข้อมูลหลัก
+      ...formData,
+      
+      // แปลงข้อมูล representative จาก object เป็น flat fields
+      representativeFirstNameTh: formData.representative?.firstNameThai || '',
+      representativeLastNameTh: formData.representative?.lastNameThai || '',
+      representativeFirstNameEn: formData.representative?.firstNameEng || '',
+      representativeLastNameEn: formData.representative?.lastNameEng || '',
+      representativeEmail: formData.representative?.email || '',
+      representativePhone: formData.representative?.phone || '',
+      
+      // แปลงข้อมูล business types
+      businessTypes: Object.keys(formData.businessTypes || {}).filter(key => formData.businessTypes[key]),
+      
+      // แปลงข้อมูลเอกสาร
+      idCardFile: formData.idCardDocument,
+      
+      // ✅ FIX: ส่งข้อมูลกลุ่มอุตสาหกรรมในรูปแบบที่ API คาดหวัง
+      industryGroups: (() => {
+        if (formData.industrialGroupId && Array.isArray(formData.industrialGroupId)) {
+          return formData.industrialGroupId.filter(id => id && id.toString().trim());
+        } else if (formData.industrialGroupId) {
+          return [formData.industrialGroupId].filter(id => id && id.toString().trim());
+        }
+        return [];
+      })(),
+      
+      // ✅ FIX: ส่งข้อมูลสภาอุตสาหกรรมจังหวัดในรูปแบบที่ API คาดหวัง
+      provinceChapters: (() => {
+        if (formData.provincialChapterId && Array.isArray(formData.provincialChapterId)) {
+          return formData.provincialChapterId.filter(id => id && id.toString().trim());
+        } else if (formData.provincialChapterId) {
+          return [formData.provincialChapterId].filter(id => id && id.toString().trim());
+        }
+        return [];
+      })()
+    };
+
+    // Debug: แสดงข้อมูลที่เตรียมส่ง
+    console.log('=== Submission Data Debug ===');
+    console.log('Original formData.industrialGroupId:', formData.industrialGroupId);
+    console.log('Original formData.provincialChapterId:', formData.provincialChapterId);
+    console.log('Processed industryGroups:', submissionData.industryGroups);
+    console.log('Processed provinceChapters:', submissionData.provinceChapters);
+    console.log('Phone:', submissionData.phone);
+    console.log('Email:', submissionData.email);
+    console.log('Website:', submissionData.website);
+
+    // ส่งข้อมูล
+    console.log('Submitting form...');
+    const result = await submitICMembershipForm(submissionData);
+    
+    // ปิด loading toast
+    toast.dismiss(loadingToastId);
+    
+    if (result.success) {
+      toast.success('ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่', {
+        duration: 5000
+      });
+      
+      // ลบ draft หลังจากสมัครสำเร็จ
+      await deleteDraft();
+      
+    } else {
+      console.error('Submission failed:', result);
+      toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+    }
+    
+  } catch (error) {
+    console.error('Error in handleSubmit:', error);
+    toast.dismiss(loadingToastId);
+    toast.error('เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
+  } finally {
+    setIsSubmitting(false);
+  }
+}, [formData, totalSteps, currentStep, isSubmitting]);
 
   // Function to scroll to the first error field
   const scrollToFirstError = useCallback((errors) => {
@@ -380,59 +413,140 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
   }, []);
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
-  const handleNext = useCallback(async (e) => {
-    // ✅ ป้องกัน form submission
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
+// ในไฟล์ ICMembershipForm.js
+// แก้ไข handleNext function
+
+const handleNext = useCallback(async (e) => {
+  if (e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  console.log('=== DEBUG handleNext ===');
+  console.log('Current Step:', currentStep);
+  console.log('Form Data:', formData);
+  
+  const formErrors = validateCurrentStep(currentStep, formData);
+  console.log('Form Errors:', formErrors);
+  setErrors(formErrors);
+  
+  if (Object.keys(formErrors).length > 0) {
+    console.log('Validation failed with errors:', formErrors);
+    
+    if (currentStep === 4 && formErrors.idCardDocument) {
+      toast.error('กรุณาอัพโหลดสำเนาบัตรประชาชนก่อนดำเนินการต่อ', {
+        position: 'top-right',
+        duration: 4000
+      });
+    } else {
+      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', {
+        position: 'top-right'
+      });
     }
     
-    console.log('=== DEBUG handleNext ===');
-    console.log('Current Step:', currentStep);
-    console.log('Form Data:', formData);
+    scrollToFirstError(formErrors);
+    return;
+  }
+
+  // ✅ แก้ไขการตรวจสอบ ID Card สำหรับ step 1
+  if (currentStep === 1 && formData.idCardNumber) {
+    // ตรวจสอบจาก _idCardValidation ก่อน
+    const idCardValidation = formData._idCardValidation;
     
-    const formErrors = validateCurrentStep(currentStep, formData);
-    console.log('Form Errors:', formErrors);
-    setErrors(formErrors);
-    
-    if (Object.keys(formErrors).length > 0) {
-      console.log('Validation failed with errors:', formErrors);
-      
-      // แสดงข้อผิดพลาดที่เฉพาะเจาะจงสำหรับแต่ละขั้นตอน
-      if (currentStep === 4 && formErrors.idCardDocument) {
-        toast.error('กรุณาอัพโหลดสำเนาบัตรประชาชนก่อนดำเนินการต่อ', {
-          position: 'top-right',
-          duration: 4000
-        });
-      } else {
-        toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', {
-          position: 'top-right'
-        });
-      }
-      
-      // Scroll to the first error field
-      scrollToFirstError(formErrors);
+    if (idCardValidation?.isChecking) {
+      toast.error('กรุณารอให้การตรวจสอบเลขบัตรประชาชนเสร็จสิ้น', {
+        position: 'top-right'
+      });
       return;
     }
-
-    if (currentStep === 1 && formData.idCardNumber) {
+    
+    if (idCardValidation?.isValid === false) {
+      toast.error(idCardValidation.message || 'เลขบัตรประชาชนไม่สามารถใช้ได้', {
+        position: 'top-right'
+      });
+      return;
+    }
+    
+    // ถ้าไม่มี validation หรือ isValid ไม่ใช่ true ให้เช็คใหม่
+    if (!idCardValidation || idCardValidation.isValid !== true) {
       const { valid, message } = await checkIdCard(formData.idCardNumber);
       if (!valid) {
         toast.error(message, { position: 'top-right' });
         return;
       }
     }
-    
-    setErrorMessage('');
-    
-    if (currentStep < totalSteps) {
-      console.log('Moving to next step:', currentStep + 1);
-      setCurrentStep(currentStep + 1);
-    }
-  }, [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError]);
+  }
+  
+  setErrorMessage('');
+  
+  if (currentStep < totalSteps) {
+    console.log('Moving to next step:', currentStep + 1);
+    setCurrentStep(currentStep + 1);
+  }
+}, [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError]);
 
   const handleSaveDraft = useCallback(async () => {
     try {
+      // เตรียมข้อมูลสำหรับบันทึก draft ให้ครบถ้วน
+      const draftDataToSave = {
+        // ข้อมูลผู้สมัคร - ใช้ชื่อฟิลด์ตาม IC form
+        idCardNumber: formData.idCardNumber,
+        firstNameThai: formData.firstNameThai,
+        lastNameThai: formData.lastNameThai,
+        firstNameEng: formData.firstNameEng,
+        lastNameEng: formData.lastNameEng,
+        phone: formData.phone,
+        email: formData.email,
+        
+        // ที่อยู่ - ใช้ชื่อฟิลด์ตาม IC form
+        addressNumber: formData.addressNumber,
+        moo: formData.moo,
+        soi: formData.soi,
+        road: formData.road,
+        subDistrict: formData.subDistrict,
+        district: formData.district,
+        province: formData.province,
+        postalCode: formData.postalCode,
+        website: formData.website,
+        
+        // ข้อมูลบริษัท - ใช้ชื่อฟิลด์ตาม IC form
+        companyNameThai: formData.companyNameThai,
+        companyNameEng: formData.companyNameEng,
+        taxId: formData.taxId,
+        companyEmail: formData.companyEmail,
+        companyPhone: formData.companyPhone,
+        companyWebsite: formData.companyWebsite,
+        addressNumber: formData.addressNumber,
+        street: formData.street,
+        companySubDistrict: formData.companySubDistrict,
+        companyDistrict: formData.companyDistrict,
+        companyProvince: formData.companyProvince,
+        companyPostalCode: formData.companyPostalCode,
+        
+        // กลุ่มอุตสาหกรรมและจังหวัด - ใช้ชื่อฟิลด์ตาม IC form
+        industrialGroupId: formData.industrialGroupId,
+        provincialChapterId: formData.provincialChapterId,
+        
+        // ข้อมูลผู้แทน
+        representative: formData.representative,
+        
+        // ข้อมูลเพิ่มเติม
+        businessTypes: formData.businessTypes,
+        otherBusinessTypeDetail: formData.otherBusinessTypeDetail,
+        products: formData.products,
+        memberCount: formData.memberCount,
+        registeredCapital: formData.registeredCapital,
+        
+        // ข้อมูล validation
+        _idCardValidation: formData._idCardValidation
+      };
+
+      // ตรวจสอบเลขบัตรประชาชนก่อนบันทึก
+      if (!formData.idCardNumber || formData.idCardNumber.length !== 13) {
+        toast.error('กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลักก่อนบันทึกร่าง');
+        return;
+      }
+
       const response = await fetch('/api/membership/save-draft', {
         method: 'POST',
         headers: {
@@ -440,7 +554,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
         },
         body: JSON.stringify({
           memberType: 'ic',
-          draftData: formData,
+          draftData: draftDataToSave,
           currentStep: currentStep
         })
       });
@@ -450,7 +564,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
       if (result.success) {
         toast.success('บันทึกร่างสำเร็จ');
       } else {
-        toast.error('ไม่สามารถบันทึกร่างได้');
+        toast.error(result.message || 'ไม่สามารถบันทึกร่างได้');
       }
     } catch (error) {
       console.error('Error saving draft:', error);
@@ -473,7 +587,10 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
         return;
       }
 
-      const drafts = await response.json();
+      const data = await response.json();
+      
+      // ตรวจสอบว่า response เป็น array หรือไม่
+      const drafts = Array.isArray(data) ? data : (data.drafts || []);
       
       // หา draft ที่ตรงกับ ID card number ของผู้สมัคร
       const draftToDelete = drafts.find(draft => 
@@ -485,7 +602,6 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
           },
           body: JSON.stringify({
             memberType: 'ic',
@@ -498,7 +614,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
         if (deleteResult.success) {
           console.log('Draft deleted successfully');
         } else {
-          console.error('Failed to delete draft:', deleteResult.message);
+          console.error('Failed to delete draft:', deleteResult.message || deleteResult.error || 'Unknown error');
         }
       }
     } catch (error) {

@@ -106,9 +106,18 @@ export const submitACMembershipForm = async (data) => {
       };
     }
     
+    console.log('=== AC Form Submission Complete ===');
+    
+    // Redirect to documents page after successful submission
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard?tab=documents';
+    }
+    
     return {
       success: true,
-      message: 'ส่งข้อมูลการสมัครสมาชิกเรียบร้อยแล้ว'
+      message: 'ส่งข้อมูลสมัครสมาชิก AC สำเร็จ',
+      memberId: result.memberId,
+      redirectUrl: '/dashboard?tab=documents'
     };
   } catch (error) {
     console.error('Error submitting form:', error);

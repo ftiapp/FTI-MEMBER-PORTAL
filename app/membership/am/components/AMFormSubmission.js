@@ -220,6 +220,22 @@ export const submitAMMembershipForm = async (formData) => {
           throw new Error(result.error || result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
         }
         
+        if (result.success) {
+          console.log('🎉 [AM] Form submission successful!');
+          
+          // Redirect to documents page after successful submission
+          if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard?tab=documents';
+          }
+          
+          return {
+            success: true,
+            message: 'ส่งข้อมูลสมัครสมาชิก AM สำเร็จ',
+            data: result,
+            redirectUrl: '/dashboard?tab=documents'
+          };
+        }
+        
         break; // Success, exit retry loop
       } catch (error) {
         // Network errors or other exceptions
@@ -233,13 +249,6 @@ export const submitAMMembershipForm = async (formData) => {
         throw error;
       }
     }
-    
-    console.log('🎉 [AM] Form submission successful!');
-    return {
-      success: true,
-      message: result?.message || 'ส่งข้อมูลสำเร็จ',
-      data: result
-    };
   } catch (error) {
     console.error('💥 [AM] Error submitting AM membership form:', error);
     return {
@@ -252,61 +261,61 @@ export const submitAMMembershipForm = async (formData) => {
 // Helper function สำหรับการ validate ข้อมูลก่อนส่ง
 export const validateAMFormData = (formData) => {
   const errors = {};
-  
+
   // ตรวจสอบข้อมูลพื้นฐาน
   if (!formData.associationName?.trim()) {
     errors.associationName = 'กรุณากรอกชื่อสมาคม';
   }
-  
+
   if (!formData.taxId?.trim()) {
     errors.taxId = 'กรุณากรอกเลขประจำตัวผู้เสียภาษี';
   }
-  
+
   if (!formData.memberCount || parseInt(formData.memberCount) < 0) {
     errors.memberCount = 'กรุณากรอกจำนวนสมาชิกที่ถูกต้อง';
   }
-  
+
   // ตรวจสอบที่อยู่
   if (!formData.addressNumber?.trim()) {
     errors.addressNumber = 'กรุณากรอกเลขที่';
   }
-  
+
   if (!formData.subDistrict?.trim()) {
     errors.subDistrict = 'กรุณาเลือกตำบล/แขวง';
   }
-  
+
   if (!formData.district?.trim()) {
     errors.district = 'กรุณาเลือกอำเภอ/เขต';
   }
-  
+
   if (!formData.province?.trim()) {
     errors.province = 'กรุณาเลือกจังหวัด';
   }
-  
+
   if (!formData.postalCode?.trim()) {
     errors.postalCode = 'กรุณากรอกรหัสไปรษณีย์';
   }
-  
+
   // ตรวจสอบประเภทธุรกิจ
   if (!formData.businessTypes || Object.keys(formData.businessTypes).length === 0) {
     errors.businessTypes = 'กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ข้อ';
   }
-  
+
   // ตรวจสอบผลิตภัณฑ์
   if (!formData.products || !Array.isArray(formData.products) || 
       !formData.products.some(p => p.nameTh?.trim())) {
     errors.products = 'กรุณากรอกข้อมูลผลิตภัณฑ์/บริการอย่างน้อย 1 รายการ';
   }
-  
+
   // ✅ ตรวจสอบเอกสารที่จำเป็น
   if (!formData.associationCertificate) {
     errors.associationCertificate = 'กรุณาอัปโหลดหนังสือรับรองการจดทะเบียนสมาคมการค้า';
   }
-  
+
   if (!formData.memberList) {
     errors.memberList = 'กรุณาอัปโหลดรายชื่อสมาชิกสมาคม';
   }
-  
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors
