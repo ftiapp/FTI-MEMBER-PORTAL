@@ -11,6 +11,7 @@ export default function MembershipDocuments() {
   const [activeSection, setActiveSection] = useState('drafts');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [submittedPagination, setSubmittedPagination] = useState(null);
   const itemsPerPage = 5;
   const searchParams = useSearchParams();
   const detail = searchParams.get('detail');
@@ -181,10 +182,11 @@ export default function MembershipDocuments() {
                 <SubmittedApplications 
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
+                  onPaginationChange={setSubmittedPagination}
                 />
                 
                 <SimplePagination
-                  totalItems={totalItems}
+                  totalItems={submittedPagination?.totalItems || 0}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}

@@ -4,21 +4,32 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 
-export default function SubmittedApplications({ userId }) {
+export default function SubmittedApplications({ userId, currentPage, itemsPerPage, onPaginationChange }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
 
   useEffect(() => {
     fetchApplications();
-  }, [userId]);
+  }, [userId, currentPage, itemsPerPage]);
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch('/api/membership/submitted-applications');
+      const params = new URLSearchParams({
+        page: currentPage?.toString() || '1',
+        limit: itemsPerPage?.toString() || '5'
+      });
+      
+      const response = await fetch(`/api/membership/submitted-applications?${params}`);
       const data = await response.json();
       
       if (data.success) {
         setApplications(data.applications);
+        setPagination(data.pagination);
+        // ส่ง pagination data กลับไปยัง parent component
+        if (onPaginationChange) {
+          onPaginationChange(data.pagination);
+        }
       }
     } catch (error) {
       console.error('Error fetching applications:', error);

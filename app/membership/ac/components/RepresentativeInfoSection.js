@@ -6,7 +6,6 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
   const representativeErrors = errors?.representativeErrors || [];
   const isInitialized = useRef(false);
   
-  // สร้าง default representative object
   const createDefaultRepresentative = (index = 0) => ({
     id: `rep_${Date.now()}_${index}`,
     firstNameTh: '',
@@ -21,7 +20,6 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
 
   const [representatives, setRepresentatives] = useState([createDefaultRepresentative()]);
 
-  // โหลดข้อมูลเริ่มต้นเพียงครั้งเดียว
   useEffect(() => {
     if (!isInitialized.current && formData.representatives?.length > 0) {
       const loadedReps = formData.representatives.map((rep, index) => ({
@@ -40,7 +38,6 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     }
   }, [formData.representatives]);
 
-  // Sync กับ formData เมื่อ representatives เปลี่ยน
   useEffect(() => {
     if (isInitialized.current || !formData.representatives?.length) {
       setFormData(prev => ({ ...prev, representatives }));
@@ -49,8 +46,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
 
   const addRepresentative = () => {
     if (representatives.length < 3) {
-      const newRep = createDefaultRepresentative(representatives.length);
-      setRepresentatives(prev => [...prev, newRep]);
+      setRepresentatives(prev => [...prev, createDefaultRepresentative(prev.length)]);
     }
   };
 
@@ -62,53 +58,11 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
 
   const updateRepresentative = (id, field, value) => {
     setRepresentatives(prev => 
-      prev.map(rep => 
-        rep.id === id ? { ...rep, [field]: value } : rep
-      )
+      prev.map(rep => rep.id === id ? { ...rep, [field]: value } : rep)
     );
   };
 
-  // ฟังก์ชันตรวจสอบ error แต่ละฟิลด์
-  const getFieldError = (rep, field, index) => {
-    if (representativeErrors[index]?.[field]) {
-      return representativeErrors[index][field];
-    }
-
-    const value = rep[field];
-    if (!value || value.trim() === '') {
-      return null;
-    }
-
-    if (field === 'firstNameTh' || field === 'lastNameTh') {
-      const thaiPattern = /^[ก-๙\s]+$/;
-      if (!thaiPattern.test(value)) {
-        return 'กรุณากรอกเฉพาะภาษาไทยเท่านั้น';
-      }
-    }
-
-    if (field === 'firstNameEn' || field === 'lastNameEn') {
-      const engPattern = /^[a-zA-Z\s]+$/;
-      if (!engPattern.test(value)) {
-        return 'กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น';
-      }
-    }
-
-    if (field === 'email') {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(value)) {
-        return 'รูปแบบอีเมลไม่ถูกต้อง';
-      }
-    }
-
-    if (field === 'phone') {
-      const phonePattern = /^[0-9\-\s\+\(\)]{10,15}$/;
-      if (!phonePattern.test(value)) {
-        return 'รูปแบบเบอร์โทรไม่ถูกต้อง';
-      }
-    }
-
-    return null;
-  };
+  const getFieldError = (index, field) => representativeErrors[index]?.[field];
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -131,12 +85,10 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
         {/* Info Alert */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
           <div className="flex gap-4">
-            <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                </svg>
-              </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
             </div>
             <div>
               <p className="text-base font-medium text-blue-900 mb-2">การเพิ่มผู้แทนสมาคม</p>
@@ -183,148 +135,122 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                 </div>
               </div>
               
-              {/* Card Content */}
+              {/* Card Content - เปลี่ยนเป็นแนวตั้ง */}
               <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Thai Name Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
+                <div className="space-y-8">
+                  {/* Thai Name Section - ด้านบน */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาไทย</h4>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        ชื่อ <span className="text-red-500">*</span>
-                        <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.firstNameTh}
-                        onChange={(e) => updateRepresentative(rep.id, 'firstNameTh', e.target.value)}
-                        placeholder="ชื่อภาษาไทย"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          getFieldError(rep, 'firstNameTh', index) ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {getFieldError(rep, 'firstNameTh', index) && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {getFieldError(rep, 'firstNameTh', index)}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        นามสกุล <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.lastNameTh}
-                        onChange={(e) => updateRepresentative(rep.id, 'lastNameTh', e.target.value)}
-                        placeholder="นามสกุลภาษาไทย"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          getFieldError(rep, 'lastNameTh', index) ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {getFieldError(rep, 'lastNameTh', index) && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {getFieldError(rep, 'lastNameTh', index)}
-                        </p>
-                      )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          ชื่อ <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.firstNameTh}
+                          onChange={(e) => updateRepresentative(rep.id, 'firstNameTh', e.target.value)}
+                          placeholder="ชื่อภาษาไทย"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            getFieldError(index, 'firstNameTh') ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {getFieldError(index, 'firstNameTh') && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'firstNameTh')}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          นามสกุล <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.lastNameTh}
+                          onChange={(e) => updateRepresentative(rep.id, 'lastNameTh', e.target.value)}
+                          placeholder="นามสกุลภาษาไทย"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            getFieldError(index, 'lastNameTh') ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {getFieldError(index, 'lastNameTh') && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'lastNameTh')}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* English Name Section */}
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 mb-3">
+                  {/* English Name Section - ด้านล่าง */}
+                  <div>
+                    <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-green-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาอังกฤษ</h4>
                     </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        ชื่อ <span className="text-red-500">*</span>
-                        <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.firstNameEn}
-                        onChange={(e) => updateRepresentative(rep.id, 'firstNameEn', e.target.value)}
-                        placeholder="First Name"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          getFieldError(rep, 'firstNameEn', index) ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {getFieldError(rep, 'firstNameEn', index) && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {getFieldError(rep, 'firstNameEn', index)}
-                        </p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-900 mb-2">
-                        นามสกุล <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={rep.lastNameEn}
-                        onChange={(e) => updateRepresentative(rep.id, 'lastNameEn', e.target.value)}
-                        placeholder="Last Name"
-                        className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                          getFieldError(rep, 'lastNameEn', index) ? 
-                            'border-red-300 bg-red-50 focus:ring-red-500' : 
-                            'border-gray-300 bg-white hover:border-gray-400'
-                        }`}
-                      />
-                      {getFieldError(rep, 'lastNameEn', index) && (
-                        <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                          </svg>
-                          {getFieldError(rep, 'lastNameEn', index)}
-                        </p>
-                      )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          ชื่อ <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.firstNameEn}
+                          onChange={(e) => updateRepresentative(rep.id, 'firstNameEn', e.target.value)}
+                          placeholder="First Name"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            getFieldError(index, 'firstNameEn') ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {getFieldError(index, 'firstNameEn') && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'firstNameEn')}</p>
+                        )}
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">
+                          นามสกุล <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={rep.lastNameEn}
+                          onChange={(e) => updateRepresentative(rep.id, 'lastNameEn', e.target.value)}
+                          placeholder="Last Name"
+                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                            getFieldError(index, 'lastNameEn') ? 
+                              'border-red-300 bg-red-50 focus:ring-red-500' : 
+                              'border-gray-300 bg-white hover:border-gray-400'
+                          }`}
+                        />
+                        {getFieldError(index, 'lastNameEn') && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'lastNameEn')}</p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Contact Info Section */}
-                  <div className="lg:col-span-2">
+                  <div>
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ข้อมูลติดต่อ</h4>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                          ตำแหน่ง
-                        </label>
+                        <label className="block text-sm font-medium text-gray-900 mb-2">ตำแหน่ง</label>
                         <input
                           type="text"
                           value={rep.position}
                           onChange={(e) => updateRepresentative(rep.id, 'position', e.target.value)}
-                          placeholder="ประธาน, รองประธาน, เลขานุการ..."
+                          placeholder="ประธาน, รองประธาน..."
                           className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 bg-white hover:border-gray-400"
                         />
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
                           อีเมล <span className="text-red-500">*</span>
@@ -335,21 +261,15 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'email', e.target.value)}
                           placeholder="example@association.com"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(rep, 'email', index) ? 
+                            getFieldError(index, 'email') ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(rep, 'email', index) && (
-                          <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            {getFieldError(rep, 'email', index)}
-                          </p>
+                        {getFieldError(index, 'email') && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'email')}</p>
                         )}
                       </div>
-
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
                           เบอร์โทรศัพท์ <span className="text-red-500">*</span>
@@ -360,24 +280,19 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
                           placeholder="08X-XXX-XXXX"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(rep, 'phone', index) ? 
+                            getFieldError(index, 'phone') ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(rep, 'phone', index) && (
-                          <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                            </svg>
-                            {getFieldError(rep, 'phone', index)}
-                          </p>
+                        {getFieldError(index, 'phone') && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'phone')}</p>
                         )}
                       </div>
                     </div>
-
+                    
                     {/* Primary Representative Checkbox */}
-                    <div className="mt-6">
+                    <div>
                       <label className="flex items-center gap-3">
                         <input
                           type="checkbox"

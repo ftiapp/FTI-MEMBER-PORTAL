@@ -441,6 +441,12 @@ if (data.representatives) {
     } catch (draftError) {
       console.error('❌ [AC API] Error deleting draft:', draftError.message);
     }
+
+    return NextResponse.json({
+      success: true,
+      message: 'สมัครสมาชิก AC สำเร็จ',
+      memberId: mainId
+    });
   } catch (error) {
     console.error('❌ [AC] Error in AC membership submission:', error);
     

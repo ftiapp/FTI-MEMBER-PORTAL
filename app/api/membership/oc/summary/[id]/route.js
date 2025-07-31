@@ -294,15 +294,15 @@ export async function GET(request, { params }) {
       companyName: ocData.company_name_th || '',
       companyNameEng: ocData.company_name_en || '',
       taxId: ocData.tax_id || '',
-      companyEmail: ocData.company_email || '',
-      companyPhone: ocData.company_phone || '',
-      companyWebsite: '', // ไม่มีใน main table
+      companyEmail: ocData.company_email || relatedData.address?.email || '',
+      companyPhone: ocData.company_phone || relatedData.address?.phone || '',
+      companyWebsite: relatedData.address?.website || '',
       
-      // Address in the format SummarySection expects
+      // Address in the format SummarySection expects - แก้ไขชื่อฟิลด์
       addressNumber: relatedData.address?.address_number || '',
       moo: relatedData.address?.moo || '',
       soi: relatedData.address?.soi || '',
-      street: relatedData.address?.road || '',
+      street: relatedData.address?.street || '', // ใช้ street แทน road
       subDistrict: relatedData.address?.sub_district || '',
       district: relatedData.address?.district || '',
       province: relatedData.address?.province || '',
@@ -361,39 +361,6 @@ export async function GET(request, { params }) {
       updatedAt: ocData.updated_at
     };
 
-    console.log('Successfully built response for OC ID:', id);
-    console.log('=== API Debug ===');
-    console.log('ocData fields:', Object.keys(ocData));
-    console.log('ocData.company_name_th:', ocData.company_name_th);
-    console.log('ocData.company_name_en:', ocData.company_name_en);
-    console.log('ocData.company_email:', ocData.company_email);
-    console.log('ocData.company_phone:', ocData.company_phone);
-    console.log('ocData.number_of_employees:', ocData.number_of_employees);
-    console.log('=== Contact Person Debug ===');
-    console.log('contactPerson raw:', relatedData.contactPerson);
-    console.log('contactPerson.first_name_th:', relatedData.contactPerson?.first_name_th);
-    console.log('contactPerson.last_name_th:', relatedData.contactPerson?.last_name_th);
-    console.log('=== Business Types Debug ===');
-    console.log('businessTypesRows:', relatedData.businessTypesRows);
-    console.log('businessTypeOther:', relatedData.businessTypeOther);
-    console.log('businessTypesObject result:', businessTypesObject);
-    console.log('otherBusinessTypeDetail:', otherBusinessTypeDetail);
-    console.log('=== Representatives Debug ===');
-    console.log('representatives raw:', relatedData.representatives);
-    console.log('representativesFormatted:', representativesFormatted);
-    console.log('=== Products Debug ===');
-    console.log('products raw:', relatedData.products);
-    console.log('productsFormatted:', productsFormatted);
-    console.log('=== Documents Debug ===');
-    console.log('documents raw:', relatedData.documents);
-    console.log('factory_license:', relatedData.documents.find(doc => doc.document_type === 'factory_license'));
-    console.log('production_images:', relatedData.documents.filter(doc => doc.document_type === 'production_image'));
-    console.log('=== Response Debug ===');
-    console.log('Response companyName:', response.companyName);
-    console.log('Response contactPersonFirstName:', response.contactPersonFirstName);
-    console.log('Response contactPersonLastName:', response.contactPersonLastName);
-    console.log('Response businessTypes:', response.businessTypes);
-    console.log('Response products:', response.products);
     
     return NextResponse.json({ success: true, data: response });
 

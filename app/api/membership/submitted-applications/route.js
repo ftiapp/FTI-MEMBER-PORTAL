@@ -14,6 +14,11 @@ export async function GET(request) {
     }
 
     const userId = session.user.id;
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page')) || 1;
+    const limit = parseInt(searchParams.get('limit')) || 5;
+    const offset = (page - 1) * limit;
+    
     const allApplications = [];
 
     // IC Applications - Individual Contributor
@@ -216,8 +221,10 @@ export async function GET(request) {
           m.company_name_th as displayName,
           m.company_name_en as companyNameEn,
           m.tax_id as taxId,
-          m.employee_count as employeeCount,
-          m.registered_capital as registeredCapital,
+          m.number_of_employees as employeeCount,
+          m.company_email,
+          m.company_phone,
+          m.company_website,
           m.status,
           m.created_at as createdAt,
           m.updated_at as updatedAt
@@ -338,9 +345,14 @@ export async function GET(request) {
         SELECT 
           m.id,
           'AM' as memberType,
-          m.association_name_th as displayName,
-          m.association_name_en as associationNameEn,
+          m.company_name_th as displayName,
+          m.company_name_en as companyNameEn,
           m.tax_id as taxId,
+          m.number_of_employees as employeeCount,
+          m.number_of_member as memberCount,
+          m.company_email,
+          m.company_phone,
+          m.factory_type,
           m.status,
           m.created_at as createdAt,
           m.updated_at as updatedAt
@@ -445,10 +457,20 @@ export async function GET(request) {
 
     // Sort by createdAt descending
     allApplications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    
+    // Apply pagination
+    const totalItems = allApplications.length;
+    const paginatedApplications = allApplications.slice(offset, offset + limit);
 
     return NextResponse.json({
       success: true,
-      applications: allApplications
+      applications: paginatedApplications,
+      pagination: {
+        currentPage: page,
+        totalItems: totalItems,
+        totalPages: Math.ceil(totalItems / limit),
+        itemsPerPage: limit
+      }
     });
 
   } catch (error) {

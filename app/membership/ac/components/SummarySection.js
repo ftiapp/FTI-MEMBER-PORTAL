@@ -50,22 +50,33 @@ const ProductsCard = ({ products }) => (
   </div>
 );
 
-// Representative card
+// Representative card - แก้ไข field names
 const RepresentativeCard = ({ representative, index }) => (
   <div className="bg-white border border-gray-200 rounded-lg p-4">
     <div className="mb-2">
       <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
+      {representative?.isPrimary && (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mt-1">
+          ผู้แทนหลัก
+        </span>
+      )}
     </div>
     
     {representative ? (
       <div className="space-y-2">
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-          <p className="text-sm">{representative.firstNameThai} {representative.lastNameThai}</p>
+          <p className="text-sm">
+            {/* แก้ไข field names ให้ตรงกับข้อมูลจริง */}
+            {(representative.firstNameTh || representative.firstNameThai || '')} {(representative.lastNameTh || representative.lastNameThai || '')}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-          <p className="text-sm">{representative.firstNameEng} {representative.lastNameEng}</p>
+          <p className="text-sm">
+            {/* แก้ไข field names ให้ตรงกับข้อมูลจริง */}
+            {(representative.firstNameEn || representative.firstNameEng || representative.firstNameEnglish || '')} {(representative.lastNameEn || representative.lastNameEng || representative.lastNameEnglish || '')}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">ตำแหน่ง</p>
@@ -86,8 +97,8 @@ const RepresentativeCard = ({ representative, index }) => (
   </div>
 );
 
-// Simplified file display
-const FileCard = ({ fileName, description }) => (
+// Simplified file display with eye icon for viewing
+const FileCard = ({ fileName, description, fileUrl }) => (
   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
     <div className="flex items-center gap-3">
       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -99,11 +110,23 @@ const FileCard = ({ fileName, description }) => (
         <p className="text-sm font-medium text-gray-900">{description}</p>
         <p className="text-xs text-gray-500">{fileName !== 'ไม่ได้อัปโหลด' ? fileName : 'ไม่ได้อัปโหลด'}</p>
       </div>
-      {fileName !== 'ไม่ได้อัปโหลด' && (
-        <div className="w-4 h-4 text-green-500">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+      {fileName !== 'ไม่ได้อัปโหลด' && fileUrl && (
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 text-blue-500">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <button 
+            className="w-6 h-6 text-blue-600 hover:text-blue-800 transition-colors"
+            title="ดูไฟล์แนบ"
+            onClick={() => window.open(fileUrl, '_blank')}
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
@@ -137,8 +160,17 @@ export default function SummarySection({ formData, industrialGroups = [], provin
       if (fileObj instanceof File) return fileObj.name;
       if (fileObj.name) return fileObj.name;
       if (fileObj.file && fileObj.file.name) return fileObj.file.name;
+      if (fileObj.fileUrl) return fileObj.name || 'ไฟล์ถูกอัปโหลดแล้ว';
     }
     return 'ไฟล์ถูกอัปโหลดแล้ว';
+  };
+
+  const getFileUrl = (fileObj) => {
+    if (!fileObj) return null;
+    if (typeof fileObj === 'object') {
+      return fileObj.fileUrl || fileObj.cloudinary_url || fileObj.file_path || null;
+    }
+    return null;
   };
 
   // ฟังก์ชันสำหรับแสดงประเภทธุรกิจที่เลือก
@@ -213,26 +245,6 @@ export default function SummarySection({ formData, industrialGroups = [], provin
     return provincialChapters.slice(0, 2).map(chapter => chapter.name_th);
   };
 
-  // สร้างสตริงชื่อ-นามสกุล
-  const getFullName = (person, isEnglish = false) => {
-    if (!person) return '-';
-    
-    if (isEnglish) {
-      return person.firstNameEng && person.lastNameEng 
-        ? `${person.firstNameEng} ${person.lastNameEng}` 
-        : '-';
-    }
-    
-    return person.firstNameThai && person.lastNameThai 
-      ? `${person.firstNameThai} ${person.lastNameThai}` 
-      : '-';
-  };
-
-  // จัดรูปแบบตัวเลข
-  const formatNumber = (number) => {
-    return number ? `${number.toLocaleString()}` : '-';
-  };
-  
   // เตรียมข้อมูลผู้แทนสำหรับแสดงผล
   const representatives = formData.representatives || [];
   // เตรียมข้อมูลผู้ให้ข้อมูล
@@ -305,6 +317,7 @@ export default function SummarySection({ formData, industrialGroups = [], provin
         <div className="space-y-3">
           <FileCard 
             fileName={getFileName(formData.companyRegistration)} 
+            fileUrl={getFileUrl(formData.companyRegistration)}
             description="สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล" 
           />
         </div>

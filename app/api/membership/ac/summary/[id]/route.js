@@ -4,98 +4,116 @@ import { checkUserSession } from '../../../../../lib/auth';
 import { query } from '../../../../../lib/db';
 
 const BUSINESS_TYPE_MAP = {
-  '1': 'ผู้ผลิต',
-  '2': 'ผู้ค้า',
-  '3': 'ผู้ให้บริการ',
-  '4': 'ผู้ส่งออก',
-  '5': 'ผู้นำเข้า',
-  '6': 'อื่นๆ'
+  'manufacturer': 'ผู้ผลิต',
+  'distributor': 'ผู้ค้า',
+  'service': 'ผู้ให้บริการ',
+  'exporter': 'ผู้ส่งออก',
+  'importer': 'ผู้นำเข้า',
+  'other': 'อื่นๆ'
 };
 
 export async function GET(request, { params }) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session) {
+    const cookieStore = await cookies();
+    const user = await checkUserSession(cookieStore);
+    if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { id } = await params;
     
     // Fetch main AC data
-    const [mainResult] = await query(
+    const mainQuery = await query(
       'SELECT * FROM MemberRegist_AC_Main WHERE id = ?',
       [id]
     );
+    
+    // The query returns an array of rows directly
+    const acData = mainQuery?.[0];
 
-    if (!mainResult || mainResult.length === 0) {
-      return NextResponse.json({ error: 'AC application not found' }, { status: 404 });
+    if (!acData || !acData.id) {
+      return NextResponse.json({ 
+        success: false,
+        error: 'AC application not found',
+        debug: {
+          id: id,
+          queryResult: mainQuery,
+          queryLength: mainQuery?.length
+        }
+      }, { status: 404 });
     }
 
-    const acData = mainResult[0];
-
     // Fetch address
-    const [addressRows] = await query(
+    const addressQuery = await query(
       'SELECT * FROM MemberRegist_AC_Address WHERE main_id = ?',
       [id]
     );
+    const addressResult = addressQuery || [];
 
     // Fetch representatives
-    const [representativesRows] = await query(
+    const representativesQuery = await query(
       'SELECT * FROM MemberRegist_AC_Representatives WHERE main_id = ?',
       [id]
     );
+    const representativesResult = representativesQuery || [];
 
     // Fetch business types
-    const [businessTypesRows] = await query(
+    const businessTypesQuery = await query(
       'SELECT * FROM MemberRegist_AC_BusinessTypes WHERE main_id = ?',
       [id]
     );
+    const businessTypesRows = businessTypesQuery || [];
 
     // Fetch business type other if exists
     let businessTypeOther = null;
-    const hasOtherBusinessType = Array.isArray(businessTypesRows) && businessTypesRows.find(bt => bt.business_type_id === 6);
+    const hasOtherBusinessType = Array.isArray(businessTypesRows) && businessTypesRows.find(bt => bt.business_type === 'other');
     if (hasOtherBusinessType) {
-      const [otherResult] = await query(
+      const otherQuery = await query(
         'SELECT * FROM MemberRegist_AC_BusinessTypeOther WHERE main_id = ?',
         [id]
       );
+      const otherResult = otherQuery || [];
       businessTypeOther = otherResult?.[0] || null;
     }
 
     // Fetch products/services
-    const [productsRows] = await query(
+    const productsQuery = await query(
       'SELECT * FROM MemberRegist_AC_Products WHERE main_id = ?',
       [id]
     );
+    const productsRows = productsQuery || [];
 
     // Fetch industry groups
-    const [industryGroupsRows] = await query(
+    const industryGroupsQuery = await query(
       'SELECT * FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?',
       [id]
     );
+    const industryGroupsRows = industryGroupsQuery || [];
 
     // Fetch province chapters
-    const [provinceChaptersRows] = await query(
+    const provinceChaptersQuery = await query(
       'SELECT * FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?',
       [id]
     );
+    const provinceChaptersRows = provinceChaptersQuery || [];
 
     // Fetch documents
-    const [documentsRows] = await query(
+    const documentsQuery = await query(
       'SELECT * FROM MemberRegist_AC_Documents WHERE main_id = ?',
       [id]
     );
+    const documentsRows = documentsQuery || [];
 
     // Map business types with names
-    const businessTypes = businessTypesRows?.map(bt => ({
-      id: bt.business_type_id,
-      name: BUSINESS_TYPE_MAP[bt.business_type_id] || bt.business_type_id,
-      details: bt.business_type_id === 6 && businessTypeOther ? businessTypeOther.details : null
-    })) || [];
+    const businessTypes = Array.isArray(businessTypesRows) ? businessTypesRows.map(bt => ({
+      id: bt.business_type,
+      name: BUSINESS_TYPE_MAP[bt.business_type] || bt.business_type,
+      details: bt.business_type === 'other' && businessTypeOther ? businessTypeOther.detail : null
+    })) : [];
 
     // Fetch industry group names from external API
     let industryGroupsWithNames = [];
-    if (industryGroupsRows && industryGroupsRows.length > 0) {
+    if (industryGroupsRows.length > 0) {
       try {
         const industrialGroupsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/industrial-groups?limit=1000`);
         if (industrialGroupsResponse.ok) {
@@ -120,7 +138,7 @@ export async function GET(request, { params }) {
 
     // Fetch province chapter names from external API
     let provinceChaptersWithNames = [];
-    if (provinceChaptersRows && provinceChaptersRows.length > 0) {
+    if (provinceChaptersRows.length > 0) {
       try {
         const provinceChaptersResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/member/ac-membership/province-chapters?limit=1000`);
         if (provinceChaptersResponse.ok) {
@@ -143,43 +161,127 @@ export async function GET(request, { params }) {
       }
     }
 
-    // Build response
-    const response = {
+    // Transform data to match the format expected by the frontend
+    const transformedData = {
       id: acData.id,
       memberCode: acData.member_code,
-      companyName: acData.company_name,
+      companyName: acData.company_name_th, // แก้ไขให้ตรงกับ column จริง
+      companyNameEn: acData.company_name_en,
       taxId: acData.tax_id,
+      companyEmail: acData.company_email,
+      companyPhone: acData.company_phone,
+      companyWebsite: acData.company_website,
       status: acData.status,
       createdAt: acData.created_at,
       updatedAt: acData.updated_at,
       
-      // Address
-      address: addressRows?.[0] || null,
+      // Address data
+      addressNumber: addressResult?.[0]?.address_number,
+      moo: addressResult?.[0]?.moo,
+      soi: addressResult?.[0]?.soi,
+      road: addressResult?.[0]?.road,
+      subDistrict: addressResult?.[0]?.sub_district,
+      district: addressResult?.[0]?.district,
+      province: addressResult?.[0]?.province,
+      postalCode: addressResult?.[0]?.postal_code,
+      
+      // Contact person (assuming it's the first representative or stored elsewhere)
+      contactPerson: representativesResult?.[0] ? {
+        firstNameThai: representativesResult[0].first_name_th,
+        lastNameThai: representativesResult[0].last_name_th,
+        firstNameEng: representativesResult[0].first_name_en,
+        lastNameEng: representativesResult[0].last_name_en,
+        email: representativesResult[0].email,
+        phone: representativesResult[0].phone,
+        position: representativesResult[0].position
+      } : {},
       
       // Representatives
-      representatives: representativesRows || [],
+      representatives: (representativesResult || []).map(rep => ({
+        firstNameThai: rep.first_name_th,
+        lastNameThai: rep.last_name_th,
+        firstNameEng: rep.first_name_en,
+        lastNameEng: rep.last_name_en,
+        email: rep.email,
+        phone: rep.phone,
+        position: rep.position,
+        isPrimary: rep.is_primary === 1 || rep.is_primary === true
+      })),
       
-      // Business Types
-      businessTypes: businessTypes,
-      businessTypeOther: businessTypeOther,
+      // Business Types - transform to match frontend format
+      businessTypes: Array.isArray(businessTypesRows) ? businessTypesRows.reduce((acc, bt) => {
+        acc[bt.business_type] = true;
+        return acc;
+      }, {}) : {},
+      
+      // Other business type detail
+      otherBusinessTypeDetail: businessTypeOther?.detail,
       
       // Products/Services
-      products: productsRows || [],
+      products: (productsRows || []).map(product => ({
+        nameTh: product.name_th,
+        nameEn: product.name_en
+      })),
       
-      // Industry Groups
-      industryGroups: industryGroupsWithNames,
+      // Industry Groups - transform to array of IDs for frontend
+      industrialGroups: industryGroupsRows.map(ig => ig.industry_group_id),
       
-      // Province Chapters
-      provinceChapters: provinceChaptersWithNames,
-      
-      // Documents
-      documents: documentsResult || []
+      // Documents - use cloudinary_url for file preview
+      companyRegistration: documentsRows.find(doc => doc.document_type === 'companyRegistration') ? {
+        name: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.cloudinary_url || documentsRows.find(doc => doc.document_type === 'companyRegistration')?.file_path,
+        fileType: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.mime_type,
+        fileSize: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.file_size,
+        cloudinaryId: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.cloudinary_id
+      } : null
+    };
+
+    // Build response
+    const response = {
+      success: true,
+      data: transformedData,
+      // Keep original structure for compatibility
+      originalData: {
+        id: acData.id,
+        memberCode: acData.member_code,
+        companyName: acData.company_name,
+        taxId: acData.tax_id,
+        status: acData.status,
+        createdAt: acData.created_at,
+        updatedAt: acData.updated_at,
+        
+        // Address
+        address: addressResult?.[0] || null,
+        
+        // Representatives
+        representatives: representativesResult || [],
+        
+        // Business Types
+        businessTypes: businessTypes,
+        businessTypeOther: businessTypeOther,
+        
+        // Products/Services
+        products: productsRows || [],
+        
+        // Industry Groups
+        industryGroups: industryGroupsWithNames,
+        
+        // Province Chapters
+        provinceChapters: provinceChaptersWithNames,
+        
+        // Documents
+        documents: documentsRows || []
+      }
     };
 
     return NextResponse.json(response);
 
   } catch (error) {
     console.error('Error fetching AC summary:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      success: false,
+      error: 'Internal server error',
+      message: error.message 
+    }, { status: 500 });
   }
 }
