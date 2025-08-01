@@ -111,14 +111,14 @@ export async function GET(request, { params }) {
         );
         const products = normalizeDbResult(productsResult);
 
-        // Fetch industry groups
+        // ✅ Fetch industry groups - ใช้ข้อมูลจากตารางโดยตรง
         const industryGroupsResult = await query(
           'SELECT * FROM MemberRegist_OC_IndustryGroups WHERE main_id = ?',
           [id]
         );
         const industryGroupsRows = normalizeDbResult(industryGroupsResult);
 
-        // Fetch province chapters
+        // ✅ Fetch province chapters - ใช้ข้อมูลจากตารางโดยตรง
         const provinceChaptersResult = await query(
           'SELECT * FROM MemberRegist_OC_ProvinceChapters WHERE main_id = ?',
           [id]
@@ -151,101 +151,19 @@ export async function GET(request, { params }) {
 
     const relatedData = await fetchRelatedData();
 
-    // Fetch industry group names with timeout and fallback
-    let industryGroupsWithNames = [];
-    if (relatedData.industryGroupsRows.length > 0) {
-      try {
-        console.log('Fetching industry groups...');
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const industrialGroupsResponse = await fetch(
-          `${baseUrl}/api/industrial-groups?limit=1000`,
-          { 
-            signal: controller.signal,
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        clearTimeout(timeoutId);
-        
-        if (industrialGroupsResponse.ok) {
-          const industrialGroupsData = await industrialGroupsResponse.json();
-          
-          industryGroupsWithNames = relatedData.industryGroupsRows.map(ig => {
-            const groupData = industrialGroupsData.data?.find(g => 
-              g.MEMBER_GROUP_CODE == ig.industry_group_id
-            );
-            return {
-              id: ig.industry_group_id,
-              industryGroupName: groupData ? groupData.MEMBER_GROUP_NAME : `กลุ่มอุตสาหกรรม ${ig.industry_group_id}`,
-              name_th: groupData ? groupData.MEMBER_GROUP_NAME : `กลุ่มอุตสาหกรรม ${ig.industry_group_id}`
-            };
-          });
-        } else {
-          throw new Error(`API responded with status: ${industrialGroupsResponse.status}`);
-        }
-      } catch (error) {
-        console.error('Error fetching industrial groups:', error.message);
-        industryGroupsWithNames = relatedData.industryGroupsRows.map(ig => ({
-          id: ig.industry_group_id,
-          industryGroupName: `กลุ่มอุตสาหกรรม ${ig.industry_group_id}`,
-          name_th: `กลุ่มอุตสาหกรรม ${ig.industry_group_id}`
-        }));
-      }
-    }
+    // ✅ Process industry groups - ใช้ industry_group_name จากตารางโดยตรง
+    const industryGroupsWithNames = relatedData.industryGroupsRows.map(ig => ({
+      id: ig.industry_group_id,
+      industryGroupName: ig.industry_group_name || ig.industry_group_id,
+      name_th: ig.industry_group_name || ig.industry_group_id
+    }));
 
-    // Fetch province chapter names with timeout and fallback
-    let provinceChaptersWithNames = [];
-    if (relatedData.provinceChaptersRows.length > 0) {
-      try {
-        console.log('Fetching province chapters...');
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 10000);
-        
-        const provinceChaptersResponse = await fetch(
-          `${baseUrl}/api/province-groups?limit=1000`,
-          { 
-            signal: controller.signal,
-            headers: {
-              'Content-Type': 'application/json'
-            }
-          }
-        );
-        
-        clearTimeout(timeoutId);
-        
-        if (provinceChaptersResponse.ok) {
-          const provinceChaptersData = await provinceChaptersResponse.json();
-          
-          provinceChaptersWithNames = relatedData.provinceChaptersRows.map(pc => {
-            const chapterData = provinceChaptersData.data?.find(c => 
-              c.MEMBER_GROUP_CODE == pc.province_chapter_id
-            );
-            return {
-              id: pc.province_chapter_id,
-              provinceChapterName: chapterData ? chapterData.MEMBER_GROUP_NAME : `สาขาจังหวัด ${pc.province_chapter_id}`,
-              name_th: chapterData ? chapterData.MEMBER_GROUP_NAME : `สาขาจังหวัด ${pc.province_chapter_id}`
-            };
-          });
-        } else {
-          throw new Error(`API responded with status: ${provinceChaptersResponse.status}`);
-        }
-      } catch (error) {
-        console.error('Error fetching province chapters:', error.message);
-        provinceChaptersWithNames = relatedData.provinceChaptersRows.map(pc => ({
-          id: pc.province_chapter_id,
-          provinceChapterName: `สาขาจังหวัด ${pc.province_chapter_id}`,
-          name_th: `สาขาจังหวัด ${pc.province_chapter_id}`
-        }));
-      }
-    }
+    // ✅ Process province chapters - ใช้ province_chapter_name จากตารางโดยตรง
+    const provinceChaptersWithNames = relatedData.provinceChaptersRows.map(pc => ({
+      id: pc.province_chapter_id,
+      provinceChapterName: pc.province_chapter_name || pc.province_chapter_id,
+      name_th: pc.province_chapter_name || pc.province_chapter_id
+    }));
 
     // ===== สร้างข้อมูลในรูปแบบที่ SummarySection คาดหวัง =====
     
@@ -263,25 +181,25 @@ export async function GET(request, { params }) {
       else if (typeId === 'other') {
         businessTypesObject.other = true;
         if (relatedData.businessTypeOther) {
-          otherBusinessTypeDetail = relatedData.businessTypeOther.detail || ''; // ใช้ detail แทน details
+          otherBusinessTypeDetail = relatedData.businessTypeOther.detail || '';
         }
       }
     });
 
-    // Convert products to the format SummarySection expects - แก้ชื่อฟิลด์
+    // Convert products to the format SummarySection expects
     const productsFormatted = relatedData.products.map((product, index) => ({
       id: index + 1,
-      nameTh: product.name_th || '', // ใช้ name_th แทน product_name_th
-      nameEn: product.name_en || ''   // ใช้ name_en แทน product_name_en
+      nameTh: product.name_th || '',
+      nameEn: product.name_en || ''
     }));
 
-    // Convert representatives to the format SummarySection expects - แก้ชื่อฟิลด์
+    // Convert representatives to the format SummarySection expects
     const representativesFormatted = relatedData.representatives.map((rep, index) => ({
       id: `rep_${rep.id || index}`,
-      firstNameThai: rep.first_name_th || '',   // ใช้ first_name_th แทน first_name_thai
-      lastNameThai: rep.last_name_th || '',     // ใช้ last_name_th แทน last_name_thai
-      firstNameEnglish: rep.first_name_en || '', // ใช้ first_name_en แทน first_name_english
-      lastNameEnglish: rep.last_name_en || '',   // ใช้ last_name_en แทน last_name_english
+      firstNameThai: rep.first_name_th || '',
+      lastNameThai: rep.last_name_th || '',
+      firstNameEnglish: rep.first_name_en || '',
+      lastNameEnglish: rep.last_name_en || '',
       position: rep.position || '',
       email: rep.email || '',
       phone: rep.phone || '',
@@ -290,7 +208,7 @@ export async function GET(request, { params }) {
 
     // Build response in the format that SummarySection expects
     const response = {
-      // Company basic info (same field names as form) - แก้ไขชื่อฟิลด์ให้ถูกต้อง
+      // Company basic info
       companyName: ocData.company_name_th || '',
       companyNameEng: ocData.company_name_en || '',
       taxId: ocData.tax_id || '',
@@ -298,17 +216,17 @@ export async function GET(request, { params }) {
       companyPhone: ocData.company_phone || relatedData.address?.phone || '',
       companyWebsite: relatedData.address?.website || '',
       
-      // Address in the format SummarySection expects - แก้ไขชื่อฟิลด์
+      // Address
       addressNumber: relatedData.address?.address_number || '',
       moo: relatedData.address?.moo || '',
       soi: relatedData.address?.soi || '',
-      street: relatedData.address?.street || '', // ใช้ street แทน road
+      street: relatedData.address?.street || '',
       subDistrict: relatedData.address?.sub_district || '',
       district: relatedData.address?.district || '',
       province: relatedData.address?.province || '',
       postalCode: relatedData.address?.postal_code || '',
       
-      // Contact person - ใช้ข้อมูลจาก ContactPerson table
+      // Contact person
       contactPersonFirstName: relatedData.contactPerson?.first_name_th || '',
       contactPersonLastName: relatedData.contactPerson?.last_name_th || '',
       contactPersonFirstNameEng: relatedData.contactPerson?.first_name_en || '',
@@ -320,7 +238,7 @@ export async function GET(request, { params }) {
       // Representatives
       representatives: representativesFormatted,
       
-      // Business types in checkbox format
+      // Business types
       businessTypes: businessTypesObject,
       otherBusinessTypeDetail: otherBusinessTypeDetail,
       
@@ -328,17 +246,17 @@ export async function GET(request, { params }) {
       products: productsFormatted,
       numberOfEmployees: ocData.number_of_employees || '',
       
-      // Industry groups - both old and new format for compatibility
+      // ✅ Industry groups - ใช้ข้อมูลจากตารางโดยตรง
       industryGroups: industryGroupsWithNames,
       industrialGroupIds: relatedData.industryGroupsRows.map(ig => ig.industry_group_id),
       industrialGroupNames: industryGroupsWithNames.map(ig => ig.name_th),
       
-      // Province chapters - both old and new format for compatibility  
+      // ✅ Province chapters - ใช้ข้อมูลจากตารางโดยตรง  
       provinceChapters: provinceChaptersWithNames,
       provincialChapterIds: relatedData.provinceChaptersRows.map(pc => pc.province_chapter_id),
       provincialChapterNames: provinceChaptersWithNames.map(pc => pc.name_th),
       
-      // Factory type and documents (if applicable)
+      // Factory type and documents
       factoryType: ocData.factory_type || '',
       factoryLicense: relatedData.documents.find(doc => doc.document_type === 'factory_license') ? {
         name: relatedData.documents.find(doc => doc.document_type === 'factory_license').file_name,
@@ -361,7 +279,6 @@ export async function GET(request, { params }) {
       updatedAt: ocData.updated_at
     };
 
-    
     return NextResponse.json({ success: true, data: response });
 
   } catch (error) {

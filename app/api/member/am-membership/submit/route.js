@@ -197,35 +197,55 @@ export async function POST(request) {
 
     // Step 9: บันทึกกลุ่มอุตสาหกรรม
     console.log('🏭 [AM API] Inserting industry groups data...');
+    console.log('🔍 [AM API] Raw industrialGroupIds data:', data.industrialGroupIds);
+    console.log('🔍 [AM API] Raw industrialGroupNames data:', data.industrialGroupNames);
+    
     const industrialGroups = parseAndEnsureArray(data.industrialGroupIds);
+    const industrialGroupNames = parseAndEnsureArray(data.industrialGroupNames);
+    
     if (industrialGroups.length > 0) {
-      for (const groupId of industrialGroups) {
+      for (let i = 0; i < industrialGroups.length; i++) {
+        const groupId = industrialGroups[i];
+        const groupName = industrialGroupNames[i] || 'ไม่ระบุ';
+        console.log(`💾 [AM API] Inserting industrial group ID: ${groupId}, Name: ${groupName}`);
         await executeQuery(trx, 
-          `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-          [mainId, groupId]
+          `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`, 
+          [mainId, groupId, groupName]
         );
       }
+      console.log(`✅ [AM API] Inserted ${industrialGroups.length} industry groups with names`);
     } else {
+      console.log('⚠️ [AM API] No industrial groups selected, inserting default');
       await executeQuery(trx, 
-        `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-        [mainId, '000']
+        `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`, 
+        [mainId, '000', 'ไม่ระบุ']
       );
     }
 
     // Step 10: บันทึกสภาจังหวัด
     console.log('🌏 [AM API] Inserting province chapters data...');
+    console.log('🔍 [AM API] Raw provincialChapterIds data:', data.provincialChapterIds);
+    console.log('🔍 [AM API] Raw provincialChapterNames data:', data.provincialChapterNames);
+    
     const provincialChapters = parseAndEnsureArray(data.provincialChapterIds);
+    const provincialChapterNames = parseAndEnsureArray(data.provincialChapterNames);
+    
     if (provincialChapters.length > 0) {
-      for (const chapterId of provincialChapters) {
+      for (let i = 0; i < provincialChapters.length; i++) {
+        const chapterId = provincialChapters[i];
+        const chapterName = provincialChapterNames[i] || 'ไม่ระบุ';
+        console.log(`💾 [AM API] Inserting provincial chapter ID: ${chapterId}, Name: ${chapterName}`);
         await executeQuery(trx, 
-          `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
-          [mainId, chapterId]
+          `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`, 
+          [mainId, chapterId, chapterName]
         );
       }
+      console.log(`✅ [AM API] Inserted ${provincialChapters.length} provincial chapters with names`);
     } else {
+      console.log('⚠️ [AM API] No provincial chapters selected, inserting default');
       await executeQuery(trx, 
-        `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
-        [mainId, '000']
+        `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`, 
+        [mainId, '000', 'ไม่ระบุ']
       );
     }
 
@@ -344,23 +364,21 @@ export async function POST(request) {
         deletedRows = deleteResult.affectedRows || 0;
         console.log(`✅ [AM API] Draft deleted by tax_id: ${taxIdFromData}, affected rows: ${deletedRows}`);
       } else {
-        console.warn('⚠️ [AM API] No taxId provided, cannot delete draft');
+        console.warn(' [AM API] No taxId provided, cannot delete draft');
       }
     } catch (draftError) {
-      console.error('❌ [AM API] Error deleting draft:', draftError.message);
+      console.error(' [AM API] Error deleting draft:', draftError.message);
       // ไม่ throw error เพราะการลบ draft ไม่ควรบล็อกการสมัครสำเร็จ
     }
 
-    const response = { 
+    console.log(' [AM API] AM Membership submission completed successfully');
+    return NextResponse.json({ 
+      success: true, 
       message: 'การสมัครสมาชิก AM สำเร็จ', 
       registrationId: mainId,
-      documentsUploaded: uploadCount,
+      documentsUploaded: Object.keys(uploadedDocuments).length,
       timestamp: new Date().toISOString()
-    };
-    
-    console.log('✅ [AM API] AM Membership submission completed successfully:', response);
-    
-    return NextResponse.json(response, { 
+    }, { 
       status: 201,
       headers: {
         'Content-Type': 'application/json'

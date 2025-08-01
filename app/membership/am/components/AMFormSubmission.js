@@ -64,52 +64,97 @@ export const submitAMMembershipForm = async (formData) => {
     formDataToSubmit.append('registeredCapital', formData.registeredCapital || '');
     formDataToSubmit.append('businessDescription', formData.businessDescription || '');
     
-    // ✅ แก้ไขการส่งข้อมูลกลุ่มอุตสาหกรรม
-    const processIndustrialGroups = () => {
-      const industrialData = formData.industrialGroups || formData.industrialGroup || [];
+    // ✅ แก้ไขการส่งข้อมูลกลุ่มอุตสาหกรรม - ทั้ง ID และชื่อ
+    // Helper function to process industrial groups data
+    const processIndustrialGroups = (formData) => {
+      console.log('Processing industrial groups:', formData.industrialGroups);
+      console.log('Processing industrial group names:', formData.industrialGroupNames);
       
-      if (Array.isArray(industrialData) && industrialData.length > 0) {
-        const industrialGroupIds = industrialData.map(group => {
-          if (typeof group === 'object' && group !== null) {
-            return group.id || group.value || group.MEMBER_GROUP_CODE || group;
-          }
-          return group;
-        }).filter(id => id !== null && id !== undefined && id !== '');
-        
-        console.log('✅ [AM] Industrial Groups processed:', industrialGroupIds);
-        return industrialGroupIds;
+      if (!formData.industrialGroups || formData.industrialGroups.length === 0) {
+        return { ids: [], names: [] };
       }
       
-      console.log('⚠️ [AM] No industrial groups data found');
-      return [];
+      // Handle both array of objects and array of IDs
+      const ids = [];
+      const names = [];
+      
+      // Process IDs
+      formData.industrialGroups.forEach((id, index) => {
+        ids.push(id);
+      });
+      
+      // Process names - use directly from formData.industrialGroupNames if available
+      if (formData.industrialGroupNames && formData.industrialGroupNames.length > 0) {
+        formData.industrialGroupNames.forEach(name => {
+          names.push(name || 'ไม่ระบุ');
+        });
+      } else {
+        // Fallback to extracting from industrialGroups if they're objects
+        formData.industrialGroups.forEach(item => {
+          if (typeof item === 'object' && item !== null) {
+            names.push(item.name_th || item.text || 'ไม่ระบุ');
+          } else {
+            names.push('ไม่ระบุ');
+          }
+        });
+      }
+      
+      console.log('Processed industrial group IDs:', ids);
+      console.log('Processed industrial group names:', names);
+      
+      return { ids, names };
     };
     
-    // ✅ แก้ไขการส่งข้อมูลสภาจังหวัด
-    const processProvincialCouncils = () => {
-      const provincialData = formData.provincialCouncils || formData.provincialChapters || formData.provincialCouncil || [];
+    // ✅ แก้ไขการส่งข้อมูลสภาจังหวัด - ทั้ง ID และชื่อ
+    // Helper function to process provincial councils data
+    const processProvincialCouncils = (formData) => {
+      console.log('Processing provincial councils:', formData.provincialCouncils);
+      console.log('Processing provincial chapter names:', formData.provincialChapterNames);
       
-      if (Array.isArray(provincialData) && provincialData.length > 0) {
-        const provincialChapterIds = provincialData.map(chapter => {
-          if (typeof chapter === 'object' && chapter !== null) {
-            return chapter.id || chapter.value || chapter.MEMBER_GROUP_CODE || chapter;
-          }
-          return chapter;
-        }).filter(id => id !== null && id !== undefined && id !== '');
-        
-        console.log('✅ [AM] Provincial Chapters processed:', provincialChapterIds);
-        return provincialChapterIds;
+      if (!formData.provincialCouncils || formData.provincialCouncils.length === 0) {
+        return { ids: [], names: [] };
       }
       
-      console.log('⚠️ [AM] No provincial councils data found');
-      return [];
+      // Handle both array of objects and array of IDs
+      const ids = [];
+      const names = [];
+      
+      // Process IDs
+      formData.provincialCouncils.forEach((id, index) => {
+        ids.push(id);
+      });
+      
+      // Process names - use directly from formData.provincialChapterNames if available
+      if (formData.provincialChapterNames && formData.provincialChapterNames.length > 0) {
+        formData.provincialChapterNames.forEach(name => {
+          names.push(name || 'ไม่ระบุ');
+        });
+      } else {
+        // Fallback to extracting from provincialCouncils if they're objects
+        formData.provincialCouncils.forEach(item => {
+          if (typeof item === 'object' && item !== null) {
+            names.push(item.name_th || item.text || 'ไม่ระบุ');
+          } else {
+            names.push('ไม่ระบุ');
+          }
+        });
+      }
+      
+      console.log('Processed provincial council IDs:', ids);
+      console.log('Processed provincial council names:', names);
+      
+      return { ids, names };
     };
     
     // ประมวลผลและส่งข้อมูล
-    const industrialGroupIds = processIndustrialGroups();
-    const provincialChapterIds = processProvincialCouncils();
+    const industrialGroupsData = processIndustrialGroups(formData);
+    const provincialChaptersData = processProvincialCouncils(formData);
     
-    formDataToSubmit.append('industrialGroupIds', JSON.stringify(industrialGroupIds));
-    formDataToSubmit.append('provincialChapterIds', JSON.stringify(provincialChapterIds));
+    // ส่งทั้ง IDs และ Names
+    formDataToSubmit.append('industrialGroupIds', JSON.stringify(industrialGroupsData.ids));
+    formDataToSubmit.append('industrialGroupNames', JSON.stringify(industrialGroupsData.names));
+    formDataToSubmit.append('provincialChapterIds', JSON.stringify(provincialChaptersData.ids));
+    formDataToSubmit.append('provincialChapterNames', JSON.stringify(provincialChaptersData.names));
     
     // ✅ แก้ไขการส่งไฟล์เอกสารหลัก - ใช้ File object โดยตรง
     console.log('📄 [AM] Processing required documents...');
@@ -220,7 +265,8 @@ export const submitAMMembershipForm = async (formData) => {
           throw new Error(result.error || result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
         }
         
-        if (result.success) {
+        // Check if API returned success (explicitly or implicitly via HTTP status)
+        if (result.success || (response.ok && response.status === 201)) {
           console.log('🎉 [AM] Form submission successful!');
           
           // Redirect to documents page after successful submission
@@ -233,6 +279,14 @@ export const submitAMMembershipForm = async (formData) => {
             message: 'ส่งข้อมูลสมัครสมาชิก AM สำเร็จ',
             data: result,
             redirectUrl: '/dashboard?tab=documents'
+          };
+        } else {
+          // API call was successful but success condition not met
+          console.error('❌ [AM] API returned unsuccessful response:', result);
+          return {
+            success: false,
+            message: result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล',
+            data: result
           };
         }
         

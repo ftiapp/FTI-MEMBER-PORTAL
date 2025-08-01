@@ -53,12 +53,27 @@ export default function IndustrialGroupInfo({
   }, []);
 
   const handleIndustrialGroupChange = (selectedIds) => {
-    setFormData(prev => ({ ...prev, industrialGroups: selectedIds }));
+    // ส่งทั้ง IDs และ Names
+    const selectedGroups = industrialGroups.filter(group => selectedIds.includes(group.id));
+    const selectedNames = selectedGroups.map(group => group.name_th);
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      industrialGroups: selectedIds,
+      industrialGroupNames: selectedNames
+    }));
   };
   
   const handleProvincialCouncilChange = (selectedIds) => {
-    // ✅ เปลี่ยนจาก provincialCouncils เป็น provincialChapters เพื่อให้ตรงกับ Backend
-    setFormData(prev => ({ ...prev, provincialChapters: selectedIds }));
+    // ส่งทั้ง IDs และ Names
+    const selectedCouncils = provincialCouncils.filter(council => selectedIds.includes(council.id));
+    const selectedNames = selectedCouncils.map(council => council.name_th);
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      provincialChapters: selectedIds,
+      provincialChapterNames: selectedNames
+    }));
   };
 
   return (

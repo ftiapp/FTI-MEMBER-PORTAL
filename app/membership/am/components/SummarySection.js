@@ -53,23 +53,40 @@ const ListCard = ({ title, items }) => {
   );
 };
 
-// Representative card (เหมือน AC)
+// Representative card - ปรับแก้ให้รองรับ field names ที่ถูกต้อง
 const RepresentativeCard = ({ representative, index }) => (
   <div className="bg-white border border-gray-200 rounded-lg p-4">
     <div className="mb-2">
       <h4 className="text-sm font-medium text-gray-700">ผู้แทนสมาคมคนที่ {index + 1}</h4>
+      {representative?.isPrimary && (
+        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
+          ผู้แทนหลัก
+        </span>
+      )}
     </div>
     
     {representative ? (
       <div className="space-y-2">
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-          <p className="text-sm">{representative.firstNameThai} {representative.lastNameThai}</p>
+          <p className="text-sm">
+            {/* รองรับทั้ง field names เก่าและใหม่ */}
+            {representative.firstNameTh || representative.firstNameThai || ''} {representative.lastNameTh || representative.lastNameThai || ''}
+          </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-          <p className="text-sm">{representative.firstNameEng} {representative.lastNameEng}</p>
+          <p className="text-sm">
+            {/* รองรับทั้ง field names เก่าและใหม่ */}
+            {representative.firstNameEn || representative.firstNameEng || representative.firstNameEnglish || ''} {representative.lastNameEn || representative.lastNameEng || representative.lastNameEnglish || ''}
+          </p>
         </div>
+        {representative.position && (
+          <div>
+            <p className="text-xs text-gray-500">ตำแหน่ง</p>
+            <p className="text-sm">{representative.position}</p>
+          </div>
+        )}
         <div>
           <p className="text-xs text-gray-500">อีเมล</p>
           <p className="text-sm">{representative.email || '-'}</p>
@@ -181,6 +198,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="ชื่อสมาคม (ไทย)" value={formData.associationName} />
           <InfoCard title="ชื่อสมาคม (อังกฤษ)" value={formData.associationNameEng} />
+          <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.taxId} />
           <InfoCard title="เลขทะเบียนสมาคม" value={formData.associationRegistrationNumber} />
           <InfoCard title="อีเมลสมาคม" value={formData.associationEmail} />
           <InfoCard title="เบอร์โทรศัพท์สมาคม" value={formData.associationPhone} />
@@ -193,7 +211,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
           <InfoCard title="เลขที่" value={formData.addressNumber} />
           <InfoCard title="หมู่" value={formData.moo} />
           <InfoCard title="ซอย" value={formData.soi} />
-          <InfoCard title="ถนน" value={formData.road} />
+          <InfoCard title="ถนน" value={formData.road || formData.street} />
           <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
           <InfoCard title="อำเภอ/เขต" value={formData.district} />
           <InfoCard title="จังหวัด" value={formData.province} />
@@ -203,10 +221,10 @@ export default function SummarySection({ formData, industrialGroups, provincialC
 
       {/* ข้อมูลผู้แทนสมาคม */}
       <Section title="ข้อมูลผู้แทนสมาคม" className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {representatives.length > 0 ? (
             representatives.map((rep, index) => (
-              <RepresentativeCard key={index} representative={rep} index={index} />
+              <RepresentativeCard key={rep.id || index} representative={rep} index={index} />
             ))
           ) : (
             <p className="text-sm text-gray-500 col-span-3">ไม่มีข้อมูลผู้แทน</p>

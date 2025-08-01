@@ -236,13 +236,28 @@ export default function SummarySection({ formData, industrialGroups = [], provin
   
   // ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัด
   const getSelectedProvincialChapters = () => {
-    // แสดงข้อมูลสภาอุตสาหกรรมจังหวัดจาก API โดยตรง
+    // ลองใช้ข้อมูลจาก formData ก่อน
+    if (formData.provinceChapters && formData.provinceChapters.length > 0) {
+      return formData.provinceChapters.map(chapter => {
+        // กรณีที่เป็น object มีชื่ออยู่แล้ว
+        if (typeof chapter === 'object' && (chapter.name_th || chapter.name)) {
+          return chapter.name_th || chapter.name;
+        }
+        // กรณีที่เป็น string
+        if (typeof chapter === 'string') {
+          return chapter;
+        }
+        return chapter;
+      });
+    }
+    
+    // ถ้าไม่มีใน formData ให้ใช้จาก props provincialChapters
     if (!provincialChapters || provincialChapters.length === 0) {
       return [];
     }
     
-    // แสดงชื่อสภาอุตสาหกรรมจังหวัดทั้งหมดจาก API
-    return provincialChapters.slice(0, 2).map(chapter => chapter.name_th);
+    // แสดงชื่อสภาอุตสาหกรรมจังหวัดทั้งหมดจาก props
+    return provincialChapters.map(chapter => chapter.name_th || chapter.name || chapter);
   };
 
   // เตรียมข้อมูลผู้แทนสำหรับแสดงผล

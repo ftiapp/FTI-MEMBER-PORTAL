@@ -49,36 +49,68 @@ export default function IndustrialGroupInfo({
     fetchData();
   }, []);
 
-  // เพิ่ม debug logs ใน IndustrialGroupInfo.js
+  // แก้ไขให้ส่งข้อมูลเป็น object ที่มีทั้ง id และ name_th
   const handleIndustrialGroupChange = (selectedIds) => {
-    console.log('🏭 Industrial Groups changed:', selectedIds);
-    console.log('🏭 Type:', typeof selectedIds, 'Is Array:', Array.isArray(selectedIds));
+    console.log('Selected industrial group IDs:', selectedIds);
     
-    setFormData(prev => {
-      const newData = { ...prev, industrialGroups: selectedIds };
-      console.log('🏭 Updated formData.industrialGroups:', newData.industrialGroups);
-      return newData;
+    // Convert selected IDs to array of objects with id and name_th
+    const selectedGroups = selectedIds.map(id => {
+      const group = industrialGroups.find(g => String(g.id) === String(id));
+      return {
+        id,
+        name_th: group ? group.name_th : id,
+        text: group ? group.name_th : id
+      };
     });
+    
+    console.log('Selected industrial group objects:', selectedGroups);
+    
+    // Extract names for compatibility with other parts of the code
+    const names = selectedGroups.map(group => group.name_th || group.text);
+    
+    // Update form data with selected groups and names
+    setFormData(prev => ({
+      ...prev,
+      industrialGroups: selectedIds,
+      industrialGroupNames: names // Store names directly in formData
+    }));
   };
 
   const handleProvincialCouncilChange = (selectedIds) => {
-    console.log('🏛️ Provincial Councils changed:', selectedIds);
-    console.log('🏛️ Type:', typeof selectedIds, 'Is Array:', Array.isArray(selectedIds));
+    console.log('Selected provincial council IDs:', selectedIds);
     
-    setFormData(prev => {
-      const newData = { ...prev, provincialCouncils: selectedIds };
-      console.log('🏛️ Updated formData.provincialCouncils:', newData.provincialCouncils);
-      return newData;
+    // Convert selected IDs to array of objects with id and name_th
+    const selectedCouncils = selectedIds.map(id => {
+      const council = provincialCouncils.find(c => String(c.id) === String(id));
+      return {
+        id,
+        name_th: council ? council.name_th : id,
+        text: council ? council.name_th : id
+      };
     });
+    
+    console.log('Selected provincial council objects:', selectedCouncils);
+    
+    // Extract names for compatibility with other parts of the code
+    const names = selectedCouncils.map(council => council.name_th || council.text);
+    
+    // Update form data with selected councils and names
+    setFormData(prev => ({
+      ...prev,
+      provincialCouncils: selectedIds,
+      provincialChapterNames: names // Store names directly in formData
+    }));
   };
 
   // เพิ่ม useEffect เพื่อ debug ข้อมูลทั้งหมด
   useEffect(() => {
     console.log('📊 Current formData:', {
       industrialGroups: formData.industrialGroups,
-      provincialCouncils: formData.provincialCouncils
+      industrialGroupNames: formData.industrialGroupNames,
+      provincialCouncils: formData.provincialCouncils,
+      provincialChapterNames: formData.provincialChapterNames
     });
-  }, [formData.industrialGroups, formData.provincialCouncils]);
+  }, [formData.industrialGroups, formData.provincialCouncils, formData.industrialGroupNames, formData.provincialChapterNames]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">

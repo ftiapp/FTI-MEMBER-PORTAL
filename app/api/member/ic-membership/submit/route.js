@@ -225,8 +225,8 @@ export async function POST(request) {
       // ไม่มีข้อมูล province chapters ส่งมา
       await executeQuery(
         trx,
-        `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?)`,
-        [icMemberId, '000']
+        `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?)`,
+        [icMemberId, '000', 'ไม่ระบุ']
       );
       console.log('No province chapters data, saved default: 000');
     }
@@ -234,28 +234,33 @@ export async function POST(request) {
     // ✅ FIX: แก้ไขการบันทึก industry groups ให้ตรงกับ field ที่ส่งมา
     console.log('=== Processing Industry Groups ===');
     console.log('Raw industryGroups data:', data.industryGroups);
+    console.log('Raw industryGroupNames data:', data.industryGroupNames);
     
     if (data.industryGroups) {
       try {
         const industryGroups = JSON.parse(data.industryGroups) || [];
+        const industryGroupNames = data.industryGroupNames ? JSON.parse(data.industryGroupNames) : [];
         console.log('Parsed industry groups:', industryGroups);
+        console.log('Parsed industry group names:', industryGroupNames);
         
         if (industryGroups.length === 0) {
           await executeQuery(
             trx,
-            `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?)`,
-            [icMemberId, '000']
+            `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?)`,
+            [icMemberId, '000', 'ไม่ระบุ']
           );
           console.log('Saved default industry group: 000');
         } else {
-          for (const groupId of industryGroups) {
+          for (let i = 0; i < industryGroups.length; i++) {
+            const groupId = industryGroups[i];
+            const groupName = industryGroupNames[i] || 'ไม่ระบุ';
             if (groupId) {
               await executeQuery(
                 trx,
-                `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?)`,
-                [icMemberId, groupId.toString()]
+                `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?)`,
+                [icMemberId, groupId.toString(), groupName]
               );
-              console.log('Saved industry group:', groupId);
+              console.log('Saved industry group:', groupId, 'Name:', groupName);
             }
           }
         }
@@ -267,8 +272,8 @@ export async function POST(request) {
       // ไม่มีข้อมูล industry groups ส่งมา
       await executeQuery(
         trx,
-        `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?)`,
-        [icMemberId, '000']
+        `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?)`,
+        [icMemberId, '000', 'ไม่ระบุ']
       );
       console.log('No industry groups data, saved default: 000');
     }
@@ -276,7 +281,6 @@ export async function POST(request) {
     // ✅ Phase 2: Handle Document Uploads - Move Cloudinary upload to backend like OC
     console.log('=== Processing document uploads ===');
     const uploadedDocuments = {};
-
     // Process ID Card Document
     if (files.idCardDocument) {
       try {

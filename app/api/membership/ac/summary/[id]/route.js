@@ -28,7 +28,6 @@ export async function GET(request, { params }) {
       [id]
     );
     
-    // The query returns an array of rows directly
     const acData = mainQuery?.[0];
 
     if (!acData || !acData.id) {
@@ -83,14 +82,14 @@ export async function GET(request, { params }) {
     );
     const productsRows = productsQuery || [];
 
-    // Fetch industry groups
+    // Fetch industry groups - ใช้ข้อมูลจากตารางโดยตรง
     const industryGroupsQuery = await query(
       'SELECT * FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?',
       [id]
     );
     const industryGroupsRows = industryGroupsQuery || [];
 
-    // Fetch province chapters
+    // Fetch province chapters - ใช้ข้อมูลจากตารางโดยตรง
     const provinceChaptersQuery = await query(
       'SELECT * FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?',
       [id]
@@ -111,55 +110,17 @@ export async function GET(request, { params }) {
       details: bt.business_type === 'other' && businessTypeOther ? businessTypeOther.detail : null
     })) : [];
 
-    // Fetch industry group names from external API
-    let industryGroupsWithNames = [];
-    if (industryGroupsRows.length > 0) {
-      try {
-        const industrialGroupsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/industrial-groups?limit=1000`);
-        if (industrialGroupsResponse.ok) {
-          const industrialGroupsData = await industrialGroupsResponse.json();
-          
-          industryGroupsWithNames = industryGroupsRows.map(ig => {
-            const groupData = industrialGroupsData.data?.find(g => g.MEMBER_GROUP_CODE == ig.industry_group_id);
-            return {
-              id: ig.industry_group_id,
-              industryGroupName: groupData ? groupData.MEMBER_GROUP_NAME : ig.industry_group_id
-            };
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching industrial groups:', error);
-        industryGroupsWithNames = industryGroupsRows.map(ig => ({
-          id: ig.industry_group_id,
-          industryGroupName: ig.industry_group_id
-        }));
-      }
-    }
+    // Process industry groups - ใช้ industry_group_name จากตารางโดยตรง
+    const industryGroupsWithNames = industryGroupsRows.map(ig => ({
+      id: ig.industry_group_id,
+      industryGroupName: ig.industry_group_name || ig.industry_group_id
+    }));
 
-    // Fetch province chapter names from external API
-    let provinceChaptersWithNames = [];
-    if (provinceChaptersRows.length > 0) {
-      try {
-        const provinceChaptersResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/member/ac-membership/province-chapters?limit=1000`);
-        if (provinceChaptersResponse.ok) {
-          const provinceChaptersData = await provinceChaptersResponse.json();
-          
-          provinceChaptersWithNames = provinceChaptersRows.map(pc => {
-            const chapterData = provinceChaptersData.data?.find(c => c.PROVINCE_CODE == pc.province_chapter_id);
-            return {
-              id: pc.province_chapter_id,
-              provinceChapterName: chapterData ? chapterData.PROVINCE_NAME : pc.province_chapter_id
-            };
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching province chapters:', error);
-        provinceChaptersWithNames = provinceChaptersRows.map(pc => ({
-          id: pc.province_chapter_id,
-          provinceChapterName: pc.province_chapter_id
-        }));
-      }
-    }
+    // Process province chapters - ใช้ province_chapter_name จากตารางโดยตรง (หากมี)
+    const provinceChaptersWithNames = provinceChaptersRows.map(pc => ({
+      id: pc.province_chapter_id,
+      provinceChapterName: pc.province_chapter_name || pc.province_chapter_id
+    }));
 
     // Transform data to match the format expected by the frontend
     const transformedData = {
@@ -223,8 +184,19 @@ export async function GET(request, { params }) {
         nameEn: product.name_en
       })),
       
-      // Industry Groups - transform to array of IDs for frontend
-      industrialGroups: industryGroupsRows.map(ig => ig.industry_group_id),
+      // Industry Groups - ใช้ข้อมูลจากตารางโดยตรง
+      industrialGroups: industryGroupsRows.map(ig => ({
+        id: ig.industry_group_id,
+        name_th: ig.industry_group_name,
+        name: ig.industry_group_name
+      })),
+      
+      // Province Chapters - ใช้ข้อมูลจากตารางโดยตรง
+      provinceChapters: provinceChaptersWithNames.map(pc => ({
+        id: pc.id,
+        name_th: pc.provinceChapterName,
+        name: pc.provinceChapterName
+      })),
       
       // Documents - use cloudinary_url for file preview
       companyRegistration: documentsRows.find(doc => doc.document_type === 'companyRegistration') ? {

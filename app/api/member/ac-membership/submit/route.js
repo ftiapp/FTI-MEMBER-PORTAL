@@ -273,50 +273,61 @@ if (data.representatives) {
     // Step 9: Insert Industry Groups
     console.log('🏭 [AC] Inserting industry groups...');
     console.log('🔍 [AC] Raw industrialGroups data:', data.industrialGroups);
+    console.log('🔍 [AC] Raw industrialGroupNames data:', data.industrialGroupNames);
+    
     const industrialGroups = parseAndEnsureArray(data.industrialGroups, 'industrialGroups');
+    const industrialGroupNames = parseAndEnsureArray(data.industrialGroupNames, 'industrialGroupNames');
 
     if (industrialGroups.length > 0) {
-      for (const groupId of industrialGroups) {
-        console.log(`💾 [AC] Inserting industrial group ID: ${groupId}`);
+      for (let i = 0; i < industrialGroups.length; i++) {
+        const groupId = industrialGroups[i];
+        const groupName = industrialGroupNames[i] || 'ไม่ระบุ';
+        console.log(`💾 [AC] Inserting industrial group ID: ${groupId}, Name: ${groupName}`);
         await executeQuery(trx, 
-          `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-          [mainId, groupId]
+          `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`, 
+          [mainId, groupId, groupName]
         );
       }
-      console.log(`✅ [AC] Inserted ${industrialGroups.length} industry groups:`, industrialGroups);
+      console.log(`✅ [AC] Inserted ${industrialGroups.length} industry groups with names`);
     } else {
       console.log('⚠️ [AC] No industrial groups selected, inserting default');
       await executeQuery(trx, 
-        `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-        [mainId, '000']
+        `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`, 
+        [mainId, '000', 'ไม่ระบุ']
       );
     }
 
-    // Step 10: Insert Province Chapters (แก้ไขตรงนี้)
+    // Step 10: Insert Province Chapters
     console.log('🌍 [AC] Inserting provincial chapters...');
     
     // ✅ รองรับทั้ง provincialCouncils และ provincialChapters
     let provincialData = data.provincialChapters || data.provincialCouncils;
+    let provincialNamesData = data.provincialChapterNames || data.provincialCouncilNames;
+    
     console.log('🔍 [AC] Raw provincial data (provincialChapters):', data.provincialChapters);
     console.log('🔍 [AC] Raw provincial data (provincialCouncils):', data.provincialCouncils);
+    console.log('🔍 [AC] Raw provincial names data:', provincialNamesData);
     console.log('🔍 [AC] Final provincial data used:', provincialData);
     
     const provincialChapters = parseAndEnsureArray(provincialData, 'provincialChapters');
+    const provincialChapterNames = parseAndEnsureArray(provincialNamesData, 'provincialChapterNames');
     
     if (provincialChapters.length > 0) {
-      for (const chapterId of provincialChapters) {
-        console.log(`💾 [AC] Inserting provincial chapter ID: ${chapterId}`);
+      for (let i = 0; i < provincialChapters.length; i++) {
+        const chapterId = provincialChapters[i];
+        const chapterName = provincialChapterNames[i] || 'ไม่ระบุ';
+        console.log(`💾 [AC] Inserting provincial chapter ID: ${chapterId}, Name: ${chapterName}`);
         await executeQuery(trx, 
-          `INSERT INTO MemberRegist_AC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
-          [mainId, chapterId]
+          `INSERT INTO MemberRegist_AC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`, 
+          [mainId, chapterId, chapterName]
         );
       }
-      console.log(`✅ [AC] Inserted ${provincialChapters.length} provincial chapters:`, provincialChapters);
+      console.log(`✅ [AC] Inserted ${provincialChapters.length} provincial chapters with names`);
     } else {
       console.log('⚠️ [AC] No provincial chapters selected, inserting default');
       await executeQuery(trx, 
-        `INSERT INTO MemberRegist_AC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
-        [mainId, '000']
+        `INSERT INTO MemberRegist_AC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`, 
+        [mainId, '000', 'ไม่ระบุ']
       );
     }
 

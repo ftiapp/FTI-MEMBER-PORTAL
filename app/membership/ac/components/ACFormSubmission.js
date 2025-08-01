@@ -83,6 +83,25 @@ export const submitACMembershipForm = async (data) => {
         formDataToSend.append(key, value);
       }
     };
+    
+    // ✅ ตรวจสอบและเตรียมข้อมูลกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด
+    console.log('=== Processing Industry Groups and Provincial Chapters ===');
+    
+    // ตรวจสอบว่ามีข้อมูลชื่อกลุ่มอุตสาหกรรมหรือไม่
+    if (mappedData.industrialGroups && Array.isArray(mappedData.industrialGroups) && 
+        (!mappedData.industrialGroupNames || !Array.isArray(mappedData.industrialGroupNames) || 
+         mappedData.industrialGroupNames.length !== mappedData.industrialGroups.length)) {
+      console.log('Setting industrialGroupNames as fallback from IDs');
+      mappedData.industrialGroupNames = mappedData.industrialGroups.map(id => id.toString());
+    }
+    
+    // ตรวจสอบว่ามีข้อมูลชื่อสภาอุตสาหกรรมจังหวัดหรือไม่
+    if (mappedData.provincialChapters && Array.isArray(mappedData.provincialChapters) && 
+        (!mappedData.provincialChapterNames || !Array.isArray(mappedData.provincialChapterNames) || 
+         mappedData.provincialChapterNames.length !== mappedData.provincialChapters.length)) {
+      console.log('Setting provincialChapterNames as fallback from IDs');
+      mappedData.provincialChapterNames = mappedData.provincialChapters.map(id => id.toString());
+    }
 
     for (const key in mappedData) {
       if (Object.prototype.hasOwnProperty.call(mappedData, key)) {

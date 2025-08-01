@@ -160,39 +160,61 @@ export async function POST(request) {
     }
 
     // Step 9: Insert Industry Groups
+    console.log('Inserting industry groups...');
+    console.log('Raw industrialGroupIds data:', data.industrialGroupIds);
+    console.log('Raw industrialGroupNames data:', data.industrialGroupNames);
+    
     const industrialGroupIds = parseAndEnsureArray(data.industrialGroupIds);
+    const industrialGroupNames = parseAndEnsureArray(data.industrialGroupNames);
+    
     if (industrialGroupIds.length > 0) {
-        for (const group of industrialGroupIds) {
+        for (let i = 0; i < industrialGroupIds.length; i++) {
+            const groupId = industrialGroupIds[i];
+            const groupName = industrialGroupNames[i] || 'ไม่ระบุ';
+            console.log(`Inserting industrial group ID: ${groupId}, Name: ${groupName}`);
             await executeQuery(trx, 
-              `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-              [mainId, group]
+              `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`, 
+              [mainId, groupId, groupName]
             );
         }
+        console.log(`Inserted ${industrialGroupIds.length} industry groups with names`);
     } else {
+        console.log('No industrial groups selected, inserting default');
         await executeQuery(trx, 
-          `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id) VALUES (?, ?);`, 
-          [mainId, '000']
+          `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`, 
+          [mainId, '000', 'ไม่ระบุ']
         );
     }
 
     // Step 10: Insert Province Chapters
+    console.log('Inserting provincial chapters...');
+    console.log('Raw provincialChapterIds data:', data.provincialChapterIds);
+    console.log('Raw provincialChapterNames data:', data.provincialChapterNames);
+    
     const provincialChapterIds = parseAndEnsureArray(data.provincialChapterIds);
+    const provincialChapterNames = parseAndEnsureArray(data.provincialChapterNames);
+    
     if (provincialChapterIds.length > 0) {
-        for (const chapter of provincialChapterIds) {
+        for (let i = 0; i < provincialChapterIds.length; i++) {
+            const chapterId = provincialChapterIds[i];
+            const chapterName = provincialChapterNames[i] || 'ไม่ระบุ';
+            console.log(`Inserting provincial chapter ID: ${chapterId}, Name: ${chapterName}`);
             await executeQuery(trx, 
-              `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
-              [mainId, chapter]
+              `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`, 
+              [mainId, chapterId, chapterName]
             );
         }
+        console.log(`Inserted ${provincialChapterIds.length} provincial chapters with names`);
     } else {
+        console.log('No provincial chapters selected, inserting default');
         await executeQuery(trx, 
-          `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?);`, 
-          [mainId, '000']
+          `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`, 
+          [mainId, '000', 'ไม่ระบุ']
         );
     }
 
-    // ✅ Step 11: Handle Document Uploads
-    console.log('📤 Processing document uploads...');
+    // Step 11: Handle Document Uploads
+    console.log('Processing document uploads...');
     const uploadedDocuments = {};
 
     // Part 1: Upload files to Cloudinary

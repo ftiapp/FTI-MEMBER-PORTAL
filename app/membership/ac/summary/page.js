@@ -324,13 +324,13 @@ export default function ACSummaryPage() {
             )}
             
             <div className="relative z-10 p-6 md:p-8">
-              {/* ใช้ SummarySection ของ AC */}
-              <SummarySection 
-                formData={applicationData}
-                industrialGroups={[]}
-                provincialChapters={[]}
-              />
-            </div>
+  {/* ใช้ SummarySection ของ AC */}
+  <SummarySection 
+    formData={applicationData}
+    industrialGroups={[]} // อาจต้องส่งข้อมูลจริงจาก API
+    provincialChapters={applicationData?.provinceChapters || []} // ⭐ เพิ่มบรรทัดนี้
+  />
+</div>
           </motion.div>
         </div>
       </main>

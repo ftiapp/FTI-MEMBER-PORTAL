@@ -143,8 +143,10 @@ export const submitICMembershipForm = async (formData) => {
     console.log('=== Processing Industry Groups ===');
     console.log('formData.industryGroups:', formData.industryGroups);
     console.log('formData.industrialGroupId:', formData.industrialGroupId);
+    console.log('formData.industrialGroupNames:', formData.industrialGroupNames);
     
     let industryGroupsToSend = [];
+    let industryGroupNamesToSend = [];
     
     // ลองหาข้อมูลจาก field ต่างๆ
     if (formData.industryGroups && Array.isArray(formData.industryGroups)) {
@@ -155,18 +157,33 @@ export const submitICMembershipForm = async (formData) => {
         : [formData.industrialGroupId];
     }
     
+    // ดึงข้อมูลชื่อกลุ่มอุตสาหกรรม
+    if (formData.industrialGroupNames && Array.isArray(formData.industrialGroupNames)) {
+      industryGroupNamesToSend = formData.industrialGroupNames;
+    }
+    
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
     industryGroupsToSend = industryGroupsToSend.filter(id => id && id.toString().trim());
     
+    // ตรวจสอบว่ามีจำนวน names เท่ากับ ids หรือไม่
+    // ถ้าไม่เท่ากัน ให้ใช้ ids เป็น fallback
+    if (industryGroupNamesToSend.length !== industryGroupsToSend.length) {
+      industryGroupNamesToSend = industryGroupsToSend.map(id => id.toString());
+    }
+    
     formDataToSubmit.append('industryGroups', JSON.stringify(industryGroupsToSend));
+    formDataToSubmit.append('industryGroupNames', JSON.stringify(industryGroupNamesToSend));
     console.log('Industry groups to submit:', industryGroupsToSend);
+    console.log('Industry group names to submit:', industryGroupNamesToSend);
     
     // ✅ FIX: แก้ไขการส่งข้อมูลสภาอุตสาหกรรมจังหวัด
     console.log('=== Processing Province Chapters ===');
     console.log('formData.provinceChapters:', formData.provinceChapters);
     console.log('formData.provincialChapterId:', formData.provincialChapterId);
+    console.log('formData.provincialChapterNames:', formData.provincialChapterNames);
     
     let provinceChaptersToSend = [];
+    let provinceChapterNamesToSend = [];
     
     // ลองหาข้อมูลจาก field ต่างๆ
     if (formData.provinceChapters && Array.isArray(formData.provinceChapters)) {
@@ -177,11 +194,26 @@ export const submitICMembershipForm = async (formData) => {
         : [formData.provincialChapterId];
     }
     
+    // ดึงข้อมูลชื่อสภาอุตสาหกรรมจังหวัด
+    if (formData.provincialChapterNames && Array.isArray(formData.provincialChapterNames)) {
+      provinceChapterNamesToSend = formData.provincialChapterNames;
+    } else if (formData.provincialCouncilNames && Array.isArray(formData.provincialCouncilNames)) {
+      provinceChapterNamesToSend = formData.provincialCouncilNames;
+    }
+    
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
     provinceChaptersToSend = provinceChaptersToSend.filter(id => id && id.toString().trim());
     
+    // ตรวจสอบว่ามีจำนวน names เท่ากับ ids หรือไม่
+    // ถ้าไม่เท่ากัน ให้ใช้ ids เป็น fallback
+    if (provinceChapterNamesToSend.length !== provinceChaptersToSend.length) {
+      provinceChapterNamesToSend = provinceChaptersToSend.map(id => id.toString());
+    }
+    
     formDataToSubmit.append('provinceChapters', JSON.stringify(provinceChaptersToSend));
+    formDataToSubmit.append('provinceChapterNames', JSON.stringify(provinceChapterNamesToSend));
     console.log('Province chapters to submit:', provinceChaptersToSend);
+    console.log('Province chapter names to submit:', provinceChapterNamesToSend);
     
     // ✅ Phase 3: Send files directly to backend - Remove frontend Cloudinary upload
     // Files are now handled by the backend API route like OC
