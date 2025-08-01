@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { generateMembershipPDF } from './PDFGenerator';
 
 const MembershipDetailView = ({ 
   application, 
@@ -17,87 +16,6 @@ const MembershipDetailView = ({
 }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  
-  const onConnectMemberCode = async () => {
-    if (!application || !application.id) return;
-    
-    setIsConnecting(true);
-    try {
-      await handleConnectMemberCode(application.id);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-  
-  const handleDownloadPDF = async () => {
-    if (!application) return;
-    
-    setIsGeneratingPDF(true);
-    try {
-      // Get the content div
-      const element = document.getElementById('membership-detail-content');
-      if (!element) {
-        console.error('Content element not found');
-        return;
-      }
-      
-      // Configure html2canvas options
-      const canvas = await html2canvas(element, {
-        scale: 2, // Higher quality
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight
-      });
-      
-      // Calculate PDF dimensions
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Create PDF
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      
-      // If content fits in one page
-      if (imgHeight <= pageHeight) {
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
-      } else {
-        // Multi-page handling
-        let heightLeft = imgHeight;
-        let position = 0;
-        
-        // Add first page
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-        
-        // Add additional pages
-        while (heightLeft >= 0) {
-          position = heightLeft - imgHeight;
-          pdf.addPage();
-          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
-          heightLeft -= pageHeight;
-        }
-      }
-      
-      // Generate filename
-      const memberType = type?.toUpperCase() || 'UNKNOWN';
-      const memberName = application.company_name_th || application.companyNameTh || 
-                        application.associationNameTh || 
-                        `${application.first_name_th || application.firstNameTh || ''} ${application.last_name_th || application.lastNameTh || ''}`.trim() || 
-                        'Unknown';
-      const filename = `${memberType}_${memberName.replace(/[^a-zA-Z0-9ก-๙\s]/g, '')}_${new Date().toISOString().split('T')[0]}.pdf`;
-      
-      // Download PDF
-      pdf.save(filename);
-      
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
   const [industrialGroups, setIndustrialGroups] = useState({});
   const [provincialChapters, setProvincialChapters] = useState({});
 
@@ -132,6 +50,31 @@ const MembershipDetailView = ({
 
     fetchGroupsData();
   }, []);
+  
+  const onConnectMemberCode = async () => {
+    if (!application || !application.id) return;
+    
+    setIsConnecting(true);
+    try {
+      await handleConnectMemberCode(application.id);
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+  
+  const handleDownloadPDF = async () => {
+    if (!application) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      await generateMembershipPDF(application, type, industrialGroups, provincialChapters);
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   if (!application) {
     return (
@@ -172,8 +115,8 @@ const MembershipDetailView = ({
           </button>
         </div>
         
-        {/* Content wrapper for PDF generation */}
-        <div id="membership-detail-content" className="space-y-8">
+        {/* Content wrapper */}
+        <div className="space-y-8">
         
         {/* ข้อมูลผู้สมัคร */}
         {(application.firstname || application.lastname || application.email || application.phone) && (
@@ -200,7 +143,6 @@ const MembershipDetailView = ({
                 <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
                 <p className="text-lg text-gray-900">{application.phone || '-'}</p>
               </div>
-              
             </div>
           </div>
         )}
@@ -559,7 +501,6 @@ const MembershipDetailView = ({
                 <h4 className="text-xl font-semibold mb-4 text-gray-800">ประเภทธุรกิจ</h4>
                 <div className="flex flex-wrap gap-3">
                   {Array.isArray(application.businessTypes) ? 
-                    // Handle array of business types (OC/IC)
                     application.businessTypes.map((businessType, index) => {
                       const getBusinessTypeName = (type) => {
                         const types = {
@@ -588,7 +529,6 @@ const MembershipDetailView = ({
                       );
                     })
                     : 
-                    // Handle object of business types (AM)
                     Object.entries(application.businessTypes).map(([key, value], index) => {
                       if (!value) return null;
                       
@@ -605,7 +545,6 @@ const MembershipDetailView = ({
                       };
 
                       if (key === 'other' && application.businessTypeOther) {
-                        // Handle different structures of businessTypeOther for AM type
                         const otherDetail = typeof application.businessTypeOther === 'string' 
                           ? application.businessTypeOther 
                           : application.businessTypeOther.detail || 
@@ -655,9 +594,9 @@ const MembershipDetailView = ({
           </div>
         )}
 
-        {/* เอกสารแนบ - Hidden in print */}
+        {/* เอกสารแนบ */}
         {application.documents && application.documents.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
             <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
               เอกสารแนบ
             </h3>
@@ -695,8 +634,8 @@ const MembershipDetailView = ({
           </div>
         )}
 
-        {/* การดำเนินการ - Hidden in print */}
-        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 print:hidden">
+        {/* การดำเนินการ */}
+        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8">
           <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
             การดำเนินการของผู้ดูแลระบบ
           </h3>
@@ -755,7 +694,6 @@ const MembershipDetailView = ({
             </div>
           )}
           
-          
           {/* Show Member Code if available */}
           {application.status === 1 && application.member_code && (
             <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
@@ -766,7 +704,7 @@ const MembershipDetailView = ({
           )}
         </div>
         
-        </div> {/* End of membership-detail-content wrapper */}
+        </div> {/* End of content wrapper */}
 
       </div>
     </div>
