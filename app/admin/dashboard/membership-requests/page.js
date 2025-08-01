@@ -246,6 +246,9 @@ export default function MembershipRequestsManagement() {
                         เลขบัตร/เลขภาษี
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
+                        ข้อมูลผู้สมัคร
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
                         วันที่สมัคร
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
@@ -285,6 +288,29 @@ export default function MembershipRequestsManagement() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-blue-800 font-mono">
                             {app.type === 'ic' ? app.idCard : app.taxId}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="max-w-xs">
+                            {app.firstname && app.lastname ? (
+                              <>
+                                <div className="font-medium text-blue-900">
+                                  {app.firstname} {app.lastname}
+                                </div>
+                                <div className="text-sm text-blue-600">
+                                  {app.email}
+                                </div>
+                                {app.phone && (
+                                  <div className="text-sm text-blue-500">
+                                    {app.phone}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="text-sm text-gray-500 italic">
+                                ไม่มีข้อมูลผู้สมัคร
+                              </div>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

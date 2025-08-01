@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 const MembershipDetailView = ({ 
   application, 
@@ -14,6 +16,7 @@ const MembershipDetailView = ({
   handleConnectMemberCode
 }) => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   
   const onConnectMemberCode = async () => {
     if (!application || !application.id) return;
@@ -23,6 +26,76 @@ const MembershipDetailView = ({
       await handleConnectMemberCode(application.id);
     } finally {
       setIsConnecting(false);
+    }
+  };
+  
+  const handleDownloadPDF = async () => {
+    if (!application) return;
+    
+    setIsGeneratingPDF(true);
+    try {
+      // Get the content div
+      const element = document.getElementById('membership-detail-content');
+      if (!element) {
+        console.error('Content element not found');
+        return;
+      }
+      
+      // Configure html2canvas options
+      const canvas = await html2canvas(element, {
+        scale: 2, // Higher quality
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight
+      });
+      
+      // Calculate PDF dimensions
+      const imgWidth = 210; // A4 width in mm
+      const pageHeight = 295; // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      // Create PDF
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      // If content fits in one page
+      if (imgHeight <= pageHeight) {
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+      } else {
+        // Multi-page handling
+        let heightLeft = imgHeight;
+        let position = 0;
+        
+        // Add first page
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        // Add additional pages
+        while (heightLeft >= 0) {
+          position = heightLeft - imgHeight;
+          pdf.addPage();
+          pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, position, imgWidth, imgHeight);
+          heightLeft -= pageHeight;
+        }
+      }
+      
+      // Generate filename
+      const memberType = type?.toUpperCase() || 'UNKNOWN';
+      const memberName = application.company_name_th || application.companyNameTh || 
+                        application.associationNameTh || 
+                        `${application.first_name_th || application.firstNameTh || ''} ${application.last_name_th || application.lastNameTh || ''}`.trim() || 
+                        'Unknown';
+      const filename = `${memberType}_${memberName.replace(/[^a-zA-Z0-9ก-๙\s]/g, '')}_${new Date().toISOString().split('T')[0]}.pdf`;
+      
+      // Download PDF
+      pdf.save(filename);
+      
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
   const [industrialGroups, setIndustrialGroups] = useState({});
@@ -72,18 +145,65 @@ const MembershipDetailView = ({
     <div className="min-h-screen bg-blue-50 p-6">
       <div className="max-w-6xl mx-auto">
         
-        {/* Print Button */}
+        {/* Download PDF Button */}
         <div className="flex justify-end mb-6">
           <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors print:hidden"
+            onClick={handleDownloadPDF}
+            disabled={isGeneratingPDF}
+            className={`flex items-center gap-2 px-6 py-3 text-white rounded-lg transition-colors ${
+              isGeneratingPDF 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            }`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            พิมพ์
+            {isGeneratingPDF ? (
+              <>
+                <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                กำลังสร้าง PDF...
+              </>
+            ) : (
+              <>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                ดาวน์โหลด PDF
+              </>
+            )}
           </button>
         </div>
+        
+        {/* Content wrapper for PDF generation */}
+        <div id="membership-detail-content" className="space-y-8">
+        
+        {/* ข้อมูลผู้สมัคร */}
+        {(application.firstname || application.lastname || application.email || application.phone) && (
+          <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+            <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+              ข้อมูลผู้สมัคร
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล</p>
+                <p className="text-lg text-gray-900">
+                  {(application.firstname || application.lastname) 
+                    ? `${application.firstname || ''} ${application.lastname || ''}`.trim() 
+                    : '-'
+                  }
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
+                <p className="text-lg text-gray-900">{application.email || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
+                <p className="text-lg text-gray-900">{application.phone || '-'}</p>
+              </div>
+              
+            </div>
+          </div>
+        )}
 
         {/* 1. ข้อมูลบริษัท/ผู้สมัคร */}
         <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
@@ -645,6 +765,8 @@ const MembershipDetailView = ({
             </div>
           )}
         </div>
+        
+        </div> {/* End of membership-detail-content wrapper */}
 
       </div>
     </div>

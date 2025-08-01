@@ -43,6 +43,17 @@ function convertFieldNames(data, type) {
     delete converted.admin_note_at;
   }
   
+  // User information fields (applicant data)
+  if (converted.user_email !== undefined) {
+    converted.email = converted.user_email;
+    delete converted.user_email;
+  }
+  if (converted.user_phone !== undefined) {
+    converted.phone = converted.user_phone;
+    delete converted.user_phone;
+  }
+  // Keep firstname and lastname as is since they're already in the correct format
+  
   // Type-specific conversions based on actual database schema
   switch (type) {
     case 'oc':
@@ -227,9 +238,14 @@ export async function GET(request, { params }) {
             a.postal_code,
             a.phone AS company_phone,
             a.email AS company_email,
-            a.website AS company_website
+            a.website AS company_website,
+            u.firstname,
+            u.lastname,
+            u.email AS user_email,
+            u.phone AS user_phone
           FROM MemberRegist_OC_Main m
           LEFT JOIN MemberRegist_OC_Address a ON m.id = a.main_id
+          LEFT JOIN users u ON m.user_id = u.id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -249,9 +265,14 @@ export async function GET(request, { params }) {
             a.postal_code,
             a.phone,
             a.email,
-            a.website
+            a.website,
+            u.firstname,
+            u.lastname,
+            u.email AS user_email,
+            u.phone AS user_phone
           FROM MemberRegist_AM_Main m
           LEFT JOIN MemberRegist_AM_Address a ON m.id = a.main_id
+          LEFT JOIN users u ON m.user_id = u.id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -271,9 +292,14 @@ export async function GET(request, { params }) {
             a.postal_code,
             a.phone AS company_phone,
             a.email AS company_email,
-            a.website AS company_website
+            a.website AS company_website,
+            u.firstname,
+            u.lastname,
+            u.email AS user_email,
+            u.phone AS user_phone
           FROM MemberRegist_AC_Main m
           LEFT JOIN MemberRegist_AC_Address a ON m.id = a.main_id
+          LEFT JOIN users u ON m.user_id = u.id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -293,9 +319,14 @@ export async function GET(request, { params }) {
             a.postal_code,
             a.phone,
             a.email,
-            a.website
+            a.website,
+            u.firstname,
+            u.lastname,
+            u.email AS user_email,
+            u.phone AS user_phone
           FROM MemberRegist_IC_Main i
           LEFT JOIN MemberRegist_IC_Address a ON i.id = a.main_id
+          LEFT JOIN users u ON i.user_id = u.id
           WHERE i.id = ?
         `;
         [result] = await connection.execute(query, [id]);

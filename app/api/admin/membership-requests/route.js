@@ -57,15 +57,21 @@ export async function GET(request) {
       // Helper function to add type-specific queries
       const addTypeQuery = (tableName, idField, nameThField, nameEnField, idTypeField, typeValue) => {
         let query = `SELECT 
-          id, 
+          ${tableName}.id, 
           '${typeValue}' as type, 
           ${nameThField} as companyNameTh, 
           ${nameEnField} as companyNameEn, 
           ${idTypeField} as taxId, 
           NULL as idCard, 
-          status, 
-          created_at as createdAt 
+          ${tableName}.status, 
+          ${tableName}.created_at as createdAt,
+          ${tableName}.user_id,
+          users.firstname,
+          users.lastname,
+          users.email,
+          users.phone
         FROM ${tableName} 
+        LEFT JOIN users ON ${tableName}.user_id = users.id
         WHERE 1=1`;
         
         let countQuery = `SELECT COUNT(*) as count FROM ${tableName} WHERE 1=1`;
@@ -75,7 +81,7 @@ export async function GET(request) {
         
         // Add status filter if specified
         if (statusValue !== null) {
-          query += ` AND status = ?`;
+          query += ` AND ${tableName}.status = ?`;
           countQuery += ` AND status = ?`;
           queryParams.push(statusValue);
           countQueryParams.push(statusValue);
@@ -101,15 +107,21 @@ export async function GET(request) {
       // Helper function to add IC type query (different structure)
       const addICTypeQuery = () => {
         let query = `SELECT 
-          id, 
+          MemberRegist_IC_Main.id, 
           'ic' as type, 
           CONCAT(first_name_th, ' ', last_name_th) as companyNameTh, 
           CONCAT(first_name_en, ' ', last_name_en) as companyNameEn, 
           NULL as taxId, 
           id_card_number as idCard, 
-          status, 
-          created_at as createdAt 
+          MemberRegist_IC_Main.status, 
+          MemberRegist_IC_Main.created_at as createdAt,
+          MemberRegist_IC_Main.user_id,
+          users.firstname,
+          users.lastname,
+          users.email,
+          users.phone
         FROM MemberRegist_IC_Main 
+        LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id
         WHERE 1=1`;
         
         let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main WHERE 1=1`;
@@ -119,8 +131,8 @@ export async function GET(request) {
         
         // Add status filter if specified
         if (statusValue !== null) {
-          query += ` AND status = ?`;
-          countQuery += ` AND status = ?`;
+          query += ` AND MemberRegist_IC_Main.status = ?`;
+          countQuery += ` AND MemberRegist_IC_Main.status = ?`;
           queryParams.push(statusValue);
           countQueryParams.push(statusValue);
         }
