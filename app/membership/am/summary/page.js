@@ -59,8 +59,14 @@ export default function AMSummaryPage() {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPDF = async () => {
+    try {
+      const { downloadMembershipPDF } = await import('@/app/membership/utils/pdfUtils');
+      await downloadMembershipPDF(applicationData, 'am');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
+    }
   };
 
   const handleClose = () => {
@@ -276,13 +282,13 @@ export default function AMSummaryPage() {
               </div>
               <div className="flex gap-3">
                 <button 
-                  onClick={handlePrint}
-                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 font-medium flex items-center gap-2"
+                  onClick={handleDownloadPDF}
+                  className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium flex items-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-4-4m4 4l4-4m-4 4V4a1 1 0 011-1h4a1 1 0 011 1v16a1 1 0 01-1 1H5a1 1 0 01-1-1V4a1 1 0 011-1h4a1 1 0 011 1v6z" />
                   </svg>
-                  พิมพ์
+                  ดาวน์โหลด PDF
                 </button>
                 <button 
                   onClick={handleClose}

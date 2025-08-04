@@ -27,7 +27,7 @@ export default function Dashboard() {
   
   // Create refs for menu items
   const menuRefs = {
-    'ติดต่อเรา': useRef(null),
+    'ติดต่อเรา/แจ้งปัญหาการใช้งาน': useRef(null),
     'ข้อมูลสมาชิก': useRef(null)
   };
 
@@ -98,7 +98,7 @@ export default function Dashboard() {
       ),
     },
     {
-      name: 'ติดต่อเรา',
+      name: 'ติดต่อเรา / แจ้งปัญหาการใช้งาน',
       tab: 'contact',
       icon: (
         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -117,7 +117,7 @@ export default function Dashboard() {
     'documents': 'เอกสารสมัครสมาชิก',
     'certificate': 'เอกสารยืนยันสมาชิก',
     'status': 'สถานะการดำเนินการ',
-    'contact': 'ติดต่อเรา'
+    'contact': 'ติดต่อเรา / แจ้งปัญหาการใช้งาน'
   };
   
   // Handle responsive design
@@ -199,7 +199,7 @@ export default function Dashboard() {
       'เอกสารสมัครสมาชิก': <MembershipDocuments />,
       'เอกสารยืนยันสมาชิก': <MembershipCertificate />,
       'สถานะการดำเนินการ': <CheckStatusOperation />,
-      'ติดต่อเรา': (() => {
+      'ติดต่อเรา / แจ้งปัญหาการใช้งาน': (() => {
         const searchParams = new URLSearchParams(window.location.search);
         const messageId = searchParams.get('messageId');
         return <ContactUs messageId={messageId} />;
