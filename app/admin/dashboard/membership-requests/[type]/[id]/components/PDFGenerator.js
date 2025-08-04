@@ -5,12 +5,12 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
   try {
     const getTitleByType = (type) => {
       const titleMap = {
-        'ic': 'ข้อมูลสมาชิกบุคคล',
-        'oc': 'ข้อมูลสมาชิกนิติบุคคลสามัญ',
-        'ac': 'ข้อมูลสมาชิกนิติบุคคลสมทบ',
-        'am': 'ข้อมูลสมาชิกสมาคม'
+        'ic': 'เอกสารสมัครสมาชิก สมทบ-บุคคลธรรมดา (ทบ)',
+        'oc': 'เอกสารสมัครสมาชิก สามัญ-โรงงาน (สน)',
+        'ac': 'เอกสารสมัครสมาชิก สมทบ-นิติบุคคล (ทน)',
+        'am': 'เอกสารสมัครสมาชิก สามัญ-สมาคมการค้า (สส)'
       };
-      return titleMap[type] || 'ข้อมูลสมาชิk';
+      return titleMap[type] || 'ข้อมูลสมาชิก';
     };
 
     const formatThaiDate = (date) => {
@@ -67,7 +67,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         <style>
           @page {
             size: A4;
-            margin: 12mm;
+            margin: 10mm;
           }
           
           * {
@@ -76,8 +76,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           
           body { 
             font-family: 'Sarabun', 'Tahoma', sans-serif;
-            font-size: 10px;
-            line-height: 1.4;
+            font-size: 12px;
+            line-height: 1.3;
             margin: 0;
             padding: 0;
             color: #2d3748;
@@ -92,19 +92,19 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           
           .header { 
             text-align: center; 
-            font-size: 16px; 
+            font-size: 14px; 
             font-weight: 700; 
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             color: #1a365d;
-            border-bottom: 2px solid #3182ce;
-            padding-bottom: 8px;
+            border-bottom: 1px solid #3182ce;
+            padding-bottom: 6px;
           }
           
           .date-info {
             text-align: center;
             font-size: 9px;
             color: #718096;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
           }
           
           .content {
@@ -113,67 +113,67 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           
           .section { 
             border: 1px solid #e2e8f0;
-            border-radius: 4px;
-            padding: 8px;
-            margin-bottom: 8px;
+            border-radius: 3px;
+            padding: 6px;
+            margin-bottom: 5px;
             break-inside: avoid;
             page-break-inside: avoid;
           }
           
           .section-title { 
-            font-size: 11px; 
+            font-size: 10px; 
             font-weight: 600; 
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             color: #2d3748;
             background: #f7fafc;
-            padding: 4px 6px;
-            border-left: 3px solid #3182ce;
+            padding: 2px 4px;
+            border-left: 2px solid #3182ce;
             border-radius: 2px;
           }
           
           .two-columns {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 6px;
+            gap: 6px;
+            margin-bottom: 4px;
           }
           
           .three-columns {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
-            gap: 6px;
-            margin-bottom: 6px;
+            gap: 4px;
+            margin-bottom: 4px;
           }
           
           .row { 
             display: flex; 
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             align-items: flex-start;
           }
           
           .label { 
             font-weight: 600; 
-            width: 85px;
+            width: 80px;
             color: #4a5568;
-            font-size: 9px;
+            font-size: 11px;
             flex-shrink: 0;
-            margin-right: 6px;
+            margin-right: 4px;
           }
           
           .value { 
             flex: 1; 
             color: #2d3748;
-            font-size: 9px;
+            font-size: 11px;
             word-break: break-word;
             font-weight: 400;
           }
           
           .list-item {
-            font-size: 8px;
+            font-size: 10px;
             margin: 1px 0;
-            padding-left: 8px;
+            padding-left: 6px;
             position: relative;
-            line-height: 1.3;
+            line-height: 1.2;
           }
           
           .list-item:before {
@@ -185,26 +185,26 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           
           .rep-section, .contact-section {
             background: #f8fafc;
-            padding: 6px;
-            margin-bottom: 4px;
-            border-radius: 3px;
+            padding: 4px;
+            margin-bottom: 3px;
+            border-radius: 2px;
             border-left: 2px solid #3182ce;
           }
           
           .rep-title, .contact-title {
             font-weight: 600;
-            font-size: 9px;
+            font-size: 10px;
             color: #2b6cb0;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
           }
           
           .business-type-item {
             display: inline-block;
             background: #ebf8ff;
             color: #2b6cb0;
-            padding: 2px 4px;
+            padding: 1px 3px;
             border-radius: 2px;
-            font-size: 8px;
+            font-size: 10px;
             margin: 1px 2px 1px 0;
             border: 1px solid #bee3f8;
           }
@@ -212,40 +212,40 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           .product-item {
             background: #f0fff4;
             border: 1px solid #c6f6d5;
-            padding: 4px;
-            margin-bottom: 3px;
+            padding: 3px;
+            margin-bottom: 2px;
             border-radius: 2px;
           }
           
           .document-item {
             background: #fffaf0;
             border: 1px solid #fed7aa;
-            padding: 4px;
+            padding: 3px;
             margin-bottom: 2px;
             border-radius: 2px;
-            font-size: 8px;
+            font-size: 10px;
           }
           
           .footer {
             text-align: center;
             font-size: 8px;
             color: #a0aec0;
-            margin-top: 12px;
-            padding-top: 6px;
+            margin-top: 8px;
+            padding-top: 4px;
             border-top: 1px solid #e2e8f0;
           }
           
           .address-grid {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr 1fr;
-            gap: 4px;
-            margin-bottom: 4px;
+            gap: 3px;
+            margin-bottom: 3px;
           }
           
           .compact-row {
             display: grid;
-            grid-template-columns: 80px 1fr;
-            gap: 4px;
+            grid-template-columns: 75px 1fr;
+            gap: 3px;
             margin-bottom: 2px;
             align-items: start;
           }
@@ -287,32 +287,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           
           <div class="content">
             
-            <!-- สถานะการสมัคร -->
-            ${application.status !== undefined ? `
-              <div class="section">
-                <div class="section-title">สถานะการสมัคร</div>
-                <div class="row">
-                  <div class="label">สถานะ:</div>
-                  <div class="value">
-                    <span class="status-badge ${
-                      application.status === 1 ? 'status-approved' : 
-                      application.status === 0 ? 'status-pending' : 'status-rejected'
-                    }">
-                      ${application.status === 1 ? 'อนุมัติแล้ว' : 
-                        application.status === 0 ? 'รอการอนุมัติ' : 'ปฏิเสธ'}
-                    </span>
-                    ${application.member_code ? `| รหัสสมาชิก: ${application.member_code}` : ''}
-                  </div>
-                </div>
-                ${application.adminNote ? `
-                  <div class="row">
-                    <div class="label">หมายเหตุ:</div>
-                    <div class="value">${application.adminNote}</div>
-                  </div>
-                ` : ''}
-              </div>
-            ` : ''}
-
+         
             <!-- ข้อมูลหลัก -->
             <div class="section">
               <div class="section-title">${type === 'ic' ? 'ข้อมูลผู้สมัคร' : 'ข้อมูลบริษัท/องค์กร'}</div>
@@ -464,14 +439,14 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                   <!-- กลุ่มอุตสาหกรรม -->
                   <div>
                     ${application.industrialGroupIds && application.industrialGroupIds.length > 0 ? `
-                      <div style="font-weight: 600; font-size: 9px; color: #2b6cb0; margin-bottom: 3px;">
+                      <div style="font-weight: 600; font-size: 9px; color: #2b6cb0; margin-bottom: 2px;">
                         กลุ่มอุตสาหกรรม:
                       </div>
                       ${application.industrialGroupIds.map(group => `
                         <div class="list-item">${industrialGroups[group.id || group] || `รหัส: ${group.id || group}`}</div>
                       `).join('')}
                     ` : `
-                      <div style="font-weight: 600; font-size: 9px; color: #718096; margin-bottom: 3px;">
+                      <div style="font-weight: 600; font-size: 9px; color: #718096; margin-bottom: 2px;">
                         กลุ่มอุตสาหกรรม: -
                       </div>
                     `}
@@ -480,14 +455,14 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                   <!-- สภาอุตสาหกรรมจังหวัด -->
                   <div>
                     ${application.provincialChapterIds && application.provincialChapterIds.length > 0 ? `
-                      <div style="font-weight: 600; font-size: 9px; color: #2b6cb0; margin-bottom: 3px;">
+                      <div style="font-weight: 600; font-size: 10px; color: #2b6cb0; margin-bottom: 2px;">
                         สภาอุตสาหกรรมจังหวัด:
                       </div>
                       ${application.provincialChapterIds.map(chapter => `
                         <div class="list-item">${provincialChapters[chapter.id || chapter] || `รหัส: ${chapter.id || chapter}`}</div>
                       `).join('')}
                     ` : `
-                      <div style="font-weight: 600; font-size: 9px; color: #718096; margin-bottom: 3px;">
+                      <div style="font-weight: 600; font-size: 10px; color: #718096; margin-bottom: 2px;">
                         สภาอุตสาหกรรมจังหวัด: -
                       </div>
                     `}
@@ -500,38 +475,67 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             ${application.representatives && application.representatives.length > 0 ? `
               <div class="section">
                 <div class="section-title">ข้อมูลผู้แทน</div>
-                ${application.representatives.map((rep, index) => {
-                  const isPrimary = rep.rep_order === 1 || rep.is_primary === 1 || rep.is_primary === true;
-                  return `
-                    <div class="rep-section">
-                      <div class="rep-title">${isPrimary ? 'ผู้แทนหลัก' : `ผู้แทนรอง ${index}`}</div>
-                      <div class="two-columns">
-                        <div class="compact-row">
-                          <div class="label">ชื่อ (ไทย):</div>
-                          <div class="value">${rep.first_name_th || ''} ${rep.last_name_th || ''}</div>
+                ${application.representatives.length <= 2 ? `
+                  ${application.representatives.map((rep, index) => {
+                    const isPrimary = rep.rep_order === 1 || rep.is_primary === 1 || rep.is_primary === true;
+                    return `
+                      <div class="rep-section">
+                        <div class="rep-title">${isPrimary ? 'ผู้แทนหลัก' : `ผู้แทนรอง ${index}`}</div>
+                        <div class="two-columns">
+                          <div class="compact-row">
+                            <div class="label">ชื่อ (ไทย):</div>
+                            <div class="value">${rep.first_name_th || ''} ${rep.last_name_th || ''}</div>
+                          </div>
+                          <div class="compact-row">
+                            <div class="label">ชื่อ (อังกฤษ):</div>
+                            <div class="value">${rep.first_name_en || ''} ${rep.last_name_en || ''}</div>
+                          </div>
                         </div>
-                        <div class="compact-row">
-                          <div class="label">ชื่อ (อังกฤษ):</div>
-                          <div class="value">${rep.first_name_en || ''} ${rep.last_name_en || ''}</div>
+                        <div class="three-columns">
+                          <div class="compact-row">
+                            <div class="label">ตำแหน่ง:</div>
+                            <div class="value">${rep.position || '-'}</div>
+                          </div>
+                          <div class="compact-row">
+                            <div class="label">โทรศัพท์:</div>
+                            <div class="value">${rep.phone || '-'}</div>
+                          </div>
+                          <div class="compact-row">
+                            <div class="label">อีเมล:</div>
+                            <div class="value">${rep.email || '-'}</div>
+                          </div>
                         </div>
                       </div>
-                      <div class="three-columns">
-                        <div class="compact-row">
-                          <div class="label">ตำแหน่ง:</div>
-                          <div class="value">${rep.position || '-'}</div>
+                    `;
+                  }).join('')}
+                ` : `
+                  <!-- แสดง 3 คนในบรรทัดเดียว -->
+                  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px;">
+                    ${application.representatives.map((rep, index) => {
+                      const isPrimary = rep.rep_order === 1 || rep.is_primary === 1 || rep.is_primary === true;
+                      return `
+                        <div class="rep-section" style="margin-bottom: 0;">
+                          <div class="rep-title" style="font-size: 9px;">${isPrimary ? 'ผู้แทนหลัก' : `ผู้แทนรอง ${index}`}</div>
+                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
+                            <div class="value" style="font-size: 9px; font-weight: 600;">${rep.first_name_th || ''} ${rep.last_name_th || ''}</div>
+                          </div>
+                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
+                            <div class="value" style="font-size: 8px;">${rep.first_name_en || ''} ${rep.last_name_en || ''}</div>
+                          </div>
+                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
+                            <div class="value" style="font-size: 9px;">${rep.position || '-'}</div>
+                          </div>
+                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
+                            <div class="value" style="font-size: 8px;">${rep.phone || '-'}</div>
+                          </div>
+                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
+                            <div class="value" style="font-size: 8px;">${rep.email || '-'}</div>
+                          </div>
                         </div>
-                        <div class="compact-row">
-                          <div class="label">โทรศัพท์:</div>
-                          <div class="value">${rep.phone || '-'}</div>
-                        </div>
-                        <div class="compact-row">
-                          <div class="label">อีเมล:</div>
-                          <div class="value">${rep.email || '-'}</div>
-                        </div>
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
+                      `;
+                    }).join('')}
+                  </div>
+                `}
               </div>
             ` : ''}
 
@@ -587,13 +591,13 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             ${application.products && application.products.length > 0 ? `
               <div class="section">
                 <div class="section-title">สินค้าและบริการ (${application.products.length} รายการ)</div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
+                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;">
                   ${application.products.map((product, index) => `
                     <div class="product-item">
-                      <div style="font-weight: 600; font-size: 8px; color: #2b6cb0; margin-bottom: 2px;">
+                      <div style="font-weight: 600; font-size: 8px; color: #2b6cb0; margin-bottom: 1px;">
                         สินค้า/บริการ ${index + 1}
                       </div>
-                      <div style="font-size: 8px;">
+                      <div style="font-size: 9px;">
                         <strong>ไทย:</strong> ${product.name_th || '-'}<br>
                         <strong>อังกฤษ:</strong> ${product.name_en || '-'}
                       </div>
@@ -610,7 +614,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 ${application.documents.map((doc, index) => `
                   <div class="document-item">
                     <strong>${index + 1}.</strong> ${doc.document_name || `เอกสาร ${index + 1}`}
-                    ${doc.file_path ? `<br><em style="color: #666; font-size: 7px;">ไฟล์: ${doc.file_path}</em>` : ''}
+                    ${doc.file_path ? `<br><em style="color: #666; font-size: 9px;">ไฟล์: ${doc.file_path}</em>` : ''}
                   </div>
                 `).join('')}
               </div>
