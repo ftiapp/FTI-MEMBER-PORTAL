@@ -278,7 +278,12 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
       <body>
         <div class="container">
           <div class="header">
-            ${getTitleByType(type)}
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; margin-bottom: 8px;">
+              <img src="/images/FTI-MasterLogo_RGB_forLightBG.png" alt="FTI Logo" style="height: 50px; margin-bottom: 8px;" />
+              <div style="text-align: center; font-weight: bold; font-size: 14px;">
+                ${getTitleByType(type)}
+              </div>
+            </div>
           </div>
           
           <div class="date-info">
@@ -389,7 +394,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               `}
             </div>
 
-            <!-- ที่อยู่ -->
+             <!-- ที่อยู่ -->
             <div class="section">
               <div class="section-title">ที่อยู่</div>
               <div class="address-grid">
@@ -428,6 +433,56 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                   <div class="value">${application.postal_code || '-'}</div>
                 </div>
               </div>
+              
+              <!-- ผู้ติดต่อ - วางในบล็อกเดียวกันกับที่อยู่ -->
+              ${type !== 'ic' && (
+                (application.contactPersons && application.contactPersons.length > 0) || 
+                (application.contactPerson && Array.isArray(application.contactPerson) && application.contactPerson.length > 0) ||
+                (application.contactPerson && typeof application.contactPerson === 'object' && !Array.isArray(application.contactPerson))
+              ) ? `
+                <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
+                  <div style="font-weight: 600; font-size: 10px; color: #2b6cb0; margin-bottom: 4px;">ผู้ติดต่อ</div>
+                  ${(() => {
+                    let contacts = [];
+                    
+                    if (application.contactPersons && Array.isArray(application.contactPersons)) {
+                      contacts = application.contactPersons;
+                    } else if (application.contactPerson && Array.isArray(application.contactPerson)) {
+                      contacts = application.contactPerson;
+                    } else if (application.contactPerson && typeof application.contactPerson === 'object') {
+                      contacts = [application.contactPerson];
+                    }
+                    
+                    return contacts.map((contact, index) => `
+                      <div style="background: #f8fafc; padding: 4px; margin-bottom: 3px; border-radius: 2px; ${contacts.length > 1 ? 'border-left: 2px solid #3182ce;' : ''}">
+                        ${contacts.length > 1 ? `<div style="font-weight: 600; font-size: 9px; color: #2b6cb0; margin-bottom: 2px;">ผู้ติดต่อ ${index + 1}</div>` : ''}
+                        <div class="address-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3px;">
+                          <div class="compact-row">
+                            <div class="label" style="font-size: 9px;">ชื่อ (ไทย):</div>
+                            <div class="value" style="font-size: 9px;">${(contact.first_name_th || contact.firstNameTh || '') + ' ' + (contact.last_name_th || contact.lastNameTh || '')}</div>
+                          </div>
+                          <div class="compact-row">
+                            <div class="label" style="font-size: 9px;">ชื่อ (อังกฤษ):</div>
+                            <div class="value" style="font-size: 9px;">${(contact.first_name_en || contact.firstNameEn || '') + ' ' + (contact.last_name_en || contact.lastNameEn || '')}</div>
+                          </div>
+                          <div class="compact-row">
+                            <div class="label" style="font-size: 9px;">ตำแหน่ง:</div>
+                            <div class="value" style="font-size: 9px;">${contact.position || '-'}</div>
+                          </div>
+                          <div class="compact-row">
+                            <div class="label" style="font-size: 9px;">โทรศัพท์:</div>
+                            <div class="value" style="font-size: 9px;">${contact.phone || '-'}</div>
+                          </div>
+                        </div>
+                        <div class="compact-row" style="margin-top: 2px;">
+                          <div class="label" style="font-size: 9px;">อีเมล:</div>
+                          <div class="value" style="font-size: 9px;">${contact.email || '-'}</div>
+                        </div>
+                      </div>
+                    `).join('');
+                  })()}
+                </div>
+              ` : ''}
             </div>
 
             <!-- กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด -->
@@ -471,7 +526,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               </div>
             ` : ''}
 
-            <!-- ผู้แทน -->
+              <!-- ผู้แทน -->
             ${application.representatives && application.representatives.length > 0 ? `
               <div class="section">
                 <div class="section-title">ข้อมูลผู้แทน</div>
@@ -515,21 +570,26 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                       const isPrimary = rep.rep_order === 1 || rep.is_primary === 1 || rep.is_primary === true;
                       return `
                         <div class="rep-section" style="margin-bottom: 0;">
-                          <div class="rep-title" style="font-size: 9px;">${isPrimary ? 'ผู้แทนหลัก' : `ผู้แทนรอง ${index}`}</div>
-                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
-                            <div class="value" style="font-size: 9px; font-weight: 600;">${rep.first_name_th || ''} ${rep.last_name_th || ''}</div>
+                          <div class="rep-title" style="font-size: 10px;">${isPrimary ? 'ผู้แทนหลัก' : `ผู้แทนรอง ${index}`}</div>
+                          <div class="compact-row" style="grid-template-columns: 60px 1fr; gap: 2px;">
+                            <div class="label" style="font-size: 9px;">ชื่อ (ไทย):</div>
+                            <div class="value" style="font-size: 10px; font-weight: 600;">${rep.first_name_th || ''} ${rep.last_name_th || ''}</div>
                           </div>
-                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
-                            <div class="value" style="font-size: 8px;">${rep.first_name_en || ''} ${rep.last_name_en || ''}</div>
+                          <div class="compact-row" style="grid-template-columns: 60px 1fr; gap: 2px;">
+                            <div class="label" style="font-size: 9px;">ชื่อ (อังกฤษ):</div>
+                            <div class="value" style="font-size: 9px;">${rep.first_name_en || ''} ${rep.last_name_en || ''}</div>
                           </div>
-                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
-                            <div class="value" style="font-size: 9px;">${rep.position || '-'}</div>
+                          <div class="compact-row" style="grid-template-columns: 60px 1fr; gap: 2px;">
+                            <div class="label" style="font-size: 9px;">ตำแหน่ง:</div>
+                            <div class="value" style="font-size: 10px;">${rep.position || '-'}</div>
                           </div>
-                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
-                            <div class="value" style="font-size: 8px;">${rep.phone || '-'}</div>
+                          <div class="compact-row" style="grid-template-columns: 60px 1fr; gap: 2px;">
+                            <div class="label" style="font-size: 9px;">โทรศัพท์:</div>
+                            <div class="value" style="font-size: 9px;">${rep.phone || '-'}</div>
                           </div>
-                          <div class="compact-row" style="grid-template-columns: 1fr; gap: 0;">
-                            <div class="value" style="font-size: 8px;">${rep.email || '-'}</div>
+                          <div class="compact-row" style="grid-template-columns: 60px 1fr; gap: 2px;">
+                            <div class="label" style="font-size: 9px;">อีเมล:</div>
+                            <div class="value" style="font-size: 9px;">${rep.email || '-'}</div>
                           </div>
                         </div>
                       `;
@@ -538,42 +598,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 `}
               </div>
             ` : ''}
-
-            <!-- ผู้ติดต่อ -->
-            ${type !== 'ic' && application.contactPersons && application.contactPersons.length > 0 ? `
-              <div class="section">
-                <div class="section-title">ข้อมูลผู้ติดต่อ</div>
-                ${application.contactPersons.map((contact, index) => `
-                  <div class="contact-section">
-                    <div class="contact-title">ผู้ติดต่อ ${index + 1}</div>
-                    <div class="two-columns">
-                      <div class="compact-row">
-                        <div class="label">ชื่อ (ไทย):</div>
-                        <div class="value">${contact.first_name_th || contact.firstNameTh || ''} ${contact.last_name_th || contact.lastNameTh || ''}</div>
-                      </div>
-                      <div class="compact-row">
-                        <div class="label">ชื่อ (อังกฤษ):</div>
-                        <div class="value">${contact.first_name_en || contact.firstNameEn || ''} ${contact.last_name_en || contact.lastNameEn || ''}</div>
-                      </div>
-                    </div>
-                    <div class="three-columns">
-                      <div class="compact-row">
-                        <div class="label">ตำแหน่ง:</div>
-                        <div class="value">${contact.position || '-'}</div>
-                      </div>
-                      <div class="compact-row">
-                        <div class="label">โทรศัพท์:</div>
-                        <div class="value">${contact.phone || '-'}</div>
-                      </div>
-                      <div class="compact-row">
-                        <div class="label">อีเมล:</div>
-                        <div class="value">${contact.email || '-'}</div>
-                      </div>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
+             
 
             <!-- ประเภทธุรกิจ -->
             ${application.businessTypes ? `
@@ -581,42 +606,25 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 <div class="section-title">ประเภทธุรกิจ</div>
                 <div class="value">
                   ${getBusinessTypes().split(', ').map(type => `
-                    <span class="business-type-item">${type}</span>
+                    <span style="display: inline-block; background: #ebf8ff; color: #2b6cb0; padding: 2px 4px; border-radius: 3px; font-size: 10px; margin: 1px 2px 1px 0; border: 1px solid #bee3f8; font-weight: 500;">${type}</span>
                   `).join('')}
                 </div>
               </div>
             ` : ''}
 
-            <!-- สินค้าและบริการ -->
+              <!-- สินค้าและบริการ -->
             ${application.products && application.products.length > 0 ? `
               <div class="section">
                 <div class="section-title">สินค้าและบริการ (${application.products.length} รายการ)</div>
                 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;">
                   ${application.products.map((product, index) => `
-                    <div class="product-item">
-                      <div style="font-weight: 600; font-size: 8px; color: #2b6cb0; margin-bottom: 1px;">
-                        สินค้า/บริการ ${index + 1}
-                      </div>
-                      <div style="font-size: 9px;">
-                        <strong>ไทย:</strong> ${product.name_th || '-'}<br>
-                        <strong>อังกฤษ:</strong> ${product.name_en || '-'}
+                    <div style="background: #f0fff4; border: 1px solid #c6f6d5; padding: 3px; border-radius: 2px; min-height: 32px;">
+                      <div style="font-weight: 600; font-size: 10px; color: #2b6cb0; line-height: 1.2;">
+                        ${index + 1}. ${product.name_th || '-'}/${product.name_en || '-'}
                       </div>
                     </div>
                   `).join('')}
                 </div>
-              </div>
-            ` : ''}
-
-            <!-- เอกสารแนบ -->
-            ${application.documents && application.documents.length > 0 ? `
-              <div class="section">
-                <div class="section-title">เอกสารแนบ (${application.documents.length} ไฟล์)</div>
-                ${application.documents.map((doc, index) => `
-                  <div class="document-item">
-                    <strong>${index + 1}.</strong> ${doc.document_name || `เอกสาร ${index + 1}`}
-                    ${doc.file_path ? `<br><em style="color: #666; font-size: 9px;">ไฟล์: ${doc.file_path}</em>` : ''}
-                  </div>
-                `).join('')}
               </div>
             ` : ''}
 
