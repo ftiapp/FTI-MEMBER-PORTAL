@@ -102,29 +102,48 @@ const RepresentativeCard = ({ representative, index }) => (
   </div>
 );
 
-// Simplified file display
-const FileCard = ({ fileName, description }) => (
-  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-    <div className="flex items-center gap-3">
-      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-        </svg>
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-900">{description}</p>
-        <p className="text-xs text-gray-500">{fileName !== 'ไม่ได้อัปโหลด' ? fileName : 'ไม่ได้อัปโหลด'}</p>
-      </div>
-      {fileName !== 'ไม่ได้อัปโหลด' && (
-        <div className="w-4 h-4 text-green-500">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+// 🔥 แก้ไข: Simplified file display with better file detection
+const FileCard = ({ fileName, description, fileUrl }) => {
+  // 🔥 แก้ไข: ปรับปรุงการตรวจสอบไฟล์
+  const hasFile = fileName && fileName !== 'ไม่ได้อัปโหลด' && fileName.trim() !== '';
+  
+  return (
+    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
         </div>
-      )}
+        <div className="flex-1">
+          <p className="text-sm font-medium text-gray-900">{description}</p>
+          <p className="text-xs text-gray-500">{hasFile ? fileName : 'ไม่ได้อัปโหลด'}</p>
+        </div>
+        {hasFile && (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 text-green-500">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            {fileUrl && (
+              <button 
+                className="w-6 h-6 text-blue-600 hover:text-blue-800 transition-colors"
+                title="ดูไฟล์แนบ"
+                onClick={() => window.open(fileUrl, '_blank')}
+              >
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Simplified section with consistent blue theme
 const Section = ({ title, children, className }) => (
@@ -139,15 +158,51 @@ const Section = ({ title, children, className }) => (
 );
 
 export default function SummarySectionComponent({ formData, businessTypes, industrialGroups, provincialChapters }) {
-  // Helper functions
+  // 🔥 แก้ไข: Helper functions สำหรับจัดการไฟล์
   const getFileName = (fileObj) => {
     if (!fileObj) return 'ไม่ได้อัปโหลด';
+    
+    // ถ้าเป็น object
     if (typeof fileObj === 'object') {
       if (fileObj instanceof File) return fileObj.name;
       if (fileObj.name) return fileObj.name;
       if (fileObj.file && fileObj.file.name) return fileObj.file.name;
+      if (fileObj.fileName) return fileObj.fileName;
     }
+    
+    // ถ้าเป็น string
+    if (typeof fileObj === 'string' && fileObj.trim() !== '') {
+      return fileObj;
+    }
+    
     return 'ไฟล์ถูกอัปโหลดแล้ว';
+  };
+
+  const getFileUrl = (fileObj) => {
+    if (!fileObj) return null;
+    
+    if (typeof fileObj === 'object') {
+      return fileObj.fileUrl || fileObj.cloudinary_url || fileObj.file_path || null;
+    }
+    
+    return null;
+  };
+
+  // 🔥 แก้ไข: ฟังก์ชันสำหรับจัดการ production images
+  const getProductionImagesDisplay = () => {
+    if (!formData?.productionImages) return 'ไม่ได้อัปโหลด';
+    
+    if (Array.isArray(formData.productionImages)) {
+      const validImages = formData.productionImages.filter(img => 
+        img && (img.name || img.fileName || (typeof img === 'string' && img.trim() !== ''))
+      );
+      
+      if (validImages.length > 0) {
+        return `อัปโหลดแล้ว ${validImages.length} ไฟล์`;
+      }
+    }
+    
+    return 'ไม่ได้อัปโหลด';
   };
 
   // ฟังก์ชันสำหรับแสดงประเภทธุรกิจที่เลือกแบบ array
@@ -412,10 +467,12 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
                 <h4 className="font-medium text-gray-900">เอกสารใบอนุญาต</h4>
                 <FileCard
                   fileName={getFileName(formData?.factoryLicense)}
+                  fileUrl={getFileUrl(formData?.factoryLicense)}
                   description="ใบอนุญาตประกอบกิจการโรงงาน (รง.4)"
                 />
                 <FileCard
                   fileName={getFileName(formData?.industrialEstateLicense)}
+                  fileUrl={getFileUrl(formData?.industrialEstateLicense)}
                   description="ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (กนอ.)"
                 />
               </div>
@@ -424,13 +481,23 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             {formData?.factoryType === 'type2' && (
               <div className="space-y-3">
                 <h4 className="font-medium text-gray-900">เอกสารการผลิต</h4>
-                <FileCard
-                  fileName={formData.productionImages && formData.productionImages.length > 0 
-                    ? `อัปโหลดแล้ว ${formData.productionImages.length} ไฟล์` 
-                    : 'ไม่ได้อัปโหลด'
-                  }
-                  description="รูปภาพหรือเอกสารการผลิต"
-                />
+                {formData?.productionImages && formData.productionImages.length > 0 ? (
+                  <div className="space-y-2">
+                    {formData.productionImages.map((image, index) => (
+                      <FileCard
+                        key={index}
+                        fileName={image.fileName || image.name || `ไฟล์ที่ ${index + 1}`}
+                        fileUrl={image.fileUrl || image.cloudinary_url}
+                        description={`รูปภาพการผลิต ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <FileCard
+                    fileName="ไม่ได้อัปโหลด"
+                    description="รูปภาพหรือเอกสารการผลิต"
+                  />
+                )}
               </div>
             )}
           </div>

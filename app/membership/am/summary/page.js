@@ -9,6 +9,8 @@ import SummarySection from '@/app/membership/am/components/SummarySection'; // �
 
 export default function AMSummaryPage() {
   const [applicationData, setApplicationData] = useState(null);
+  const [industrialGroups, setIndustrialGroups] = useState([]);
+  const [provincialChapters, setProvincialChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -47,7 +49,12 @@ export default function AMSummaryPage() {
       
       if (result.success) {
         setApplicationData(result.data);
+        // 🔥 แก้ไข: รับข้อมูล lookup ที่ส่งมาจาก API
+        setIndustrialGroups(result.industrialGroups || []);
+        setProvincialChapters(result.provincialChapters || []);
         console.log('AM Data set to state:', result.data);
+        console.log('Industrial Groups:', result.industrialGroups);
+        console.log('Provincial Chapters:', result.provincialChapters);
       } else {
         setError(result.message || 'ไม่สามารถโหลดข้อมูลได้');
       }
@@ -82,7 +89,8 @@ export default function AMSummaryPage() {
       <>
         <Navbar />
         <main className="min-h-screen bg-gray-50">
-          <div className="relative bg-gradient-to-r from-purple-900 to-purple-700 text-white py-16 md:py-24">
+          {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
             <div className="container mx-auto px-4 relative z-10 max-w-5xl">
               <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
                 เอกสารสมัครสมาชิก: สมทบ (สมาคม)
@@ -106,7 +114,8 @@ export default function AMSummaryPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+              {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
               <p className="mt-4 text-gray-600 text-lg">กำลังโหลดข้อมูล...</p>
             </motion.div>
           </div>
@@ -167,7 +176,8 @@ export default function AMSummaryPage() {
       <>
         <Navbar />
         <main className="min-h-screen bg-gray-50">
-          <div className="relative bg-gradient-to-r from-purple-900 to-purple-700 text-white py-16 md:py-24">
+          {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
             <div className="container mx-auto px-4 relative z-10 max-w-5xl">
               <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
                 ไม่พบข้อมูล
@@ -213,12 +223,14 @@ export default function AMSummaryPage() {
       <Navbar />
       <main className="min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="relative bg-gradient-to-r from-purple-900 to-purple-700 text-white py-16 md:py-24">
+        {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+        <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
           {/* Decorative elements - ซ่อนในมือถือ */}
           {!isMobile && (
             <>
-              <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-purple-100 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-purple-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+              {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+              <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-100 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
             </>
           )}
           
@@ -263,8 +275,9 @@ export default function AMSummaryPage() {
             {/* Decorative elements - ซ่อนในมือถือ */}
             {!isMobile && (
               <>
-                <div className="absolute top-0 right-0 w-40 h-40 bg-purple-50 rounded-full -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-60 h-60 bg-purple-50 rounded-full -ml-20 -mb-20"></div>
+                {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-full -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-60 h-60 bg-blue-50 rounded-full -ml-20 -mb-20"></div>
               </>
             )}
             
@@ -313,17 +326,18 @@ export default function AMSummaryPage() {
             {/* Decorative elements - ซ่อนในมือถือ */}
             {!isMobile && (
               <>
-                <div className="absolute top-0 left-0 w-32 h-32 bg-purple-50 rounded-full -ml-16 -mt-16"></div>
-                <div className="absolute bottom-0 right-0 w-48 h-48 bg-purple-50 rounded-full -mr-24 -mb-24"></div>
+                {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
+                <div className="absolute top-0 left-0 w-32 h-32 bg-blue-50 rounded-full -ml-16 -mt-16"></div>
+                <div className="absolute bottom-0 right-0 w-48 h-48 bg-blue-50 rounded-full -mr-24 -mb-24"></div>
               </>
             )}
             
             <div className="relative z-10 p-6 md:p-8">
-              {/* ใช้ SummarySection ของ AM */}
+              {/* 🔥 แก้ไข: ส่งข้อมูล lookup ที่ถูกต้อง */}
               <SummarySection 
                 formData={applicationData}
-                industrialGroups={applicationData?.industrialGroups || []}
-                provincialChapters={applicationData?.provincialCouncils || []}
+                industrialGroups={industrialGroups}
+                provincialChapters={provincialChapters}
               />
             </div>
           </motion.div>

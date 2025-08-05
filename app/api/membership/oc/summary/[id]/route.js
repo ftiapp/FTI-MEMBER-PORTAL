@@ -26,6 +26,21 @@ function getSingleRecord(result) {
   return normalized.length > 0 ? normalized[0] : null;
 }
 
+// 🔥 แก้ไข: Helper function สำหรับจัดการเอกสารแนบ
+function formatDocumentForResponse(document) {
+  if (!document) return null;
+  
+  return {
+    name: document.file_name || document.original_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+    fileName: document.file_name || document.original_name,
+    fileUrl: document.cloudinary_url || document.file_path,
+    cloudinaryId: document.cloudinary_id,
+    fileType: document.mime_type,
+    fileSize: document.file_size,
+    uploadedAt: document.created_at
+  };
+}
+
 export async function GET(request, { params }) {
   try {
     // Check authentication
@@ -206,6 +221,11 @@ export async function GET(request, { params }) {
       isPrimary: rep.is_primary === 1 || index === 0
     }));
 
+    // 🔥 แก้ไข: จัดการเอกสารแนบให้ถูกต้อง - ใช้ชื่อที่ตรงกับฐานข้อมูล
+    const factoryLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'factory_license');
+    const industrialEstateLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'industrial_estate_license');
+    const productionImageDocs = relatedData.documents.filter(doc => doc.document_type === 'productionImages');
+
     // Build response in the format that SummarySection expects
     const response = {
       // Company basic info
@@ -256,20 +276,24 @@ export async function GET(request, { params }) {
       provincialChapterIds: relatedData.provinceChaptersRows.map(pc => pc.province_chapter_id),
       provincialChapterNames: provinceChaptersWithNames.map(pc => pc.name_th),
       
-      // Factory type and documents
+      // 🔥 แก้ไข: Factory type and documents ให้ถูกต้อง
       factoryType: ocData.factory_type || '',
-      factoryLicense: relatedData.documents.find(doc => doc.document_type === 'factory_license') ? {
-        name: relatedData.documents.find(doc => doc.document_type === 'factory_license').file_name,
-        file: null
-      } : null,
-      industrialEstateLicense: relatedData.documents.find(doc => doc.document_type === 'industrial_estate_license') ? {
-        name: relatedData.documents.find(doc => doc.document_type === 'industrial_estate_license').file_name,
-        file: null
-      } : null,
-      productionImages: relatedData.documents.filter(doc => doc.document_type === 'production_image').map(doc => ({
-        name: doc.file_name,
-        file: null
-      })),
+      
+      // Factory license document
+      factoryLicense: formatDocumentForResponse(factoryLicenseDoc),
+      
+      // Industrial estate license document  
+      industrialEstateLicense: formatDocumentForResponse(industrialEstateLicenseDoc),
+      
+      // Production images - แปลงเป็นรูปแบบที่ SummarySection คาดหวัง
+      productionImages: productionImageDocs.length > 0 ? productionImageDocs.map(doc => ({
+        name: doc.file_name || doc.original_name || 'ไฟล์รูปภาพ',
+        fileName: doc.file_name || doc.original_name,
+        fileUrl: doc.cloudinary_url || doc.file_path,
+        cloudinaryId: doc.cloudinary_id,
+        fileType: doc.mime_type,
+        fileSize: doc.file_size
+      })) : [],
       
       // Meta data
       id: ocData.id,
@@ -278,6 +302,12 @@ export async function GET(request, { params }) {
       createdAt: ocData.created_at,
       updatedAt: ocData.updated_at
     };
+
+    console.log('=== OC API Debug ===');
+    console.log('Factory Type:', response.factoryType);
+    console.log('Factory License:', response.factoryLicense);
+    console.log('Industrial Estate License:', response.industrialEstateLicense);
+    console.log('Production Images:', response.productionImages);
 
     return NextResponse.json({ success: true, data: response });
 

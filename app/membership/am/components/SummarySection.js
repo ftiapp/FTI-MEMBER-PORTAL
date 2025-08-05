@@ -41,11 +41,16 @@ const ListCard = ({ title, items }) => {
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <h4 className="text-sm font-medium text-gray-700 mb-3">{title}</h4>
       {itemsArray.length > 0 ? (
-        <ul className="list-disc pl-5 space-y-1">
+        <div className="flex flex-wrap gap-2">
           {itemsArray.map((item, index) => (
-            <li key={index} className="text-sm text-gray-900">{item}</li>
+            <span 
+              key={index}
+              className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 border border-blue-200"
+            >
+              {item}
+            </span>
           ))}
-        </ul>
+        </div>
       ) : (
         <p className="text-sm text-gray-500">ไม่ได้เลือก</p>
       )}
@@ -103,7 +108,7 @@ const RepresentativeCard = ({ representative, index }) => (
 );
 
 // Simplified file display (เหมือน AC)
-const FileCard = ({ fileName, description }) => (
+const FileCard = ({ fileName, description, fileUrl }) => (
   <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
     <div className="flex items-center gap-3">
       <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -115,11 +120,23 @@ const FileCard = ({ fileName, description }) => (
         <p className="text-sm font-medium text-gray-900">{description}</p>
         <p className="text-xs text-gray-500">{fileName !== 'ไม่ได้อัปโหลด' ? fileName : 'ไม่ได้อัปโหลด'}</p>
       </div>
-      {fileName !== 'ไม่ได้อัปโหลด' && (
-        <div className="w-4 h-4 text-green-500">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+      {fileName !== 'ไม่ได้อัปโหลด' && fileUrl && (
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 text-green-500">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <button 
+            className="w-6 h-6 text-blue-600 hover:text-blue-800 transition-colors"
+            title="ดูไฟล์แนบ"
+            onClick={() => window.open(fileUrl, '_blank')}
+          >
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </button>
         </div>
       )}
     </div>
@@ -148,6 +165,13 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     return 'ไม่ได้อัปโหลด';
   };
 
+  const getFileUrl = (file) => {
+    if (file && typeof file === 'object') {
+      return file.fileUrl || file.cloudinary_url || file.file_path || null;
+    }
+    return null;
+  };
+
   // ฟังก์ชันสำหรับแสดงประเภทธุรกิจที่เลือกแบบ array (เหมือน AC)
   const getSelectedBusinessTypesArray = () => {
     if (!formData.businessTypes || Object.keys(formData.businessTypes).length === 0) {
@@ -173,19 +197,35 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     return types;
   };
 
+  // ฟังก์ชันสำหรับแสดงกลุ่มอุตสาหกรรมที่เลือก (เหมือน AC)
+  const getSelectedIndustrialGroupsArray = () => {
+    if (!formData.industrialGroups || formData.industrialGroups.length === 0) {
+      return [];
+    }
+    
+    return formData.industrialGroups.map(groupId => {
+      // ค้นหาชื่อกลุ่มอุตสาหกรรมจาก industrialGroups prop
+      const group = industrialGroups.find(g => String(g.id) === String(groupId));
+      return group ? group.name_th : `กลุ่มอุตสาหกรรม ${groupId}`;
+    });
+  };
+
+  // ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัดที่เลือก (เหมือน AC)
+  const getSelectedProvincialChaptersArray = () => {
+    if (!formData.provincialCouncils || formData.provincialCouncils.length === 0) {
+      return [];
+    }
+    
+    return formData.provincialCouncils.map(chapterId => {
+      // ค้นหาชื่อสภาอุตสาหกรรมจังหวัดจาก provincialChapters prop
+      const chapter = provincialChapters.find(c => String(c.id) === String(chapterId));
+      return chapter ? chapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapterId}`;
+    });
+  };
+
   // จัดรูปแบบตัวเลข
   const formatNumber = (number) => {
     return number ? `${number.toLocaleString()}` : '-';
-  };
-
-  // จัดรูปแบบประเภทโรงงาน
-  const getFactoryTypeText = () => {
-    if (formData.factoryType === 'type1') {
-      return 'ประเภทที่ 1 (มีเครื่องจักรมากกว่า 50 แรงม้า)';
-    } else if (formData.factoryType === 'type2') {
-      return 'ประเภทที่ 2 (ไม่มีเครื่องจักร / มีเครื่องจักรต่ำกว่า 5 แรงม้า)';
-    }
-    return '-';
   };
 
   // เตรียมข้อมูลผู้แทนสำหรับแสดงผล
@@ -241,26 +281,11 @@ export default function SummarySection({ formData, industrialGroups, provincialC
               ? formData.products.map(p => p.nameTh || p.nameEn).filter(Boolean).join(', ')
               : '-'
           } />
-          <InfoCard title="จำนวนพนักงาน" value={formatNumber(formData.numberOfEmployees) || '-'} />
           <InfoCard title="จำนวนสมาชิกสมาคม" value={formData.memberCount || '-'} />
-          <ListCard title="กลุ่มอุตสาหกรรม" items={
-            useMemo(() => {
-              if (!formData.industrialGroups?.length || !industrialGroups?.length) return [];
-              return formData.industrialGroups.map(id => {
-                const group = industrialGroups.find(g => String(g.id) === String(id));
-                return group ? group.name_th : id;
-              });
-            }, [formData.industrialGroups, industrialGroups])
-          } />
-          <ListCard title="สภาอุตสาหกรรมจังหวัด" items={
-            useMemo(() => {
-              if (!formData.provincialCouncils?.length || !provincialChapters?.length) return [];
-              return formData.provincialCouncils.map(id => {
-                const council = provincialChapters.find(c => String(c.id) === String(id));
-                return council ? council.name_th : id;
-              });
-            }, [formData.provincialCouncils, provincialChapters])
-          } />
+          <ListCard title="กลุ่มอุตสาหกรรม" items={getSelectedIndustrialGroupsArray()} />
+          <div className="md:col-span-2">
+            <ListCard title="สภาอุตสาหกรรมจังหวัด" items={getSelectedProvincialChaptersArray()} />
+          </div>
         </div>
       </Section>
 
@@ -269,10 +294,12 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         <div className="space-y-3">
           <FileCard 
             fileName={getFileName(formData.associationCertificate)} 
+            fileUrl={getFileUrl(formData.associationCertificate)}
             description="หนังสือรับรองสมาคม" 
           />
           <FileCard 
             fileName={getFileName(formData.memberList)} 
+            fileUrl={getFileUrl(formData.memberList)}
             description="รายชื่อสมาชิก" 
           />
         </div>

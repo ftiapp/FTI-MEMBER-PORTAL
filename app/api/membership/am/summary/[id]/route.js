@@ -90,17 +90,15 @@ export async function GET(request, { params }) {
       [id]
     );
 
-    // ✅ Process industry groups - ใช้ industry_group_name จากตารางโดยตรง
+    // ✅ Process industry groups - เตรียมข้อมูลสำหรับ lookup
     const industryGroupsWithNames = (industryGroupsResult || []).map(ig => ({
       id: ig.industry_group_id,
-      industryGroupName: ig.industry_group_name || ig.industry_group_id,
       name_th: ig.industry_group_name || ig.industry_group_id
     }));
 
-    // ✅ Process province chapters - ใช้ province_chapter_name จากตารางโดยตรง
+    // Process province chapters
     const provinceChaptersWithNames = (provinceChaptersResult || []).map(pc => ({
       id: pc.province_chapter_id,
-      provinceChapterName: pc.province_chapter_name || pc.province_chapter_id,
       name_th: pc.province_chapter_name || pc.province_chapter_id
     }));
 
@@ -108,11 +106,11 @@ export async function GET(request, { params }) {
     const transformedData = {
       id: amData.id,
       memberCode: amData.member_code,
-      associationName: amData.association_name_th,
-      associationNameEng: amData.association_name_en,
+      associationName: amData.company_name_th,
+      associationNameEng: amData.company_name_en,
       associationRegistrationNumber: amData.association_registration_number,
-      associationEmail: amData.association_email,
-      associationPhone: amData.association_phone,
+      associationEmail: amData.company_email,
+      associationPhone: amData.company_phone,
       memberCount: amData.member_count,
       status: amData.status,
       createdAt: amData.created_at,
@@ -154,17 +152,11 @@ export async function GET(request, { params }) {
         nameEn: product.name_en
       })),
       
-      // ✅ Industry Groups - ใช้ข้อมูลจากตารางโดยตรง
-      industrialGroups: industryGroupsWithNames.map(ig => ({
-        id: ig.id,
-        name_th: ig.name_th
-      })),
+      // ✅ FIXED: Industry Groups - ส่งเป็น array ของ ID สำหรับ SummarySection ที่จะค้นหาชื่อจาก industrialGroups
+      industrialGroups: (industryGroupsResult || []).map(ig => ig.industry_group_id),
       
-      // ✅ Province Chapters - ใช้ข้อมูลจากตารางโดยตรง
-      provincialCouncils: provinceChaptersWithNames.map(pc => ({
-        id: pc.id,
-        name_th: pc.name_th
-      })),
+      // ✅ FIXED: Province Chapters - ส่งเป็น array ของ ID สำหรับ SummarySection ที่จะค้นหาชื่อจาก provincialChapters
+      provincialCouncils: (provinceChaptersResult || []).map(pc => pc.province_chapter_id),
       
       // Documents
       associationCertificate: documentsResult?.find(doc => doc.document_type === 'associationCertificate') ? {
@@ -178,10 +170,16 @@ export async function GET(request, { params }) {
       } : null
     };
 
-    return NextResponse.json({ 
+    // ✅ FIXED: ส่งข้อมูลรวมทั้ง lookup data
+    const responseData = {
       success: true, 
-      data: transformedData 
-    });
+      data: transformedData,
+      // ส่งข้อมูล lookup สำหรับ SummarySection ใช้ค้นหาชื่อ
+      industrialGroups: industryGroupsWithNames,
+      provincialChapters: provinceChaptersWithNames
+    };
+
+    return NextResponse.json(responseData);
 
   } catch (error) {
     console.error('Error fetching AM summary:', error);
