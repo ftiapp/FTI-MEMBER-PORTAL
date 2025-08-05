@@ -10,6 +10,7 @@ import RepresentativeSection from './RepresentativeInfoSection';
 import BusinessInfoSection from './BusinessInfoSection';
 import DocumentsSection from './DocumentUploadSection';
 import SummarySection from './SummarySection';
+import DraftSavePopup from './DraftSavePopup';
 
 // Import utilities
 import { validateACForm } from './ACFormValidation';
@@ -158,6 +159,7 @@ export default function ACMembershipForm() {
   const [errors, setErrors] = useState({});
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
+  const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
@@ -392,7 +394,8 @@ export default function ACMembershipForm() {
       const result = await response.json();
       
       if (result.success) {
-        toast.success(`บันทึกร่างสำหรับ Tax ID: ${formData.taxId} สำเร็จ`);
+        // แสดง popup แทน toast
+        setShowDraftSavePopup(true);
       } else {
         toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message || 'กรุณาลองใหม่'}`);
       }
@@ -624,6 +627,14 @@ export default function ACMembershipForm() {
           </div>
         )}
       </form>
+
+      {/* Draft Save Popup */}
+      <DraftSavePopup
+        isOpen={showDraftSavePopup}
+        onClose={() => setShowDraftSavePopup(false)}
+        taxId={formData.taxId}
+        companyName={formData.companyName}
+      />
     </div>
   );
 }

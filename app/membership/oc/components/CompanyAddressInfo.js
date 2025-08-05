@@ -191,12 +191,11 @@ export default function CompanyAddressInfo({
         </p>
       </div>
       
-      {/* Address Content */}
-      <div className="px-8 py-8 space-y-8">
-        {/* Address Details Section */}
+      {/* Combined Address and Contact Content */}
+      <div className="px-8 py-8">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            รายละเอียดที่อยู่
+            รายละเอียดที่อยู่และข้อมูลติดต่อ
           </h4>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -411,16 +410,7 @@ export default function CompanyAddressInfo({
                 disabled={isLoading}
               />
             </div>
-          </div>
-        </div>
 
-        {/* Contact Information Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            ข้อมูลติดต่อบริษัท
-          </h4>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Company Phone */}
             <div className="space-y-2">
               <label htmlFor="companyPhone" className="block text-sm font-medium text-gray-900">

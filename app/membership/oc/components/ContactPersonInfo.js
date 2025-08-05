@@ -38,7 +38,7 @@ export default function ContactPersonInfo({
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">
-          ข้อมูลผู้ให้ข้อมูล
+          ข้อมูลผู้ประสานงาน
         </h3>
         <p className="text-blue-100 text-sm mt-1">
           ข้อมูลบุคคลที่ติดต่อได้สำหรับการประสานงาน

@@ -235,15 +235,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                     <span className="text-sm font-medium text-blue-800">
-                      อัปโหลดเอกสารใบอนุญาต
+                      อัปโหลดเอกสารใบอนุญาต (เลือกอย่างน้อย 1 ไฟล์)
                     </span>
                   </div>
                 </div>
 
                 {/* Factory License Upload */}
                 <SingleFileUploadZone
-                  title="ใบอนุญาตประกอบกิจการโรงงาน"
-                  description="รง.4 - เอกสารใบอนุญาตประกอบกิจการโรงงานที่ออกโดยกรมโรงงานอุตสาหกรรม"
+                  title="ใบอนุญาตประกอบกิจการโรงงาน (ตัวเลือกที่ 1)"
+                  description="รง.4 - เอกสารใบอนุญาตประกอบกิจการโรงงานที่ออกโดยกรมโรงงานอุตสาหกรรม (เลือกไฟล์นี้หรือไฟล์ด้านล่าง)"
                   name="factoryLicense"
                   file={selectedFiles.factoryLicense}
                   icon={
@@ -257,8 +257,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
                 {/* Industrial Estate License Upload */}
                 <SingleFileUploadZone
-                  title="ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม"
-                  description="กนอ. - เอกสารใบอนุญาตที่ออกโดยการนิคมอุตสาหกรรมแห่งประเทศไทย"
+                  title="ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (ตัวเลือกที่ 2)"
+                  description="กนอ. - เอกสารใบอนุญาตที่ออกโดยการนิคมอุตสาหกรรมแห่งประเทศไทย (หรือเลือกไฟล์ด้านบน)"
                   name="industrialEstateLicense"
                   file={selectedFiles.industrialEstateLicense}
                   icon={

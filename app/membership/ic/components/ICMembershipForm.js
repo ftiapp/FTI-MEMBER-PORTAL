@@ -7,6 +7,7 @@ import RepresentativeInfoSection from './RepresentativeInfoSection';
 import BusinessInfoSection from './BusinessInfoSection';
 import DocumentUploadSection from './DocumentUploadSection';
 import SummarySection from './SummarySection';
+import DraftSavePopup from './DraftSavePopup';
 import { validateCurrentStep } from './ICFormValidation';
 import { submitICMembershipForm, saveDraft } from './ICFormSubmission';
 
@@ -189,6 +190,7 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   const abortControllerRef = useRef(null);
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
@@ -562,7 +564,8 @@ const handleNext = useCallback(async (e) => {
       const result = await response.json();
       
       if (result.success) {
-        toast.success('บันทึกร่างสำเร็จ');
+        // แสดง popup แทน toast
+        setShowDraftSavePopup(true);
       } else {
         toast.error(result.message || 'ไม่สามารถบันทึกร่างได้');
       }
@@ -806,6 +809,14 @@ const handleNext = useCallback(async (e) => {
           </div>
         )}
       </div>
+
+      {/* Draft Save Popup */}
+      <DraftSavePopup
+        isOpen={showDraftSavePopup}
+        onClose={() => setShowDraftSavePopup(false)}
+        idCard={formData.idCardNumber}
+        fullName={`${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()}
+      />
     </div>
   );
 }
