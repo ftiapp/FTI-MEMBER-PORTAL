@@ -222,8 +222,8 @@ export async function GET(request, { params }) {
     }));
 
     // 🔥 แก้ไข: จัดการเอกสารแนบให้ถูกต้อง - ใช้ชื่อที่ตรงกับฐานข้อมูล
-    const factoryLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'factory_license');
-    const industrialEstateLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'industrial_estate_license');
+    const factoryLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'factoryLicense');
+    const industrialEstateLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'industrialEstateLicense');
     const productionImageDocs = relatedData.documents.filter(doc => doc.document_type === 'productionImages');
 
     // Build response in the format that SummarySection expects

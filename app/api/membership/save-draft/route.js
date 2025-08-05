@@ -19,12 +19,54 @@ export async function POST(request) {
 
     const { memberType, draftData, currentStep } = await request.json();
     
+    // ฟังก์ชันกรองไฟล์แนบออกจาก draft data เพื่อประหยัด Cloudinary storage
+    const filterFileAttachments = (data) => {
+      const filteredData = { ...data };
+      
+      // รายการฟิลด์ที่เป็นไฟล์แนบที่ต้องกรองออก
+      const fileFields = [
+        // OC Form files
+        'factoryLicense', 'industrialEstateLicense', 'companyRegistration', 'vatRegistration',
+        // IC Form files  
+        'idCard', 'additionalDocuments',
+        // AC Form files
+        'companyRegistration', 'vatRegistration',
+        // AM Form files
+        'associationRegistration', 'associationProfile', 'memberList', 'vatRegistration', 'idCard', 'authorityLetter'
+      ];
+      
+      // ลบฟิลด์ไฟล์แนบออก
+      fileFields.forEach(field => {
+        if (filteredData[field]) {
+          delete filteredData[field];
+        }
+      });
+      
+      // กรองไฟล์แนบในอาร์เรย์ (เช่น representatives)
+      if (filteredData.representatives && Array.isArray(filteredData.representatives)) {
+        filteredData.representatives = filteredData.representatives.map(rep => {
+          const cleanRep = { ...rep };
+          fileFields.forEach(field => {
+            if (cleanRep[field]) {
+              delete cleanRep[field];
+            }
+          });
+          return cleanRep;
+        });
+      }
+      
+      return filteredData;
+    };
+    
+    // กรองไฟล์แนบออกจาก draft data
+    const cleanDraftData = filterFileAttachments(draftData);
+    
     // Extract unique identifier - taxId for OC/AC/AM, idcard for IC
     let uniqueId;
     if (memberType.toLowerCase() === 'ic') {
-      uniqueId = draftData.idCardNumber || draftData.idcard || null;
+      uniqueId = cleanDraftData.idCardNumber || cleanDraftData.idcard || null;
     } else {
-      uniqueId = draftData.taxId || draftData.tax_id || null;
+      uniqueId = cleanDraftData.taxId || cleanDraftData.tax_id || null;
     }
     
     if (!uniqueId) {
@@ -111,8 +153,8 @@ export async function POST(request) {
            WHERE tax_id = ? AND status = 3`;
       
       const updateParams = memberType.toLowerCase() === 'ic' 
-        ? [JSON.stringify(draftData), currentStep, uniqueId]
-        : [JSON.stringify(draftData), currentStep, uniqueId];
+        ? [JSON.stringify(cleanDraftData), currentStep, uniqueId]
+        : [JSON.stringify(cleanDraftData), currentStep, uniqueId];
       
       result = await query(updateQuery, updateParams);
     } else {
@@ -124,8 +166,8 @@ export async function POST(request) {
            VALUES (?, ?, ?, 3, ?, NOW(), NOW())`;
       
       const insertParams = memberType.toLowerCase() === 'ic' 
-        ? [userId, JSON.stringify(draftData), currentStep, uniqueId]
-        : [userId, JSON.stringify(draftData), currentStep, uniqueId];
+        ? [userId, JSON.stringify(cleanDraftData), currentStep, uniqueId]
+        : [userId, JSON.stringify(cleanDraftData), currentStep, uniqueId];
       
       result = await query(insertQuery, insertParams);
     }
