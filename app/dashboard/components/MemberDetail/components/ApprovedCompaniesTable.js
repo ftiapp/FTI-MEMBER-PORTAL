@@ -178,7 +178,40 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                     ดูเอกสาร
                   </motion.a>
                 ) : (
-                  <span className="text-gray-400 italic">ไม่มีเอกสาร</span>
+                  // สำหรับสมาชิกใหม่ที่ไม่มีเอกสารยืนยัน ให้ไปดูใบสมัครแทน
+                  company.tax_id ? (
+                    <motion.button 
+                      className="text-green-600 hover:text-green-800 flex items-center"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={async (e) => {
+                        e.stopPropagation(); // Prevent row click
+                        
+                        try {
+                          // ค้นหาประเภทสมาชิกและ ID จาก tax_id
+                          const response = await fetch(`/api/membership/find-by-tax-id?taxId=${company.tax_id}`);
+                          const result = await response.json();
+                          
+                          if (result.success && result.data) {
+                            const { membershipType, id } = result.data;
+                            // เปิดไปหน้า summary ที่ถูกต้อง
+                            const summaryUrl = `/membership/${membershipType.toLowerCase()}/summary?id=${id}`;
+                            window.open(summaryUrl, '_blank');
+                          } else {
+                            alert('ไม่พบข้อมูลใบสมัคร');
+                          }
+                        } catch (error) {
+                          console.error('Error finding membership:', error);
+                          alert('เกิดข้อผิดพลาดในการค้นหาข้อมูล');
+                        }
+                      }}
+                    >
+                      <FaFileAlt className="mr-1" size={14} />
+                      ดูใบสมัคร
+                    </motion.button>
+                  ) : (
+                    <span className="text-gray-400 italic">ไม่มีเอกสาร</span>
+                  )
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
