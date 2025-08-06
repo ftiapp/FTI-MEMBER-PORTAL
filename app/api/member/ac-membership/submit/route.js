@@ -74,7 +74,25 @@ export async function POST(request) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
 
-    // Step 3: Insert Main Data
+    // Step 3: Extract company email and phone from document delivery address (type 2)
+    let companyEmail = data.companyEmail || '';
+    let companyPhone = data.companyPhone || '';
+    
+    // If using multi-address structure, get email and phone from document delivery address (type 2)
+    if (data.addresses) {
+      try {
+        const addresses = JSON.parse(data.addresses);
+        const documentAddress = addresses['2']; // Document delivery address
+        if (documentAddress) {
+          companyEmail = documentAddress.email || companyEmail;
+          companyPhone = documentAddress.phone || companyPhone;
+        }
+      } catch (error) {
+        console.error('Error parsing addresses:', error);
+      }
+    }
+    
+    // Step 4: Insert Main Data
     console.log('💾 [AC] Inserting main data...');
     const mainResult = await executeQuery(trx, 
       `INSERT INTO MemberRegist_AC_Main (
@@ -86,8 +104,8 @@ export async function POST(request) {
         data.companyName || '',
         data.companyNameEn || '',
         data.taxId,
-        data.companyEmail || '',
-        data.companyPhone || '',
+        companyEmail,
+        companyPhone,
         data.companyWebsite || '',
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
       ]
@@ -95,47 +113,109 @@ export async function POST(request) {
     const mainId = mainResult.insertId;
     console.log('✅ [AC] Main record created with ID:', mainId);
 
-    // Step 4: Insert Address
+    // Step 5: Insert Addresses (Multi-address support)
     console.log('🏠 [AC] Inserting address data...');
-    await executeQuery(trx, 
-      `INSERT INTO MemberRegist_AC_Address (
-        main_id, address_number, moo, soi, road, sub_district, 
-        district, province, postal_code, phone, email, website
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      [
-        mainId, 
-        data.addressNumber || '',
-        data.moo || '',
-        data.soi || '',
-        data.road || '',  // ใช้ road ตาม column จริง
-        data.subDistrict || '',
-        data.district || '',
-        data.province || '',
-        data.postalCode || '',
-        data.companyPhone || '',
-        data.companyEmail || '',
-        data.companyWebsite || ''
-      ]
-    );
+    if (data.addresses) {
+      const addresses = JSON.parse(data.addresses);
+      for (const [addressType, addressData] of Object.entries(addresses)) {
+        if (addressData && Object.keys(addressData).length > 0) {
+          await executeQuery(trx, 
+            `INSERT INTO MemberRegist_AC_Address (
+              main_id, address_number, building, moo, soi, road, sub_district, 
+              district, province, postal_code, phone, email, website, address_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            [
+              mainId, 
+              addressData.addressNumber || '',
+              addressData.building || '',
+              addressData.moo || '',
+              addressData.soi || '',
+              addressData.road || '',
+              addressData.subDistrict || '',
+              addressData.district || '',
+              addressData.province || '',
+              addressData.postalCode || '',
+              addressData.phone || data.companyPhone || '',
+              addressData.email || data.companyEmail || '',
+              addressData.website || data.companyWebsite || '',
+              addressType
+            ]
+          );
+        }
+      }
+    } else {
+      // Fallback for old single address format
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AC_Address (
+          main_id, address_number, moo, soi, road, sub_district, 
+          district, province, postal_code, phone, email, website, address_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          mainId, 
+          data.addressNumber || '',
+          data.moo || '',
+          data.soi || '',
+          data.road || '',
+          data.subDistrict || '',
+          data.district || '',
+          data.province || '',
+          data.postalCode || '',
+          data.companyPhone || '',
+          data.companyEmail || '',
+          data.companyWebsite || '',
+          '2' // Default to document delivery address
+        ]
+      );
+    }
 
-    // Step 5: Insert Contact Person
-    console.log('👤 [AC] Inserting contact person...');
-    await executeQuery(trx, 
-      `INSERT INTO MemberRegist_AC_ContactPerson (
-        main_id, first_name_th, last_name_th, first_name_en, 
-        last_name_en, position, email, phone
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-      [
-        mainId, 
-        data.contactPersonFirstName || '',
-        data.contactPersonLastName || '',
-        data.contactPersonFirstNameEng || '',
-        data.contactPersonLastNameEng || '',
-        data.contactPersonPosition || '',
-        data.contactPersonEmail || '',
-        data.contactPersonPhone || ''
-      ]
-    );
+    // Step 5: Insert Contact Persons (with type support)
+    console.log('👤 [AC] Inserting contact persons...');
+    if (data.contactPersons) {
+      const contactPersons = JSON.parse(data.contactPersons);
+      for (let index = 0; index < contactPersons.length; index++) {
+        const contact = contactPersons[index];
+        await executeQuery(trx,
+          `INSERT INTO MemberRegist_AC_ContactPerson (
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
+            position, email, phone, type_contact_id, type_contact_name, type_contact_other_detail
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId, 
+            contact.firstNameTh || '', 
+            contact.lastNameTh || '', 
+            contact.firstNameEn || '', 
+            contact.lastNameEn || '', 
+            contact.position || '', 
+            contact.email || '', 
+            contact.phone || '',
+            contact.typeContactId || 'MAIN',
+            contact.typeContactName || 'ผู้ประสานงานหลัก',
+            contact.typeContactOtherDetail || null
+          ]
+        );
+      }
+    } else {
+      // Fallback for old single contact person format
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AC_ContactPerson (
+          main_id, first_name_th, last_name_th, first_name_en, 
+          last_name_en, position, email, phone, type_contact_id, type_contact_name, type_contact_other_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          mainId, 
+          data.contactPersonFirstName || '',
+          data.contactPersonLastName || '',
+          data.contactPersonFirstNameEng || '',
+          data.contactPersonLastNameEng || '',
+          data.contactPersonPosition || '',
+          data.contactPersonEmail || '',
+          data.contactPersonPhone || '',
+          'MAIN',
+          'ผู้ประสานงานหลัก',
+          null
+        ]
+      );
+    }
 
 // Step 6: Insert Representatives
 console.log('👥 [AC] Inserting representatives...');

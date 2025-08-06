@@ -276,16 +276,64 @@ export default function SummarySection({
 
       {/* ที่อยู่ */}
       <Section title="ที่อยู่" className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="เลขที่" value={formData.address?.addressNumber} />
-          <InfoCard title="หมู่" value={formData.address?.moo} />
-          <InfoCard title="ซอย" value={formData.address?.soi} />
-          <InfoCard title="ถนน" value={formData.address?.road} />
-          <InfoCard title="ตำบล/แขวง" value={formData.address?.subDistrict} />
-          <InfoCard title="อำเภอ/เขต" value={formData.address?.district} />
-          <InfoCard title="จังหวัด" value={formData.address?.province} />
-          <InfoCard title="รหัสไปรษณีย์" value={formData.address?.postalCode} />
-        </div>
+        {(() => {
+          const addressTypes = {
+            '1': 'ที่อยู่สำนักงาน',
+            '2': 'ที่อยู่จัดส่งเอกสาร',
+            '3': 'ที่อยู่ใบกำกับภาษี'
+          };
+
+          // Check if using new multi-address format
+          if (formData.addresses && typeof formData.addresses === 'object') {
+            return (
+              <div className="space-y-6">
+                {Object.entries(formData.addresses).map(([type, addressData]) => {
+                  if (!addressData || Object.keys(addressData).length === 0) return null;
+                  
+                  const extractAddressField = (field) => {
+                    return addressData[field] || '';
+                  };
+
+                  return (
+                    <div key={type} className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                        {addressTypes[type] || `ที่อยู่ประเภท ${type}`}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <InfoCard title="เลขที่" value={extractAddressField('addressNumber')} />
+                        <InfoCard title="อาคาร/หมู่บ้าน" value={extractAddressField('building')} />
+                        <InfoCard title="หมู่" value={extractAddressField('moo')} />
+                        <InfoCard title="ซอย" value={extractAddressField('soi')} />
+                        <InfoCard title="ถนน" value={extractAddressField('road')} />
+                        <InfoCard title="ตำบล/แขวง" value={extractAddressField('subDistrict')} />
+                        <InfoCard title="อำเภอ/เขต" value={extractAddressField('district')} />
+                        <InfoCard title="จังหวัด" value={extractAddressField('province')} />
+                        <InfoCard title="รหัสไปรษณีย์" value={extractAddressField('postalCode')} />
+                        <InfoCard title="โทรศัพท์" value={extractAddressField('phone') || formData.phone} />
+                        <InfoCard title="อีเมล" value={extractAddressField('email') || formData.email} />
+                        <InfoCard title="เว็บไซต์" value={extractAddressField('website') || formData.website} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          // Fallback for old single address format
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoCard title="เลขที่" value={formData.address?.addressNumber} />
+              <InfoCard title="หมู่" value={formData.address?.moo} />
+              <InfoCard title="ซอย" value={formData.address?.soi} />
+              <InfoCard title="ถนน" value={formData.address?.road} />
+              <InfoCard title="ตำบล/แขวง" value={formData.address?.subDistrict} />
+              <InfoCard title="อำเภอ/เขต" value={formData.address?.district} />
+              <InfoCard title="จังหวัด" value={formData.address?.province} />
+              <InfoCard title="รหัสไปรษณีย์" value={formData.address?.postalCode} />
+            </div>
+          );
+        })()}
       </Section>
 
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}

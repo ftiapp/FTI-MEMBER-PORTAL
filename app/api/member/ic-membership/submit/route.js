@@ -53,6 +53,26 @@ export async function POST(request) {
     console.log('Extracted data:', data);
     console.log('Products:', products);
 
+    // Extract email, phone, and website from document delivery address (type 2)
+    let userEmail = data.email || '';
+    let userPhone = data.phone || '';
+    let userWebsite = data.website || '';
+    
+    // If using multi-address structure, get email, phone, and website from document delivery address (type 2)
+    if (data.addresses) {
+      try {
+        const addresses = JSON.parse(data.addresses);
+        const documentAddress = addresses['2']; // Document delivery address
+        if (documentAddress) {
+          userEmail = documentAddress.email || userEmail;
+          userPhone = documentAddress.phone || userPhone;
+          userWebsite = documentAddress.website || userWebsite;
+        }
+      } catch (error) {
+        console.error('Error parsing addresses:', error);
+      }
+    }
+
     // ✅ FIX: เพิ่ม website ในตาราง Main
     const result = await executeQuery(
       trx,
@@ -67,9 +87,9 @@ export async function POST(request) {
         data.lastNameTh,
         data.firstNameEn,
         data.lastNameEn,
-        data.phone || '', // ✅ FIX: ให้แน่ใจว่ามีค่า
-        data.email || '', // ✅ FIX: ให้แน่ใจว่ามีค่า
-        data.website || '', // ✅ FIX: เพิ่ม website
+        userPhone,
+        userEmail,
+        userWebsite,
       ]
     );
     
@@ -77,29 +97,64 @@ export async function POST(request) {
     console.log('Created IC Member ID:', icMemberId);
     console.log('Saved main data - phone:', data.phone, 'email:', data.email, 'website:', data.website);
 
-    // Insert address to correct table with all fields
-    await executeQuery(
-      trx,
-      `INSERT INTO MemberRegist_IC_Address (
-        main_id, address_number, moo, soi, road,
-        sub_district, district, province, postal_code,
-        phone, email, website
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        icMemberId,
-        data.addressNumber || '',
-        data.moo || '',
-        data.soi || '',
-        data.road || '',
-        data.subDistrict || '',
-        data.district || '',
-        data.province || '',
-        data.postalCode || '',
-        data.phone || '',
-        data.email || '',
-        data.website || ''
-      ]
-    );
+    // Insert addresses (Multi-address support)
+    console.log('🏠 [IC] Inserting address data...');
+    if (data.addresses) {
+      const addresses = JSON.parse(data.addresses);
+      for (const [addressType, addressData] of Object.entries(addresses)) {
+        if (addressData && Object.keys(addressData).length > 0) {
+          await executeQuery(
+            trx,
+            `INSERT INTO MemberRegist_IC_Address (
+              main_id, address_number, building, moo, soi, road,
+              sub_district, district, province, postal_code,
+              phone, email, website, address_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              icMemberId,
+              addressData.addressNumber || '',
+              addressData.building || '',
+              addressData.moo || '',
+              addressData.soi || '',
+              addressData.road || '',
+              addressData.subDistrict || '',
+              addressData.district || '',
+              addressData.province || '',
+              addressData.postalCode || '',
+              addressData.phone || data.phone || '',
+              addressData.email || data.email || '',
+              addressData.website || data.website || '',
+              addressType
+            ]
+          );
+        }
+      }
+    } else {
+      // Fallback for old single address format
+      await executeQuery(
+        trx,
+        `INSERT INTO MemberRegist_IC_Address (
+          main_id, address_number, moo, soi, road,
+          sub_district, district, province, postal_code,
+          phone, email, website, address_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          icMemberId,
+          data.addressNumber || '',
+          data.moo || '',
+          data.soi || '',
+          data.road || '',
+          data.subDistrict || '',
+          data.district || '',
+          data.province || '',
+          data.postalCode || '',
+          data.phone || '',
+          data.email || '',
+          data.website || '',
+          '2' // Default to document delivery address
+        ]
+      );
+    }
 
     console.log('Address saved with road:', data.road);
 

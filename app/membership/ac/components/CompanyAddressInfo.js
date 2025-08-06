@@ -14,10 +14,95 @@ export default function CompanyAddressInfo({
   isAutofill 
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState('2'); // Default to document delivery address
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+  // Address types configuration
+  const addressTypes = {
+    '1': { label: 'ที่อยู่สำนักงาน', color: 'blue' },
+    '2': { label: 'ที่อยู่จัดส่งเอกสาร', color: 'blue' },
+    '3': { label: 'ที่อยู่ใบกำกับภาษี', color: 'blue' }
+  };
+
+  // Initialize address data if not exists
+  useEffect(() => {
+    if (!formData.addresses) {
+      setFormData(prev => ({
+        ...prev,
+        addresses: {
+          '1': { addressType: '1' },
+          '2': { addressType: '2' },
+          '3': { addressType: '3' }
+        }
+      }));
+    }
+  }, [formData.addresses, setFormData]);
+
+  // Auto-switch to tab with errors for better UX
+  useEffect(() => {
+    if (errors && Object.keys(errors).length > 0) {
+      // Find first address error and switch to that tab
+      const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
+      if (addressErrorKeys.length > 0) {
+        const firstErrorKey = addressErrorKeys[0];
+        const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
+        if (match && match[1]) {
+          const errorTab = match[1];
+          if (errorTab !== activeTab) {
+            setActiveTab(errorTab);
+            // Scroll to address section automatically
+            const addressSection = document.querySelector('[data-section="company-address"]') || 
+                                 document.querySelector('.company-address') ||
+                                 document.querySelector('h3')?.closest('.bg-white');
+            if (addressSection) {
+              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+        }
+      }
+    }
+  }, [errors, activeTab, addressTypes]);
+
+  // Get current address based on active tab
+  const getCurrentAddress = () => {
+    return formData.addresses?.[activeTab] || {};
+  };
+
+  // Copy address from document delivery (type 2) to other types
+  const copyAddressFromDocumentDelivery = (targetType) => {
+    const documentAddress = formData.addresses?.['2'];
+    if (!documentAddress) {
+      toast.error('กรุณากรอกที่อยู่จัดส่งเอกสารก่อน');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [targetType]: {
+          ...documentAddress,
+          addressType: targetType
+        }
+      }
+    }));
+    toast.success(`คัดลอกที่อยู่ไปยัง${addressTypes[targetType].label}สำเร็จ`);
+  };
+
+  // Get current address based on active tab
+  const currentAddress = formData.addresses?.[activeTab] || {};
+
+  const handleInputChange = (name, value) => {
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          [name]: value
+        }
+      }
+    }));
   };
 
   const fetchPostalCode = useCallback(async (subDistrict) => {
@@ -43,7 +128,13 @@ export default function CompanyAddressInfo({
         
         setFormData(prev => ({
           ...prev,
-          postalCode: postalCode
+          addresses: {
+            ...prev.addresses,
+            [activeTab]: {
+              ...prev.addresses?.[activeTab],
+              postalCode: postalCode
+            }
+          }
         }));
         toast.success('ดึงรหัสไปรษณีย์สำเร็จ');
       } else {
@@ -123,13 +214,22 @@ export default function CompanyAddressInfo({
   }, []);
 
   const handleSubDistrictChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, subDistrict: value }));
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: value
+        }
+      }
+    }));
     
     if (value && value.trim().length > 2) {
       console.log(`Subdistrict changed to: ${value}, fetching postal code...`);
       fetchPostalCode(value);
     }
-  }, [setFormData, fetchPostalCode]);
+  }, [setFormData, fetchPostalCode, activeTab]);
   
   const handleSubDistrictSelect = useCallback((option) => {
     if (!option) return;
@@ -137,17 +237,32 @@ export default function CompanyAddressInfo({
     console.log('Selected subdistrict option:', option);
     setFormData(prev => ({
       ...prev,
-      subDistrict: option.text || option.name || '',
-      district: option.district || '',
-      province: option.province || '',
-      postalCode: option.postalCode || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: option.text || option.name || '',
+          district: option.district || '',
+          province: option.province || '',
+          postalCode: option.postalCode || ''
+        }
+      }
     }));
     toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, district: value }));
-  }, [setFormData]);
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          district: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
   
   const handleDistrictSelect = useCallback((option) => {
     if (!option) return;
@@ -155,18 +270,42 @@ export default function CompanyAddressInfo({
     console.log('Selected district option:', option);
     setFormData(prev => ({
       ...prev,
-      district: option.text || option.name || '',
-      province: option.province || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          district: option.text || option.name || '',
+          province: option.province || ''
+        }
+      }
     }));
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
   
   const handleProvinceChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, province: value }));
-  }, [setFormData]);
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          province: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
   
   const handlePostalCodeChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, postalCode: value }));
-  }, [setFormData]);
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          postalCode: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
   
   const handlePostalCodeSelect = useCallback((option) => {
     if (!option) return;
@@ -174,13 +313,19 @@ export default function CompanyAddressInfo({
     console.log('Selected postal code option:', option);
     setFormData(prev => ({
       ...prev,
-      subDistrict: option.subdistrict || option.subDistrict || '',
-      district: option.district || '',
-      province: option.province || '',
-      postalCode: option.text || option.postalCode || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: option.subdistrict || option.subDistrict || '',
+          district: option.district || '',
+          province: option.province || '',
+          postalCode: option.text || option.postalCode || ''
+        }
+      }
     }));
     toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -213,8 +358,8 @@ export default function CompanyAddressInfo({
                 type="text"
                 id="addressNumber"
                 name="addressNumber"
-                value={formData.addressNumber || ''}
-                onChange={handleInputChange}
+                value={currentAddress?.addressNumber || ''}
+                onChange={(e) => handleInputChange('addressNumber', e.target.value)}
                 placeholder="เลขที่"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -258,8 +403,8 @@ export default function CompanyAddressInfo({
                 type="text"
                 id="moo"
                 name="moo"
-                value={formData.moo || ''}
-                onChange={handleInputChange}
+                value={currentAddress?.moo || ''}
+                onChange={(e) => handleInputChange('moo', e.target.value)}
                 placeholder="หมู่ที่"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -292,8 +437,8 @@ export default function CompanyAddressInfo({
                 type="text"
                 id="soi"
                 name="soi"
-                value={formData.soi || ''}
-                onChange={handleInputChange}
+                value={currentAddress?.soi || ''}
+                onChange={(e) => handleInputChange('soi', e.target.value)}
                 placeholder="ซอย"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -326,8 +471,8 @@ export default function CompanyAddressInfo({
                 type="text"
                 id="road"
                 name="road"
-                value={formData.road || ''}
-                onChange={handleInputChange}
+                value={currentAddress?.road || ''}
+                onChange={(e) => handleInputChange('road', e.target.value)}
                 placeholder="ถนน"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -356,14 +501,14 @@ export default function CompanyAddressInfo({
               <SearchableDropdown
                 label="ตำบล/แขวง"
                 placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง"
-                value={formData.subDistrict || ''}
+                value={currentAddress?.subDistrict || ''}
                 onChange={handleSubDistrictChange}
                 onSelect={handleSubDistrictSelect}
                 fetchOptions={fetchSubDistricts}
                 isRequired={true}
                 isReadOnly={false}
-                error={errors?.subDistrict}
-                autoFillNote={isAutofill && formData.subDistrict ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
+                error={errors?.addresses?.[activeTab]?.subDistrict}
+                autoFillNote={isAutofill && currentAddress?.subDistrict ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
               />
             </div>
@@ -373,14 +518,14 @@ export default function CompanyAddressInfo({
               <SearchableDropdown
                 label="อำเภอ/เขต"
                 placeholder="พิมพ์เพื่อค้นหาอำเภอ/เขต"
-                value={formData.district || ''}
+                value={currentAddress?.district || ''}
                 onChange={handleDistrictChange}
                 onSelect={handleDistrictSelect}
                 fetchOptions={fetchDistricts}
                 isRequired={true}
                 isReadOnly={true}
-                error={errors?.district}
-                autoFillNote={isAutofill && formData.district ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
+                error={errors?.addresses?.[activeTab]?.district}
+                autoFillNote={isAutofill && currentAddress?.district ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
               />
             </div>
 
@@ -389,13 +534,13 @@ export default function CompanyAddressInfo({
               <SearchableDropdown
                 label="จังหวัด"
                 placeholder="พิมพ์เพื่อค้นหาจังหวัด"
-                value={formData.province || ''}
+                value={currentAddress?.province || ''}
                 onChange={handleProvinceChange}
                 fetchOptions={fetchProvinces}
                 isRequired={true}
                 isReadOnly={true}
-                error={errors?.province}
-                autoFillNote={isAutofill && formData.province ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
+                error={errors?.addresses?.[activeTab]?.province}
+                autoFillNote={isAutofill && currentAddress?.province ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
               />
             </div>
 
@@ -404,14 +549,14 @@ export default function CompanyAddressInfo({
               <SearchableDropdown
                 label="รหัสไปรษณีย์"
                 placeholder="รหัสไปรษณีย์"
-                value={formData.postalCode || ''}
+                value={currentAddress?.postalCode || ''}
                 onChange={handlePostalCodeChange}
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
                 isRequired={true}
                 isReadOnly={true}
-                error={errors?.postalCode}
-                autoFillNote={isAutofill && formData.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
+                error={errors?.addresses?.[activeTab]?.postalCode}
+                autoFillNote={isAutofill && currentAddress?.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
               />
             </div>

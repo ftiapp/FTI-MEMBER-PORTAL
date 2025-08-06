@@ -394,45 +394,86 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               `}
             </div>
 
-             <!-- ที่อยู่ -->
+             <!-- ที่อยู่จัดส่งเอกสาร -->
             <div class="section">
-              <div class="section-title">ที่อยู่</div>
-              <div class="address-grid">
-                <div class="compact-row">
-                  <div class="label">บ้านเลขที่:</div>
-                  <div class="value">${application.address_number || '-'}</div>
-                </div>
-                <div class="compact-row">
-                  <div class="label">หมู่:</div>
-                  <div class="value">${application.moo || '-'}</div>
-                </div>
-                <div class="compact-row">
-                  <div class="label">ซอย:</div>
-                  <div class="value">${application.soi || '-'}</div>
-                </div>
-                <div class="compact-row">
-                  <div class="label">ถนน:</div>
-                  <div class="value">${application.street || application.road || '-'}</div>
-                </div>
-              </div>
-              <div class="address-grid">
-                <div class="compact-row">
-                  <div class="label">ตำบล/แขวง:</div>
-                  <div class="value">${application.sub_district || '-'}</div>
-                </div>
-                <div class="compact-row">
-                  <div class="label">อำเภอ/เขต:</div>
-                  <div class="value">${application.district || '-'}</div>
-                </div>
-                <div class="compact-row">
-                  <div class="label">จังหวัด:</div>
-                  <div class="value">${application.province || '-'}</div>
-                </div>
-                <div class="compact-row">
-                  <div class="label">รหัสไปรษณีย์:</div>
-                  <div class="value">${application.postal_code || '-'}</div>
-                </div>
-              </div>
+              <div class="section-title">ที่อยู่จัดส่งเอกสาร</div>
+              ${(() => {
+                // Find document delivery address (type 2) from multi-address data
+                let documentAddress = null;
+                if (application.addresses && Array.isArray(application.addresses)) {
+                  documentAddress = application.addresses.find(addr => addr.address_type === '2');
+                }
+                
+                // Use document delivery address if found, otherwise fallback to main address
+                const addressData = documentAddress || application;
+                
+                return `
+                  <div class="address-grid">
+                    <div class="compact-row">
+                      <div class="label">บ้านเลขที่:</div>
+                      <div class="value">${addressData.address_number || '-'}</div>
+                    </div>
+                    ${addressData.building ? `
+                      <div class="compact-row">
+                        <div class="label">อาคาร/หมู่บ้าน:</div>
+                        <div class="value">${addressData.building}</div>
+                      </div>
+                    ` : ''}
+                    <div class="compact-row">
+                      <div class="label">หมู่:</div>
+                      <div class="value">${addressData.moo || '-'}</div>
+                    </div>
+                    <div class="compact-row">
+                      <div class="label">ซอย:</div>
+                      <div class="value">${addressData.soi || '-'}</div>
+                    </div>
+                    <div class="compact-row">
+                      <div class="label">ถนน:</div>
+                      <div class="value">${addressData.street || addressData.road || '-'}</div>
+                    </div>
+                  </div>
+                  <div class="address-grid">
+                    <div class="compact-row">
+                      <div class="label">ตำบล/แขวง:</div>
+                      <div class="value">${addressData.sub_district || '-'}</div>
+                    </div>
+                    <div class="compact-row">
+                      <div class="label">อำเภอ/เขต:</div>
+                      <div class="value">${addressData.district || '-'}</div>
+                    </div>
+                    <div class="compact-row">
+                      <div class="label">จังหวัด:</div>
+                      <div class="value">${addressData.province || '-'}</div>
+                    </div>
+                    <div class="compact-row">
+                      <div class="label">รหัสไปรษณีย์:</div>
+                      <div class="value">${addressData.postal_code || '-'}</div>
+                    </div>
+                  </div>
+                  ${documentAddress && (documentAddress.phone || documentAddress.email || documentAddress.website) ? `
+                    <div class="address-grid" style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e2e8f0;">
+                      ${documentAddress.phone ? `
+                        <div class="compact-row">
+                          <div class="label">โทรศัพท์:</div>
+                          <div class="value">${documentAddress.phone}</div>
+                        </div>
+                      ` : ''}
+                      ${documentAddress.email ? `
+                        <div class="compact-row">
+                          <div class="label">อีเมล:</div>
+                          <div class="value">${documentAddress.email}</div>
+                        </div>
+                      ` : ''}
+                      ${documentAddress.website ? `
+                        <div class="compact-row">
+                          <div class="label">เว็บไซต์:</div>
+                          <div class="value">${documentAddress.website}</div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  ` : ''}
+                `;
+              })()}
               
               <!-- ผู้ติดต่อ - วางในบล็อกเดียวกันกับที่อยู่ -->
               ${type !== 'ic' && (
@@ -453,33 +494,45 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                       contacts = [application.contactPerson];
                     }
                     
-                    return contacts.map((contact, index) => `
-                      <div style="background: #f8fafc; padding: 4px; margin-bottom: 3px; border-radius: 2px; ${contacts.length > 1 ? 'border-left: 2px solid #3182ce;' : ''}">
-                        ${contacts.length > 1 ? `<div style="font-weight: 600; font-size: 9px; color: #2b6cb0; margin-bottom: 2px;">ผู้ติดต่อ ${index + 1}</div>` : ''}
+                    const mainContact = contacts[0];
+                    if (!mainContact) return '';
+                    
+                    return `
+                      <div style="background: #f8fafc; padding: 4px; margin-bottom: 3px; border-radius: 2px;">
+                        <div style="font-weight: 600; font-size: 9px; color: #2b6cb0; margin-bottom: 2px;">
+                          ผู้ประสานงานหลัก
+                          ${(mainContact.type_contact_name || mainContact.typeContactName) ? 
+                            ` (ประเภท: ${mainContact.type_contact_name || mainContact.typeContactName})` : ''}
+                        </div>
+                        ${(mainContact.type_contact_other_detail || mainContact.typeContactOtherDetail) ? `
+                          <div style="font-size: 8px; color: #d97706; margin-bottom: 2px; font-style: italic;">
+                            รายละเอียด: ${mainContact.type_contact_other_detail || mainContact.typeContactOtherDetail}
+                          </div>
+                        ` : ''}
                         <div class="address-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr; gap: 3px;">
                           <div class="compact-row">
                             <div class="label" style="font-size: 9px;">ชื่อ (ไทย):</div>
-                            <div class="value" style="font-size: 9px;">${(contact.first_name_th || contact.firstNameTh || '') + ' ' + (contact.last_name_th || contact.lastNameTh || '')}</div>
+                            <div class="value" style="font-size: 9px;">${(mainContact.first_name_th || mainContact.firstNameTh || '') + ' ' + (mainContact.last_name_th || mainContact.lastNameTh || '')}</div>
                           </div>
                           <div class="compact-row">
                             <div class="label" style="font-size: 9px;">ชื่อ (อังกฤษ):</div>
-                            <div class="value" style="font-size: 9px;">${(contact.first_name_en || contact.firstNameEn || '') + ' ' + (contact.last_name_en || contact.lastNameEn || '')}</div>
+                            <div class="value" style="font-size: 9px;">${(mainContact.first_name_en || mainContact.firstNameEn || '') + ' ' + (mainContact.last_name_en || mainContact.lastNameEn || '')}</div>
                           </div>
                           <div class="compact-row">
                             <div class="label" style="font-size: 9px;">ตำแหน่ง:</div>
-                            <div class="value" style="font-size: 9px;">${contact.position || '-'}</div>
+                            <div class="value" style="font-size: 9px;">${mainContact.position || '-'}</div>
                           </div>
                           <div class="compact-row">
                             <div class="label" style="font-size: 9px;">โทรศัพท์:</div>
-                            <div class="value" style="font-size: 9px;">${contact.phone || '-'}</div>
+                            <div class="value" style="font-size: 9px;">${mainContact.phone || '-'}</div>
                           </div>
                         </div>
                         <div class="compact-row" style="margin-top: 2px;">
                           <div class="label" style="font-size: 9px;">อีเมล:</div>
-                          <div class="value" style="font-size: 9px;">${contact.email || '-'}</div>
+                          <div class="value" style="font-size: 9px;">${mainContact.email || '-'}</div>
                         </div>
                       </div>
-                    `).join('');
+                    `;
                   })()}
                 </div>
               ` : ''}

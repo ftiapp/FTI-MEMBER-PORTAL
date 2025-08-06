@@ -243,7 +243,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 {/* Factory License Upload */}
                 <SingleFileUploadZone
                   title="ใบอนุญาตประกอบกิจการโรงงาน (ตัวเลือกที่ 1)"
-                  description="รง.4 - เอกสารใบอนุญาตประกอบกิจการโรงงานที่ออกโดยกรมโรงงานอุตสาหกรรม (เลือกไฟล์นี้หรือไฟล์ด้านล่าง)"
+                  description="รง.4 - เอกสารใบอนุญาตประกอบกิจการโรงงานที่ออกโดยกรมโรงงานอุตสาหกรรม"
                   name="factoryLicense"
                   file={selectedFiles.factoryLicense}
                   icon={
@@ -255,10 +255,22 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   bgColor="bg-blue-100"
                 />
 
+                {/* OR Separator */}
+                <div className="relative py-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300"></div>
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-white px-6 py-2 text-gray-500 font-medium border border-gray-300 rounded-full">
+                      หรือ
+                    </span>
+                  </div>
+                </div>
+
                 {/* Industrial Estate License Upload */}
                 <SingleFileUploadZone
                   title="ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (ตัวเลือกที่ 2)"
-                  description="กนอ. - เอกสารใบอนุญาตที่ออกโดยการนิคมอุตสาหกรรมแห่งประเทศไทย (หรือเลือกไฟล์ด้านบน)"
+                  description="กนอ. - เอกสารใบอนุญาตที่ออกโดยการนิคมอุตสาหกรรมแห่งประเทศไทย"
                   name="industrialEstateLicense"
                   file={selectedFiles.industrialEstateLicense}
                   icon={

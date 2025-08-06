@@ -89,27 +89,90 @@ const validateApplicantInfo = (formData) => {
     errors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
   }
 
-  // Address validation - required fields only
-  if (!formData.addressNumber) {
-    errors.addressNumber = 'กรุณากรอกบ้านเลขที่';
-  }
+  // Address validation - รองรับ multi-address
+  const addressTypes = ['1', '2', '3'];
+  const addressLabels = {
+    '1': 'ที่อยู่สำนักงาน',
+    '2': 'ที่อยู่จัดส่งเอกสาร', 
+    '3': 'ที่อยู่ใบกำกับภาษี'
+  };
 
-  if (!formData.subDistrict) {
-    errors.subDistrict = 'กรุณากรอกตำบล/แขวง';
-  }
+  // ตรวจสอบว่ามี addresses object หรือไม่
+  if (formData.addresses && typeof formData.addresses === 'object') {
+    // ตรวจสอบ multi-address format
+    addressTypes.forEach(type => {
+      const address = formData.addresses[type];
+      const label = addressLabels[type];
+      
+      if (!address) {
+        errors[`address_${type}`] = `กรุณากรอก${label}`;
+        return;
+      }
 
-  if (!formData.district) {
-    errors.district = 'กรุณากรอกอำเภอ/เขต';
-  }
+      if (!address.addressNumber) {
+        errors[`address_${type}_addressNumber`] = `กรุณากรอกบ้านเลขที่ (${label})`;
+      }
 
-  if (!formData.province) {
-    errors.province = 'กรุณากรอกจังหวัด';
-  }
+      if (!address.subDistrict) {
+        errors[`address_${type}_subDistrict`] = `กรุณากรอกตำบล/แขวง (${label})`;
+      }
 
-  if (!formData.postalCode) {
-    errors.postalCode = 'กรุณากรอกรหัสไปรษณีย์';
-  } else if (!/^\d{5}$/.test(formData.postalCode)) {
-    errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
+      if (!address.district) {
+        errors[`address_${type}_district`] = `กรุณากรอกอำเภอ/เขต (${label})`;
+      }
+
+      if (!address.province) {
+        errors[`address_${type}_province`] = `กรุณากรอกจังหวัด (${label})`;
+      }
+
+      if (!address.postalCode) {
+        errors[`address_${type}_postalCode`] = `กรุณากรอกรหัสไปรษณีย์ (${label})`;
+      } else if (!/^\d{5}$/.test(address.postalCode)) {
+        errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
+      }
+
+      // ตรวจสอบอีเมลถ้ามี
+      if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+        errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+      }
+
+      // ตรวจสอบเบอร์โทรศัพท์ถ้ามี
+      if (address.phone && !/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
+        errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+      }
+
+      // ตรวจสอบเว็บไซต์ถ้ามี
+      if (address.website && address.website.trim() !== '') {
+        try {
+          new URL(address.website);
+        } catch (e) {
+          errors[`address_${type}_website`] = `รูปแบบเว็บไซต์ไม่ถูกต้อง (${label})`;
+        }
+      }
+    });
+  } else {
+    // Fallback สำหรับ single address format เก่า
+    if (!formData.addressNumber) {
+      errors.addressNumber = 'กรุณากรอกบ้านเลขที่';
+    }
+
+    if (!formData.subDistrict) {
+      errors.subDistrict = 'กรุณากรอกตำบล/แขวง';
+    }
+
+    if (!formData.district) {
+      errors.district = 'กรุณากรอกอำเภอ/เขต';
+    }
+
+    if (!formData.province) {
+      errors.province = 'กรุณากรอกจังหวัด';
+    }
+
+    if (!formData.postalCode) {
+      errors.postalCode = 'กรุณากรอกรหัสไปรษณีย์';
+    } else if (!/^\d{5}$/.test(formData.postalCode)) {
+      errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
+    }
   }
 
   // Note: moo, soi, street are optional fields - no validation required

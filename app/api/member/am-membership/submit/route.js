@@ -91,7 +91,25 @@ export async function POST(request) {
       return NextResponse.json({ error: message }, { status: 409 });
     }
 
-    // Step 3: บันทึกข้อมูลหลัก
+    // Step 3: Extract association email and phone from document delivery address (type 2)
+    let associationEmail = data.associationEmail || '';
+    let associationPhone = data.associationPhone || '';
+    
+    // If using multi-address structure, get email and phone from document delivery address (type 2)
+    if (data.addresses) {
+      try {
+        const addresses = JSON.parse(data.addresses);
+        const documentAddress = addresses['2']; // Document delivery address
+        if (documentAddress) {
+          associationEmail = documentAddress.email || associationEmail;
+          associationPhone = documentAddress.phone || associationPhone;
+        }
+      } catch (error) {
+        console.error('Error parsing addresses:', error);
+      }
+    }
+    
+    // Step 4: บันทึกข้อมูลหลัก
     console.log('💾 [AM API] Inserting main data...');
     const mainResult = await executeQuery(trx, 
       `INSERT INTO MemberRegist_AM_Main (
@@ -104,8 +122,8 @@ export async function POST(request) {
         data.associationName || '',
         data.associationNameEng || '',
         data.taxId,
-        data.associationEmail || '',
-        data.associationPhone || '',
+        associationEmail,
+        associationPhone,
         data.factoryType || '',
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
         data.memberCount ? parseInt(data.memberCount, 10) : null,
@@ -114,20 +132,108 @@ export async function POST(request) {
     const mainId = mainResult.insertId;
     console.log('✅ [AM API] Main record created with ID:', mainId);
 
-    // Step 4: บันทึกข้อมูลที่อยู่
+    // Step 5: บันทึกข้อมูลที่อยู่ (Multi-address support)
     console.log('🏠 [AM API] Inserting address data...');
-    await executeQuery(trx, 
-      `INSERT INTO MemberRegist_AM_Address (main_id, address_number, moo, soi, street, sub_district, district, province, postal_code, phone, email, website) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      [mainId, data.addressNumber, data.moo, data.soi, data.road, data.subDistrict, data.district, data.province, data.postalCode, data.associationPhone, data.associationEmail, data.website]
-    );
+    if (data.addresses) {
+      const addresses = JSON.parse(data.addresses);
+      for (const [addressType, addressData] of Object.entries(addresses)) {
+        if (addressData && Object.keys(addressData).length > 0) {
+          await executeQuery(trx, 
+            `INSERT INTO MemberRegist_AM_Address (
+              main_id, address_number, building, moo, soi, street, sub_district, 
+              district, province, postal_code, phone, email, website, address_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            [
+              mainId, 
+              addressData.addressNumber || '',
+              addressData.building || '',
+              addressData.moo || '',
+              addressData.soi || '',
+              addressData.road || '',
+              addressData.subDistrict || '',
+              addressData.district || '',
+              addressData.province || '',
+              addressData.postalCode || '',
+              addressData.phone || data.associationPhone || '',
+              addressData.email || data.associationEmail || '',
+              addressData.website || data.website || '',
+              addressType
+            ]
+          );
+        }
+      }
+    } else {
+      // Fallback for old single address format
+      await executeQuery(trx, 
+        `INSERT INTO MemberRegist_AM_Address (
+          main_id, address_number, moo, soi, street, sub_district, 
+          district, province, postal_code, phone, email, website, address_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          mainId, 
+          data.addressNumber || '',
+          data.moo || '',
+          data.soi || '',
+          data.road || '',
+          data.subDistrict || '',
+          data.district || '',
+          data.province || '',
+          data.postalCode || '',
+          data.associationPhone || '',
+          data.associationEmail || '',
+          data.website || '',
+          '2' // Default to document delivery address
+        ]
+      );
+    }
 
-    // Step 5: บันทึกข้อมูลผู้ติดต่อ
-    if (data.contactPerson) {
-      console.log('👥 [AM API] Inserting contact person data...');
+    // Step 5: Insert Contact Persons (with type support)
+    console.log('👥 [AM API] Inserting contact persons data...');
+    if (data.contactPersons) {
+      const contactPersons = JSON.parse(data.contactPersons);
+      for (let index = 0; index < contactPersons.length; index++) {
+        const contact = contactPersons[index];
+        await executeQuery(trx,
+          `INSERT INTO MemberRegist_AM_ContactPerson (
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
+            position, email, phone, type_contact_id, type_contact_name, type_contact_other_detail
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId, 
+            contact.firstNameTh || '', 
+            contact.lastNameTh || '', 
+            contact.firstNameEn || '', 
+            contact.lastNameEn || '', 
+            contact.position || '', 
+            contact.email || '', 
+            contact.phone || '',
+            contact.typeContactId || 'MAIN',
+            contact.typeContactName || 'ผู้ประสานงานหลัก',
+            contact.typeContactOtherDetail || null
+          ]
+        );
+      }
+    } else if (data.contactPerson) {
+      // Fallback for old single contact person format
       const contactPerson = JSON.parse(data.contactPerson);
       await executeQuery(trx, 
-        `INSERT INTO MemberRegist_AM_ContactPerson (main_id, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-        [mainId, contactPerson.firstNameTh || '', contactPerson.lastNameTh || '', contactPerson.firstNameEn || '', contactPerson.lastNameEn || '', contactPerson.position || '', contactPerson.email || '', contactPerson.phone || '']
+        `INSERT INTO MemberRegist_AM_ContactPerson (
+          main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
+          position, email, phone, type_contact_id, type_contact_name, type_contact_other_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        [
+          mainId, 
+          contactPerson.firstNameTh || '', 
+          contactPerson.lastNameTh || '', 
+          contactPerson.firstNameEn || '', 
+          contactPerson.lastNameEn || '', 
+          contactPerson.position || '', 
+          contactPerson.email || '', 
+          contactPerson.phone || '',
+          'MAIN',
+          'ผู้ประสานงานหลัก',
+          null
+        ]
       );
     }
 

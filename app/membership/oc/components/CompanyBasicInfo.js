@@ -130,11 +130,19 @@ const fetchCompanyInfo = async (taxId) => {
         ...prev,
         companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
         companyNameEng: companyData['cd:OrganizationJuristicNameEN'] || '',
-        addressNumber: address?.['cd:AddressNo'] || '',
-        street: address?.['cd:Road'] || '',
-        subDistrict: subDistrictName,
-        district: address?.['cd:City']?.['cr:CityTextTH'] || '',
-        province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || ''
+        addresses: {
+          ...prev.addresses,
+          '2': {
+            ...prev.addresses?.['2'],
+            addressNumber: address?.['cd:AddressNo'] || '',
+            building: address?.['cd:Building'] || address?.['cd:Village'] || '',
+            street: address?.['cd:Road'] || '',
+            subDistrict: subDistrictName,
+            district: address?.['cd:City']?.['cr:CityTextTH'] || '',
+            province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || '',
+            addressType: '2'
+          }
+        }
       }));
       
       setErrors(prev => ({
@@ -171,7 +179,13 @@ const fetchCompanyInfo = async (taxId) => {
                 
                 setFormData(prev => ({
                   ...prev,
-                  postalCode: selectedItem.postalCode
+                  addresses: {
+                    ...prev.addresses,
+                    '2': {
+                      ...prev.addresses?.['2'],
+                      postalCode: selectedItem.postalCode
+                    }
+                  }
                 }));
                 
                 toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');

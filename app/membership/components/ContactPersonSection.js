@@ -1,0 +1,476 @@
+import React, { useState, useEffect } from 'react';
+import { ChevronDownIcon, ChevronRightIcon, PlusIcon, TrashIcon, UserIcon } from '@heroicons/react/24/outline';
+
+const ContactPersonSection = ({ 
+  contactPersons = [], 
+  onContactPersonsChange, 
+  errors = {},
+  membershipType = 'OC' 
+}) => {
+  const [contactTypes, setContactTypes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedContacts, setExpandedContacts] = useState([0]); // Main contact expanded by default
+
+  // Initialize with main contact person if empty
+  useEffect(() => {
+    if (contactPersons.length === 0) {
+      const mainContact = {
+        id: Date.now(),
+        firstNameTh: '',
+        lastNameTh: '',
+        firstNameEn: '',
+        lastNameEn: '',
+        position: '',
+        email: '',
+        phone: '',
+        typeContactId: null,
+        typeContactName: 'ผู้ประสานงานหลัก',
+        typeContactOtherDetail: '',
+        isMain: true
+      };
+      onContactPersonsChange([mainContact]);
+    }
+  }, []);
+
+  // Fetch contact types
+  useEffect(() => {
+    const fetchContactTypes = async () => {
+      try {
+        const response = await fetch('/api/contact-person-types');
+        const result = await response.json();
+        if (result.success) {
+          setContactTypes(result.data);
+        }
+      } catch (error) {
+        console.error('Error fetching contact types:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContactTypes();
+  }, []);
+
+  // Set main contact type when contact types are loaded
+  useEffect(() => {
+    if (contactTypes.length > 0 && contactPersons.length > 0 && !contactPersons[0].typeContactId) {
+      const mainType = contactTypes.find(type => type.type_code === 'MAIN');
+      if (mainType) {
+        const updatedContacts = [...contactPersons];
+        updatedContacts[0] = {
+          ...updatedContacts[0],
+          typeContactId: mainType.id,
+          typeContactName: mainType.type_name_th
+        };
+        onContactPersonsChange(updatedContacts);
+      }
+    }
+  }, [contactTypes, contactPersons, onContactPersonsChange]);
+
+  const toggleContactExpansion = (index) => {
+    setExpandedContacts(prev => 
+      prev.includes(index) 
+        ? prev.filter(i => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  const handleContactChange = (index, field, value) => {
+    const updatedContacts = [...contactPersons];
+    updatedContacts[index] = {
+      ...updatedContacts[index],
+      [field]: value
+    };
+
+    // Handle contact type selection
+    if (field === 'typeContactId') {
+      const selectedType = contactTypes.find(type => type.id === parseInt(value));
+      if (selectedType) {
+        updatedContacts[index].typeContactName = selectedType.type_name_th;
+        // Clear other detail if not "Other" type
+        if (selectedType.type_code !== 'OTHER') {
+          updatedContacts[index].typeContactOtherDetail = '';
+        }
+      }
+    }
+
+    onContactPersonsChange(updatedContacts);
+  };
+
+  const addContactPerson = () => {
+    if (contactPersons.length < 4) { // 1 main + 3 additional
+      const newContact = {
+        id: Date.now(),
+        firstNameTh: '',
+        lastNameTh: '',
+        firstNameEn: '',
+        lastNameEn: '',
+        position: '',
+        email: '',
+        phone: '',
+        typeContactId: null,
+        typeContactName: '',
+        typeContactOtherDetail: '',
+        isMain: false
+      };
+      const newIndex = contactPersons.length;
+      onContactPersonsChange([...contactPersons, newContact]);
+      // Auto expand new contact
+      setExpandedContacts(prev => [...prev, newIndex]);
+    }
+  };
+
+  const removeContactPerson = (index) => {
+    if (index > 0) { // Can't remove main contact
+      const updatedContacts = contactPersons.filter((_, i) => i !== index);
+      onContactPersonsChange(updatedContacts);
+      // Remove from expanded list and adjust indices
+      setExpandedContacts(prev => 
+        prev.filter(i => i !== index).map(i => i > index ? i - 1 : i)
+      );
+    }
+  };
+
+  const validateThaiName = (value) => {
+    const thaiRegex = /^[ก-๙\s]+$/;
+    return thaiRegex.test(value) || value === '';
+  };
+
+  const validateEnglishName = (value) => {
+    const englishRegex = /^[a-zA-Z\s]+$/;
+    return englishRegex.test(value) || value === '';
+  };
+
+  const getContactSummary = (contact, index) => {
+    const name = contact.firstNameTh || contact.firstNameEn || 'ยังไม่ระบุชื่อ';
+    const lastName = contact.lastNameTh || contact.lastNameEn || '';
+    const position = contact.position || 'ยังไม่ระบุตำแหน่ง';
+    return `${name} ${lastName} - ${position}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      {/* Header */}
+      <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center">
+          <UserIcon className="h-6 w-6 text-blue-600 mr-3" />
+          <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ติดต่อ</h3>
+          <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+            {contactPersons.length}/4
+          </span>
+        </div>
+        {contactPersons.length < 4 && (
+          <button
+            type="button"
+            onClick={addContactPerson}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="h-4 w-4 mr-2" />
+            เพิ่มผู้ติดต่อ
+          </button>
+        )}
+      </div>
+
+      {/* Contact List */}
+      <div className="divide-y divide-gray-200">
+        {contactPersons.map((contact, index) => {
+          const isExpanded = expandedContacts.includes(index);
+          const isMain = index === 0;
+          
+          return (
+            <div key={contact.id} className="bg-white">
+              {/* Contact Header */}
+              <div 
+                className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                onClick={() => toggleContactExpansion(index)}
+              >
+                <div className="flex items-center flex-1">
+                  <div className="flex items-center mr-3">
+                    {isExpanded ? (
+                      <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                    ) : (
+                      <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
+                      isMain ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center">
+                        <h4 className="text-sm font-medium text-gray-900">
+                          {isMain ? 'ผู้ประสานงานหลัก' : `ผู้ติดต่อคนที่ ${index + 1}`}
+                        </h4>
+                        {isMain && <span className="text-red-500 ml-1 text-sm">*</span>}
+                      </div>
+                      <p className="text-sm text-gray-500 mt-1">
+                        {getContactSummary(contact, index)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  {/* Status indicator */}
+                  <div className={`w-2 h-2 rounded-full ${
+                    contact.firstNameTh && contact.email && contact.phone 
+                      ? 'bg-green-400' 
+                      : 'bg-yellow-400'
+                  }`}></div>
+                  
+                  {!isMain && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeContactPerson(index);
+                      }}
+                      className="p-1 text-red-500 hover:bg-red-50 rounded-full transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Contact Form */}
+              {isExpanded && (
+                <div className="px-4 pb-6 bg-gray-50">
+                  <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-200">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Contact Type */}
+                      <div className="lg:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ประเภทผู้ติดต่อ {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <select
+                          value={isMain ? (contactTypes.find(t => t.type_code === 'MAIN')?.id || '') : (contact.typeContactId || '')}
+                          onChange={(e) => {
+                            if (!isMain) {
+                              handleContactChange(index, 'typeContactId', e.target.value);
+                            }
+                          }}
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                            isMain ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                          }`}
+                          required={isMain}
+                          disabled={isMain}
+                        >
+                          {isMain ? (
+                            <option value={contactTypes.find(t => t.type_code === 'MAIN')?.id || ''}>
+                              {contactTypes.find(t => t.type_code === 'MAIN')?.type_name_th || 'ผู้ประสานงานหลัก'}
+                            </option>
+                          ) : (
+                            <>
+                              <option value="">เลือกประเภทผู้ติดต่อ</option>
+                              {contactTypes
+                                .filter(type => type.type_code !== 'MAIN') // กรองไม่ให้เลือก "ผู้ประสานงานหลัก"
+                                .map((type) => (
+                                  <option key={type.id} value={type.id}>
+                                    {type.type_name_th}
+                                  </option>
+                                ))
+                              }
+                            </>
+                          )}
+                        </select>
+                        {errors[`contactPerson${index}TypeContactId`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}TypeContactId`]}</p>
+                        )}
+                      </div>
+
+                      {/* Other Detail */}
+                      {contact.typeContactId && contactTypes.find(t => t.id === parseInt(contact.typeContactId))?.type_code === 'OTHER' && (
+                        <div className="lg:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            รายละเอียดประเภทอื่นๆ <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={contact.typeContactOtherDetail || ''}
+                            onChange={(e) => handleContactChange(index, 'typeContactOtherDetail', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="ระบุรายละเอียดประเภทผู้ติดต่อ"
+                            required
+                          />
+                        </div>
+                      )}
+
+                      {/* Thai Names */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ชื่อ (ภาษาไทย) {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={contact.firstNameTh}
+                          onChange={(e) => {
+                            if (validateThaiName(e.target.value)) {
+                              handleContactChange(index, 'firstNameTh', e.target.value);
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="ชื่อภาษาไทย"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}FirstNameTh`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}FirstNameTh`]}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          นามสกุล (ภาษาไทย) {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={contact.lastNameTh}
+                          onChange={(e) => {
+                            if (validateThaiName(e.target.value)) {
+                              handleContactChange(index, 'lastNameTh', e.target.value);
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="นามสกุลภาษาไทย"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}LastNameTh`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}LastNameTh`]}</p>
+                        )}
+                      </div>
+
+                      {/* English Names */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ชื่อ (ภาษาอังกฤษ) {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={contact.firstNameEn}
+                          onChange={(e) => {
+                            if (validateEnglishName(e.target.value)) {
+                              handleContactChange(index, 'firstNameEn', e.target.value);
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="First Name"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}FirstNameEn`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}FirstNameEn`]}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          นามสกุล (ภาษาอังกฤษ) {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={contact.lastNameEn}
+                          onChange={(e) => {
+                            if (validateEnglishName(e.target.value)) {
+                              handleContactChange(index, 'lastNameEn', e.target.value);
+                            }
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Last Name"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}LastNameEn`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}LastNameEn`]}</p>
+                        )}
+                      </div>
+
+                      {/* Position and Email */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          ตำแหน่ง {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="text"
+                          value={contact.position}
+                          onChange={(e) => handleContactChange(index, 'position', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="ตำแหน่งงาน"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}Position`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Position`]}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          อีเมล {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="email"
+                          value={contact.email}
+                          onChange={(e) => handleContactChange(index, 'email', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="อีเมล"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}Email`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Email`]}</p>
+                        )}
+                      </div>
+
+                      {/* Phone */}
+                      <div className="lg:col-span-2">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          หมายเลขโทรศัพท์ {isMain && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type="tel"
+                          value={contact.phone}
+                          onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="หมายเลขโทรศัพท์"
+                          required={isMain}
+                        />
+                        {errors[`contactPerson${index}Phone`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Phone`]}</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Add Contact Button (Bottom) */}
+      {contactPersons.length < 4 && (
+        <div className="p-4 bg-gray-50 border-t border-gray-200">
+          <button
+            type="button"
+            onClick={addContactPerson}
+            className="w-full flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <PlusIcon className="h-5 w-5 mr-2" />
+            เพิ่มผู้ติดต่อ (เพิ่มได้อีก {4 - contactPersons.length} ท่าน)
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default ContactPersonSection;

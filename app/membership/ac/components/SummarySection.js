@@ -260,6 +260,62 @@ export default function SummarySection({ formData, industrialGroups = [], provin
     return provincialChapters.map(chapter => chapter.name_th || chapter.name || chapter);
   };
 
+  // ฟังก์ชันสำหรับแสดงชื่อผู้ติดต่อ
+  const getContactPersonFullName = (isEnglish = false) => {
+    if (!formData) return '-';
+    
+    // ระบบใหม่: ใช้ contactPersons array
+    if (formData.contactPersons && formData.contactPersons.length > 0) {
+      const mainContact = formData.contactPersons[0]; // ผู้ประสานงานหลัก
+      if (isEnglish) {
+        return mainContact.firstNameEn && mainContact.lastNameEn 
+          ? `${mainContact.firstNameEn} ${mainContact.lastNameEn}` 
+          : '-';
+      }
+      return mainContact.firstNameTh && mainContact.lastNameTh 
+        ? `${mainContact.firstNameTh} ${mainContact.lastNameTh}` 
+        : '-';
+    }
+    
+    // ระบบเก่า: ใช้ contactPerson object
+    const contactPerson = formData.contactPerson || {};
+    if (isEnglish) {
+      return contactPerson.firstNameEng && contactPerson.lastNameEng 
+        ? `${contactPerson.firstNameEng} ${contactPerson.lastNameEng}` 
+        : '-';
+    }
+    return contactPerson.firstNameThai && contactPerson.lastNameThai 
+      ? `${contactPerson.firstNameThai} ${contactPerson.lastNameThai}` 
+      : '-';
+  };
+
+  // ฟังก์ชันสำหรับแสดงข้อมูลผู้ติดต่อทั้งหมด
+  const getContactPersonDetails = () => {
+    if (!formData) return {};
+    
+    // ระบบใหม่: ใช้ contactPersons array
+    if (formData.contactPersons && formData.contactPersons.length > 0) {
+      const mainContact = formData.contactPersons[0];
+      return {
+        position: mainContact.position || '-',
+        email: mainContact.email || '-',
+        phone: mainContact.phone || '-',
+        typeContactName: mainContact.typeContactName || 'ผู้ประสานงานหลัก',
+        typeContactOtherDetail: mainContact.typeContactOtherDetail || ''
+      };
+    }
+    
+    // ระบบเก่า: ใช้ contactPerson object
+    const contactPerson = formData.contactPerson || {};
+    return {
+      position: contactPerson.position || '-',
+      email: contactPerson.email || '-',
+      phone: contactPerson.phone || '-',
+      typeContactName: 'ผู้ประสานงานหลัก', // default สำหรับระบบเก่า
+      typeContactOtherDetail: ''
+    };
+  };
+
   // เตรียมข้อมูลผู้แทนสำหรับแสดงผล
   const representatives = formData.representatives || [];
   // เตรียมข้อมูลผู้ให้ข้อมูล
@@ -279,29 +335,123 @@ export default function SummarySection({ formData, industrialGroups = [], provin
         </div>
       </Section>
 
-      {/* ที่อยู่บริษัท - แยกเป็นข้อย่อยๆ เหมือน OC */}
+      {/* ที่อยู่บริษัท - Multi-address support */}
       <Section title="ที่อยู่บริษัท" className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="เลขที่" value={formData.addressNumber} />
-          <InfoCard title="หมู่" value={formData.moo} />
-          <InfoCard title="ซอย" value={formData.soi} />
-          <InfoCard title="ถนน" value={formData.road} />
-          <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
-          <InfoCard title="อำเภอ/เขต" value={formData.district} />
-          <InfoCard title="จังหวัด" value={formData.province} />
-          <InfoCard title="รหัสไปรษณีย์" value={formData.postalCode} />
-        </div>
+        {(() => {
+          const addressTypes = {
+            '1': 'ที่อยู่สำนักงาน',
+            '2': 'ที่อยู่จัดส่งเอกสาร',
+            '3': 'ที่อยู่ใบกำกับภาษี'
+          };
+
+          // Check if using new multi-address format
+          if (formData.addresses && typeof formData.addresses === 'object') {
+            return (
+              <div className="space-y-6">
+                {Object.entries(formData.addresses).map(([type, addressData]) => {
+                  if (!addressData || Object.keys(addressData).length === 0) return null;
+                  
+                  const extractAddressField = (field) => {
+                    return addressData[field] || '';
+                  };
+
+                  return (
+                    <div key={type} className="border border-gray-200 rounded-lg p-4">
+                      <h4 className="text-sm font-semibold text-gray-900 mb-3">
+                        {addressTypes[type] || `ที่อยู่ประเภท ${type}`}
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <InfoCard title="เลขที่" value={extractAddressField('addressNumber')} />
+                        <InfoCard title="อาคาร/หมู่บ้าน" value={extractAddressField('building')} />
+                        <InfoCard title="หมู่" value={extractAddressField('moo')} />
+                        <InfoCard title="ซอย" value={extractAddressField('soi')} />
+                        <InfoCard title="ถนน" value={extractAddressField('road')} />
+                        <InfoCard title="ตำบล/แขวง" value={extractAddressField('subDistrict')} />
+                        <InfoCard title="อำเภอ/เขต" value={extractAddressField('district')} />
+                        <InfoCard title="จังหวัด" value={extractAddressField('province')} />
+                        <InfoCard title="รหัสไปรษณีย์" value={extractAddressField('postalCode')} />
+                        <InfoCard title="โทรศัพท์" value={extractAddressField('phone') || formData.companyPhone} />
+                        <InfoCard title="อีเมล" value={extractAddressField('email') || formData.companyEmail} />
+                        <InfoCard title="เว็บไซต์" value={extractAddressField('website') || formData.companyWebsite} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          }
+
+          // Fallback for old single address format
+          return (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoCard title="เลขที่" value={formData.addressNumber} />
+              <InfoCard title="หมู่" value={formData.moo} />
+              <InfoCard title="ซอย" value={formData.soi} />
+              <InfoCard title="ถนน" value={formData.road} />
+              <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
+              <InfoCard title="อำเภอ/เขต" value={formData.district} />
+              <InfoCard title="จังหวัด" value={formData.province} />
+              <InfoCard title="รหัสไปรษณีย์" value={formData.postalCode} />
+            </div>
+          );
+        })()}
       </Section>
 
-      {/* ข้อมูลผู้ให้ข้อมูล */}
-      <Section title="ข้อมูลผู้ให้ข้อมูล" className="mt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={`${contactPerson.firstNameThai || ''} ${contactPerson.lastNameThai || ''}`} />
-          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={`${contactPerson.firstNameEng || ''} ${contactPerson.lastNameEng || ''}`} />
-          <InfoCard title="อีเมล" value={contactPerson.email} />
-          <InfoCard title="เบอร์โทรศัพท์" value={contactPerson.phone} />
-          <InfoCard title="ตำแหน่ง" value={contactPerson.position} />
-        </div>
+      {/* ข้อมูลผู้ติดต่อ */}
+      <Section title="ข้อมูลผู้ติดต่อ" className="mt-6">
+        {(() => {
+          const contactDetails = getContactPersonDetails();
+          return (
+            <div className="space-y-4">
+              {/* แสดงประเภทผู้ติดต่อ */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800 border border-green-200">
+                    {contactDetails.typeContactName}
+                  </span>
+                  {contactDetails.typeContactOtherDetail && (
+                    <span className="text-sm text-gray-600 italic">
+                      ({contactDetails.typeContactOtherDetail})
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {/* ข้อมูลผู้ติดต่อ */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getContactPersonFullName(false)} />
+                <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
+                <InfoCard title="ตำแหน่ง" value={contactDetails.position} />
+                <InfoCard title="อีเมล" value={contactDetails.email} />
+                <InfoCard title="เบอร์โทรศัพท์" value={contactDetails.phone} />
+              </div>
+              
+              {/* แสดงผู้ติดต่อเพิ่มเติม (ถ้ามี) */}
+              {formData?.contactPersons && formData.contactPersons.length > 1 && (
+                <div className="mt-4">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">ผู้ติดต่อเพิ่มเติม</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {formData.contactPersons.slice(1).map((contact, index) => (
+                      <div key={index + 1} className="bg-white border border-gray-200 rounded-lg p-4">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {contact.typeContactName || 'ผู้ติดต่อ'}
+                          </span>
+                        </div>
+                        <div className="space-y-1 text-sm">
+                          <div><span className="font-medium">ชื่อ:</span> {contact.firstNameTh} {contact.lastNameTh}</div>
+                          <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
+                          <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
+                          <div><span className="font-medium">โทร:</span> {contact.phone || '-'}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </Section>
 
       {/* ข้อมูลผู้แทน */}

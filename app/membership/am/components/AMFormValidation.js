@@ -58,44 +58,146 @@ const validateAssociationInfo = (formData, errors) => {
     errors.taxId = 'เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก';
   }
 
-  // ตรวจสอบอีเมลและเบอร์โทรศัพท์ในฟิลด์ contactPerson
-  if (!formData.contactPerson?.email) {
-    if (!errors.contactPerson) errors.contactPerson = {};
-    errors.contactPerson.email = 'กรุณากรอกอีเมลสมาคม';
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactPerson.email)) {
-    if (!errors.contactPerson) errors.contactPerson = {};
-    errors.contactPerson.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+  // ตรวจสอบข้อมูลผู้ติดต่อ (Contact Persons) - ระบบใหม่
+  if (!formData.contactPersons || formData.contactPersons.length === 0) {
+    errors.contactPersons = 'กรุณาเพิ่มข้อมูลผู้ประสานงานหลัก';
+  } else {
+    // ตรวจสอบผู้ประสานงานหลัก (คนแรก)
+    const mainContact = formData.contactPersons[0];
+    if (mainContact) {
+      // ตรวจสอบชื่อภาษาไทย
+      if (!mainContact.firstNameTh) {
+        errors.contactPerson0FirstNameTh = 'กรุณากรอกชื่อ (ภาษาไทย)';
+      } else if (!/^[ก-๙\s]+$/.test(mainContact.firstNameTh)) {
+        errors.contactPerson0FirstNameTh = 'ชื่อผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น';
+      }
+
+      if (!mainContact.lastNameTh) {
+        errors.contactPerson0LastNameTh = 'กรุณากรอกนามสกุล (ภาษาไทย)';
+      } else if (!/^[ก-๙\s]+$/.test(mainContact.lastNameTh)) {
+        errors.contactPerson0LastNameTh = 'นามสกุลผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น';
+      }
+
+      // ตรวจสอบชื่อภาษาอังกฤษ - บังคับกรอก
+      if (!mainContact.firstNameEn) {
+        errors.contactPerson0FirstNameEn = 'กรุณากรอกชื่อ (ภาษาอังกฤษ)';
+      } else if (!/^[a-zA-Z\s]+$/.test(mainContact.firstNameEn)) {
+        errors.contactPerson0FirstNameEn = 'ชื่อผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น';
+      }
+
+      if (!mainContact.lastNameEn) {
+        errors.contactPerson0LastNameEn = 'กรุณากรอกนามสกุล (ภาษาอังกฤษ)';
+      } else if (!/^[a-zA-Z\s]+$/.test(mainContact.lastNameEn)) {
+        errors.contactPerson0LastNameEn = 'นามสกุลผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น';
+      }
+
+      // ตรวจสอบข้อมูลอื่นๆ
+      if (!mainContact.position) {
+        errors.contactPerson0Position = 'กรุณากรอกตำแหน่ง';
+      }
+
+      if (!mainContact.email) {
+        errors.contactPerson0Email = 'กรุณากรอกอีเมลผู้ประสานงาน';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mainContact.email)) {
+        errors.contactPerson0Email = 'รูปแบบอีเมลไม่ถูกต้อง';
+      }
+
+      if (!mainContact.phone) {
+        errors.contactPerson0Phone = 'กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน';
+      } else if (!/^\d{9,10}$/.test(mainContact.phone.replace(/[-\s]/g, ''))) {
+        errors.contactPerson0Phone = 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง';
+      }
+
+      // ตรวจสอบประเภทผู้ติดต่อ
+      if (!mainContact.typeContactId) {
+        errors.contactPerson0TypeContactId = 'กรุณาเลือกประเภทผู้ติดต่อ';
+      }
+
+      // ตรวจสอบรายละเอียดเพิ่มเติมสำหรับประเภท "อื่นๆ"
+      if (mainContact.typeContactId && mainContact.typeContactOtherDetail === undefined && 
+          mainContact.typeContactName === 'อื่นๆ') {
+        if (!mainContact.typeContactOtherDetail) {
+          errors.contactPerson0TypeContactOtherDetail = 'กรุณาระบุรายละเอียดประเภทผู้ติดต่อ';
+        }
+      }
+    }
   }
 
-  if (!formData.contactPerson?.phone) {
-    if (!errors.contactPerson) errors.contactPerson = {};
-    errors.contactPerson.phone = 'กรุณากรอกเบอร์โทรศัพท์สมาคม';
-  } else if (!/^\d{9,10}$/.test(formData.contactPerson.phone.replace(/[-\s]/g, ''))) {
-    if (!errors.contactPerson) errors.contactPerson = {};
-    errors.contactPerson.phone = 'รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง';
-  }
+  // ตรวจสอบที่อยู่ - รองรับ multi-address
+  const addressTypes = ['1', '2', '3'];
+  const addressLabels = {
+    '1': 'ที่อยู่สำนักงาน',
+    '2': 'ที่อยู่จัดส่งเอกสาร', 
+    '3': 'ที่อยู่ใบกำกับภาษี'
+  };
 
-  // ตรวจสอบที่อยู่
-  if (!formData.addressNumber) {
-    errors.addressNumber = 'กรุณากรอกบ้านเลขที่';
-  }
+  // ตรวจสอบว่ามี addresses object หรือไม่
+  if (formData.addresses && typeof formData.addresses === 'object') {
+    // ตรวจสอบ multi-address format
+    addressTypes.forEach(type => {
+      const address = formData.addresses[type];
+      const label = addressLabels[type];
+      
+      if (!address) {
+        errors[`address_${type}`] = `กรุณากรอก${label}`;
+        return;
+      }
 
-  if (!formData.subDistrict) {
-    errors.subDistrict = 'กรุณากรอกตำบล/แขวง';
-  }
+      if (!address.addressNumber) {
+        errors[`address_${type}_addressNumber`] = `กรุณากรอกบ้านเลขที่ (${label})`;
+      }
 
-  if (!formData.district) {
-    errors.district = 'กรุณากรอกอำเภอ/เขต';
-  }
+      if (!address.subDistrict) {
+        errors[`address_${type}_subDistrict`] = `กรุณากรอกตำบล/แขวง (${label})`;
+      }
 
-  if (!formData.province) {
-    errors.province = 'กรุณาเลือกจังหวัด';
-  }
+      if (!address.district) {
+        errors[`address_${type}_district`] = `กรุณากรอกอำเภอ/เขต (${label})`;
+      }
 
-  if (!formData.postalCode) {
-    errors.postalCode = 'กรุณากรอกรหัสไปรษณีย์';
-  } else if (!/^\d{5}$/.test(formData.postalCode)) {
-    errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
+      if (!address.province) {
+        errors[`address_${type}_province`] = `กรุณาเลือกจังหวัด (${label})`;
+      }
+
+      if (!address.postalCode) {
+        errors[`address_${type}_postalCode`] = `กรุณากรอกรหัสไปรษณีย์ (${label})`;
+      } else if (!/^\d{5}$/.test(address.postalCode)) {
+        errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
+      }
+
+      // ตรวจสอบอีเมลถ้ามี
+      if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+        errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+      }
+
+      // ตรวจสอบเบอร์โทรศัพท์ถ้ามี
+      if (address.phone && !/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
+        errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+      }
+    });
+  } else {
+    // Fallback สำหรับ single address format เก่า
+    if (!formData.addressNumber) {
+      errors.addressNumber = 'กรุณากรอกบ้านเลขที่';
+    }
+
+    if (!formData.subDistrict) {
+      errors.subDistrict = 'กรุณากรอกตำบล/แขวง';
+    }
+
+    if (!formData.district) {
+      errors.district = 'กรุณากรอกอำเภอ/เขต';
+    }
+
+    if (!formData.province) {
+      errors.province = 'กรุณาเลือกจังหวัด';
+    }
+
+    if (!formData.postalCode) {
+      errors.postalCode = 'กรุณากรอกรหัสไปรษณีย์';
+    } else if (!/^\d{5}$/.test(formData.postalCode)) {
+      errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
+    }
   }
 };
 

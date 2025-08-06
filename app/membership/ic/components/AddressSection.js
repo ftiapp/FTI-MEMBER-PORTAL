@@ -6,12 +6,90 @@ import PropTypes from 'prop-types';
 import SearchableDropdown from './SearchableDropdown';
 
 export default function AddressSection({ formData, setFormData, errors, isLoading }) {
-  // Handle input change
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  const [activeTab, setActiveTab] = useState('2'); // Default to document delivery address
+
+  // Address types configuration
+  const addressTypes = {
+    '1': { label: 'ที่อยู่สำนักงาน', color: 'blue' },
+    '2': { label: 'ที่อยู่จัดส่งเอกสาร', color: 'blue' },
+    '3': { label: 'ที่อยู่ใบกำกับภาษี', color: 'blue' }
+  };
+
+  // Initialize address data if not exists
+  useEffect(() => {
+    if (!formData.addresses) {
+      setFormData(prev => ({
+        ...prev,
+        addresses: {
+          '1': { addressType: '1' },
+          '2': { addressType: '2' },
+          '3': { addressType: '3' }
+        }
+      }));
+    }
+  }, [formData.addresses, setFormData]);
+
+  // Auto-switch to tab with errors for better UX
+  useEffect(() => {
+    if (errors && Object.keys(errors).length > 0) {
+      // Find first address error and switch to that tab
+      const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
+      if (addressErrorKeys.length > 0) {
+        const firstErrorKey = addressErrorKeys[0];
+        const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
+        if (match && match[1]) {
+          const errorTab = match[1];
+          if (errorTab !== activeTab) {
+            setActiveTab(errorTab);
+            // Scroll to address section automatically
+            const addressSection = document.querySelector('[data-section="company-address"]') || 
+                                 document.querySelector('.company-address') ||
+                                 document.querySelector('h3')?.closest('.bg-white');
+            if (addressSection) {
+              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+        }
+      }
+    }
+  }, [errors, activeTab, addressTypes]);
+
+  // Get current address based on active tab
+  const currentAddress = formData.addresses?.[activeTab] || {};
+
+  // Copy address from document delivery to other types
+  const copyAddressFromDocumentDelivery = (targetType) => {
+    const documentAddress = formData.addresses?.['2'];
+    if (!documentAddress) {
+      toast.error('กรุณากรอกที่อยู่จัดส่งเอกสารก่อน');
+      return;
+    }
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      addresses: {
+        ...prev.addresses,
+        [targetType]: {
+          ...documentAddress,
+          addressType: targetType
+        }
+      }
+    }));
+    toast.success(`คัดลอกที่อยู่ไปยัง${addressTypes[targetType].label}สำเร็จ`);
+  };
+
+  // Handle input change
+  const handleInputChange = (name, value) => {
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          [name]: value
+        }
+      }
     }));
   };
   

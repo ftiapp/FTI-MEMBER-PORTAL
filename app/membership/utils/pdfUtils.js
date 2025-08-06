@@ -759,12 +759,12 @@ export const processApplicationData = (application) => {
   // Normalize different field name variations
   const processed = {
     ...application,
-    // Company info normalization
-    companyNameTh: application.company_name_th || application.companyNameTh || application.associationNameTh,
-    companyNameEn: application.company_name_en || application.companyNameEn || application.associationNameEn,
+    // Company info normalization - รองรับ AM association fields
+    companyNameTh: application.company_name_th || application.companyNameTh || application.associationName || application.associationNameTh,
+    companyNameEn: application.company_name_en || application.companyNameEn || application.associationNameEng || application.associationNameEn,
     taxId: application.tax_id || application.taxId,
-    companyEmail: application.company_email || application.companyEmail || application.email,
-    companyPhone: application.company_phone || application.companyPhone || application.phone,
+    companyEmail: application.company_email || application.companyEmail || application.associationEmail || application.email,
+    companyPhone: application.company_phone || application.companyPhone || application.associationPhone || application.phone,
     companyWebsite: application.company_website || application.companyWebsite || application.website,
     numberOfEmployees: application.number_of_employees || application.numberOfEmployees,
     
@@ -783,8 +783,13 @@ export const processApplicationData = (application) => {
     // Factory specific
     factoryType: application.factory_type || application.factoryType,
     
-    // Association specific
-    numberOfMember: application.number_of_member || application.numberOfMember
+    // Association specific - รองรับ AM fields
+    numberOfMember: application.number_of_member || application.numberOfMember || application.memberCount,
+    associationRegistrationNumber: application.associationRegistrationNumber,
+    
+    // Industrial Groups and Provincial Chapters for AM
+    industrialGroupIds: application.industrialGroups || application.industrialGroupIds || [],
+    provincialChapterIds: application.provincialCouncils || application.provincialChapterIds || []
   };
   
   return processed;

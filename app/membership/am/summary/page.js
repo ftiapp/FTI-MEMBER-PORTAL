@@ -68,8 +68,29 @@ export default function AMSummaryPage() {
 
   const handleDownloadPDF = async () => {
     try {
-      const { downloadMembershipPDF } = await import('@/app/membership/utils/pdfUtils');
-      await downloadMembershipPDF(applicationData, 'am');
+      const { generateMembershipPDF } = await import('@/app/membership/utils/pdfUtils');
+      
+      // สร้าง lookup objects สำหรับ PDF
+      const industrialGroupsLookup = {};
+      const provincialChaptersLookup = {};
+      
+      // แปลง industrialGroups array เป็น lookup object
+      industrialGroups.forEach(group => {
+        industrialGroupsLookup[group.id] = group.name_th || group.id;
+      });
+      
+      // แปลง provincialChapters array เป็น lookup object
+      provincialChapters.forEach(chapter => {
+        provincialChaptersLookup[chapter.id] = chapter.name_th || chapter.id;
+      });
+      
+      console.log('PDF Data:', {
+        applicationData,
+        industrialGroupsLookup,
+        provincialChaptersLookup
+      });
+      
+      await generateMembershipPDF(applicationData, 'am', industrialGroupsLookup, provincialChaptersLookup);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
