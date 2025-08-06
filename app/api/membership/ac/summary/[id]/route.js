@@ -42,9 +42,9 @@ export async function GET(request, { params }) {
       }, { status: 404 });
     }
 
-    // Fetch address
+    // Fetch all addresses (multi-address support)
     const addressQuery = await query(
-      'SELECT * FROM MemberRegist_AC_Address WHERE main_id = ?',
+      'SELECT * FROM MemberRegist_AC_Address WHERE main_id = ? ORDER BY address_type',
       [id]
     );
     const addressResult = addressQuery || [];
@@ -122,6 +122,31 @@ export async function GET(request, { params }) {
       provinceChapterName: pc.province_chapter_name || pc.province_chapter_id
     }));
 
+    // Process addresses into multi-address format
+    const addressesFormatted = {};
+    addressResult.forEach(addr => {
+      const addressType = addr.address_type || '2'; // Default to type 2 if not specified
+      addressesFormatted[addressType] = {
+        addressType: addressType,
+        addressNumber: addr.address_number || '',
+        building: addr.building || '',
+        moo: addr.moo || '',
+        soi: addr.soi || '',
+        road: addr.road || '',
+        subDistrict: addr.sub_district || '',
+        district: addr.district || '',
+        province: addr.province || '',
+        postalCode: addr.postal_code || '',
+        phone: addr.phone || '',
+        email: addr.email || '',
+        website: addr.website || ''
+      };
+    });
+    
+    // Get main address data (fallback to legacy single address or type 2)
+    const mainAddress = addressResult.find(addr => addr.address_type === '2') || 
+                       addressResult[0] || {};
+
     // Transform data to match the format expected by the frontend
     const transformedData = {
       id: acData.id,
@@ -129,22 +154,25 @@ export async function GET(request, { params }) {
       companyName: acData.company_name_th, // แก้ไขให้ตรงกับ column จริง
       companyNameEn: acData.company_name_en,
       taxId: acData.tax_id,
-      companyEmail: acData.company_email,
-      companyPhone: acData.company_phone,
-      companyWebsite: acData.company_website,
+      companyEmail: acData.company_email || mainAddress?.email || '',
+      companyPhone: acData.company_phone || mainAddress?.phone || '',
+      companyWebsite: acData.company_website || mainAddress?.website || '',
       status: acData.status,
       createdAt: acData.created_at,
       updatedAt: acData.updated_at,
       
-      // Address data
-      addressNumber: addressResult?.[0]?.address_number,
-      moo: addressResult?.[0]?.moo,
-      soi: addressResult?.[0]?.soi,
-      road: addressResult?.[0]?.road,
-      subDistrict: addressResult?.[0]?.sub_district,
-      district: addressResult?.[0]?.district,
-      province: addressResult?.[0]?.province,
-      postalCode: addressResult?.[0]?.postal_code,
+      // Multi-address data
+      addresses: addressesFormatted,
+      
+      // Legacy single address fields (for backward compatibility)
+      addressNumber: mainAddress?.address_number || '',
+      moo: mainAddress?.moo || '',
+      soi: mainAddress?.soi || '',
+      road: mainAddress?.road || '',
+      subDistrict: mainAddress?.sub_district || '',
+      district: mainAddress?.district || '',
+      province: mainAddress?.province || '',
+      postalCode: mainAddress?.postal_code || '',
       
       // Contact person (assuming it's the first representative or stored elsewhere)
       contactPerson: representativesResult?.[0] ? {

@@ -80,12 +80,12 @@ export async function GET(request, { params }) {
       try {
         console.log('Fetching related data...');
         
-        // Fetch address
+        // Fetch all addresses (multi-address support)
         const addressResult = await query(
-          'SELECT * FROM MemberRegist_OC_Address WHERE main_id = ?',
+          'SELECT * FROM MemberRegist_OC_Address WHERE main_id = ? ORDER BY address_type',
           [id]
         );
-        const address = getSingleRecord(addressResult);
+        const addresses = normalizeDbResult(addressResult);
 
         // Fetch contact person
         const contactPersonResult = await query(
@@ -148,7 +148,7 @@ export async function GET(request, { params }) {
         const documents = normalizeDbResult(documentsResult);
 
         return {
-          address,
+          addresses,
           contactPerson,
           representatives,
           businessTypesRows,
@@ -221,6 +221,31 @@ export async function GET(request, { params }) {
       isPrimary: rep.is_primary === 1 || index === 0
     }));
 
+    // Process addresses into multi-address format
+    const addressesFormatted = {};
+    relatedData.addresses.forEach(addr => {
+      const addressType = addr.address_type || '2'; // Default to type 2 if not specified
+      addressesFormatted[addressType] = {
+        addressType: addressType,
+        addressNumber: addr.address_number || '',
+        building: addr.building || '',
+        moo: addr.moo || '',
+        soi: addr.soi || '',
+        road: addr.road || '',
+        subDistrict: addr.sub_district || '',
+        district: addr.district || '',
+        province: addr.province || '',
+        postalCode: addr.postal_code || '',
+        phone: addr.phone || '',
+        email: addr.email || '',
+        website: addr.website || ''
+      };
+    });
+    
+    // Get main address data (fallback to legacy single address or type 2)
+    const mainAddress = relatedData.addresses.find(addr => addr.address_type === '2') || 
+                       relatedData.addresses[0] || {};
+
     // 🔥 แก้ไข: จัดการเอกสารแนบให้ถูกต้อง - ใช้ชื่อที่ตรงกับฐานข้อมูล
     const factoryLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'factoryLicense');
     const industrialEstateLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'industrialEstateLicense');
@@ -232,19 +257,22 @@ export async function GET(request, { params }) {
       companyName: ocData.company_name_th || '',
       companyNameEng: ocData.company_name_en || '',
       taxId: ocData.tax_id || '',
-      companyEmail: ocData.company_email || relatedData.address?.email || '',
-      companyPhone: ocData.company_phone || relatedData.address?.phone || '',
-      companyWebsite: relatedData.address?.website || '',
+      companyEmail: ocData.company_email || mainAddress?.email || '',
+      companyPhone: ocData.company_phone || mainAddress?.phone || '',
+      companyWebsite: mainAddress?.website || '',
       
-      // Address
-      addressNumber: relatedData.address?.address_number || '',
-      moo: relatedData.address?.moo || '',
-      soi: relatedData.address?.soi || '',
-      street: relatedData.address?.street || '',
-      subDistrict: relatedData.address?.sub_district || '',
-      district: relatedData.address?.district || '',
-      province: relatedData.address?.province || '',
-      postalCode: relatedData.address?.postal_code || '',
+      // Multi-address data
+      addresses: addressesFormatted,
+      
+      // Legacy single address fields (for backward compatibility)
+      addressNumber: mainAddress?.address_number || '',
+      moo: mainAddress?.moo || '',
+      soi: mainAddress?.soi || '',
+      street: mainAddress?.road || '',
+      subDistrict: mainAddress?.sub_district || '',
+      district: mainAddress?.district || '',
+      province: mainAddress?.province || '',
+      postalCode: mainAddress?.postal_code || '',
       
       // Contact person
       contactPersonFirstName: relatedData.contactPerson?.first_name_th || '',

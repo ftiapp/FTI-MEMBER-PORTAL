@@ -35,10 +35,10 @@ export async function GET(request, { params }) {
 
     const mainData = mainResult[0];
 
-    // ดึงข้อมูลที่อยู่
+    // ดึงข้อมูลที่อยู่ทั้งหมด (multi-address support)
     const addressQuery = `
       SELECT * FROM MemberRegist_IC_Address 
-      WHERE main_id = ?
+      WHERE main_id = ? ORDER BY address_type
     `;
     const addressResult = await query(addressQuery, [id]);
 
@@ -128,6 +128,31 @@ export async function GET(request, { params }) {
       provinceChapterName: pc.province_chapter_name || pc.province_chapter_id
     }));
 
+    // Process addresses into multi-address format
+    const addressesFormatted = {};
+    addressResult.forEach(addr => {
+      const addressType = addr.address_type || '2'; // Default to type 2 if not specified
+      addressesFormatted[addressType] = {
+        addressType: addressType,
+        addressNumber: addr.address_number || '',
+        building: addr.building || '',
+        moo: addr.moo || '',
+        soi: addr.soi || '',
+        road: addr.road || '',
+        subDistrict: addr.sub_district || '',
+        district: addr.district || '',
+        province: addr.province || '',
+        postalCode: addr.postal_code || '',
+        phone: addr.phone || '',
+        email: addr.email || '',
+        website: addr.website || ''
+      };
+    });
+    
+    // Get main address data (fallback to legacy single address or type 2)
+    const mainAddress = addressResult.find(addr => addr.address_type === '2') || 
+                       addressResult[0] || {};
+
     // สร้างข้อมูลที่จะส่งกลับ
     const applicationData = {
       // ข้อมูลหลักของผู้สมัคร
@@ -138,25 +163,29 @@ export async function GET(request, { params }) {
       lastNameEn: mainData.last_name_en,
       fullNameTh: `${mainData.first_name_th || ''} ${mainData.last_name_th || ''}`.trim(),
       fullNameEn: `${mainData.first_name_en || ''} ${mainData.last_name_en || ''}`.trim(),
-      phone: mainData.phone,
-      email: mainData.email,
+      phone: mainData.phone || mainAddress?.phone || '',
+      email: mainData.email || mainAddress?.email || '',
+      website: mainData.website || mainAddress?.website || '',
       status: mainData.status,
       createdAt: mainData.created_at,
       updatedAt: mainData.updated_at,
 
-      // ข้อมูลที่อยู่
+      // Multi-address data
+      addresses: addressesFormatted,
+
+      // Legacy single address fields (for backward compatibility)
       address: addressResult.length > 0 ? {
-        addressNumber: addressResult[0].address_number,
-        moo: addressResult[0].moo,
-        soi: addressResult[0].soi,
-        road: addressResult[0].road,
-        subDistrict: addressResult[0].sub_district,
-        district: addressResult[0].district,
-        province: addressResult[0].province,
-        postalCode: addressResult[0].postal_code,
-        phone: addressResult[0].phone,
-        email: addressResult[0].email,
-        website: addressResult[0].website
+        addressNumber: mainAddress?.address_number || '',
+        moo: mainAddress?.moo || '',
+        soi: mainAddress?.soi || '',
+        road: mainAddress?.road || '',
+        subDistrict: mainAddress?.sub_district || '',
+        district: mainAddress?.district || '',
+        province: mainAddress?.province || '',
+        postalCode: mainAddress?.postal_code || '',
+        phone: mainAddress?.phone || '',
+        email: mainAddress?.email || '',
+        website: mainAddress?.website || ''
       } : null,
 
       // ข้อมูลผู้แทน
