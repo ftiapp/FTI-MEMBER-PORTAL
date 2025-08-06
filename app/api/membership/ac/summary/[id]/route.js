@@ -20,7 +20,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     
     // Fetch main AC data
     const mainQuery = await query(
@@ -55,6 +56,13 @@ export async function GET(request, { params }) {
       [id]
     );
     const representativesResult = representativesQuery || [];
+
+    // Fetch contact persons (order by type_contact_id = 1 first for main contact)
+    const contactPersonsQuery = await query(
+      'SELECT * FROM MemberRegist_AC_ContactPerson WHERE main_id = ? ORDER BY (type_contact_id = 1) DESC, id ASC',
+      [id]
+    );
+    const contactPersonsResult = contactPersonsQuery || [];
 
     // Fetch business types
     const businessTypesQuery = await query(
@@ -174,15 +182,40 @@ export async function GET(request, { params }) {
       province: mainAddress?.province || '',
       postalCode: mainAddress?.postal_code || '',
       
-      // Contact person (assuming it's the first representative or stored elsewhere)
-      contactPerson: representativesResult?.[0] ? {
-        firstNameThai: representativesResult[0].first_name_th,
-        lastNameThai: representativesResult[0].last_name_th,
-        firstNameEng: representativesResult[0].first_name_en,
-        lastNameEng: representativesResult[0].last_name_en,
-        email: representativesResult[0].email,
-        phone: representativesResult[0].phone,
-        position: representativesResult[0].position
+      // Multiple contact persons
+      contactPersons: contactPersonsResult.map((cp, index) => ({
+        id: cp.id || index + 1,
+        firstNameTh: cp.first_name_th || '',
+        lastNameTh: cp.last_name_th || '',
+        firstNameEn: cp.first_name_en || '',
+        lastNameEn: cp.last_name_en || '',
+        position: cp.position || '',
+        email: cp.email || '',
+        phone: cp.phone || '',
+        typeContactId: cp.type_contact_id || null,
+        typeContactName: cp.type_contact_name || '',
+        typeContactOtherDetail: cp.type_contact_other_detail || '',
+        isMain: cp.type_contact_id === 1 || index === 0
+      })),
+      
+      // Legacy single contact person fields (for backward compatibility)
+      contactPersonFirstName: contactPersonsResult[0]?.first_name_th || '',
+      contactPersonLastName: contactPersonsResult[0]?.last_name_th || '',
+      contactPersonFirstNameEng: contactPersonsResult[0]?.first_name_en || '',
+      contactPersonLastNameEng: contactPersonsResult[0]?.last_name_en || '',
+      contactPersonPosition: contactPersonsResult[0]?.position || '',
+      contactPersonEmail: contactPersonsResult[0]?.email || '',
+      contactPersonPhone: contactPersonsResult[0]?.phone || '',
+      
+      // Contact person (legacy format for backward compatibility)
+      contactPerson: contactPersonsResult?.[0] ? {
+        firstNameThai: contactPersonsResult[0].first_name_th,
+        lastNameThai: contactPersonsResult[0].last_name_th,
+        firstNameEng: contactPersonsResult[0].first_name_en,
+        lastNameEng: contactPersonsResult[0].last_name_en,
+        email: contactPersonsResult[0].email,
+        phone: contactPersonsResult[0].phone,
+        position: contactPersonsResult[0].position
       } : {},
       
       // Representatives

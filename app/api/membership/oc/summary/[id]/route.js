@@ -43,19 +43,22 @@ function formatDocumentForResponse(document) {
 
 export async function GET(request, { params }) {
   try {
+    const resolvedParams = await params;
+    console.log('OC Summary API called with params:', resolvedParams);
+    
+    const { id } = resolvedParams;
+    console.log('Fetching OC data for ID:', id);
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing ID parameter', success: false }, { status: 400 });
+    }
+
     // Check authentication
     const cookieStore = await cookies();
     const user = await checkUserSession(cookieStore);
     if (!user) {
       console.log('Unauthorized access attempt');
       return NextResponse.json({ error: 'Unauthorized', success: false }, { status: 401 });
-    }
-
-    const { id } = await params;
-    console.log('Fetching OC data for ID:', id);
-
-    if (!id) {
-      return NextResponse.json({ error: 'Missing ID parameter', success: false }, { status: 400 });
     }
 
     // Fetch main OC data
@@ -87,12 +90,12 @@ export async function GET(request, { params }) {
         );
         const addresses = normalizeDbResult(addressResult);
 
-        // Fetch contact person
+        // Fetch all contact persons (order by type_contact_id = 1 first for main contact)
         const contactPersonResult = await query(
-          'SELECT * FROM MemberRegist_OC_ContactPerson WHERE main_id = ?',
+          'SELECT * FROM MemberRegist_OC_ContactPerson WHERE main_id = ? ORDER BY (type_contact_id = 1) DESC, id ASC',
           [id]
         );
-        const contactPerson = getSingleRecord(contactPersonResult);
+        const contactPersons = normalizeDbResult(contactPersonResult);
 
         // Fetch representatives
         const representativesResult = await query(
@@ -149,7 +152,7 @@ export async function GET(request, { params }) {
 
         return {
           addresses,
-          contactPerson,
+          contactPersons,
           representatives,
           businessTypesRows,
           businessTypeOther,
@@ -274,14 +277,30 @@ export async function GET(request, { params }) {
       province: mainAddress?.province || '',
       postalCode: mainAddress?.postal_code || '',
       
-      // Contact person
-      contactPersonFirstName: relatedData.contactPerson?.first_name_th || '',
-      contactPersonLastName: relatedData.contactPerson?.last_name_th || '',
-      contactPersonFirstNameEng: relatedData.contactPerson?.first_name_en || '',
-      contactPersonLastNameEng: relatedData.contactPerson?.last_name_en || '',
-      contactPersonPosition: relatedData.contactPerson?.position || '',
-      contactPersonEmail: relatedData.contactPerson?.email || '',
-      contactPersonPhone: relatedData.contactPerson?.phone || '',
+      // Multiple contact persons
+      contactPersons: relatedData.contactPersons.map((cp, index) => ({
+        id: cp.id || index + 1,
+        firstNameTh: cp.first_name_th || '',
+        lastNameTh: cp.last_name_th || '',
+        firstNameEn: cp.first_name_en || '',
+        lastNameEn: cp.last_name_en || '',
+        position: cp.position || '',
+        email: cp.email || '',
+        phone: cp.phone || '',
+        typeContactId: cp.type_contact_id || null,
+        typeContactName: cp.type_contact_name || '',
+        typeContactOtherDetail: cp.type_contact_other_detail || '',
+        isMain: cp.type_contact_id === 1 || index === 0
+      })),
+      
+      // Legacy single contact person fields (for backward compatibility)
+      contactPersonFirstName: relatedData.contactPersons[0]?.first_name_th || '',
+      contactPersonLastName: relatedData.contactPersons[0]?.last_name_th || '',
+      contactPersonFirstNameEng: relatedData.contactPersons[0]?.first_name_en || '',
+      contactPersonLastNameEng: relatedData.contactPersons[0]?.last_name_en || '',
+      contactPersonPosition: relatedData.contactPersons[0]?.position || '',
+      contactPersonEmail: relatedData.contactPersons[0]?.email || '',
+      contactPersonPhone: relatedData.contactPersons[0]?.phone || '',
       
       // Representatives
       representatives: representativesFormatted,
@@ -343,7 +362,7 @@ export async function GET(request, { params }) {
     console.error('Error in OC summary API:', {
       message: error.message,
       stack: error.stack,
-      id: params?.id
+      id: resolvedParams?.id
     });
     
     const isDevelopment = process.env.NODE_ENV === 'development';

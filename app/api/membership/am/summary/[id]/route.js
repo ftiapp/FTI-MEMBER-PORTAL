@@ -20,7 +20,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = await params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     
     // Fetch main AM data
     const mainResult = await query(
@@ -46,6 +47,12 @@ export async function GET(request, { params }) {
     // Fetch representatives
     const representativesResult = await query(
       'SELECT * FROM MemberRegist_AM_Representatives WHERE main_id = ?',
+      [id]
+    );
+
+    // Fetch contact persons (order by type_contact_id = 1 first for main contact)
+    const contactPersonsResult = await query(
+      'SELECT * FROM MemberRegist_AM_ContactPerson WHERE main_id = ? ORDER BY (type_contact_id = 1) DESC, id ASC',
       [id]
     );
 
@@ -154,6 +161,31 @@ export async function GET(request, { params }) {
       district: mainAddress?.district || '',
       province: mainAddress?.province || '',
       postalCode: mainAddress?.postal_code || '',
+      
+      // Multiple contact persons
+      contactPersons: (contactPersonsResult || []).map((cp, index) => ({
+        id: cp.id || index + 1,
+        firstNameTh: cp.first_name_th || '',
+        lastNameTh: cp.last_name_th || '',
+        firstNameEn: cp.first_name_en || '',
+        lastNameEn: cp.last_name_en || '',
+        position: cp.position || '',
+        email: cp.email || '',
+        phone: cp.phone || '',
+        typeContactId: cp.type_contact_id || null,
+        typeContactName: cp.type_contact_name || '',
+        typeContactOtherDetail: cp.type_contact_other_detail || '',
+        isMain: cp.type_contact_id === 1 || index === 0
+      })),
+      
+      // Legacy single contact person fields (for backward compatibility)
+      contactPersonFirstName: contactPersonsResult?.[0]?.first_name_th || '',
+      contactPersonLastName: contactPersonsResult?.[0]?.last_name_th || '',
+      contactPersonFirstNameEng: contactPersonsResult?.[0]?.first_name_en || '',
+      contactPersonLastNameEng: contactPersonsResult?.[0]?.last_name_en || '',
+      contactPersonPosition: contactPersonsResult?.[0]?.position || '',
+      contactPersonEmail: contactPersonsResult?.[0]?.email || '',
+      contactPersonPhone: contactPersonsResult?.[0]?.phone || '',
       
       // Representatives
       representatives: (representativesResult || []).map(rep => ({
