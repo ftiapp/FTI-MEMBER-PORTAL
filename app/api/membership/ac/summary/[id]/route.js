@@ -248,6 +248,15 @@ export async function GET(request, { params }) {
         nameEn: product.name_en
       })),
       
+      // 🔥 เพิ่มข้อมูลทางการเงิน
+      registeredCapital: acData.registered_capital || '',
+      productionCapacityValue: acData.production_capacity_value || '',
+      productionCapacityUnit: acData.production_capacity_unit || '',
+      salesDomestic: acData.sales_domestic || '',
+      salesExport: acData.sales_export || '',
+      shareholderThaiPercent: acData.shareholder_thai_percent || '',
+      shareholderForeignPercent: acData.shareholder_foreign_percent || '',
+      
       // Industry Groups - ใช้ข้อมูลจากตารางโดยตรง
       industrialGroups: industryGroupsRows.map(ig => ({
         id: ig.industry_group_id,

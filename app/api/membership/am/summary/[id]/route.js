@@ -216,6 +216,15 @@ export async function GET(request, { params }) {
         nameEn: product.name_en
       })),
       
+      // 🔥 เพิ่มข้อมูลทางการเงิน
+      registeredCapital: amData.registered_capital || '',
+      productionCapacityValue: amData.production_capacity_value || '',
+      productionCapacityUnit: amData.production_capacity_unit || '',
+      salesDomestic: amData.sales_domestic || '',
+      salesExport: amData.sales_export || '',
+      shareholderThaiPercent: amData.shareholder_thai_percent || '',
+      shareholderForeignPercent: amData.shareholder_foreign_percent || '',
+      
       // ✅ FIXED: Industry Groups - ส่งเป็น array ของ ID สำหรับ SummarySection ที่จะค้นหาชื่อจาก industrialGroups
       industrialGroups: (industryGroupsResult || []).map(ig => ig.industry_group_id),
       

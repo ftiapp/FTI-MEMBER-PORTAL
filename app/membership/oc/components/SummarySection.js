@@ -96,7 +96,14 @@ const RepresentativeCard = ({ representative, index }) => (
       </div>
       <div>
         <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-        <p className="text-sm">{representative.phone || '-'}</p>
+        <p className="text-sm">
+          {(() => {
+            const phone = representative.phone || '-';
+            const extension = representative.phoneExtension || '';
+            if (phone === '-') return '-';
+            return extension ? `${phone} ต่อ ${extension}` : phone;
+          })()}
+        </p>
       </div>
     </div>
   </div>
@@ -361,6 +368,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         position: mainContact.position || '-',
         email: mainContact.email || '-',
         phone: mainContact.phone || '-',
+        phoneExtension: mainContact.phoneExtension || '', // 🔥 เพิ่มนี้
         typeContactName: mainContact.typeContactName || 'ผู้ประสานงานหลัก',
         typeContactOtherDetail: mainContact.typeContactOtherDetail || ''
       };
@@ -371,6 +379,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       position: formData.contactPersonPosition || formData.contact_person_position || '-',
       email: formData.contactPersonEmail || formData.contact_person_email || '-',
       phone: formData.contactPersonPhone || formData.contact_person_phone || '-',
+      phoneExtension: formData.contactPersonPhoneExtension || formData.contact_person_phone_extension || '', // 🔥 เพิ่มนี้
       typeContactName: 'ผู้ประสานงานหลัก', // default สำหรับระบบเก่า
       typeContactOtherDetail: ''
     };
@@ -390,6 +399,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         province: '-',
         postalCode: '-',
         phone: '-',
+        phoneExtension: '-', // 🔥 เพิ่มนี้
         email: '-',
         website: '-'
       };
@@ -409,6 +419,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         province: address.province || '-',
         postalCode: address.postalCode || '-',
         phone: address.phone || '-',
+        phoneExtension: address.phoneExtension || '-', // 🔥 เพิ่มนี้
         email: address.email || '-',
         website: address.website || '-'
       };
@@ -427,10 +438,12 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       province: address.province || '-',
       postalCode: address.postalCode || address.postal_code || '-',
       phone: address.phone || formData.companyPhone || '-',
+      phoneExtension: address.phoneExtension || formData.companyPhoneExtension || '-', // 🔥 เพิ่มนี้
       email: address.email || formData.companyEmail || '-',
       website: address.website || formData.companyWebsite || '-'
     };
   };
+  
 
   const getFactoryTypeLabel = () => {
     if (!formData) return 'ไม่ได้เลือก';
@@ -478,39 +491,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         </div>
       </Section>
 
-      {/* ข้อมูลทางการเงิน */}
-      <Section title="ข้อมูลทางการเงิน">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard 
-            title="ทุนจดทะเบียน (บาท)" 
-            value={formData?.registeredCapital ? Number(formData.registeredCapital).toLocaleString() : '-'} 
-          />
-          <InfoCard 
-            title="กำลังการผลิต (ต่อปี)" 
-            value={formData?.productionCapacityValue && formData?.productionCapacityUnit 
-              ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}` 
-              : '-'
-            } 
-          />
-          <InfoCard 
-            title="ยอดจำหน่ายในประเทศ (บาท/ปี)" 
-            value={formData?.salesDomestic ? Number(formData.salesDomestic).toLocaleString() : '-'} 
-          />
-          <InfoCard 
-            title="ยอดจำหน่ายส่งออก (บาท/ปี)" 
-            value={formData?.salesExport ? Number(formData.salesExport).toLocaleString() : '-'} 
-          />
-          <InfoCard 
-            title="สัดส่วนผู้ถือหุ้นไทย (%)" 
-            value={formData?.shareholderThaiPercent ? `${Number(formData.shareholderThaiPercent).toFixed(2)}%` : '-'} 
-          />
-          <InfoCard 
-            title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)" 
-            value={formData?.shareholderForeignPercent ? `${Number(formData.shareholderForeignPercent).toFixed(2)}%` : '-'} 
-          />
-        </div>
-      </Section>
-
+     
       {/* ที่อยู่บริษัท */}
       {hasMultipleAddresses ? (
         // แสดงที่อยู่ 3 ประเภท
@@ -533,7 +514,15 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
                   <InfoCard title="อำเภอ/เขต" value={fields.district} />
                   <InfoCard title="จังหวัด" value={fields.province} />
                   <InfoCard title="รหัสไปรษณีย์" value={fields.postalCode} />
-                  <InfoCard title="โทรศัพท์" value={fields.phone} />
+                  <InfoCard 
+  title="โทรศัพท์" 
+  value={(() => {
+    const phone = fields.phone;
+    const extension = fields.phoneExtension;
+    if (phone === '-') return '-';
+    return extension ? `${phone} ต่อ ${extension}` : phone;
+  })()} 
+/>
                   <InfoCard title="อีเมล" value={fields.email} />
                   <InfoCard title="เว็บไซต์" value={fields.website} />
                 </div>
@@ -584,7 +573,16 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
                 <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
                 <InfoCard title="ตำแหน่ง" value={contactDetails.position} />
                 <InfoCard title="อีเมล" value={contactDetails.email} />
-                <InfoCard title="เบอร์โทรศัพท์" value={contactDetails.phone} />
+                <InfoCard 
+  title="เบอร์โทรศัพท์" 
+  value={(() => {
+    const contactDetails = getContactPersonDetails();
+    const phone = contactDetails.phone;
+    const extension = contactDetails.phoneExtension;
+    if (phone === '-') return '-';
+    return extension ? `${phone} ต่อ ${extension}` : phone;
+  })()} 
+/>
               </div>
               
               {/* แสดงผู้ติดต่อเพิ่มเติม (ถ้ามี) */}
@@ -603,7 +601,15 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
                           <div><span className="font-medium">ชื่อ:</span> {contact.firstNameTh} {contact.lastNameTh}</div>
                           <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
                           <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
-                          <div><span className="font-medium">โทร:</span> {contact.phone || '-'}</div>
+                          <div>
+  <span className="font-medium">โทร:</span> 
+  {(() => {
+    const phone = contact.phone || '-';
+    const extension = contact.phoneExtension || '';
+    if (phone === '-') return '-';
+    return extension ? `${phone} ต่อ ${extension}` : phone;
+  })()}
+</div>
                         </div>
                       </div>
                     ))}
@@ -642,6 +648,38 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
           <IndustrialGroupsCard 
             title="สภาอุตสาหกรรมจังหวัด" 
             industrialGroups={getSelectedProvincialChaptersArray()} 
+          />
+        </div>
+      </Section>
+ {/* ข้อมูลทางการเงิน */}
+ <Section title="ข้อมูลทางการเงิน">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoCard 
+            title="ทุนจดทะเบียน (บาท)" 
+            value={formData?.registeredCapital ? Number(formData.registeredCapital).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="กำลังการผลิต (ต่อปี)" 
+            value={formData?.productionCapacityValue && formData?.productionCapacityUnit 
+              ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}` 
+              : '-'
+            } 
+          />
+          <InfoCard 
+            title="ยอดจำหน่ายในประเทศ (บาท/ปี)" 
+            value={formData?.salesDomestic ? Number(formData.salesDomestic).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="ยอดจำหน่ายส่งออก (บาท/ปี)" 
+            value={formData?.salesExport ? Number(formData.salesExport).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="สัดส่วนผู้ถือหุ้นไทย (%)" 
+            value={formData?.shareholderThaiPercent ? `${Number(formData.shareholderThaiPercent).toFixed(2)}%` : '-'} 
+          />
+          <InfoCard 
+            title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)" 
+            value={formData?.shareholderForeignPercent ? `${Number(formData.shareholderForeignPercent).toFixed(2)}%` : '-'} 
           />
         </div>
       </Section>

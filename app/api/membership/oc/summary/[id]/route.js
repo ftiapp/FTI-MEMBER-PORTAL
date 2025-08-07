@@ -221,7 +221,7 @@ export async function GET(request, { params }) {
       position: rep.position || '',
       email: rep.email || '',
       phone: rep.phone || '',
-      phoneExtension: rep.phone_extension || '',
+      phoneExtension: rep.phone_extension || '', // 🔥 เพิ่ม phone extension
       isPrimary: rep.is_primary === 1 || index === 0
     }));
 
@@ -236,11 +236,13 @@ export async function GET(request, { params }) {
         moo: addr.moo || '',
         soi: addr.soi || '',
         road: addr.road || '',
+        street: addr.road || '', // alias for road
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
         province: addr.province || '',
         postalCode: addr.postal_code || '',
         phone: addr.phone || '',
+        phoneExtension: addr.phone_extension || '', // 🔥 เพิ่ม phone extension
         email: addr.email || '',
         website: addr.website || ''
       };
@@ -256,6 +258,7 @@ export async function GET(request, { params }) {
     const productionImageDocs = relatedData.documents.filter(doc => doc.document_type === 'productionImages');
     const companyStampDoc = relatedData.documents.find(doc => doc.document_type === 'companyStamp');
     const authorizedSignatureDoc = relatedData.documents.find(doc => doc.document_type === 'authorizedSignature');
+    
     // Build response in the format that SummarySection expects
     const response = {
       // Company basic info
@@ -264,7 +267,7 @@ export async function GET(request, { params }) {
       taxId: ocData.tax_id || '',
       companyEmail: ocData.company_email || mainAddress?.email || '',
       companyPhone: ocData.company_phone || mainAddress?.phone || '',
-      companyPhoneExtension: ocData.company_phone_extension || '',
+      companyPhoneExtension: ocData.company_phone_extension || '', // 🔥 เพิ่ม phone extension
       companyWebsite: mainAddress?.website || '',
       
       // Multi-address data
@@ -290,7 +293,7 @@ export async function GET(request, { params }) {
         position: cp.position || '',
         email: cp.email || '',
         phone: cp.phone || '',
-        phoneExtension: cp.phone_extension || '',
+        phoneExtension: cp.phone_extension || '', // 🔥 เพิ่ม phone extension
         typeContactId: cp.type_contact_id || null,
         typeContactName: cp.type_contact_name || '',
         typeContactOtherDetail: cp.type_contact_other_detail || '',
@@ -305,6 +308,7 @@ export async function GET(request, { params }) {
       contactPersonPosition: relatedData.contactPersons[0]?.position || '',
       contactPersonEmail: relatedData.contactPersons[0]?.email || '',
       contactPersonPhone: relatedData.contactPersons[0]?.phone || '',
+      contactPersonPhoneExtension: relatedData.contactPersons[0]?.phone_extension || '', // 🔥 เพิ่ม phone extension
       
       // Representatives
       representatives: representativesFormatted,
@@ -316,6 +320,15 @@ export async function GET(request, { params }) {
       // Products
       products: productsFormatted,
       numberOfEmployees: ocData.number_of_employees || '',
+      
+      // 🔥 เพิ่มข้อมูลทางการเงิน
+      registeredCapital: ocData.registered_capital || '',
+      productionCapacityValue: ocData.production_capacity_value || '',
+      productionCapacityUnit: ocData.production_capacity_unit || '',
+      salesDomestic: ocData.sales_domestic || '',
+      salesExport: ocData.sales_export || '',
+      shareholderThaiPercent: ocData.shareholder_thai_percent || '',
+      shareholderForeignPercent: ocData.shareholder_foreign_percent || '',
       
       // ✅ Industry groups - ใช้ข้อมูลจากตารางโดยตรง
       industryGroups: industryGroupsWithNames,
