@@ -72,6 +72,7 @@ export async function POST(request) {
     // Step 3: Extract company email and phone from document delivery address (type 2)
     let companyEmail = data.companyEmail || '';
     let companyPhone = data.companyPhone || '';
+    let companyPhoneExtension = data.companyPhoneExtension || null;
     
     // If using multi-address structure, get email and phone from document delivery address (type 2)
     if (data.addresses) {
@@ -81,6 +82,7 @@ export async function POST(request) {
         if (documentAddress) {
           companyEmail = documentAddress.email || companyEmail;
           companyPhone = documentAddress.phone || companyPhone;
+          companyPhoneExtension = documentAddress.phoneExtension || companyPhoneExtension;
         }
       } catch (error) {
         console.error('Error parsing addresses:', error);
@@ -89,7 +91,12 @@ export async function POST(request) {
     
     // Step 4: Insert Main Data
     const mainResult = await executeQuery(trx, 
-      `INSERT INTO MemberRegist_OC_Main (user_id, company_name_th, company_name_en, tax_id, company_email, company_phone, factory_type, number_of_employees, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+      `INSERT INTO MemberRegist_OC_Main (
+        user_id, company_name_th, company_name_en, tax_id, company_email, company_phone, company_phone_extension,
+        factory_type, number_of_employees, registered_capital, production_capacity_value, 
+        production_capacity_unit, sales_domestic, sales_export, shareholder_thai_percent, 
+        shareholder_foreign_percent, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
       [
         userId,
         data.companyName,
@@ -97,8 +104,16 @@ export async function POST(request) {
         data.taxId,
         companyEmail,
         companyPhone,
+        companyPhoneExtension,
         data.factoryType,
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
+        data.registeredCapital ? parseFloat(data.registeredCapital) : null,
+        data.productionCapacityValue ? parseFloat(data.productionCapacityValue) : null,
+        data.productionCapacityUnit || null,
+        data.salesDomestic ? parseFloat(data.salesDomestic) : null,
+        data.salesExport ? parseFloat(data.salesExport) : null,
+        data.shareholderThaiPercent ? parseFloat(data.shareholderThaiPercent) : null,
+        data.shareholderForeignPercent ? parseFloat(data.shareholderForeignPercent) : null,
       ]
     );
     const mainId = mainResult.insertId;
@@ -172,8 +187,8 @@ export async function POST(request) {
         await executeQuery(trx,
           `INSERT INTO MemberRegist_OC_ContactPerson (
             main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
-            position, email, phone, type_contact_id, type_contact_name, type_contact_other_detail
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
             mainId, 
             contact.firstNameTh, 
@@ -183,6 +198,7 @@ export async function POST(request) {
             contact.position, 
             contact.email, 
             contact.phone,
+            contact.phoneExtension || null,
             contact.typeContactId || 'MAIN',
             contact.typeContactName || 'ผู้ประสานงานหลัก',
             contact.typeContactOtherDetail || null
@@ -194,8 +210,8 @@ export async function POST(request) {
       await executeQuery(trx, 
         `INSERT INTO MemberRegist_OC_ContactPerson (
           main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
-          position, email, phone, type_contact_id, type_contact_name, type_contact_other_detail
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId, 
           data.contactPersonFirstName, 
@@ -205,6 +221,7 @@ export async function POST(request) {
           data.contactPersonPosition, 
           data.contactPersonEmail, 
           data.contactPersonPhone,
+          data.contactPersonPhoneExtension || null,
           'MAIN',
           'ผู้ประสานงานหลัก',
           null
@@ -220,9 +237,9 @@ export async function POST(request) {
         await executeQuery(trx,
           `INSERT INTO MemberRegist_OC_Representatives (
             main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
-            position, email, phone, is_primary, rep_order
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-          [mainId, rep.firstNameThai, rep.lastNameThai, rep.firstNameEnglish, rep.lastNameEnglish, rep.position, rep.email, rep.phone, rep.isPrimary, index + 1]
+            position, email, phone, phone_extension, is_primary, rep_order
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [mainId, rep.firstNameThai, rep.lastNameThai, rep.firstNameEnglish, rep.lastNameEnglish, rep.position, rep.email, rep.phone, rep.phoneExtension || null, rep.isPrimary, index + 1]
         );
       }
     }

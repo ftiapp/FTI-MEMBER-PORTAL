@@ -435,18 +435,32 @@ const ContactPersonSection = ({
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           หมายเลขโทรศัพท์ {isMain && <span className="text-red-500">*</span>}
                         </label>
-                        <input
-                          type="tel"
-                          value={contact.phone}
-                          onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="หมายเลขโทรศัพท์"
-                          required={isMain}
-                        />
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                          <div className="lg:col-span-2">
+                            <input
+                              type="tel"
+                              value={contact.phone}
+                              onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="02-123-4567"
+                              required={isMain}
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              value={contact.phoneExtension || ''}
+                              onChange={(e) => handleContactChange(index, 'phoneExtension', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="ต่อ (ถ้ามี)"
+                            />
+                          </div>
+                        </div>
                         {errors[`contactPerson${index}Phone`] && (
                           <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Phone`]}</p>
                         )}
                       </div>
+
                     </div>
                   </div>
                 </div>

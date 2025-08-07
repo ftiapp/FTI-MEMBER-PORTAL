@@ -270,21 +270,34 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'email')}</p>
                         )}
                       </div>
-                      <div>
+                      <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-900 mb-2">
                           เบอร์โทรศัพท์ <span className="text-red-500">*</span>
                         </label>
-                        <input
-                          type="tel"
-                          value={rep.phone}
-                          onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
-                          placeholder="08X-XXX-XXXX"
-                          className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(index, 'phone') ? 
-                              'border-red-300 bg-red-50 focus:ring-red-500' : 
-                              'border-gray-300 bg-white hover:border-gray-400'
-                          }`}
-                        />
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                          <div className="lg:col-span-2">
+                            <input
+                              type="tel"
+                              value={rep.phone}
+                              onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
+                              placeholder="02-123-4567"
+                              className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
+                                getFieldError(index, 'phone') ? 
+                                  'border-red-300 bg-red-50 focus:ring-red-500' : 
+                                  'border-gray-300 bg-white hover:border-gray-400'
+                              }`}
+                            />
+                          </div>
+                          <div>
+                            <input
+                              type="text"
+                              value={rep.phoneExtension || ''}
+                              onChange={(e) => updateRepresentative(rep.id, 'phoneExtension', e.target.value)}
+                              placeholder="ต่อ (ถ้ามี)"
+                              className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
+                            />
+                          </div>
+                        </div>
                         {getFieldError(index, 'phone') && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'phone')}</p>
                         )}

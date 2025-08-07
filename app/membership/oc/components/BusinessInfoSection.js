@@ -179,6 +179,155 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
             )}
           </div>
         </div>
+
+        {/* Financial Information */}
+        <div className="bg-white border border-gray-200 rounded-lg p-6">
+          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน</h4>
+          
+          {/* Registered Capital */}
+          <div className="space-y-2 mb-6">
+            <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
+              ทุนจดทะเบียน (บาท)
+            </label>
+            <input
+              type="number"
+              id="registeredCapital"
+              name="registeredCapital"
+              value={formData.registeredCapital || ''}
+              onChange={handleInputChange}
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+            />
+          </div>
+
+          {/* Production Capacity */}
+          <div className="space-y-2 mb-6">
+            <label className="block text-sm font-medium text-gray-900 mb-3">
+              กำลังการผลิต (ต่อปี)
+            </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="productionCapacityValue" className="block text-sm font-medium text-gray-700">
+                  ปริมาณ
+                </label>
+                <input
+                  type="number"
+                  id="productionCapacityValue"
+                  name="productionCapacityValue"
+                  value={formData.productionCapacityValue || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="productionCapacityUnit" className="block text-sm font-medium text-gray-700">
+                  หน่วย
+                </label>
+                <input
+                  type="text"
+                  id="productionCapacityUnit"
+                  name="productionCapacityUnit"
+                  value={formData.productionCapacityUnit || ''}
+                  onChange={handleInputChange}
+                  placeholder="เช่น ตัน, ชิ้น, ลิตร"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Sales Information */}
+          <div className="space-y-2 mb-6">
+            <label className="block text-sm font-medium text-gray-900 mb-3">
+              ยอดจำหน่าย (บาท/ปี)
+            </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="salesDomestic" className="block text-sm font-medium text-gray-700">
+                  ในประเทศไทย
+                </label>
+                <input
+                  type="number"
+                  id="salesDomestic"
+                  name="salesDomestic"
+                  value={formData.salesDomestic || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="salesExport" className="block text-sm font-medium text-gray-700">
+                  ส่งออก
+                </label>
+                <input
+                  type="number"
+                  id="salesExport"
+                  name="salesExport"
+                  value={formData.salesExport || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Shareholder Information */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-900 mb-3">
+              สัดส่วนผู้ถือหุ้น (%)
+            </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="shareholderThaiPercent" className="block text-sm font-medium text-gray-700">
+                  ผู้ถือหุ้นไทย
+                </label>
+                <input
+                  type="number"
+                  id="shareholderThaiPercent"
+                  name="shareholderThaiPercent"
+                  value={formData.shareholderThaiPercent || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="shareholderForeignPercent" className="block text-sm font-medium text-gray-700">
+                  ผู้ถือหุ้นต่างประเทศ
+                </label>
+                <input
+                  type="number"
+                  id="shareholderForeignPercent"
+                  name="shareholderForeignPercent"
+                  value={formData.shareholderForeignPercent || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              หมายเหตุ: ผลรวมของสัดส่วนผู้ถือหุ้นไทยและต่างประเทศควรเท่ากับ 100%
+            </p>
+          </div>
+        </div>
         
         {/* Products */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -271,6 +420,13 @@ BusinessInfoSection.propTypes = {
     businessTypes: PropTypes.object,
     otherBusinessTypeDetail: PropTypes.string,
     numberOfEmployees: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    registeredCapital: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    productionCapacityValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    productionCapacityUnit: PropTypes.string,
+    salesDomestic: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    salesExport: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    shareholderThaiPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    shareholderForeignPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     products: PropTypes.arrayOf(PropTypes.shape({
       id: PropTypes.number.isRequired,
       nameTh: PropTypes.string,

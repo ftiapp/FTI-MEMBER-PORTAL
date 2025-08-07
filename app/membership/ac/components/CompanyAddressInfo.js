@@ -684,32 +684,47 @@ export default function CompanyAddressInfo({
           <div className="mt-4 pt-2">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Company Phone */}
-              <div className="space-y-2">
+              <div className="lg:col-span-2 space-y-2">
                 <label htmlFor="companyPhone" className="block text-sm font-medium text-gray-900">
                   โทรศัพท์
                   <span className="text-red-500 ml-1">*</span>
                 </label>
-                <input
-                  type="tel"
-                  id="companyPhone"
-                  name="companyPhone"
-                  value={formData.companyPhone || ''}
-                  onChange={handleContactInputChange}
-                  required
-                  placeholder="02-123-4567"
-                  className={`
-                    w-full px-4 py-3 text-sm
-                    border rounded-lg
-                    bg-white
-                    placeholder-gray-400
-                    transition-all duration-200
-                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                    ${errors?.companyPhone 
-                      ? 'border-red-300 bg-red-50' 
-                      : 'border-gray-300 hover:border-gray-400'
-                    }
-                  `}
-                />
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="lg:col-span-2">
+                    <input
+                      type="tel"
+                      id="companyPhone"
+                      name="companyPhone"
+                      value={formData.companyPhone || ''}
+                      onChange={handleContactInputChange}
+                      required
+                      placeholder="02-123-4567"
+                      className={`
+                        w-full px-4 py-3 text-sm
+                        border rounded-lg
+                        bg-white
+                        placeholder-gray-400
+                        transition-all duration-200
+                        focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                        ${errors?.companyPhone 
+                          ? 'border-red-300 bg-red-50' 
+                          : 'border-gray-300 hover:border-gray-400'
+                        }
+                      `}
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      id="companyPhoneExtension"
+                      name="companyPhoneExtension"
+                      value={formData.companyPhoneExtension || ''}
+                      onChange={handleContactInputChange}
+                      placeholder="ต่อ (ถ้ามี)"
+                      className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
+                    />
+                  </div>
+                </div>
                 {errors?.companyPhone && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">

@@ -240,26 +240,39 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   )}
                 </div>
                 
-                <div>
+                <div className="md:col-span-2">
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
                     เบอร์โทรศัพท์ <span className="text-red-500">*</span>
                   </label>
-                  <div className="relative">
-                    <input
-                      type="tel"
-                      id="phone"
-                      value={representative.phone || ''}
-                      onChange={(e) => handleRepresentativeChange('phone', e.target.value)}
-                      placeholder="กรอกเบอร์โทรศัพท์"
-                      className={`w-full px-4 py-2 border ${
-                        representativeErrors?.phone ? 'border-red-300' : 'border-gray-300'
-                      } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
-                    />
-                    {representativeErrors?.phone && (
-                      <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
-                        {ErrorIcon}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <div className="relative">
+                        <input
+                          type="tel"
+                          id="phone"
+                          value={representative.phone || ''}
+                          onChange={(e) => handleRepresentativeChange('phone', e.target.value)}
+                          placeholder="02-123-4567"
+                          className={`w-full px-4 py-2 border ${
+                            representativeErrors?.phone ? 'border-red-300' : 'border-gray-300'
+                          } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
+                        />
+                        {representativeErrors?.phone && (
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
+                            {ErrorIcon}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <div>
+                      <input
+                        type="text"
+                        value={representative.phoneExtension || ''}
+                        onChange={(e) => handleRepresentativeChange('phoneExtension', e.target.value)}
+                        placeholder="ต่อ (ถ้ามี)"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                   {representativeErrors?.phone && (
                     <p className="mt-1 text-sm text-red-600">{representativeErrors.phone}</p>

@@ -454,32 +454,47 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
             </div>
 
             {/* Phone */}
-            <div className="space-y-2">
+            <div className="space-y-2 lg:col-span-2">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
                 เบอร์โทรศัพท์
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone || ''}
-                onChange={handleInputChange}
-                placeholder="กรอกเบอร์โทรศัพท์"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  bg-white
-                  placeholder-gray-400
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.phone 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                `}
-              />
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={formData.phone || ''}
+                    onChange={handleInputChange}
+                    placeholder="02-123-4567"
+                    disabled={isLoading}
+                    className={`
+                      w-full px-4 py-3 text-sm
+                      border rounded-lg
+                      bg-white
+                      placeholder-gray-400
+                      transition-all duration-200
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                      ${errors?.phone 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }
+                    `}
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    name="phoneExtension"
+                    value={formData.phoneExtension || ''}
+                    onChange={handleInputChange}
+                    placeholder="ต่อ (ถ้ามี)"
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
+                  />
+                </div>
+              </div>
               {errors?.phone && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">

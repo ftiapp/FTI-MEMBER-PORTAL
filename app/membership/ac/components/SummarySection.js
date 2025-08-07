@@ -473,6 +473,39 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         </div>
       </Section>
 
+      {/* ข้อมูลทางการเงิน */}
+      <Section title="ข้อมูลทางการเงิน">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <InfoCard 
+            title="ทุนจดทะเบียน (บาท)" 
+            value={formData?.registeredCapital ? Number(formData.registeredCapital).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="กำลังการผลิต (ต่อปี)" 
+            value={formData?.productionCapacityValue && formData?.productionCapacityUnit 
+              ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}` 
+              : '-'
+            } 
+          />
+          <InfoCard 
+            title="ยอดจำหน่ายในประเทศ (บาท/ปี)" 
+            value={formData?.salesDomestic ? Number(formData.salesDomestic).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="ยอดจำหน่ายส่งออก (บาท/ปี)" 
+            value={formData?.salesExport ? Number(formData.salesExport).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="สัดส่วนผู้ถือหุ้นไทย (%)" 
+            value={formData?.shareholderThaiPercent ? `${Number(formData.shareholderThaiPercent).toFixed(2)}%` : '-'} 
+          />
+          <InfoCard 
+            title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)" 
+            value={formData?.shareholderForeignPercent ? `${Number(formData.shareholderForeignPercent).toFixed(2)}%` : '-'} 
+          />
+        </div>
+      </Section>
+
       {/* ที่อยู่บริษัท */}
       {hasMultipleAddresses ? (
         <div className="space-y-6">

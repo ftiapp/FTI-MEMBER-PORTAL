@@ -56,6 +56,7 @@ export async function POST(request) {
     // Extract email, phone, and website from document delivery address (type 2)
     let userEmail = data.email || '';
     let userPhone = data.phone || '';
+    let userPhoneExtension = data.phoneExtension || null;
     let userWebsite = data.website || '';
     
     // If using multi-address structure, get email, phone, and website from document delivery address (type 2)
@@ -66,6 +67,7 @@ export async function POST(request) {
         if (documentAddress) {
           userEmail = documentAddress.email || userEmail;
           userPhone = documentAddress.phone || userPhone;
+          userPhoneExtension = documentAddress.phoneExtension || userPhoneExtension;
           userWebsite = documentAddress.website || userWebsite;
         }
       } catch (error) {
@@ -78,8 +80,8 @@ export async function POST(request) {
       trx,
       `INSERT INTO MemberRegist_IC_Main (
         user_id, id_card_number, first_name_th, last_name_th, 
-        first_name_en, last_name_en, phone, email, website, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        first_name_en, last_name_en, phone, phone_extension, email, website, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         userId,
         data.idCardNumber,
@@ -88,6 +90,7 @@ export async function POST(request) {
         data.firstNameEn,
         data.lastNameEn,
         userPhone,
+        userPhoneExtension,
         userEmail,
         userWebsite,
       ]
@@ -228,8 +231,8 @@ export async function POST(request) {
         trx,
         `INSERT INTO MemberRegist_IC_Representatives (
           main_id, first_name_th, last_name_th, first_name_en, last_name_en,
-          phone, email, position, rep_order
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          phone, phone_extension, email, position, rep_order
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           icMemberId,
           data.representativeFirstNameTh || '',
@@ -237,6 +240,7 @@ export async function POST(request) {
           data.representativeFirstNameEn || '',
           data.representativeLastNameEn || '',
           data.representativePhone || '',
+          data.representativePhoneExtension || null,
           data.representativeEmail || '',
           data.relationship || '',
           1

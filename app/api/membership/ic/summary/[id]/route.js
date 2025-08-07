@@ -164,6 +164,7 @@ export async function GET(request, { params }) {
       fullNameTh: `${mainData.first_name_th || ''} ${mainData.last_name_th || ''}`.trim(),
       fullNameEn: `${mainData.first_name_en || ''} ${mainData.last_name_en || ''}`.trim(),
       phone: mainData.phone || mainAddress?.phone || '',
+      phoneExtension: mainData.phone_extension || '',
       email: mainData.email || mainAddress?.email || '',
       website: mainData.website || mainAddress?.website || '',
       status: mainData.status,
@@ -198,7 +199,8 @@ export async function GET(request, { params }) {
         fullNameEn: `${representativeResult[0].first_name_en || ''} ${representativeResult[0].last_name_en || ''}`.trim(),
         position: representativeResult[0].position,
         email: representativeResult[0].email,
-        phone: representativeResult[0].phone
+        phone: representativeResult[0].phone,
+        phoneExtension: representativeResult[0].phone_extension || ''
       } : null,
 
       // ข้อมูลประเภทธุรกิจ

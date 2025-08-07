@@ -164,6 +164,7 @@ export async function GET(request, { params }) {
       taxId: acData.tax_id,
       companyEmail: acData.company_email || mainAddress?.email || '',
       companyPhone: acData.company_phone || mainAddress?.phone || '',
+      companyPhoneExtension: acData.company_phone_extension || '',
       companyWebsite: acData.company_website || mainAddress?.website || '',
       status: acData.status,
       createdAt: acData.created_at,
@@ -192,6 +193,7 @@ export async function GET(request, { params }) {
         position: cp.position || '',
         email: cp.email || '',
         phone: cp.phone || '',
+        phoneExtension: cp.phone_extension || '',
         typeContactId: cp.type_contact_id || null,
         typeContactName: cp.type_contact_name || '',
         typeContactOtherDetail: cp.type_contact_other_detail || '',
@@ -226,6 +228,7 @@ export async function GET(request, { params }) {
         lastNameEng: rep.last_name_en,
         email: rep.email,
         phone: rep.phone,
+        phoneExtension: rep.phone_extension || '',
         position: rep.position,
         isPrimary: rep.is_primary === 1 || rep.is_primary === true
       })),

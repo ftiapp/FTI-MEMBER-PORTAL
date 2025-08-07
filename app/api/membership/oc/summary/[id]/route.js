@@ -221,6 +221,7 @@ export async function GET(request, { params }) {
       position: rep.position || '',
       email: rep.email || '',
       phone: rep.phone || '',
+      phoneExtension: rep.phone_extension || '',
       isPrimary: rep.is_primary === 1 || index === 0
     }));
 
@@ -263,6 +264,7 @@ export async function GET(request, { params }) {
       taxId: ocData.tax_id || '',
       companyEmail: ocData.company_email || mainAddress?.email || '',
       companyPhone: ocData.company_phone || mainAddress?.phone || '',
+      companyPhoneExtension: ocData.company_phone_extension || '',
       companyWebsite: mainAddress?.website || '',
       
       // Multi-address data
@@ -288,6 +290,7 @@ export async function GET(request, { params }) {
         position: cp.position || '',
         email: cp.email || '',
         phone: cp.phone || '',
+        phoneExtension: cp.phone_extension || '',
         typeContactId: cp.type_contact_id || null,
         typeContactName: cp.type_contact_name || '',
         typeContactOtherDetail: cp.type_contact_other_detail || '',
