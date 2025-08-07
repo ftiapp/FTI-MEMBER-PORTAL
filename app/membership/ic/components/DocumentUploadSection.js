@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 
 export default function DocumentUploadSection({ formData, setFormData, errors }) {
   const [selectedFile, setSelectedFile] = useState(formData.idCardDocument || null);
+  const [selectedSignature, setSelectedSignature] = useState(formData.authorizedSignature || null);
 
   // Debug: เพิ่ม useEffect เพื่อ debug
   useEffect(() => {
@@ -243,6 +244,175 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               <li>• ขนาดไฟล์ไม่เกิน 5MB</li>
               <li>• รองรับไฟล์ PDF, JPG, JPEG, PNG</li>
             </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Authorized Signature Upload Section */}
+      <div className="bg-white border border-gray-200 rounded-xl p-8 mt-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-2">ลายเซ็นผู้มีอำนาจลงนาม</h3>
+        <p className="text-sm text-gray-600 mb-6">กรุณาอัพโหลดรูปลายเซ็นของผู้มีอำนาจลงนาม (จำเป็น)</p>
+        
+        {/* Required document notification */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">เอกสารที่จำเป็น</h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>ลายเซ็นผู้มีอำนาจลงนามจำเป็นสำหรับการสมัครสมาชิก</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Signature upload area */}
+        <div className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
+          errors?.authorizedSignature ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-orange-400'
+        }`}>
+          {!selectedSignature ? (
+            <div className="text-center">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              <div className="flex flex-col items-center mt-4">
+                <p className="text-sm text-gray-500">
+                  ลากไฟล์มาวางที่นี่ หรือ
+                </p>
+                <label htmlFor="authorizedSignature" className="mt-2 cursor-pointer">
+                  <span className="px-4 py-2 text-sm font-medium text-white bg-orange-600 rounded-lg hover:bg-orange-700 transition-colors duration-200">
+                    เลือกไฟล์
+                  </span>
+                  <input
+                    id="authorizedSignature"
+                    name="authorizedSignature"
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={(e) => {
+                      const { files } = e.target;
+                      if (files && files[0]) {
+                        const file = files[0];
+                        if (file.size > 5 * 1024 * 1024) {
+                          alert('ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB');
+                          return;
+                        }
+                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
+                        if (!allowedTypes.includes(file.type)) {
+                          alert('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ PDF, JPG, JPEG หรือ PNG');
+                          return;
+                        }
+                        setSelectedSignature(file);
+                        setFormData(prev => ({ ...prev, authorizedSignature: file }));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+                <p className="mt-2 text-xs text-gray-500">
+                  รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                {FileIcon}
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                    {selectedSignature.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {(selectedSignature.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                </div>
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedSignature.type.startsWith('image/')) {
+                      const img = new Image();
+                      img.src = URL.createObjectURL(selectedSignature);
+                      const w = window.open('');
+                      w.document.write(img.outerHTML);
+                    } else {
+                      const url = URL.createObjectURL(selectedSignature);
+                      window.open(url, '_blank');
+                    }
+                  }}
+                  className="p-2 text-orange-600 bg-orange-100 rounded-full hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors duration-200"
+                  title="ดูไฟล์"
+                >
+                  {ViewIcon}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedSignature(null);
+                    setFormData(prev => ({ ...prev, authorizedSignature: null }));
+                    const fileInput = document.getElementById('authorizedSignature');
+                    if (fileInput) fileInput.value = '';
+                  }}
+                  className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                  title="ลบไฟล์"
+                >
+                  {DeleteIcon}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Error message */}
+        {errors?.authorizedSignature && (
+          <p className="mt-2 text-sm text-red-600 flex items-center">
+            {ErrorIcon}
+            <span className="ml-1">{errors.authorizedSignature}</span>
+          </p>
+        )}
+
+        {/* Success message */}
+        {selectedSignature && !errors?.authorizedSignature && (
+          <div className="mt-2 flex items-center text-sm text-green-600">
+            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            ไฟล์ถูกอัพโหลดเรียบร้อยแล้ว
+          </div>
+        )}
+        
+        {/* Image size recommendations and sample file link */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start gap-2">
+            <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-2">คำแนะนำการอัปโหลดลายเซ็น:</p>
+              <ul className="list-disc list-inside space-y-1 text-blue-700 mb-3">
+                <li>ขนาดภาพที่แนะนำ: ไม่เกิน 2MB</li>
+                <li>ความละเอียดที่เหมาะสม: 400x200 - 800x400 พิกเซล</li>
+                <li>พื้นหลังควรเป็นสีขาวหรือโปร่งใส</li>
+                <li>ลายเซ็นควรชัดเจน ไม่เบลอ</li>
+                <li>รองรับไฟล์ PDF, JPG, JPEG, PNG</li>
+              </ul>
+              <a 
+                href="/images/FTI-SIGNATUREsample.jpg" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                ดูตัวอย่างลายเซ็น
+              </a>
+            </div>
           </div>
         </div>
       </div>

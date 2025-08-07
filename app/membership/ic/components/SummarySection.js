@@ -409,13 +409,22 @@ export default function SummarySection({
             ))
           ) : (
             // โหมดสมัคร - แสดงเอกสารจากฟอร์ม
-            <FileCard 
-              fileName={getFileName(formData.idCardDocument)} 
-              description="สำเนาบัตรประชาชน"
-              fileUrl={formData.idCardDocument?.file ? URL.createObjectURL(formData.idCardDocument.file) : null}
-              fileType={formData.idCardDocument?.file?.type}
-              documentType="id_card"
-            />
+            <>
+              <FileCard 
+                fileName={getFileName(formData.idCardDocument)} 
+                description="สำเนาบัตรประชาชน"
+                fileUrl={formData.idCardDocument?.file ? URL.createObjectURL(formData.idCardDocument.file) : null}
+                fileType={formData.idCardDocument?.file?.type}
+                documentType="id_card"
+              />
+              <FileCard 
+                fileName={getFileName(formData.authorizedSignature)} 
+                description="ลายเซ็นผู้มีอำนาจลงนาม"
+                fileUrl={formData.authorizedSignature?.file ? URL.createObjectURL(formData.authorizedSignature.file) : null}
+                fileType={formData.authorizedSignature?.file?.type}
+                documentType="authorized_signature"
+              />
+            </>
           )}
         </div>
       </Section>

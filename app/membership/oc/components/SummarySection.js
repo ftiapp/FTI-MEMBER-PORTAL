@@ -661,6 +661,33 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         </Section>
       )}
 
+      {/* เอกสารที่จำเป็น (บังคับ) */}
+      <Section title="เอกสารที่จำเป็น" className="mt-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+            <span className="text-sm font-medium text-red-800">
+              เอกสารที่จำเป็นต้องอัปโหลด (บังคับทุกกรณี)
+            </span>
+          </div>
+        </div>
+        
+        <div className="space-y-3">
+          <FileCard
+            fileName={getFileName(formData?.companyStamp)}
+            fileUrl={getFileUrl(formData?.companyStamp)}
+            description="รูปตราประทับบริษัท (หรือรูปลายเซ็นหากไม่มีตราประทับ)"
+          />
+          <FileCard
+            fileName={getFileName(formData?.authorizedSignature)}
+            fileUrl={getFileUrl(formData?.authorizedSignature)}
+            description="รูปลายเซ็นผู้มีอำนาจลงนาม"
+          />
+        </div>
+      </Section>
+
       {/* ข้อความยืนยัน */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
         <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">

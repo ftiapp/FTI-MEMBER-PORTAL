@@ -25,6 +25,145 @@ export default function CompanyBasicInfo({
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+
+    // Auto-fetch company info when TAX_ID is 13 digits and autofill is enabled
+    if (name === 'taxId' && value.length === 13 && isAutofill) {
+      // Clear previous timeout
+      if (taxIdTimeoutRef.current) {
+        clearTimeout(taxIdTimeoutRef.current);
+      }
+      
+      // Set new timeout for fetching company info
+      taxIdTimeoutRef.current = setTimeout(() => {
+        fetchCompanyInfo(value);
+      }, 1000); // 1 second delay
+    }
+  };
+
+  const fetchCompanyInfo = async (taxId) => {
+    if (!taxId || taxId.length !== 13) {
+      return;
+    }
+
+    // Throttling check
+    const now = Date.now();
+    const timeSinceLastFetch = now - lastFetchTime.current;
+    
+    if (timeSinceLastFetch < throttleTime) {
+      const remainingTime = Math.ceil((throttleTime - timeSinceLastFetch) / 1000);
+      toast.error(`กรุณารอ ${remainingTime} วินาทีก่อนดึงข้อมูลอีกครั้ง`);
+      return;
+    }
+    
+    lastFetchTime.current = now;
+    setIsThrottled(true);
+    
+    setTimeout(() => {
+      setIsThrottled(false);
+    }, throttleTime);
+
+    try {
+      const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`);
+      
+      if (!response.ok) {
+        throw new Error('ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
+      }
+      
+      const data = await response.json();
+      
+      if (data && data.status?.code === '1000' && data.data && data.data.length > 0) {
+        const companyData = data.data[0]['cd:OrganizationJuristicPerson'];
+        const address = companyData['cd:OrganizationJuristicAddress']?.['cr:AddressType'];
+        
+        const subDistrictName = address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '';
+        
+        setFormData(prev => ({
+          ...prev,
+          companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
+          companyNameEng: companyData['cd:OrganizationJuristicNameEN'] || '',
+          addresses: {
+            ...prev.addresses,
+            '2': {
+              ...prev.addresses?.['2'],
+              addressNumber: address?.['cd:AddressNo'] || '',
+              building: address?.['cd:Building'] || address?.['cd:Village'] || '',
+              street: address?.['cd:Road'] || '',
+              subDistrict: subDistrictName,
+              district: address?.['cd:City']?.['cr:CityTextTH'] || '',
+              province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || '',
+              addressType: '2'
+            }
+          }
+        }));
+        
+        setErrors(prev => ({
+          ...prev,
+          companyName: '',
+          companyNameEng: ''
+        }));
+        
+        toast.success('ดึงข้อมูลสำเร็จ');
+        
+        // Fetch postal code from Thailand address API
+        if (subDistrictName && subDistrictName.length >= 2) {
+          try {
+            console.log(`🔍 กำลังหา postal code สำหรับ: ${subDistrictName}`);
+            
+            const postalResponse = await fetch(
+              `/api/thailand-address/search?query=${encodeURIComponent(subDistrictName)}&type=subdistrict`
+            );
+            
+            if (postalResponse.ok) {
+              const postalData = await postalResponse.json();
+              console.log('📬 ผลการค้นหา postal code:', postalData);
+              
+              if (postalData.success && postalData.data && postalData.data.length > 0) {
+                // Find exact match or closest match
+                const exactMatch = postalData.data.find(item => 
+                  item.text === subDistrictName
+                );
+                
+                const selectedItem = exactMatch || postalData.data[0];
+                
+                if (selectedItem && selectedItem.postalCode) {
+                  console.log(`✅ เจอ postal code: ${selectedItem.postalCode}`);
+                  
+                  setFormData(prev => ({
+                    ...prev,
+                    addresses: {
+                      ...prev.addresses,
+                      '2': {
+                        ...prev.addresses?.['2'],
+                        postalCode: selectedItem.postalCode
+                      }
+                    }
+                  }));
+                  
+                  toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');
+                } else {
+                  console.log('❌ ไม่มี postal code ในข้อมูล');
+                }
+              } else {
+                console.log('❌ ไม่เจอข้อมูลตำบล');
+              }
+            } else {
+              console.log('❌ API response ไม่ ok');
+            }
+          } catch (postalError) {
+            console.log('❌ Error ในการดึง postal code:', postalError);
+            // ไม่แสดง error toast เพื่อไม่รบกวนผู้ใช้
+          }
+        } else {
+          console.log('❌ ไม่มีชื่อตำบลหรือสั้นเกินไป');
+        }
+        
+      } else {
+        toast.error(data.status?.description || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
+      }
+    } catch (error) {
+      console.error('Error fetching company info:', error);
+      toast.error('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+    }
   };
 
   const checkTaxIdUniqueness = async (taxId) => {
@@ -89,71 +228,7 @@ export default function CompanyBasicInfo({
     }
   };
 
-  const fetchCompanyInfo = async (taxId) => {
-    if (!taxId || taxId.length !== 13) return;
-    
-    // ตรวจสอบ throttling
-    const now = Date.now();
-    const timeSinceLastFetch = now - lastFetchTime.current;
-    
-    if (timeSinceLastFetch < throttleTime) {
-      const remainingTime = Math.ceil((throttleTime - timeSinceLastFetch) / 1000);
-      toast.error(`กรุณารอ ${remainingTime} วินาทีก่อนดึงข้อมูลอีกครั้ง`);
-      return;
-    }
-    
-    // บันทึกเวลาที่ดึงข้อมูลล่าสุด
-    lastFetchTime.current = now;
-    setIsThrottled(true);
-    
-    // ตั้งเวลาให้สามารถกดได้อีกครั้งหลังจากเวลาที่กำหนด
-    setTimeout(() => {
-      setIsThrottled(false);
-    }, throttleTime);
 
-    try {
-      const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`);
-      
-      if (!response.ok) {
-        throw new Error('ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
-      }
-      
-      const data = await response.json();
-      
-      if (data && data.status?.code === '1000' && data.data && data.data.length > 0) {
-        const companyData = data.data[0]['cd:OrganizationJuristicPerson'];
-        const address = companyData['cd:OrganizationJuristicAddress']?.['cr:AddressType'];
-        
-        setFormData(prev => ({
-          ...prev,
-          companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
-          companyNameEn: companyData['cd:OrganizationJuristicNameEN'] || '',
-          addressNumber: address?.['cd:AddressNo'] || '',
-          street: address?.['cd:Road'] || '',
-          subDistrict: address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '',
-          district: address?.['cd:City']?.['cr:CityTextTH'] || '',
-          province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || ''
-        }));
-        
-        setErrors(prev => ({
-          ...prev,
-          companyName: '',
-          companyNameEn: ''
-        }));
-        
-        toast.success('ดึงข้อมูลสำเร็จ');
-        
-        if (address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH']) {
-          fetchPostalCode(address['cd:CitySubDivision']['cr:CitySubDivisionTextTH']);
-        }
-      } else {
-        toast.error(data.status?.description || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
-      }
-    } catch (error) {
-      console.error('Error fetching company info:', error);
-      toast.error('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
-    }
-  };
 
   const fetchPostalCode = async (subDistrict) => {
     if (!subDistrict || subDistrict.length < 2) return;

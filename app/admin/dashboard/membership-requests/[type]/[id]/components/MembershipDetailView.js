@@ -19,6 +19,29 @@ const MembershipDetailView = ({
   const [industrialGroups, setIndustrialGroups] = useState({});
   const [provincialChapters, setProvincialChapters] = useState({});
 
+  // Function to get document display name based on document type
+  const getDocumentDisplayName = (doc) => {
+    if (doc.document_name) {
+      return doc.document_name;
+    }
+    
+    // Map document types to Thai names
+    const documentTypeNames = {
+      'company_registration': 'สำเนาหนังสือรับรองการจดทะเบียน',
+      'vat_certificate': 'สำเนาใบทะเบียนภาษีมูลค่าเพิ่ม',
+      'factory_license': 'ใบอนุญาตประกอบกิจการโรงงาน',
+      'industrial_estate_license': 'ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม',
+      'production_images': 'รูปภาพการผลิต',
+      'company_stamp': 'รูปตราประทับบริษัท/สมาคม',
+      'authorized_signature': 'รูปลายเซ็นผู้มีอำนาจลงนาม',
+      'association_certificate': 'หนังสือรับรองสมาคม',
+      'member_list': 'รายชื่อสมาชิกสมาคม',
+      'id_card': 'สำเนาบัตรประชาชน'
+    };
+    
+    return documentTypeNames[doc.document_type] || doc.document_type || `เอกสารแนบ`;
+  };
+
   useEffect(() => {
     const fetchGroupsData = async () => {
       try {
@@ -706,7 +729,7 @@ const MembershipDetailView = ({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 mb-1">{doc.document_name || `เอกสาร ${index + 1}`}</p>
+                    <p className="font-semibold text-gray-900 mb-1">{getDocumentDisplayName(doc)}</p>
                     <p className="text-sm text-gray-600 truncate" title={doc.file_path || '-'}>
                       {doc.file_path || '-'}
                     </p>

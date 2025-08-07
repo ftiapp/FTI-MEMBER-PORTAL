@@ -61,7 +61,10 @@ const INITIAL_FORM_DATA = {
   products: [{ id: 1, nameTh: '', nameEn: '' }],
   
   // Document
-  idCardDocument: null
+  idCardDocument: null,
+  
+  // เอกสารที่จำเป็น (บังคับทุกกรณี)
+  authorizedSignature: null
 };
 
 // Custom hook for API data with better error handling

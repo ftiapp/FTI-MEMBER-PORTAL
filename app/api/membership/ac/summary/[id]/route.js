@@ -266,6 +266,24 @@ export async function GET(request, { params }) {
         fileType: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.mime_type,
         fileSize: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.file_size,
         cloudinaryId: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.cloudinary_id
+      } : null,
+      
+      // Company stamp document (new required document)
+      companyStamp: documentsRows.find(doc => doc.document_type === 'companyStamp') ? {
+        name: documentsRows.find(doc => doc.document_type === 'companyStamp')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsRows.find(doc => doc.document_type === 'companyStamp')?.cloudinary_url || documentsRows.find(doc => doc.document_type === 'companyStamp')?.file_path,
+        fileType: documentsRows.find(doc => doc.document_type === 'companyStamp')?.mime_type,
+        fileSize: documentsRows.find(doc => doc.document_type === 'companyStamp')?.file_size,
+        cloudinaryId: documentsRows.find(doc => doc.document_type === 'companyStamp')?.cloudinary_id
+      } : null,
+      
+      // Authorized signature document (new required document)
+      authorizedSignature: documentsRows.find(doc => doc.document_type === 'authorizedSignature') ? {
+        name: documentsRows.find(doc => doc.document_type === 'authorizedSignature')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsRows.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_url || documentsRows.find(doc => doc.document_type === 'authorizedSignature')?.file_path,
+        fileType: documentsRows.find(doc => doc.document_type === 'authorizedSignature')?.mime_type,
+        fileSize: documentsRows.find(doc => doc.document_type === 'authorizedSignature')?.file_size,
+        cloudinaryId: documentsRows.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_id
       } : null
     };
 

@@ -293,9 +293,13 @@ const validateBusinessInfo = (formData) => {
 const validateDocuments = (formData) => {
   const errors = {};
 
-  // For IC form, only ID card document is required
+  // For IC form, ID card document and authorized signature are required
   if (!formData.idCardDocument) {
     errors.idCardDocument = 'กรุณาอัพโหลดสำเนาบัตรประชาชน';
+  }
+  
+  if (!formData.authorizedSignature) {
+    errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
   }
 
   return errors;

@@ -7,14 +7,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
   // ใช้ข้อมูลจาก formData เป็นค่าเริ่มต้นเพื่อให้แสดงไฟล์ที่เคยอัปโหลดไว้
   const [selectedFiles, setSelectedFiles] = useState({
     associationCertificate: formData.associationCertificate || null,
-    memberList: formData.memberList || null
+    memberList: formData.memberList || null,
+    companyStamp: formData.companyStamp || null,
+    authorizedSignature: formData.authorizedSignature || null
   });
 
   // Sync selectedFiles with formData when component mounts or formData changes
   useEffect(() => {
     setSelectedFiles({
       associationCertificate: formData.associationCertificate || null,
-      memberList: formData.memberList || null
+      memberList: formData.memberList || null,
+      companyStamp: formData.companyStamp || null,
+      authorizedSignature: formData.authorizedSignature || null
     });
   }, [formData]);
 
@@ -319,6 +323,112 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             bgColor="bg-gradient-to-br from-blue-100 to-blue-200"
             error={errors?.memberList}
           />
+
+          {/* Company Stamp Upload - Required */}
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div className="flex items-center gap-2">
+              <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                จำเป็น
+              </span>
+              <span className="text-sm text-red-700 font-medium">
+                เอกสารที่จำเป็นสำหรับการสมัครสมาชิก
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <SingleFileUploadZone
+              title="รูปตราประทับสมาคม"
+              description="รูปถ่ายตราประทับของสมาคม หรือรูปลายเซ็นหากไม่มีตราประทับ (จำเป็น)"
+              name="companyStamp"
+              file={selectedFiles.companyStamp}
+              icon={
+                <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              }
+              iconColor="text-purple-600"
+              bgColor="bg-gradient-to-br from-purple-100 to-purple-200"
+              error={errors?.companyStamp}
+            />
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">คำแนะนำการอัปโหลด:</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700">
+                    <li>ขนาดภาพที่แนะนำ: ไม่เกิน 2MB</li>
+                    <li>ความละเอียดที่เหมาะสม: 300x300 - 800x800 พิกเซล</li>
+                    <li>พื้นหลังควรเป็นสีขาวหรือโปร่งใส</li>
+                    <li>ตราประทับควรชัดเจน ไม่เบลอ</li>
+                  </ul>
+                  <div className="mt-2">
+                    <a 
+                      href="/images/FTI-LOGOsample.jpg" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      ดูตัวอย่างตราประทับ
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <SingleFileUploadZone
+              title="รูปลายเซ็นผู้มีอำนาจลงนาม"
+              description="รูปถ่ายลายเซ็นของผู้มีอำนาจลงนามของสมาคม (จำเป็น)"
+              name="authorizedSignature"
+              file={selectedFiles.authorizedSignature}
+              icon={
+                <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              }
+              iconColor="text-orange-600"
+              bgColor="bg-gradient-to-br from-orange-100 to-orange-200"
+              error={errors?.authorizedSignature}
+            />
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div className="text-sm text-blue-800">
+                  <p className="font-medium mb-1">คำแนะนำการอัปโหลด:</p>
+                  <ul className="list-disc list-inside space-y-1 text-blue-700">
+                    <li>ขนาดภาพที่แนะนำ: ไม่เกิน 2MB</li>
+                    <li>ความละเอียดที่เหมาะสม: 400x200 - 800x400 พิกเซล</li>
+                    <li>พื้นหลังควรเป็นสีขาวหรือโปร่งใส</li>
+                    <li>ลายเซ็นควรชัดเจน ไม่เบลอ</li>
+                  </ul>
+                  <div className="mt-2">
+                    <a 
+                      href="/images/FTI-SIGNATUREsample.jpg" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      ดูตัวอย่างลายเซ็น
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Additional Information */}

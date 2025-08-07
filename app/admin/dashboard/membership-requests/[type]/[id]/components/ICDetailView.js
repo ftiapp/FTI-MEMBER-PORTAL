@@ -16,6 +16,21 @@ const ICDetailView = ({
 }) => {
   const [isConnecting, setIsConnecting] = useState(false);
   
+  // Function to get document display name based on document type
+  const getDocumentDisplayName = (doc) => {
+    if (doc.document_name) {
+      return doc.document_name;
+    }
+    
+    // Map document types to Thai names for IC membership
+    const documentTypeNames = {
+      'id_card': 'สำเนาบัตรประชาชน',
+      'authorized_signature': 'รูปลายเซ็นผู้มีอำนาจลงนาม'
+    };
+    
+    return documentTypeNames[doc.document_type] || doc.document_type || `เอกสารแนบ`;
+  };
+  
   const onConnectMemberCode = async () => {
     if (!application || !application.id_card_number) return;
     
@@ -366,7 +381,7 @@ const ICDetailView = ({
                     </svg>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 mb-1">{doc.document_name || `เอกสาร ${index + 1}`}</p>
+                    <p className="font-semibold text-gray-900 mb-1">{getDocumentDisplayName(doc)}</p>
                     <p className="text-sm text-gray-600 truncate" title={doc.file_path || '-'}>
                       {doc.file_path || '-'}
                     </p>

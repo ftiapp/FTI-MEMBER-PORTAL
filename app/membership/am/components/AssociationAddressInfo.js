@@ -61,10 +61,7 @@ export default function AssociationAddressInfo({
     }
   }, [errors, activeTab, addressTypes]);
 
-  // Get current address based on active tab
-  const currentAddress = formData.addresses?.[activeTab] || {};
-
-  // Copy address from document delivery to other types
+  // Copy address from document delivery (type 2) to other types
   const copyAddressFromDocumentDelivery = (targetType) => {
     const documentAddress = formData.addresses?.['2'];
     if (!documentAddress) {
@@ -195,60 +192,121 @@ export default function AssociationAddressInfo({
   }, []);
 
   const handleSubDistrictChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, subDistrict: value }));
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: value
+        }
+      }
+    }));
     
     if (value && value.trim().length > 2) {
       fetchPostalCode(value);
     }
-  }, [setFormData, fetchPostalCode]);
+  }, [setFormData, fetchPostalCode, activeTab]);
   
   const handleSubDistrictSelect = useCallback((option) => {
     if (!option) return;
     
     setFormData(prev => ({
       ...prev,
-      subDistrict: option.text || option.name || '',
-      district: option.district || '',
-      province: option.province || '',
-      postalCode: option.postalCode || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: option.text || option.name || '',
+          district: option.district || '',
+          province: option.province || '',
+          postalCode: option.postalCode || ''
+        }
+      }
     }));
     toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, district: value }));
-  }, [setFormData]);
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          district: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
   
   const handleDistrictSelect = useCallback((option) => {
     if (!option) return;
     
     setFormData(prev => ({
       ...prev,
-      district: option.text || option.name || '',
-      province: option.province || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          district: option.text || option.name || '',
+          province: option.province || ''
+        }
+      }
     }));
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
   
   const handleProvinceChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, province: value }));
-  }, [setFormData]);
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          province: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
   
   const handlePostalCodeChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, postalCode: value }));
-  }, [setFormData]);
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          postalCode: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
   
   const handlePostalCodeSelect = useCallback((option) => {
     if (!option) return;
     
     setFormData(prev => ({
       ...prev,
-      subDistrict: option.subdistrict || option.subDistrict || '',
-      district: option.district || '',
-      province: option.province || '',
-      postalCode: option.text || option.postalCode || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: option.subdistrict || option.subDistrict || '',
+          district: option.district || '',
+          province: option.province || '',
+          postalCode: option.text || option.postalCode || ''
+        }
+      }
     }));
     toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
+
+  // Get current address data
+  const getCurrentAddress = () => {
+    return formData.addresses?.[activeTab] || { addressType: activeTab };
+  };
+
+  const currentAddress = getCurrentAddress();
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -257,10 +315,88 @@ export default function AssociationAddressInfo({
         <h3 className="text-xl font-semibold text-white tracking-tight">
           ที่อยู่สมาคม
         </h3>
-        <p className="text-blue-100 text-sm mt-1">
-          ข้อมูลที่ตั้งและการติดต่อสมาคม
-        </p>
       </div>
+      
+      {/* ข้อความเตือนหลัก */}
+      <div className="px-8 pt-4">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-red-800">
+                หมายเหตุสำคัญ
+              </h4>
+              <div className="mt-1 text-sm text-red-700">
+                <ul className="list-disc list-inside space-y-1">
+                  <li>บังคับ: กรุณากรอกที่อยู่ให้ครบทั้ง <strong>ทั้ง 3 ประเภท</strong></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Address Type Tabs */}
+      <div className="px-8">
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          {['2', '1', '3'].map((type) => {
+            const config = addressTypes[type];
+            const isActive = activeTab === type;
+            return (
+              <button
+                key={type}
+                onClick={() => setActiveTab(type)}
+                className={`
+                  flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
+                  ${isActive 
+                    ? `bg-${config.color}-600 text-white shadow-sm` 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                  }
+                `}
+              >
+                <span>{config.label}</span>
+                {type === '2' && (
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1">
+                    หลัก
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Copy Address Buttons */}
+      {(activeTab === '1' || activeTab === '3') && (
+        <div className="px-8 pt-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span className="text-sm font-medium text-green-800">
+                  คัดลอกที่อยู่จากที่อยู่จัดส่งเอกสาร
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyAddressFromDocumentDelivery(activeTab)}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>คัดลอก</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Address Content */}
       <div className="px-8 py-8 space-y-8">
@@ -281,7 +417,7 @@ export default function AssociationAddressInfo({
                 type="text"
                 id="addressNumber"
                 name="addressNumber"
-                value={formData.addressNumber || ''}
+                value={currentAddress?.addressNumber || ''}
                 onChange={handleInputChange}
                 placeholder="เลขที่"
                 className={`
@@ -317,6 +453,40 @@ export default function AssociationAddressInfo({
               )}
             </div>
 
+            {/* Building */}
+            <div className="space-y-2">
+              <label htmlFor="building" className="block text-sm font-medium text-gray-900">
+                อาคาร/หมู่บ้าน
+              </label>
+              <input
+                type="text"
+                id="building"
+                name="building"
+                value={currentAddress?.building || ''}
+                onChange={handleInputChange}
+                placeholder="ชื่ออาคาร หรือ หมู่บ้าน"
+                className={`
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  border-gray-300 hover:border-gray-400
+                  ${isAutofill && currentAddress?.building
+                    ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
+                    : 'bg-white'
+                  }
+                `}
+              />
+              {isAutofill && currentAddress?.building && (
+                <p className="text-xs text-blue-600 flex items-center gap-2">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                  ข้อมูลถูกดึงอัตโนมัติ
+                </p>
+              )}
+            </div>
+
             {/* Moo */}
             <div className="space-y-2">
               <label htmlFor="moo" className="block text-sm font-medium text-gray-900">
@@ -326,7 +496,7 @@ export default function AssociationAddressInfo({
                 type="text"
                 id="moo"
                 name="moo"
-                value={formData.moo || ''}
+                value={currentAddress?.moo || ''}
                 onChange={handleInputChange}
                 placeholder="หมู่ที่"
                 className={`
@@ -360,7 +530,7 @@ export default function AssociationAddressInfo({
                 type="text"
                 id="soi"
                 name="soi"
-                value={formData.soi || ''}
+                value={currentAddress?.soi || ''}
                 onChange={handleInputChange}
                 placeholder="ซอย"
                 className={`
@@ -394,7 +564,7 @@ export default function AssociationAddressInfo({
                 type="text"
                 id="road"
                 name="road"
-                value={formData.road || ''}
+                value={currentAddress?.road || ''}
                 onChange={handleInputChange}
                 placeholder="ถนน"
                 className={`
@@ -424,7 +594,7 @@ export default function AssociationAddressInfo({
               <SearchableDropdown
                 label="ตำบล/แขวง"
                 placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง"
-                value={formData.subDistrict || ''}
+                value={currentAddress?.subDistrict || ''}
                 onChange={handleSubDistrictChange}
                 onSelect={handleSubDistrictSelect}
                 fetchOptions={fetchSubDistricts}
@@ -441,7 +611,7 @@ export default function AssociationAddressInfo({
               <SearchableDropdown
                 label="อำเภอ/เขต"
                 placeholder="พิมพ์เพื่อค้นหาอำเภอ/เขต"
-                value={formData.district || ''}
+                value={currentAddress?.district || ''}
                 onChange={handleDistrictChange}
                 onSelect={handleDistrictSelect}
                 fetchOptions={fetchDistricts}
@@ -457,7 +627,7 @@ export default function AssociationAddressInfo({
               <SearchableDropdown
                 label="จังหวัด"
                 placeholder="พิมพ์เพื่อค้นหาจังหวัด"
-                value={formData.province || ''}
+                value={currentAddress?.province || ''}
                 onChange={handleProvinceChange}
                 fetchOptions={fetchProvinces}
                 isRequired={true}
@@ -472,7 +642,7 @@ export default function AssociationAddressInfo({
               <SearchableDropdown
                 label="รหัสไปรษณีย์"
                 placeholder="พิมพ์เพื่อค้นหารหัสไปรษณีย์"
-                value={formData.postalCode || ''}
+                value={currentAddress?.postalCode || ''}
                 onChange={handlePostalCodeChange}
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
@@ -503,8 +673,8 @@ export default function AssociationAddressInfo({
                 type="tel"
                 id="associationPhone"
                 name="associationPhone"
-                value={formData.associationPhone || ''}
-                onChange={handleInputChange}
+                value={currentAddress?.phone || ''}
+                onChange={(e) => handleInputChange({ target: { name: 'phone', value: e.target.value } })}
                 required
                 placeholder="02-123-4567"
                 className={`
@@ -540,8 +710,8 @@ export default function AssociationAddressInfo({
                 type="email"
                 id="associationEmail"
                 name="associationEmail"
-                value={formData.associationEmail || ''}
-                onChange={handleInputChange}
+                value={currentAddress?.email || ''}
+                onChange={(e) => handleInputChange({ target: { name: 'email', value: e.target.value } })}
                 required
                 placeholder="association@example.com"
                 className={`

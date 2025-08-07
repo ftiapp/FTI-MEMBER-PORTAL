@@ -29,6 +29,53 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     }
   }, [formData.addresses, setFormData]);
 
+  // Get current address data
+  const getCurrentAddress = () => {
+    if (!formData.addresses || !formData.addresses[activeTab]) {
+      return {};
+    }
+    return formData.addresses[activeTab];
+  };
+
+  // Handle address input changes
+  const handleAddressInputChange = (field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          [field]: value,
+          addressType: activeTab
+        }
+      }
+    }));
+  };
+
+  // Copy address from document delivery (type 2) to other types
+  const copyAddressFromDocumentDelivery = (targetType) => {
+    const documentDeliveryAddress = formData.addresses?.['2'];
+    if (!documentDeliveryAddress) {
+      toast.error('ไม่พบข้อมูลที่อยู่จัดส่งเอกสารเพื่อคัดลอก');
+      return;
+    }
+
+    const addressToCopy = {
+      ...documentDeliveryAddress,
+      addressType: targetType
+    };
+
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [targetType]: addressToCopy
+      }
+    }));
+
+    toast.success(`คัดลอกที่อยู่ไปยัง${addressTypes[targetType].label}เรียบร้อยแล้ว`);
+  };
+
   // Auto-switch to tab with errors for better UX
   useEffect(() => {
     if (errors && Object.keys(errors).length > 0) {
@@ -55,29 +102,6 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
       }
     }
   }, [errors, activeTab, addressTypes]);
-
-  // Get current address based on active tab
-  const currentAddress = formData.addresses?.[activeTab] || {};
-
-  // Copy address from document delivery to other types
-  const copyAddressFromDocumentDelivery = (targetType) => {
-    const documentAddress = formData.addresses?.['2'];
-    if (!documentAddress) {
-      toast.error('กรุณากรอกที่อยู่จัดส่งเอกสารก่อน');
-      return;
-    }
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [targetType]: {
-          ...documentAddress,
-          addressType: targetType
-        }
-      }
-    }));
-    toast.success(`คัดลอกที่อยู่ไปยัง${addressTypes[targetType].label}สำเร็จ`);
-  };
 
   // Handle input change
   const handleInputChange = (name, value) => {
@@ -272,10 +296,85 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
       
       {/* Address Content */}
       <div className="px-8 py-8 space-y-8">
+        {/* Warning Message */}
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex items-start space-x-3">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-red-800">
+                หมายเหตุสำคัญ
+              </h4>
+              <div className="mt-1 text-sm text-red-700">
+                <ul className="list-disc list-inside space-y-1">
+                  <li>บังคับ: กรุณากรอกที่อยู่ให้ครบ <strong>ทั้ง 3 ประเภท</strong></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Address Type Tabs */}
+        <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+          {['2', '1', '3'].map((type) => {
+            const config = addressTypes[type];
+            const isActive = activeTab === type;
+            return (
+              <button
+                key={type}
+                onClick={() => setActiveTab(type)}
+                className={`
+                  flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
+                  ${isActive 
+                    ? `bg-${config.color}-600 text-white shadow-sm` 
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white'
+                  }
+                `}
+              >
+                <span>{config.label}</span>
+                {type === '2' && (
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1">
+                    หลัก
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Copy Address Buttons */}
+        {(activeTab === '1' || activeTab === '3') && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm text-green-800">
+                  คัดลอกที่อยู่จากที่อยู่จัดส่งเอกสาร
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => copyAddressFromDocumentDelivery(activeTab)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                <span>คัดลอกที่อยู่</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Address Details Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            รายละเอียดที่อยู่
+            {addressTypes[activeTab].label}
           </h4>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -289,8 +388,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="text"
                 id="addressNumber"
                 name="addressNumber"
-                value={formData.addressNumber || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().addressNumber || ''}
+                onChange={(e) => handleAddressInputChange('addressNumber', e.target.value)}
                 placeholder="กรอกบ้านเลขที่"
                 disabled={isLoading}
                 className={`
@@ -298,21 +397,38 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                   border rounded-lg
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.addressNumber 
+                  ${errors?.[`addresses.${activeTab}.addressNumber`] 
                     ? 'border-red-300 bg-red-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
                   bg-white
                 `}
               />
-              {errors?.addressNumber && (
+              {errors?.[`addresses.${activeTab}.addressNumber`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.addressNumber}
+                  {errors[`addresses.${activeTab}.addressNumber`]}
                 </p>
               )}
+            </div>
+
+            {/* Building */}
+            <div className="space-y-2">
+              <label htmlFor="building" className="block text-sm font-medium text-gray-900">
+                อาคาร/หมู่บ้าน
+              </label>
+              <input
+                type="text"
+                id="building"
+                name="building"
+                value={getCurrentAddress().building || ''}
+                onChange={(e) => handleAddressInputChange('building', e.target.value)}
+                placeholder="กรอกชื่ออาคารหรือหมู่บ้าน (ถ้ามี)"
+                disabled={isLoading}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 bg-white"
+              />
             </div>
 
             {/* Moo */}
@@ -324,8 +440,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="text"
                 id="moo"
                 name="moo"
-                value={formData.moo || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().moo || ''}
+                onChange={(e) => handleAddressInputChange('moo', e.target.value)}
                 placeholder="กรอกหมู่ที่"
                 disabled={isLoading}
                 className="
@@ -348,8 +464,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="text"
                 id="soi"
                 name="soi"
-                value={formData.soi || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().soi || ''}
+                onChange={(e) => handleAddressInputChange('soi', e.target.value)}
                 placeholder="กรอกซอย"
                 disabled={isLoading}
                 className="
@@ -372,8 +488,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="text"
                 id="street"
                 name="street"
-                value={formData.street || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().street || ''}
+                onChange={(e) => handleAddressInputChange('street', e.target.value)}
                 placeholder="กรอกถนน"
                 disabled={isLoading}
                 className="
@@ -392,13 +508,13 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               <SearchableDropdown
                 label="ตำบล/แขวง"
                 placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง"
-                value={formData.subDistrict || ''}
+                value={getCurrentAddress().subDistrict || ''}
                 onChange={handleSubDistrictChange}
                 onSelect={handleSubDistrictSelect}
                 fetchOptions={fetchSubDistricts}
                 isRequired={true}
                 isReadOnly={false}
-                error={errors?.subDistrict}
+                error={errors?.[`addresses.${activeTab}.subDistrict`]}
                 disabled={isLoading}
               />
             </div>
@@ -408,13 +524,13 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               <SearchableDropdown
                 label="อำเภอ/เขต"
                 placeholder="พิมพ์เพื่อค้นหาอำเภอ/เขต"
-                value={formData.district || ''}
+                value={getCurrentAddress().district || ''}
                 onChange={handleDistrictChange}
                 onSelect={handleDistrictSelect}
                 fetchOptions={fetchDistricts}
                 isRequired={true}
                 isReadOnly={true}
-                error={errors?.district}
+                error={errors?.[`addresses.${activeTab}.district`]}
               />
             </div>
 
@@ -423,12 +539,12 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               <SearchableDropdown
                 label="จังหวัด"
                 placeholder="พิมพ์เพื่อค้นหาจังหวัด"
-                value={formData.province || ''}
+                value={getCurrentAddress().province || ''}
                 onChange={handleProvinceChange}
                 fetchOptions={fetchProvinces}
                 isRequired={true}
                 isReadOnly={true}
-                error={errors?.province}
+                error={errors?.[`addresses.${activeTab}.province`]}
               />
             </div>
 
@@ -437,14 +553,14 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               <SearchableDropdown
                 label="รหัสไปรษณีย์"
                 placeholder="รหัสไปรษณีย์"
-                value={formData.postalCode || ''}
+                value={getCurrentAddress().postalCode || ''}
                 onChange={handlePostalCodeChange}
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
                 isRequired={true}
                 isReadOnly={true}
-                error={errors?.postalCode}
-                autoFillNote={formData.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
+                error={errors?.[`addresses.${activeTab}.postalCode`]}
+                autoFillNote={getCurrentAddress().postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
               />
             </div>
@@ -468,8 +584,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="tel"
                 id="phone"
                 name="phone"
-                value={formData.phone || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().phone || ''}
+                onChange={(e) => handleAddressInputChange('phone', e.target.value)}
                 placeholder="กรอกเบอร์โทรศัพท์"
                 disabled={isLoading}
                 className={`
@@ -479,18 +595,18 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                   placeholder-gray-400
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.phone 
+                  ${errors?.[`addresses.${activeTab}.phone`] 
                     ? 'border-red-300 bg-red-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
                 `}
               />
-              {errors?.phone && (
+              {errors?.[`addresses.${activeTab}.phone`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.phone}
+                  {errors[`addresses.${activeTab}.phone`]}
                 </p>
               )}
             </div>
@@ -505,8 +621,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="email"
                 id="email"
                 name="email"
-                value={formData.email || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().email || ''}
+                onChange={(e) => handleAddressInputChange('email', e.target.value)}
                 placeholder="กรอกอีเมล"
                 disabled={isLoading}
                 className={`
@@ -516,18 +632,18 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                   placeholder-gray-400
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.email 
+                  ${errors?.[`addresses.${activeTab}.email`] 
                     ? 'border-red-300 bg-red-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
                 `}
               />
-              {errors?.email && (
+              {errors?.[`addresses.${activeTab}.email`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.email}
+                  {errors[`addresses.${activeTab}.email`]}
                 </p>
               )}
             </div>
@@ -541,22 +657,11 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="url"
                 id="website"
                 name="website"
-                value={formData.website || ''}
-                onChange={handleInputChange}
+                value={getCurrentAddress().website || ''}
+                onChange={(e) => handleAddressInputChange('website', e.target.value)}
                 placeholder="กรอกเว็บไซต์ (ถ้ามี)"
                 disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  bg-white
-                  placeholder-gray-400
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.website 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                `}
+                className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 bg-white placeholder-gray-400"
               />
               {errors?.website && (
                 <p className="text-sm text-red-600 flex items-center gap-2">

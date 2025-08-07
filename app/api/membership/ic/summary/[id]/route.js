@@ -224,7 +224,7 @@ export async function GET(request, { params }) {
       // ✅ ข้อมูลสภาอุตสาหกรรมจังหวัด - ใช้ข้อมูลจากตารางโดยตรง
       provinceChapters: provinceChaptersWithNames,
 
-      // ข้อมูลเอกสาร
+      // ข้อมูลเอกสาร (generic format)
       documents: documentsResult.map(d => ({
         fileName: d.file_name,
         fileUrl: d.cloudinary_url || d.file_path,
@@ -232,7 +232,25 @@ export async function GET(request, { params }) {
         documentType: d.document_type,
         fileSize: d.file_size,
         cloudinaryId: d.cloudinary_id
-      }))
+      })),
+      
+      // ID Card document (existing)
+      idCardDocument: documentsResult?.find(doc => doc.document_type === 'idCard') ? {
+        name: documentsResult.find(doc => doc.document_type === 'idCard')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsResult.find(doc => doc.document_type === 'idCard')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'idCard')?.file_path,
+        fileType: documentsResult.find(doc => doc.document_type === 'idCard')?.mime_type,
+        fileSize: documentsResult.find(doc => doc.document_type === 'idCard')?.file_size,
+        cloudinaryId: documentsResult.find(doc => doc.document_type === 'idCard')?.cloudinary_id
+      } : null,
+      
+      // Authorized signature document (new required document - IC only has this, no company stamp)
+      authorizedSignature: documentsResult?.find(doc => doc.document_type === 'authorizedSignature') ? {
+        name: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_path,
+        fileType: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.mime_type,
+        fileSize: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_size,
+        cloudinaryId: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_id
+      } : null
     };
 
     return NextResponse.json({

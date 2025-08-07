@@ -253,7 +253,8 @@ export async function GET(request, { params }) {
     const factoryLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'factoryLicense');
     const industrialEstateLicenseDoc = relatedData.documents.find(doc => doc.document_type === 'industrialEstateLicense');
     const productionImageDocs = relatedData.documents.filter(doc => doc.document_type === 'productionImages');
-
+    const companyStampDoc = relatedData.documents.find(doc => doc.document_type === 'companyStamp');
+    const authorizedSignatureDoc = relatedData.documents.find(doc => doc.document_type === 'authorizedSignature');
     // Build response in the format that SummarySection expects
     const response = {
       // Company basic info
@@ -342,6 +343,12 @@ export async function GET(request, { params }) {
         fileSize: doc.file_size
       })) : [],
       
+      // Company stamp document (new required document)
+      companyStamp: formatDocumentForResponse(companyStampDoc),
+      
+      // Authorized signature document (new required document)
+      authorizedSignature: formatDocumentForResponse(authorizedSignatureDoc),
+      
       // Meta data
       id: ocData.id,
       memberCode: ocData.member_code,
@@ -355,6 +362,9 @@ export async function GET(request, { params }) {
     console.log('Factory License:', response.factoryLicense);
     console.log('Industrial Estate License:', response.industrialEstateLicense);
     console.log('Production Images:', response.productionImages);
+    console.log('Company Stamp:', response.companyStamp);
+    console.log('Authorized Signature:', response.authorizedSignature);
+    console.log('All Documents Found:', relatedData.documents.map(doc => ({ type: doc.document_type, name: doc.file_name })));
 
     return NextResponse.json({ success: true, data: response });
 

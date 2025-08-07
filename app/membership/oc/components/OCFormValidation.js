@@ -335,6 +335,15 @@ export const validateOCForm = (formData, step) => {
         }
       }
     }
+    
+    // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
+    if (!formData.companyStamp) {
+      errors.companyStamp = 'กรุณาอัพโหลดรูปตราประทับบริษัท (หรือรูปลายเซ็นหากไม่มีตราประทับ)';
+    }
+    
+    if (!formData.authorizedSignature) {
+      errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
+    }
   }
   
   return errors;

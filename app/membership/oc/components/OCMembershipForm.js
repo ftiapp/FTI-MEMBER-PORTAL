@@ -75,7 +75,9 @@ const INITIAL_FORM_DATA = {
   shareholderList: null,
   vatRegistration: null,
   idCard: null,
-  authorityLetter: null
+  authorityLetter: null,
+  companyStamp: null,
+  authorizedSignature: null
 };
 
 // Custom hook for API data with better error handling

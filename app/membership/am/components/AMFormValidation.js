@@ -274,4 +274,13 @@ const validateDocuments = (formData, errors) => {
   if (!formData.memberList) {
     errors.memberList = 'กรุณาแนบรายชื่อสมาชิกสมาคม';
   }
+  
+  // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
+  if (!formData.companyStamp) {
+    errors.companyStamp = 'กรุณาอัพโหลดรูปตราประทับสมาคม (หรือรูปลายเซ็นหากไม่มีตราประทับ)';
+  }
+  
+  if (!formData.authorizedSignature) {
+    errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
+  }
 };

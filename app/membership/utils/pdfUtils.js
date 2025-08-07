@@ -700,6 +700,57 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             </div>
           ` : ''}
 
+          <!-- ส่วนลายเซ็นและตราประทับ -->
+          <div class="section" style="margin-top: 20px; page-break-inside: avoid;">
+            <div class="section-title">ผู้มีอำนาจลงนามและประทับตราบริษัท</div>
+            
+            <div style="display: grid; grid-template-columns: ${type !== 'ic' ? '1fr 1fr' : '1fr'}; gap: 20px; margin-top: 15px;">
+              <!-- ตราประทับบริษัท -->
+              ${type !== 'ic' ? `
+                <div style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 4px; text-align: center;">
+                  <div style="font-weight: 600; font-size: 10px; margin-bottom: 10px; color: #2b6cb0;">
+                    รูปตราประทับบริษัท
+                  </div>
+                  ${processedData.companyStamp && processedData.companyStamp.fileUrl ? `
+                    <div style="border: 1px dashed #cbd5e0; padding: 8px; min-height: 50px; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                      <img src="${processedData.companyStamp.fileUrl}" alt="ตราประทับบริษัท" style="max-width: 60px; max-height: 50px; object-fit: contain;" />
+                    </div>
+                  ` : `
+                    <div style="border: 1px dashed #cbd5e0; padding: 15px; min-height: 50px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #718096; font-size: 9px;">
+                      ไม่มีตราประทับ
+                    </div>
+                  `}
+                </div>
+              ` : ''}
+              
+              <!-- ลายเซ็นผู้มีอำนาจ -->
+              <div style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 4px; text-align: center;">
+                <div style="font-weight: 600; font-size: 10px; margin-bottom: 10px; color: #2b6cb0;">
+                  ลายเซ็นผู้มีอำนาจลงนาม
+                </div>
+                ${processedData.authorizedSignature && processedData.authorizedSignature.fileUrl ? `
+                  <div style="border: 1px dashed #cbd5e0; padding: 8px; min-height: 50px; display: flex; align-items: center; justify-content: center; background: #f8fafc;">
+                    <img src="${processedData.authorizedSignature.fileUrl}" alt="ลายเซ็นผู้มีอำนาจ" style="max-width: 80px; max-height: 50px; object-fit: contain;" />
+                  </div>
+                ` : `
+                  <div style="border: 1px dashed #cbd5e0; padding: 15px; min-height: 50px; display: flex; align-items: center; justify-content: center; background: #f8fafc; color: #718096; font-size: 9px;">
+                    ไม่มีลายเซ็น
+                  </div>
+                `}
+                <div style="margin-top: 10px; font-size: 9px; color: #4a5568;">
+                  ลายเซ็น: ................................
+                </div>
+              </div>
+            </div>
+            
+            <!-- วันที่สมัคร -->
+            <div style="margin-top: 20px; text-align: right; padding: 10px; background: #f8fafc; border-radius: 4px;">
+              <div style="font-size: 10px; color: #2b6cb0; font-weight: 600;">
+                วันที่สมัคร: ${processedData.createdAt ? formatThaiDate(new Date(processedData.createdAt)) : formatThaiDate(new Date())}
+              </div>
+            </div>
+          </div>
+
           <div class="footer">
             เอกสารสร้างอัตโนมัติ • ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString('th-TH')} • 
             ${type?.toUpperCase() || 'MEMBER'} Application PDF

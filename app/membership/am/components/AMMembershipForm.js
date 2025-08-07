@@ -69,7 +69,11 @@ const INITIAL_FORM_DATA = {
   memberList: null,
   vatRegistration: null,
   idCard: null,
-  authorityLetter: null
+  authorityLetter: null,
+  
+  // เอกสารที่จำเป็น (บังคับทุกกรณี)
+  companyStamp: null,
+  authorizedSignature: null
 };
 
 // Custom hook สำหรับ API data พร้อม error handling

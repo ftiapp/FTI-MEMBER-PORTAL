@@ -228,6 +228,24 @@ export async function GET(request, { params }) {
       memberList: documentsResult?.find(doc => doc.document_type === 'memberList') ? {
         name: documentsResult.find(doc => doc.document_type === 'memberList')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
         fileUrl: documentsResult.find(doc => doc.document_type === 'memberList')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'memberList')?.file_path
+      } : null,
+      
+      // Company stamp document (new required document)
+      companyStamp: documentsResult?.find(doc => doc.document_type === 'companyStamp') ? {
+        name: documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsResult.find(doc => doc.document_type === 'companyStamp')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_path,
+        fileType: documentsResult.find(doc => doc.document_type === 'companyStamp')?.mime_type,
+        fileSize: documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_size,
+        cloudinaryId: documentsResult.find(doc => doc.document_type === 'companyStamp')?.cloudinary_id
+      } : null,
+      
+      // Authorized signature document (new required document)
+      authorizedSignature: documentsResult?.find(doc => doc.document_type === 'authorizedSignature') ? {
+        name: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_path,
+        fileType: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.mime_type,
+        fileSize: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_size,
+        cloudinaryId: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_id
       } : null
     };
 
