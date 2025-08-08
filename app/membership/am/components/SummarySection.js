@@ -304,7 +304,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
           <InfoCard title="ชื่อสมาคม (ไทย)" value={formData.associationName} />
           <InfoCard title="ชื่อสมาคม (อังกฤษ)" value={formData.associationNameEn || formData.associationNameEng} />
           <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.taxId} />
-          <InfoCard title="เลขทะเบียนสมาคม" value={formData.associationRegistrationNumber} />
+          <InfoCard title="เว็บไซต์" value={formData.website} />
         </div>
       </Section>
 
@@ -341,7 +341,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                         <InfoCard title="รหัสไปรษณีย์" value={address.postalCode} />
                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <InfoCard title="อีเมล" value={address.email} />
-                          <InfoCard title="เว็บไซต์" value={address.website} />
+                          <InfoCard title="เว็บไซต์" value={address.website || formData.website} />
                         </div>
                         <InfoCard 
                           title="เบอร์โทรศัพท์" 

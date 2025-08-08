@@ -16,6 +16,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     position: '',
     email: '',
     phone: '',
+    phoneExtension: '',
     isPrimary: index === 0
   });
 
@@ -33,6 +34,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
         position: rep.position || '',
         email: rep.email || '',
         phone: rep.phone || '',
+        phoneExtension: rep.phoneExtension || rep.phone_extension || '',
         isPrimary: rep.isPrimary || index === 0
       }));
       setRepresentatives(loadedReps);
