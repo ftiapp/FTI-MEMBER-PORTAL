@@ -131,8 +131,8 @@ export async function POST(request) {
             `INSERT INTO MemberRegist_OC_Address (
               main_id, address_number, building, moo, soi, street, 
               sub_district, district, province, postal_code, 
-              phone, email, website, address_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+              phone, phone_extension, email, website, address_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             [
               mainId, 
               address.addressNumber || '', 
@@ -145,6 +145,7 @@ export async function POST(request) {
               address.province || '', 
               address.postalCode || '', 
               address.phone || '', 
+              address.phoneExtension || '',
               address.email || '', 
               address.website || '', 
               addressType
@@ -158,8 +159,8 @@ export async function POST(request) {
         `INSERT INTO MemberRegist_OC_Address (
           main_id, address_number, building, moo, soi, street, 
           sub_district, district, province, postal_code, 
-          phone, email, website, address_type
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          phone, phone_extension, email, website, address_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId, 
           data.addressNumber || '', 
@@ -172,6 +173,7 @@ export async function POST(request) {
           data.province || '', 
           data.postalCode || '', 
           data.companyPhone || '', 
+          data.companyPhoneExtension || '',
           data.companyEmail || '', 
           data.companyWebsite || '', 
           '2' // Default to document delivery address

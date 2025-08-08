@@ -144,6 +144,7 @@ export async function GET(request, { params }) {
         province: addr.province || '',
         postalCode: addr.postal_code || '',
         phone: addr.phone || '',
+        phoneExtension: addr.phone_extension || '',
         email: addr.email || '',
         website: addr.website || ''
       };
@@ -185,6 +186,7 @@ export async function GET(request, { params }) {
         province: mainAddress?.province || '',
         postalCode: mainAddress?.postal_code || '',
         phone: mainAddress?.phone || '',
+        phoneExtension: mainAddress?.phone_extension || '',
         email: mainAddress?.email || '',
         website: mainAddress?.website || ''
       } : null,

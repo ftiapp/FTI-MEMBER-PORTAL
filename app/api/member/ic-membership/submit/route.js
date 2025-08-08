@@ -111,8 +111,8 @@ export async function POST(request) {
             `INSERT INTO MemberRegist_IC_Address (
               main_id, address_number, building, moo, soi, road,
               sub_district, district, province, postal_code,
-              phone, email, website, address_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+              phone, phone_extension, email, website, address_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               icMemberId,
               addressData.addressNumber || '',
@@ -125,6 +125,7 @@ export async function POST(request) {
               addressData.province || '',
               addressData.postalCode || '',
               addressData.phone || data.phone || '',
+              addressData.phoneExtension || data.phoneExtension || '',
               addressData.email || data.email || '',
               addressData.website || data.website || '',
               addressType
@@ -139,8 +140,8 @@ export async function POST(request) {
         `INSERT INTO MemberRegist_IC_Address (
           main_id, address_number, moo, soi, road,
           sub_district, district, province, postal_code,
-          phone, email, website, address_type
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          phone, phone_extension, email, website, address_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           icMemberId,
           data.addressNumber || '',
@@ -152,6 +153,7 @@ export async function POST(request) {
           data.province || '',
           data.postalCode || '',
           data.phone || '',
+          data.phoneExtension || '',
           data.email || '',
           data.website || '',
           '2' // Default to document delivery address

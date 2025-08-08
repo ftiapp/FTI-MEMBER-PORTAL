@@ -146,6 +146,7 @@ export async function GET(request, { params }) {
         province: addr.province || '',
         postalCode: addr.postal_code || '',
         phone: addr.phone || '',
+        phoneExtension: addr.phone_extension || '',
         email: addr.email || '',
         website: addr.website || ''
       };

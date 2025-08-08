@@ -153,8 +153,8 @@ export async function POST(request) {
           await executeQuery(trx, 
             `INSERT INTO MemberRegist_AM_Address (
               main_id, address_number, building, moo, soi, street, sub_district, 
-              district, province, postal_code, phone, email, website, address_type
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+              district, province, postal_code, phone, phone_extension, email, website, address_type
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             [
               mainId, 
               addressData.addressNumber || '',
@@ -167,6 +167,7 @@ export async function POST(request) {
               addressData.province || '',
               addressData.postalCode || '',
               addressData.phone || data.associationPhone || '',
+              addressData.phoneExtension || data.associationPhoneExtension || '',
               addressData.email || data.associationEmail || '',
               addressData.website || data.website || '',
               addressType
@@ -179,8 +180,8 @@ export async function POST(request) {
       await executeQuery(trx, 
         `INSERT INTO MemberRegist_AM_Address (
           main_id, address_number, moo, soi, street, sub_district, 
-          district, province, postal_code, phone, email, website, address_type
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          district, province, postal_code, phone, phone_extension, email, website, address_type
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId, 
           data.addressNumber || '',
@@ -192,6 +193,7 @@ export async function POST(request) {
           data.province || '',
           data.postalCode || '',
           data.associationPhone || '',
+          data.associationPhoneExtension || '',
           data.associationEmail || '',
           data.website || '',
           '2' // Default to document delivery address
