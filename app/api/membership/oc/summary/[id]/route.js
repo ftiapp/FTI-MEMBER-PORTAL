@@ -283,6 +283,12 @@ export async function GET(request, { params }) {
       province: mainAddress?.province || '',
       postalCode: mainAddress?.postal_code || '',
       
+      // Address contact information
+      phone: mainAddress?.phone || '',
+      phoneExtension: mainAddress?.phone_extension || '',
+      email: mainAddress?.email || '',
+      website: mainAddress?.website || '',
+      
       // Multiple contact persons
       contactPersons: relatedData.contactPersons.map((cp, index) => ({
         id: cp.id || index + 1,
