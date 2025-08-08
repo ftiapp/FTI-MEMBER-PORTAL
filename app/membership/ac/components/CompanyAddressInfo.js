@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import SearchableDropdown from './SearchableDropdown';
 
@@ -15,6 +15,7 @@ export default function CompanyAddressInfo({
 }) {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('2'); // Default to document delivery address
+  const prevAddressErrorSig = useRef('');
 
   // Address types configuration
   const addressTypes = {
@@ -39,30 +40,36 @@ export default function CompanyAddressInfo({
 
   // Auto-switch to tab with errors for better UX
   useEffect(() => {
-    if (errors && Object.keys(errors).length > 0) {
-      // Find first address error and switch to that tab
-      const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
-      if (addressErrorKeys.length > 0) {
-        const firstErrorKey = addressErrorKeys[0];
-        const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
-        if (match && match[1]) {
-          const errorTab = match[1];
-          if (errorTab !== activeTab) {
-            setActiveTab(errorTab);
-            // Scroll to address section automatically
-            const addressSection = document.querySelector('[data-section="company-address"]') || 
+    if (!errors || Object.keys(errors).length === 0) return;
+    // Find first address error and switch to that tab
+    const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
+    const sig = addressErrorKeys.sort().join('|');
+    if (sig === prevAddressErrorSig.current) {
+      return; // no change in address errors; avoid re-scrolling on tab toggle re-renders
+    }
+    prevAddressErrorSig.current = sig;
+    if (addressErrorKeys.length > 0) {
+      const firstErrorKey = addressErrorKeys[0];
+      const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
+      if (match && match[1]) {
+        const errorTab = match[1];
+        const doScroll = () => {
+          const addressSection = document.querySelector('[data-section="company-address"]') || 
                                  document.querySelector('.company-address') ||
                                  document.querySelector('h3')?.closest('.bg-white');
-            if (addressSection) {
-              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+          if (addressSection) {
+            addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
+        };
+        if (errorTab !== activeTab) {
+          setActiveTab(errorTab);
+          setTimeout(doScroll, 100);
         }
       }
     }
-  }, [errors, activeTab, addressTypes]);
+  }, [errors]);
   
   const handleContactInputChange = (e) => {
     const { name, value } = e.target;
@@ -373,6 +380,7 @@ export default function CompanyAddressInfo({
             const isActive = activeTab === type;
             return (
               <button
+                type="button"
                 key={type}
                 onClick={() => setActiveTab(type)}
                 className={`

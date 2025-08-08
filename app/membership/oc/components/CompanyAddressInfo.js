@@ -34,7 +34,7 @@ export default function CompanyAddressInfo({
     }
   }, [formData.addresses, setFormData]);
 
-  // Auto-switch to tab with errors for better UX
+  // Auto-switch to tab with errors for better UX - only when actual errors exist
   useEffect(() => {
     if (errors && Object.keys(errors).length > 0) {
       // Find first address error and switch to that tab
@@ -46,20 +46,20 @@ export default function CompanyAddressInfo({
           const errorTab = match[1];
           if (errorTab !== activeTab) {
             setActiveTab(errorTab);
-            // Scroll to address section automatically
-            const addressSection = document.querySelector('[data-section="company-address"]') || 
-                                 document.querySelector('.company-address') ||
-                                 document.querySelector('h3')?.closest('.bg-white');
-            if (addressSection) {
-              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+            // Scroll to address section automatically only when there are actual errors
+            setTimeout(() => {
+              const addressSection = document.querySelector('[data-section="company-address"]') || 
+                                   document.querySelector('.company-address') ||
+                                   document.querySelector('.bg-white');
+              if (addressSection) {
+                addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 100);
           }
         }
       }
     }
-  }, [errors, activeTab, addressTypes]);
+  }, [errors]); // Only trigger when errors actually change, not on tab switch
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

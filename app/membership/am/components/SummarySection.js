@@ -98,7 +98,14 @@ const RepresentativeCard = ({ representative, index }) => (
         </div>
         <div>
           <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-          <p className="text-sm">{String(representative.phone) || '-'}</p>
+          <p className="text-sm">
+            {(() => {
+              const phone = representative.phone || '-';
+              const extension = representative.phoneExtension || representative.phone_extension || '';
+              if (phone === '-') return '-';
+              return extension ? `${phone} ต่อ ${extension}` : phone;
+            })()}
+          </p>
         </div>
       </div>
     ) : (
@@ -268,6 +275,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         position: mainContact.position || '-',
         email: mainContact.email || '-',
         phone: mainContact.phone || '-',
+        phoneExtension: mainContact.phoneExtension || mainContact.phone_extension || '',
         typeContactName: mainContact.typeContactName || 'ผู้ประสานงานหลัก',
         typeContactOtherDetail: mainContact.typeContactOtherDetail || ''
       };
@@ -279,6 +287,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
       position: contactPerson.position || '-',
       email: contactPerson.email || '-',
       phone: contactPerson.phone || '-',
+      phoneExtension: contactPerson.phoneExtension || contactPerson.phone_extension || formData.contactPersonPhoneExtension || formData.contact_person_phone_extension || '',
       typeContactName: 'ผู้ประสานงานหลัก', // default สำหรับระบบเก่า
       typeContactOtherDetail: ''
     };
@@ -293,44 +302,9 @@ export default function SummarySection({ formData, industrialGroups, provincialC
       <Section title="ข้อมูลสมาคม">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="ชื่อสมาคม (ไทย)" value={formData.associationName} />
-          <InfoCard title="ชื่อสมาคม (อังกฤษ)" value={formData.associationNameEng} />
+          <InfoCard title="ชื่อสมาคม (อังกฤษ)" value={formData.associationNameEn || formData.associationNameEng} />
           <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.taxId} />
           <InfoCard title="เลขทะเบียนสมาคม" value={formData.associationRegistrationNumber} />
-          <InfoCard title="อีเมลสมาคม" value={formData.associationEmail} />
-          <InfoCard title="เบอร์โทรศัพท์สมาคม" value={formData.associationPhone} />
-        </div>
-      </Section>
-
-      {/* ข้อมูลทางการเงิน */}
-      <Section title="ข้อมูลทางการเงิน">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard 
-            title="ทุนจดทะเบียน (บาท)" 
-            value={formData?.registeredCapital ? Number(formData.registeredCapital).toLocaleString() : '-'} 
-          />
-          <InfoCard 
-            title="กำลังการผลิต (ต่อปี)" 
-            value={formData?.productionCapacityValue && formData?.productionCapacityUnit 
-              ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}` 
-              : '-'
-            } 
-          />
-          <InfoCard 
-            title="ยอดจำหน่ายในประเทศ (บาท/ปี)" 
-            value={formData?.salesDomestic ? Number(formData.salesDomestic).toLocaleString() : '-'} 
-          />
-          <InfoCard 
-            title="ยอดจำหน่ายส่งออก (บาท/ปี)" 
-            value={formData?.salesExport ? Number(formData.salesExport).toLocaleString() : '-'} 
-          />
-          <InfoCard 
-            title="สัดส่วนผู้ถือหุ้นไทย (%)" 
-            value={formData?.shareholderThaiPercent ? `${Number(formData.shareholderThaiPercent).toFixed(2)}%` : '-'} 
-          />
-          <InfoCard 
-            title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)" 
-            value={formData?.shareholderForeignPercent ? `${Number(formData.shareholderForeignPercent).toFixed(2)}%` : '-'} 
-          />
         </div>
       </Section>
 
@@ -369,7 +343,15 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                           <InfoCard title="อีเมล" value={address.email} />
                           <InfoCard title="เว็บไซต์" value={address.website} />
                         </div>
-                        <InfoCard title="เบอร์โทรศัพท์" value={address.phone} />
+                        <InfoCard 
+                          title="เบอร์โทรศัพท์" 
+                          value={(function(){
+                            const p = address.phone || '-';
+                            const ext = address.phoneExtension || address.phone_extension || '';
+                            if (p === '-') return '-';
+                            return ext ? `${p} ต่อ ${ext}` : p;
+                          })()} 
+                        />
                       </div>
                     </div>
                   );
@@ -420,7 +402,10 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                 <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getContactPersonFullName(true)} />
                 <InfoCard title="ตำแหน่ง" value={contactDetails.position} />
                 <InfoCard title="อีเมล" value={contactDetails.email} />
-                <InfoCard title="เบอร์โทรศัพท์" value={contactDetails.phone} />
+                <InfoCard 
+                  title="เบอร์โทรศัพท์" 
+                  value={(function(){ const p = contactDetails.phone; const ext = contactDetails.phoneExtension || ''; if (p === '-') return '-'; return ext ? `${p} ต่อ ${ext}` : p; })()} 
+                />
               </div>
               
               {/* แสดงผู้ติดต่อเพิ่มเติม (ถ้ามี) */}
@@ -439,7 +424,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                           <div><span className="font-medium">ชื่อ:</span> {contact.firstNameTh} {contact.lastNameTh}</div>
                           <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
                           <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
-                          <div><span className="font-medium">โทร:</span> {contact.phone || '-'}</div>
+                          <div><span className="font-medium">โทร:</span> {(function(){ const p = contact.phone || '-'; const ext = contact.phoneExtension || contact.phone_extension || ''; if (p === '-') return '-'; return ext ? `${p} ต่อ ${ext}` : p; })()} </div>
                         </div>
                       </div>
                     ))}

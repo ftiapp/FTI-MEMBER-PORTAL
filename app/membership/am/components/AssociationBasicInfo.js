@@ -125,16 +125,26 @@ export default function AssociationBasicInfo({
       if (data && data.status?.code === '1000' && data.data && data.data.length > 0) {
         const associationData = data.data[0]['cd:OrganizationJuristicPerson'];
         const address = associationData['cd:OrganizationJuristicAddress']?.['cr:AddressType'];
+        const subDistrictName = address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '';
         
         setFormData(prev => ({
           ...prev,
           associationName: associationData['cd:OrganizationJuristicNameTH'] || '',
           associationNameEng: associationData['cd:OrganizationJuristicNameEN'] || '',
-          addressNumber: address?.['cd:AddressNo'] || '',
-          street: address?.['cd:Road'] || '',
-          subDistrict: address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '',
-          district: address?.['cd:City']?.['cr:CityTextTH'] || '',
-          province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || ''
+          associationNameEn: associationData['cd:OrganizationJuristicNameEN'] || '',
+          addresses: {
+            ...prev.addresses,
+            '2': {
+              ...prev.addresses?.['2'],
+              addressNumber: address?.['cd:AddressNo'] || '',
+              building: address?.['cd:Building'] || address?.['cd:Village'] || '',
+              street: address?.['cd:Road'] || '',
+              subDistrict: subDistrictName,
+              district: address?.['cd:City']?.['cr:CityTextTH'] || '',
+              province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || '',
+              addressType: '2'
+            }
+          }
         }));
         
         setErrors(prev => ({
@@ -145,8 +155,33 @@ export default function AssociationBasicInfo({
         
         toast.success('ดึงข้อมูลสำเร็จ');
         
-        if (address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH']) {
-          fetchPostalCode(address['cd:CitySubDivision']['cr:CitySubDivisionTextTH']);
+        // Fetch and set postal code for address type '2' like OC
+        if (subDistrictName && subDistrictName.length >= 2) {
+          try {
+            const postalResponse = await fetch(
+              `/api/thailand-address/search?query=${encodeURIComponent(subDistrictName)}&type=subdistrict`
+            );
+            if (postalResponse.ok) {
+              const postalData = await postalResponse.json();
+              const exactMatch = postalData?.data?.find(item => item.text === subDistrictName);
+              const selectedItem = exactMatch || postalData?.data?.[0];
+              if (postalData.success && selectedItem?.postalCode) {
+                setFormData(prev => ({
+                  ...prev,
+                  addresses: {
+                    ...prev.addresses,
+                    '2': {
+                      ...prev.addresses?.['2'],
+                      postalCode: selectedItem.postalCode
+                    }
+                  }
+                }));
+                toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');
+              }
+            }
+          } catch (_) {
+            // silent failure
+          }
         }
       } else {
         toast.error(data.status?.description || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');

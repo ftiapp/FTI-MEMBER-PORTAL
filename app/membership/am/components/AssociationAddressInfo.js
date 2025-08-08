@@ -35,31 +35,34 @@ export default function AssociationAddressInfo({
   }, [formData.addresses, setFormData]);
 
   // Auto-switch to tab with errors for better UX
-  useEffect(() => {
-    if (errors && Object.keys(errors).length > 0) {
-      // Find first address error and switch to that tab
-      const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
-      if (addressErrorKeys.length > 0) {
-        const firstErrorKey = addressErrorKeys[0];
-        const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
-        if (match && match[1]) {
-          const errorTab = match[1];
-          if (errorTab !== activeTab) {
-            setActiveTab(errorTab);
-            // Scroll to address section automatically
-            const addressSection = document.querySelector('[data-section="company-address"]') || 
+ useEffect(() => {
+    if (!errors || Object.keys(errors).length === 0) return;
+    // Find first address error and switch to that tab
+    const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'))
+    if (addressErrorKeys.length > 0) {
+      const firstErrorKey = addressErrorKeys[0];
+      const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
+      if (match && match[1]) {
+        const errorTab = match[1];
+        const doScroll = () => {
+          const addressSection = document.querySelector('[data-section="company-address"]') || 
                                  document.querySelector('.company-address') ||
                                  document.querySelector('h3')?.closest('.bg-white');
-            if (addressSection) {
-              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+          if (addressSection) {
+            addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
+        };
+        if (errorTab !== activeTab) {
+          setActiveTab(errorTab);
+          setTimeout(doScroll, 100);
+        } else {
+          setTimeout(doScroll, 100);
         }
       }
     }
-  }, [errors, activeTab, addressTypes]);
+  }, [errors]);
 
   // Copy address from document delivery (type 2) to other types
   const copyAddressFromDocumentDelivery = (targetType) => {
@@ -418,7 +421,7 @@ export default function AssociationAddressInfo({
                 id="addressNumber"
                 name="addressNumber"
                 value={currentAddress?.addressNumber || ''}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange('addressNumber', e.target.value)}
                 placeholder="เลขที่"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -463,7 +466,7 @@ export default function AssociationAddressInfo({
                 id="building"
                 name="building"
                 value={currentAddress?.building || ''}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange('building', e.target.value)}
                 placeholder="ชื่ออาคาร หรือ หมู่บ้าน"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -497,7 +500,7 @@ export default function AssociationAddressInfo({
                 id="moo"
                 name="moo"
                 value={currentAddress?.moo || ''}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange('moo', e.target.value)}
                 placeholder="หมู่ที่"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -531,7 +534,7 @@ export default function AssociationAddressInfo({
                 id="soi"
                 name="soi"
                 value={currentAddress?.soi || ''}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange('soi', e.target.value)}
                 placeholder="ซอย"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -565,7 +568,7 @@ export default function AssociationAddressInfo({
                 id="road"
                 name="road"
                 value={currentAddress?.road || ''}
-                onChange={handleInputChange}
+                onChange={(e) => handleInputChange('road', e.target.value)}
                 placeholder="ถนน"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -654,15 +657,8 @@ export default function AssociationAddressInfo({
               />
             </div>
           </div>
-        </div>
-        
-        {/* Contact Information Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mt-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            ข้อมูลติดต่อสมาคม
-          </h4>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Contact fields merged into the same card */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* Association Phone */}
             <div className="lg:col-span-2 space-y-2">
               <label htmlFor="associationPhone" className="block text-sm font-medium text-gray-900">
@@ -676,7 +672,7 @@ export default function AssociationAddressInfo({
                     id="associationPhone"
                     name="associationPhone"
                     value={currentAddress?.phone || ''}
-                    onChange={(e) => handleInputChange({ target: { name: 'phone', value: e.target.value } })}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
                     required
                     placeholder="02-123-4567"
                     className={`
@@ -699,7 +695,7 @@ export default function AssociationAddressInfo({
                     id="associationPhoneExtension"
                     name="associationPhoneExtension"
                     value={currentAddress?.phoneExtension || ''}
-                    onChange={(e) => handleInputChange({ target: { name: 'phoneExtension', value: e.target.value } })}
+                    onChange={(e) => handleInputChange('phoneExtension', e.target.value)}
                     placeholder="ต่อ (ถ้ามี)"
                     className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
                   />
@@ -726,7 +722,7 @@ export default function AssociationAddressInfo({
                 id="associationEmail"
                 name="associationEmail"
                 value={currentAddress?.email || ''}
-                onChange={(e) => handleInputChange({ target: { name: 'email', value: e.target.value } })}
+                onChange={(e) => handleInputChange('email', e.target.value)}
                 required
                 placeholder="association@example.com"
                 className={`
@@ -752,31 +748,34 @@ export default function AssociationAddressInfo({
               )}
             </div>
 
+            {/* Website */}
             <div className="space-y-2 lg:col-span-2">
-  <label htmlFor="website" className="block text-sm font-medium text-gray-900">
-    เว็บไซต์
-  </label>
-  <input
-    type="url"
-    id="website"
-    name="website"  // ✅ เปลี่ยนจาก "associationWebsite" เป็น "website"
-    value={formData.website || ''}
-    onChange={handleInputChange}
-    placeholder="https://example.com"
-    className="
-      w-full px-4 py-3 text-sm
-      border rounded-lg
-      bg-white
-      placeholder-gray-400
-      transition-all duration-200
-      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-      border-gray-300 hover:border-gray-400
-    "
-  />
-</div>
+              <label htmlFor="website" className="block text-sm font-medium text-gray-900">
+                เว็บไซต์
+              </label>
+              <input
+                type="url"
+                id="website"
+                name="website"
+                value={formData.website || ''}
+                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                placeholder="https://example.com"
+                className="
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  bg-white
+                  placeholder-gray-400
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  border-gray-300 hover:border-gray-400
+                "
+              />
+            </div>
           </div>
         </div>
+        
       </div>
     </div>
   );
 }
+

@@ -78,30 +78,33 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
 
   // Auto-switch to tab with errors for better UX
   useEffect(() => {
-    if (errors && Object.keys(errors).length > 0) {
-      // Find first address error and switch to that tab
-      const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
-      if (addressErrorKeys.length > 0) {
-        const firstErrorKey = addressErrorKeys[0];
-        const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
-        if (match && match[1]) {
-          const errorTab = match[1];
-          if (errorTab !== activeTab) {
-            setActiveTab(errorTab);
-            // Scroll to address section automatically
-            const addressSection = document.querySelector('[data-section="company-address"]') || 
-                                 document.querySelector('.company-address') ||
-                                 document.querySelector('h3')?.closest('.bg-white');
-            if (addressSection) {
-              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+    if (!errors || Object.keys(errors).length === 0) return;
+    // Find first address error and switch to that tab
+    const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
+    if (addressErrorKeys.length > 0) {
+      const firstErrorKey = addressErrorKeys[0];
+      const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
+      if (match && match[1]) {
+        const errorTab = match[1];
+        const doScroll = () => {
+          const addressSection = document.querySelector('[data-section="company-address"]') || 
+                               document.querySelector('.company-address') ||
+                               document.querySelector('h3')?.closest('.bg-white');
+          if (addressSection) {
+            addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          } else {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }
+        };
+        if (errorTab !== activeTab) {
+          setActiveTab(errorTab);
+          setTimeout(doScroll, 100);
+        } else {
+          setTimeout(doScroll, 100);
         }
       }
     }
-  }, [errors, activeTab, addressTypes]);
+  }, [errors]);
 
   // Handle input change
   const handleInputChange = (name, value) => {
