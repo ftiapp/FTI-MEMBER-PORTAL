@@ -147,8 +147,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
             ...prev,
             postalCode: selectedItem.postalCode
           }));
-          
-          toast.success('ดึงรหัสไปรษณีย์สำเร็จ!');
+          // ลดการแจ้งเตือนซ้ำ ๆ: ไม่ต้องแสดง toast สำเร็จทุกครั้ง
         } else {
           console.log('❌ ไม่มี postal code ในข้อมูล');
         }
@@ -227,11 +226,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
 
   const handleSubDistrictChange = useCallback((value) => {
     setFormData(prev => ({ ...prev, subDistrict: value }));
-    
-    if (value && value.trim().length > 2) {
-      console.log(`Subdistrict changed to: ${value}, fetching postal code...`);
-      fetchPostalCode(value);
-    }
+    // หยุดเรียก API ระหว่างพิมพ์เพื่อลดการ fetch รัว ๆ
+    // จะทำการ autofill ผ่าน onSelect แทน (เมื่อผู้ใช้เลือกจาก dropdown)
   }, [setFormData, fetchPostalCode]);
   
   const handleSubDistrictSelect = useCallback((option) => {
@@ -245,7 +241,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
       province: option.province || '',
       postalCode: option.postalCode || ''
     }));
-    toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
+    // ลดการแจ้งเตือนเพื่อป้องกัน toast เด้งรัว ๆ ระหว่างใช้งาน
   }, [setFormData]);
   
   const handleDistrictChange = useCallback((value) => {
@@ -282,7 +278,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
       province: option.province || '',
       postalCode: option.text || option.postalCode || ''
     }));
-    toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
+    // ไม่ต้องแสดง toast สำเร็จเพื่อลดการรบกวนผู้ใช้
   }, [setFormData]);
 
   return (

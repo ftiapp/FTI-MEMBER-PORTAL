@@ -52,6 +52,13 @@ export default function DraftApplications() {
     return typeMap[type] || type;
   };
 
+  // Extract TAX ID from various possible fields in draft data
+  const getDraftTaxId = (draft) => {
+    const d = draft?.draftData || {};
+    const val = d.taxId || d.tax_id || d.taxID || d.companyTaxId || d.vatId || d.vat_id;
+    return val && String(val).trim() !== '' ? String(val) : '-';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -100,6 +107,9 @@ export default function DraftApplications() {
               </h4>
               <p className="text-sm text-gray-600 mt-1">
                 ขั้นตอนที่ {draft.currentStep} จากทั้งหมด 5 ขั้นตอน
+              </p>
+              <p className="text-sm text-gray-700 mt-1">
+                เลขทะเียนนิติบุคคล: {getDraftTaxId(draft)}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 อัปเดตล่าสุด: {formatDate(draft.updatedAt)}

@@ -40,21 +40,39 @@ export default function AMSummaryPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      // Fetch AM data by ID
       console.log('Fetching AM data for ID:', id);
-      
       const response = await fetch(`/api/membership/am/summary/${id}`);
       const result = await response.json();
       
+      // Process API response
       console.log('AM API Response:', result);
-      
+      console.log('AM API Response Data:', result.data);
+      if (result?.data) {
+        console.log('AM Addresses object:', result.data.addresses);
+        console.log('AM Legacy single address fields:', {
+          addressNumber: result.data.addressNumber,
+          soi: result.data.soi,
+          moo: result.data.moo,
+          road: result.data.road,
+          street: result.data.street,
+          subDistrict: result.data.subDistrict,
+          district: result.data.district,
+          province: result.data.province,
+          postalCode: result.data.postalCode,
+          associationEmail: result.data.associationEmail,
+          associationPhone: result.data.associationPhone,
+          associationPhoneExtension: result.data.associationPhoneExtension,
+        });
+      }
       if (result.success) {
         setApplicationData(result.data);
         // 🔥 แก้ไข: รับข้อมูล lookup ที่ส่งมาจาก API
         setIndustrialGroups(result.industrialGroups || []);
         setProvincialChapters(result.provincialChapters || []);
-        console.log('AM Data set to state:', result.data);
-        console.log('Industrial Groups:', result.industrialGroups);
-        console.log('Provincial Chapters:', result.provincialChapters);
+        // Set application data to state
+        // Set industrial groups data
+        // Set provincial chapters data
       } else {
         setError(result.message || 'ไม่สามารถโหลดข้อมูลได้');
       }
@@ -84,11 +102,7 @@ export default function AMSummaryPage() {
         provincialChaptersLookup[chapter.id] = chapter.name_th || chapter.id;
       });
       
-      console.log('PDF Data:', {
-        applicationData,
-        industrialGroupsLookup,
-        provincialChaptersLookup
-      });
+      // Generate PDF with lookup data
       
       await generateMembershipPDF(applicationData, 'am', industrialGroupsLookup, provincialChaptersLookup);
     } catch (error) {
@@ -354,7 +368,7 @@ export default function AMSummaryPage() {
             )}
             
             <div className="relative z-10 p-6 md:p-8">
-              {/* 🔥 แก้ไข: ส่งข้อมูล lookup ที่ถูกต้อง */}
+              {/* Send correct lookup data to SummarySection */}
               <SummarySection 
                 formData={applicationData}
                 industrialGroups={industrialGroups}

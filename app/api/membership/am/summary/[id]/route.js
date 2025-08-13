@@ -119,7 +119,9 @@ export async function GET(request, { params }) {
         building: addr.building || '',
         moo: addr.moo || '',
         soi: addr.soi || '',
-        road: addr.road || '',
+        // Keep both keys to match OC and ensure compatibility
+        street: addr.street || '',
+        road: addr.street || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
         province: addr.province || '',
@@ -158,7 +160,9 @@ export async function GET(request, { params }) {
       addressNumber: mainAddress?.address_number || '',
       moo: mainAddress?.moo || '',
       soi: mainAddress?.soi || '',
-      road: mainAddress?.road || '',
+      // Provide both street and road for compatibility with OC components
+      street: mainAddress?.street || '',
+      road: mainAddress?.street || '',
       subDistrict: mainAddress?.sub_district || '',
       district: mainAddress?.district || '',
       province: mainAddress?.province || '',

@@ -21,18 +21,35 @@ export default function SearchableDropdown({
   const [options, setOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const searchTimeout = useRef(null);
 
-  // Fetch options when search term changes
+  // Debounce search term (300ms)
+  useEffect(() => {
+    if (searchTimeout.current) {
+      clearTimeout(searchTimeout.current);
+    }
+    searchTimeout.current = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => {
+      if (searchTimeout.current) {
+        clearTimeout(searchTimeout.current);
+      }
+    };
+  }, [searchTerm]);
+
+  // Fetch options when debounced search term changes
   useEffect(() => {
     const fetchData = async () => {
-      if (!searchTerm || searchTerm.length < 2) {
+      if (!debouncedSearchTerm || debouncedSearchTerm.length < 2) {
         setOptions([]);
         return;
       }
 
       setIsLoading(true);
       try {
-        const results = await fetchOptions(searchTerm);
+        const results = await fetchOptions(debouncedSearchTerm);
         // ตรวจสอบว่า results เป็น array และทุก option มี text property
         const validResults = Array.isArray(results) ? results.filter(opt => opt && (opt.text !== undefined && opt.text !== null)) : [];
         if (validResults.length < (results || []).length) {
@@ -48,7 +65,7 @@ export default function SearchableDropdown({
     };
 
     fetchData();
-  }, [searchTerm, fetchOptions]);
+  }, [debouncedSearchTerm, fetchOptions]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

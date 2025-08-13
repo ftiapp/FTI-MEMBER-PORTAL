@@ -206,11 +206,14 @@ export default function SummarySection({ formData, industrialGroups, provincialC
 
   // ฟังก์ชันสำหรับแสดงกลุ่มอุตสาหกรรมที่เลือก (เหมือน AC)
   const getSelectedIndustrialGroupsArray = () => {
-    if (!formData.industrialGroups || formData.industrialGroups.length === 0) {
+    // รองรับทั้งรูปแบบเก่า (industrialGroups) และใหม่ (industrialGroupIds)
+    const groupIds = formData.industrialGroups || formData.industrialGroupIds || [];
+    
+    if (!groupIds || groupIds.length === 0) {
       return [];
     }
     
-    return formData.industrialGroups.map(groupId => {
+    return groupIds.map(groupId => {
       // ค้นหาชื่อกลุ่มอุตสาหกรรมจาก industrialGroups prop
       const group = industrialGroups.find(g => String(g.id) === String(groupId));
       return group ? group.name_th : `กลุ่มอุตสาหกรรม ${groupId}`;
@@ -219,11 +222,14 @@ export default function SummarySection({ formData, industrialGroups, provincialC
 
   // ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัดที่เลือก (เหมือน AC)
   const getSelectedProvincialChaptersArray = () => {
-    if (!formData.provincialCouncils || formData.provincialCouncils.length === 0) {
+    // รองรับทั้งรูปแบบเก่า (provincialCouncils) และใหม่ (provincialChapterIds) และ API (provincialChapters)
+    const chapterIds = formData.provincialCouncils || formData.provincialChapterIds || formData.provincialChapters || [];
+    
+    if (!chapterIds || chapterIds.length === 0) {
       return [];
     }
     
-    return formData.provincialCouncils.map(chapterId => {
+    return chapterIds.map(chapterId => {
       // ค้นหาชื่อสภาอุตสาหกรรมจังหวัดจาก provincialChapters prop
       const chapter = provincialChapters.find(c => String(c.id) === String(chapterId));
       return chapter ? chapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapterId}`;
@@ -252,16 +258,18 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         : '-';
     }
     
-    // ระบบเก่า: ใช้ contactPerson object
-    const contactPerson = formData.contactPerson || {};
+    // ระบบเก่า: ใช้ contactPerson object หรือ direct fields
     if (isEnglish) {
-      return contactPerson.firstNameEng && contactPerson.lastNameEng 
-        ? `${contactPerson.firstNameEng} ${contactPerson.lastNameEng}` 
-        : '-';
+      // ลองหาข้อมูลภาษาอังกฤษจากหลายแหล่ง
+      const firstNameEng = formData.contactPersonFirstNameEng || formData.contactPersonFirstName;
+      const lastNameEng = formData.contactPersonLastNameEng || formData.contactPersonLastName;
+      return firstNameEng && lastNameEng ? `${firstNameEng} ${lastNameEng}` : '-';
     }
-    return contactPerson.firstNameThai && contactPerson.lastNameThai 
-      ? `${contactPerson.firstNameThai} ${contactPerson.lastNameThai}` 
-      : '-';
+    
+    // ภาษาไทย
+    const firstNameTh = formData.contactPersonFirstName;
+    const lastNameTh = formData.contactPersonLastName;
+    return firstNameTh && lastNameTh ? `${firstNameTh} ${lastNameTh}` : '-';
   };
 
   // ฟังก์ชันสำหรับแสดงข้อมูลผู้ติดต่อทั้งหมด
@@ -281,13 +289,12 @@ export default function SummarySection({ formData, industrialGroups, provincialC
       };
     }
     
-    // ระบบเก่า: ใช้ contactPerson object
-    const contactPerson = formData.contactPerson || {};
+    // ระบบเก่า: ใช้ direct fields
     return {
-      position: contactPerson.position || '-',
-      email: contactPerson.email || '-',
-      phone: contactPerson.phone || '-',
-      phoneExtension: contactPerson.phoneExtension || contactPerson.phone_extension || formData.contactPersonPhoneExtension || formData.contact_person_phone_extension || '',
+      position: formData.contactPersonPosition || '-',
+      email: formData.contactPersonEmail || '-',
+      phone: formData.contactPersonPhone || '-',
+      phoneExtension: formData.contactPersonPhoneExtension || '',
       typeContactName: 'ผู้ประสานงานหลัก', // default สำหรับระบบเก่า
       typeContactOtherDetail: ''
     };
@@ -303,8 +310,8 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="ชื่อสมาคม (ไทย)" value={formData.associationName} />
           <InfoCard title="ชื่อสมาคม (อังกฤษ)" value={formData.associationNameEn || formData.associationNameEng} />
-          <InfoCard title="เลขประจำตัวผู้เสียภาษี" value={formData.taxId} />
-          <InfoCard title="เว็บไซต์" value={formData.website} />
+          <InfoCard title="เลขทะเบียนสมาคม" value={formData.associationRegistrationNumber} />
+          <InfoCard title="เว็บไซต์" value={formData.associationWebsite || formData.website} />
         </div>
       </Section>
 
@@ -371,6 +378,16 @@ export default function SummarySection({ formData, industrialGroups, provincialC
               <InfoCard title="อำเภอ/เขต" value={formData.district} />
               <InfoCard title="จังหวัด" value={formData.province} />
               <InfoCard title="รหัสไปรษณีย์" value={formData.postalCode} />
+              <InfoCard title="อีเมล" value={formData.associationEmail} />
+              <InfoCard 
+                title="เบอร์โทรศัพท์" 
+                value={(function(){
+                  const p = formData.associationPhone || '-';
+                  const ext = formData.associationPhoneExtension || '';
+                  if (p === '-') return '-';
+                  return ext ? `${p} ต่อ ${ext}` : p;
+                })()} 
+              />
             </div>
           );
         })()}
@@ -458,7 +475,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
               ? formData.products.map(p => p.nameTh || p.nameEn).filter(Boolean).join(', ')
               : '-'
           } />
-          <InfoCard title="จำนวนสมาชิกสมาคม" value={formData.memberCount || '-'} />
+          <InfoCard title="จำนวนสมาชิกสมาคม" value={formData.memberCount ? Number(formData.memberCount).toLocaleString() : '-'} />
           <ListCard title="กลุ่มอุตสาหกรรม" items={getSelectedIndustrialGroupsArray()} />
           <div className="md:col-span-2">
             <ListCard title="สภาอุตสาหกรรมจังหวัด" items={getSelectedProvincialChaptersArray()} />

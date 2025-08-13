@@ -161,7 +161,8 @@ export async function POST(request) {
               addressData.building || '',
               addressData.moo || '',
               addressData.soi || '',
-              addressData.road || '',
+              // Accept both 'street' and 'road' from frontend
+              (addressData.street || addressData.road || ''),
               addressData.subDistrict || '',
               addressData.district || '',
               addressData.province || '',
@@ -187,7 +188,8 @@ export async function POST(request) {
           data.addressNumber || '',
           data.moo || '',
           data.soi || '',
-          data.road || '',
+          // Accept both 'street' and 'road' for legacy single address
+          (data.street || data.road || ''),
           data.subDistrict || '',
           data.district || '',
           data.province || '',

@@ -118,8 +118,9 @@ export default function AssociationAddressInfo({
           ...prev,
           postalCode: postalCode
         }));
-        toast.success('ดึงรหัสไปรษณีย์สำเร็จ');
+        // ลดการแจ้งเตือนซ้ำ ๆ: ไม่ต้องแสดง toast สำเร็จทุกครั้ง
       } else {
+        // แสดงเฉพาะกรณีไม่พบข้อมูล
         toast.error('ไม่พบรหัสไปรษณีย์สำหรับตำบล/แขวงนี้');
       }
     } catch (error) {
@@ -205,10 +206,8 @@ export default function AssociationAddressInfo({
         }
       }
     }));
-    
-    if (value && value.trim().length > 2) {
-      fetchPostalCode(value);
-    }
+    // หยุดเรียก API ระหว่างพิมพ์เพื่อลดการ fetch รัว ๆ
+    // จะทำการ autofill ผ่าน onSelect แทน (เมื่อผู้ใช้เลือกจาก dropdown)
   }, [setFormData, fetchPostalCode, activeTab]);
   
   const handleSubDistrictSelect = useCallback((option) => {
@@ -227,7 +226,7 @@ export default function AssociationAddressInfo({
         }
       }
     }));
-    toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
+    // ลดการแจ้งเตือนเพื่อป้องกัน toast เด้งรัว ๆ ระหว่างใช้งาน
   }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
@@ -301,7 +300,7 @@ export default function AssociationAddressInfo({
         }
       }
     }));
-    toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
+    // ไม่ต้องแสดง toast สำเร็จเพื่อลดการรบกวนผู้ใช้
   }, [setFormData, activeTab]);
 
   // Get current address data
