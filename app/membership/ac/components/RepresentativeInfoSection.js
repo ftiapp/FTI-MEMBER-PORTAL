@@ -5,7 +5,8 @@ import React, { useState, useEffect, useRef } from 'react';
 export default function RepresentativeInfoSection({ formData = {}, setFormData = () => {}, errors = {} }) {
   const representativeErrors = errors?.representativeErrors || [];
   const isInitialized = useRef(false);
-  
+  const [duplicateErrors, setDuplicateErrors] = useState([]);
+
   const createDefaultRepresentative = (index = 0) => ({
     id: `rep_${Date.now()}_${index}`,
     firstNameTh: '',
@@ -22,17 +23,19 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
 
   useEffect(() => {
     if (!isInitialized.current && formData.representatives?.length > 0) {
-      const loadedReps = formData.representatives.map((rep, index) => ({
-        id: rep.id || `rep_${Date.now()}_${index}`,
-        firstNameTh: rep.firstNameTh || rep.firstNameThai || '',
-        lastNameTh: rep.lastNameTh || rep.lastNameThai || '',
-        firstNameEn: rep.firstNameEn || rep.firstNameEng || rep.firstNameEnglish || '',
-        lastNameEn: rep.lastNameEn || rep.lastNameEng || rep.lastNameEnglish || '',
-        position: rep.position || '',
-        email: rep.email || '',
-        phone: rep.phone || '',
-        isPrimary: rep.isPrimary || index === 0
-      }));
+      const loadedReps = formData.representatives
+        .map((rep, index) => ({
+          id: rep.id || `rep_${Date.now()}_${index}`,
+          firstNameTh: rep.firstNameTh || rep.firstNameThai || '',
+          lastNameTh: rep.lastNameTh || rep.lastNameThai || '',
+          firstNameEn: rep.firstNameEn || rep.firstNameEng || rep.firstNameEnglish || '',
+          lastNameEn: rep.lastNameEn || rep.lastNameEng || rep.lastNameEnglish || '',
+          position: rep.position || '',
+          email: rep.email || '',
+          phone: rep.phone || '',
+          isPrimary: false
+        }))
+        .map((r, i) => ({ ...r, isPrimary: i === 0 }));
       setRepresentatives(loadedReps);
       isInitialized.current = true;
     }
@@ -44,15 +47,60 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     }
   }, [representatives, setFormData]);
 
+  useEffect(() => {
+    const norm = (s = '') => s.trim().toLowerCase();
+    const thMap = new Map();
+    const enMap = new Map();
+    representatives.forEach((rep, idx) => {
+      const thFirst = norm(rep.firstNameTh);
+      const thLast = norm(rep.lastNameTh);
+      if (thFirst && thLast) {
+        const key = `${thFirst}|${thLast}`;
+        if (!thMap.has(key)) thMap.set(key, []);
+        thMap.get(key).push(idx);
+      }
+      const enFirst = norm(rep.firstNameEn);
+      const enLast = norm(rep.lastNameEn);
+      if (enFirst && enLast) {
+        const key = `${enFirst}|${enLast}`;
+        if (!enMap.has(key)) enMap.set(key, []);
+        enMap.get(key).push(idx);
+      }
+    });
+
+    const newErrors = representatives.map(() => ({}));
+    const applyDupError = (indices, lang) => {
+      if (!indices || indices.length < 2) return;
+      indices.forEach((i) => {
+        if (lang === 'th') {
+          newErrors[i].firstNameTh = newErrors[i].firstNameTh || 'ชื่อ-นามสกุลซ้ำกับผู้แทนท่านอื่น';
+          newErrors[i].lastNameTh = newErrors[i].lastNameTh || 'ชื่อ-นามสกุลซ้ำกับผู้แทนท่านอื่น';
+        } else if (lang === 'en') {
+          newErrors[i].firstNameEn = newErrors[i].firstNameEn || 'First/Last name duplicates another representative';
+          newErrors[i].lastNameEn = newErrors[i].lastNameEn || 'First/Last name duplicates another representative';
+        }
+      });
+    };
+    thMap.forEach((idxs) => applyDupError(idxs, 'th'));
+    enMap.forEach((idxs) => applyDupError(idxs, 'en'));
+    setDuplicateErrors(newErrors);
+  }, [representatives]);
+
   const addRepresentative = () => {
     if (representatives.length < 3) {
-      setRepresentatives(prev => [...prev, createDefaultRepresentative(prev.length)]);
+      setRepresentatives(prev => {
+        const next = [...prev, createDefaultRepresentative(prev.length)];
+        return next.map((r, i) => ({ ...r, isPrimary: i === 0 }));
+      });
     }
   };
 
   const removeRepresentative = (id) => {
     if (representatives.length > 1) {
-      setRepresentatives(prev => prev.filter(rep => rep.id !== id));
+      setRepresentatives(prev => {
+        const filtered = prev.filter(rep => rep.id !== id);
+        return filtered.map((r, i) => ({ ...r, isPrimary: i === 0 }));
+      });
     }
   };
 
@@ -62,7 +110,11 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     );
   };
 
-  const getFieldError = (index, field) => representativeErrors[index]?.[field];
+  const getFieldError = (rep, field, index) => {
+    if (representativeErrors[index]?.[field]) return representativeErrors[index][field];
+    if (duplicateErrors[index]?.[field]) return duplicateErrors[index][field];
+    return '';
+  };
 
   return (
     <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
@@ -112,11 +164,6 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">ผู้แทนคนที่ {index + 1}</h3>
-                      {rep.isPrimary && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                          ผู้แทนหลัก
-                        </span>
-                      )}
                     </div>
                   </div>
                   
@@ -155,13 +202,13 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'firstNameTh', e.target.value)}
                           placeholder="ชื่อภาษาไทย"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(index, 'firstNameTh') ? 
+                            getFieldError(rep, 'firstNameTh', index) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(index, 'firstNameTh') && (
-                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'firstNameTh')}</p>
+                        {getFieldError(rep, 'firstNameTh', index) && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'firstNameTh', index)}</p>
                         )}
                       </div>
                       <div>
@@ -174,13 +221,13 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'lastNameTh', e.target.value)}
                           placeholder="นามสกุลภาษาไทย"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(index, 'lastNameTh') ? 
+                            getFieldError(rep, 'lastNameTh', index) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(index, 'lastNameTh') && (
-                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'lastNameTh')}</p>
+                        {getFieldError(rep, 'lastNameTh', index) && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'lastNameTh', index)}</p>
                         )}
                       </div>
                     </div>
@@ -203,13 +250,13 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'firstNameEn', e.target.value)}
                           placeholder="First Name"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(index, 'firstNameEn') ? 
+                            getFieldError(rep, 'firstNameEn', index) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(index, 'firstNameEn') && (
-                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'firstNameEn')}</p>
+                        {getFieldError(rep, 'firstNameEn', index) && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'firstNameEn', index)}</p>
                         )}
                       </div>
                       <div>
@@ -222,13 +269,13 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'lastNameEn', e.target.value)}
                           placeholder="Last Name"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(index, 'lastNameEn') ? 
+                            getFieldError(rep, 'lastNameEn', index) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(index, 'lastNameEn') && (
-                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'lastNameEn')}</p>
+                        {getFieldError(rep, 'lastNameEn', index) && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'lastNameEn', index)}</p>
                         )}
                       </div>
                     </div>
@@ -261,13 +308,13 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'email', e.target.value)}
                           placeholder="example@association.com"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            getFieldError(index, 'email') ? 
+                            getFieldError(rep, 'email', index) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {getFieldError(index, 'email') && (
-                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'email')}</p>
+                        {getFieldError(rep, 'email', index) && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'email', index)}</p>
                         )}
                       </div>
                       <div className="md:col-span-2">
@@ -282,7 +329,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
                               placeholder="02-123-4567"
                               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                                getFieldError(index, 'phone') ? 
+                                getFieldError(rep, 'phone', index) ? 
                                   'border-red-300 bg-red-50 focus:ring-red-500' : 
                                   'border-gray-300 bg-white hover:border-gray-400'
                               }`}
@@ -298,26 +345,13 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                             />
                           </div>
                         </div>
-                        {getFieldError(index, 'phone') && (
-                          <p className="text-sm text-red-600 mt-2">{getFieldError(index, 'phone')}</p>
+                        {getFieldError(rep, 'phone', index) && (
+                          <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'phone', index)}</p>
                         )}
                       </div>
                     </div>
                     
-                    {/* Primary Representative Checkbox */}
-                    <div>
-                      <label className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          checked={rep.isPrimary || false}
-                          onChange={(e) => updateRepresentative(rep.id, 'isPrimary', e.target.checked)}
-                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
-                        />
-                        <span className="text-sm font-medium text-gray-700">
-                          ผู้แทนหลัก (ใช้สำหรับติดต่อสื่อสาร)
-                        </span>
-                      </label>
-                    </div>
+                    {/* Primary Representative UI removed; index 0 is primary internally */}
                   </div>
                 </div>
               </div>

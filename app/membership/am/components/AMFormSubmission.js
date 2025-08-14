@@ -14,213 +14,42 @@ export const submitAMMembershipForm = async (formData) => {
     // สร้าง FormData สำหรับส่งไฟล์
     const formDataToSubmit = new FormData();
     
-    // เพิ่มข้อมูลพื้นฐานของสมาคม
-    formDataToSubmit.append('associationName', formData.associationName || '');
-    formDataToSubmit.append('associationNameEng', formData.associationNameEng || '');
-    formDataToSubmit.append('associationRegistrationNumber', formData.associationRegistrationNumber || '');
-    formDataToSubmit.append('taxId', formData.taxId || '');
-    formDataToSubmit.append('associationEmail', formData.associationEmail || '');
-    formDataToSubmit.append('associationPhone', formData.associationPhone || '');
-    formDataToSubmit.append('website', formData.website || '');
-    
-    // เพิ่มข้อมูลที่อยู่
-    formDataToSubmit.append('addressNumber', formData.addressNumber || '');
-    formDataToSubmit.append('moo', formData.moo || '');
-    formDataToSubmit.append('soi', formData.soi || '');
-    formDataToSubmit.append('road', formData.road || '');
-    formDataToSubmit.append('subDistrict', formData.subDistrict || '');
-    formDataToSubmit.append('district', formData.district || '');
-    formDataToSubmit.append('province', formData.province || '');
-    formDataToSubmit.append('postalCode', formData.postalCode || '');
-    
-    // เพิ่มข้อมูลผู้แทน - แปลงเป็น JSON string
-    if (formData.representatives && Array.isArray(formData.representatives)) {
-      formDataToSubmit.append('representatives', JSON.stringify(formData.representatives));
-    }
-    
-    // เพิ่มข้อมูลผู้ติดต่อ - แปลงเป็น JSON string
-    if (formData.contactPerson) {
-      formDataToSubmit.append('contactPerson', JSON.stringify(formData.contactPerson));
-    }
-    
-    // เพิ่มข้อมูลธุรกิจ - แก้ไขการส่ง businessTypes
-    if (formData.businessTypes) {
-      formDataToSubmit.append('businessTypes', JSON.stringify(formData.businessTypes));
-    }
-    
-    formDataToSubmit.append('otherBusinessTypeDetail', formData.otherBusinessTypeDetail || '');
-    
-    // เพิ่มข้อมูล products - แก้ไขการส่ง
-    if (formData.products && Array.isArray(formData.products)) {
-      const validProducts = formData.products.filter(product => 
-        product && (product.nameTh?.trim() || product.nameEn?.trim())
-      );
-      formDataToSubmit.append('products', JSON.stringify(validProducts));
-    }
-    
-    // เพิ่มข้อมูลจำนวน
-    formDataToSubmit.append('memberCount', formData.memberCount || '0');
-    formDataToSubmit.append('numberOfEmployees', formData.numberOfEmployees || '0');
-    formDataToSubmit.append('registeredCapital', formData.registeredCapital || '');
-    formDataToSubmit.append('businessDescription', formData.businessDescription || '');
-    
-    // ✅ แก้ไขการส่งข้อมูลกลุ่มอุตสาหกรรม - ทั้ง ID และชื่อ
-    // Helper function to process industrial groups data
-    const processIndustrialGroups = (formData) => {
-      console.log('Processing industrial groups:', formData.industrialGroups);
-      console.log('Processing industrial group names:', formData.industrialGroupNames);
-      
-      if (!formData.industrialGroups || formData.industrialGroups.length === 0) {
-        return { ids: [], names: [] };
+    // Helper to append data, handles files, arrays, and objects (same as OC)
+    const appendToFormData = (key, value) => {
+      // Handle single file object: { file: File, ... }
+      if (value && typeof value === 'object' && value.file instanceof File) {
+        formDataToSubmit.append(key, value.file, value.name || value.file.name);
+      } 
+      // Handle File objects directly
+      else if (value instanceof File) {
+        formDataToSubmit.append(key, value, value.name);
       }
-      
-      // Handle both array of objects and array of IDs
-      const ids = [];
-      const names = [];
-      
-      // Process IDs
-      formData.industrialGroups.forEach((id, index) => {
-        ids.push(id);
-      });
-      
-      // Process names - use directly from formData.industrialGroupNames if available
-      if (formData.industrialGroupNames && formData.industrialGroupNames.length > 0) {
-        formData.industrialGroupNames.forEach(name => {
-          names.push(name || 'ไม่ระบุ');
-        });
-      } else {
-        // Fallback to extracting from industrialGroups if they're objects
-        formData.industrialGroups.forEach(item => {
-          if (typeof item === 'object' && item !== null) {
-            names.push(item.name_th || item.text || 'ไม่ระบุ');
-          } else {
-            names.push('ไม่ระบุ');
+      // Handle array of file objects for productionImages
+      else if (key === 'productionImages' && Array.isArray(value)) {
+        value.forEach((fileObj, index) => {
+          if (fileObj && fileObj.file instanceof File) {
+            formDataToSubmit.append(`productionImages[${index}]`, fileObj.file, fileObj.name || fileObj.file.name);
+          } else if (fileObj instanceof File) {
+            formDataToSubmit.append(`productionImages[${index}]`, fileObj, fileObj.name);
           }
         });
+      } 
+      // Handle other arrays and objects (stringify them as API expects)
+      else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+        formDataToSubmit.append(key, JSON.stringify(value));
+      } 
+      // Handle other primitive values
+      else if (value !== null && value !== undefined && value !== '') {
+        formDataToSubmit.append(key, String(value));
       }
-      
-      console.log('Processed industrial group IDs:', ids);
-      console.log('Processed industrial group names:', names);
-      
-      return { ids, names };
     };
-    
-    // ✅ แก้ไขการส่งข้อมูลสภาจังหวัด - ทั้ง ID และชื่อ
-    // Helper function to process provincial councils data
-    const processProvincialCouncils = (formData) => {
-      console.log('Processing provincial councils:', formData.provincialCouncils);
-      console.log('Processing provincial chapter names:', formData.provincialChapterNames);
-      
-      if (!formData.provincialCouncils || formData.provincialCouncils.length === 0) {
-        return { ids: [], names: [] };
-      }
-      
-      // Handle both array of objects and array of IDs
-      const ids = [];
-      const names = [];
-      
-      // Process IDs
-      formData.provincialCouncils.forEach((id, index) => {
-        ids.push(id);
-      });
-      
-      // Process names - use directly from formData.provincialChapterNames if available
-      if (formData.provincialChapterNames && formData.provincialChapterNames.length > 0) {
-        formData.provincialChapterNames.forEach(name => {
-          names.push(name || 'ไม่ระบุ');
-        });
-      } else {
-        // Fallback to extracting from provincialCouncils if they're objects
-        formData.provincialCouncils.forEach(item => {
-          if (typeof item === 'object' && item !== null) {
-            names.push(item.name_th || item.text || 'ไม่ระบุ');
-          } else {
-            names.push('ไม่ระบุ');
-          }
-        });
-      }
-      
-      console.log('Processed provincial council IDs:', ids);
-      console.log('Processed provincial council names:', names);
-      
-      return { ids, names };
-    };
-    
-    // ประมวลผลและส่งข้อมูล
-    const industrialGroupsData = processIndustrialGroups(formData);
-    const provincialChaptersData = processProvincialCouncils(formData);
-    
-    // ส่งทั้ง IDs และ Names
-    formDataToSubmit.append('industrialGroupIds', JSON.stringify(industrialGroupsData.ids));
-    formDataToSubmit.append('industrialGroupNames', JSON.stringify(industrialGroupsData.names));
-    formDataToSubmit.append('provincialChapterIds', JSON.stringify(provincialChaptersData.ids));
-    formDataToSubmit.append('provincialChapterNames', JSON.stringify(provincialChaptersData.names));
-    
-    // ✅ แก้ไขการส่งไฟล์เอกสารหลัก - ใช้ File object โดยตรง
-    console.log('📄 [AM] Processing required documents...');
-    
-    // ตรวจสอบและส่งไฟล์ associationCertificate
-    if (formData.associationCertificate) {
-      if (formData.associationCertificate instanceof File) {
-        formDataToSubmit.append('associationCertificate', formData.associationCertificate);
-        console.log('✅ [AM] Added associationCertificate:', formData.associationCertificate.name);
-      } else {
-        console.warn('⚠️ [AM] associationCertificate is not a File object:', formData.associationCertificate);
-      }
-    } else {
-      console.warn('⚠️ [AM] No associationCertificate found in formData');
-    }
-    
-    // ตรวจสอบและส่งไฟล์ memberList
-    if (formData.memberList) {
-      if (formData.memberList instanceof File) {
-        formDataToSubmit.append('memberList', formData.memberList);
-        console.log('✅ [AM] Added memberList:', formData.memberList.name);
-      } else {
-        console.warn('⚠️ [AM] memberList is not a File object:', formData.memberList);
-      }
-    } else {
-      console.warn('⚠️ [AM] No memberList found in formData');
-    }
-    
-    // เพิ่มไฟล์ตามประเภทโรงงาน
-    if (formData.factoryType === 'type1') {
-      if (formData.factoryLicense instanceof File) {
-        formDataToSubmit.append('factoryLicense', formData.factoryLicense);
-        console.log('✅ [AM] Added factoryLicense:', formData.factoryLicense.name);
-      }
-      
-      if (formData.industrialEstateLicense instanceof File) {
-        formDataToSubmit.append('industrialEstateLicense', formData.industrialEstateLicense);
-        console.log('✅ [AM] Added industrialEstateLicense:', formData.industrialEstateLicense.name);
-      }
-    } else if (formData.factoryType === 'type2' && formData.productionImages) {
-      // สำหรับรูปภาพหลายรูป
-      if (Array.isArray(formData.productionImages)) {
-        console.log(`🖼️ [AM] Processing ${formData.productionImages.length} production images`);
-        formData.productionImages.forEach((file, index) => {
-          if (file instanceof File) {
-            formDataToSubmit.append('productionImages', file);
-            console.log(`✅ [AM] Added production image ${index + 1}: ${file.name} (${file.size} bytes)`);
-          }
-        });
+
+    // Convert the plain object to FormData (same as OC)
+    for (const key in formData) {
+      if (Object.prototype.hasOwnProperty.call(formData, key)) {
+        appendToFormData(key, formData[key]);
       }
     }
-    
-    // เพิ่มเอกสารเพิ่มเติม
-    if (formData.documents && Array.isArray(formData.documents)) {
-      console.log(`📎 [AM] Processing ${formData.documents.length} additional documents`);
-      formData.documents.forEach((doc, index) => {
-        if (doc.file instanceof File) {
-          formDataToSubmit.append('documents', doc.file);
-          formDataToSubmit.append('documentTypes', doc.type || '');
-          console.log(`✅ [AM] Added document ${index + 1}: ${doc.file.name} (${doc.file.size} bytes), type: ${doc.type || 'unspecified'}`);
-        }
-      });
-    }
-    
-    // เพิ่มประเภทโรงงาน
-    formDataToSubmit.append('factoryType', formData.factoryType || '');
     
     // Debug: แสดงข้อมูลที่จะส่ง
     console.log('📦 [AM] FormData contents:');

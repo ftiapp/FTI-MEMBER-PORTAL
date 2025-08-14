@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from 'react';
 export default function RepresentativeInfoSection({ formData, setFormData, errors }) {
   const representativeErrors = errors?.representativeErrors || [];
   const isInitialized = useRef(false);
+  const [duplicateErrors, setDuplicateErrors] = useState([]);
   
   // สร้าง default representative object
   const createDefaultRepresentative = (index = 0) => ({
@@ -24,17 +25,19 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   // โหลดข้อมูลเริ่มต้นเพียงครั้งเดียว
   useEffect(() => {
     if (!isInitialized.current && formData.representatives?.length > 0) {
-      const loadedReps = formData.representatives.map((rep, index) => ({
-        id: rep.id || `rep_${Date.now()}_${index}`,
-        firstNameThai: rep.firstNameThai || '',
-        lastNameThai: rep.lastNameThai || '',
-        firstNameEnglish: rep.firstNameEnglish || '',
-        lastNameEnglish: rep.lastNameEnglish || '',
-        position: rep.position || '',
-        email: rep.email || '',
-        phone: rep.phone || '',
-        isPrimary: rep.isPrimary || index === 0
-      }));
+      const loadedReps = formData.representatives
+        .map((rep, index) => ({
+          id: rep.id || `rep_${Date.now()}_${index}`,
+          firstNameThai: rep.firstNameThai || '',
+          lastNameThai: rep.lastNameThai || '',
+          firstNameEnglish: rep.firstNameEnglish || '',
+          lastNameEnglish: rep.lastNameEnglish || '',
+          position: rep.position || '',
+          email: rep.email || '',
+          phone: rep.phone || '',
+          isPrimary: false
+        }))
+        .map((r, i) => ({ ...r, isPrimary: i === 0 }));
       setRepresentatives(loadedReps);
       isInitialized.current = true;
     }
@@ -47,16 +50,61 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     }
   }, [representatives, setFormData]);
 
+  // ตรวจสอบชื่อ-นามสกุลซ้ำ (ไทย/อังกฤษ)
+  useEffect(() => {
+    const norm = (s = '') => s.trim().toLowerCase();
+    const thMap = new Map();
+    const enMap = new Map();
+    representatives.forEach((rep, idx) => {
+      const t1 = norm(rep.firstNameThai);
+      const t2 = norm(rep.lastNameThai);
+      if (t1 && t2) {
+        const k = `${t1}|${t2}`;
+        if (!thMap.has(k)) thMap.set(k, []);
+        thMap.get(k).push(idx);
+      }
+      const e1 = norm(rep.firstNameEnglish);
+      const e2 = norm(rep.lastNameEnglish);
+      if (e1 && e2) {
+        const k = `${e1}|${e2}`;
+        if (!enMap.has(k)) enMap.set(k, []);
+        enMap.get(k).push(idx);
+      }
+    });
+    const newErrs = representatives.map(() => ({}));
+    const applyDup = (arr, lang) => {
+      if (!arr || arr.length < 2) return;
+      arr.forEach(i => {
+        if (lang === 'th') {
+          newErrs[i].firstNameThai = newErrs[i].firstNameThai || 'ชื่อ-นามสกุลซ้ำกับผู้แทนท่านอื่น';
+          newErrs[i].lastNameThai = newErrs[i].lastNameThai || 'ชื่อ-นามสกุลซ้ำกับผู้แทนท่านอื่น';
+        } else {
+          newErrs[i].firstNameEnglish = newErrs[i].firstNameEnglish || 'First/Last name duplicates another representative';
+          newErrs[i].lastNameEnglish = newErrs[i].lastNameEnglish || 'First/Last name duplicates another representative';
+        }
+      });
+    };
+    thMap.forEach(indices => applyDup(indices, 'th'));
+    enMap.forEach(indices => applyDup(indices, 'en'));
+    setDuplicateErrors(newErrs);
+  }, [representatives]);
+
   const addRepresentative = () => {
     if (representatives.length < 3) {
       const newRep = createDefaultRepresentative(representatives.length);
-      setRepresentatives(prev => [...prev, newRep]);
+      setRepresentatives(prev => {
+        const next = [...prev, newRep];
+        return next.map((r, i) => ({ ...r, isPrimary: i === 0 }));
+      });
     }
   };
 
   const removeRepresentative = (id) => {
     if (representatives.length > 1) {
-      setRepresentatives(prev => prev.filter(rep => rep.id !== id));
+      setRepresentatives(prev => {
+        const filtered = prev.filter(rep => rep.id !== id);
+        return filtered.map((r, i) => ({ ...r, isPrimary: i === 0 }));
+      });
     }
   };
 
@@ -118,11 +166,6 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">ผู้แทนคนที่ {index + 1}</h3>
-                      {rep.isPrimary && (
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-                          ผู้แทนหลัก
-                        </span>
-                      )}
                     </div>
                   </div>
                   
@@ -163,17 +206,17 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                           onChange={(e) => updateRepresentative(rep.id, 'firstNameThai', e.target.value)}
                           placeholder="ชื่อภาษาไทย"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            representativeErrors[index]?.firstNameThai ? 
+                            (representativeErrors[index]?.firstNameThai || duplicateErrors[index]?.firstNameThai) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {representativeErrors[index]?.firstNameThai && (
+                        {(representativeErrors[index]?.firstNameThai || duplicateErrors[index]?.firstNameThai) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
-                            {representativeErrors[index].firstNameThai}
+                            {duplicateErrors[index]?.firstNameThai || representativeErrors[index]?.firstNameThai}
                           </p>
                         )}
                       </div>
@@ -188,17 +231,17 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                           onChange={(e) => updateRepresentative(rep.id, 'lastNameThai', e.target.value)}
                           placeholder="นามสกุลภาษาไทย"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            representativeErrors[index]?.lastNameThai ? 
+                            (representativeErrors[index]?.lastNameThai || duplicateErrors[index]?.lastNameThai) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {representativeErrors[index]?.lastNameThai && (
+                        {(representativeErrors[index]?.lastNameThai || duplicateErrors[index]?.lastNameThai) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
-                            {representativeErrors[index].lastNameThai}
+                            {duplicateErrors[index]?.lastNameThai || representativeErrors[index]?.lastNameThai}
                           </p>
                         )}
                       </div>
@@ -224,17 +267,17 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                           onChange={(e) => updateRepresentative(rep.id, 'firstNameEnglish', e.target.value)}
                           placeholder="First Name"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            representativeErrors[index]?.firstNameEnglish ? 
+                            (representativeErrors[index]?.firstNameEnglish || duplicateErrors[index]?.firstNameEnglish) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {representativeErrors[index]?.firstNameEnglish && (
+                        {(representativeErrors[index]?.firstNameEnglish || duplicateErrors[index]?.firstNameEnglish) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
-                            {representativeErrors[index].firstNameEnglish}
+                            {duplicateErrors[index]?.firstNameEnglish || representativeErrors[index]?.firstNameEnglish}
                           </p>
                         )}
                       </div>
@@ -249,17 +292,17 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                           onChange={(e) => updateRepresentative(rep.id, 'lastNameEnglish', e.target.value)}
                           placeholder="Last Name"
                           className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                            representativeErrors[index]?.lastNameEnglish ? 
+                            (representativeErrors[index]?.lastNameEnglish || duplicateErrors[index]?.lastNameEnglish) ? 
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                         />
-                        {representativeErrors[index]?.lastNameEnglish && (
+                        {(representativeErrors[index]?.lastNameEnglish || duplicateErrors[index]?.lastNameEnglish) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                             </svg>
-                            {representativeErrors[index].lastNameEnglish}
+                            {duplicateErrors[index]?.lastNameEnglish || representativeErrors[index]?.lastNameEnglish}
                           </p>
                         )}
                       </div>

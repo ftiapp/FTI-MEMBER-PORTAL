@@ -346,6 +346,23 @@ export async function GET(request, { params }) {
     let additionalData = {};
     const additionalDataStart = Date.now();
     
+    // For OC, AC, and AM: Get all addresses (3 types)
+    if (['oc', 'ac', 'am'].includes(type)) {
+      try {
+        const addressStart = Date.now();
+        const addressTableName = `MemberRegist_${type.toUpperCase()}_Address`;
+        const [addresses] = await connection.execute(
+          `SELECT * FROM ${addressTableName} WHERE main_id = ? ORDER BY address_type`,
+          [id]
+        );
+        console.log(`[PERF] Addresses query took: ${Date.now() - addressStart}ms`);
+        additionalData.addresses = addresses || [];
+      } catch (addressError) {
+        console.error('Error fetching addresses:', addressError);
+        additionalData.addresses = [];
+      }
+    }
+
     // For OC, AC, and AM: Get contact person
     if (['oc', 'ac', 'am'].includes(type)) {
       try {
@@ -476,7 +493,7 @@ export async function GET(request, { params }) {
         // Execute industrial groups and provincial chapters queries in parallel
         const [industrialGroupsResult, provincialChaptersResult] = await Promise.all([
           connection.execute(`
-            SELECT industry_group_id as id
+            SELECT industry_group_id, industry_group_name
             FROM ${tablePrefix}_IndustryGroups
             WHERE main_id = ?
           `, [id]).catch(err => {
@@ -484,7 +501,7 @@ export async function GET(request, { params }) {
             return [[]]; // Return empty result
           }),
           connection.execute(`
-            SELECT province_chapter_id as id
+            SELECT province_chapter_id, province_chapter_name
             FROM ${tablePrefix}_ProvinceChapters
             WHERE main_id = ?
           `, [id]).catch(err => {
@@ -494,12 +511,12 @@ export async function GET(request, { params }) {
         ]);
         
         console.log(`[PERF] Industrial groups and provincial chapters queries took: ${Date.now() - groupsStart}ms`);
-        additionalData.industrialGroupIds = industrialGroupsResult[0] || [];
-        additionalData.provincialChapterIds = provincialChaptersResult[0] || [];
+        additionalData.industrialGroups = industrialGroupsResult[0] || [];
+        additionalData.provincialChapters = provincialChaptersResult[0] || [];
       } catch (groupsError) {
         console.error('Error fetching groups:', groupsError);
-        additionalData.industrialGroupIds = [];
-        additionalData.provincialChapterIds = [];
+        additionalData.industrialGroups = [];
+        additionalData.provincialChapters = [];
       }
     }
     
@@ -522,14 +539,14 @@ export async function GET(request, { params }) {
           }),
           // Get industrial groups
           connection.execute(`
-            SELECT industry_group_id as id FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?
+            SELECT industry_group_id, industry_group_name FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?
           `, [id]).catch(err => {
             console.error('Error fetching IC industrial groups:', err);
             return [[]]; // Return empty result
           }),
           // Get provincial chapters
           connection.execute(`
-            SELECT province_chapter_id as id FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?
+            SELECT province_chapter_id, province_chapter_name FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?
           `, [id]).catch(err => {
             console.error('Error fetching IC provincial chapters:', err);
             return [[]]; // Return empty result
@@ -538,13 +555,13 @@ export async function GET(request, { params }) {
         
         console.log(`[PERF] IC-specific data queries took: ${Date.now() - icDataStart}ms`);
         additionalData.representatives = representativesResult[0] || [];
-        additionalData.industrialGroupIds = industrialGroupsResult[0] || [];
-        additionalData.provincialChapterIds = provincialChaptersResult[0] || [];
+        additionalData.industrialGroups = industrialGroupsResult[0] || [];
+        additionalData.provincialChapters = provincialChaptersResult[0] || [];
       } catch (icError) {
         console.error('Error fetching IC-specific data:', icError);
         additionalData.representatives = [];
-        additionalData.industrialGroupIds = [];
-        additionalData.provincialChapterIds = [];
+        additionalData.industrialGroups = [];
+        additionalData.provincialChapters = [];
       }
     }
     

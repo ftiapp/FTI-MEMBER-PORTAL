@@ -75,15 +75,13 @@ const RepresentativeCard = ({ representative, index }) => (
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
           <p className="text-sm">
-            {/* รองรับทั้ง field names เก่าและใหม่ */}
-            {representative.firstNameTh || representative.firstNameThai || ''} {representative.lastNameTh || representative.lastNameThai || ''}
+            {representative.first_name_th || representative.firstNameTh || ''} {representative.last_name_th || representative.lastNameTh || ''}
           </p>
         </div>
         <div>
           <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
           <p className="text-sm">
-            {/* รองรับทั้ง field names เก่าและใหม่ */}
-            {representative.firstNameEn || representative.firstNameEng || representative.firstNameEnglish || ''} {representative.lastNameEn || representative.lastNameEng || representative.lastNameEnglish || ''}
+            {representative.first_name_en || representative.firstNameEn || ''} {representative.last_name_en || representative.lastNameEn || ''}
           </p>
         </div>
         {representative.position && (
@@ -101,7 +99,7 @@ const RepresentativeCard = ({ representative, index }) => (
           <p className="text-sm">
             {(() => {
               const phone = representative.phone || '-';
-              const extension = representative.phoneExtension || representative.phone_extension || '';
+              const extension = representative.phone_extension || representative.phoneExtension || '';
               if (phone === '-') return '-';
               return extension ? `${phone} ต่อ ${extension}` : phone;
             })()}
@@ -168,6 +166,9 @@ export default function SummarySection({ formData, industrialGroups, provincialC
   const getFileName = (file) => {
     if (file && typeof file === 'object' && file.name) {
       return file.name;
+    }
+    if (file && typeof file === 'object' && file.file_name) {
+      return file.file_name;
     }
     return 'ไม่ได้อัปโหลด';
   };
@@ -249,12 +250,12 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     if (formData.contactPersons && formData.contactPersons.length > 0) {
       const mainContact = formData.contactPersons[0]; // ผู้ประสานงานหลัก
       if (isEnglish) {
-        return mainContact.firstNameEn && mainContact.lastNameEn 
-          ? `${mainContact.firstNameEn} ${mainContact.lastNameEn}` 
+        return (mainContact.first_name_en || mainContact.firstNameEn) && (mainContact.last_name_en || mainContact.lastNameEn)
+          ? `${mainContact.first_name_en || mainContact.firstNameEn} ${mainContact.last_name_en || mainContact.lastNameEn}` 
           : '-';
       }
-      return mainContact.firstNameTh && mainContact.lastNameTh 
-        ? `${mainContact.firstNameTh} ${mainContact.lastNameTh}` 
+      return (mainContact.first_name_th || mainContact.firstNameTh) && (mainContact.last_name_th || mainContact.lastNameTh)
+        ? `${mainContact.first_name_th || mainContact.firstNameTh} ${mainContact.last_name_th || mainContact.lastNameTh}` 
         : '-';
     }
     
@@ -283,9 +284,9 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         position: mainContact.position || '-',
         email: mainContact.email || '-',
         phone: mainContact.phone || '-',
-        phoneExtension: mainContact.phoneExtension || mainContact.phone_extension || '',
-        typeContactName: mainContact.typeContactName || 'ผู้ประสานงานหลัก',
-        typeContactOtherDetail: mainContact.typeContactOtherDetail || ''
+        phoneExtension: mainContact.phone_extension || mainContact.phoneExtension || '',
+        typeContactName: mainContact.type_contact_name || mainContact.typeContactName || 'ผู้ประสานงานหลัก',
+        typeContactOtherDetail: mainContact.type_contact_other_detail || mainContact.typeContactOtherDetail || ''
       };
     }
     
@@ -308,10 +309,26 @@ export default function SummarySection({ formData, industrialGroups, provincialC
       {/* ข้อมูลสมาคม */}
       <Section title="ข้อมูลสมาคม">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <InfoCard title="ชื่อสมาคม (ไทย)" value={formData.associationName} />
-          <InfoCard title="ชื่อสมาคม (อังกฤษ)" value={formData.associationNameEn || formData.associationNameEng} />
-          <InfoCard title="เลขทะเบียนสมาคม" value={formData.associationRegistrationNumber} />
-          <InfoCard title="เว็บไซต์" value={formData.associationWebsite || formData.website} />
+          <InfoCard 
+            title="ชื่อสมาคม (ไทย)" 
+            value={formData.associationName || formData.company_name_th} 
+          />
+          <InfoCard 
+            title="ชื่อสมาคม (อังกฤษ)" 
+            value={formData.associationNameEn || formData.associationNameEng || formData.company_name_en} 
+          />
+          <InfoCard 
+            title="เลขทะเบียนสมาคม" 
+            value={formData.associationRegistrationNumber || formData.member_code || formData.registrationNumber} 
+          />
+          <InfoCard 
+            title="เลขประจำตัวผู้เสียภาษี" 
+            value={formData.taxId || formData.tax_id} 
+          />
+          <InfoCard 
+            title="เว็บไซต์" 
+            value={formData.associationWebsite || formData.website} 
+          />
         </div>
       </Section>
 
@@ -337,15 +354,15 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                     <div key={type} className="border border-gray-200 rounded-lg p-4">
                       <h4 className="text-lg font-medium text-gray-900 mb-4">{label}</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <InfoCard title="เลขที่" value={address.addressNumber} />
+                        <InfoCard title="เลขที่" value={address.address_number || address.addressNumber} />
                         <InfoCard title="อาคาร/หมู่บ้าน" value={address.building} />
                         <InfoCard title="หมู่" value={address.moo} />
                         <InfoCard title="ซอย" value={address.soi} />
                         <InfoCard title="ถนน" value={address.road || address.street} />
-                        <InfoCard title="ตำบล/แขวง" value={address.subDistrict} />
+                        <InfoCard title="ตำบล/แขวง" value={address.sub_district || address.subDistrict} />
                         <InfoCard title="อำเภอ/เขต" value={address.district} />
                         <InfoCard title="จังหวัด" value={address.province} />
-                        <InfoCard title="รหัสไปรษณีย์" value={address.postalCode} />
+                        <InfoCard title="รหัสไปรษณีย์" value={address.postal_code || address.postalCode} />
                         <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                           <InfoCard title="อีเมล" value={address.email} />
                           <InfoCard title="เว็บไซต์" value={address.website || formData.website} />
@@ -354,7 +371,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                           title="เบอร์โทรศัพท์" 
                           value={(function(){
                             const p = address.phone || '-';
-                            const ext = address.phoneExtension || address.phone_extension || '';
+                            const ext = address.phone_extension || address.phoneExtension || '';
                             if (p === '-') return '-';
                             return ext ? `${p} ต่อ ${ext}` : p;
                           })()} 
@@ -367,23 +384,23 @@ export default function SummarySection({ formData, industrialGroups, provincialC
             );
           }
 
-          // Fallback to old single address format
+          // Fallback to old single address format - รองรับ database field names
           return (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <InfoCard title="เลขที่" value={formData.addressNumber} />
+              <InfoCard title="เลขที่" value={formData.addressNumber || formData.address_number} />
               <InfoCard title="หมู่" value={formData.moo} />
               <InfoCard title="ซอย" value={formData.soi} />
               <InfoCard title="ถนน" value={formData.road || formData.street} />
-              <InfoCard title="ตำบล/แขวง" value={formData.subDistrict} />
+              <InfoCard title="ตำบล/แขวง" value={formData.subDistrict || formData.sub_district} />
               <InfoCard title="อำเภอ/เขต" value={formData.district} />
               <InfoCard title="จังหวัด" value={formData.province} />
-              <InfoCard title="รหัสไปรษณีย์" value={formData.postalCode} />
-              <InfoCard title="อีเมล" value={formData.associationEmail} />
+              <InfoCard title="รหัสไปรษณีย์" value={formData.postalCode || formData.postal_code} />
+              <InfoCard title="อีเมล" value={formData.associationEmail || formData.company_email} />
               <InfoCard 
                 title="เบอร์โทรศัพท์" 
                 value={(function(){
-                  const p = formData.associationPhone || '-';
-                  const ext = formData.associationPhoneExtension || '';
+                  const p = formData.associationPhone || formData.company_phone || '-';
+                  const ext = formData.associationPhoneExtension || formData.company_phone_extension || '';
                   if (p === '-') return '-';
                   return ext ? `${p} ต่อ ${ext}` : p;
                 })()} 
@@ -434,14 +451,14 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                       <div key={index + 1} className="bg-white border border-gray-200 rounded-lg p-4">
                         <div className="flex items-center space-x-2 mb-2">
                           <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {contact.typeContactName || 'ผู้ติดต่อ'}
+                            {contact.type_contact_name || contact.typeContactName || 'ผู้ติดต่อ'}
                           </span>
                         </div>
                         <div className="space-y-1 text-sm">
-                          <div><span className="font-medium">ชื่อ:</span> {contact.firstNameTh} {contact.lastNameTh}</div>
+                          <div><span className="font-medium">ชื่อ:</span> {contact.first_name_th || contact.firstNameTh} {contact.last_name_th || contact.lastNameTh}</div>
                           <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
                           <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
-                          <div><span className="font-medium">โทร:</span> {(function(){ const p = contact.phone || '-'; const ext = contact.phoneExtension || contact.phone_extension || ''; if (p === '-') return '-'; return ext ? `${p} ต่อ ${ext}` : p; })()} </div>
+                          <div><span className="font-medium">โทร:</span> {(function(){ const p = contact.phone || '-'; const ext = contact.phone_extension || contact.phoneExtension || ''; if (p === '-') return '-'; return ext ? `${p} ต่อ ${ext}` : p; })()} </div>
                         </div>
                       </div>
                     ))}
@@ -472,10 +489,18 @@ export default function SummarySection({ formData, industrialGroups, provincialC
           <BusinessTypesCard title="ประเภทธุรกิจ" businessTypes={getSelectedBusinessTypesArray()} />
           <InfoCard title="สินค้า / บริการ" value={
             formData.products?.length > 0 
-              ? formData.products.map(p => p.nameTh || p.nameEn).filter(Boolean).join(', ')
+              ? formData.products.map(p => p.name_th || p.nameTh || p.name_en || p.nameEn).filter(Boolean).join(', ')
               : '-'
           } />
-          <InfoCard title="จำนวนสมาชิกสมาคม" value={formData.memberCount ? Number(formData.memberCount).toLocaleString() : '-'} />
+          
+          <InfoCard 
+            title="จำนวนพนักงาน" 
+            value={formData.numberOfEmployees || formData.number_of_employees ? formatNumber(formData.numberOfEmployees || formData.number_of_employees) : '-'} 
+          />
+          <InfoCard 
+            title="จำนวนสมาชิกสมาคม" 
+            value={formData.memberCount || formData.number_of_member ? formatNumber(formData.memberCount || formData.number_of_member) : '-'} 
+          />
           <ListCard title="กลุ่มอุตสาหกรรม" items={getSelectedIndustrialGroupsArray()} />
           <div className="md:col-span-2">
             <ListCard title="สภาอุตสาหกรรมจังหวัด" items={getSelectedProvincialChaptersArray()} />
@@ -488,30 +513,30 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard 
             title="ทุนจดทะเบียน (บาท)" 
-            value={formData?.registeredCapital ? Number(formData.registeredCapital).toLocaleString() : '-'} 
+            value={formData?.registeredCapital || formData?.registered_capital ? formatNumber(formData.registeredCapital || formData.registered_capital) : '-'} 
           />
           <InfoCard 
             title="กำลังการผลิต (ต่อปี)" 
-            value={formData?.productionCapacityValue && formData?.productionCapacityUnit 
-              ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}` 
+            value={formData?.productionCapacityValue || formData?.production_capacity_value && (formData?.productionCapacityUnit || formData?.production_capacity_unit)
+              ? `${formatNumber(formData.productionCapacityValue || formData.production_capacity_value)} ${formData.productionCapacityUnit || formData.production_capacity_unit}` 
               : '-'
             } 
           />
           <InfoCard 
             title="ยอดจำหน่ายในประเทศ (บาท/ปี)" 
-            value={formData?.salesDomestic ? Number(formData.salesDomestic).toLocaleString() : '-'} 
+            value={formData?.salesDomestic || formData?.sales_domestic ? formatNumber(formData.salesDomestic || formData.sales_domestic) : '-'} 
           />
           <InfoCard 
             title="ยอดจำหน่ายส่งออก (บาท/ปี)" 
-            value={formData?.salesExport ? Number(formData.salesExport).toLocaleString() : '-'} 
+            value={formData?.salesExport || formData?.sales_export ? formatNumber(formData.salesExport || formData.sales_export) : '-'} 
           />
           <InfoCard 
             title="สัดส่วนผู้ถือหุ้นไทย (%)" 
-            value={formData?.shareholderThaiPercent ? `${Number(formData.shareholderThaiPercent).toFixed(2)}%` : '-'} 
+            value={formData?.shareholderThaiPercent || formData?.shareholder_thai_percent ? `${Number(formData.shareholderThaiPercent || formData.shareholder_thai_percent).toFixed(2)}%` : '-'} 
           />
           <InfoCard 
             title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)" 
-            value={formData?.shareholderForeignPercent ? `${Number(formData.shareholderForeignPercent).toFixed(2)}%` : '-'} 
+            value={formData?.shareholderForeignPercent || formData?.shareholder_foreign_percent ? `${Number(formData.shareholderForeignPercent || formData.shareholder_foreign_percent).toFixed(2)}%` : '-'} 
           />
         </div>
       </Section>

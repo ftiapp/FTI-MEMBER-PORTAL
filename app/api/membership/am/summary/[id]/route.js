@@ -148,7 +148,13 @@ export async function GET(request, { params }) {
       associationPhone: amData.company_phone || mainAddress?.phone || '',
       associationPhoneExtension: amData.company_phone_extension || '',
       associationWebsite: mainAddress?.website || '',
-      memberCount: amData.member_count,
+      // Tax ID
+      taxId: amData.tax_id || '',
+      // Employee/Member counts (map to both camelCase and snake_case expected by SummarySection)
+      numberOfEmployees: amData.number_of_employees ?? null,
+      number_of_employees: amData.number_of_employees ?? null,
+      memberCount: amData.number_of_member ?? null,
+      number_of_member: amData.number_of_member ?? null,
       status: amData.status,
       createdAt: amData.created_at,
       updatedAt: amData.updated_at,
@@ -194,16 +200,25 @@ export async function GET(request, { params }) {
       contactPersonEmail: contactPersonsResult?.[0]?.email || '',
       contactPersonPhone: contactPersonsResult?.[0]?.phone || '',
       
-      // Representatives
+      // Representatives - align keys with SummarySection expectations
       representatives: (representativesResult || []).map(rep => ({
-        firstNameThai: rep.first_name_th,
-        lastNameThai: rep.last_name_th,
-        firstNameEng: rep.first_name_en,
-        lastNameEng: rep.last_name_en,
+        // snake_case
+        first_name_th: rep.first_name_th,
+        last_name_th: rep.last_name_th,
+        first_name_en: rep.first_name_en,
+        last_name_en: rep.last_name_en,
+        phone_extension: rep.phone_extension || '',
+        // camelCase fallbacks
+        firstNameTh: rep.first_name_th,
+        lastNameTh: rep.last_name_th,
+        firstNameEn: rep.first_name_en,
+        lastNameEn: rep.last_name_en,
+        phoneExtension: rep.phone_extension || '',
+        // common
         email: rep.email,
         phone: rep.phone,
-        phoneExtension: rep.phone_extension || '',
-        position: rep.position
+        position: rep.position,
+        isPrimary: rep.is_primary === 1
       })),
       
       // Business Types - transform to match frontend format
