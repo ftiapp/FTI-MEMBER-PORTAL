@@ -3,6 +3,8 @@ import { getConnection } from '@/app/lib/db';
 import { checkAdminSession } from '@/app/lib/auth';
 
 export async function POST(request, { params }) {
+  let connection;
+  
   try {
     // Verify admin token
     const adminData = await checkAdminSession();
@@ -28,7 +30,7 @@ export async function POST(request, { params }) {
     const { adminNote } = body;
 
     // Get database connection
-    const connection = await getConnection();
+    connection = await getConnection();
 
     // Begin transaction
     await connection.beginTransaction();
@@ -47,7 +49,7 @@ export async function POST(request, { params }) {
           tableName = 'MemberRegist_AC_Main';
           break;
         case 'ic':
-          tableName = 'ICmember_Info';
+          tableName = 'MemberRegist_IC_Main';
           break;
       }
 
@@ -72,13 +74,13 @@ export async function POST(request, { params }) {
       try {
         let query;
         if (type === 'ic') {
-          // For IC, use id_card instead of tax_id and name instead of company_name
-          query = `SELECT id_card as tax_id, CONCAT(first_name_th, ' ', last_name_th) as company_name FROM ICmember_Info WHERE id = ?`;
+          // For IC, use id_card_number instead of tax_id and name instead of company_name
+          query = `SELECT id_card_number as tax_id, CONCAT(first_name_th, ' ', last_name_th) as company_name FROM MemberRegist_IC_Main WHERE id = ?`;
         } else {
           // For OC, AM, AC
           const fieldMap = {
             'oc': { table: 'MemberRegist_OC_Main', taxField: 'tax_id', nameField: 'company_name_th' },
-            'am': { table: 'MemberRegist_AM_Main', taxField: 'tax_id', nameField: 'association_name_th' },
+            'am': { table: 'MemberRegist_AM_Main', taxField: 'tax_id', nameField: 'company_name_th' },
             'ac': { table: 'MemberRegist_AC_Main', taxField: 'tax_id', nameField: 'company_name_th' }
           };
           
@@ -121,18 +123,15 @@ export async function POST(request, { params }) {
 
       // Commit transaction
       await connection.commit();
-      
-      // Close connection
-      await connection.end();
 
       return NextResponse.json({ 
         success: true, 
         message: 'Membership request approved successfully' 
       });
-    } catch (error) {
+    } catch (transactionError) {
       // Rollback transaction on error
       await connection.rollback();
-      throw error;
+      throw transactionError;
     }
   } catch (error) {
     console.error('Error approving membership request:', error);
@@ -140,5 +139,14 @@ export async function POST(request, { params }) {
       { success: false, message: 'Failed to approve membership request' },
       { status: 500 }
     );
+  } finally {
+    // ปิด connection ในทุกกรณี
+    if (connection) {
+      try {
+        connection.release(); // เปลี่ยนจาก connection.end() เป็น connection.release()
+      } catch (releaseError) {
+        console.error('Error releasing connection:', releaseError);
+      }
+    }
   }
 }

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import ApprovalModal from '../../../components/modals/ApprovalModal';
+import { MEMBER_TYPES } from '../../../ีutils/constants';
 
 const ICDetailView = ({ 
   application, 
@@ -12,9 +14,47 @@ const ICDetailView = ({
   adminNote,
   setAdminNote,
   isSubmitting,
-  handleConnectMemberCode
+  handleConnectMemberCode,
+  type = 'ic' // Add type prop with default value
 }) => {
   const [isConnecting, setIsConnecting] = useState(false);
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+
+  // Handle approval modal
+  const handleApproveClick = () => {
+    setShowApprovalModal(true);
+  };
+
+  const handleApprovalConfirm = () => {
+    setShowApprovalModal(false);
+    handleApprove();
+  };
+
+  const handleApprovalCancel = () => {
+    setShowApprovalModal(false);
+  };
+
+  // Get member type info
+  const memberTypeInfo = MEMBER_TYPES[type] || { code: 'N/A', name: 'ไม่ทราบประเภท' };
+  
+  // Get company name (for IC, it's usually personal name)
+  const getDisplayName = () => {
+    if (application?.first_name_th && application?.last_name_th) {
+      return `${application.first_name_th} ${application.last_name_th}`;
+    }
+    if (application?.firstNameTh && application?.lastNameTh) {
+      return `${application.firstNameTh} ${application.lastNameTh}`;
+    }
+    if (application?.name) return application.name;
+    return 'ไม่ระบุ';
+  };
+
+  // Get ID card number
+  const getIdCard = () => {
+    if (application?.id_card_number) return application.id_card_number;
+    if (application?.idCard) return application.idCard;
+    return 'ไม่ระบุ';
+  };
   
   // Function to get document display name based on document type
   const getDocumentDisplayName = (doc) => {
@@ -451,7 +491,7 @@ const ICDetailView = ({
                   {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
                 </button>
                 <button
-                  onClick={handleApprove}
+                  onClick={handleApproveClick}
                   className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
                   disabled={isSubmitting}
                 >
@@ -475,6 +515,19 @@ const ICDetailView = ({
           )}
         </div>
       </div>
+
+      {/* Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        onClose={handleApprovalCancel}
+        onConfirm={handleApprovalConfirm}
+        isSubmitting={isSubmitting}
+        applicationData={{
+          memberType: `${memberTypeInfo.code} - ${memberTypeInfo.name}`,
+          companyName: getDisplayName(),
+          taxId: getIdCard()
+        }}
+      />
     </div>
   );
 };

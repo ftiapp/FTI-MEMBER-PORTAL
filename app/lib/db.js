@@ -200,7 +200,7 @@ export async function beginTransaction() {
  */
 export async function executeQuery(connection, sql, params) {
   try {
-    const [results] = await connection.query(sql, params);
+    const [results] = await connection.execute(sql, params);
     return results;
   } catch (error) {
     console.error('Error executing query:', {

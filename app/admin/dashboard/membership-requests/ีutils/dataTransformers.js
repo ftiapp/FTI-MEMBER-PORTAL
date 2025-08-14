@@ -3,12 +3,20 @@ import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from './c
 export const normalizeApplicationData = (application, type) => {
   if (!application) return null;
   
+  // Map numeric status to string status for UI
+  let statusString = 'pending';
+  if (application.status === 1) {
+    statusString = 'approved';
+  } else if (application.status === 2) {
+    statusString = 'rejected';
+  }
+  
   // Normalize field names to consistent format
   return {
     // Basic Info
     id: application.id,
     type: type || application.type,
-    status: application.status,
+    status: statusString,
     memberCode: application.member_code || application.memberCode,
     
     // Personal/Company Info (from users table)
@@ -57,6 +65,7 @@ export const normalizeApplicationData = (application, type) => {
     // People
     representatives: normalizeRepresentatives(application),
     contactPerson: normalizeContactPerson(application),
+    contactPersons: normalizeContactPersons(application),
     
     // Documents
     documents: normalizeDocuments(application),
@@ -286,6 +295,65 @@ export const normalizeContactPerson = (application) => {
     typeContactName: contact.type_contact_name || contact.typeContactName,
     typeContactOtherDetail: contact.type_contact_other_detail || contact.typeContactOtherDetail
   };
+};
+
+// New function to normalize multiple contact persons
+export const normalizeContactPersons = (application) => {
+  // Try various possible locations for contact person data
+  let contacts = [];
+  
+  // Check for contactPersons array first
+  if (application.contactPersons && Array.isArray(application.contactPersons)) {
+    contacts = application.contactPersons;
+  }
+  // Check for contact_persons array (snake_case)
+  else if (application.contact_persons && Array.isArray(application.contact_persons)) {
+    contacts = application.contact_persons;
+  }
+  // Check for AM specific table data
+  else if (application.am_contact_persons && Array.isArray(application.am_contact_persons)) {
+    contacts = application.am_contact_persons;
+  }
+  // Check for OC specific table data
+  else if (application.oc_contact_persons && Array.isArray(application.oc_contact_persons)) {
+    contacts = application.oc_contact_persons;
+  }
+  // Check for AC specific table data
+  else if (application.ac_contact_persons && Array.isArray(application.ac_contact_persons)) {
+    contacts = application.ac_contact_persons;
+  }
+  // Check for IC specific table data
+  else if (application.ic_contact_persons && Array.isArray(application.ic_contact_persons)) {
+    contacts = application.ic_contact_persons;
+  }
+  // If we have a single contactPerson, convert it to array
+  else if (application.contactPerson || application.contact_person) {
+    const contact = application.contactPerson || application.contact_person;
+    contacts = [contact];
+  }
+  
+  // If still no contacts, try to use representatives as fallback
+  if (contacts.length === 0 && application.representatives) {
+    const reps = normalizeRepresentatives(application);
+    if (reps.length > 0) {
+      contacts = reps;
+    }
+  }
+  
+  // Map each contact to normalized format
+  return contacts.map(contact => ({
+    firstNameTh: contact.first_name_th || contact.firstNameTh,
+    lastNameTh: contact.last_name_th || contact.lastNameTh,
+    firstNameEn: contact.first_name_en || contact.firstNameEn,
+    lastNameEn: contact.last_name_en || contact.lastNameEn,
+    position: contact.position,
+    phone: contact.phone,
+    phoneExtension: contact.phone_extension || contact.phoneExtension,
+    email: contact.email,
+    typeContactId: contact.type_contact_id || contact.typeContactId,
+    typeContactName: contact.type_contact_name || contact.typeContactName,
+    typeContactOtherDetail: contact.type_contact_other_detail || contact.typeContactOtherDetail
+  }));
 };
 
 export const normalizeDocuments = (application) => {

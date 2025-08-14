@@ -43,6 +43,10 @@ export const MEMBER_TYPES = {
   am: {
     code: 'สส',
     name: 'สามัญ-สมาคมการค้า'
+  },
+  ac: {
+    code: 'ทน',
+    name: 'สมทบ-นิติบุคคล'
   }
 };
 

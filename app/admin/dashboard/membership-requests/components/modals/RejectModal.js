@@ -6,7 +6,10 @@ const RejectModal = ({
   rejectionReason, 
   onReasonChange, 
   onConfirm, 
-  isSubmitting 
+  isSubmitting,
+  recipientEmail,
+  recipientName,
+  recipientLoading
 }) => {
   if (!isOpen) return null;
   
@@ -14,6 +17,17 @@ const RejectModal = ({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-xl font-semibold mb-4">ปฏิเสธการสมัครสมาชิก</h3>
+        <div className="mb-4 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          <div className="font-medium mb-1">อีเมลที่จะได้รับการแจ้ง</div>
+          {recipientLoading ? (
+            <div className="animate-pulse text-amber-700">กำลังโหลดข้อมูลอีเมลผู้รับ...</div>
+          ) : (
+            <div className="text-amber-800">
+              <span className="font-medium">{recipientEmail || '-'}</span>
+              {recipientName ? <span> ({recipientName})</span> : null}
+            </div>
+          )}
+        </div>
         <div className="mb-4">
           <label className="block text-gray-700 mb-2">
             เหตุผลในการปฏิเสธ <span className="text-red-500">*</span>
@@ -40,7 +54,7 @@ const RejectModal = ({
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50"
             disabled={isSubmitting || !rejectionReason.trim()}
           >
-            {isSubmitting ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
+            {isSubmitting ? 'กำลังปฏิเสธและส่งอีเมล...' : 'ยืนยันการปฏิเสธ'}
           </button>
         </div>
       </div>

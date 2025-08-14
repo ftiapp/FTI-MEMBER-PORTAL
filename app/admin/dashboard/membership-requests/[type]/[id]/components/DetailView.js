@@ -20,10 +20,46 @@ const DetailView = ({
   onSaveNote,
   onApprove,
   onReject,
+  onOpenRejectModal,
   onViewDocument,
   isSubmitting,
   onPrint
 }) => {
+  // ฟังก์ชันสำหรับอัปเดตข้อมูลแต่ละส่วน
+  const handleSectionUpdate = async (section, data) => {
+    try {
+      const response = await fetch('/api/admin/membership-requests/update', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          applicationId: application.id,
+          type: type,
+          section: section,
+          data: data
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update data');
+      }
+
+      const result = await response.json();
+      
+      if (result.success) {
+        // รีเฟรชหน้าเพื่อแสดงข้อมูลใหม่
+        window.location.reload();
+      } else {
+        throw new Error(result.error || 'Update failed');
+      }
+    } catch (error) {
+      console.error('Error updating section:', error);
+      alert('เกิดข้อผิดพลาดในการอัปเดตข้อมูล: ' + error.message);
+      throw error;
+    }
+  };
+
   if (!application) {
     return (
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
@@ -51,18 +87,43 @@ const DetailView = ({
       </div>
 
       {/* Sections */}
-      <ApplicantInfoSection application={application} type={type} />
-      <CompanyInfoSection application={application} type={type} />
-      <ContactPersonSection application={application} />
+      <ApplicantInfoSection 
+        application={application} 
+        type={type} 
+        onUpdate={handleSectionUpdate}
+      />
+      <CompanyInfoSection 
+        application={application} 
+        type={type} 
+        onUpdate={handleSectionUpdate}
+      />
+      <ContactPersonSection 
+        application={application} 
+        onUpdate={handleSectionUpdate}
+      />
       <IndustrialGroupsSection 
         application={application}
         industrialGroups={industrialGroups}
         provincialChapters={provincialChapters}
+        onUpdate={handleSectionUpdate}
       />
-      <FinancialInfoSection application={application} type={type} />
-      <RepresentativesSection application={application} />
-      <AddressSection application={application} />
-      <ProductsSection application={application} />
+      <FinancialInfoSection 
+        application={application} 
+        type={type} 
+        onUpdate={handleSectionUpdate}
+      />
+      <RepresentativesSection 
+        application={application} 
+        onUpdate={handleSectionUpdate}
+      />
+      <AddressSection 
+        application={application} 
+        onUpdate={handleSectionUpdate}
+      />
+      <ProductsSection 
+        application={application} 
+        onUpdate={handleSectionUpdate}
+      />
       <DocumentsSection 
         application={application} 
         onViewDocument={onViewDocument}
@@ -74,7 +135,9 @@ const DetailView = ({
         onSaveNote={onSaveNote}
         onApprove={onApprove}
         onReject={onReject}
+        onOpenRejectModal={onOpenRejectModal}
         isSubmitting={isSubmitting}
+        type={type}
       />
     </div>
   );

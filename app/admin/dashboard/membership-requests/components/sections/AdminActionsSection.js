@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { formatThaiDateTime } from '../../ีutils/formatters';
-import { STATUS } from '../../ีutils/constants';
+import { STATUS, MEMBER_TYPES } from '../../ีutils/constants';
+import ApprovalModal from '../modals/ApprovalModal';
 
 const AdminActionsSection = ({ 
   application, 
@@ -9,12 +10,49 @@ const AdminActionsSection = ({
   onSaveNote,
   onApprove,
   onReject,
-  isSubmitting 
+  onOpenRejectModal,
+  isSubmitting,
+  type // Add type prop to get membership type
 }) => {
+  const [showApprovalModal, setShowApprovalModal] = useState(false);
+
+  const handleApproveClick = () => {
+    setShowApprovalModal(true);
+  };
+
+  const handleApprovalConfirm = () => {
+    setShowApprovalModal(false);
+    onApprove();
+  };
+
+  const handleApprovalCancel = () => {
+    setShowApprovalModal(false);
+  };
+
+  // Get member type info
+  const memberTypeInfo = MEMBER_TYPES[type] || { code: 'N/A', name: 'ไม่ทราบประเภท' };
+  
+  // Get company name based on membership type
+  const getCompanyName = () => {
+    if (application?.company_name_th) return application.company_name_th;
+    if (application?.companyNameTh) return application.companyNameTh;
+    if (application?.associationNameTh) return application.associationNameTh;
+    if (application?.name) return application.name;
+    return 'ไม่ระบุ';
+  };
+
+  // Get tax ID or ID card
+  const getTaxIdOrIdCard = () => {
+    if (application?.tax_id) return application.tax_id;
+    if (application?.taxId) return application.taxId;
+    if (application?.id_card_number) return application.id_card_number;
+    if (application?.idCard) return application.idCard;
+    return 'ไม่ระบุ';
+  };
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
       <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-        การดำเนินการของผู้ดูแลระบบ
+        การดำเนินการของผู้ดูแลระบบบบบบบ
       </h3>
       
       {/* Admin Note */}
@@ -50,7 +88,7 @@ const AdminActionsSection = ({
       {application?.status === STATUS.PENDING && (
         <div className="flex justify-end space-x-4">
           <button
-            onClick={onReject}
+            onClick={onOpenRejectModal}
             className="flex items-center gap-2 px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
             disabled={isSubmitting}
           >
@@ -60,7 +98,7 @@ const AdminActionsSection = ({
             {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
           </button>
           <button
-            onClick={onApprove}
+            onClick={handleApproveClick}
             className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
             disabled={isSubmitting}
           >
@@ -80,6 +118,19 @@ const AdminActionsSection = ({
           <p className="text-sm text-green-600 mt-1">เชื่อมต่อฐานข้อมูลสำเร็จแล้ว</p>
         </div>
       )}
+
+      {/* Approval Modal */}
+      <ApprovalModal
+        isOpen={showApprovalModal}
+        onClose={handleApprovalCancel}
+        onConfirm={handleApprovalConfirm}
+        isSubmitting={isSubmitting}
+        applicationData={{
+          memberType: `${memberTypeInfo.code} - ${memberTypeInfo.name}`,
+          companyName: getCompanyName(),
+          taxId: getTaxIdOrIdCard()
+        }}
+      />
     </div>
   );
 };

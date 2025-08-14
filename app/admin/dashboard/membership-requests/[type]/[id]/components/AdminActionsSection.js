@@ -46,7 +46,7 @@ const AdminActionsSection = ({
       </div>
       
       {/* Action Buttons */}
-      {application.status !== 1 && (
+      {application.status === 0 && (
         <div className="flex justify-end space-x-4">
           <button
             onClick={handleReject}

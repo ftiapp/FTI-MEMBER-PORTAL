@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, use } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import AdminLayout from '../../../../components/AdminLayout';
 import DetailView from './components/DetailView';
 import ICDetailView from './components/ICDetailView';
 import RejectModal from '../../components/modals/RejectModal';
+import SuccessModal from '../../components/modals/SuccessModal';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import StatusBadge from '../../components/common/StatusBadge';
 import { useApplicationData } from '../../hooks/useApplicationData';
@@ -31,9 +32,20 @@ export default function MembershipRequestDetail({ params }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successTitle, setSuccessTitle] = useState('สำเร็จ');
+  const [successMessage, setSuccessMessage] = useState('ดำเนินการสำเร็จ');
+  const [recipientEmail, setRecipientEmail] = useState(null);
+  const [recipientName, setRecipientName] = useState(null);
+  const [recipientLoading, setRecipientLoading] = useState(false);
 
-  // Initialize admin note when application loads
-  useState(() => {
+  const handleGoToList = () => {
+    setShowSuccessModal(false);
+    router.push('/admin/dashboard/membership-requests');
+  };
+
+  // แก้ไข: ใช้ useEffect แทน useState
+  useEffect(() => {
     if (application?.adminNote) {
       setAdminNote(application.adminNote);
     }
@@ -43,6 +55,7 @@ export default function MembershipRequestDetail({ params }) {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
+    
     try {
       const response = await fetch(`/api/admin/membership-requests/${type}/${id}/save-note`, {
         method: 'POST',
@@ -51,6 +64,7 @@ export default function MembershipRequestDetail({ params }) {
       });
       
       const data = await response.json();
+      console.log('Save Note Response:', data); // Debug log
       
       if (data.success) {
         toast.success('บันทึกหมายเหตุเรียบร้อยแล้ว');
@@ -59,13 +73,14 @@ export default function MembershipRequestDetail({ params }) {
           adminNoteAt: new Date().toISOString()
         });
       } else {
+        console.log('Save Note Error:', data.message); // Debug log
         toast.error(data.message || 'ไม่สามารถบันทึกหมายเหตุได้');
       }
     } catch (error) {
       console.error('Error saving admin note:', error);
       toast.error('ไม่สามารถบันทึกหมายเหตุได้');
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // ย้ายมาไว้ใน finally
     }
   };
 
@@ -73,57 +88,133 @@ export default function MembershipRequestDetail({ params }) {
     if (isSubmitting) return;
     
     setIsSubmitting(true);
+    
+    const loadingToastId = toast.loading('กำลังอนุมัติการสมัครสมาชิก... กรุณารอสักครู่');
+    
     try {
+      // เพิ่ม timeout 60 วินาที
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
       const response = await fetch(`/api/admin/membership-requests/${type}/${id}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminNote }),
+        signal: controller.signal,
       });
       
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
+      console.log('Approve Response:', data); // Debug log
       
       if (data.success) {
         toast.success('อนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
-        setTimeout(() => {
-          router.push('/admin/dashboard/membership-requests');
-        }, 1500);
+        updateApplication({ ...application, status: 'approved' });
+        setSuccessTitle('อนุมัติสำเร็จ');
+        setSuccessMessage('ได้ทำการอนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
+        setShowSuccessModal(true);
       } else {
+        console.log('Approve Error:', data.message); // Debug log
         toast.error(data.message || 'ไม่สามารถอนุมัติการสมัครสมาชิกได้');
-        setIsSubmitting(false);
       }
     } catch (error) {
       console.error('Error approving application:', error);
-      toast.error('ไม่สามารถอนุมัติการสมัครสมาชิกได้');
-      setIsSubmitting(false);
+      if (error.name === 'AbortError') {
+        toast.error('การร้องขอใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง');
+      } else {
+        toast.error('ไม่สามารถอนุมัติการสมัครสมาชิกได้');
+      }
+    } finally {
+      toast.dismiss(loadingToastId);
+      setIsSubmitting(false); // แน่ใจว่าจะ reset เสมอ
     }
+  };
+
+  const handleOpenRejectModal = async () => {
+    setShowRejectModal(true);
+    setRecipientLoading(true);
+    setRecipientEmail(null);
+    setRecipientName(null);
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000);
+      const res = await fetch(`/api/admin/membership-requests/${type}/${id}/reject`, {
+        method: 'GET',
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (data.success) {
+        setRecipientEmail(data.recipientEmail || null);
+        setRecipientName(data.recipientName || null);
+      }
+    } catch (e) {
+      console.error('Failed to fetch recipient preview:', e);
+    } finally {
+      setRecipientLoading(false);
+    }
+  };
+
+  const handleCloseRejectModal = () => {
+    setShowRejectModal(false);
+    setRejectionReason('');
+    setRecipientEmail(null);
+    setRecipientName(null);
+    setRecipientLoading(false);
   };
 
   const handleReject = async () => {
     if (isSubmitting || !rejectionReason.trim()) return;
     
     setIsSubmitting(true);
+    
+    const loadingToastId = toast.loading('กำลังปฏิเสธการสมัครสมาชิกและส่งอีเมลแจ้ง... กรุณารอสักครู่');
+    
     try {
+      // เพิ่ม timeout 60 วินาที
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      
       const response = await fetch(`/api/admin/membership-requests/${type}/${id}/reject`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminNote, rejectionReason }),
+        signal: controller.signal,
       });
       
+      clearTimeout(timeoutId);
+      
       const data = await response.json();
+      console.log('Reject Response:', data); // Debug log
       
       if (data.success) {
         toast.success('ปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว');
-        router.push('/admin/dashboard/membership-requests');
+        updateApplication({ ...application, status: 'rejected', rejectionReason });
+        setShowRejectModal(false);
+        setRejectionReason('');
+        setSuccessTitle('ปฏิเสธสำเร็จ');
+        const recipientLine = data.emailSent
+          ? `ได้ส่งอีเมลแจ้งไปที่ ${data.recipientEmail || '-'}${data.recipientName ? ` (${data.recipientName})` : ''}`
+          : 'ไม่สามารถส่งอีเมลแจ้งได้ในขณะนี้';
+        setSuccessMessage(`ได้ทำการปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว\n${recipientLine}`);
+        setShowSuccessModal(true);
       } else {
+        console.log('Reject Error:', data.message); // Debug log
         toast.error(data.message || 'ไม่สามารถปฏิเสธการสมัครสมาชิกได้');
+        setShowRejectModal(false);
       }
     } catch (error) {
       console.error('Error rejecting application:', error);
-      toast.error('ไม่สามารถปฏิเสธการสมัครสมาชิกได้');
-    } finally {
-      setIsSubmitting(false);
+      if (error.name === 'AbortError') {
+        toast.error('การร้องขอใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง');
+      } else {
+        toast.error('ไม่สามารถปฏิเสธการสมัครสมาชิกได้');
+      }
       setShowRejectModal(false);
-      setRejectionReason('');
+    } finally {
+      toast.dismiss(loadingToastId);
+      setIsSubmitting(false); // แน่ใจว่าจะ reset เสมอ
     }
   };
 
@@ -205,7 +296,7 @@ export default function MembershipRequestDetail({ params }) {
         </div>
 
         {/* Main Content */}
-        <ViewComponent
+        <ViewComponent 
           application={application}
           type={type}
           industrialGroups={industrialGroups}
@@ -214,7 +305,8 @@ export default function MembershipRequestDetail({ params }) {
           onAdminNoteChange={setAdminNote}
           onSaveNote={handleSaveNote}
           onApprove={handleApprove}
-          onReject={() => setShowRejectModal(true)}
+          onReject={handleReject}
+          onOpenRejectModal={handleOpenRejectModal}
           onViewDocument={handleViewDocument}
           isSubmitting={isSubmitting}
           onPrint={handlePrint}
@@ -223,11 +315,25 @@ export default function MembershipRequestDetail({ params }) {
         {/* Reject Modal */}
         <RejectModal
           isOpen={showRejectModal}
-          onClose={() => setShowRejectModal(false)}
+          onClose={handleCloseRejectModal}
           rejectionReason={rejectionReason}
           onReasonChange={setRejectionReason}
           onConfirm={handleReject}
           isSubmitting={isSubmitting}
+          recipientEmail={recipientEmail}
+          recipientName={recipientName}
+          recipientLoading={recipientLoading}
+        />
+
+        {/* Success Modal */}
+        <SuccessModal
+          isOpen={showSuccessModal}
+          title={successTitle}
+          message={successMessage}
+          onClose={() => setShowSuccessModal(false)}
+          onGoList={handleGoToList}
+          confirmText="กลับไปหน้ารายการ"
+          cancelText="ปิด"
         />
       </div>
     </AdminLayout>
