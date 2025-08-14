@@ -680,7 +680,7 @@ export default function CompanyAddressInfo({
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
                 isRequired={true}
-                isReadOnly={true}
+                isReadOnly={false}
                 error={errors?.addresses?.[activeTab]?.postalCode}
                 autoFillNote={isAutofill && currentAddress?.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}

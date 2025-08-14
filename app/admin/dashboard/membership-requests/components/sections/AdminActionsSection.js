@@ -52,7 +52,7 @@ const AdminActionsSection = ({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
       <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-        การดำเนินการของผู้ดูแลระบบบบบบบ
+        การดำเนินการของผู้ดูแลระบบ
       </h3>
       
       {/* Admin Note */}

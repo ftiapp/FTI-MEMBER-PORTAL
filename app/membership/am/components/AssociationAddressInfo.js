@@ -649,7 +649,7 @@ export default function AssociationAddressInfo({
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
                 isRequired={true}
-                isReadOnly={true}
+                isReadOnly={false}
                 error={errors?.postalCode}
                 autoFillNote={isAutofill && formData.postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}

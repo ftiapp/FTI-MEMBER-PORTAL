@@ -27,7 +27,9 @@ export async function GET(request, { params }) {
       query = `
         SELECT u.email AS email,
                u.firstname AS first_name,
-               u.lastname AS last_name
+               u.lastname AS last_name,
+               CONCAT(m.first_name_th, ' ', m.last_name_th) AS company_name,
+               m.id_card_number AS tax_id
         FROM MemberRegist_IC_Main m
         INNER JOIN users u ON u.id = m.user_id
         WHERE m.id = ?`;
@@ -41,7 +43,9 @@ export async function GET(request, { params }) {
       query = `
         SELECT u.email AS email,
                u.firstname AS first_name,
-               u.lastname AS last_name
+               u.lastname AS last_name,
+               m.company_name_th AS company_name,
+               m.tax_id AS tax_id
         FROM ${table} m
         INNER JOIN users u ON u.id = m.user_id
         WHERE m.id = ?`;
@@ -52,8 +56,10 @@ export async function GET(request, { params }) {
     const firstName = rows?.[0]?.first_name || '';
     const lastName = rows?.[0]?.last_name || '';
     const recipientName = `${firstName} ${lastName}`.trim() || null;
+    const companyName = rows?.[0]?.company_name || null;
+    const taxId = rows?.[0]?.tax_id || null;
 
-    return NextResponse.json({ success: true, recipientEmail: email, recipientName });
+    return NextResponse.json({ success: true, recipientEmail: email, recipientName, companyName, taxId });
   } catch (error) {
     console.error('Error in GET reject preview:', error);
     return NextResponse.json({ success: false, message: 'Failed to fetch recipient preview' }, { status: 500 });
@@ -153,7 +159,8 @@ export async function POST(request, { params }) {
                    u.firstname AS first_name,
                    u.lastname AS last_name,
                    CONCAT(m.first_name_th, ' ', m.last_name_th) AS company_name,
-                   NULL AS member_code
+                   NULL AS member_code,
+                   m.id_card_number AS tax_id
             FROM MemberRegist_IC_Main m
             INNER JOIN users u ON u.id = m.user_id
             WHERE m.id = ?`;
@@ -170,7 +177,8 @@ export async function POST(request, { params }) {
                    u.firstname AS first_name,
                    u.lastname AS last_name,
                    m.company_name_th AS company_name,
-                   m.member_code AS member_code
+                   m.member_code AS member_code,
+                   m.tax_id AS tax_id
             FROM ${table} m
             INNER JOIN users u ON u.id = m.user_id
             WHERE m.id = ?`;
@@ -183,6 +191,7 @@ export async function POST(request, { params }) {
           lastName = rows[0].last_name || '';
           companyName = rows[0].company_name || '';
           memberCode = rows[0].member_code || '';
+          var taxId = rows[0].tax_id || '';
         }
       } catch (error) {
         console.error('Error fetching applicant details:', error);
@@ -244,7 +253,9 @@ export async function POST(request, { params }) {
         message: 'Membership request rejected successfully',
         emailSent: emailSent,
         recipientEmail: email || null,
-        recipientName: `${firstName || ''} ${lastName || ''}`.trim() || null
+        recipientName: `${firstName || ''} ${lastName || ''}`.trim() || null,
+        companyName: companyName || null,
+        taxId: taxId || null
       });
     } catch (transactionError) {
       // Rollback transaction on error

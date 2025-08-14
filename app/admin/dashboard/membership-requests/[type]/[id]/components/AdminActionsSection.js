@@ -7,7 +7,8 @@ const AdminActionsSection = ({
   handleSaveNote, 
   isSubmitting, 
   adminNote, 
-  setAdminNote 
+  setAdminNote,
+  type
 }) => {
   if (!application) return null;
 
@@ -16,6 +17,25 @@ const AdminActionsSection = ({
       <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
         การดำเนินการของผู้ดูแลระบบ
       </h3>
+      {/* Summary: Member Type / Company / Tax */}
+      <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <div>
+            <span className="text-gray-500">ประเภทสมาชิก:</span>{' '}
+            <span className="font-medium">{(type || application?.member_type || '-').toString().toUpperCase()}</span>
+          </div>
+          <div className="truncate">
+            <span className="text-gray-500">ชื่อบริษัท/ผู้ยื่น:</span>{' '}
+            <span className="font-medium">
+              {application?.company_name_th || application?.companyNameTh || application?.associationNameTh || application?.name || '-'}
+            </span>
+          </div>
+          <div className="truncate">
+            <span className="text-gray-500">เลขทะเบียนนิติบุคคล:</span>{' '}
+            <span className="font-medium">{application?.tax_id || application?.taxId || application?.id_card_number || application?.idCard || '-'}</span>
+          </div>
+        </div>
+      </div>
       
       {/* Admin Note */}
       <div className="mb-8">

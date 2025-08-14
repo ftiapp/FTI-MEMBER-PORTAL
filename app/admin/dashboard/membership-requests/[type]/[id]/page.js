@@ -38,6 +38,8 @@ export default function MembershipRequestDetail({ params }) {
   const [recipientEmail, setRecipientEmail] = useState(null);
   const [recipientName, setRecipientName] = useState(null);
   const [recipientLoading, setRecipientLoading] = useState(false);
+  const [previewCompanyName, setPreviewCompanyName] = useState(null);
+  const [previewTaxId, setPreviewTaxId] = useState(null);
 
   const handleGoToList = () => {
     setShowSuccessModal(false);
@@ -148,6 +150,8 @@ export default function MembershipRequestDetail({ params }) {
       if (data.success) {
         setRecipientEmail(data.recipientEmail || null);
         setRecipientName(data.recipientName || null);
+        setPreviewCompanyName(data.companyName || null);
+        setPreviewTaxId(data.taxId || null);
       }
     } catch (e) {
       console.error('Failed to fetch recipient preview:', e);
@@ -162,6 +166,8 @@ export default function MembershipRequestDetail({ params }) {
     setRecipientEmail(null);
     setRecipientName(null);
     setRecipientLoading(false);
+    setPreviewCompanyName(null);
+    setPreviewTaxId(null);
   };
 
   const handleReject = async () => {
@@ -197,7 +203,9 @@ export default function MembershipRequestDetail({ params }) {
         const recipientLine = data.emailSent
           ? `ได้ส่งอีเมลแจ้งไปที่ ${data.recipientEmail || '-'}${data.recipientName ? ` (${data.recipientName})` : ''}`
           : 'ไม่สามารถส่งอีเมลแจ้งได้ในขณะนี้';
-        setSuccessMessage(`ได้ทำการปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว\n${recipientLine}`);
+        const companyLine = `ชื่อบริษัท/ผู้ยื่น: ${data.companyName || '-'}`;
+        const taxLine = `TAX ID/เลขบัตร: ${data.taxId || '-'}`;
+        setSuccessMessage(`ได้ทำการปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว\n${companyLine}\n${taxLine}\n${recipientLine}`);
         setShowSuccessModal(true);
       } else {
         console.log('Reject Error:', data.message); // Debug log
@@ -323,6 +331,8 @@ export default function MembershipRequestDetail({ params }) {
           recipientEmail={recipientEmail}
           recipientName={recipientName}
           recipientLoading={recipientLoading}
+          companyName={previewCompanyName}
+          taxId={previewTaxId}
         />
 
         {/* Success Modal */}

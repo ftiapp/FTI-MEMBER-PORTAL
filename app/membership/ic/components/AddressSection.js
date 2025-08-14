@@ -557,7 +557,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 onSelect={handlePostalCodeSelect}
                 fetchOptions={fetchPostalCodes}
                 isRequired={true}
-                isReadOnly={true}
+                isReadOnly={false}
                 error={errors?.[`addresses.${activeTab}.postalCode`]}
                 autoFillNote={getCurrentAddress().postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
