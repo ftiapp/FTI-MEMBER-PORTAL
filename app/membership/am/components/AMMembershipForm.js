@@ -160,31 +160,59 @@ const useApiData = () => {
   return data;
 };
 
-export default function AMMembershipForm() {
+export default function AMMembershipForm(props = {}) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
   
-  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  // Support controlled formData from parent while keeping internal fallback
+  const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
+
+  // Determine which form data and setters to use
+  const isExternal = props.formData !== undefined;
+  const formData = isExternal ? props.formData : internalFormData;
+  const setFormData = isExternal ? props.setFormData : setInternalFormData;
+
+  // Sync externalFormData with internal state when it changes
+  useEffect(() => {
+    if (isExternal && props.formData && Object.keys(props.formData).length > 0) {
+      console.log('AM FORM: External form data received, updating internal state.', props.formData);
+      // Use the setter for internal state to avoid loops if the parent's setter is passed
+      setInternalFormData(prevData => ({ ...prevData, ...props.formData }));
+    }
+  }, [props.formData, isExternal]);
   
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
   const {
-    currentStep,
+    currentStep: hookCurrentStep,
     isSubmitting,
     setIsSubmitting,
     totalSteps,
     handleNextStep,
     handlePrevStep,
-    setCurrentStep // เพิ่มถ้า hook รองรับ
+    setCurrentStep: setHookCurrentStep // เพิ่มถ้า hook รองรับ
   } = useAMFormNavigation((formData, step) => validateAMForm(formData, step));
 
+  // Effective step control (prefer parent-controlled if provided)
+  const currentStep = props.currentStep ?? hookCurrentStep;
+  const setCurrentStep = props.setCurrentStep ?? setHookCurrentStep;
+  const effectiveTotalSteps = props.totalSteps ?? totalSteps ?? 5;
+
   // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
-  console.log('AM Current Step:', currentStep);
-  console.log('AM Total Steps:', totalSteps);
+  console.log('🎛️ AMMembershipForm Props:', {
+    hasFormDataProp: !!props.formData,
+    hasSetFormDataProp: !!props.setFormData,
+    hasCurrentStepProp: !!props.currentStep,
+    hasSetCurrentStepProp: !!props.setCurrentStep,
+    formDataKeys: props.formData ? Object.keys(props.formData) : 'none',
+    currentStepValue: currentStep,
+    totalStepsValue: effectiveTotalSteps
+  });
+  console.log('📝 Current formData:', formData);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -361,9 +389,13 @@ export default function AMMembershipForm() {
         return;
       }
     }
-    
-    handleNextStep(formData, setErrors);
-  }, [formData, currentStep, checkTaxIdUniqueness, handleNextStep]);
+
+    if (props.currentStep !== undefined && typeof setCurrentStep === 'function') {
+      setCurrentStep(currentStep + 1);
+    } else {
+      handleNextStep(formData, setErrors);
+    }
+  }, [formData, currentStep, checkTaxIdUniqueness, handleNextStep, props.currentStep, setCurrentStep]);
 
   const handlePrevious = useCallback((e) => {
     if (e) {
@@ -371,8 +403,12 @@ export default function AMMembershipForm() {
       e.stopPropagation();
     }
     
-    handlePrevStep();
-  }, [handlePrevStep]);
+    if (props.currentStep !== undefined && typeof setCurrentStep === 'function') {
+      setCurrentStep(Math.max(1, currentStep - 1));
+    } else {
+      handlePrevStep();
+    }
+  }, [handlePrevStep, props.currentStep, setCurrentStep, currentStep]);
 
   const handleSaveDraft = useCallback(async () => {
     // ตรวจสอบว่ามี Tax ID หรือไม่
@@ -591,13 +627,14 @@ export default function AMMembershipForm() {
             <div className="flex items-center space-x-3">
               <div className="bg-blue-50 px-4 py-2 rounded-lg">
                 <span className="text-lg text-blue-700 font-semibold">
-                  ขั้นตอนที่ {currentStep} จาก {totalSteps}
+                  ขั้นตอนที่ {currentStep} จาก {effectiveTotalSteps}
                 </span>
               </div>
             </div>
 
             <div className="flex items-center space-x-3">
-              {currentStep !== 4 && currentStep !== 5 && (
+              {/* Save Draft Button - Show on steps 1-4 */}
+              {currentStep < 5 && (
                 <button
                   type="button"
                   onClick={handleSaveDraft}
@@ -606,7 +643,9 @@ export default function AMMembershipForm() {
                   บันทึกร่าง
                 </button>
               )}
-              {currentStep < 5 ? (
+
+              {/* Next Button - Show on steps 1-4 */}
+              {currentStep < 5 && (
                 <button
                   type="button"
                   onClick={handleNext}
@@ -614,7 +653,10 @@ export default function AMMembershipForm() {
                 >
                   ถัดไป →
                 </button>
-              ) : (
+              )}
+
+              {/* Submit Button - Show only on the last step (5) */}
+              {currentStep === 5 && (
                 <button
                   type="submit"
                   disabled={isSubmitting}

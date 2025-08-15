@@ -176,14 +176,25 @@ export default function OCMembershipForm({
   
   // Use external form data if provided, otherwise use internal state
   const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
-  const formData = externalFormData || internalFormData;
-  const setFormData = setExternalFormData || setInternalFormData;
-  
   const [errors, setErrors] = useState({});
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
+
+  // Determine which form data and setters to use
+  const isExternal = externalFormData !== undefined;
+  const formData = isExternal ? externalFormData : internalFormData;
+  const setFormData = isExternal ? setExternalFormData : setInternalFormData;
+
+  // Sync externalFormData with internal state when it changes
+  useEffect(() => {
+    if (isExternal && externalFormData && Object.keys(externalFormData).length > 0) {
+      console.log('OC FORM: External form data received, updating internal state.', externalFormData);
+      setInternalFormData(prevData => ({ ...prevData, ...externalFormData }));
+    }
+  }, [externalFormData, isExternal]);
+
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
   // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
@@ -582,42 +593,69 @@ export default function OCMembershipForm({
           {currentStepComponent}
         </div>
   
-        {/* Navigation Buttons */}
-        <div className="flex justify-between items-center pt-6">
-          <button
-            type="button"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            ย้อนกลับ
-          </button>
-          {currentStep !== 4 && currentStep !== 5 && (
+        {/* Navigation Buttons - Fixed positioning */}
+        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            {/* Previous Button */}
             <button
               type="button"
-              onClick={handleSaveDraft}
-              className="px-6 py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
+                currentStep === 1
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md'
+              }`}
             >
-              บันทึกร่าง
+              ← ย้อนกลับ
             </button>
-          )}
-          {currentStep === totalSteps ? (
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-green-300 disabled:cursor-not-allowed transition-colors duration-200 shadow-lg"
-            >
-              {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ยืนยันการสมัคร'}
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleNext}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              ถัดไป
-            </button>
-          )}
+
+            {/* Step Counter */}
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                <span className="text-lg text-blue-700 font-semibold">
+                  ขั้นตอนที่ {currentStep} จาก {totalSteps || STEPS.length}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center space-x-3">
+              {/* Save Draft Button - Show on steps 1, 2, 3 */}
+              {currentStep < 4 && (
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  className="px-10 py-4 bg-yellow-500 text-white rounded-xl font-semibold text-base hover:bg-yellow-600 transition-all duration-200 hover:shadow-md"
+                >
+                  บันทึกร่าง
+                </button>
+              )}
+
+              {/* Next Button - Show on steps 1, 2, 3, 4 */}
+              {currentStep < (totalSteps || STEPS.length) && (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400"
+                >
+                  ถัดไป →
+                </button>
+              )}
+
+              {/* Submit Button - Show only on the last step */}
+              {currentStep === (totalSteps || STEPS.length) && (
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="px-10 py-4 bg-green-600 text-white rounded-xl font-semibold text-base hover:bg-green-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400"
+                >
+                  {isSubmitting ? 'กำลังส่ง...' : 'ยืนยันการสมัคร'}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Document preparation hint */}

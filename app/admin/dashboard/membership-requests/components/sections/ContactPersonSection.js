@@ -50,6 +50,39 @@ const ContactPersonSection = ({ application, onUpdate }) => {
     setEditData({ ...editData, [field]: value });
   };
   
+  // Function to get contact type display name
+  const getContactTypeName = (contact) => {
+    // Prefer explicit name fields
+    if (contact.type_contact_name) {
+      return contact.type_contact_name;
+    }
+    if (contact.typeContactName) {
+      return contact.typeContactName;
+    }
+
+    // Fallback: map by ID if provided
+    const typeId = (contact.type_contact_id !== undefined ? contact.type_contact_id : contact.typeContactId);
+    if (typeId !== undefined && typeId !== null && typeId !== '') {
+      const typeMapping = {
+        1: 'ผู้จัดการ',
+        2: 'เลขานุการ',
+        3: 'ผู้ประสานงาน',
+        4: 'อื่นๆ',
+      };
+      const display = typeMapping[typeId] || `ประเภท ${typeId}`;
+
+      // If "อื่นๆ" and has other detail, append it
+      const otherDetail = contact.type_contact_other_detail || contact.typeContactOtherDetail;
+      if ((String(typeId) === '4' || display === 'อื่นๆ') && otherDetail) {
+        return `${display}: ${otherDetail}`;
+      }
+      return display;
+    }
+
+    // If no data available
+    return 'ไม่ระบุประเภท';
+  };
+  
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
@@ -62,7 +95,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
         <div key={index} className="mb-8 pb-6 border-b border-gray-200 last:border-b-0 last:pb-0 last:mb-0">
           <div className="flex justify-between items-center mb-4">
             <h4 className="text-xl font-semibold text-blue-800">
-              ผู้ติดต่อ #{index + 1} - {contact.typeContactName || 'ไม่ระบุประเภท'}
+              ผู้ติดต่อ #{index + 1} - {getContactTypeName(contact)}
             </h4>
             {!isEditing || editingIndex !== index ? (
               <button
@@ -106,13 +139,13 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={editData.firstNameTh || ''}
-                  onChange={(e) => updateField('firstNameTh', e.target.value)}
+                  value={editData.firstNameTh || editData.first_name_th || ''}
+                  onChange={(e) => updateField(contact.first_name_th !== undefined ? 'first_name_th' : 'firstNameTh', e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="ชื่อ (ไทย)"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.firstNameTh || '-'}</p>
+                <p className="text-lg text-gray-900">{contact.first_name_th || contact.firstNameTh || '-'}</p>
               )}
             </div>
             <div>
@@ -120,13 +153,13 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={editData.lastNameTh || ''}
-                  onChange={(e) => updateField('lastNameTh', e.target.value)}
+                  value={editData.lastNameTh || editData.last_name_th || ''}
+                  onChange={(e) => updateField(contact.last_name_th !== undefined ? 'last_name_th' : 'lastNameTh', e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="นามสกุล (ไทย)"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.lastNameTh || '-'}</p>
+                <p className="text-lg text-gray-900">{contact.last_name_th || contact.lastNameTh || '-'}</p>
               )}
             </div>
             <div>
@@ -134,13 +167,13 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={editData.firstNameEn || ''}
-                  onChange={(e) => updateField('firstNameEn', e.target.value)}
+                  value={editData.firstNameEn || editData.first_name_en || ''}
+                  onChange={(e) => updateField(contact.first_name_en !== undefined ? 'first_name_en' : 'firstNameEn', e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="ชื่อ (อังกฤษ)"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.firstNameEn || '-'}</p>
+                <p className="text-lg text-gray-900">{contact.first_name_en || contact.firstNameEn || '-'}</p>
               )}
             </div>
             <div>
@@ -148,13 +181,13 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={editData.lastNameEn || ''}
-                  onChange={(e) => updateField('lastNameEn', e.target.value)}
+                  value={editData.lastNameEn || editData.last_name_en || ''}
+                  onChange={(e) => updateField(contact.last_name_en !== undefined ? 'last_name_en' : 'lastNameEn', e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="นามสกุล (อังกฤษ)"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.lastNameEn || '-'}</p>
+                <p className="text-lg text-gray-900">{contact.last_name_en || contact.lastNameEn || '-'}</p>
               )}
             </div>
             <div>
@@ -198,8 +231,8 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                   />
                   <input
                     type="text"
-                    value={editData.phoneExtension || ''}
-                    onChange={(e) => updateField('phoneExtension', e.target.value)}
+                    value={editData.phoneExtension || editData.phone_extension || ''}
+                    onChange={(e) => updateField(contact.phone_extension !== undefined ? 'phone_extension' : 'phoneExtension', e.target.value)}
                     className="w-24 px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="ต่อ"
                   />
@@ -207,7 +240,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               ) : (
                 <p className="text-lg text-gray-900">
                   {contact.phone || '-'}
-                  {contact.phoneExtension && ` ต่อ ${contact.phoneExtension}`}
+                  {(contact.phoneExtension || contact.phone_extension) && ` ต่อ ${contact.phoneExtension || contact.phone_extension}`}
                 </p>
               )}
             </div>
@@ -216,28 +249,28 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={editData.typeContactName || ''}
-                  onChange={(e) => updateField('typeContactName', e.target.value)}
+                  value={editData.typeContactName || editData.type_contact_name || ''}
+                  onChange={(e) => updateField(contact.type_contact_name !== undefined ? 'type_contact_name' : 'typeContactName', e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="ประเภทผู้ติดต่อ"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.typeContactName || '-'}</p>
+                <p className="text-lg text-gray-900">{getContactTypeName(contact)}</p>
               )}
             </div>
-            {contact.typeContactOtherDetail && (
+            {(contact.typeContactOtherDetail || contact.type_contact_other_detail) && (
               <div>
                 <p className="text-sm font-semibold text-blue-700 mb-1">รายละเอียดเพิ่มเติม</p>
                 {isEditing && editingIndex === index ? (
                   <textarea
-                    value={editData.typeContactOtherDetail || ''}
-                    onChange={(e) => updateField('typeContactOtherDetail', e.target.value)}
+                    value={editData.typeContactOtherDetail || editData.type_contact_other_detail || ''}
+                    onChange={(e) => updateField(contact.type_contact_other_detail !== undefined ? 'type_contact_other_detail' : 'typeContactOtherDetail', e.target.value)}
                     className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="รายละเอียดเพิ่มเติม"
                     rows="3"
                   />
                 ) : (
-                  <p className="text-lg text-gray-900">{contact.typeContactOtherDetail || '-'}</p>
+                  <p className="text-lg text-gray-900">{contact.type_contact_other_detail || contact.typeContactOtherDetail || '-'}</p>
                 )}
               </div>
             )}

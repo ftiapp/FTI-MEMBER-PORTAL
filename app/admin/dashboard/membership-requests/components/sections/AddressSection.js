@@ -35,171 +35,218 @@ const AddressSection = ({ application, onUpdate }) => {
     setEditData(updatedAddresses);
   };
 
-  const renderAddressCard = (addr, title, index = 0) => (
-    <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
-      <h4 className="text-xl font-semibold text-blue-900 mb-4 border-b border-blue-300 pb-2">
-        {title}
-      </h4>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(addr.building || isEditing) && (
+  const getAddressTitle = (addressType) => {
+    switch(addressType) {
+      case '1':
+        return 'ที่อยู่สำนักงาน';
+      case '2':
+        return 'ที่อยู่จัดส่งเอกสาร';
+      case '3':
+        return 'ที่อยู่ใบกำกับภาษี';
+      default:
+        return `ที่อยู่ประเภท ${addressType}`;
+    }
+  };
+
+  const getAddressStyles = (addressType) => {
+    switch(addressType) {
+      case '1':
+        return {
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-900'
+        };
+      case '2':
+        return {
+          bg: 'bg-green-50',
+          border: 'border-green-200',
+          text: 'text-green-900'
+        };
+      case '3':
+        return {
+          bg: 'bg-purple-50',
+          border: 'border-purple-200',
+          text: 'text-purple-900'
+        };
+      default:
+        return {
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-900'
+        };
+    }
+  };
+
+  const renderAddressCard = (addr, title, index = 0) => {
+    const addressType = addr.addressType || '1';
+    const styles = getAddressStyles(addressType);
+    
+    return (
+      <div key={index} className={`${styles.bg} border ${styles.border} rounded-lg p-6 mb-6`}>
+        <h4 className={`text-xl font-semibold ${styles.text} mb-4 border-b ${styles.border} pb-2`}>
+          {title}
+        </h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {(addr.building || isEditing) && (
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">อาคาร</p>
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={addr.building || ''}
+                  onChange={(e) => updateAddress(index, 'building', e.target.value)}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="ชื่ออาคาร"
+                />
+              ) : (
+                <p className="text-base text-gray-900">{addr.building}</p>
+              )}
+            </div>
+          )}
           <div>
-            <p className="text-sm font-semibold text-blue-700 mb-1">อาคาร</p>
+            <p className="text-sm font-semibold text-blue-700 mb-1">บ้านเลขที่</p>
             {isEditing ? (
               <input
                 type="text"
-                value={addr.building || ''}
-                onChange={(e) => updateAddress(index, 'building', e.target.value)}
+                value={addr.addressNumber || ''}
+                onChange={(e) => updateAddress(index, 'addressNumber', e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ชื่ออาคาร"
+                placeholder="บ้านเลขที่"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.building}</p>
+              <p className="text-base text-gray-900">{addr.addressNumber || '-'}</p>
             )}
           </div>
-        )}
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">บ้านเลขที่</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.addressNumber || ''}
-              onChange={(e) => updateAddress(index, 'addressNumber', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="บ้านเลขที่"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.addressNumber || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">หมู่</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.moo || ''}
-              onChange={(e) => updateAddress(index, 'moo', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="หมู่"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.moo || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ซอย</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.soi || ''}
-              onChange={(e) => updateAddress(index, 'soi', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ซอย"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.soi || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ถนน</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.street || ''}
-              onChange={(e) => updateAddress(index, 'street', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ถนน"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.street || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ตำบล/แขวง</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.subDistrict || ''}
-              onChange={(e) => updateAddress(index, 'subDistrict', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ตำบล/แขวง"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.subDistrict || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">อำเภอ/เขต</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.district || ''}
-              onChange={(e) => updateAddress(index, 'district', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="อำเภอ/เขต"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.district || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">จังหวัด</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.province || ''}
-              onChange={(e) => updateAddress(index, 'province', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="จังหวัด"
-            />
-          ) : (
-            <p className="text-base text-gray-900">{addr.province || '-'}</p>
-          )}
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">รหัสไปรษณีย์</p>
-          {isEditing ? (
-            <input
-              type="text"
-              value={addr.postalCode || ''}
-              onChange={(e) => updateAddress(index, 'postalCode', e.target.value)}
-              className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="รหัสไปรษณีย์"
-            />
-          ) : (
-            <p className="text-base text-gray-900 font-mono">{addr.postalCode || '-'}</p>
-          )}
-        </div>
-        
-        {/* Additional contact info for addresses */}
-        {(addr.phone || addr.email || addr.website) && (
-          <>
-            {addr.phone && (
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">โทรศัพท์</p>
-                <p className="text-base text-gray-900">
-                  {addr.phone}
-                  {addr.phoneExtension && ` ต่อ ${addr.phoneExtension}`}
-                </p>
-              </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">หมู่</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.moo || ''}
+                onChange={(e) => updateAddress(index, 'moo', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="หมู่"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.moo || '-'}</p>
             )}
-            {addr.email && (
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
-                <p className="text-base text-gray-900">{addr.email}</p>
-              </div>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">ซอย</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.soi || ''}
+                onChange={(e) => updateAddress(index, 'soi', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ซอย"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.soi || '-'}</p>
             )}
-            {addr.website && (
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">เว็บไซต์</p>
-                <p className="text-base text-gray-900">{addr.website}</p>
-              </div>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">ถนน</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.street || ''}
+                onChange={(e) => updateAddress(index, 'street', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ถนน"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.street || '-'}</p>
             )}
-          </>
-        )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">ตำบล/แขวง</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.subDistrict || ''}
+                onChange={(e) => updateAddress(index, 'subDistrict', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ตำบล/แขวง"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.subDistrict || '-'}</p>
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">อำเภอ/เขต</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.district || ''}
+                onChange={(e) => updateAddress(index, 'district', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="อำเภอ/เขต"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.district || '-'}</p>
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">จังหวัด</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.province || ''}
+                onChange={(e) => updateAddress(index, 'province', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="จังหวัด"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.province || '-'}</p>
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">รหัสไปรษณีย์</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.postalCode || ''}
+                onChange={(e) => updateAddress(index, 'postalCode', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="รหัสไปรษณีย์"
+              />
+            ) : (
+              <p className="text-base text-gray-900 font-mono">{addr.postalCode || '-'}</p>
+            )}
+          </div>
+          
+          {/* Additional contact info for addresses */}
+          {(addr.phone || addr.email || addr.website) && (
+            <>
+              {addr.phone && (
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">โทรศัพท์</p>
+                  <p className="text-base text-gray-900">
+                    {addr.phone}
+                    {addr.phoneExtension && ` ต่อ ${addr.phoneExtension}`}
+                  </p>
+                </div>
+              )}
+              {addr.email && (
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
+                  <p className="text-base text-gray-900">{addr.email}</p>
+                </div>
+              )}
+              {addr.website && (
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">เว็บไซต์</p>
+                  <p className="text-base text-gray-900">{addr.website}</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
@@ -244,10 +291,17 @@ const AddressSection = ({ application, onUpdate }) => {
       </div>
       
       {hasMultipleAddresses ? (
-        // Display all addresses with their types
-        (isEditing ? editData : application.addresses).map((addr, index) => 
-          renderAddressCard(addr, `ที่อยู่ประเภท ${addr.addressType}`, index)
-        )
+        // Display all addresses with their types in the correct order
+        (isEditing ? editData : application.addresses)
+          .sort((a, b) => {
+            // Sort by address type: 2 first, then 1, then 3
+            const typeOrder = { '2': 1, '1': 2, '3': 3 };
+            return (typeOrder[a.addressType] || 99) - (typeOrder[b.addressType] || 99);
+          })
+          .map((addr, index) => {
+            const title = getAddressTitle(addr.addressType);
+            return renderAddressCard(addr, title, index);
+          })
       ) : (
         // Display single address (fallback)
         renderAddressCard(isEditing ? editData[0] : application.address, 'ที่อยู่จัดส่งเอกสาร')

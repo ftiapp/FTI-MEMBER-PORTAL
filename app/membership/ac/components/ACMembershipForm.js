@@ -153,27 +153,50 @@ const useApiData = () => {
   return data;
 };
 
-export default function ACMembershipForm() {
+export default function ACMembershipForm({ 
+  formData: externalFormData, 
+  setFormData: externalSetFormData,
+  currentStep: externalCurrentStep,
+  setCurrentStep: externalSetCurrentStep,
+  totalSteps: externalTotalSteps
+}) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
   
-  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  // Use external form data if provided, otherwise use internal state
+  const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   
+  // Determine which form data and setters to use
+  const isExternal = externalFormData !== undefined;
+  const formData = isExternal ? externalFormData : internalFormData;
+  const setFormData = isExternal ? externalSetFormData : setInternalFormData;
+
+  // Sync externalFormData with internal state when it changes
+  useEffect(() => {
+    if (isExternal && Object.keys(externalFormData).length > 0) {
+      console.log('AC FORM: External form data received, updating internal state.', externalFormData);
+      // We use the internal setter here to ensure the form is populated correctly
+      // even if the parent component doesn't re-render immediately.
+      setInternalFormData(prevData => ({ ...prevData, ...externalFormData }));
+    }
+  }, [externalFormData, isExternal]);
+  
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
-  const {
-    currentStep,
-    isSubmitting,
-    setIsSubmitting,
-    totalSteps,
-    handleNextStep,
-    handlePrevStep,
-    setCurrentStep // เพิ่มถ้า hook รองรับ
-  } = useACFormNavigation((formData, step) => validateACForm(formData, step));
+  // Use external navigation if provided, otherwise use internal hook
+  const internalNavigation = useACFormNavigation((formData, step) => validateACForm(formData, step));
+  
+  const currentStep = externalCurrentStep || internalNavigation.currentStep;
+  const setCurrentStep = externalSetCurrentStep || internalNavigation.setCurrentStep;
+  const totalSteps = externalTotalSteps || internalNavigation.totalSteps;
+  const isSubmitting = internalNavigation.isSubmitting;
+  const setIsSubmitting = internalNavigation.setIsSubmitting;
+  const handleNextStep = internalNavigation.handleNextStep;
+  const handlePrevStep = internalNavigation.handlePrevStep;
 
   // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
   console.log('AC Current Step:', currentStep);
@@ -188,8 +211,14 @@ export default function ACMembershipForm() {
     };
   }, []);
 
-  // Load draft data on mount - ✅ เพิ่มฟังก์ชันนี้
+  // Load draft data on mount - only if not using external form data
   useEffect(() => {
+    // Skip draft loading if external form data is provided (e.g., from edit-rejected page)
+    if (externalFormData) {
+      console.log('🔄 AC Form: Using external form data, skipping draft load');
+      return;
+    }
+
     const loadDraftData = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const draftId = urlParams.get('draftId');
@@ -222,7 +251,7 @@ export default function ACMembershipForm() {
     };
 
     loadDraftData();
-  }, []); // dependencies อาจต้องเพิ่ม setCurrentStep ถ้ามี
+  }, [externalFormData]); // Add externalFormData as dependency
 
   // Check tax ID uniqueness with better error handling
   const checkTaxIdUniqueness = useCallback(async (taxId) => {
@@ -564,6 +593,7 @@ export default function ACMembershipForm() {
         {/* Navigation Buttons - Fixed positioning */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
+            {/* Previous Button */}
             <button
               type="button"
               onClick={handlePrevious}
@@ -577,6 +607,7 @@ export default function ACMembershipForm() {
               ← ย้อนกลับ
             </button>
 
+            {/* Step Counter */}
             <div className="flex items-center space-x-3">
               <div className="bg-blue-50 px-4 py-2 rounded-lg">
                 <span className="text-lg text-blue-700 font-semibold">
@@ -585,8 +616,10 @@ export default function ACMembershipForm() {
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="flex items-center space-x-3">
-              {currentStep !== 4 && currentStep !== 5 && (
+              {/* Save Draft Button - Show on steps 1, 2, 3 */}
+              {currentStep < 4 && (
                 <button
                   type="button"
                   onClick={handleSaveDraft}
@@ -595,39 +628,32 @@ export default function ACMembershipForm() {
                   บันทึกร่าง
                 </button>
               )}
-              {currentStep < 5 ? (
+
+              {/* Next Button - Show on steps 1, 2, 3, 4 */}
+              {currentStep < 5 && (
                 <button
                   type="button"
                   onClick={handleNext}
-                  className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
+                  disabled={isSubmitting}
+                  className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400"
                 >
                   ถัดไป →
                 </button>
-              ) : (
+              )}
+
+              {/* Submit Button - Show only on the last step (5) */}
+              {currentStep === 5 && (
                 <button
-                  type="submit"
+                  type="submit" 
                   disabled={isSubmitting}
-                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                    isSubmitting
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700 hover:shadow-md'
-                  } text-white`}
+                  className="px-10 py-4 bg-green-600 text-white rounded-xl font-semibold text-base hover:bg-green-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400"
                 >
-                  {isSubmitting ? '⏳ กำลังส่ง...' : '✓ ยืนยันการสมัคร'}
+                  {isSubmitting ? 'กำลังส่ง...' : 'ส่งใบสมัครใหม่'}
                 </button>
               )}
             </div>
           </div>
         </div>
-
-        {/* Document preparation hint */}
-        {currentStep === 1 && (
-          <div className="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-700 text-base">
-              <strong>รายการเอกสารที่ท่านต้องเตรียม:</strong> หนังสือรับรองบริษัท และทะเบียนภาษีมูลค่าเพิ่ม (ภ.พ.20)
-            </p>
-          </div>
-        )}
       </form>
 
       {/* Draft Save Popup */}

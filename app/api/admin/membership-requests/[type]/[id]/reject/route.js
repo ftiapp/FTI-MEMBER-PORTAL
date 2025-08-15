@@ -3,6 +3,118 @@ import { getConnection } from '@/app/lib/db';
 import { checkAdminSession } from '@/app/lib/auth';
 import { sendRejectionEmail } from '@/app/lib/mailersend';
 
+// Function to fetch complete application data for resubmission
+async function fetchCompleteApplicationData(connection, type, id) {
+  const data = { type, id };
+  
+  try {
+    // Fetch main application data
+    const tableMap = {
+      'oc': 'MemberRegist_OC_Main',
+      'am': 'MemberRegist_AM_Main', 
+      'ac': 'MemberRegist_AC_Main',
+      'ic': 'MemberRegist_IC_Main'
+    };
+    
+    const mainTable = tableMap[type];
+    const [mainRows] = await connection.execute(`SELECT * FROM ${mainTable} WHERE id = ?`, [id]);
+    data.main = mainRows[0] || {};
+    
+    // Fetch related data based on membership type
+    if (type === 'oc') {
+      // OC specific tables
+      const [addresses] = await connection.execute(`SELECT * FROM MemberRegist_OC_Address WHERE main_id = ?`, [id]);
+      const [contactPersons] = await connection.execute(`SELECT * FROM MemberRegist_OC_ContactPerson WHERE main_id = ?`, [id]);
+      const [representatives] = await connection.execute(`SELECT * FROM MemberRegist_OC_Representatives WHERE main_id = ?`, [id]);
+      const [businessTypes] = await connection.execute(`SELECT * FROM MemberRegist_OC_BusinessTypes WHERE main_id = ?`, [id]);
+      const [businessTypeOther] = await connection.execute(`SELECT * FROM MemberRegist_OC_BusinessTypeOther WHERE main_id = ?`, [id]);
+      const [products] = await connection.execute(`SELECT * FROM MemberRegist_OC_Products WHERE main_id = ?`, [id]);
+      const [industryGroups] = await connection.execute(`SELECT * FROM MemberRegist_OC_IndustryGroups WHERE main_id = ?`, [id]);
+      const [provinceChapters] = await connection.execute(`SELECT * FROM MemberRegist_OC_ProvinceChapters WHERE main_id = ?`, [id]);
+      const [documents] = await connection.execute(`SELECT * FROM MemberRegist_OC_Documents WHERE main_id = ?`, [id]);
+      
+      data.addresses = addresses;
+      data.contactPersons = contactPersons;
+      data.representatives = representatives;
+      data.businessTypes = businessTypes;
+      data.businessTypeOther = businessTypeOther;
+      data.products = products;
+      data.industryGroups = industryGroups;
+      data.provinceChapters = provinceChapters;
+      data.documents = documents;
+      
+    } else if (type === 'ac') {
+      // AC specific tables
+      const [addresses] = await connection.execute(`SELECT * FROM MemberRegist_AC_Address WHERE main_id = ?`, [id]);
+      const [contactPersons] = await connection.execute(`SELECT * FROM MemberRegist_AC_ContactPerson WHERE main_id = ?`, [id]);
+      const [representatives] = await connection.execute(`SELECT * FROM MemberRegist_AC_Representatives WHERE main_id = ?`, [id]);
+      const [businessTypes] = await connection.execute(`SELECT * FROM MemberRegist_AC_BusinessTypes WHERE main_id = ?`, [id]);
+      const [businessTypeOther] = await connection.execute(`SELECT * FROM MemberRegist_AC_BusinessTypeOther WHERE main_id = ?`, [id]);
+      const [products] = await connection.execute(`SELECT * FROM MemberRegist_AC_Products WHERE main_id = ?`, [id]);
+      const [industryGroups] = await connection.execute(`SELECT * FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?`, [id]);
+      const [provinceChapters] = await connection.execute(`SELECT * FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?`, [id]);
+      const [documents] = await connection.execute(`SELECT * FROM MemberRegist_AC_Documents WHERE main_id = ?`, [id]);
+      
+      data.addresses = addresses;
+      data.contactPersons = contactPersons;
+      data.representatives = representatives;
+      data.businessTypes = businessTypes;
+      data.businessTypeOther = businessTypeOther;
+      data.products = products;
+      data.industryGroups = industryGroups;
+      data.provinceChapters = provinceChapters;
+      data.documents = documents;
+      
+    } else if (type === 'am') {
+      // AM specific tables
+      const [addresses] = await connection.execute(`SELECT * FROM MemberRegist_AM_Address WHERE main_id = ?`, [id]);
+      const [contactPersons] = await connection.execute(`SELECT * FROM MemberRegist_AM_ContactPerson WHERE main_id = ?`, [id]);
+      const [representatives] = await connection.execute(`SELECT * FROM MemberRegist_AM_Representatives WHERE main_id = ?`, [id]);
+      const [businessTypes] = await connection.execute(`SELECT * FROM MemberRegist_AM_BusinessTypes WHERE main_id = ?`, [id]);
+      const [businessTypeOther] = await connection.execute(`SELECT * FROM MemberRegist_AM_BusinessTypeOther WHERE main_id = ?`, [id]);
+      const [products] = await connection.execute(`SELECT * FROM MemberRegist_AM_Products WHERE main_id = ?`, [id]);
+      const [industryGroups] = await connection.execute(`SELECT * FROM MemberRegist_AM_IndustryGroups WHERE main_id = ?`, [id]);
+      const [provinceChapters] = await connection.execute(`SELECT * FROM MemberRegist_AM_ProvinceChapters WHERE main_id = ?`, [id]);
+      const [documents] = await connection.execute(`SELECT * FROM MemberRegist_AM_Documents WHERE main_id = ?`, [id]);
+      
+      data.addresses = addresses;
+      data.contactPersons = contactPersons;
+      data.representatives = representatives;
+      data.businessTypes = businessTypes;
+      data.businessTypeOther = businessTypeOther;
+      data.products = products;
+      data.industryGroups = industryGroups;
+      data.provinceChapters = provinceChapters;
+      data.documents = documents;
+      
+    } else if (type === 'ic') {
+      // IC specific tables
+      const [addresses] = await connection.execute(`SELECT * FROM MemberRegist_IC_Address WHERE ic_main_id = ?`, [id]);
+      const [representatives] = await connection.execute(`SELECT * FROM MemberRegist_IC_Representatives WHERE ic_main_id = ?`, [id]);
+      const [businessTypes] = await connection.execute(`SELECT * FROM MemberRegist_IC_BusinessTypes WHERE ic_main_id = ?`, [id]);
+      const [businessTypeOther] = await connection.execute(`SELECT * FROM MemberRegist_IC_BusinessTypeOther WHERE ic_main_id = ?`, [id]);
+      const [products] = await connection.execute(`SELECT * FROM MemberRegist_IC_Products WHERE ic_main_id = ?`, [id]);
+      const [industryGroups] = await connection.execute(`SELECT * FROM MemberRegist_IC_IndustryGroups WHERE ic_main_id = ?`, [id]);
+      const [provinceChapters] = await connection.execute(`SELECT * FROM MemberRegist_IC_ProvinceChapters WHERE ic_main_id = ?`, [id]);
+      const [documents] = await connection.execute(`SELECT * FROM MemberRegist_IC_Documents WHERE ic_main_id = ?`, [id]);
+      
+      data.addresses = addresses;
+      data.representatives = representatives;
+      data.businessTypes = businessTypes;
+      data.businessTypeOther = businessTypeOther;
+      data.products = products;
+      data.industryGroups = industryGroups;
+      data.provinceChapters = provinceChapters;
+      data.documents = documents;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching complete application data:', error);
+    throw error;
+  }
+}
+
 export async function GET(request, { params }) {
   let connection;
   try {
@@ -129,19 +241,40 @@ export async function POST(request, { params }) {
           break;
       }
 
+      // Fetch all application data before updating status
+      const applicationData = await fetchCompleteApplicationData(connection, type, id);
+      
+      // Get user_id from the main table
+      const [userRows] = await connection.execute(
+        `SELECT user_id FROM ${tableName} WHERE id = ?`, 
+        [id]
+      );
+      const userId = userRows[0]?.user_id;
+      
+      if (!userId) {
+        throw new Error('User ID not found for this application');
+      }
+      
       // Update status to rejected (2)
       await connection.execute(
         `UPDATE ${tableName} SET status = 2, rejection_reason = ? WHERE id = ?`,
         [rejectionReason, id]
       );
-
-      // Save admin note directly to the main table if provided
-      if (adminNote && adminNote.trim()) {
-        await connection.execute(
-          `UPDATE ${tableName} SET admin_note = ?, admin_note_by = ?, admin_note_at = NOW() WHERE id = ?`,
-          [adminNote, adminData.id, id]
-        );
-      }
+      
+      // Store complete rejection data in separate table
+      await connection.execute(
+        `INSERT INTO MemberRegist_Reject_DATA 
+        (membership_type, membership_id, user_id, rejection_data, admin_note, admin_note_by) 
+        VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          type,
+          id,
+          userId,
+          JSON.stringify(applicationData),
+          adminNote || null,
+          adminData.id
+        ]
+      );
 
       // Fetch applicant details for email notification and description
       let email = '';

@@ -188,19 +188,34 @@ const checkIdCard = async (idCardNumber) => {
   }
 };
 
-export default function ICMembershipForm({ currentStep, setCurrentStep, formData, setFormData, totalSteps }) {
+export default function ICMembershipForm({ 
+  currentStep, 
+  setCurrentStep, 
+  formData: externalFormData, 
+  setFormData: setExternalFormData, 
+  totalSteps, 
+  rejectionId 
+}) {
+  const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   const abortControllerRef = useRef(null);
-  
-  const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
 
-  // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
-  console.log('IC Current Step:', currentStep);
-  console.log('IC Total Steps:', totalSteps);
+  const isExternal = externalFormData !== undefined;
+  const formData = isExternal ? externalFormData : internalFormData;
+  const setFormData = isExternal ? setExternalFormData : setInternalFormData;
+
+  useEffect(() => {
+    if (isExternal && externalFormData && Object.keys(externalFormData).length > 0) {
+      console.log('IC FORM: External form data received, updating internal state.', externalFormData);
+      setInternalFormData(prevData => ({ ...prevData, ...externalFormData }));
+    }
+  }, [externalFormData, isExternal]);
+
+  const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
 
   // Cleanup on unmount
   useEffect(() => {
@@ -211,12 +226,6 @@ export default function ICMembershipForm({ currentStep, setCurrentStep, formData
     };
   }, []);
 
-  // Initialize form data with empty values
-  useEffect(() => {
-    if (Object.keys(formData).length === 0) {
-      setFormData(INITIAL_FORM_DATA);
-    }
-  }, [formData, setFormData]);
 
   // ✅ Load draft data on mount - แยกออกจาก useApiData
   useEffect(() => {
@@ -368,19 +377,32 @@ const handleSubmit = useCallback(async (e) => {
 
     // ส่งข้อมูล
     console.log('Submitting form...');
-    const result = await submitICMembershipForm(submissionData);
+    let result;
+    if (rejectionId) {
+      // Resubmit logic
+      console.log(`Resubmitting application for rejection ID: ${rejectionId}`);
+      const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ updatedData: submissionData, memberType: 'ic' })
+      });
+      result = await res.json();
+    } else {
+      // New submission logic
+      result = await submitICMembershipForm(submissionData);
+    }
     
-    // ปิด loading toast
     toast.dismiss(loadingToastId);
     
     if (result.success) {
-      toast.success('ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่', {
+      toast.success(rejectionId ? 'ส่งใบสมัครใหม่เรียบร้อยแล้ว' : 'ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่', {
         duration: 5000
       });
       
-      // ลบ draft หลังจากสมัครสำเร็จ
-      await deleteDraft();
-      
+      if (!rejectionId) {
+        await deleteDraft();
+      }
+      // Redirect or update UI
     } else {
       console.error('Submission failed:', result);
       toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
@@ -768,7 +790,7 @@ const handleNext = useCallback(async (e) => {
               </div>
 
               <div className="flex items-center space-x-3">
-                {currentStep !== 4 && currentStep !== 5 && (
+                {currentStep < 5 && (
                   <button
                     type="button"
                     onClick={handleSaveDraft}
@@ -787,7 +809,8 @@ const handleNext = useCallback(async (e) => {
                   </button>
                 ) : (
                   <button
-                    type="submit"
+                    type="button" // Changed to button to prevent form submission
+                    onClick={handleSubmit} // Use handleSubmit for final step logic
                     disabled={isSubmitting}
                     className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
                       isSubmitting
@@ -795,7 +818,7 @@ const handleNext = useCallback(async (e) => {
                         : 'bg-green-600 hover:bg-green-700 hover:shadow-md'
                     } text-white`}
                   >
-                    {isSubmitting ? '⏳ กำลังส่ง...' : '✓ ส่งข้อมูล'}
+                    {isSubmitting ? '⏳ กำลังส่ง...' : (rejectionId ? '✓ ยืนยันการส่งใบสมัครใหม่' : '✓ ยืนยันการสมัคร')}
                   </button>
                 )}
               </div>
