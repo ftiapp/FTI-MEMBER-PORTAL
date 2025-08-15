@@ -358,13 +358,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
           
           <div className="space-y-4">
             {products.map((product, index) => (
-              <div key={product.id} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <div key={product.key} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm font-medium text-gray-700">รายการที่ {index + 1}</span>
                   {products.length > 1 && (
                     <button 
                       type="button" 
-                      onClick={() => removeProduct(product.id)}
+                      onClick={() => removeProduct(product.key)}
                       className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all duration-200"
                     >
                       {DeleteIcon}

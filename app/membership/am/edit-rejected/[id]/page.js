@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
 import Navbar from '../../../../components/Navbar';
 import Footer from '../../../../components/Footer';
 import AMMembershipForm from '../../components/AMMembershipForm';
@@ -21,69 +22,44 @@ export default function EditRejectedAM() {
 
   // Transform rejection_data snapshot into the flat formData shape for AMMembershipForm
   const mapRejectionDataToAMForm = (data) => {
-    console.log('🔍 Mapping rejection data:', data);
     if (!data) return {};
-    
-    // Check if data is already in flat format (like draft data)
-    if (data.associationName || data.companyName || data.taxId) {
-      console.log('📋 Data is already in flat format, using as-is');
-      return {
-        // Map common fields that might have different names
-        associationName: data.associationName || data.companyName || '',
-        associationNameEng: data.associationNameEng || data.companyNameEng || '',
-        taxId: data.taxId || '',
-        associationEmail: data.associationEmail || data.companyEmail || '',
-        associationPhone: data.associationPhone || data.companyPhone || '',
-        addressNumber: data.addressNumber || '',
-        street: data.street || '',
-        subDistrict: data.subDistrict || '',
-        district: data.district || '',
-        province: data.province || '',
-        postalCode: data.postalCode || '',
-        moo: data.moo || '',
-        representatives: data.representatives || [],
-        businessTypes: data.businessTypes || [],
-        otherBusinessType: data.otherBusinessType || '',
-        products: data.products || '',
-        memberCount: data.memberCount || data.numberOfEmployees || '',
-        // Documents
-        associationRegistration: data.associationRegistration || null,
-        associationProfile: data.associationProfile || null,
-        memberList: data.memberList || null,
-        vatRegistration: data.vatRegistration || null,
-        idCard: data.idCard || null,
-        authorityLetter: data.authorityLetter || null,
-        companyStamp: data.companyStamp || null,
-        authorizedSignature: data.authorizedSignature || null
-      };
-    }
-    
-    // Handle nested database structure
+
     const main = data.main || {};
-    const address = Array.isArray(data.addresses) && data.addresses.length > 0 ? data.addresses[0] : {};
+    const address = (Array.isArray(data.addresses) && data.addresses[0]) || {};
     const reps = Array.isArray(data.representatives) ? data.representatives : [];
     const btypes = Array.isArray(data.businessTypes) ? data.businessTypes : [];
-    const btypeOther = Array.isArray(data.businessTypeOther) && data.businessTypeOther.length > 0 ? data.businessTypeOther[0] : {};
+    const btypeOther = (Array.isArray(data.businessTypeOther) && data.businessTypeOther[0]) || {};
     const products = Array.isArray(data.products) ? data.products : [];
-    
-    console.log('📊 Extracted nested data:', { main, address, reps, btypes, btypeOther, products });
+    const documents = Array.isArray(data.documents) ? data.documents : [];
+    const financial = (Array.isArray(data.financial) && data.financial[0]) || {};
 
-    const mappedData = {
+    const getDocumentUrl = (docType) => {
+      const doc = documents.find(d => d.document_type === docType);
+      return doc ? doc.document_url : null;
+    };
+
+    return {
       // Association / company info
       associationName: main.company_name_th || '',
       associationNameEng: main.company_name_en || '',
       taxId: main.tax_id || '',
       associationEmail: main.company_email || '',
       associationPhone: main.company_phone || '',
+      associationPhoneExt: main.company_phone_ext || '',
+
+      // Address
       addressNumber: address.address_number || '',
+      moo: address.moo || '',
       street: address.street || '',
       subDistrict: address.sub_district || '',
       district: address.district || '',
       province: address.province || '',
       postalCode: address.postal_code || '',
 
-      // Representatives (map to expected keys; idCardNumber may not exist in AM schema)
-      representatives: reps.length > 0 ? reps.map((r, idx) => ({
+      // Representatives
+      representatives: reps.map(r => ({
+        key: uuidv4(),
+        id: r.id || null,
         idCardNumber: r.id_card_number || '',
         firstNameThai: r.first_name_th || '',
         lastNameThai: r.last_name_th || '',
@@ -92,40 +68,33 @@ export default function EditRejectedAM() {
         position: r.position || '',
         email: r.email || '',
         phone: r.phone || '',
-        isPrimary: r.is_primary === 1 || r.is_primary === true || idx === 0
-      })) : [
-        {
-          idCardNumber: '',
-          firstNameThai: '',
-          lastNameThai: '',
-          firstNameEnglish: '',
-          lastNameEnglish: '',
-          position: '',
-          email: '',
-          phone: '',
-          isPrimary: true
-        }
-      ],
+        phoneExt: r.phone_ext || '',
+        isPrimary: r.is_primary === 1 || r.is_primary === true,
+      })),
 
       // Business
-      businessTypes: btypes.map(bt => typeof bt === 'string' ? bt : (bt.business_type || '')).filter(Boolean),
+      businessTypes: btypes.map(bt => bt.business_type || '').filter(Boolean),
       otherBusinessType: btypeOther.detail || '',
-      products: products.map(p => p.name_th || p.product_name || '').filter(Boolean).join(', '),
-      memberCount: main.number_of_member ? String(main.number_of_member) : '' ,
+      products: products.map(p => ({ key: uuidv4(), id: p.id || null, name: p.name_th || p.product_name || '' })),
+      memberCount: main.number_of_member ? String(main.number_of_member) : '',
 
-      // Documents: keep empty; user can re-upload if necessary
-      associationRegistration: null,
-      associationProfile: null,
-      memberList: null,
-      vatRegistration: null,
-      idCard: null,
-      authorityLetter: null,
-      companyStamp: null,
-      authorizedSignature: null
+      // Financial
+      registeredCapital: financial.registered_capital || '',
+      totalAssets: financial.total_assets || '',
+      totalRevenue: financial.total_revenue || '',
+      permanentEmployees: financial.permanent_employees || '',
+      temporaryEmployees: financial.temporary_employees || '',
+
+      // Documents
+      associationRegistration: getDocumentUrl('association_registration'),
+      associationProfile: getDocumentUrl('association_profile'),
+      memberList: getDocumentUrl('member_list'),
+      vatRegistration: getDocumentUrl('vat_registration'),
+      idCard: getDocumentUrl('id_card'),
+      authorityLetter: getDocumentUrl('authority_letter'),
+      companyStamp: getDocumentUrl('company_stamp'),
+      authorizedSignature: getDocumentUrl('authorized_signature'),
     };
-    
-    console.log('✅ Final mapped data:', mappedData);
-    return mappedData;
   };
 
   useEffect(() => {

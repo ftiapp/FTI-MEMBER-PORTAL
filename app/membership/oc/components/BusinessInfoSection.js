@@ -13,12 +13,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
     { id: 'other', nameTh: 'อื่นๆ' }
   ], []);
   
-  const [products, setProducts] = useState(() => 
-    formData.products?.length > 0 ? formData.products : [{ id: 1, nameTh: '', nameEn: '' }]
-  );
-  const [nextProductId, setNextProductId] = useState(() => 
-    formData.products?.length > 0 ? Math.max(...formData.products.map(p => p.id)) + 1 : 2
-  );
+  const [products, setProducts] = useState(() => {
+    const initialProducts = formData.products?.length > 0 ? formData.products : [{ nameTh: '', nameEn: '' }];
+    return initialProducts.map((p, index) => ({
+      ...p,
+      key: p.key || `new-${index}-${Date.now()}`
+    }));
+  });
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleInputChange = useCallback((e) => {
@@ -41,9 +42,9 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
     });
   }, [setFormData]);
   
-  const handleProductChange = useCallback((id, field, value) => {
+  const handleProductChange = useCallback((key, field, value) => {
     const updated = products.map(product => 
-      product.id === id ? { ...product, [field]: value } : product
+      product.key === key ? { ...product, [field]: value } : product
     );
     setProducts(updated);
     setFormData(prevForm => ({ ...prevForm, products: updated }));
@@ -52,17 +53,16 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
   const addProduct = useCallback(() => {
     if (products.length >= 10) return;
     
-    const newProduct = { id: nextProductId, nameTh: '', nameEn: '' };
+    const newProduct = { key: `new-${Date.now()}`, nameTh: '', nameEn: '' };
     const updated = [...products, newProduct];
     setProducts(updated);
     setFormData(prevForm => ({ ...prevForm, products: updated }));
-    setNextProductId(prev => prev + 1);
-  }, [products, nextProductId, setFormData]);
+  }, [products, setFormData]);
   
-  const removeProduct = useCallback((id) => {
+  const removeProduct = useCallback((key) => {
     if (products.length <= 1) return;
     
-    const updated = products.filter(product => product.id !== id);
+    const updated = products.filter(product => product.key !== key);
     setProducts(updated);
     setFormData(prevForm => ({ ...prevForm, products: updated }));
   }, [products, setFormData]);
@@ -340,13 +340,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
           
           <div className="space-y-4">
             {products.map((product, index) => (
-              <div key={product.id} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <div key={product.key} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm font-medium text-gray-700">รายการที่ {index + 1}</span>
                   {products.length > 1 && (
                     <button 
                       type="button" 
-                      onClick={() => removeProduct(product.id)}
+                      onClick={() => removeProduct(product.key)}
                       className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all duration-200"
                     >
                       {DeleteIcon}
@@ -357,28 +357,28 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
                 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label htmlFor={`product-th-${product.id}`} className="block text-sm font-medium text-gray-900">
+                    <label htmlFor={`product-th-${product.key}`} className="block text-sm font-medium text-gray-900">
                       ชื่อผลิตภัณฑ์/บริการ (ภาษาไทย)<span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
                       type="text"
-                      id={`product-th-${product.id}`}
+                      id={`product-th-${product.key}`}
                       value={product.nameTh || ''}
-                      onChange={(e) => handleProductChange(product.id, 'nameTh', e.target.value)}
+                      onChange={(e) => handleProductChange(product.key, 'nameTh', e.target.value)}
                       placeholder="ระบุชื่อผลิตภัณฑ์/บริการ..."
                       className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <label htmlFor={`product-en-${product.id}`} className="block text-sm font-medium text-gray-900">
+                    <label htmlFor={`product-en-${product.key}`} className="block text-sm font-medium text-gray-900">
                       ชื่อผลิตภัณฑ์/บริการ (ภาษาอังกฤษ)
                     </label>
                     <input
                       type="text"
-                      id={`product-en-${product.id}`}
+                      id={`product-en-${product.key}`}
                       value={product.nameEn || ''}
-                      onChange={(e) => handleProductChange(product.id, 'nameEn', e.target.value)}
+                      onChange={(e) => handleProductChange(product.key, 'nameEn', e.target.value)}
                       placeholder="Product/Service name..."
                       className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                     />
@@ -397,7 +397,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
               >
                 {PlusIcon}
                 <span className="text-sm font-medium text-gray-600">
-                  เพิ่มผลิตภัณฑ์/บริการ ({products.length}/10)
+                  เพิ่มผลิตภัณฑ์/บริการ ({products.length} / 10)
                 </span>
               </button>
             </div>
@@ -428,7 +428,8 @@ BusinessInfoSection.propTypes = {
     shareholderThaiPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     shareholderForeignPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     products: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.number.isRequired,
+      key: PropTypes.string.isRequired,
+      id: PropTypes.number,
       nameTh: PropTypes.string,
       nameEn: PropTypes.string
     }))

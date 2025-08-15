@@ -22,98 +22,63 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     });
   }, [formData]);
 
-  // ✅ แก้ไขฟังก์ชัน createFileObject
-  const createFileObject = (file) => {
-    // ถ้าไฟล์มีอยู่แล้วและเป็น File object ให้ return ตรงๆ
-    if (file instanceof File) {
-      return file;
-    }
-    
-    // ถ้าเป็น object ที่มี file property
-    if (file && file.file instanceof File) {
-      return file.file;
-    }
-    
-    return file;
-  };
+  const viewFile = (file) => {
+    if (!file) return;
 
-  const handleFileChange = (e) => {
-    const { name, files } = e.target;
-    if (files && files[0]) {
-      const file = files[0]; // ใช้ File object โดยตรง
-      
-      setSelectedFiles(prev => ({ ...prev, [name]: file }));
-      setFormData(prev => ({ ...prev, [name]: file }));
-    }
-  };
+    let url;
+    let isImage = false;
 
-  const viewFile = (fileObj) => {
-    if (fileObj) {
-      const file = fileObj instanceof File ? fileObj : (fileObj.file || fileObj);
-      if (file && file.type && file.type.startsWith('image/')) {
+    if (typeof file === 'string') {
+      url = file;
+      try {
+        const extension = new URL(url).pathname.split('.').pop().toLowerCase();
+        isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension);
+      } catch (e) {
+        const extension = url.split('.').pop().toLowerCase();
+        isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'svg'].includes(extension);
+      }
+    } else if (file instanceof File) {
+      url = URL.createObjectURL(file);
+      isImage = file.type.startsWith('image/');
+    }
+
+    if (url) {
+      if (isImage) {
         const img = new Image();
-        img.src = URL.createObjectURL(file);
+        img.src = url;
         const w = window.open('');
-        w.document.write(img.outerHTML);
-      } else if (file) {
-        const url = URL.createObjectURL(file);
+        w.document.write(`<body style="margin:0; background:#222;"><img src="${url}" style="width:100%; height:auto; max-width:100vw; max-height:100vh; object-fit:contain; margin:auto; display:block;"></body>`);
+      } else {
         window.open(url, '_blank');
       }
     }
   };
 
-  // Helper function to check if file exists
-  const hasFile = (fileObj) => {
-    if (!fileObj) return false;
-    
-    // ถ้าเป็น File object โดยตรง
-    if (fileObj instanceof File) return true;
-    
-    // ถ้าเป็น object ที่มี file property
-    if (fileObj.file instanceof File) return true;
-    
-    // ถ้าเป็น object ที่มี name property (สำหรับไฟล์ที่อัปโหลดแล้ว)
-    if (fileObj.name) return true;
-    
-    return false;
+  const hasFile = (file) => !!file;
+
+  const getFileName = (file) => {
+    if (!file) return '';
+    if (file instanceof File) {
+      return file.name;
+    }
+    if (typeof file === 'string') {
+      try {
+        return decodeURIComponent(file.split('/').pop().split('?')[0]);
+      } catch (e) {
+        return 'ไฟล์ที่อัปโหลด';
+      }
+    }
+    return file.name || 'ไฟล์ที่อัปโหลด';
   };
 
-  // Helper function to get file name
-  const getFileName = (fileObj) => {
-    if (!fileObj) return '';
-    
-    // ถ้าเป็น File object โดยตรง
-    if (fileObj instanceof File) return fileObj.name;
-    
-    // ถ้าเป็น object ที่มี file property
-    if (fileObj.file instanceof File) return fileObj.file.name;
-    
-    // ถ้าเป็น object ที่มี name property
-    if (fileObj.name) return fileObj.name;
-    
-    return 'ไฟล์ที่อัปโหลด';
-  };
-
-  // Helper function to get file size
-  const getFileSize = (fileObj) => {
-    if (!fileObj) return '';
-    
-    let size = 0;
-    
-    // ถ้าเป็น File object โดยตรง
-    if (fileObj instanceof File) {
-      size = fileObj.size;
+  const getFileSize = (file) => {
+    if (file instanceof File) {
+      const size = file.size;
+      if (size === 0) return '0 B';
+      const i = Math.floor(Math.log(size) / Math.log(1024));
+      return `${parseFloat((size / Math.pow(1024, i)).toFixed(2))} ${['B', 'KB', 'MB', 'GB', 'TB'][i]}`;
     }
-    // ถ้าเป็น object ที่มี file property
-    else if (fileObj.file instanceof File) {
-      size = fileObj.file.size;
-    }
-    // ถ้าเป็น object ที่มี size property
-    else if (fileObj.size) {
-      size = fileObj.size;
-    }
-    
-    return size ? `${(size / 1024 / 1024).toFixed(2)} MB` : 'ไฟล์ถูกอัปโหลดแล้ว';
+    return 'ไฟล์ถูกอัปโหลดแล้ว';
   };
 
   // Helper function for single file upload with drag & drop UI

@@ -53,18 +53,24 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     setFormData(prev => ({ ...prev, [fieldName]: null }));
   };
 
-  const viewFile = (fileObj) => {
-    if (fileObj) {
-      const file = fileObj.file || fileObj; // Handle both old and new format
-      if (file && file.type && file.type.startsWith('image/')) {
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        const w = window.open('');
-        w.document.write(img.outerHTML);
-      } else if (file) {
-        const url = URL.createObjectURL(file);
-        window.open(url, '_blank');
-      }
+  const viewFile = (doc) => {
+    // doc can be a file object from input, or an object like { url, file, name } from state
+    const url = doc?.url;
+    const file = doc?.file;
+
+    if (url && typeof url === 'string') {
+      // If there's an existing URL (from a previously saved application), open it
+      window.open(url, '_blank');
+    } else if (file instanceof File) {
+      // If it's a new file that has just been selected, create an object URL to preview
+      const objectUrl = URL.createObjectURL(file);
+      window.open(objectUrl, '_blank');
+      // Clean up the object URL after a short delay to give the browser time to open it
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+    } else {
+      // Fallback for any other case, though it shouldn't happen in normal flow
+      console.warn('Cannot preview file:', doc);
+      alert('ไม่สามารถดูตัวอย่างไฟล์ได้');
     }
   };
 

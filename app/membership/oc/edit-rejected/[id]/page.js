@@ -56,6 +56,10 @@ export default function EditRejectedOCApplication() {
     
     console.log('📊 Extracted OC nested data:', { main, address, reps, btypes, btypeOther, products });
 
+    const documents = data.documents || {};
+    const getFileObject = (docUrl) => docUrl ? { name: `Existing File - ${docUrl.split('/').pop()}`, url: docUrl } : null;
+    const getFileObjects = (docUrls) => (docUrls || []).map(doc => ({ name: `Existing Image - ${doc.url.split('/').pop()}`, url: doc.url }));
+
     const mappedData = {
       // Company info
       companyName: main.company_name_th || '',
@@ -63,6 +67,7 @@ export default function EditRejectedOCApplication() {
       taxId: main.tax_id || '',
       companyEmail: main.company_email || '',
       companyPhone: main.company_phone || '',
+      companyPhoneExtension: main.phone_extension || '',
       addressNumber: address.address_number || '',
       street: address.street || '',
       subDistrict: address.sub_district || '',
@@ -71,8 +76,18 @@ export default function EditRejectedOCApplication() {
       postalCode: address.postal_code || '',
       moo: address.moo || '',
 
+      // Financial Info
+      registeredCapital: main.registered_capital ? String(main.registered_capital) : '',
+      totalAssets: main.total_assets ? String(main.total_assets) : '',
+      totalRevenue: main.total_revenue ? String(main.total_revenue) : '',
+      netProfit: main.net_profit ? String(main.net_profit) : '',
+      productionCapacity: main.production_capacity || '',
+      exportSalesRatio: main.export_sales_ratio ? String(main.export_sales_ratio) : '',
+      debtToEquityRatio: main.debt_to_equity_ratio ? String(main.debt_to_equity_ratio) : '',
+
       // Representatives
       representatives: reps.length > 0 ? reps.map((r, idx) => ({
+        id: r.id || null,
         firstNameThai: r.first_name_th || '',
         lastNameThai: r.last_name_th || '',
         firstNameEnglish: r.first_name_en || '',
@@ -80,23 +95,26 @@ export default function EditRejectedOCApplication() {
         position: r.position || '',
         email: r.email || '',
         phone: r.phone || '',
+        phoneExtension: r.phone_extension || '',
         isPrimary: r.is_primary === 1 || r.is_primary === true || idx === 0
       })) : [],
 
       // Business
       businessTypes: btypes.map(bt => typeof bt === 'string' ? bt : (bt.business_type || '')).filter(Boolean),
       otherBusinessType: btypeOther.detail || '',
-      products: products.map(p => ({
+      products: products.map((p, index) => ({
+        id: p.id || null,
+        key: p.id || `new-${index}-${Date.now()}`,
         nameTh: p.name_th || p.product_name || '',
         nameEn: p.name_en || ''
       })),
       numberOfEmployees: main.number_of_employees ? String(main.number_of_employees) : '',
 
-      // Documents: keep empty; user can re-upload if necessary
-      companyRegistration: null,
-      factoryLicense: null,
-      industrialEstateLicense: null,
-      productionImages: null
+      // Documents: Preserve existing files
+      companyRegistration: getFileObject(documents.company_registration_doc),
+      factoryLicense: getFileObject(documents.factory_license_doc),
+      industrialEstateLicense: getFileObject(documents.industrial_estate_license_doc),
+      productionImages: getFileObjects(documents.production_process_images)
     };
     
     console.log('✅ Final OC mapped data:', mappedData);

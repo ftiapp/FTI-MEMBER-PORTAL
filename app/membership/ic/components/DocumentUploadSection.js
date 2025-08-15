@@ -4,8 +4,8 @@ import { useState, useMemo, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 export default function DocumentUploadSection({ formData, setFormData, errors }) {
-  const [selectedFile, setSelectedFile] = useState(formData.idCardDocument || null);
-  const [selectedSignature, setSelectedSignature] = useState(formData.authorizedSignature || null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedSignature, setSelectedSignature] = useState(null);
 
   // Debug: เพิ่ม useEffect เพื่อ debug
   useEffect(() => {
@@ -15,72 +15,71 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     console.log('errors:', errors);
   }, [formData.idCardDocument, selectedFile, errors]);
 
-  // Sync selectedFile with formData when component mounts or formData changes
+  // Sync local state with formData when component mounts or formData changes
   useEffect(() => {
-    if (formData.idCardDocument && !selectedFile) {
+    if (formData.idCardDocument) {
       setSelectedFile(formData.idCardDocument);
     }
-  }, [formData.idCardDocument, selectedFile]);
+    if (formData.authorizedSignature) {
+      setSelectedSignature(formData.authorizedSignature);
+    }
+  }, [formData.idCardDocument, formData.authorizedSignature]);
 
-  // Handle file change
-  const handleFileChange = (e) => {
+  const handleFileChange = (e, documentType) => {
     const { files } = e.target;
     if (files && files[0]) {
       const file = files[0];
-      console.log('File selected:', file.name, file.size, file.type);
-      
-      // Validate file size (5MB limit)
+
       if (file.size > 5 * 1024 * 1024) {
         alert('ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB');
         return;
       }
-      
-      // Validate file type
+
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
       if (!allowedTypes.includes(file.type)) {
         alert('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ PDF, JPG, JPEG หรือ PNG');
         return;
       }
-      
-      // Update local state
-      setSelectedFile(file);
-      
-      // Update form data
-      setFormData(prev => {
-        const updated = { ...prev, idCardDocument: file };
-        console.log('Updated formData with file:', updated);
-        return updated;
-      });
-    }
-  };
 
-  // View uploaded file
-  const viewFile = () => {
-    if (selectedFile) {
-      if (selectedFile.type.startsWith('image/')) {
-        const img = new Image();
-        img.src = URL.createObjectURL(selectedFile);
-        const w = window.open('');
-        w.document.write(img.outerHTML);
-      } else {
-        const url = URL.createObjectURL(selectedFile);
-        window.open(url, '_blank');
+      if (documentType === 'idCardDocument') {
+        setSelectedFile(file);
+      } else if (documentType === 'authorizedSignature') {
+        setSelectedSignature(file);
       }
+
+      setFormData(prev => ({ ...prev, [documentType]: file }));
     }
   };
 
-  // Remove uploaded file
-  const removeFile = () => {
-    console.log('Removing file');
-    setSelectedFile(null);
-    setFormData(prev => {
-      const updated = { ...prev, idCardDocument: null };
-      console.log('Updated formData after removing file:', updated);
-      return updated;
-    });
-    
-    // Clear the file input
-    const fileInput = document.getElementById('idCardDocument');
+  const viewFile = (file) => {
+    if (!file) return;
+
+    if (typeof file === 'string') {
+      window.open(file, '_blank');
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    if (file.type?.startsWith('image/')) {
+      const img = new Image();
+      img.src = url;
+      const w = window.open('');
+      w.document.write(img.outerHTML);
+    } else {
+      window.open(url, '_blank');
+    }
+  };
+
+  const removeFile = (documentType) => {
+    if (documentType === 'idCardDocument') {
+      setSelectedFile(null);
+    } else if (documentType === 'authorizedSignature') {
+      setSelectedSignature(null);
+    }
+
+    setFormData(prev => ({ ...prev, [documentType]: null }));
+
+    const fileInput = document.getElementById(documentType);
     if (fileInput) {
       fileInput.value = '';
     }
@@ -173,7 +172,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       name="idCardDocument"
                       type="file"
                       accept=".pdf,.jpg,.jpeg,.png"
-                      onChange={handleFileChange}
+                      onChange={(e) => handleFileChange(e, 'idCardDocument')}
                       className="hidden"
                     />
                   </label>
@@ -198,7 +197,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 <div className="flex space-x-2">
                   <button
                     type="button"
-                    onClick={viewFile}
+                    onClick={() => viewFile(selectedFile)}
                     className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
                     title="ดูไฟล์"
                   >
@@ -206,7 +205,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   </button>
                   <button
                     type="button"
-                    onClick={removeFile}
+                    onClick={() => removeFile('idCardDocument')}
                     className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                     title="ลบไฟล์"
                   >
@@ -292,23 +291,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     name="authorizedSignature"
                     type="file"
                     accept=".pdf,.jpg,.jpeg,.png"
-                    onChange={(e) => {
-                      const { files } = e.target;
-                      if (files && files[0]) {
-                        const file = files[0];
-                        if (file.size > 5 * 1024 * 1024) {
-                          alert('ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB');
-                          return;
-                        }
-                        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'];
-                        if (!allowedTypes.includes(file.type)) {
-                          alert('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ PDF, JPG, JPEG หรือ PNG');
-                          return;
-                        }
-                        setSelectedSignature(file);
-                        setFormData(prev => ({ ...prev, authorizedSignature: file }));
-                      }
-                    }}
+                    onChange={(e) => handleFileChange(e, 'authorizedSignature')}
                     className="hidden"
                   />
                 </label>
@@ -333,17 +316,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               <div className="flex space-x-2">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (selectedSignature.type.startsWith('image/')) {
-                      const img = new Image();
-                      img.src = URL.createObjectURL(selectedSignature);
-                      const w = window.open('');
-                      w.document.write(img.outerHTML);
-                    } else {
-                      const url = URL.createObjectURL(selectedSignature);
-                      window.open(url, '_blank');
-                    }
-                  }}
+                  onClick={() => viewFile(selectedSignature)}
                   className="p-2 text-orange-600 bg-orange-100 rounded-full hover:bg-orange-200 focus:outline-none focus:ring-2 focus:ring-orange-500 transition-colors duration-200"
                   title="ดูไฟล์"
                 >
@@ -351,12 +324,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 </button>
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedSignature(null);
-                    setFormData(prev => ({ ...prev, authorizedSignature: null }));
-                    const fileInput = document.getElementById('authorizedSignature');
-                    if (fileInput) fileInput.value = '';
-                  }}
+                  onClick={() => removeFile('authorizedSignature')}
                   className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
                   title="ลบไฟล์"
                 >

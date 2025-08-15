@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
+import { v4 as uuidv4 } from 'uuid';
 
 export default function BusinessInfoSection({ formData, setFormData, errors }) {
   const BUSINESS_TYPES = useMemo(() => [
@@ -14,10 +15,9 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   ], []);
   
   const [products, setProducts] = useState(() => 
-    formData.products?.length > 0 ? formData.products : [{ id: 1, nameTh: '', nameEn: '' }]
-  );
-  const [nextProductId, setNextProductId] = useState(() => 
-    formData.products?.length > 0 ? Math.max(...formData.products.map(p => p.id)) + 1 : 2
+    (formData.products && formData.products.length > 0 
+      ? formData.products.map(p => ({ ...p, key: p.key || uuidv4() })) 
+      : [{ key: uuidv4(), id: null, name: '' }])
   );
 
   // Memoize handlers to prevent unnecessary re-renders
@@ -41,9 +41,9 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
     });
   }, [setFormData]);
   
-  const handleProductChange = useCallback((id, field, value) => {
+  const handleProductChange = useCallback((key, field, value) => {
     const updatedProducts = products.map(product => 
-      product.id === id ? { ...product, [field]: value } : product
+      product.key === key ? { ...product, [field]: value } : product
     );
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
@@ -52,17 +52,16 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   const addProduct = useCallback(() => {
     if (products.length >= 10) return;
     
-    const newProduct = { id: nextProductId, nameTh: '', nameEn: '' };
+    const newProduct = { key: uuidv4(), id: null, name: '' };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
-    setNextProductId(prev => prev + 1);
-  }, [products, nextProductId, setFormData]);
+  }, [products, setFormData]);
   
-  const removeProduct = useCallback((id) => {
+  const removeProduct = useCallback((key) => {
     if (products.length <= 1) return;
     
-    const updatedProducts = products.filter(product => product.id !== id);
+    const updatedProducts = products.filter(product => product.key !== key);
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
   }, [products, setFormData]);
@@ -361,20 +360,20 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
             <h4 className="text-base font-medium text-gray-900 mb-2">
-              ผลิตภัณฑ์/บริการ<span className="text-red-500 ml-1">*</span>
+              ผลิตภัณฑ์/บริการ
             </h4>
-            <p className="text-sm text-gray-600">ระบุผลิตภัณฑ์หรือบริการของสมาคม (อย่างน้อย 1 รายการ)</p>
+            <p className="text-sm text-gray-600">ระบุผลิตภัณฑ์หรือบริการของท่าน (ถ้ามี)</p>
           </div>
           
           <div className="space-y-4">
             {products.map((product, index) => (
-              <div key={product.id} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+              <div key={product.key} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm font-medium text-gray-700">รายการที่ {index + 1}</span>
                   {products.length > 1 && (
                     <button 
                       type="button" 
-                      onClick={() => removeProduct(product.id)}
+                      onClick={() => removeProduct(product.key)}
                       className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all duration-200"
                     >
                       {DeleteIcon}
@@ -383,34 +382,18 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   )}
                 </div>
                 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor={`product-th-${product.id}`} className="block text-sm font-medium text-gray-900">
-                      ชื่อผลิตภัณฑ์/บริการ (ภาษาไทย)<span className="text-red-500 ml-1">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id={`product-th-${product.id}`}
-                      value={product.nameTh || ''}
-                      onChange={(e) => handleProductChange(product.id, 'nameTh', e.target.value)}
-                      placeholder="ระบุชื่อผลิตภัณฑ์/บริการ..."
-                      className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <label htmlFor={`product-en-${product.id}`} className="block text-sm font-medium text-gray-900">
-                      ชื่อผลิตภัณฑ์/บริการ (ภาษาอังกฤษ)
-                    </label>
-                    <input
-                      type="text"
-                      id={`product-en-${product.id}`}
-                      value={product.nameEn || ''}
-                      onChange={(e) => handleProductChange(product.id, 'nameEn', e.target.value)}
-                      placeholder="Product/Service name..."
-                      className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <label htmlFor={`product-name-${product.key}`} className="block text-sm font-medium text-gray-900">
+                    ชื่อผลิตภัณฑ์/บริการ<span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id={`product-name-${product.key}`}
+                    value={product.name || ''}
+                    onChange={(e) => handleProductChange(product.key, 'name', e.target.value)}
+                    placeholder="ระบุชื่อผลิตภัณฑ์/บริการ..."
+                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                  />
                 </div>
               </div>
             ))}
@@ -457,9 +440,9 @@ BusinessInfoSection.propTypes = {
     shareholderThaiPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     shareholderForeignPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     products: PropTypes.arrayOf(PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      nameTh: PropTypes.string,
-      nameEn: PropTypes.string
+      key: PropTypes.string.isRequired,
+      id: PropTypes.number,
+      name: PropTypes.string
     }))
   }).isRequired,
   setFormData: PropTypes.func.isRequired,

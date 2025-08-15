@@ -6,15 +6,13 @@ import { toast, Toaster } from 'react-hot-toast';
 import Navbar from '../../../../components/Navbar';
 import Footer from '../../../../components/Footer';
 import ACMembershipForm from '../../components/ACMembershipForm';
-import ACStepIndicator from '../../components/ACStepIndicator';
 
 export default function EditRejectedACApplication() {
   const params = useParams();
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({});
+  const [formData, setFormData] = useState(null);
   const [rejectedApp, setRejectedApp] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -33,9 +31,9 @@ export default function EditRejectedACApplication() {
 
   useEffect(() => {
     if (rejectedApp && rejectedApp.rejectionData) {
-      console.log('🔄 Found AC rejectionData, mapping...');
+      console.log(' Found AC rejectionData, mapping...');
       const mapped = mapRejectionDataToACForm(rejectedApp.rejectionData);
-      console.log('🎯 Setting AC formData to:', mapped);
+      console.log(' Setting AC formData to:', mapped);
       setFormData(mapped);
 
       const adminNote = rejectedApp.adminNote?.toLowerCase() || '';
@@ -44,7 +42,7 @@ export default function EditRejectedACApplication() {
       else if (adminNote.includes('ธุรกิจ') || adminNote.includes('business')) setCurrentStep(3);
       else if (adminNote.includes('เอกสาร') || adminNote.includes('document')) setCurrentStep(4);
     } else if (rejectedApp) {
-        console.log('❌ No AC rejectionData found in response');
+        console.log(' No AC rejectionData found in response');
     }
   }, [rejectedApp]);
 
@@ -54,20 +52,130 @@ export default function EditRejectedACApplication() {
 
   // Transform rejection_data snapshot into the flat formData shape for ACMembershipForm
   const mapRejectionDataToACForm = (data) => {
-    console.log('🔍 Mapping AC rejection data:', data);
+    console.log(' Mapping AC rejection data:', data);
     if (!data) return {};
     
     // Check if data is already in flat format (like draft data)
     if (data.companyName || data.taxId) {
-      console.log('📋 AC Data is already in flat format, using as-is');
-      return data;
+      console.log(' AC Data is already in flat format, using as-is');
+      
+      // แต่ต้องตรวจสอบและเติมข้อมูลที่ขาดหายให้ครบถ้วน
+      const flatData = { ...data };
+      
+      // ตรวจสอบ contactPersons ให้ครบถ้วน
+      if (!flatData.contactPersons || flatData.contactPersons.length === 0) {
+        flatData.contactPersons = [{
+          id: Date.now(),
+          firstNameTh: flatData.representatives?.[0]?.firstNameThai || '',
+          lastNameTh: flatData.representatives?.[0]?.lastNameThai || '',
+          firstNameEn: flatData.representatives?.[0]?.firstNameEnglish || '',
+          lastNameEn: flatData.representatives?.[0]?.lastNameEnglish || '',
+          position: flatData.representatives?.[0]?.position || '',
+          email: flatData.representatives?.[0]?.email || flatData.companyEmail || '',
+          phone: flatData.representatives?.[0]?.phone || flatData.companyPhone || '',
+          phoneExtension: '',
+          typeContactId: '1',
+          typeContactName: 'ผู้จัดการ',
+          typeContactOtherDetail: '',
+          isMain: true
+        }];
+      }
+      
+      // ตรวจสอบ addresses structure
+      if (!flatData.addresses) {
+        flatData.addresses = {
+          '1': {
+            addressType: '1',
+            addressNumber: flatData.addressNumber || '',
+            building: flatData.building || '',
+            moo: flatData.moo || '',
+            soi: flatData.soi || '',
+            street: flatData.street || '',
+            subDistrict: flatData.subDistrict || '',
+            district: flatData.district || '',
+            province: flatData.province || '',
+            postalCode: flatData.postalCode || '',
+            phone: flatData.companyPhone || '',
+            email: flatData.companyEmail || '',
+            website: flatData.companyWebsite || ''
+          },
+          '2': {
+            addressType: '2',
+            addressNumber: flatData.addressNumber || '',
+            building: flatData.building || '',
+            moo: flatData.moo || '',
+            soi: flatData.soi || '',
+            street: flatData.street || '',
+            subDistrict: flatData.subDistrict || '',
+            district: flatData.district || '',
+            province: flatData.province || '',
+            postalCode: flatData.postalCode || '',
+            phone: flatData.companyPhone || '',
+            email: flatData.companyEmail || '',
+            website: flatData.companyWebsite || ''
+          },
+          '3': {
+            addressType: '3',
+            addressNumber: flatData.addressNumber || '',
+            building: flatData.building || '',
+            moo: flatData.moo || '',
+            soi: flatData.soi || '',
+            street: flatData.street || '',
+            subDistrict: flatData.subDistrict || '',
+            district: flatData.district || '',
+            province: flatData.province || '',
+            postalCode: flatData.postalCode || '',
+            phone: flatData.companyPhone || '',
+            email: flatData.companyEmail || '',
+            website: flatData.companyWebsite || ''
+          }
+        };
+      }
+
+      // ตรวจสอบ products format
+      if (flatData.products && flatData.products.length > 0) {
+        flatData.products = flatData.products.map(product => ({
+          ...product,
+          nameTh: product.nameTh || product.name || '',
+          name: product.name || product.nameTh || '',
+          nameEn: product.nameEn || product.name_en || '',
+          description: product.description || ''
+        }));
+      }
+
+      // ตรวจสอบ numberOfEmployees
+      if (!flatData.numberOfEmployees && flatData.numberOfEmployees !== 0) {
+        flatData.numberOfEmployees = flatData.memberCount || 0;
+      }
+
+      // ตรวจสอบ otherBusinessTypeDetail
+      if (flatData.businessTypes?.other && !flatData.otherBusinessTypeDetail) {
+        flatData.otherBusinessTypeDetail = flatData.businessTypeOther || '';
+      }
+
+      // ตรวจสอบ representatives
+      if (!flatData.representatives || flatData.representatives.length === 0) {
+        flatData.representatives = [{
+          idCardNumber: '',
+          firstNameThai: '',
+          lastNameThai: '',
+          firstNameEnglish: '',
+          lastNameEnglish: '',
+          position: '',
+          phone: '',
+          email: '',
+          isPrimary: true
+        }];
+      }
+      
+      return flatData;
     }
     
     // Check if data is a string that needs to be parsed
     if (typeof data === 'string') {
       try {
         data = JSON.parse(data);
-        console.log('📋 AC Parsed string data:', data);
+        console.log(' AC Parsed string data:', data);
       } catch (e) {
         console.error('Error parsing rejection data:', e);
         return {};
@@ -78,7 +186,6 @@ export default function EditRejectedACApplication() {
     const addresses = data.addresses || [];
     const address = Array.isArray(addresses) && addresses.length > 0 ? addresses[0] : {};
     const contactPersons = data.contactPersons || [];
-    const contactPerson = Array.isArray(contactPersons) && contactPersons.length > 0 ? contactPersons[0] : {};
     const representatives = Array.isArray(data.representatives) ? data.representatives : [];
     const businessTypes = data.businessTypes || [];
     const businessTypeOther = data.businessTypeOther || [];
@@ -86,7 +193,7 @@ export default function EditRejectedACApplication() {
     const industrialGroups = Array.isArray(data.industryGroups) ? data.industryGroups : [];
     const provincialChapters = Array.isArray(data.provinceChapters) ? data.provinceChapters : [];
 
-    console.log('📊 Extracted AC nested data:', { main, address, contactPerson, representatives, businessTypes, products, industrialGroups, provincialChapters });
+    console.log(' Extracted AC nested data:', { main, address, contactPersons, representatives, businessTypes, products, industrialGroups, provincialChapters });
 
     // Map address to nested structure for CompanyAddressInfo
     const mappedAddresses = {
@@ -137,6 +244,50 @@ export default function EditRejectedACApplication() {
       }
     };
 
+    // แก้ไข: ต้องให้แน่ใจว่า contactPersons มีข้อมูลครบถ้วนตาม validation
+    const mappedContactPersons = contactPersons.length > 0 
+      ? contactPersons.map((p, index) => ({
+          id: p.id || Date.now() + index,
+          firstNameTh: p.first_name_th || p.firstNameTh || '',
+          lastNameTh: p.last_name_th || p.lastNameTh || '',
+          firstNameEn: p.first_name_en || p.firstNameEn || '',
+          lastNameEn: p.last_name_en || p.lastNameEn || '',
+          position: p.position || '',
+          email: p.email || '',
+          phone: p.phone || '',
+          phoneExtension: p.phone_extension || p.phoneExtension || '',
+          typeContactId: p.type_contact_id || p.typeContactId || '1',
+          typeContactName: p.type_contact_name || p.typeContactName || 'ผู้จัดการ',
+          typeContactOtherDetail: p.type_contact_other_detail || p.typeContactOtherDetail || '',
+          isMain: index === 0
+        }))
+      : [{
+          // ถ้าไม่มี contactPersons ให้สร้างจากข้อมูล representatives หรือค่าเริ่มต้น
+          id: Date.now(),
+          firstNameTh: representatives[0]?.first_name_th || '',
+          lastNameTh: representatives[0]?.last_name_th || '',
+          firstNameEn: representatives[0]?.first_name_en || '',
+          lastNameEn: representatives[0]?.last_name_en || '',
+          position: representatives[0]?.position || '',
+          email: representatives[0]?.email || main.company_email || '',
+          phone: representatives[0]?.phone || main.company_phone || '',
+          phoneExtension: '',
+          typeContactId: '1',
+          typeContactName: 'ผู้จัดการ',
+          typeContactOtherDetail: '',
+          isMain: true
+        }];
+
+    const documents = data.documents || [];
+    const mappedDocuments = documents.reduce((acc, doc) => {
+      acc[doc.document_type] = {
+        name: doc.file_name,
+        url: doc.cloudinary_url || doc.file_path,
+        file: null // Start with no new file
+      };
+      return acc;
+    }, {});
+
     const mappedData = {
       // Company info
       companyName: main.company_name_th || '',
@@ -144,7 +295,8 @@ export default function EditRejectedACApplication() {
       taxId: main.tax_id || '',
       companyEmail: main.company_email || '',
       companyPhone: main.company_phone || '',
-      companyWebsite: address.website || '',
+      companyPhoneExtension: main.company_phone_extension || '',
+      companyWebsite: main.company_website || '',
       
       // Address data (for backward compatibility)
       addressNumber: address.address_number || address.addressnumber || '',
@@ -160,22 +312,8 @@ export default function EditRejectedACApplication() {
       // Nested addresses structure for CompanyAddressInfo
       addresses: mappedAddresses,
 
-      // Contact Persons - should be an array
-      contactPersons: (data.contactPersons || []).map((p, index) => ({
-        id: p.id || Date.now() + index, // Use existing id or generate a new one
-        firstNameTh: p.first_name_th || p.firstNameTh || '',
-        lastNameTh: p.last_name_th || p.lastNameTh || '',
-        firstNameEn: p.first_name_en || p.firstNameEn || '',
-        lastNameEn: p.last_name_en || p.lastNameEn || '',
-        position: p.position || '',
-        email: p.email || '',
-        phone: p.phone || '',
-        phoneExtension: p.phone_extension || p.phoneExtension || '',
-        typeContactId: p.type_contact_id || p.typeContactId,
-        typeContactName: p.type_contact_name || p.typeContactName || '',
-        typeContactOtherDetail: p.type_contact_other_detail || p.typeContactOtherDetail || '',
-        isMain: index === 0
-      })),
+      // Contact Persons - แก้ไขให้ครบถ้วนตาม validation
+      contactPersons: mappedContactPersons,
 
       // Representatives - ensure at least one representative
       representatives: representatives.length > 0 ? representatives.map((r, idx) => ({
@@ -186,6 +324,7 @@ export default function EditRejectedACApplication() {
         lastNameEnglish: r.last_name_en || '',
         position: r.position || '',
         phone: r.phone || '',
+        phoneExtension: r.phone_extension || '',
         email: r.email || '',
         isPrimary: r.is_primary === 1 || r.is_primary === true || idx === 0
       })) : [{
@@ -196,13 +335,14 @@ export default function EditRejectedACApplication() {
         lastNameEnglish: '',
         position: '',
         phone: '',
+        phoneExtension: '',
         email: '',
         isPrimary: true
       }],
 
-      // Industrial Groups & Provincial Chapters - map to array of IDs
-      industrialGroups: industrialGroups.map(ig => ig.industry_group_id || ig.id),
-      provincialChapters: provincialChapters.map(pc => pc.province_chapter_id || pc.id),
+      // Industrial Groups & Provincial Chapters - map to array of objects for the form
+      industrialGroups: industrialGroups.map(ig => ({ id: ig.industry_group_id, name: ig.industry_group_name })),
+      provincialChapters: provincialChapters.map(pc => ({ id: pc.province_chapter_id, name: pc.province_chapter_name })),
 
       // Business Types - convert to object format expected by AC form
       businessTypes: businessTypes.reduce((acc, bt) => {
@@ -211,63 +351,63 @@ export default function EditRejectedACApplication() {
         return acc;
       }, {}),
       businessTypeOther: businessTypeOther.length > 0 ? businessTypeOther[0].detail || '' : '',
+      otherBusinessTypeDetail: businessTypeOther.length > 0 ? businessTypeOther[0].detail || '' : '', // เพิ่ม field นี้
 
-      // Products
-      products: products.map(p => ({
+      // Products - Add a unique key for React rendering and deletion
+      products: products.map((p, index) => ({
+        id: p.id, // Preserve original DB id if available
+        key: p.id || Date.now() + index, // Unique key for component
+        nameTh: p.name_th || p.name || p.nameTh || '',
         name: p.name_th || p.name || '',
         nameEn: p.name_en || '',
         description: p.description || ''
       })),
 
-      // Additional fields
-      memberCount: main.member_count || 0,
+      // Financial fields
+      numberOfEmployees: main.number_of_employees || 0,
       registeredCapital: main.registered_capital || '',
+      productionCapacityValue: main.production_capacity_value || '',
+      productionCapacityUnit: main.production_capacity_unit || '',
+      salesDomestic: main.sales_domestic || '',
+      salesExport: main.sales_export || '',
+      shareholderThaiPercent: main.shareholder_thai_percent || '',
+      shareholderForeignPercent: main.shareholder_foreign_percent || '',
 
-      // Documents - set to null to allow re-upload
-      documents: {
-        certificate: null,
-        affidavit: null,
-        vatCertificate: null,
-        idCard: null,
-        photograph: null
-      }
+      // Documents - Preserve existing files and allow re-upload
+      ...mappedDocuments,
+
+      // For validation compatibility, ensure these fields exist even if empty
+      companyRegistration: mappedDocuments.companyRegistration || null,
+      companyStamp: mappedDocuments.companyStamp || null,
+      authorizedSignature: mappedDocuments.authorizedSignature || null
     };
 
-    console.log('✅ Mapped AC form data:', mappedData);
+    console.log(' Mapped AC form data:', mappedData);
     return mappedData;
   };
 
   const fetchRejectedApplication = async () => {
     try {
-      setLoading(true);
+      setIsLoading(true);
       const res = await fetch(`/api/membership/rejected-applications/${params.id}`);
       const result = await res.json();
-      console.log('🌐 AC API Response:', result);
+      console.log(' AC API Response:', result);
       
       if (result.success) {
         setRejectedApp(result.data);
-        console.log('📋 AC Rejected App Data set:', result.data);
+        console.log(' AC Rejected App Data set:', result.data);
       } else {
         setError(result.message || 'Failed to fetch rejected application');
       }
     } catch (e) {
-      console.error('💥 AC Fetch error:', e);
+      console.error(' AC Fetch error:', e);
       setError('Failed to fetch rejected application');
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
-
-  const steps = [
-    { id: 1, name: 'ข้อมูลบริษัท' },
-    { id: 2, name: 'ข้อมูลผู้แทน' },
-    { id: 3, name: 'ข้อมูลธุรกิจ' },
-    { id: 4, name: 'เอกสารแนบ' },
-    { id: 5, name: 'ยืนยันข้อมูล' },
-  ];
-
-  if (loading) {
+  if (isLoading) {
     return (
       <>
         <Navbar />
@@ -345,16 +485,12 @@ export default function EditRejectedACApplication() {
 
         <div className="container mx-auto px-4 py-8">
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="border-b border-gray-200 p-4">
-              <ACStepIndicator steps={steps} currentStep={currentStep} />
-            </div>
             <div className="p-6">
-              <ACMembershipForm
-                currentStep={currentStep}
-                setCurrentStep={setCurrentStep}
-                formData={formData}
+              <ACMembershipForm 
+                formData={formData} 
                 setFormData={setFormData}
-                totalSteps={steps.length}
+                rejectionId={params.id}
+                isSinglePageLayout={true}
               />
             </div>
           </div>

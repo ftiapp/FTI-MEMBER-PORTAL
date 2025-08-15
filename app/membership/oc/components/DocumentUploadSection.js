@@ -56,18 +56,29 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     }));
   };
 
-  const viewFile = (fileObj) => {
-    if (fileObj) {
-      const file = fileObj.file || fileObj;
-      if (file && file.type && file.type.startsWith('image/')) {
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        const w = window.open('');
-        w.document.write(img.outerHTML);
-      } else if (file) {
-        const url = URL.createObjectURL(file);
-        window.open(url, '_blank');
-      }
+  const viewFile = (fileOrUrl) => {
+    if (!fileOrUrl) return;
+
+    // Handle string URLs directly
+    if (typeof fileOrUrl === 'string') {
+      window.open(fileOrUrl, '_blank');
+      return;
+    }
+
+    // Handle file objects that might have a URL (from rejection data)
+    if (fileOrUrl.url && typeof fileOrUrl.url === 'string') {
+      window.open(fileOrUrl.url, '_blank');
+      return;
+    }
+
+    // Handle local File objects
+    const file = fileOrUrl.file || fileOrUrl;
+    if (file instanceof File) {
+      const url = URL.createObjectURL(file);
+      window.open(url, '_blank');
+    } else if (typeof file === 'string') {
+      // Fallback for string URLs nested in objects
+      window.open(file, '_blank');
     }
   };
 

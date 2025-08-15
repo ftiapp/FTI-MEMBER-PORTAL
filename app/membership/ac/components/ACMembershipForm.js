@@ -158,7 +158,9 @@ export default function ACMembershipForm({
   setFormData: externalSetFormData,
   currentStep: externalCurrentStep,
   setCurrentStep: externalSetCurrentStep,
-  totalSteps: externalTotalSteps
+  totalSteps: externalTotalSteps,
+  rejectionId, // เพิ่ม rejectionId สำหรับโหมดแก้ไข
+  isSinglePageLayout = false // เพิ่ม prop สำหรับ layout หน้าเดียว
 }) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
@@ -175,13 +177,16 @@ export default function ACMembershipForm({
   const formData = isExternal ? externalFormData : internalFormData;
   const setFormData = isExternal ? externalSetFormData : setInternalFormData;
 
-  // Sync externalFormData with internal state when it changes
+  // When external data is provided, ensure the form uses it directly.
+  // This is crucial for the 'edit-rejected' feature.
   useEffect(() => {
-    if (isExternal && Object.keys(externalFormData).length > 0) {
-      console.log('AC FORM: External form data received, updating internal state.', externalFormData);
-      // We use the internal setter here to ensure the form is populated correctly
-      // even if the parent component doesn't re-render immediately.
-      setInternalFormData(prevData => ({ ...prevData, ...externalFormData }));
+    if (isExternal && externalFormData && Object.keys(externalFormData).length > 0) {
+      console.log('AC FORM: External form data received, using it directly.', externalFormData);
+      // Directly use the external data. The `formData` variable is already aliased to `externalFormData`.
+      // We might clear errors from previous states if necessary.
+      setErrors({});
+    } else if (!isExternal) {
+        // Logic for non-external data, e.g., loading draft
     }
   }, [externalFormData, isExternal]);
   
@@ -253,149 +258,6 @@ export default function ACMembershipForm({
     loadDraftData();
   }, [externalFormData]); // Add externalFormData as dependency
 
-  // Check tax ID uniqueness with better error handling
-  const checkTaxIdUniqueness = useCallback(async (taxId) => {
-    if (!taxId || taxId.length !== 13) {
-      return { isUnique: false, message: 'เลขประจำตัวผู้เสียภาษีไม่ถูกต้อง' };
-    }
-
-    // Cancel previous request if it exists
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    
-    abortControllerRef.current = new AbortController();
-    
-    try {
-      setTaxIdValidating(true);
-      
-      // ใช้ API endpoint เดียวกับที่ใช้ใน ACFormSubmission.js
-      const response = await fetch('/api/membership/check-tax-id', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ taxId, memberType: 'AC' }),
-        signal: abortControllerRef.current.signal
-      });
-      
-      const data = await response.json();
-      console.log('Tax ID validation response:', data);
-      
-      // ปรับรูปแบบข้อมูลให้เข้ากับโค้ดที่มีอยู่
-      return {
-        isUnique: response.status === 200 && data.status === 'available',
-        message: data.message || 'ไม่สามารถตรวจสอบเลขประจำตัวผู้เสียภาษีได้'
-      };
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        return { isUnique: false, message: 'การตรวจสอบถูกยกเลิก' };
-      }
-      
-      console.error('Error checking tax ID uniqueness:', error);
-      return { 
-        isUnique: false, 
-        message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี' 
-      };
-    } finally {
-      setTaxIdValidating(false);
-    }
-  }, []);
-
-  // Handle form submission - เฉพาะสำหรับขั้นตอนสุดท้าย (step 5)
-  const handleSubmit = useCallback(async (e) => {
-    if (e) e.preventDefault();
-    
-    // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
-    if (currentStep !== 5) {
-      console.log('AC Form submit prevented - not on final step');
-      return;
-    }
-
-    // Re-validate all fields before final submission
-    const formErrors = validateACForm(formData, STEPS.length);
-    setErrors(formErrors);
-
-    if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
-      // Optionally, navigate to the first step with an error
-      const firstErrorStep = STEPS.find(step => 
-        Object.keys(validateACForm(formData, step.id)).length > 0
-      );
-      if (firstErrorStep && setCurrentStep) {
-        setCurrentStep(firstErrorStep.id);
-      }
-      return;
-    }
-
-    // Show warning toast and set submitting state
-    toast.loading('กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้', {
-      id: 'submitting',
-      duration: Infinity
-    });
-    setIsSubmitting(true);
-    
-    try {
-      const result = await submitACMembershipForm(formData);
-      
-      // Dismiss loading toast
-      toast.dismiss('submitting');
-      
-      if (result.success) {
-        toast.success(result.message || 'ส่งข้อมูลการสมัครเรียบร้อยแล้ว');
-        
-        // ลบ draft หลังจากสมัครสำเร็จ
-        await deleteDraft();
-        
-        setTimeout(() => router.push('/dashboard?tab=status'), 2000);
-      } else {
-        toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
-        setIsSubmitting(false);
-      }
-    } catch (error) {
-      console.error('Submission error:', error);
-      toast.dismiss('submitting');
-      toast.error('เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง');
-      setIsSubmitting(false);
-    }
-  }, [formData, currentStep, router, setCurrentStep]);
-
-  // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
-  const handleNext = useCallback(async (e) => {
-    // ✅ ป้องกัน form submission
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    const formErrors = validateACForm(formData, currentStep);
-    setErrors(formErrors);
-    
-    if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
-      return;
-    }
-
-    // Check tax ID uniqueness on step 1
-    if (currentStep === 1 && formData.taxId?.length === 13) {
-      const taxIdResult = await checkTaxIdUniqueness(formData.taxId);
-      if (!taxIdResult.isUnique) {
-        setErrors(prev => ({ ...prev, taxId: taxIdResult.message }));
-        toast.error(taxIdResult.message);
-        return;
-      }
-    }
-    
-    handleNextStep(formData, setErrors);
-  }, [formData, currentStep, checkTaxIdUniqueness, handleNextStep]);
-
-  const handlePrevious = useCallback((e) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    
-    handlePrevStep();
-  }, [handlePrevStep]);
-
   const handleSaveDraft = useCallback(async () => {
     // ตรวจสอบว่ามี Tax ID หรือไม่
     if (!formData.taxId || formData.taxId.trim() === '') {
@@ -437,7 +299,8 @@ export default function ACMembershipForm({
   }, [formData, currentStep]);
 
   // ฟังก์ชันสำหรับลบ draft หลังจากสมัครสำเร็จ
-  const deleteDraft = useCallback(async () => {
+  const deleteDraft = useCallback(async (taxId) => {
+    if (!taxId) return;
     try {
       // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ tax ID
       const response = await fetch('/api/membership/get-drafts?type=ac', {
@@ -451,11 +314,12 @@ export default function ACMembershipForm({
         return;
       }
 
-      const drafts = await response.json();
+      const draftsData = await response.json();
+      const drafts = draftsData.success ? draftsData.drafts : [];
       
       // หา draft ที่ตรงกับ tax ID ของผู้สมัคร
       const draftToDelete = drafts.find(draft => 
-        draft.draftData?.taxId === formData.taxId
+        draft.draftData?.taxId === taxId
       );
 
       if (draftToDelete) {
@@ -482,12 +346,165 @@ export default function ACMembershipForm({
     } catch (error) {
       console.error('Error deleting draft:', error);
     }
-  }, [formData.taxId]);
+  }, []);
 
-  // Render current step component
-  const currentStepComponent = useMemo(() => {
+  // Check tax ID uniqueness with better error handling
+  const checkTaxIdUniqueness = useCallback(async (taxId) => {
+    if (!taxId || taxId.length !== 13) {
+      return { isUnique: false, message: 'เลขประจำตัวผู้เสียภาษีไม่ถูกต้อง' };
+    }
+
+    // Cancel previous request if it exists
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    
+    abortControllerRef.current = new AbortController();
+    
+    try {
+      setTaxIdValidating(true);
+      
+      // ใช้ API endpoint เดียวกับที่ใช้ใน ACFormSubmission.js
+      const response = await fetch('/api/membership/check-tax-id', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taxId }),
+      });
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Error checking tax ID uniqueness:', error);
+      return { 
+        isUnique: false, 
+        message: 'เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษี' 
+      };
+    } finally {
+      setTaxIdValidating(false);
+    }
+  }, []);
+
+  // Handle form submission and step navigation
+  const handleSubmit = useCallback(async (e) => {
+    if (e) e.preventDefault();
+
+    // --- Step Navigation Logic ---
+    if (currentStep < 5) {
+      const formErrors = validateACForm(formData, currentStep);
+      setErrors(formErrors);
+
+      if (Object.keys(formErrors).length > 0) {
+        toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+        return;
+      }
+
+      // Special validation for step 1 (Tax ID)
+      if (currentStep === 1 && formData.taxId?.length === 13) {
+        // Only check uniqueness if not in edit mode
+        if (!rejectionId) {
+            const taxIdResult = await checkTaxIdUniqueness(formData.taxId);
+            if (!taxIdResult.isUnique) {
+                setErrors(prev => ({ ...prev, taxId: taxIdResult.message }));
+                toast.error(taxIdResult.message);
+                return;
+            }
+        }
+      }
+
+      handleNextStep(formData, setErrors); // This now correctly uses the external setCurrentStep
+      return; // Stop execution after moving to next step
+    }
+
+    // --- Final Submission Logic (currentStep === 5) ---
+    const formErrors = validateACForm(formData, STEPS.length);
+    setErrors(formErrors);
+
+    if (Object.keys(formErrors).length > 0) {
+      toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
+      const firstErrorStep = STEPS.find(step => 
+        Object.keys(validateACForm(formData, step.id)).length > 0
+      );
+      if (firstErrorStep && setCurrentStep) {
+        setCurrentStep(firstErrorStep.id);
+      }
+      return;
+    }
+
+    toast.loading('กำลังส่งข้อมูล...', { id: 'submitting' });
+    setIsSubmitting(true);
+
+    try {
+      let result;
+      if (rejectionId) {
+        // Resubmit logic for rejected applications
+        const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ updatedData: formData, memberType: 'ac' })
+        });
+        result = await res.json();
+      } else {
+        // New submission logic
+        result = await submitACMembershipForm(formData);
+      }
+
+      toast.dismiss('submitting');
+
+      if (result.success) {
+        toast.success(result.message || 'ดำเนินการเรียบร้อยแล้ว');
+        if (!rejectionId) {
+          await deleteDraft(formData.taxId);
+        }
+        router.push('/dashboard?tab=status');
+      } else {
+        toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      toast.error('เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, currentStep, router, setCurrentStep, rejectionId, checkTaxIdUniqueness, handleNextStep, deleteDraft]);
+
+
+  const handlePrevious = useCallback((e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    handlePrevStep();
+  }, [handlePrevStep]);
+
+  // Render form content based on layout
+  const renderFormContent = () => {
     const commonProps = { formData, setFormData, errors };
 
+    if (isSinglePageLayout) {
+      return (
+        <div className="space-y-12">
+          <CompanyInfoSection 
+            {...commonProps} 
+            setErrors={setErrors} 
+            taxIdValidating={taxIdValidating}
+          />
+          <hr />
+          <RepresentativeSection {...commonProps} />
+          <hr />
+          <BusinessInfoSection 
+            {...commonProps} 
+            businessTypes={businessTypes} 
+            industrialGroups={industrialGroups} 
+            provincialChapters={provincialChapters} 
+            isLoading={isLoading} 
+          />
+          <hr />
+          <DocumentsSection {...commonProps} />
+        </div>
+      );
+    }
+
+    // Original step-by-step logic
     const stepComponents = {
       1: <CompanyInfoSection 
           {...commonProps} 
@@ -512,7 +529,7 @@ export default function ACMembershipForm({
     };
 
     return stepComponents[currentStep] || null;
-  }, [currentStep, formData, errors, businessTypes, industrialGroups, provincialChapters, isLoading, taxIdValidating]);
+  };
 
   // Render error message helper
   const renderErrorMessage = (errorValue, key, index) => {
@@ -587,39 +604,43 @@ export default function ACMembershipForm({
 
         {/* Form Content */}
         <div className="bg-white rounded-xl p-10 shadow-lg border border-gray-100">
-          {currentStepComponent}
+          {renderFormContent()}
         </div>
 
         {/* Navigation Buttons - Fixed positioning */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
-            {/* Previous Button */}
-            <button
-              type="button"
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                currentStep === 1
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md'
-              }`}
-            >
-              ← ย้อนกลับ
-            </button>
+          <div className={`max-w-7xl mx-auto flex ${isSinglePageLayout ? 'justify-end' : 'justify-between'} items-center`}>
+            {!isSinglePageLayout && (
+              <>
+                {/* Previous Button */}
+                <button
+                  type="button"
+                  onClick={handlePrevious}
+                  disabled={currentStep === 1}
+                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
+                    currentStep === 1
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md'
+                  }`}
+                >
+                  ← ย้อนกลับ
+                </button>
 
-            {/* Step Counter */}
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                <span className="text-lg text-blue-700 font-semibold">
-                  ขั้นตอนที่ {currentStep} จาก {totalSteps}
-                </span>
-              </div>
-            </div>
+                {/* Step Counter */}
+                <div className="flex items-center space-x-3">
+                  <div className="bg-blue-50 px-4 py-2 rounded-lg">
+                    <span className="text-lg text-blue-700 font-semibold">
+                      ขั้นตอนที่ {currentStep} จาก {totalSteps}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
 
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
-              {/* Save Draft Button - Show on steps 1, 2, 3 */}
-              {currentStep < 4 && (
+              {/* Save Draft Button - Show on steps 1, 2, 3 and not single page */}
+              {!isSinglePageLayout && currentStep < 4 && (
                 <button
                   type="button"
                   onClick={handleSaveDraft}
@@ -629,28 +650,21 @@ export default function ACMembershipForm({
                 </button>
               )}
 
-              {/* Next Button - Show on steps 1, 2, 3, 4 */}
-              {currentStep < 5 && (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  disabled={isSubmitting}
-                  className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400"
-                >
-                  ถัดไป →
-                </button>
-              )}
-
-              {/* Submit Button - Show only on the last step (5) */}
-              {currentStep === 5 && (
-                <button
-                  type="submit" 
-                  disabled={isSubmitting}
-                  className="px-10 py-4 bg-green-600 text-white rounded-xl font-semibold text-base hover:bg-green-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400"
-                >
-                  {isSubmitting ? 'กำลังส่ง...' : 'ส่งใบสมัครใหม่'}
-                </button>
-              )}
+              {/* Next / Submit Button */}
+              <button
+                type="button" // Use button to prevent default form submission
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 hover:shadow-md disabled:bg-gray-400 ${
+                  (currentStep < 5 && !isSinglePageLayout)
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-green-600 text-white hover:bg-green-700'
+                }`}
+              >
+                {(currentStep < 5 && !isSinglePageLayout)
+                  ? 'ถัดไป →' 
+                  : (isSubmitting ? 'กำลังส่ง...' : (rejectionId ? 'ยืนยันการส่งใบสมัครใหม่' : 'ยืนยันการสมัคร'))}
+              </button>
             </div>
           </div>
         </div>

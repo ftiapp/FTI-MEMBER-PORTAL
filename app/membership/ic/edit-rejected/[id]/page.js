@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { v4 as uuidv4 } from 'uuid';
 import Navbar from '../../../../components/Navbar';
 import Footer from '../../../../components/Footer';
 import ICMembershipForm from '../../components/ICMembershipForm';
@@ -56,6 +57,14 @@ export default function EditRejectedIC() {
     
     console.log('📊 Extracted IC nested data:', { main, address, reps, btypes, btypeOther, products, industryGroups, provinceChapters });
 
+    const financial = Array.isArray(data.businessFinancials) && data.businessFinancials.length > 0 ? data.businessFinancials[0] : {};
+    const docs = Array.isArray(data.documents) ? data.documents : [];
+
+    const getDocUrl = (docType) => {
+      const doc = docs.find(d => d.document_type === docType);
+      return doc ? doc.file_path : null;
+    };
+
     const mappedData = {
       // Applicant info (IC specific)
       idCardNumber: main.id_card_number || '',
@@ -66,6 +75,7 @@ export default function EditRejectedIC() {
       birthDate: main.birth_date || '',
       nationality: main.nationality || '',
       phone: main.phone || '',
+      phoneExtension: main.phone_extension || '',
       email: main.email || '',
       
       // Address info
@@ -85,10 +95,21 @@ export default function EditRejectedIC() {
       taxId: main.tax_id || '',
       companyEmail: main.company_email || '',
       companyPhone: main.company_phone || '',
+      companyPhoneExtension: main.company_phone_extension || '',
       position: main.position || '',
+
+      // Financial Info
+      registeredCapital: financial.registered_capital || '',
+      totalAssets: financial.total_assets || '',
+      totalRevenue: financial.total_revenue || '',
+      netProfit: financial.net_profit || '',
+      productionCapacity: financial.production_capacity || '',
+      exportSalesRatio: financial.export_sales_ratio || '',
+      debtToEquityRatio: financial.debt_to_equity_ratio || '',
 
       // Representatives
       representatives: reps.length > 0 ? reps.map((r, idx) => ({
+        key: uuidv4(), // Add unique key
         firstNameThai: r.first_name_th || '',
         lastNameThai: r.last_name_th || '',
         firstNameEnglish: r.first_name_en || '',
@@ -96,6 +117,7 @@ export default function EditRejectedIC() {
         position: r.position || '',
         email: r.email || '',
         phone: r.phone || '',
+        phoneExtension: r.phone_extension || '',
         isPrimary: r.is_primary === 1 || r.is_primary === true || idx === 0
       })) : [],
 
@@ -113,18 +135,19 @@ export default function EditRejectedIC() {
       businessTypes: btypes.map(bt => typeof bt === 'string' ? bt : (bt.business_type || '')).filter(Boolean),
       otherBusinessType: btypeOther.detail || '',
       products: products.map(p => ({
+        key: uuidv4(), // Add unique key
         nameTh: p.name_th || p.product_name || '',
         nameEn: p.name_en || ''
       })),
 
-      // Documents: keep empty; user can re-upload if necessary
-      idCard: null,
-      houseRegistration: null,
-      companyRegistration: null,
-      vatRegistration: null,
-      authorityLetter: null,
-      companyStamp: null,
-      authorizedSignature: null
+      // Documents: Preserve existing URLs
+      idCard: getDocUrl('id_card'),
+      houseRegistration: getDocUrl('house_registration'),
+      companyRegistration: getDocUrl('company_registration'),
+      vatRegistration: getDocUrl('vat_registration'),
+      authorityLetter: getDocUrl('authority_letter'),
+      companyStamp: getDocUrl('company_stamp'),
+      authorizedSignature: getDocUrl('authorized_signature')
     };
     
     console.log('✅ Final IC mapped data:', mappedData);
