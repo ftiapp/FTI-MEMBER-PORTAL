@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import PropTypes from 'prop-types';
 
 export default function SearchableDropdown({
   label,
@@ -10,8 +9,8 @@ export default function SearchableDropdown({
   onChange,
   onSelect,
   fetchOptions,
-  isRequired = false,
-  isReadOnly = false,
+  isRequired,
+  isReadOnly,
   error,
   className,
   autoFillNote
@@ -20,18 +19,20 @@ export default function SearchableDropdown({
   const [searchTerm, setSearchTerm] = useState('');
   const [options, setOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-  const dropdownRef = useRef(null);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const dropdownRef = useRef(null);
   const searchTimeout = useRef(null);
 
-  // Debounce search term (300ms)
+  // Debounce search term
   useEffect(() => {
     if (searchTimeout.current) {
       clearTimeout(searchTimeout.current);
     }
+
     searchTimeout.current = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 300);
+    }, 300); // 300ms debounce
+
     return () => {
       if (searchTimeout.current) {
         clearTimeout(searchTimeout.current);
@@ -108,7 +109,7 @@ export default function SearchableDropdown({
   };
 
   return (
-    <div className="relative" ref={dropdownRef} style={{ zIndex: 9999 }}>
+    <div className="relative" ref={dropdownRef}>
       {label && (
         <label className="block text-sm font-medium text-gray-700 mb-1">
           {label} {isRequired && <span className="text-red-500">*</span>}
@@ -144,7 +145,7 @@ export default function SearchableDropdown({
       )}
       
       {isOpen && options.length > 0 && (
-        <div className="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto" style={{ zIndex: 9999 }}>
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
           {options.map((option, index) => (
             <div
               key={index}
@@ -160,25 +161,11 @@ export default function SearchableDropdown({
         </div>
       )}
       
-      {isOpen && searchTerm && options.length === 0 && !isLoading && (
-        <div className="absolute w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-4 text-center text-sm text-gray-500" style={{ zIndex: 9999 }}>
+      {isOpen && debouncedSearchTerm && options.length === 0 && !isLoading && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg p-4 text-center text-sm text-gray-500">
           ไม่พบข้อมูล
         </div>
       )}
     </div>
   );
 }
-
-SearchableDropdown.propTypes = {
-  label: PropTypes.string,
-  placeholder: PropTypes.string,
-  value: PropTypes.string,
-  onChange: PropTypes.func.isRequired,
-  onSelect: PropTypes.func,
-  fetchOptions: PropTypes.func.isRequired,
-  isRequired: PropTypes.bool,
-  isReadOnly: PropTypes.bool,
-  error: PropTypes.string,
-  className: PropTypes.string,
-  autoFillNote: PropTypes.string
-};

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function MultiSelectDropdown({
   options,
-  selectedValues,
+  selectedValues = [],
   onChange,
   placeholder,
   isLoading,

@@ -357,14 +357,6 @@ export default function EditRejectedApplication() {
                   </div>
                 )}
 
-                {rejectedApp.adminNote && (
-                  <div>
-                    <p className="text-sm font-medium text-red-700 mb-1">ข้อเสนอแนะเพิ่มเติม:</p>
-                    <div className="bg-white border border-red-200 rounded-md p-3">
-                      <p className="text-sm text-red-800">{rejectedApp.adminNote}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -391,18 +383,7 @@ export default function EditRejectedApplication() {
                 </div>
               </button>
               
-              <button
-                onClick={handleResubmit}
-                className="flex-1 bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors font-medium"
-              >
-                <div className="flex items-center justify-center space-x-2">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                  </svg>
-                  <span>ส่งใบสมัครใหม่ (ไม่แก้ไข)</span>
-                </div>
-              </button>
-              
+          
               <button
                 onClick={handleCancel}
                 className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors font-medium"

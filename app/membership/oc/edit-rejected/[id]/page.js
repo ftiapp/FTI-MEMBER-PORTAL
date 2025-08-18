@@ -21,6 +21,23 @@ export default function EditRejectedOCApplication() {
   const [comments, setComments] = useState([]);
   const [userComment, setUserComment] = useState('');
 
+  const fetchComments = async (membershipType, membershipId) => {
+    try {
+      console.log('🔄 Fetching comments for:', membershipType, membershipId);
+      const res = await fetch(`/api/membership/user-comments/${membershipType}/${membershipId}`);
+      const result = await res.json();
+      console.log('📥 Comments API Response:', result);
+      if (result.success) {
+        setComments(result.comments);
+        console.log('✅ Comments set:', result.comments);
+      } else {
+        console.error('Failed to fetch comments:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -123,19 +140,6 @@ export default function EditRejectedOCApplication() {
     return mappedData;
   };
 
-  const fetchComments = async (membershipType, membershipId) => {
-    try {
-      const res = await fetch(`/api/membership/comments/${membershipType}/${membershipId}`);
-      const result = await res.json();
-      if (result.success) {
-        setComments(result.comments);
-      } else {
-        console.error('Failed to fetch comments:', result.message);
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
-  };
 
   const fetchRejectedApplication = async () => {
     try {
@@ -146,12 +150,19 @@ export default function EditRejectedOCApplication() {
 
       if (result.success) {
         setRejectedApp(result.data);
-        console.log('📋 OC Rejected App Data:', result.data);
-
-        if (result.data.membership_type && result.data.membership_id) {
-          fetchComments(result.data.membership_type, result.data.membership_id);
+        console.log('🔍 Checking membership data:', {
+          membershipType: result.data.membershipType,
+          membershipId: result.data.membershipId,
+          hasData: !!result.data
+        });
+        if (result.data.membershipType && result.data.membershipId) {
+          console.log('📞 Calling fetchComments with:', result.data.membershipType, result.data.membershipId);
+          fetchComments(result.data.membershipType, result.data.membershipId);
+        } else {
+          console.log('❌ Missing membershipType or membershipId in response');
         }
-        
+        console.log('✅ OC Rejected App Data set:', result.data);
+
         if (result.data.rejectionData) {
           console.log('🔄 Found OC rejectionData, mapping...');
           const mapped = mapRejectionDataToOCForm(result.data.rejectionData);
@@ -269,11 +280,14 @@ export default function EditRejectedOCApplication() {
         </div>
         
         {/* Comments History Section */}
-        {comments.length > 0 && (
-          <div className="container mx-auto px-4 pt-8">
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-800 mb-4">ประวัติการสื่อสาร</h3>
+        <div className="container mx-auto px-4 pt-8">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-4">ประวัติการสื่อสาร</h3>
+              {process.env.NODE_ENV === 'development' && (
+                <p className="text-xs text-gray-500 mb-4">Debug: Comments array length: {comments.length}</p>
+              )}
+              {comments.length > 0 ? (
                 <div className="space-y-4">
                   {comments.map(comment => (
                     <div key={comment.id} className={`p-4 rounded-lg ${comment.comment_type.startsWith('admin') ? 'bg-red-50 border-l-4 border-red-400' : 'bg-blue-50 border-l-4 border-blue-400'}`}>
@@ -289,10 +303,12 @@ export default function EditRejectedOCApplication() {
                     </div>
                   ))}
                 </div>
-              </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">ยังไม่มีประวัติการสื่อสาร</p>
+              )}
             </div>
           </div>
-        )}
+        </div>
         
         {/* Form Container */}
         <div className="container mx-auto px-4 py-8">

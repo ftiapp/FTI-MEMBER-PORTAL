@@ -225,10 +225,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
   }, []);
 
   const handleSubDistrictChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, subDistrict: value }));
-    // หยุดเรียก API ระหว่างพิมพ์เพื่อลดการ fetch รัว ๆ
-    // จะทำการ autofill ผ่าน onSelect แทน (เมื่อผู้ใช้เลือกจาก dropdown)
-  }, [setFormData, fetchPostalCode]);
+    handleAddressInputChange('subDistrict', value);
+  }, [handleAddressInputChange]);
   
   const handleSubDistrictSelect = useCallback((option) => {
     if (!option) return;
@@ -236,17 +234,23 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     console.log('Selected subdistrict option:', option);
     setFormData(prev => ({
       ...prev,
-      subDistrict: option.text || option.name || '',
-      district: option.district || '',
-      province: option.province || '',
-      postalCode: option.postalCode || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: option.text || option.name || '',
+          district: option.district || '',
+          province: option.province || '',
+          postalCode: option.postalCode || '',
+          addressType: activeTab
+        }
+      }
     }));
-    // ลดการแจ้งเตือนเพื่อป้องกัน toast เด้งรัว ๆ ระหว่างใช้งาน
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, district: value }));
-  }, [setFormData]);
+    handleAddressInputChange('district', value);
+  }, [handleAddressInputChange]);
   
   const handleDistrictSelect = useCallback((option) => {
     if (!option) return;
@@ -254,18 +258,25 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     console.log('Selected district option:', option);
     setFormData(prev => ({
       ...prev,
-      district: option.text || option.name || '',
-      province: option.province || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          district: option.text || option.name || '',
+          province: option.province || '',
+          addressType: activeTab
+        }
+      }
     }));
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
   
   const handleProvinceChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, province: value }));
-  }, [setFormData]);
+    handleAddressInputChange('province', value);
+  }, [handleAddressInputChange]);
   
   const handlePostalCodeChange = useCallback((value) => {
-    setFormData(prev => ({ ...prev, postalCode: value }));
-  }, [setFormData]);
+    handleAddressInputChange('postalCode', value);
+  }, [handleAddressInputChange]);
   
   const handlePostalCodeSelect = useCallback((option) => {
     if (!option) return;
@@ -273,13 +284,19 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     console.log('Selected postal code option:', option);
     setFormData(prev => ({
       ...prev,
-      subDistrict: option.subdistrict || option.subDistrict || '',
-      district: option.district || '',
-      province: option.province || '',
-      postalCode: option.text || option.postalCode || ''
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          subDistrict: option.subdistrict || option.subDistrict || '',
+          district: option.district || '',
+          province: option.province || '',
+          postalCode: option.text || option.postalCode || '',
+          addressType: activeTab
+        }
+      }
     }));
-    // ไม่ต้องแสดง toast สำเร็จเพื่อลดการรบกวนผู้ใช้
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

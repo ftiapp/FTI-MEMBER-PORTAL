@@ -169,14 +169,6 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
                   </div>
                 )}
 
-                {app.admin_note && (
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-700 mb-1">ความเห็นของผู้ดูแลระบบ:</p>
-                    <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-                      <p className="text-sm text-blue-800">{app.admin_note}</p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 

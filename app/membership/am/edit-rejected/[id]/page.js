@@ -22,6 +22,23 @@ export default function EditRejectedAM() {
   const [comments, setComments] = useState([]);
   const [userComment, setUserComment] = useState('');
 
+  const fetchComments = async (membershipType, membershipId) => {
+    try {
+      console.log('🔄 Fetching comments for:', membershipType, membershipId);
+      const res = await fetch(`/api/membership/user-comments/${membershipType}/${membershipId}`);
+      const result = await res.json();
+      console.log('📥 Comments API Response:', result);
+      if (result.success) {
+        setComments(result.comments);
+        console.log('✅ Comments set:', result.comments);
+      } else {
+        console.error('Failed to fetch comments:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
   // Transform rejection_data snapshot into the flat formData shape for AMMembershipForm
   const mapRejectionDataToAMForm = (data) => {
     if (!data) return {};
@@ -113,19 +130,6 @@ export default function EditRejectedAM() {
     if (params.id) fetchRejectedApplication();
   }, [params.id]);
 
-  const fetchComments = async (membershipType, membershipId) => {
-    try {
-      const res = await fetch(`/api/membership/comments/${membershipType}/${membershipId}`);
-      const result = await res.json();
-      if (result.success) {
-        setComments(result.comments);
-      } else {
-        console.error('Failed to fetch comments:', result.message);
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
-    }
-  };
 
   const fetchRejectedApplication = async () => {
     try {
@@ -136,11 +140,19 @@ export default function EditRejectedAM() {
       
       if (result.success) {
         setRejectedApp(result.data);
+        console.log('🔍 Checking membership data:', {
+          membershipType: result.data.membershipType,
+          membershipId: result.data.membershipId,
+          hasData: !!result.data
+        });
+        if (result.data.membershipType && result.data.membershipId) {
+          console.log('📞 Calling fetchComments with:', result.data.membershipType, result.data.membershipId);
+          fetchComments(result.data.membershipType, result.data.membershipId);
+        } else {
+          console.log('❌ Missing membershipType or membershipId in response');
+        }
         console.log('📋 Rejected App Data:', result.data);
 
-        if (result.data.membership_type && result.data.membership_id) {
-          fetchComments(result.data.membership_type, result.data.membership_id);
-        }
         
         if (result.data.rejectionData) {
           console.log('🔄 Found rejectionData, mapping...');
@@ -306,10 +318,13 @@ export default function EditRejectedAM() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
 
             {/* Comments History Section */}
-            {comments.length > 0 && (
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
-                <div className="p-6">
-                  <h3 className="text-lg font-medium text-gray-800 mb-4">ประวัติการสื่อสาร</h3>
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm mb-6">
+              <div className="p-6">
+                <h3 className="text-lg font-medium text-gray-800 mb-4">ประวัติการสื่อสาร</h3>
+                {process.env.NODE_ENV === 'development' && (
+                  <p className="text-xs text-gray-500 mb-4">Debug: Comments array length: {comments.length}</p>
+                )}
+                {comments.length > 0 ? (
                   <div className="space-y-4">
                     {comments.map(comment => (
                       <div key={comment.id} className={`p-4 rounded-lg ${comment.comment_type.startsWith('admin') ? 'bg-red-50 border-l-4 border-red-400' : 'bg-blue-50 border-l-4 border-blue-400'}`}>
@@ -325,9 +340,11 @@ export default function EditRejectedAM() {
                       </div>
                     ))}
                   </div>
-                </div>
+                ) : (
+                  <p className="text-gray-500 text-center py-4">ยังไม่มีประวัติการสื่อสาร</p>
+                )}
               </div>
-            )}
+            </div>
 
             {/* User Comment Box */}
             <div className="bg-white border border-gray-200 rounded-lg mb-6 shadow-sm">
