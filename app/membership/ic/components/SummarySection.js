@@ -180,26 +180,61 @@ export default function SummarySection({
 }) {
   // Get selected business types from database
   const getSelectedBusinessTypes = () => {
-    if (!formData.businessTypes || !Array.isArray(formData.businessTypes)) return [];
+    console.log('=== Debug Business Types ===');
+    console.log('formData.businessTypes:', formData.businessTypes);
     
-    return formData.businessTypes.map(bt => bt.businessTypeName || bt.id || '-');
-  };
-
-  // Get business type other from database
-  const getBusinessTypeOther = () => {
-    if (!formData.businessTypeOther || !Array.isArray(formData.businessTypeOther)) return [];
+    // ถ้าเป็น object (จาก BusinessInfoSection)
+    if (formData.businessTypes && typeof formData.businessTypes === 'object' && !Array.isArray(formData.businessTypes)) {
+      const BUSINESS_TYPE_MAP = {
+        'manufacturer': 'ผู้ผลิต',
+        'distributor': 'ผู้จัดจำหน่าย', 
+        'importer': 'ผู้นำเข้า',
+        'exporter': 'ผู้ส่งออก',
+        'service': 'ผู้ให้บริการ',
+        'other': 'อื่นๆ'
+      };
+      
+      const selectedTypes = Object.keys(formData.businessTypes)
+        .filter(key => formData.businessTypes[key] === true)
+        .map(key => {
+          if (key === 'other' && formData.otherBusinessTypeDetail) {
+            return `อื่นๆ (${formData.otherBusinessTypeDetail})`;
+          }
+          return BUSINESS_TYPE_MAP[key] || key;
+        });
+      
+      console.log('Mapped business types:', selectedTypes);
+      return selectedTypes;
+    }
     
-    return formData.businessTypeOther.map(bto => bto.otherType || '-');
+    // ถ้าเป็น array (รูปแบบเก่า)
+    if (formData.businessTypes && Array.isArray(formData.businessTypes)) {
+      return formData.businessTypes.map(bt => bt.businessTypeName || bt.id || '-');
+    }
+    
+    console.log('No business types found');
+    return [];
   };
-
-  // Format products for display from database
+  
+  // แก้ไขฟังก์ชัน formatProducts() ให้รองรับ key
   const formatProducts = () => {
-    if (!formData.products || !Array.isArray(formData.products)) return [];
+    console.log('=== Debug Products ===');
+    console.log('formData.products:', formData.products);
     
-    return formData.products.map(product => ({
-      nameTh: product.nameTh || '-',
-      nameEn: product.nameEn || '-'
-    }));
+    if (!formData.products || !Array.isArray(formData.products)) {
+      console.log('No products array found');
+      return [];
+    }
+    
+    const formattedProducts = formData.products
+      .filter(product => product && (product.nameTh || product.nameEn)) // กรองข้อมูลที่มีเนื้อหา
+      .map(product => ({
+        nameTh: product.nameTh || '-',
+        nameEn: product.nameEn || '-'
+      }));
+    
+    console.log('Formatted products:', formattedProducts);
+    return formattedProducts;
   };
 
   // Helper function to get file name - รองรับทั้งโหมดสมัครและโหมดดูข้อมูล
@@ -222,16 +257,48 @@ export default function SummarySection({
 
   // Get industrial group names from database
   const getIndustrialGroupNames = () => {
-    if (!formData.industryGroups || !Array.isArray(formData.industryGroups)) return [];
+    console.log('Debug - formData.industrialGroupId:', formData.industrialGroupId);
     
-    return formData.industryGroups.map(ig => ig.industryGroupName || ig.id || '-');
+    // อ่านจาก industrialGroupId (ที่ IndustrialGroupSection บันทึกไว้)
+    if (formData.industrialGroupId && Array.isArray(formData.industrialGroupId)) {
+      return formData.industrialGroupId.map(id => {
+        // หาชื่อจาก industrialGroups prop
+        let group = null;
+        
+        if (industrialGroups?.data) {
+          group = industrialGroups.data.find(g => g.MEMBER_GROUP_CODE === id || g.id === id);
+        } else if (Array.isArray(industrialGroups)) {
+          group = industrialGroups.find(g => g.id === id || g.MEMBER_GROUP_CODE === id);
+        }
+        
+        return group ? (group.MEMBER_GROUP_NAME || group.name_th || String(id)) : String(id);
+      });
+    }
+    
+    return [];
   };
 
   // Get provincial chapter names from database
   const getProvincialChapterNames = () => {
-    if (!formData.provinceChapters || !Array.isArray(formData.provinceChapters)) return [];
+    console.log('Debug - formData.provincialChapterId:', formData.provincialChapterId);
     
-    return formData.provinceChapters.map(pc => pc.provinceChapterName || pc.id || '-');
+    // อ่านจาก provincialChapterId (ที่ IndustrialGroupSection บันทึกไว้)
+    if (formData.provincialChapterId && Array.isArray(formData.provincialChapterId)) {
+      return formData.provincialChapterId.map(id => {
+        // หาชื่อจาก provincialChapters prop
+        let chapter = null;
+        
+        if (provincialChapters?.data) {
+          chapter = provincialChapters.data.find(c => c.MEMBER_GROUP_CODE === id || c.id === id);
+        } else if (Array.isArray(provincialChapters)) {
+          chapter = provincialChapters.find(c => c.id === id || c.MEMBER_GROUP_CODE === id);
+        }
+        
+        return chapter ? (chapter.MEMBER_GROUP_NAME || chapter.name_th || String(id)) : String(id);
+      });
+    }
+    
+    return [];
   };
 
   // Handle submit button click
@@ -271,6 +338,7 @@ export default function SummarySection({
           } />
           <InfoCard title="อีเมล" value={formData.email} />
           <InfoCard title="เบอร์โทรศัพท์" value={formData.phone} />
+          <InfoCard title="ต่อ" value={formData.phoneExtension} />
         </div>
       </Section>
 
@@ -297,7 +365,7 @@ export default function SummarySection({
                   <InfoCard title="อาคาร/หมู่บ้าน" value={get('building')} />
                   <InfoCard title="หมู่" value={get('moo')} />
                   <InfoCard title="ซอย" value={get('soi')} />
-                  <InfoCard title="ถนน" value={get('road')} />
+                  <InfoCard title="ถนน" value={get('street') || get('road')} />
                   <InfoCard title="ตำบล/แขวง" value={get('subDistrict')} />
                   <InfoCard title="อำเภอ/เขต" value={get('district')} />
                   <InfoCard title="จังหวัด" value={get('province')} />
@@ -326,7 +394,13 @@ export default function SummarySection({
               <InfoCard title="เลขที่" value={formData.address?.addressNumber || '-'} />
               <InfoCard title="หมู่" value={formData.address?.moo || '-'} />
               <InfoCard title="ซอย" value={formData.address?.soi || '-'} />
-              <InfoCard title="ถนน" value={formData.address?.road || '-'} />
+              <InfoCard title="ถนน" value={
+  formData.address?.street || 
+  formData.address?.road || 
+  formData.street || 
+  formData.road || 
+  '-'
+} />
               <InfoCard title="ตำบล/แขวง" value={formData.address?.subDistrict || '-'} />
               <InfoCard title="อำเภอ/เขต" value={formData.address?.district || '-'} />
               <InfoCard title="จังหวัด" value={formData.address?.province || '-'} />
