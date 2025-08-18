@@ -12,6 +12,17 @@ export default function IndustrialGroupInfo({
   const [provincialCouncils, setProvincialCouncils] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const getSafeSelectedIds = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return [];
+    }
+    // If the first item is an object with an 'id', map to IDs. Otherwise, assume it's already an array of IDs.
+    if (typeof items[0] === 'object' && items[0] !== null && 'id' in items[0]) {
+      return items.map(item => item.id);
+    }
+    return items;
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -158,7 +169,7 @@ export default function IndustrialGroupInfo({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={industrialGroups}
-                  selectedValues={formData.industrialGroups || []}
+                  selectedIds={getSafeSelectedIds(formData.industrialGroups)}
                   onChange={handleIndustrialGroupChange}
                   placeholder="-- เลือกกลุ่มอุตสาหกรรม --"
                   isLoading={isLoading}
@@ -183,7 +194,7 @@ export default function IndustrialGroupInfo({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={provincialCouncils}
-                  selectedValues={formData.provincialCouncils || []}
+                  selectedIds={getSafeSelectedIds(formData.provincialCouncils)}
                   onChange={handleProvincialCouncilChange}
                   placeholder="-- เลือกสภาอุตสาหกรรมจังหวัด --"
                   isLoading={isLoading}

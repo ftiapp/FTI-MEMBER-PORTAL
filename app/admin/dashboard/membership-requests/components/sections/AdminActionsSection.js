@@ -83,6 +83,16 @@ const AdminActionsSection = ({
           </button>
         </div>
       </div>
+
+      {/* Rejection Reason Display */}
+      {application?.status === STATUS.REJECTED && application?.rejectionReason && (
+        <div className="mb-8">
+          <label className="text-lg font-semibold text-gray-800">เหตุผลการปฏิเสธ</label>
+          <div className="mt-2 p-4 bg-red-50 border border-red-200 rounded-lg">
+            <p className="text-sm text-red-800">{application.rejectionReason}</p>
+          </div>
+        </div>
+      )}
       
       {/* Action Buttons */}
       {application?.status === STATUS.PENDING && (

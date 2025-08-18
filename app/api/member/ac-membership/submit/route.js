@@ -26,8 +26,53 @@ export async function POST(request) {
       }, { status: 400 });
     }
     
+    const rejectionId = formData.get('rejectionId');
+
     trx = await beginTransaction();
     console.log('🔄 [AC] Database transaction started');
+
+    if (rejectionId) {
+      console.log(`♻️ [AC] Resubmission detected for rejectionId: ${rejectionId}`);
+      const [rejectionData] = await executeQuery(trx, 'SELECT membership_id FROM MemberRegist_AC_RejectionData WHERE id = ? AND status = ?', [rejectionId, 'rejected']);
+      if (!rejectionData) {
+        await rollbackTransaction(trx);
+        return NextResponse.json({ error: 'Invalid or already used rejection ID.' }, { status: 400 });
+      }
+
+      const oldMainId = rejectionData.membership_id;
+      console.log(`🗑️ [AC] Cleaning up old application data for main_id: ${oldMainId}`);
+
+      const [oldDocs] = await executeQuery(trx, 'SELECT cloudinary_id FROM MemberRegist_AC_Documents WHERE main_id = ?', [oldMainId]);
+      for (const doc of oldDocs) {
+        if (doc.cloudinary_id) {
+          // Deletion from Cloudinary is fire-and-forget for now
+          // import { deleteFromCloudinary } from '@/app/lib/cloudinary';
+          // await deleteFromCloudinary(doc.cloudinary_id);
+        }
+      }
+
+      const tablesToDeleteFrom = [
+        'MemberRegist_AC_Documents',
+        'MemberRegist_AC_StatusLogs',
+        'MemberRegist_AC_ProvinceChapters',
+        'MemberRegist_AC_IndustryGroups',
+        'MemberRegist_AC_Products',
+        'MemberRegist_AC_BusinessTypeOther',
+        'MemberRegist_AC_BusinessTypes',
+        'MemberRegist_AC_Representatives',
+        'MemberRegist_AC_ContactPerson',
+        'MemberRegist_AC_Address',
+        'MemberRegist_AC_Main'
+      ];
+
+      for (const table of tablesToDeleteFrom) {
+        await executeQuery(trx, `DELETE FROM ${table} WHERE main_id = ?`, [oldMainId]);
+        console.log(`✅ [AC] Deleted from ${table} for main_id: ${oldMainId}`);
+      }
+
+      await executeQuery(trx, 'UPDATE MemberRegist_AC_RejectionData SET status = ? WHERE id = ?', ['resubmitted', rejectionId]);
+      console.log(`✅ [AC] Marked rejectionId ${rejectionId} as resubmitted.`);
+    }
 
     // Step 1: Extract all data and files from FormData
     const data = {};

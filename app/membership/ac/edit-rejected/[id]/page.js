@@ -15,6 +15,11 @@ export default function EditRejectedACApplication() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [userComment, setUserComment] = useState('');
+  const [comments, setComments] = useState([]);
+  
+  // เพิ่ม state สำหรับ debug
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 768);
@@ -31,33 +36,27 @@ export default function EditRejectedACApplication() {
 
   useEffect(() => {
     if (rejectedApp && rejectedApp.rejectionData) {
-      console.log(' Found AC rejectionData, mapping...');
+      console.log('✅ Found AC rejectionData, mapping...');
       const mapped = mapRejectionDataToACForm(rejectedApp.rejectionData);
-      console.log(' Setting AC formData to:', mapped);
+      console.log('✅ Setting AC formData to:', mapped);
       setFormData(mapped);
-
-      const adminNote = rejectedApp.adminNote?.toLowerCase() || '';
-      if (adminNote.includes('บริษัท') || adminNote.includes('company')) setCurrentStep(1);
-      else if (adminNote.includes('ผู้แทน') || adminNote.includes('representative')) setCurrentStep(2);
-      else if (adminNote.includes('ธุรกิจ') || adminNote.includes('business')) setCurrentStep(3);
-      else if (adminNote.includes('เอกสาร') || adminNote.includes('document')) setCurrentStep(4);
+      
+      // เพิ่ม debug info
+      setDebugInfo(`Mapped data: ${Object.keys(mapped).length} fields`);
     } else if (rejectedApp) {
-        console.log(' No AC rejectionData found in response');
+      console.log('❌ No AC rejectionData found in response');
+      setDebugInfo('No rejection data found');
     }
   }, [rejectedApp]);
 
-  useEffect(() => {
-    console.log('EFFECT: formData changed', formData);
-  }, [formData]);
-
   // Transform rejection_data snapshot into the flat formData shape for ACMembershipForm
   const mapRejectionDataToACForm = (data) => {
-    console.log(' Mapping AC rejection data:', data);
+    console.log('🔄 Mapping AC rejection data:', data);
     if (!data) return {};
     
     // Check if data is already in flat format (like draft data)
     if (data.companyName || data.taxId) {
-      console.log(' AC Data is already in flat format, using as-is');
+      console.log('✅ AC Data is already in flat format, using as-is');
       
       // แต่ต้องตรวจสอบและเติมข้อมูลที่ขาดหายให้ครบถ้วน
       const flatData = { ...data };
@@ -175,9 +174,9 @@ export default function EditRejectedACApplication() {
     if (typeof data === 'string') {
       try {
         data = JSON.parse(data);
-        console.log(' AC Parsed string data:', data);
+        console.log('✅ AC Parsed string data:', data);
       } catch (e) {
-        console.error('Error parsing rejection data:', e);
+        console.error('❌ Error parsing rejection data:', e);
         return {};
       }
     }
@@ -193,7 +192,7 @@ export default function EditRejectedACApplication() {
     const industrialGroups = Array.isArray(data.industryGroups) ? data.industryGroups : [];
     const provincialChapters = Array.isArray(data.provinceChapters) ? data.provinceChapters : [];
 
-    console.log(' Extracted AC nested data:', { main, address, contactPersons, representatives, businessTypes, products, industrialGroups, provincialChapters });
+    console.log('✅ Extracted AC nested data:', { main, address, contactPersons, representatives, businessTypes, products, industrialGroups, provincialChapters });
 
     // Map address to nested structure for CompanyAddressInfo
     const mappedAddresses = {
@@ -341,8 +340,8 @@ export default function EditRejectedACApplication() {
       }],
 
       // Industrial Groups & Provincial Chapters - map to array of objects for the form
-      industrialGroups: industrialGroups.map(ig => ({ id: ig.industry_group_id, name: ig.industry_group_name })),
-      provincialChapters: provincialChapters.map(pc => ({ id: pc.province_chapter_id, name: pc.province_chapter_name })),
+      industrialGroups: industrialGroups.map(ig => ({ id: ig.industry_group_id, name_th: ig.industry_group_name })),
+      provincialChapters: provincialChapters.map(pc => ({ id: pc.province_chapter_id, name_th: pc.province_chapter_name })),
 
       // Business Types - convert to object format expected by AC form
       businessTypes: businessTypes.reduce((acc, bt) => {
@@ -382,26 +381,59 @@ export default function EditRejectedACApplication() {
       authorizedSignature: mappedDocuments.authorizedSignature || null
     };
 
-    console.log(' Mapped AC form data:', mappedData);
+    console.log('✅ Mapped AC form data:', mappedData);
     return mappedData;
+  };
+
+  const fetchComments = async (membershipType, membershipId) => {
+    try {
+      console.log('🔄 Fetching comments for:', membershipType, membershipId);
+      const res = await fetch(`/api/membership/user-comments/${membershipType}/${membershipId}`);
+      const result = await res.json();
+      console.log('📥 Comments API Response:', result);
+      if (result.success) {
+        setComments(result.comments);
+        console.log('✅ Comments set:', result.comments);
+      } else {
+        console.error('Failed to fetch comments:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
   };
 
   const fetchRejectedApplication = async () => {
     try {
       setIsLoading(true);
+      console.log('🔄 Fetching rejected application:', params.id);
+      
       const res = await fetch(`/api/membership/rejected-applications/${params.id}`);
       const result = await res.json();
-      console.log(' AC API Response:', result);
+      console.log('📥 AC API Response:', result);
       
       if (result.success) {
         setRejectedApp(result.data);
-        console.log(' AC Rejected App Data set:', result.data);
+        console.log('🔍 Checking membership data:', {
+          membershipType: result.data.membershipType,
+          membershipId: result.data.membershipId,
+          hasData: !!result.data
+        });
+        if (result.data.membershipType && result.data.membershipId) {
+          console.log('📞 Calling fetchComments with:', result.data.membershipType, result.data.membershipId);
+          fetchComments(result.data.membershipType, result.data.membershipId);
+        } else {
+          console.log('❌ Missing membershipType or membershipId in response');
+        }
+        console.log('✅ AC Rejected App Data set:', result.data);
+        setDebugInfo(`API Success: ${result.data ? 'Data found' : 'No data'}`);
       } else {
         setError(result.message || 'Failed to fetch rejected application');
+        setDebugInfo(`API Error: ${result.message}`);
       }
     } catch (e) {
-      console.error(' AC Fetch error:', e);
+      console.error('❌ AC Fetch error:', e);
       setError('Failed to fetch rejected application');
+      setDebugInfo(`Fetch Error: ${e.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -412,8 +444,11 @@ export default function EditRejectedACApplication() {
       <>
         <Navbar />
         <main className="min-h-screen bg-gray-50 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+            <span className="ml-3 text-gray-600 block mt-2">กำลังโหลดข้อมูล...</span>
+            {debugInfo && <p className="text-xs text-gray-500 mt-2">{debugInfo}</p>}
+          </div>
         </main>
         <Footer />
       </>
@@ -432,6 +467,7 @@ export default function EditRejectedACApplication() {
               </svg>
               <p className="text-lg font-medium">เกิดข้อผิดพลาด</p>
               <p className="text-sm text-gray-600 mt-1">{error}</p>
+              {debugInfo && <p className="text-xs text-gray-500 mt-2">Debug: {debugInfo}</p>}
             </div>
             <button onClick={() => router.push('/dashboard?tab=membership')} className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">กลับไปหน้าหลัก</button>
           </div>
@@ -452,46 +488,85 @@ export default function EditRejectedACApplication() {
               <div className="text-center md:text-left mb-8 md:mb-0">
                 <h1 className="text-3xl md:text-4xl font-bold mb-4">แก้ไขใบสมัครสมาชิกวิสามัญ</h1>
                 <p className="text-lg md:text-xl text-blue-100 max-w-2xl">แก้ไขข้อมูลตามคำแนะนำของผู้ดูแลระบบและส่งใบสมัครใหม่</p>
+                {process.env.NODE_ENV === 'development' && debugInfo && (
+                  <p className="text-xs text-blue-200 mt-2">Debug: {debugInfo}</p>
+                )}
               </div>
             </div>
           </div>
         </div>
 
-        {rejectedApp && (
-          <div className="container mx-auto px-4 py-8">
-            <div className="bg-red-50 border border-red-200 rounded-lg mb-6">
-              <div className="p-6">
-                <h3 className="text-lg font-medium text-red-800 mb-2">ความเห็นของผู้ดูแลระบบ</h3>
-                {rejectedApp.rejectionReason && (
-                  <div className="mb-4">
-                    <p className="text-sm font-medium text-red-700 mb-1">เหตุผลการปฏิเสธ:</p>
-                    <div className="bg-white border border-red-200 rounded-md p-3">
-                      <p className="text-sm text-red-800">{rejectedApp.rejectionReason}</p>
+        <div className="container mx-auto px-4 pt-8">
+          <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-4">ประวัติการสื่อสาร</h3>
+              {process.env.NODE_ENV === 'development' && (
+                <p className="text-xs text-gray-500 mb-4">Debug: Comments array length: {comments.length}</p>
+              )}
+              {comments.length > 0 ? (
+                <div className="space-y-4">
+                  {comments.map(comment => (
+                    <div key={comment.id} className={`p-4 rounded-lg ${comment.comment_type.startsWith('admin') ? 'bg-red-50 border-l-4 border-red-400' : 'bg-blue-50 border-l-4 border-blue-400'}`}>
+                      <div className="flex justify-between items-center mb-1">
+                        <p className={`text-sm font-semibold ${comment.comment_type.startsWith('admin') ? 'text-red-800' : 'text-blue-800'}`}>
+                          {comment.comment_type.startsWith('admin') ? 'ผู้ดูแลระบบ' : 'ผู้สมัคร'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(comment.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </p>
+                      </div>
+                      <p className="text-sm text-gray-700">{comment.comment_text}</p>
                     </div>
-                  </div>
-                )}
-                {rejectedApp.adminNote && (
-                  <div>
-                    <p className="text-sm font-medium text-red-700 mb-1">ข้อเสนอแนะเพิ่มเติม:</p>
-                    <div className="bg-white border border-red-200 rounded-md p-3">
-                      <p className="text-sm text-red-800">{rejectedApp.adminNote}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500 text-center py-4">ยังไม่มีประวัติการสื่อสาร</p>
+              )}
             </div>
           </div>
-        )}
+        </div>
 
         <div className="container mx-auto px-4 py-8">
+          {/* User Comment Box */}
+          <div className="bg-white border border-gray-200 rounded-lg mb-6 shadow-sm">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                แสดงความคิดเห็นเพิ่มเติมถึงผู้ดูแลระบบ (ถ้ามี)
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                หากคุณต้องการชี้แจงรายละเอียดเพิ่มเติมเกี่ยวกับการแก้ไขข้อมูล สามารถพิมพ์ข้อความที่นี่ได้
+              </p>
+              <textarea
+                value={userComment}
+                onChange={(e) => setUserComment(e.target.value)}
+                rows="4"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="พิมพ์ข้อความของคุณที่นี่..."
+              />
+            </div>
+          </div>
+
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             <div className="p-6">
-              <ACMembershipForm 
-                formData={formData} 
-                setFormData={setFormData}
-                rejectionId={params.id}
-                isSinglePageLayout={true}
-              />
+              {formData ? (
+                <ACMembershipForm 
+                  formData={formData} 
+                  setFormData={setFormData}
+                  currentStep={5} // บังคับให้เป็นขั้นตอนสุดท้าย
+                  setCurrentStep={() => {}} // ไม่ให้เปลี่ยน step
+                  totalSteps={5}
+                  rejectionId={params.id}
+                  isSinglePageLayout={true}
+                  userComment={userComment}
+                />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-600">ไม่พบข้อมูลฟอร์ม</p>
+                  {process.env.NODE_ENV === 'development' && (
+                    <p className="text-xs text-gray-500 mt-2">Debug: formData is null</p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

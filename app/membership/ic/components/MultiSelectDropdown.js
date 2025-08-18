@@ -67,12 +67,13 @@ export default function MultiSelectDropdown({
 
   // Toggle selection of an option
   const toggleOption = (optionId) => {
+    const currentValues = selectedValues || [];
     let newSelectedValues;
     
-    if (selectedValues.includes(optionId)) {
-      newSelectedValues = selectedValues.filter(id => id !== optionId);
+    if (currentValues.includes(optionId)) {
+      newSelectedValues = currentValues.filter(id => id !== optionId);
     } else {
-      newSelectedValues = [...selectedValues, optionId];
+      newSelectedValues = [...currentValues, optionId];
     }
     
     onChange(newSelectedValues);
@@ -80,14 +81,15 @@ export default function MultiSelectDropdown({
 
   // Get selected options names for display
   const getSelectedOptionsText = () => {
-    if (!Array.isArray(options) || selectedValues.length === 0) return placeholder;
+    const currentValues = selectedValues || [];
+    if (!Array.isArray(options) || currentValues.length === 0) return placeholder;
     
-    if (selectedValues.length === 1) {
-      const selected = options.find(opt => opt.id === selectedValues[0]);
+    if (currentValues.length === 1) {
+      const selected = options.find(opt => opt.id === currentValues[0]);
       return selected ? selected.name_th : placeholder;
     }
     
-    return `เลือกแล้ว ${selectedValues.length} รายการ`;
+    return `เลือกแล้ว ${currentValues.length} รายการ`;
   };
 
   return (
@@ -148,13 +150,13 @@ export default function MultiSelectDropdown({
                 <div 
                   key={option.id} 
                   className={`flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                    selectedValues.includes(option.id) ? 'bg-blue-50' : ''
+                    (selectedValues || []).includes(option.id) ? 'bg-blue-50' : ''
                   }`}
                   onClick={() => toggleOption(option.id)}
                 >
                   <input
                     type="checkbox"
-                    checked={selectedValues.includes(option.id)}
+                    checked={(selectedValues || []).includes(option.id)}
                     onChange={() => {}}
                     className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                   />
@@ -166,9 +168,9 @@ export default function MultiSelectDropdown({
             )}
           </div>
           
-          {selectedValues.length > 0 && (
+          {(selectedValues || []).length > 0 && (
             <div className="p-2 border-t flex justify-between items-center">
-              <span className="text-xs text-blue-600">เลือกแล้ว {selectedValues.length} รายการ</span>
+              <span className="text-xs text-blue-600">เลือกแล้ว {(selectedValues || []).length} รายการ</span>
               <button
                 className="text-xs text-red-600 hover:text-red-800"
                 onClick={(e) => {

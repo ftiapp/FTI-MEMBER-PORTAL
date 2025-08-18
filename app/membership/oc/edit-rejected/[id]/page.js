@@ -18,6 +18,8 @@ export default function EditRejectedOCApplication() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [userComment, setUserComment] = useState('');
 
   useEffect(() => {
     const checkMobile = () => {
@@ -121,6 +123,20 @@ export default function EditRejectedOCApplication() {
     return mappedData;
   };
 
+  const fetchComments = async (membershipType, membershipId) => {
+    try {
+      const res = await fetch(`/api/membership/comments/${membershipType}/${membershipId}`);
+      const result = await res.json();
+      if (result.success) {
+        setComments(result.comments);
+      } else {
+        console.error('Failed to fetch comments:', result.message);
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
   const fetchRejectedApplication = async () => {
     try {
       setLoading(true);
@@ -131,6 +147,10 @@ export default function EditRejectedOCApplication() {
       if (result.success) {
         setRejectedApp(result.data);
         console.log('📋 OC Rejected App Data:', result.data);
+
+        if (result.data.membership_type && result.data.membership_id) {
+          fetchComments(result.data.membership_type, result.data.membership_id);
+        }
         
         if (result.data.rejectionData) {
           console.log('🔄 Found OC rejectionData, mapping...');
@@ -248,40 +268,26 @@ export default function EditRejectedOCApplication() {
           </div>
         </div>
         
-        {/* Admin Comments Section */}
-        {rejectedApp && (
-          <div className="container mx-auto px-4 py-8">
-            <div className="bg-red-50 border border-red-200 rounded-lg mb-6">
+        {/* Comments History Section */}
+        {comments.length > 0 && (
+          <div className="container mx-auto px-4 pt-8">
+            <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
               <div className="p-6">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
+                <h3 className="text-lg font-medium text-gray-800 mb-4">ประวัติการสื่อสาร</h3>
+                <div className="space-y-4">
+                  {comments.map(comment => (
+                    <div key={comment.id} className={`p-4 rounded-lg ${comment.comment_type.startsWith('admin') ? 'bg-red-50 border-l-4 border-red-400' : 'bg-blue-50 border-l-4 border-blue-400'}`}>
+                      <div className="flex justify-between items-center mb-1">
+                        <p className={`text-sm font-semibold ${comment.comment_type.startsWith('admin') ? 'text-red-800' : 'text-blue-800'}`}>
+                          {comment.comment_type.startsWith('admin') ? 'ผู้ดูแลระบบ' : 'ผู้สมัคร'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(comment.created_at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })}
+                        </p>
+                      </div>
+                      <p className="text-sm text-gray-700">{comment.comment_text}</p>
                     </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-red-800 mb-2">ความเห็นของผู้ดูแลระบบ</h3>
-                    
-                    {rejectedApp.rejectionReason && (
-                      <div className="mb-4">
-                        <p className="text-sm font-medium text-red-700 mb-1">เหตุผลการปฏิเสธ:</p>
-                        <div className="bg-white border border-red-200 rounded-md p-3">
-                          <p className="text-sm text-red-800">{rejectedApp.rejectionReason}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    {rejectedApp.adminNote && (
-                      <div>
-                        <p className="text-sm font-medium text-red-700 mb-1">ข้อเสนอแนะเพิ่มเติม:</p>
-                        <div className="bg-white border border-red-200 rounded-md p-3">
-                          <p className="text-sm text-red-800">{rejectedApp.adminNote}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -290,6 +296,25 @@ export default function EditRejectedOCApplication() {
         
         {/* Form Container */}
         <div className="container mx-auto px-4 py-8">
+          {/* User Comment Box */}
+          <div className="bg-white border border-gray-200 rounded-lg mb-6 shadow-sm">
+            <div className="p-6">
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                แสดงความคิดเห็นเพิ่มเติมถึงผู้ดูแลระบบ (ถ้ามี)
+              </h3>
+              <p className="text-sm text-gray-500 mb-4">
+                หากคุณต้องการชี้แจงรายละเอียดเพิ่มเติมเกี่ยวกับการแก้ไขข้อมูล สามารถพิมพ์ข้อความที่นี่ได้
+              </p>
+              <textarea
+                value={userComment}
+                onChange={(e) => setUserComment(e.target.value)}
+                rows="4"
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="พิมพ์ข้อความของคุณที่นี่..."
+              />
+            </div>
+          </div>
+
           <div className="bg-white shadow-md rounded-lg overflow-hidden">
             {/* Step Indicator */}
             <div className="border-b border-gray-200 p-4">
@@ -309,6 +334,7 @@ export default function EditRejectedOCApplication() {
                 totalSteps={steps.length}
                 isEditingRejected={true}
                 rejectedAppId={params.id}
+                userComment={userComment}
               />
             </div>
           </div>

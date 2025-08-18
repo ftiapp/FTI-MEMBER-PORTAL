@@ -64,6 +64,17 @@ export default function IndustrialGroupInfo({
     }));
   };
   
+  const getSafeSelectedIds = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return [];
+    }
+    // If the first item is an object with an 'id', map to IDs. Otherwise, assume it's already an array of IDs.
+    if (typeof items[0] === 'object' && items[0] !== null && 'id' in items[0]) {
+      return items.map(item => item.id);
+    }
+    return items;
+  };
+
   const handleProvincialCouncilChange = (selectedIds) => {
     // ส่งทั้ง IDs และ Names
     const selectedCouncils = provincialCouncils.filter(council => selectedIds.includes(council.id));
@@ -123,7 +134,7 @@ export default function IndustrialGroupInfo({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={industrialGroups}
-                  selectedIds={formData.industrialGroups || []}
+                  selectedIds={getSafeSelectedIds(formData.industrialGroups)}
                   onChange={handleIndustrialGroupChange}
                   placeholder="เลือกกลุ่มอุตสาหกรรม"
                   isLoading={isLoading}
@@ -148,7 +159,7 @@ export default function IndustrialGroupInfo({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={provincialCouncils}
-                  selectedIds={formData.provincialChapters || []} // ✅ เปลี่ยนจาก provincialCouncils
+                  selectedIds={getSafeSelectedIds(formData.provincialChapters)} // ✅ เปลี่ยนจาก provincialCouncils
                   onChange={handleProvincialCouncilChange}
                   placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
                   isLoading={isLoading}

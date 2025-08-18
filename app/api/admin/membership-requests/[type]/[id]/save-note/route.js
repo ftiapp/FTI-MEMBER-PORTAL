@@ -75,10 +75,18 @@ export async function POST(request, { params }) {
       companyInfo = `ID: ${id}`;
     }
 
-    // Save admin note to the main table
+    // Get user_id from the main application table
+    const [mainRows] = await connection.execute(`SELECT user_id FROM ${tableName} WHERE id = ?`, [id]);
+    if (mainRows.length === 0) {
+      return NextResponse.json({ success: false, message: 'Application not found' }, { status: 404 });
+    }
+    const userId = mainRows[0].user_id;
+
+    // Insert a new comment into the comments table
     await connection.execute(
-      `UPDATE ${tableName} SET admin_note = ?, admin_note_by = ?, admin_note_at = NOW() WHERE id = ?`,
-      [adminNote, adminData.id, id]
+      `INSERT INTO MemberRegist_Comments (membership_id, membership_type, user_id, admin_id, comment_type, comment_text, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, NOW())`,
+      [id, type, userId, adminData.id, 'admin_note', adminNote]
     );
 
     // Log admin action

@@ -276,6 +276,35 @@ export async function POST(request, { params }) {
         ]
       );
 
+      // Insert rejection reason into comments table
+      await connection.execute(
+        `INSERT INTO MemberRegist_Comments (membership_type, membership_id, admin_id, comment_type, comment_text, rejection_reason)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          type,
+          id,
+          adminData.id,
+          'admin_rejection',
+          rejectionReason,
+          rejectionReason
+        ]
+      );
+
+      // If there's an admin note, insert it as a separate comment
+      if (adminNote && adminNote.trim()) {
+        await connection.execute(
+          `INSERT INTO MemberRegist_Comments (membership_type, membership_id, admin_id, comment_type, comment_text)
+           VALUES (?, ?, ?, ?, ?)`,
+          [
+            type,
+            id,
+            adminData.id,
+            'admin_note',
+            adminNote
+          ]
+        );
+      }
+
       // Fetch applicant details for email notification and description
       let email = '';
       let firstName = '';

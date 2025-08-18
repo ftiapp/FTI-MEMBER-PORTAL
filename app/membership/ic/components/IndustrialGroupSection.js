@@ -12,6 +12,17 @@ export default function IndustrialGroupSection({
   provincialChapters,
   isLoading
 }) {
+  const getSafeSelectedIds = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return [];
+    }
+    // If the first item is an object with an 'id', map to IDs. Otherwise, assume it's already an array of IDs.
+    if (typeof items[0] === 'object' && items[0] !== null && 'id' in items[0]) {
+      return items.map(item => item.id);
+    }
+    return items;
+  };
+
   // ✅ FIX: แก้ไขให้ใช้ field name ที่ตรงกับ API และการ submit
   const handleIndustrialGroupChange = (selectedIds) => {
     console.log('Industrial groups selected:', selectedIds);
@@ -134,7 +145,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={industrialGroupOptions()}
-                  selectedValues={formData.industrialGroupId || []}
+                  selectedIds={getSafeSelectedIds(formData.industrialGroupId)}
                   onChange={handleIndustrialGroupChange}
                   isLoading={isLoading}
                   error={errors?.industrialGroupId || errors?.industrialGroupIds}
@@ -160,7 +171,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={provincialChapterOptions()}
-                  selectedValues={formData.provincialChapterId || []}
+                  selectedIds={getSafeSelectedIds(formData.provincialChapterId)}
                   onChange={handleProvincialCouncilChange}
                   isLoading={isLoading}
                   error={errors?.provincialChapterId || errors?.provincialCouncilIds}

@@ -153,16 +153,22 @@ export async function query(sql, params) {
         params: params
       });
       
-      // Only retry on connection errors (like ECONNRESET)
+      // Only retry on specific connection errors
       if (error.code === 'ECONNRESET' || error.code === 'PROTOCOL_CONNECTION_LOST' || error.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
         retryCount++;
-        
+
+        // Destroy the faulty connection
+        if (connection) {
+          console.log('Destroying faulty database connection.');
+          connection.destroy();
+        }
+
         if (retryCount < maxRetries) {
           // Wait before retrying (exponential backoff)
           const delay = Math.pow(2, retryCount) * 1000;
           console.log(`Retrying in ${delay}ms...`);
           await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
+          continue; // Continue to the next iteration of the while loop
         }
       } else {
         // For other errors, don't retry

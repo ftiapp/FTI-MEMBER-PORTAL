@@ -14,6 +14,7 @@ import { useApplicationData } from '../../hooks/useApplicationData';
 import { getMemberTypeInfo } from '../../ีutils/dataTransformers';
 import { formatThaiDate } from '../../ีutils/formatters';
 import { STATUS } from '../../ีutils/constants';
+import ApplicationComments from '../../../../components/ApplicationComments';
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
@@ -319,6 +320,11 @@ export default function MembershipRequestDetail({ params }) {
           isSubmitting={isSubmitting}
           onPrint={handlePrint}
         />
+
+        {/* Comments Section */}
+        <div className="mt-8">
+          <ApplicationComments membershipType={type} membershipId={id} />
+        </div>
 
         {/* Reject Modal */}
         <RejectModal

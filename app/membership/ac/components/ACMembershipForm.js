@@ -160,6 +160,7 @@ export default function ACMembershipForm({
   setCurrentStep: externalSetCurrentStep,
   totalSteps: externalTotalSteps,
   rejectionId, // เพิ่ม rejectionId สำหรับโหมดแก้ไข
+  userComment, // เพิ่ม comment จากผู้ใช้
   isSinglePageLayout = false // เพิ่ม prop สำหรับ layout หน้าเดียว
 }) {
   const router = useRouter();
@@ -386,40 +387,153 @@ export default function ACMembershipForm({
   // Handle form submission and step navigation
   const handleSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
-
-    // --- Step Navigation Logic ---
+    
+    console.log('🔄 handleSubmit called:', { 
+      currentStep, 
+      isSinglePageLayout, 
+      rejectionId,
+      formDataKeys: Object.keys(formData) 
+    });
+  
+    // --- สำหรับโหมดแก้ไข (Single Page Layout) ---
+    if (isSinglePageLayout || rejectionId) {
+      console.log('📝 Single page layout or edit mode - proceeding to final submission');
+      
+      // ข้าม step validation เพราะเป็น single page layout
+      const formErrors = validateACForm(formData, STEPS.length);
+      setErrors(formErrors);
+  
+      if (Object.keys(formErrors).length > 0) {
+        console.log('❌ Validation errors found:', formErrors);
+        toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน');
+        
+        // หา section แรกที่มี error แล้ว scroll ไป
+        const firstErrorField = Object.keys(formErrors)[0];
+        const errorElement = document.querySelector(`[name="${firstErrorField}"]`) || 
+                            document.querySelector(`#${firstErrorField}`) ||
+                            document.querySelector(`.${firstErrorField}`);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return;
+      }
+  
+      // ดำเนินการส่งข้อมูล
+      console.log('✅ Validation passed, proceeding with submission');
+      toast.loading('กำลังส่งข้อมูล...', { id: 'submitting' });
+      setIsSubmitting(true);
+  
+      try {
+        let result;
+        if (rejectionId) {
+          console.log('🔄 Resubmitting rejected application:', rejectionId);
+          const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
+            method: 'POST',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            },
+            body: JSON.stringify({
+              formData: formData,
+              memberType: 'ac',
+              userComment: userComment, // ส่ง comment ไปด้วย
+              apiData: {
+                industrialGroups,
+                provincialChapters
+              }
+            })
+          });
+          
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+          
+          result = await res.json();
+          console.log('📥 Resubmit response:', result);
+        } else {
+          console.log('🔄 New submission');
+          result = await submitACMembershipForm(formData);
+          console.log('📥 New submission response:', result);
+        }
+  
+        toast.dismiss('submitting');
+  
+        if (result.success) {
+          console.log('✅ Submission successful');
+          toast.success(result.message || 'ดำเนินการเรียบร้อยแล้ว');
+          
+          if (!rejectionId) {
+            await deleteDraft(formData.taxId);
+          }
+          
+          // เพิ่ม delay เล็กน้อยก่อน redirect
+          setTimeout(() => {
+            router.push('/dashboard?tab=status');
+          }, 1500);
+        } else {
+          console.log('❌ Submission failed:', result.message);
+          toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
+        }
+      } catch (error) {
+        console.error('💥 Submission error:', error);
+        toast.dismiss('submitting');
+        
+        // แสดง error message ที่ละเอียดขึ้น
+        let errorMessage = 'เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง';
+        if (error.message) {
+          errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
+        }
+        
+        toast.error(errorMessage, { duration: 5000 });
+      } finally {
+        setIsSubmitting(false);
+      }
+      
+      return; // หยุดการทำงานที่นี่สำหรับ single page layout
+    }
+  
+    // --- Step Navigation Logic สำหรับโหมดปกติ ---
     if (currentStep < 5) {
+      console.log('🔄 Step navigation mode, current step:', currentStep);
+      
       const formErrors = validateACForm(formData, currentStep);
       setErrors(formErrors);
-
+  
       if (Object.keys(formErrors).length > 0) {
+        console.log('❌ Step validation errors:', formErrors);
         toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
         return;
       }
-
+  
       // Special validation for step 1 (Tax ID)
       if (currentStep === 1 && formData.taxId?.length === 13) {
         // Only check uniqueness if not in edit mode
         if (!rejectionId) {
-            const taxIdResult = await checkTaxIdUniqueness(formData.taxId);
-            if (!taxIdResult.isUnique) {
-                setErrors(prev => ({ ...prev, taxId: taxIdResult.message }));
-                toast.error(taxIdResult.message);
-                return;
-            }
+          console.log('🔄 Checking tax ID uniqueness...');
+          const taxIdResult = await checkTaxIdUniqueness(formData.taxId);
+          if (!taxIdResult.isUnique) {
+            setErrors(prev => ({ ...prev, taxId: taxIdResult.message }));
+            toast.error(taxIdResult.message);
+            return;
+          }
         }
       }
-
-      handleNextStep(formData, setErrors); // This now correctly uses the external setCurrentStep
-      return; // Stop execution after moving to next step
+  
+      console.log('✅ Step validation passed, moving to next step');
+      handleNextStep(formData, setErrors);
+      return;
     }
-
-    // --- Final Submission Logic (currentStep === 5) ---
+  
+    // --- Final Submission Logic (currentStep === 5) สำหรับโหมดปกติ ---
+    console.log('🔄 Final submission for step-by-step mode');
+    
     const formErrors = validateACForm(formData, STEPS.length);
     setErrors(formErrors);
-
+  
     if (Object.keys(formErrors).length > 0) {
+      console.log('❌ Final validation errors:', formErrors);
       toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
+      
       const firstErrorStep = STEPS.find(step => 
         Object.keys(validateACForm(formData, step.id)).length > 0
       );
@@ -428,43 +542,73 @@ export default function ACMembershipForm({
       }
       return;
     }
-
+  
+    console.log('✅ Final validation passed, proceeding with submission');
     toast.loading('กำลังส่งข้อมูล...', { id: 'submitting' });
     setIsSubmitting(true);
-
+  
     try {
       let result;
       if (rejectionId) {
-        // Resubmit logic for rejected applications
+        console.log('🔄 Resubmitting rejected application (step mode):', rejectionId);
         const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ updatedData: formData, memberType: 'ac' })
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+            },
+            body: JSON.stringify({
+              formData: formData,
+              memberType: 'ac',
+              userComment: userComment, // ส่ง comment ไปด้วย
+              apiData: {
+                industrialGroups,
+                provincialChapters
+              }
+            })
         });
+        
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
         result = await res.json();
       } else {
-        // New submission logic
+        console.log('🔄 New submission (step mode)');
         result = await submitACMembershipForm(formData);
       }
-
+  
       toast.dismiss('submitting');
-
+  
       if (result.success) {
+        console.log('✅ Final submission successful');
         toast.success(result.message || 'ดำเนินการเรียบร้อยแล้ว');
+        
         if (!rejectionId) {
           await deleteDraft(formData.taxId);
         }
-        router.push('/dashboard?tab=status');
+        
+        setTimeout(() => {
+          router.push('/dashboard?tab=status');
+        }, 1500);
       } else {
+        console.log('❌ Final submission failed:', result.message);
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
       }
     } catch (error) {
-      console.error('Submission error:', error);
-      toast.error('เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง');
+      console.error('💥 Final submission error:', error);
+      toast.dismiss('submitting');
+      
+      let errorMessage = 'เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง';
+      if (error.message) {
+        errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
+      }
+      
+      toast.error(errorMessage, { duration: 5000 });
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, currentStep, router, setCurrentStep, rejectionId, checkTaxIdUniqueness, handleNextStep, deleteDraft]);
+  }, [formData, currentStep, router, setCurrentStep, rejectionId, checkTaxIdUniqueness, handleNextStep, deleteDraft, isSinglePageLayout]);
 
 
   const handlePrevious = useCallback((e) => {

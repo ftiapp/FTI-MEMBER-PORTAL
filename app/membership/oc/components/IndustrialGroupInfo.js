@@ -13,7 +13,17 @@ export default function IndustrialGroupSection({
   isLoading 
 }) {
   console.log('OC IndustrialGroupSection - industrialGroups:', industrialGroups);
-  console.log('OC IndustrialGroupSection - provincialChapters:', provincialChapters);
+  const getSafeSelectedIds = (items) => {
+    if (!Array.isArray(items) || items.length === 0) {
+      return [];
+    }
+    // If the first item is an object with an 'id', map to IDs. Otherwise, assume it's already an array of IDs.
+    if (typeof items[0] === 'object' && items[0] !== null && 'id' in items[0]) {
+      return items.map(item => item.id);
+    }
+    return items;
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
       {/* Header Section */}
@@ -60,7 +70,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={Array.isArray(industrialGroups) ? industrialGroups : []}
-                  selectedValues={formData.industrialGroupIds || []}
+                  selectedIds={getSafeSelectedIds(formData.industrialGroupIds)}
                   onChange={(selectedIds) => {
                     setFormData(prev => ({
                       ...prev,
@@ -96,7 +106,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={Array.isArray(provincialChapters) ? provincialChapters : []}
-                  selectedValues={formData.provincialChapterIds || []}
+                  selectedIds={getSafeSelectedIds(formData.provincialChapterIds)}
                   onChange={(selectedIds) => {
                     setFormData(prev => ({
                       ...prev,

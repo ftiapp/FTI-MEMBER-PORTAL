@@ -52,6 +52,21 @@ export const submitACMembershipForm = async (data) => {
 
     // ✅ Map Contact Person fields ให้ตรงกับที่ API คาดหวัง
     const mappedData = { ...data };
+
+    // Map representatives fields to match database columns
+    if (Array.isArray(mappedData.representatives)) {
+      mappedData.representatives = mappedData.representatives.map(rep => ({
+        first_name_th: rep.firstNameThai,
+        last_name_th: rep.lastNameThai,
+        first_name_en: rep.firstNameEnglish,
+        last_name_en: rep.lastNameEnglish,
+        position: rep.position,
+        email: rep.email,
+        phone: rep.phone,
+        phone_extension: rep.phoneExtension,
+        is_primary: rep.isPrimary
+      }));
+    }
     
     if (data.contactPerson) {
       mappedData.contactPersonPosition = data.contactPerson.position;
@@ -110,6 +125,10 @@ export const submitACMembershipForm = async (data) => {
     }
 
     formDataToSend.append('memberType', 'AC');
+
+    if (mappedData.rejectionId) {
+      formDataToSend.append('rejectionId', mappedData.rejectionId);
+    }
 
     const response = await fetch('/api/member/ac-membership/submit', {
       method: 'POST',
