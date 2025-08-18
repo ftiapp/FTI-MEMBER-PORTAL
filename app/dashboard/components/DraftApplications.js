@@ -59,6 +59,13 @@ export default function DraftApplications() {
     return val && String(val).trim() !== '' ? String(val) : '-';
   };
 
+  // Extract ID Card for IC from various possible fields in draft data
+  const getDraftIdCard = (draft) => {
+    const d = draft?.draftData || {};
+    const val = d.idCardNumber || d.id_card_number || d.idCard || d.id_card;
+    return val && String(val).trim() !== '' ? String(val) : '-';
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
@@ -109,7 +116,15 @@ export default function DraftApplications() {
                 ขั้นตอนที่ {draft.currentStep} จากทั้งหมด 5 ขั้นตอน
               </p>
               <p className="text-sm text-gray-700 mt-1">
-                เลขทะเียนนิติบุคคล: {getDraftTaxId(draft)}
+                {draft.memberType === 'ic' ? (
+                  <>
+                    <span className="font-semibold">เลขบัตรประชาชน:</span> {getDraftIdCard(draft)}
+                  </>
+                ) : (
+                  <>
+                    <span className="font-semibold">เลขทะเบียนนิติบุคคล:</span> {getDraftTaxId(draft)}
+                  </>
+                )}
               </p>
               <p className="text-xs text-gray-500 mt-1">
                 อัปเดตล่าสุด: {formatDate(draft.updatedAt)}

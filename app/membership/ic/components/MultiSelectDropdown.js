@@ -67,15 +67,19 @@ export default function MultiSelectDropdown({
 
   // Toggle selection of an option
   const toggleOption = (optionId) => {
-    const currentValues = selectedValues || [];
+    // Ensure selectedValues is always an array before processing
+    const currentSelected = Array.isArray(selectedValues) ? selectedValues : [];
     let newSelectedValues;
-    
-    if (currentValues.includes(optionId)) {
-      newSelectedValues = currentValues.filter(id => id !== optionId);
+
+    if (currentSelected.includes(optionId)) {
+      // If the option is already selected, remove it
+      newSelectedValues = currentSelected.filter(id => id !== optionId);
     } else {
-      newSelectedValues = [...currentValues, optionId];
+      // If the option is not selected, add it
+      newSelectedValues = [...currentSelected, optionId];
     }
     
+    // Pass the entire new array to the parent
     onChange(newSelectedValues);
   };
 

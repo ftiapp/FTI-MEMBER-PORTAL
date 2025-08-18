@@ -145,7 +145,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={industrialGroupOptions()}
-                  selectedIds={getSafeSelectedIds(formData.industrialGroupId)}
+                  selectedValues={getSafeSelectedIds(formData.industrialGroupId)}
                   onChange={handleIndustrialGroupChange}
                   isLoading={isLoading}
                   error={errors?.industrialGroupId || errors?.industrialGroupIds}
@@ -171,7 +171,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={provincialChapterOptions()}
-                  selectedIds={getSafeSelectedIds(formData.provincialChapterId)}
+                  selectedValues={getSafeSelectedIds(formData.provincialChapterId)}
                   onChange={handleProvincialCouncilChange}
                   isLoading={isLoading}
                   error={errors?.provincialChapterId || errors?.provincialCouncilIds}

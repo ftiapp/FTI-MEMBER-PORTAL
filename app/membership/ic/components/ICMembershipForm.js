@@ -523,18 +523,11 @@ const handleNext = useCallback(async (e) => {
         firstNameEng: formData.firstNameEng,
         lastNameEng: formData.lastNameEng,
         phone: formData.phone,
+        phoneExtension: formData.phoneExtension,
         email: formData.email,
         
-        // ที่อยู่ - ใช้ชื่อฟิลด์ตาม IC form
-        addressNumber: formData.addressNumber,
-        moo: formData.moo,
-        soi: formData.soi,
-        road: formData.road,
-        subDistrict: formData.subDistrict,
-        district: formData.district,
-        province: formData.province,
-        postalCode: formData.postalCode,
-        website: formData.website,
+        // ที่อยู่ - ใช้โครงสร้างใหม่ตาม AddressSection (addresses แบบแยกตามประเภท 1/2/3)
+        addresses: formData.addresses || {},
         
         // ข้อมูลบริษัท - ใช้ชื่อฟิลด์ตาม IC form
         companyNameThai: formData.companyNameThai,
@@ -543,7 +536,7 @@ const handleNext = useCallback(async (e) => {
         companyEmail: formData.companyEmail,
         companyPhone: formData.companyPhone,
         companyWebsite: formData.companyWebsite,
-        addressNumber: formData.addressNumber,
+        // เก็บที่อยู่รูปแบบเดิมของ company ไว้หากมีการใช้งานที่อื่น (ไม่กระทบ AddressSection)
         street: formData.street,
         companySubDistrict: formData.companySubDistrict,
         companyDistrict: formData.companyDistrict,
@@ -790,7 +783,7 @@ const handleNext = useCallback(async (e) => {
               </div>
 
               <div className="flex items-center space-x-3">
-                {currentStep < 5 && (
+                {currentStep < 5 && currentStep !== 4 && (
                   <button
                     type="button"
                     onClick={handleSaveDraft}

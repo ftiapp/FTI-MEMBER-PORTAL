@@ -70,7 +70,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={Array.isArray(industrialGroups) ? industrialGroups : []}
-                  selectedIds={getSafeSelectedIds(formData.industrialGroupIds)}
+                  selectedValues={getSafeSelectedIds(formData.industrialGroupIds)}
                   onChange={(selectedIds) => {
                     setFormData(prev => ({
                       ...prev,
@@ -106,7 +106,7 @@ export default function IndustrialGroupSection({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={Array.isArray(provincialChapters) ? provincialChapters : []}
-                  selectedIds={getSafeSelectedIds(formData.provincialChapterIds)}
+                  selectedValues={getSafeSelectedIds(formData.provincialChapterIds)}
                   onChange={(selectedIds) => {
                     setFormData(prev => ({
                       ...prev,

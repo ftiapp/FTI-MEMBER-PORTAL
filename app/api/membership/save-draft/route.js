@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { query } from '@/app/lib/db';
+import { createNotification } from '@/app/lib/notifications';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -170,6 +171,51 @@ export async function POST(request) {
         : [userId, JSON.stringify(cleanDraftData), currentStep, uniqueId];
       
       result = await query(insertQuery, insertParams);
+    }
+
+    // สร้างการแจ้งเตือนเมื่อบันทึก draft สำเร็จ
+    try {
+      // ดึง draft ID ที่เพิ่งบันทึก
+      let draftId;
+      if (existingDraft && existingDraft.length > 0) {
+        draftId = existingDraft[0].id;
+      } else {
+        // ดึง draft ID ที่เพิ่งสร้างใหม่
+        const getDraftQuery = memberType.toLowerCase() === 'ic' 
+          ? `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`
+          : `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`;
+        const draftResult = await query(getDraftQuery, [uniqueId]);
+        draftId = draftResult && draftResult.length > 0 ? draftResult[0].id : null;
+      }
+      
+      const memberTypeName = getMemberTypeName(memberType);
+      let applicantName = 'ผู้สมัคร';
+      
+      // ดึงชื่อผู้สมัครตามประเภทสมาชิก
+      if (memberType.toLowerCase() === 'ic') {
+        applicantName = `${cleanDraftData.firstNameThai || ''} ${cleanDraftData.lastNameThai || ''}`.trim() || 'ผู้สมัคร';
+      } else {
+        applicantName = cleanDraftData.companyNameThai || cleanDraftData.companyName || 'บริษัท';
+      }
+      
+      const memberTypeLinks = {
+        'oc': `/membership/oc${draftId ? `?draftId=${draftId}` : ''}`,
+        'ac': `/membership/ac${draftId ? `?draftId=${draftId}` : ''}`, 
+        'am': `/membership/am${draftId ? `?draftId=${draftId}` : ''}`,
+        'ic': `/membership/ic${draftId ? `?draftId=${draftId}` : ''}`
+      };
+      
+      await createNotification({
+        user_id: userId,
+        type: 'draft_saved',
+        message: `บันทึกแบบร่างสมาชิก${memberTypeName}สำเร็จ - ${applicantName} (${uniqueId})`,
+        link: memberTypeLinks[memberType.toLowerCase()] || '/dashboard',
+        status: 'info'
+      });
+      console.log(`Draft save notification created for ${memberType} membership with draftId: ${draftId}`);
+    } catch (notificationError) {
+      console.error('Error creating draft notification:', notificationError);
+      // ไม่ให้ notification error หยุดการบันทึก draft
     }
 
     return NextResponse.json({ success: true, message: 'Draft saved successfully' });

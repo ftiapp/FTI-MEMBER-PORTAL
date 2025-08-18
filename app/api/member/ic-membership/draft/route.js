@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server';
 import mysql from 'mysql2/promise';
+import { createNotification } from '@/app/lib/notifications';
+import { getSession } from '@/app/lib/session';
+import { query } from '@/app/lib/db';
 
 // Database connection
 const dbConfig = {
@@ -60,6 +63,15 @@ export async function GET() {
 // POST - Save draft
 export async function POST(request) {
   try {
+    const session = await getSession();
+    if (!session || !session.user) {
+      return NextResponse.json({ 
+        success: false, 
+        message: 'ไม่ได้รับอนุญาต' 
+      }, { status: 401 });
+    }
+
+    const userId = session.user.id;
     const body = await request.json();
     const { formData, currentStep = 1 } = body;
     
@@ -84,14 +96,45 @@ export async function POST(request) {
     
     try {
       // ใช้ MemberRegist_IC_Draft ตามระบบเดียวกัน
-      await connection.execute(`
+      const insertResult = await connection.execute(`
         INSERT INTO MemberRegist_IC_Draft (user_id, draft_data, current_step, status, idcard, created_at, updated_at)
         VALUES (?, ?, ?, 3, ?, NOW(), NOW())
         ON DUPLICATE KEY UPDATE 
         draft_data = VALUES(draft_data),
         current_step = VALUES(current_step),
-        updated_at = NOW()
-      `, ['current_user', JSON.stringify(formData), currentStep, idCard]);
+        updated_at = NOW(),
+        id = LAST_INSERT_ID(id)
+      `, [userId, JSON.stringify(formData), currentStep, idCard]);
+      
+      // สร้างการแจ้งเตือนเมื่อบันทึก draft สำเร็จ
+      try {
+        // ใช้ LAST_INSERT_ID() เพื่อดึง draft ID ที่เพิ่งบันทึก
+        const draftId = insertResult[0].insertId || null;
+        
+        // ถ้า insertId เป็น 0 (กรณี UPDATE) ให้ดึง ID จากฐานข้อมูล
+        let finalDraftId = draftId;
+        if (!draftId || draftId === 0) {
+          const getDraftQuery = `SELECT id FROM MemberRegist_IC_Draft WHERE idcard = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`;
+          const draftResult = await query(getDraftQuery, [idCard]);
+          finalDraftId = draftResult && draftResult.length > 0 ? draftResult[0].id : null;
+        }
+        
+        const applicantName = `${formData.firstNameThai || ''} ${formData.lastNameThai || ''}`.trim() || 'ผู้สมัคร';
+        
+        console.log(`Creating notification with draftId: ${finalDraftId} for IC draft`);
+        
+        await createNotification({
+          user_id: userId,
+          type: 'draft_saved',
+          message: `บันทึกแบบร่างสมาชิก IC สำเร็จ - ${applicantName} (${idCard})`,
+          link: `/membership/ic${finalDraftId ? `?draftId=${finalDraftId}` : ''}`,
+          status: 'info'
+        });
+        console.log(`Draft save notification created successfully with draftId: ${finalDraftId}`);
+      } catch (notificationError) {
+        console.error('Error creating draft notification:', notificationError);
+        // ไม่ให้ notification error หยุดการบันทึก draft
+      }
       
       return NextResponse.json({ 
         success: true, 

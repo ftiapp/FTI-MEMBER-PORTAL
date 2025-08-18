@@ -91,8 +91,14 @@ export const formatDate = (dateString) => {
     let targetLink = notification.link;
     console.log('Initial target link:', targetLink);
   
+    // จัดการกับการแจ้งเตือนประเภทแบบร่าง (draft)
+    if (notification.type === 'draft_saved') {
+      // ใช้ URL ที่มีอยู่แล้วซึ่งควรมี query parameter draftId
+      console.log('Draft saved notification, using link with query params:', targetLink);
+      // ไม่ต้องแก้ไข targetLink เพราะมันควรมี ?draftId=xxx อยู่แล้ว
+    }
     // จัดการกับการแจ้งเตือนประเภทการอัปเดตที่อยู่
-    if (notification.type === 'address_update') {
+    else if (notification.type === 'address_update') {
       // ดึงข้อมูลจากฟิลด์ใหม่ที่เพิ่มในตาราง notifications
       let addrCode = notification.addr_code;
       let memberCode = notification.member_code;
@@ -155,6 +161,9 @@ export const formatDate = (dateString) => {
       // จัดการกับการแจ้งเตือนประเภทการยืนยันสมาชิก
       // ใช้ลิงก์ที่มีอยู่แล้ว หรือสร้างลิงก์ใหม่ถ้าจำเป็น
       console.log('Member verification notification, using link:', targetLink);
+    } else {
+      // สำหรับประเภทการแจ้งเตือนอื่นๆ ที่ไม่ได้ระบุเฉพาะ
+      console.log('Other notification type, using original link:', targetLink);
     }
   
     console.log('Final target link:', targetLink);
@@ -170,7 +179,8 @@ export const formatDate = (dateString) => {
       // ใช้ setTimeout เพื่อให้แน่ใจว่าการนำทางเกิดขึ้นหลังจากการทำงานอื่นๆ เสร็จสิ้น
       setTimeout(() => {
         console.log('Navigating to:', targetLink);
-        window.location.replace(targetLink);
+        // ใช้ window.location.href แทน replace เพื่อให้แน่ใจว่า query parameters ไม่หายไป
+        window.location.href = targetLink;
       }, 100);
     } catch (error) {
       console.error('Navigation error:', error);

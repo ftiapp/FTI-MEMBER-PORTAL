@@ -154,6 +154,8 @@ export default function NotificationBell() {
         return <span className="text-purple-500">🏠</span>;
       case 'profile_update':
         return <span className="text-orange-500">👤</span>;
+      case 'draft_saved':
+        return <span className="text-indigo-500">💾</span>;
       default:
         return <span className="text-gray-500">•</span>;
     }
