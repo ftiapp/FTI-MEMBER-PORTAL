@@ -20,7 +20,9 @@ export async function POST(request) {
       'am': 'สมาชิกสามัญ-สมาคมการค้า (AM)'
     };
 
-    const typeName = typeNames[membershipType?.toLowerCase()] || 'สมาชิก';
+    const normalizedType = (membershipType || '').toLowerCase();
+    const pathType = ['oc', 'ac', 'ic', 'am'].includes(normalizedType) ? normalizedType : 'ic';
+    const typeName = typeNames[pathType] || 'สมาชิก';
     
     let title = `สมัคร${typeName}สำเร็จ`;
     let message = `ท่านได้ทำการสมัคร${typeName}สำเร็จแล้ว`;
@@ -34,18 +36,18 @@ export async function POST(request) {
     if (memberData?.companyNameTh) {
       message += `\nชื่อบริษัท: ${memberData.companyNameTh}`;
     }
-    if (memberData?.applicantName) {
-      message += `\nชื่อผู้สมัคร: ${memberData.applicantName}`;
-    }
-
-    message += '\n\nท่านสามารถตรวจสอบสถานะการสมัครได้ที่เมนู แดชบอร์ด > เอกสารสมัครสมาชิก';
+    // หมายเหตุ: ไม่เพิ่มชื่อผู้สมัคร และไม่ใส่ประโยคแนะนำให้ไปที่แดชบอร์ด เพื่อลดความยาวข้อความตามที่ร้องขอ
 
     // Insert notification into database
+    const link = memberId 
+      ? `/membership/${pathType}/summary?id=${memberId}`
+      : `/membership/${pathType}/summary`;
+
     await executeQueryWithoutTransaction(
       `INSERT INTO notifications (
         user_id, type, message, link, created_at, status, member_code, member_type
       ) VALUES (?, ?, ?, ?, NOW(), 'unread', ?, ?)`,
-      [userId, 'membership_submission', message, `/dashboard/membership-summary/${membershipType}/${memberId}`, memberId || null, membershipType]
+      [userId, 'membership_submission', message, link, memberId || null, pathType]
     );
 
     return NextResponse.json({ success: true });

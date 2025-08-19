@@ -5,7 +5,7 @@ import { FaBell } from 'react-icons/fa';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { handleNotificationClick } from '@/app/dashboard/notifications/utils/notificationHelpers';
+import { handleNotificationClick, formatNotificationMessage } from '@/app/dashboard/notifications/utils/notificationHelpers';
 
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -183,36 +183,7 @@ export default function NotificationBell() {
     }
   };
   
-  // จัดรูปแบบข้อความแจ้งเตือนให้แสดงสถานะการอนุมัติ/ปฏิเสธด้วยสีที่แตกต่างกัน
-  const formatNotificationMessage = (message) => {
-    if (!message) return '';
-    
-    // ตรวจสอบว่าข้อความมีคำว่า "ได้รับการอนุมัติแล้ว" หรือไม่
-    if (message.includes('ได้รับการอนุมัติแล้ว')) {
-      const parts = message.split('ได้รับการอนุมัติแล้ว');
-      return (
-        <>
-          {parts[0]}
-          <span className="font-bold text-green-600">ได้รับการอนุมัติแล้ว</span>
-        </>
-      );
-    }
-    
-    // ตรวจสอบว่าข้อความมีคำว่า "ถูกปฏิเสธ" หรือไม่
-    if (message.includes('ถูกปฏิเสธ')) {
-      // ตัดเอาส่วนที่อยู่ก่อนคำว่า "ถูกปฏิเสธ" และไม่แสดงเหตุผลที่ปฏิเสธ
-      const parts = message.split('ถูกปฏิเสธ');
-      return (
-        <>
-          {parts[0]}
-          <span className="font-bold text-red-600">ถูกปฏิเสธ</span>
-        </>
-      );
-    }
-    
-    // สำหรับข้อความอื่นๆ ให้แสดงตามปกติ
-    return message;
-  };
+  // หมายเหตุ: ตัด local formatter ออก และใช้ formatNotificationMessage จาก utils แทน เพื่อความสอดคล้อง
 
   return (
     <div className="relative" ref={dropdownRef}>

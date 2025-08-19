@@ -370,7 +370,14 @@ export default function SummarySection({
                   <InfoCard title="อาคาร/หมู่บ้าน" value={get('building')} />
                   <InfoCard title="หมู่" value={get('moo')} />
                   <InfoCard title="ซอย" value={get('soi')} />
-                  <InfoCard title="ถนน" value={get('street') || get('road')} />
+                  <InfoCard 
+                    title="ถนน" 
+                    value={
+                      (addressData.street && String(addressData.street).trim()) ||
+                      (addressData.road && String(addressData.road).trim()) ||
+                      '-'
+                    } 
+                  />
                   <InfoCard title="ตำบล/แขวง" value={get('subDistrict')} />
                   <InfoCard title="อำเภอ/เขต" value={get('district')} />
                   <InfoCard title="จังหวัด" value={get('province')} />

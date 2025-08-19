@@ -99,11 +99,11 @@ export const submitICMembershipForm = async (formData) => {
     formDataToSubmit.append('phoneExtension', formData.phoneExtension || '');
     formDataToSubmit.append('email', formData.email || '');
     
-    // ข้อมูลที่อยู่
+    // ข้อมูลที่อยู่ - แก้ไขให้รองรับทั้ง road และ street
     formDataToSubmit.append('addressNumber', formData.addressNumber || '');
     formDataToSubmit.append('moo', formData.moo || '');
     formDataToSubmit.append('soi', formData.soi || '');
-    formDataToSubmit.append('road', formData.road || '');
+    formDataToSubmit.append('road', formData.road || formData.street || '');
     formDataToSubmit.append('subDistrict', formData.subDistrict || '');
     formDataToSubmit.append('district', formData.district || '');
     formDataToSubmit.append('province', formData.province || '');
@@ -185,16 +185,18 @@ export const submitICMembershipForm = async (formData) => {
         : [formData.industrialGroupId];
     }
     
-    // ดึงข้อมูลชื่อกลุ่มอุตสาหกรรม
+    // ✅ FIX: ดึงข้อมูลชื่อกลุ่มอุตสาหกรรมให้ถูกต้อง
     if (formData.industrialGroupNames && Array.isArray(formData.industrialGroupNames)) {
-      industryGroupNamesToSend = formData.industrialGroupNames;
+      industryGroupNamesToSend = formData.industrialGroupNames.filter(name => name && name.trim());
     }
     
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
     industryGroupsToSend = industryGroupsToSend.filter(id => id && id.toString().trim());
     
-    // หมายเหตุ: ไม่ควร fallback เป็น ID เพราะจะทำให้ column name เก็บเป็นรหัส
-    // หากจำนวน names ไม่เท่ากับ ids ให้ส่งเท่าที่มี และให้ backend ใส่ค่า 'ไม่ระบุ'
+    // ✅ ตรวจสอบให้แน่ใจว่ามีชื่อส่งไปด้วย
+    if (industryGroupsToSend.length > 0 && industryGroupNamesToSend.length === 0) {
+      console.warn('⚠️ มี IDs แต่ไม่มี names - อาจจะแสดงเป็น ID ในฐานข้อมูล');
+    }
     
     formDataToSubmit.append('industryGroups', JSON.stringify(industryGroupsToSend));
     formDataToSubmit.append('industryGroupNames', JSON.stringify(industryGroupNamesToSend));
@@ -206,6 +208,7 @@ export const submitICMembershipForm = async (formData) => {
     console.log('formData.provinceChapters:', formData.provinceChapters);
     console.log('formData.provincialChapterId:', formData.provincialChapterId);
     console.log('formData.provincialChapterNames:', formData.provincialChapterNames);
+    console.log('formData.provincialCouncilNames:', formData.provincialCouncilNames);
     
     let provinceChaptersToSend = [];
     let provinceChapterNamesToSend = [];
@@ -219,18 +222,20 @@ export const submitICMembershipForm = async (formData) => {
         : [formData.provincialChapterId];
     }
     
-    // ดึงข้อมูลชื่อสภาอุตสาหกรรมจังหวัด
+    // ✅ FIX: ดึงข้อมูลชื่อสภาอุตสาหกรรมจังหวัดให้ถูกต้อง
     if (formData.provincialChapterNames && Array.isArray(formData.provincialChapterNames)) {
-      provinceChapterNamesToSend = formData.provincialChapterNames;
+      provinceChapterNamesToSend = formData.provincialChapterNames.filter(name => name && name.trim());
     } else if (formData.provincialCouncilNames && Array.isArray(formData.provincialCouncilNames)) {
-      provinceChapterNamesToSend = formData.provincialCouncilNames;
+      provinceChapterNamesToSend = formData.provincialCouncilNames.filter(name => name && name.trim());
     }
     
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
     provinceChaptersToSend = provinceChaptersToSend.filter(id => id && id.toString().trim());
     
-    // หมายเหตุ: ไม่ควร fallback เป็น ID เพราะจะทำให้ column name เก็บเป็นรหัส
-    // หากจำนวน names ไม่เท่ากับ ids ให้ส่งเท่าที่มี และให้ backend ใส่ค่า 'ไม่ระบุ'
+    // ✅ ตรวจสอบให้แน่ใจว่ามีชื่อส่งไปด้วย
+    if (provinceChaptersToSend.length > 0 && provinceChapterNamesToSend.length === 0) {
+      console.warn('⚠️ มี Province Chapter IDs แต่ไม่มี names - อาจจะแสดงเป็น ID ในฐานข้อมูล');
+    }
     
     formDataToSubmit.append('provinceChapters', JSON.stringify(provinceChaptersToSend));
     formDataToSubmit.append('provinceChapterNames', JSON.stringify(provinceChapterNamesToSend));

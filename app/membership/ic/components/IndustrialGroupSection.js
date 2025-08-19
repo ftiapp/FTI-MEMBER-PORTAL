@@ -47,7 +47,20 @@ export default function IndustrialGroupSection({
       ...prev,
       // ✅ ใช้ field name ที่ตรงกับการส่งข้อมูล
       provincialChapterId: selectedIds, // เก็บเป็น array
-      // เก็บชื่อสำหรับแสดงผล
+      // ✅ FIX: เก็บชื่อใน field ที่ตรงกับ ICFormSubmission
+      provincialChapterNames: selectedIds.map(id => {
+        const sid = id != null ? id.toString() : '';
+        const source = Array.isArray(provincialChapters)
+          ? provincialChapters
+          : (provincialChapters?.data || []);
+        const council = source.find(c => {
+          const cid = c?.id != null ? c.id.toString() : '';
+          const code = c?.MEMBER_GROUP_CODE != null ? c.MEMBER_GROUP_CODE.toString() : '';
+          return cid === sid || code === sid;
+        });
+        return council ? (council.name_th || council.MEMBER_GROUP_NAME || '') : '';
+      }),
+      // ✅ เก็บ provincialCouncilNames ด้วยเพื่อ backward compatibility
       provincialCouncilNames: selectedIds.map(id => {
         const sid = id != null ? id.toString() : '';
         const source = Array.isArray(provincialChapters)
