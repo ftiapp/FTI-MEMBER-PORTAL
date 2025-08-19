@@ -59,6 +59,17 @@ const ICDetailView = ({
     return safeValue(application?.name || application?.company_name_th);
   };
 
+  const getDisplayNameEn = () => {
+    const firstEn = application?.first_name_en || application?.firstNameEn;
+    const lastEn = application?.last_name_en || application?.lastNameEn;
+    if (firstEn && lastEn) {
+      return `${firstEn} ${lastEn}`;
+    }
+    // Fallback to any available English company name if exists, otherwise '-'
+    const fallback = application?.company_name_en || application?.companyNameEn;
+    return safeValue(fallback);
+  };
+
   const getIdCard = () => {
     return safeValue(application?.id_card_number || application?.idCard);
   };
@@ -67,12 +78,22 @@ const ICDetailView = ({
     if (!businessType) return '-';
     
     if (typeof businessType === 'string') {
+      if (businessType === 'other') {
+        const detail = typeof application?.businessTypeOther === 'string' ? application.businessTypeOther : '';
+        return `${BUSINESS_TYPE_NAMES.other} (${detail || ''})`;
+      }
       return BUSINESS_TYPE_NAMES[businessType] || businessType;
     }
     
     if (typeof businessType === 'object') {
       const key = businessType.business_type || businessType.type || businessType.businessType;
       if (key) {
+        if (key === 'other') {
+          const inlineDetail = typeof businessType.detail === 'string' ? businessType.detail : '';
+          const fallbackDetail = typeof application?.businessTypeOther === 'string' ? application.businessTypeOther : '';
+          const detail = inlineDetail || fallbackDetail || '';
+          return `${BUSINESS_TYPE_NAMES.other} (${detail})`;
+        }
         return BUSINESS_TYPE_NAMES[key] || key;
       }
     }
@@ -655,7 +676,7 @@ const ICDetailView = ({
           </div>
           <div>
             <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อบริษัท (อังกฤษ)</p>
-            <p className="text-lg text-gray-900">{safeValue(application?.company_name_en || application?.companyNameEn)}</p>
+            <p className="text-lg text-gray-900">{getDisplayNameEn()}</p>
           </div>
           <div>
             <p className="text-sm font-semibold text-blue-700 mb-1">เลขประจำตัวผู้เสียภาษี</p>

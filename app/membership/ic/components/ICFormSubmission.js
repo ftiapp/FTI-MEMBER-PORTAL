@@ -246,6 +246,11 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('idCardDocument', formData.idCardDocument);
     }
 
+    // ✅ NEW: Authorized signature file
+    if (formData.authorizedSignature && formData.authorizedSignature instanceof File) {
+      formDataToSubmit.append('authorizedSignature', formData.authorizedSignature);
+    }
+
     if (formData.companyRegistrationDocument && formData.companyRegistrationDocument instanceof File) {
       formDataToSubmit.append('companyRegistrationDocument', formData.companyRegistrationDocument);
     }
@@ -295,15 +300,39 @@ export const submitICMembershipForm = async (formData) => {
     const result = await response.json();
     console.log('=== IC Form Submission Complete ===');
     
-    // Redirect to documents page after successful submission
-    if (typeof window !== 'undefined') {
-      window.location.href = '/dashboard?tab=documents';
+    // Create notification
+    try {
+      const memberData = {
+        idCard: formData.idCardNumber,
+        applicantName: `${formData.firstNameThai || formData.firstNameTh || ''} ${formData.lastNameThai || formData.lastNameTh || ''}`.trim(),
+        companyNameTh: `${formData.firstNameThai || formData.firstNameTh || ''} ${formData.lastNameThai || formData.lastNameTh || ''}`.trim(),
+        companyNameEn: `${formData.firstNameEng || formData.firstNameEn || ''} ${formData.lastNameEng || formData.lastNameEn || ''}`.trim()
+      };
+
+      await fetch('/api/notifications/membership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          membershipType: 'ic',
+          memberData,
+          memberId: result.memberId
+        })
+      });
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Don't fail the submission if notification fails
     }
     
     return {
       success: true,
       message: 'ส่งข้อมูลสมัครสมาชิก IC สำเร็จ',
       memberId: result.memberId,
+      memberData: {
+        idCard: formData.idCardNumber,
+        applicantName: `${formData.firstNameThai || formData.firstNameTh || ''} ${formData.lastNameThai || formData.lastNameTh || ''}`.trim(),
+        companyNameTh: `${formData.firstNameThai || formData.firstNameTh || ''} ${formData.lastNameThai || formData.lastNameTh || ''}`.trim(),
+        companyNameEn: `${formData.firstNameEng || formData.firstNameEn || ''} ${formData.lastNameEng || formData.lastNameEn || ''}`.trim()
+      },
       redirectUrl: '/dashboard?tab=documents'
     };
     

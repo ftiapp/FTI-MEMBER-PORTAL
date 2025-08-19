@@ -146,15 +146,39 @@ export const submitACMembershipForm = async (data) => {
     
     console.log('=== AC Form Submission Complete ===');
     
-    // Redirect to documents page after successful submission
-    if (typeof window !== 'undefined') {
-      window.location.href = '/dashboard?tab=documents';
+    // Create notification
+    try {
+      const memberData = {
+        taxId: data.taxId,
+        companyNameTh: data.companyNameTh,
+        companyNameEn: data.companyNameEn,
+        applicantName: `${data.firstNameTh || ''} ${data.lastNameTh || ''}`.trim()
+      };
+
+      await fetch('/api/notifications/membership', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          membershipType: 'ac',
+          memberData,
+          memberId: result.memberId
+        })
+      });
+    } catch (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Don't fail the submission if notification fails
     }
     
     return {
       success: true,
       message: 'ส่งข้อมูลสมัครสมาชิก AC สำเร็จ',
       memberId: result.memberId,
+      memberData: {
+        taxId: data.taxId,
+        companyNameTh: data.companyNameTh,
+        companyNameEn: data.companyNameEn,
+        applicantName: `${data.firstNameTh || ''} ${data.lastNameTh || ''}`.trim()
+      },
       redirectUrl: '/dashboard?tab=documents'
     };
   } catch (error) {

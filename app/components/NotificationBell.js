@@ -42,7 +42,7 @@ export default function NotificationBell() {
     try {
       setLoading(true);
       // เพิ่ม credentials: 'include' เพื่อให้ส่ง cookies ไปด้วย
-      const response = await fetch(`/api/notifications?userId=${user.id}`, {
+      const response = await fetch(`/api/notifications/membership?limit=10`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -59,9 +59,8 @@ export default function NotificationBell() {
       console.log('Notifications data:', data); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
       setNotifications(data.notifications || []);
       
-      // นับจำนวนการแจ้งเตือนที่ยังไม่ได้อ่าน
-      const unread = data.notifications.filter(notification => !notification.read_at).length;
-      setUnreadCount(unread);
+      // ใช้ unreadCount จาก API response
+      setUnreadCount(data.unreadCount || 0);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     } finally {
@@ -74,15 +73,15 @@ export default function NotificationBell() {
     if (!user?.id) return;
     
     try {
-      const response = await fetch('/api/notifications/mark-read', {
-        method: 'POST',
-        credentials: 'include', // เพิ่ม credentials เพื่อให้ส่ง cookies ไปด้วย
+      const response = await fetch('/api/notifications/membership', {
+        method: 'PATCH',
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          userId: user.id,
-          notificationId
+          notificationId,
+          markAsRead: true
         }),
       });
       
@@ -95,7 +94,7 @@ export default function NotificationBell() {
       setNotifications(prev => 
         prev.map(notification => 
           notification.id === notificationId 
-            ? { ...notification, read_at: new Date().toISOString() } 
+            ? { ...notification, read_at: new Date().toISOString(), status: 'read' } 
             : notification
         )
       );
@@ -146,6 +145,8 @@ export default function NotificationBell() {
   // แสดงไอคอนตามประเภทการแจ้งเตือน
   const getNotificationIcon = (type) => {
     switch (type) {
+      case 'membership_submission':
+        return <span className="text-green-500">📋</span>;
       case 'member_verification':
         return <span className="text-blue-500">✓</span>;
       case 'contact_reply':
@@ -268,7 +269,7 @@ export default function NotificationBell() {
                   {notifications.slice(0, 5).map(notification => (
                     <li 
                       key={notification.id}
-                      className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${!notification.read_at ? 'bg-blue-50' : ''}`}
+                      className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${notification.status === 'unread' ? 'bg-blue-50' : ''}`}
                     >
                       <button
                         onClick={() => {
@@ -290,7 +291,7 @@ export default function NotificationBell() {
                           {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${!notification.read_at ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                          <p className={`text-sm ${notification.status === 'unread' ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
                             {formatNotificationMessage(notification.message)}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">

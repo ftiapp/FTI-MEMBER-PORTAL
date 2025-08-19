@@ -98,15 +98,39 @@ export const submitAMMembershipForm = async (formData) => {
         if (result.success || (response.ok && response.status === 201)) {
           console.log('🎉 [AM] Form submission successful!');
           
-          // Redirect to documents page after successful submission
-          if (typeof window !== 'undefined') {
-            window.location.href = '/dashboard?tab=documents';
+          // Create notification
+          try {
+            const memberData = {
+              taxId: formData.taxId,
+              companyNameTh: formData.associationName,
+              companyNameEn: formData.associationNameEn,
+              applicantName: `${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()
+            };
+
+            await fetch('/api/notifications/membership', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                membershipType: 'am',
+                memberData,
+                memberId: result.memberId
+              })
+            });
+          } catch (notificationError) {
+            console.error('Error creating notification:', notificationError);
+            // Don't fail the submission if notification fails
           }
           
           return {
             success: true,
             message: 'ส่งข้อมูลสมัครสมาชิก AM สำเร็จ',
             data: result,
+            memberData: {
+              taxId: formData.taxId,
+              companyNameTh: formData.associationName,
+              companyNameEn: formData.associationNameEn,
+              applicantName: `${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()
+            },
             redirectUrl: '/dashboard?tab=documents'
           };
         } else {

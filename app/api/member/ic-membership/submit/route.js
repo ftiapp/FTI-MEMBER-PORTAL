@@ -376,6 +376,36 @@ export async function POST(request) {
       }
     }
 
+    // Process Authorized Signature Document
+    if (files.authorizedSignature) {
+      try {
+        console.log('📤 Uploading authorized signature:', files.authorizedSignature.name);
+        const buffer = await files.authorizedSignature.arrayBuffer();
+        const result = await uploadToCloudinary(
+          Buffer.from(buffer),
+          files.authorizedSignature.name,
+          'FTI_PORTAL_IC_member_DOC'
+        );
+        
+        if (result.success) {
+          uploadedDocuments.authorizedSignature = {
+            document_type: 'authorizedSignature',
+            file_name: files.authorizedSignature.name,
+            file_path: result.url,
+            file_size: files.authorizedSignature.size,
+            mime_type: files.authorizedSignature.type,
+            cloudinary_id: result.public_id,
+            cloudinary_url: result.url
+          };
+          console.log('✅ Successfully uploaded authorized signature:', result.url);
+        } else {
+          console.error('❌ Failed to upload authorized signature:', result.error);
+        }
+      } catch (uploadError) {
+        console.error('❌ Error uploading authorized signature:', uploadError);
+      }
+    }
+
     // Process Company Registration Document
     if (files.companyRegistrationDocument) {
       try {

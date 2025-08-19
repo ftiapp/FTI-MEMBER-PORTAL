@@ -8,6 +8,7 @@ import BusinessInfoSection from './BusinessInfoSection';
 import DocumentUploadSection from './DocumentUploadSection';
 import SummarySection from './SummarySection';
 import DraftSavePopup from './DraftSavePopup';
+import MembershipSuccessModal from '../../../components/MembershipSuccessModal';
 import { validateCurrentStep } from './ICFormValidation';
 import { submitICMembershipForm, saveDraft } from './ICFormSubmission';
 
@@ -203,6 +204,8 @@ export default function ICMembershipForm({
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
   const abortControllerRef = useRef(null);
 
   const isExternal = externalFormData !== undefined;
@@ -397,14 +400,13 @@ const handleSubmit = useCallback(async (e) => {
     toast.dismiss(loadingToastId);
     
     if (result.success) {
-      toast.success(rejectionId ? 'ส่งใบสมัครใหม่เรียบร้อยแล้ว' : 'ส่งข้อมูลสำเร็จ กรุณารอการติดต่อกลับจากเจ้าหน้าที่', {
-        duration: 5000
-      });
-      
       if (!rejectionId) {
         await deleteDraft();
       }
-      // Redirect or update UI
+      
+      // Show success modal instead of toast
+      setSubmissionResult(result);
+      setShowSuccessModal(true);
     } else {
       console.error('Submission failed:', result);
       toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง');
@@ -837,6 +839,20 @@ const handleNext = useCallback(async (e) => {
         onClose={() => setShowDraftSavePopup(false)}
         idCard={formData.idCardNumber}
         fullName={`${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()}
+      />
+
+      {/* Success Modal */}
+      <MembershipSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        membershipType="ic"
+        memberData={submissionResult?.memberData}
+        onConfirm={() => {
+          setShowSuccessModal(false);
+          if (typeof window !== 'undefined') {
+            window.location.href = '/dashboard?tab=documents';
+          }
+        }}
       />
     </div>
   );
