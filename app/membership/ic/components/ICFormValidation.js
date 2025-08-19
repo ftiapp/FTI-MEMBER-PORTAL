@@ -82,6 +82,11 @@ const validateApplicantInfo = (formData) => {
   } else if (!/^\d{9,10}$/.test(formData.phone.replace(/\s/g, ''))) {
     errors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง';
   }
+  
+  // Phone extension validation (optional but must be numeric if provided)
+  if (formData.phoneExtension && !/^\d+$/.test(formData.phoneExtension)) {
+    errors.phoneExtension = 'เบอร์ต่อต้องเป็นตัวเลขเท่านั้น';
+  }
 
   if (!formData.email) {
     errors.email = 'กรุณากรอกอีเมล';
@@ -234,6 +239,11 @@ const validateRepresentativeInfo = (formData) => {
     representativeErrors.phone = 'กรุณากรอกเบอร์โทรศัพท์';
   } else if (!/^\d{9,10}$/.test(representative.phone.replace(/\s/g, ''))) {
     representativeErrors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง';
+  }
+  
+  // Phone extension validation (optional but must be numeric if provided)
+  if (representative.phoneExtension && !/^\d+$/.test(representative.phoneExtension)) {
+    representativeErrors.phoneExtension = 'เบอร์ต่อต้องเป็นตัวเลขเท่านั้น';
   }
 
   if (!representative.email) {

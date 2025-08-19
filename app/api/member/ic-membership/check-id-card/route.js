@@ -32,7 +32,7 @@ export async function POST(request) {
           valid: false,  // ไม่ valid เพราะใช้ไปแล้ว
           exists: true,  // มีอยู่ในระบบแล้ว
           status: member.status,
-          message: `เลขบัตรประชาชนนี้ถูกใช้ไปแล้ว${member.status ? ` (สถานะ: ${member.status})` : ''}` 
+          message: `หมายเลขบัตรประชาชนนี้ได้ถูกใช้ในการสมัครไปแล้ว หากท่านเป็นเจ้าของบัตรประชาชนนี้ กรุณาติดต่อฝ่ายทะเบียนสมาชิก` 
         },
         { status: 200 }
       );

@@ -85,24 +85,24 @@ export const normalizeAddress = (data) => {
   
   // Check if addresses array exists - prioritize address_type '2' (company address)
   if (data.addresses && Array.isArray(data.addresses)) {
-    const companyAddress = data.addresses.find(addr => addr.address_type === '2');
-    const factoryAddress = data.addresses.find(addr => addr.address_type === '1');
-    const otherAddress = data.addresses.find(addr => addr.address_type === '3');
+    const companyAddress = data.addresses.find(addr => String(addr.address_type) === '2');
+    const factoryAddress = data.addresses.find(addr => String(addr.address_type) === '1');
+    const otherAddress = data.addresses.find(addr => String(addr.address_type) === '3');
     
     // Return company address first, then factory, then other
     const selectedAddress = companyAddress || factoryAddress || otherAddress || data.addresses[0];
     if (selectedAddress) {
       return {
-        addressType: selectedAddress.address_type,
+        addressType: String(selectedAddress.address_type),
         building: selectedAddress.building,
-        addressNumber: selectedAddress.address_number,
+        addressNumber: selectedAddress.address_number || selectedAddress.addressNumber || selectedAddress.house_number,
         moo: selectedAddress.moo,
         soi: selectedAddress.soi,
-        street: selectedAddress.street,
-        subDistrict: selectedAddress.sub_district,
+        street: selectedAddress.street || selectedAddress.road,
+        subDistrict: selectedAddress.sub_district || selectedAddress.subDistrict || selectedAddress.subdistrict,
         district: selectedAddress.district,
         province: selectedAddress.province,
-        postalCode: selectedAddress.postal_code,
+        postalCode: selectedAddress.postal_code || selectedAddress.postalCode || selectedAddress.zipcode || selectedAddress.zip_code,
         phone: selectedAddress.phone,
         phoneExtension: selectedAddress.phone_extension,
         email: selectedAddress.email,
@@ -113,14 +113,14 @@ export const normalizeAddress = (data) => {
   
   // Fallback to direct fields
   return {
-    addressNumber: data.address_number,
+    addressNumber: data.address_number || data.addressNumber || data.house_number,
     moo: data.moo,
     soi: data.soi,
     street: data.street || data.road,
-    subDistrict: data.sub_district,
+    subDistrict: data.sub_district || data.subDistrict || data.subdistrict,
     district: data.district,
     province: data.province,
-    postalCode: data.postal_code,
+    postalCode: data.postal_code || data.postalCode || data.zipcode || data.zip_code,
     phone: data.phone,
     email: data.email,
     website: data.website
@@ -138,23 +138,28 @@ export const normalizeAllAddresses = (data) => {
   
   // Check if addresses array exists
   if (data.addresses && Array.isArray(data.addresses)) {
-    return data.addresses.map(addr => ({
-      addressType: addr.address_type,
-      addressTypeName: addressTypes[addr.address_type] || `ที่อยู่ประเภท ${addr.address_type}`,
-      building: addr.building,
-      addressNumber: addr.address_number,
-      moo: addr.moo,
-      soi: addr.soi,
-      street: addr.street,
-      subDistrict: addr.sub_district,
-      district: addr.district,
-      province: addr.province,
-      postalCode: addr.postal_code,
-      phone: addr.phone,
-      phoneExtension: addr.phone_extension,
-      email: addr.email,
-      website: addr.website
-    })).sort((a, b) => a.addressType.localeCompare(b.addressType)); // Sort by type
+    return data.addresses
+      .map(addr => {
+        const typeStr = String(addr.address_type ?? addr.addressType ?? '');
+        return {
+          addressType: typeStr,
+          addressTypeName: addressTypes[typeStr] || `ที่อยู่ประเภท ${typeStr}`,
+          building: addr.building,
+          addressNumber: addr.address_number || addr.addressNumber || addr.house_number,
+          moo: addr.moo,
+          soi: addr.soi,
+          street: addr.street || addr.road,
+          subDistrict: addr.sub_district || addr.subDistrict || addr.subdistrict,
+          district: addr.district,
+          province: addr.province,
+          postalCode: addr.postal_code || addr.postalCode || addr.zipcode || addr.zip_code,
+          phone: addr.phone,
+          phoneExtension: addr.phone_extension,
+          email: addr.email,
+          website: addr.website
+        };
+      })
+      .sort((a, b) => String(a.addressType).localeCompare(String(b.addressType))); // Sort by type
   }
   
   return [];
@@ -373,20 +378,48 @@ export const getDocumentDisplayName = (doc) => {
   return DOCUMENT_TYPES[doc.document_type || doc.type] || 'เอกสารแนบ';
 };
 
+// Fixed function to safely render business type names
 export const getBusinessTypeName = (type) => {
-  if (typeof type === 'object') {
+  if (typeof type === 'object' && type !== null) {
     if (type.type === 'other') {
       return `อื่นๆ: ${type.detail || 'ไม่ระบุ'}`;
     }
-    return BUSINESS_TYPES[type.type] || type.type;
+    return BUSINESS_TYPES[type.type] || String(type.type);
   }
-  return BUSINESS_TYPES[type] || type;
+  return BUSINESS_TYPES[type] || String(type);
 };
 
+// Fixed function to safely render factory type names
 export const getFactoryTypeName = (type) => {
   return FACTORY_TYPES[type] || '-';
 };
 
+// Fixed function to safely render member type info
 export const getMemberTypeInfo = (type) => {
   return MEMBER_TYPES[type] || { code: 'N/A', name: 'ไม่ทราบประเภท' };
+};
+
+// Helper function to safely render any value
+export const safeRender = (value) => {
+  if (value === null || value === undefined) {
+    return '-';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  return String(value);
+};
+
+// Helper function to format arrays for display
+export const formatArrayForDisplay = (array, keyToShow = 'name') => {
+  if (!Array.isArray(array) || array.length === 0) {
+    return '-';
+  }
+  
+  return array.map(item => {
+    if (typeof item === 'object' && item !== null) {
+      return item[keyToShow] || item.name || item.id || JSON.stringify(item);
+    }
+    return String(item);
+  }).join(', ');
 };

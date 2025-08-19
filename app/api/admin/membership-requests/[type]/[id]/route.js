@@ -346,8 +346,8 @@ export async function GET(request, { params }) {
     let additionalData = {};
     const additionalDataStart = Date.now();
     
-    // For OC, AC, and AM: Get all addresses (3 types)
-    if (['oc', 'ac', 'am'].includes(type)) {
+    // For OC, AC, AM, and IC: Get all addresses (3 types)
+    if (["oc", "ac", "am", "ic"].includes(type)) {
       try {
         const addressStart = Date.now();
         const addressTableName = `MemberRegist_${type.toUpperCase()}_Address`;
@@ -416,7 +416,8 @@ export async function GET(request, { params }) {
         ]);
         
         console.log(`[PERF] Business types and products queries took: ${Date.now() - businessStart}ms`);
-        additionalData.businessTypes = businessTypesResult[0] || [];
+        // Map to array of strings like ["manufacturer", "exporter", ...]
+        additionalData.businessTypes = (businessTypesResult[0] || []).map(row => row.business_type || row.type || row.businessType).filter(Boolean);
         additionalData.products = productsResult[0] || [];
       } catch (businessError) {
         console.error('Error fetching business types/products:', businessError);
@@ -457,7 +458,10 @@ export async function GET(request, { params }) {
         
         console.log(`[PERF] IC business types and products queries took: ${Date.now() - businessStart}ms`);
         additionalData.businessTypes = businessTypesResult[0] || [];
-        additionalData.businessTypeOther = businessTypeOtherResult[0][0] || null;
+        // Return businessTypeOther as a plain string for frontend rendering
+        additionalData.businessTypeOther = (businessTypeOtherResult[0] && businessTypeOtherResult[0][0]
+          ? (businessTypeOtherResult[0][0].detail || businessTypeOtherResult[0][0].other_type || null)
+          : null);
         additionalData.products = productsResult[0] || [];
       } catch (businessError) {
         console.error('Error fetching IC business types/products:', businessError);
@@ -571,9 +575,9 @@ export async function GET(request, { params }) {
       let documentsTableName, documentIdField;
       
       if (type === 'ic') {
-        // IC uses different table structure
-        documentsTableName = 'ICmember_Document';
-        documentIdField = 'ic_member_id';
+        // IC uses standard structure like other types
+        documentsTableName = 'MemberRegist_IC_Documents';
+        documentIdField = 'main_id';
       } else {
         // OC, AM, AC use standard structure
         documentsTableName = `MemberRegist_${type.toUpperCase()}_Documents`;

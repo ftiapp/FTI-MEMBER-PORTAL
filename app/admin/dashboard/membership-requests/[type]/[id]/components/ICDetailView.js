@@ -1,268 +1,422 @@
 import React, { useState } from 'react';
 import ApprovalModal from '../../../components/modals/ApprovalModal';
-import { MEMBER_TYPES } from '../../../ีutils/constants';
+import { normalizeAllAddresses } from '../../../ีutils/dataTransformers';
+
+const MEMBER_TYPES = {
+  ic: { code: 'IC', name: 'สมาชิกสามัญ' },
+  associate: { code: 'AS', name: 'สมาชิกสมทบ' },
+  honorary: { code: 'HN', name: 'สมาชิกกิตติมศักดิ์' }
+};
+
+const BUSINESS_TYPE_NAMES = {
+  manufacturer: 'ผู้ผลิต',
+  distributor: 'ผู้จัดจำหน่าย',
+  importer: 'ผู้นำเข้า',
+  exporter: 'ผู้ส่งออก',
+  service: 'ผู้ให้บริการ',
+  service_provider: 'ผู้ให้บริการ',
+  other: 'อื่นๆ'
+};
+
+const DOCUMENT_TYPE_NAMES = {
+  id_card: 'สำเนาบัตรประชาชน',
+  authorized_signature: 'รูปลายเซ็นผู้มีอำนาจลงนาม'
+};
 
 const ICDetailView = ({ 
   application, 
-  industrialGroups, 
-  provincialChapters, 
+  industrialGroups = {}, 
+  provincialChapters = {}, 
   handleViewDocument,
-  handlePrint,
   handleSaveNote,
   handleApprove,
   handleReject,
-  adminNote,
+  adminNote = '',
   setAdminNote,
-  isSubmitting,
+  isSubmitting = false,
   handleConnectMemberCode,
-  type = 'ic' // Add type prop with default value
+  type = 'ic'
 }) => {
-  const [isConnecting, setIsConnecting] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
 
-  // Handle approval modal
-  const handleApproveClick = () => {
-    setShowApprovalModal(true);
+  // Utility functions
+  const safeValue = (value) => {
+    if (value === null || value === undefined || value === '') return '-';
+    if (typeof value === 'object') return '-';
+    return String(value);
   };
 
-  const handleApprovalConfirm = () => {
-    setShowApprovalModal(false);
-    handleApprove();
+  const getMemberTypeInfo = () => {
+    return MEMBER_TYPES[type] || { code: 'N/A', name: 'ไม่ทราบประเภท' };
   };
 
-  const handleApprovalCancel = () => {
-    setShowApprovalModal(false);
-  };
-
-  // Get member type info
-  const memberTypeInfo = MEMBER_TYPES[type] || { code: 'N/A', name: 'ไม่ทราบประเภท' };
-  
-  // Get company name (for IC, it's usually personal name)
   const getDisplayName = () => {
-    if (application?.first_name_th && application?.last_name_th) {
-      return `${application.first_name_th} ${application.last_name_th}`;
+    const firstTh = application?.first_name_th || application?.firstNameTh;
+    const lastTh = application?.last_name_th || application?.lastNameTh;
+    if (firstTh && lastTh) {
+      return `${firstTh} ${lastTh}`;
     }
-    if (application?.firstNameTh && application?.lastNameTh) {
-      return `${application.firstNameTh} ${application.lastNameTh}`;
-    }
-    if (application?.name) return application.name;
-    return 'ไม่ระบุ';
+    return safeValue(application?.name || application?.company_name_th);
   };
 
-  // Get ID card number
   const getIdCard = () => {
-    if (application?.id_card_number) return application.id_card_number;
-    if (application?.idCard) return application.idCard;
-    return 'ไม่ระบุ';
+    return safeValue(application?.id_card_number || application?.idCard);
   };
-  
-  // Function to get document display name based on document type
-  const getDocumentDisplayName = (doc) => {
+
+  const getBusinessTypeName = (businessType) => {
+    if (!businessType) return '-';
+    
+    if (typeof businessType === 'string') {
+      return BUSINESS_TYPE_NAMES[businessType] || businessType;
+    }
+    
+    if (typeof businessType === 'object') {
+      const key = businessType.business_type || businessType.type || businessType.businessType;
+      if (key) {
+        return BUSINESS_TYPE_NAMES[key] || key;
+      }
+    }
+    
+    return '-';
+  };
+
+  const getDocumentName = (doc) => {
+    if (!doc) return 'เอกสารแนบ';
+    
     if (doc.document_name) {
       return doc.document_name;
     }
     
-    // Map document types to Thai names for IC membership
-    const documentTypeNames = {
-      'id_card': 'สำเนาบัตรประชาชน',
-      'authorized_signature': 'รูปลายเซ็นผู้มีอำนาจลงนาม'
-    };
-    
-    return documentTypeNames[doc.document_type] || doc.document_type || `เอกสารแนบ`;
+    return DOCUMENT_TYPE_NAMES[doc.document_type] || doc.document_type || 'เอกสารแนบ';
   };
-  
-  const onConnectMemberCode = async () => {
-    if (!application || !application.id_card_number) return;
-    
-    setIsConnecting(true);
-    try {
-      await handleConnectMemberCode(application.id);
-    } finally {
-      setIsConnecting(false);
+
+  const getStatusDisplay = (status) => {
+    switch (status) {
+      case 1:
+        return { text: 'อนุมัติ', className: 'bg-green-500 text-white' };
+      case 2:
+        return { text: 'ปฏิเสธ', className: 'bg-red-500 text-white' };
+      default:
+        return { text: 'รอพิจารณา', className: 'bg-yellow-500 text-black' };
     }
   };
-  return (
-    <div className="min-h-screen bg-blue-50 p-6">
-      <div className="max-w-6xl mx-auto">
+
+  // Event handlers
+  const handleApproveClick = () => setShowApprovalModal(true);
+  const handleApprovalConfirm = () => {
+    setShowApprovalModal(false);
+    handleApprove();
+  };
+  const handleApprovalCancel = () => setShowApprovalModal(false);
+
+  // Data processing
+  const memberTypeInfo = getMemberTypeInfo();
+  const statusInfo = getStatusDisplay(application?.status);
+  const addresses = normalizeAllAddresses(application);
+  
+  const userInfo = {
+    firstname: application?.user?.firstname || application?.applicant_firstname || application?.firstNameTh || '-',
+    lastname: application?.user?.lastname || application?.applicant_lastname || application?.lastNameTh || '-',
+    email: application?.user?.email || application?.applicant_email || application?.email || '-',
+    phone: application?.user?.phone || application?.applicant_phone || application?.phone || '-'
+  };
+
+  // Render functions
+  const renderIndustrialGroups = () => {
+    const groups = application?.industrialGroups || application?.industrialGroupIds || [];
+    
+    if (!Array.isArray(groups) || groups.length === 0) {
+      return (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p className="text-gray-500">ไม่มีข้อมูลกลุ่มอุตสาหกรรม</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {groups.map((group, index) => {
+          let groupId = '';
+          let groupName = '';
+
+          if (typeof group === 'string' || typeof group === 'number') {
+            groupId = String(group);
+            groupName = industrialGroups[groupId] || `รหัส: ${groupId}`;
+          } else if (group && typeof group === 'object') {
+            groupId = String(group.id || group.industry_group_id || group.MEMBER_GROUP_CODE || '');
+            groupName = group.name || group.industry_group_name || industrialGroups[groupId] || `รหัส: ${groupId}`;
+          }
+
+          if (!groupId) return null;
+
+          return (
+            <div key={`group-${index}-${groupId}`} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-lg font-medium text-gray-900">{groupName}</p>
+              <p className="text-sm text-blue-600">รหัส: {groupId}</p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderProvincialChapters = () => {
+    const chapters = application?.provincialChapters || application?.provincialChapterIds || [];
+    
+    if (!Array.isArray(chapters) || chapters.length === 0) {
+      return (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+          <p className="text-gray-500">ไม่มีข้อมูลสภาอุตสาหกรรมจังหวัด</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3">
+        {chapters.map((chapter, index) => {
+          let chapterId = '';
+          let chapterName = '';
+
+          if (typeof chapter === 'string' || typeof chapter === 'number') {
+            chapterId = String(chapter);
+            chapterName = provincialChapters[chapterId] || `รหัส: ${chapterId}`;
+          } else if (chapter && typeof chapter === 'object') {
+            chapterId = String(chapter.id || chapter.province_chapter_id || chapter.MEMBER_GROUP_CODE || '');
+            chapterName = chapter.name || chapter.province_chapter_name || provincialChapters[chapterId] || `รหัส: ${chapterId}`;
+          }
+
+          if (!chapterId) return null;
+
+          return (
+            <div key={`chapter-${index}-${chapterId}`} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-lg font-medium text-gray-900">{chapterName}</p>
+              <p className="text-sm text-blue-600">รหัส: {chapterId}</p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderRepresentatives = () => {
+    const representatives = application?.representatives || [];
+    
+    if (!Array.isArray(representatives) || representatives.length === 0) {
+      return null;
+    }
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          ผู้แทน
+        </h3>
         
-        {/* Print Button */}
-        <div className="flex justify-end mb-6">
-          <button
-            onClick={handlePrint}
-            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors print:hidden"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
-            </svg>
-            พิมพ์
-          </button>
-        </div>
-
-        {/* 1. ข้อมูลบริษัท */}
-        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
-          <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-            ข้อมูลบริษัท
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
-              <p className="text-lg text-gray-900">{application.first_name_th || application.firstNameTh || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
-              <p className="text-lg text-gray-900">{application.last_name_th || application.lastNameTh || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
-              <p className="text-lg text-gray-900">{application.first_name_en || application.firstNameEn || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
-              <p className="text-lg text-gray-900">{application.last_name_en || application.lastNameEn || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">เลขบัตรประชาชน</p>
-              <p className="text-lg text-gray-900 font-mono">{application.id_card_number || application.idCard || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
-              <p className="text-lg text-gray-900">{application.email || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
-              <p className="text-lg text-gray-900">{application.phone || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">เว็บไซต์</p>
-              <p className="text-lg text-gray-900">{application.website || '-'}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* 2. สภาจังหวัด / กลุ่มอุตสาหกรรม */}
-        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
-          <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-            สภาจังหวัด / กลุ่มอุตสาหกรรม
-          </h3>
-          
-          {/* Debug: แสดงข้อมูลดิบเพื่อตรวจสอบ */}
-          {console.log('IC industrialGroupIds:', application.industrialGroupIds)}
-          {console.log('IC provincialChapterIds:', application.provincialChapterIds)}
-          {console.log('industrialGroups mapping:', industrialGroups)}
-          {console.log('provincialChapters mapping:', provincialChapters)}
-          
-          {/* สภาอุตสาหกรรมจังหวัด */}
-          <div className="mb-6">
-            <h4 className="text-xl font-semibold mb-4 text-gray-800">สภาอุตสาหกรรมจังหวัด</h4>
-            {application.provincialChapterIds && application.provincialChapterIds.length > 0 ? (
-              <div className="space-y-3">
-                {application.provincialChapterIds.map((chapter, index) => {
-                  console.log('Processing provincial chapter:', chapter);
-                  const chapterId = chapter.id || chapter.province_chapter_id || chapter;
-                  return (
-                    <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-lg font-medium text-gray-900">
-                        {provincialChapters[chapterId] || `รหัส: ${chapterId}`}
-                      </p>
-                      {provincialChapters[chapterId] && (
-                        <p className="text-sm text-blue-600">รหัส: {chapterId}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-gray-500">ไม่มีข้อมูلสภาอุตสาหกรรมจังหวัด</p>
-              </div>
-            )}
-          </div>
-
-          {/* กลุ่มอุตสาหกรรม */}
-          <div>
-            <h4 className="text-xl font-semibold mb-4 text-gray-800">กลุ่มอุตสาหกรรม</h4>
-            {application.industrialGroupIds && application.industrialGroupIds.length > 0 ? (
-              <div className="space-y-3">
-                {application.industrialGroupIds.map((group, index) => {
-                  console.log('Processing industrial group:', group);
-                  const groupId = group.id || group.industry_group_id || group;
-                  return (
-                    <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <p className="text-lg font-medium text-gray-900">
-                        {industrialGroups[groupId] || `รหัส: ${groupId}`}
-                      </p>
-                      {industrialGroups[groupId] && (
-                        <p className="text-sm text-blue-600">รหัส: {groupId}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                <p className="text-gray-500">ไม่มีข้อมูลกลุ่มอุตสาหกรรม</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 3. ผู้แทน */}
-        {application.representatives && application.representatives.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
-            <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-              ผู้แทน
-            </h3>
+        <div className="space-y-6">
+          {representatives.slice(0, 1).map((rep, index) => {
+            if (!rep || typeof rep !== 'object') return null;
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {application.representatives.map((rep, index) => {
-                const isPrimary = rep.repOrder === 1 || rep.isPrimary === 1 || rep.isPrimary === true;
-                const repType = isPrimary ? 'ผู้แทน 1 (หลัก)' : 'ผู้แทน 2 (รอง)';
+            return (
+              <div key={`rep-${index}`} className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
+                    <p className="text-lg text-gray-900">{safeValue(rep.firstNameTh || rep.first_name_th)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
+                    <p className="text-lg text-gray-900">{safeValue(rep.lastNameTh || rep.last_name_th)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
+                    <p className="text-lg text-gray-900">{safeValue(rep.firstNameEn || rep.first_name_en)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
+                    <p className="text-lg text-gray-900">{safeValue(rep.lastNameEn || rep.last_name_en)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">ตำแหน่ง</p>
+                    <p className="text-lg text-gray-900">{safeValue(rep.position)}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
+                    <p className="text-lg text-gray-900">{safeValue(rep.phone)}</p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
+                    <p className="text-lg text-gray-900 break-all">{safeValue(rep.email)}</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderAddresses = () => {
+    if (!addresses || addresses.length === 0) {
+      return (
+        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+          <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+            ที่อยู่
+          </h3>
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <p className="text-gray-500">ไม่มีข้อมูลที่อยู่</p>
+          </div>
+        </div>
+      );
+    }
+
+    const getAddressStyles = (addressType) => {
+      const styleMap = {
+        '1': { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-900' },
+        '2': { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-900' },
+        '3': { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-900' }
+      };
+      return styleMap[addressType] || styleMap['1'];
+    };
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          ที่อยู่
+        </h3>
+        
+        {addresses.map((addr, index) => {
+          const styles = getAddressStyles(addr.addressType);
+          
+          return (
+            <div key={`address-${index}`} className={`${styles.bg} border ${styles.border} rounded-lg p-6 mb-6`}>
+              <h4 className={`text-xl font-semibold ${styles.text} mb-4 border-b ${styles.border} pb-2`}>
+                {addr.addressTypeName}
+              </h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">บ้านเลขที่</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.addressNumber)}</p>
+                </div>
+                {addr.building && (
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">อาคาร</p>
+                    <p className="text-base text-gray-900">{addr.building}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">หมู่</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.moo)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">ซอย</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.soi)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">ถนน</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.street)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">ตำบล/แขวง</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.subDistrict)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">อำเภอ/เขต</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.district)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">จังหวัด</p>
+                  <p className="text-base text-gray-900">{safeValue(addr.province)}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">รหัสไปรษณีย์</p>
+                  <p className="text-base text-gray-900 font-mono">{safeValue(addr.postalCode)}</p>
+                </div>
+                
+                {addr.phone && (
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">โทรศัพท์</p>
+                    <p className="text-base text-gray-900">
+                      {addr.phone}
+                      {addr.phoneExtension && ` ต่อ ${addr.phoneExtension}`}
+                    </p>
+                  </div>
+                )}
+                {addr.email && (
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
+                    <p className="text-base text-gray-900">{addr.email}</p>
+                  </div>
+                )}
+                {addr.website && (
+                  <div>
+                    <p className="text-sm font-semibold text-blue-700 mb-1">เว็บไซต์</p>
+                    <p className="text-base text-gray-900">{addr.website}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderBusinessInfo = () => {
+    const hasBusinessTypes = application?.businessTypes && Array.isArray(application.businessTypes) && application.businessTypes.length > 0;
+    const hasProducts = application?.products && Array.isArray(application.products) && application.products.length > 0;
+    const hasBusinessTypeOther = application?.businessTypeOther;
+
+    if (!hasBusinessTypes && !hasProducts && !hasBusinessTypeOther) {
+      return null;
+    }
+
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          ข้อมูลธุรกิจ
+        </h3>
+        
+        {hasBusinessTypes && (
+          <div className="mb-6">
+            <h4 className="text-xl font-semibold mb-4 text-gray-800">ประเภทธุรกิจ</h4>
+            <div className="flex flex-wrap gap-3">
+              {application.businessTypes.map((businessType, index) => (
+                <span key={`business-${index}`} className="px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full border border-blue-200">
+                  {getBusinessTypeName(businessType)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {hasBusinessTypeOther && (
+          <div className="mb-6">
+            <h4 className="text-xl font-semibold mb-4 text-gray-800">ประเภทธุรกิจอื่นๆ</h4>
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+              <p className="text-lg text-gray-900">{safeValue(application.businessTypeOther)}</p>
+            </div>
+          </div>
+        )}
+        
+        {hasProducts && (
+          <div>
+            <h4 className="text-xl font-semibold mb-4 text-gray-800">สินค้าและบริการ</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {application.products.map((product, index) => {
+                if (!product || typeof product !== 'object') return null;
                 
                 return (
-                  <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-bold text-blue-900">{repType}</h4>
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
-                        isPrimary ? 'bg-blue-600 text-white' : 'bg-gray-500 text-white'
-                      }`}>
-                        {isPrimary ? 'หลัก' : 'รอง'}
-                      </span>
-                    </div>
+                  <div key={`product-${index}`} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h5 className="text-lg font-bold text-blue-900 mb-3">สินค้า/บริการ {index + 1}</h5>
                     <div className="space-y-3">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
-                          <p className="text-sm text-gray-900">{rep.firstNameTh || rep.first_name_th || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
-                          <p className="text-sm text-gray-900">{rep.lastNameTh || rep.last_name_th || '-'}</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
-                          <p className="text-sm text-gray-900">{rep.firstNameEn || rep.first_name_en || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
-                          <p className="text-sm text-gray-900">{rep.lastNameEn || rep.last_name_en || '-'}</p>
-                        </div>
+                      <div>
+                        <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อสินค้า/บริการ (ไทย)</p>
+                        <p className="text-sm text-gray-900">{safeValue(product.name_th || product.nameTh)}</p>
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-blue-700 mb-1">ตำแหน่ง</p>
-                        <p className="text-sm text-gray-900">{rep.position || '-'}</p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
-                          <p className="text-sm text-gray-900">{rep.phone || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
-                          <p className="text-sm text-gray-900 break-all">{rep.email || '-'}</p>
-                        </div>
+                        <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อสินค้า/บริการ (อังกฤษ)</p>
+                        <p className="text-sm text-gray-900">{safeValue(product.name_en || product.nameEn)}</p>
                       </div>
                     </div>
                   </div>
@@ -271,199 +425,82 @@ const ICDetailView = ({
             </div>
           </div>
         )}
+      </div>
+    );
+  };
 
-        {/* 4. ที่อยู่จัดส่ง */}
-        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
-          <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-            ที่อยู่จัดส่ง
-          </h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">บ้านเลขที่</p>
-              <p className="text-lg text-gray-900">{application.address_number || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">หมู่</p>
-              <p className="text-lg text-gray-900">{application.moo || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ซอย</p>
-              <p className="text-lg text-gray-900">{application.soi || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ถนน</p>
-              <p className="text-lg text-gray-900">{application.street || application.road || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ตำบล/แขวง</p>
-              <p className="text-lg text-gray-900">{application.sub_district || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">อำเภอ/เขต</p>
-              <p className="text-lg text-gray-900">{application.district || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">จังหวัด</p>
-              <p className="text-lg text-gray-900">{application.province || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">รหัสไปรษณีย์</p>
-              <p className="text-lg text-gray-900 font-mono">{application.postal_code || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
-              <p className="text-lg text-gray-900">{application.phone || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
-              <p className="text-lg text-gray-900">{application.email || '-'}</p>
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">เว็บไซต์</p>
-              <p className="text-lg text-gray-900">{application.website || '-'}</p>
-            </div>
-          </div>
-        </div>
+  const renderDocuments = () => {
+    const documents = application?.documents;
+    
+    if (!documents || !Array.isArray(documents) || documents.length === 0) {
+      return null;
+    }
 
-        {/* 5. ข้อมูลธุรกิจ */}
-        {((application.businessTypes && application.businessTypes.length > 0) || 
-          (application.products && application.products.length > 0) ||
-          (application.businessTypeOther)) && (
-          <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
-            <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-              ข้อมูลธุรกิจ
-            </h3>
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          ไฟล์แนบ
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {documents.map((doc, index) => {
+            if (!doc || typeof doc !== 'object') return null;
             
-            {/* ประเภทธุรกิจ */}
-            {application.businessTypes && application.businessTypes.length > 0 && (
-              <div className="mb-6">
-                <h4 className="text-xl font-semibold mb-4 text-gray-800">ประเภทธุรกิจ</h4>
-                <div className="flex flex-wrap gap-3">
-                  {application.businessTypes.map((businessType, index) => {
-                    const getBusinessTypeName = (type) => {
-                      const types = {
-                        'manufacturer': 'ผู้ผลิต',
-                        'distributor': 'ผู้จัดจำหน่าย',
-                        'importer': 'ผู้นำเข้า',
-                        'exporter': 'ผู้ส่งออก',
-                        'service': 'ผู้ให้บริการ',
-                        'other': 'อื่นๆ'
-                      };
-                      return types[type] || type;
-                    };
-                    
-                    return (
-                      <span key={index} className="px-4 py-2 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full border border-blue-200">
-                        {getBusinessTypeName(businessType.business_type || businessType)}
-                      </span>
-                    );
-                  })}
+            return (
+              <div key={`doc-${index}`} className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex items-center gap-4">
+                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
                 </div>
-              </div>
-            )}
-
-            {/* ประเภทธุรกิจอื่นๆ */}
-            {application.businessTypeOther && (
-              <div className="mb-6">
-                <h4 className="text-xl font-semibold mb-4 text-gray-800">ประเภทธุรกิจอื่นๆ</h4>
-                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-                  <p className="text-lg text-gray-900">
-                    {typeof application.businessTypeOther === 'string' 
-                      ? application.businessTypeOther 
-                      : application.businessTypeOther.detail || 
-                        application.businessTypeOther.other_type || 
-                        'ไม่ระบุ'}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 mb-1">{getDocumentName(doc)}</p>
+                  <p className="text-sm text-gray-600 truncate" title={safeValue(doc.file_path || doc.filePath)}>
+                    {safeValue(doc.file_path || doc.filePath)}
                   </p>
                 </div>
-              </div>
-            )}
-            
-            {/* สินค้าและบริการ */}
-            {application.products && application.products.length > 0 && (
-              <div>
-                <h4 className="text-xl font-semibold mb-4 text-gray-800">สินค้าและบริการ</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {application.products.map((product, index) => (
-                    <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h5 className="text-lg font-bold text-blue-900 mb-3">สินค้า/บริการ {index + 1}</h5>
-                      <div className="space-y-3">
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อสินค้า/บริการ (ไทย)</p>
-                          <p className="text-sm text-gray-900">{product.name_th || product.nameTh || '-'}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อสินค้า/บริการ (อังกฤษ)</p>
-                          <p className="text-sm text-gray-900">{product.name_en || product.nameEn || '-'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* 6. ไฟล์แนบ - Hidden in print */}
-        {application.documents && application.documents.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
-            <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-              ไฟล์แนบ
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {application.documents.map((doc, index) => (
-                <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                {(doc.file_path || doc.filePath) && handleViewDocument && (
+                  <button 
+                    onClick={() => handleViewDocument(doc.file_path || doc.filePath)}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
+                    title="ดูเอกสาร"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900 mb-1">{getDocumentDisplayName(doc)}</p>
-                    <p className="text-sm text-gray-600 truncate" title={doc.file_path || '-'}>
-                      {doc.file_path || '-'}
-                    </p>
-                  </div>
-                  {doc.file_path && (
-                    <button 
-                      onClick={() => handleViewDocument(doc.file_path)}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                      title="ดูเอกสาร"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                      ดู
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+                    ดู
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
-        {/* 7. การอนุมัติ - Hidden in print */}
-        <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
-          <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-            การอนุมัติ
-          </h3>
+  const renderApprovalSection = () => {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          การอนุมัติ
+        </h3>
+        
+        {/* หมายเหตุของผู้ดูแลระบบ */}
+        <div className="mb-6">
+          <h4 className="text-lg font-semibold mb-4 text-gray-800">หมายเหตุของผู้ดูแลระบบ</h4>
+          <div className="mb-4">
+            <textarea
+              className="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              rows="4"
+              value={adminNote}
+              onChange={(e) => setAdminNote(e.target.value)}
+              placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
+            />
+          </div>
           
-          {/* หมายเหตุของผู้ดูแลระบบ */}
-          <div className="mb-6">
-            <h4 className="text-lg font-semibold mb-4 text-gray-800">หมายเหตุของผู้ดูแลระบบ</h4>
-            <div className="mb-4">
-              <textarea
-                className="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
-                rows="4"
-                value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
-              />
-            </div>
-            
+          {handleSaveNote && (
             <div className="flex justify-end mb-6">
               <button
                 onClick={handleSaveNote}
@@ -473,13 +510,15 @@ const ICDetailView = ({
                 {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}
               </button>
             </div>
-          </div>
-          
-          {/* Action Buttons */}
-          {application.status !== 1 && (
-            <div>
-              <h4 className="text-lg font-semibold mb-4 text-gray-800">การดำเนินการ</h4>
-              <div className="flex justify-end space-x-4">
+          )}
+        </div>
+        
+        {/* Action Buttons */}
+        {application?.status !== 1 && (handleApprove || handleReject) && (
+          <div>
+            <h4 className="text-lg font-semibold mb-4 text-gray-800">การดำเนินการ</h4>
+            <div className="flex justify-end space-x-4">
+              {handleReject && (
                 <button
                   onClick={handleReject}
                   className="flex items-center gap-2 px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
@@ -490,6 +529,8 @@ const ICDetailView = ({
                   </svg>
                   {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
                 </button>
+              )}
+              {handleApprove && (
                 <button
                   onClick={handleApproveClick}
                   className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
@@ -500,21 +541,172 @@ const ICDetailView = ({
                   </svg>
                   {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
                 </button>
+              )}
+            </div>
+          </div>
+        )}
+        
+        {/* Show Member Code if available */}
+        {application?.status === 1 && application?.member_code && (
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h4 className="text-lg font-semibold mb-2 text-green-800">หมายเลขสมาชิก</h4>
+            <p className="text-xl font-bold text-green-700">{safeValue(application.member_code)}</p>
+            <p className="text-sm text-green-600 mt-1">เชื่อมต่อฐานข้อมูลสำเร็จแล้ว</p>
+          </div>
+        )}
+
+        {/* Connect Member Code Button */}
+        {application?.status === 1 && !application?.member_code && handleConnectMemberCode && (
+          <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <h4 className="text-lg font-semibold mb-4 text-yellow-800">เชื่อมต่อฐานข้อมูลสมาชิก</h4>
+            <button
+              onClick={() => handleConnectMemberCode(application.id)}
+              className="flex items-center gap-2 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition-colors"
+              disabled={isSubmitting || !application?.id_card_number}
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+              {isSubmitting ? 'กำลังเชื่อมต่อ...' : 'เชื่อมต่อฐานข้อมูลสมาชิก'}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 mb-8 print:bg-white print:text-black print:border print:border-gray-300">
+        <div className="flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold mb-4">รายละเอียดใบสมัครสมาชิก IC</h1>
+            <div className="flex items-center gap-6 text-lg flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">รหัสใบสมัคร:</span>
+                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg font-mono">
+                  {application?.id || 'N/A'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">ประเภท:</span>
+                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg">
+                  {memberTypeInfo.code} - {memberTypeInfo.name}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-semibold">สถานะ:</span>
+                <span className={`px-3 py-1 rounded-lg font-semibold ${statusInfo.className}`}>
+                  {statusInfo.text}
+                </span>
               </div>
             </div>
-          )}
+          </div>
           
-          
-          {/* Show Member Code if available */}
-          {application.status === 1 && application.member_code && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <h4 className="text-lg font-semibold mb-2 text-green-800">หมายเลขสมาชิก</h4>
-              <p className="text-xl font-bold text-green-700">{application.member_code}</p>
-              <p className="text-sm text-green-600 mt-1">เชื่อมต่อฐานข้อมูลสำเร็จแล้ว</p>
-            </div>
-          )}
+          <button
+            onClick={() => window.print()}
+            className="flex items-center gap-2 px-6 py-3 bg-white bg-opacity-20 hover:bg-opacity-30 rounded-lg transition-colors print:hidden flex-shrink-0"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+            พิมพ์
+          </button>
         </div>
       </div>
+
+      {/* ข้อมูลผู้สมัคร */}
+      <div className="bg-white rounded-xl shadow-sm border border-green-200 p-8 mb-8">
+        <h3 className="text-2xl font-bold text-green-900 mb-6 border-b border-green-100 pb-4">
+          ข้อมูลผู้สมัคร
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">ชื่อ</p>
+            <p className="text-lg text-gray-900">{userInfo.firstname}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">นามสกุล</p>
+            <p className="text-lg text-gray-900">{userInfo.lastname}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">อีเมล</p>
+            <p className="text-lg text-gray-900">{userInfo.email}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">เบอร์โทรศัพท์</p>
+            <p className="text-lg text-gray-900">{userInfo.phone}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ข้อมูลบริษัท */}
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          ข้อมูลบริษัท
+        </h3>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อบริษัท (ไทย)</p>
+            <p className="text-lg text-gray-900">{getDisplayName()}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อบริษัท (อังกฤษ)</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.company_name_en || application?.companyNameEn)}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">เลขประจำตัวผู้เสียภาษี</p>
+            <p className="text-lg text-gray-900 font-mono">{getIdCard()}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.email)}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.phone)}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">เว็บไซต์</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.website)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* กลุ่มอุตสาหกรรมและสภาจังหวัด */}
+      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
+        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+          กลุ่มอุตสาหกรรมและสภาจังหวัด
+        </h3>
+        
+        <div className="mb-6">
+          <h4 className="text-xl font-semibold mb-4 text-gray-800">สภาอุตสาหกรรมจังหวัด</h4>
+          {renderProvincialChapters()}
+        </div>
+
+        <div>
+          <h4 className="text-xl font-semibold mb-4 text-gray-800">กลุ่มอุตสาหกรรม</h4>
+          {renderIndustrialGroups()}
+        </div>
+      </div>
+
+      {/* ผู้แทน */}
+      {renderRepresentatives()}
+
+      {/* ที่อยู่ */}
+      {renderAddresses()}
+
+      {/* ข้อมูลธุรกิจ */}
+      {renderBusinessInfo()}
+
+      {/* ไฟล์แนบ */}
+      {renderDocuments()}
+
+      {/* การอนุมัติ */}
+      {renderApprovalSection()}
 
       {/* Approval Modal */}
       <ApprovalModal

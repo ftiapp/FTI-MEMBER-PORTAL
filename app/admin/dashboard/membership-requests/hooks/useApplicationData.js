@@ -19,12 +19,36 @@ export const useApplicationData = (type, id) => {
       setError(null);
       
       try {
-        // Fetch application data
-        const response = await fetch(`/api/admin/membership-requests/${type}/${id}`);
-        if (!response.ok) throw new Error('Failed to fetch application');
+        // Fetch application data with error handling
+        const response = await fetch(`/api/admin/membership-requests/${type}/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
-        const data = await response.json();
-        if (!data.success) throw new Error(data.message || 'Failed to fetch application');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        // Check if response has content before parsing
+        const text = await response.text();
+        if (!text) {
+          throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (parseError) {
+          console.error('JSON Parse Error:', parseError);
+          console.error('Response text:', text);
+          throw new Error('Invalid JSON response from server');
+        }
+        
+        if (!data.success) {
+          throw new Error(data.message || 'Failed to fetch application');
+        }
         
         const normalizedData = normalizeApplicationData(data.data, type);
         setApplication(normalizedData);
@@ -36,7 +60,7 @@ export const useApplicationData = (type, id) => {
       } catch (err) {
         console.error('Error fetching application:', err);
         setError(err.message);
-        toast.error('ไม่สามารถดึงข้อมูลได้');
+        toast.error(`ไม่สามารถดึงข้อมูลได้: ${err.message}`);
       } finally {
         setIsLoading(false);
       }
@@ -47,40 +71,71 @@ export const useApplicationData = (type, id) => {
   
   const fetchAdditionalData = async () => {
     try {
-      // Fetch industrial groups
-      const [groupsRes, chaptersRes] = await Promise.all([
-        fetch('/api/industrial-groups'),
-        fetch('/api/provincial-chapters')
+      // Fetch industrial groups with error handling
+      const fetchWithErrorHandling = async (url) => {
+        try {
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          
+          if (!response.ok) {
+            console.warn(`Failed to fetch ${url}: ${response.status}`);
+            return null;
+          }
+          
+          const text = await response.text();
+          if (!text) {
+            console.warn(`Empty response from ${url}`);
+            return null;
+          }
+          
+          return JSON.parse(text);
+        } catch (error) {
+          console.warn(`Error fetching ${url}:`, error);
+          return null;
+        }
+      };
+      
+      const [groupsData, chaptersData] = await Promise.all([
+        fetchWithErrorHandling('/api/industrial-groups'),
+        fetchWithErrorHandling('/api/provincial-chapters')
       ]);
       
-      if (groupsRes.ok) {
-        const groupsData = await groupsRes.json();
-        if (groupsData.success) {
-          const groupsMap = {};
-          groupsData.data.forEach(group => {
-            groupsMap[group.id] = group.name;
-          });
-          setIndustrialGroups(groupsMap);
-        }
+      // Process industrial groups
+      if (groupsData && groupsData.success && Array.isArray(groupsData.data)) {
+        const groupsMap = {};
+        groupsData.data.forEach(group => {
+          if (group && group.id) {
+            groupsMap[group.id] = group.name || '';
+          }
+        });
+        setIndustrialGroups(groupsMap);
       }
       
-      if (chaptersRes.ok) {
-        const chaptersData = await chaptersRes.json();
-        if (chaptersData.success) {
-          const chaptersMap = {};
-          chaptersData.data.forEach(chapter => {
-            chaptersMap[chapter.id] = chapter.name;
-          });
-          setProvincialChapters(chaptersMap);
-        }
+      // Process provincial chapters
+      if (chaptersData && chaptersData.success && Array.isArray(chaptersData.data)) {
+        const chaptersMap = {};
+        chaptersData.data.forEach(chapter => {
+          if (chapter && chapter.id) {
+            chaptersMap[chapter.id] = chapter.name || '';
+          }
+        });
+        setProvincialChapters(chaptersMap);
       }
     } catch (err) {
       console.error('Error fetching additional data:', err);
+      // Don't throw error here as this is supplementary data
     }
   };
   
   const updateApplication = (updates) => {
-    setApplication(prev => ({ ...prev, ...updates }));
+    setApplication(prev => {
+      if (!prev) return updates;
+      return { ...prev, ...updates };
+    });
   };
   
   return {

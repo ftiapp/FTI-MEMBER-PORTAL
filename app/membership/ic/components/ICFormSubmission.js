@@ -89,13 +89,14 @@ export const submitICMembershipForm = async (formData) => {
   try {
     const formDataToSubmit = new FormData();
     
-    // ข้อมูลหลัก
+    // ข้อมูลหลัก - แก้ไขชื่อฟิลด์ให้ตรงกับ backend
     formDataToSubmit.append('idCardNumber', formData.idCardNumber || '');
     formDataToSubmit.append('firstNameTh', formData.firstNameThai || '');
     formDataToSubmit.append('lastNameTh', formData.lastNameThai || '');
     formDataToSubmit.append('firstNameEn', formData.firstNameEng || '');
     formDataToSubmit.append('lastNameEn', formData.lastNameEng || '');
     formDataToSubmit.append('phone', formData.phone || '');
+    formDataToSubmit.append('phoneExtension', formData.phoneExtension || '');
     formDataToSubmit.append('email', formData.email || '');
     
     // ข้อมูลที่อยู่
@@ -109,13 +110,40 @@ export const submitICMembershipForm = async (formData) => {
     formDataToSubmit.append('postalCode', formData.postalCode || '');
     formDataToSubmit.append('website', formData.website || '');
     
+    // ✅ ส่งข้อมูลที่อยู่แบบหลายประเภท (addresses) หากมี
+    // Backend จะอ่าน key 'addresses' (JSON) และบันทึกลงตาราง MemberRegist_IC_Address
+    if (formData.addresses && typeof formData.addresses === 'object') {
+      try {
+        const addressesPayload = JSON.stringify(formData.addresses);
+        formDataToSubmit.append('addresses', addressesPayload);
+        console.log('Addresses payload to submit:', addressesPayload);
+      } catch (e) {
+        console.warn('Could not stringify addresses payload:', e);
+      }
+    }
+
     // ข้อมูลผู้แทน
-    formDataToSubmit.append('representativeFirstNameTh', formData.representativeFirstNameTh || '');
-    formDataToSubmit.append('representativeLastNameTh', formData.representativeLastNameTh || '');
-    formDataToSubmit.append('representativeFirstNameEn', formData.representativeFirstNameEn || '');
-    formDataToSubmit.append('representativeLastNameEn', formData.representativeLastNameEn || '');
-    formDataToSubmit.append('representativeEmail', formData.representativeEmail || '');
-    formDataToSubmit.append('representativePhone', formData.representativePhone || '');
+    if (formData.representative) {
+      // ถ้ามีข้อมูลในรูปแบบ object
+      formDataToSubmit.append('representativeFirstNameTh', formData.representative.firstNameThai || '');
+      formDataToSubmit.append('representativeLastNameTh', formData.representative.lastNameThai || '');
+      formDataToSubmit.append('representativeFirstNameEn', formData.representative.firstNameEng || '');
+      formDataToSubmit.append('representativeLastNameEn', formData.representative.lastNameEng || '');
+      formDataToSubmit.append('representativeEmail', formData.representative.email || '');
+      formDataToSubmit.append('representativePhone', formData.representative.phone || '');
+      formDataToSubmit.append('representativePhoneExtension', formData.representative.phoneExtension || '');
+      console.log('Representative data from object:', formData.representative);
+    } else {
+      // รูปแบบเก่า (แบบ flat)
+      formDataToSubmit.append('representativeFirstNameTh', formData.representativeFirstNameTh || '');
+      formDataToSubmit.append('representativeLastNameTh', formData.representativeLastNameTh || '');
+      formDataToSubmit.append('representativeFirstNameEn', formData.representativeFirstNameEn || '');
+      formDataToSubmit.append('representativeLastNameEn', formData.representativeLastNameEn || '');
+      formDataToSubmit.append('representativeEmail', formData.representativeEmail || '');
+      formDataToSubmit.append('representativePhone', formData.representativePhone || '');
+      formDataToSubmit.append('representativePhoneExtension', formData.representativePhoneExtension || '');
+      console.log('Representative data from flat structure');
+    }
     
     // ประเภทธุรกิจ
     if (formData.businessTypes && Array.isArray(formData.businessTypes)) {
@@ -165,11 +193,8 @@ export const submitICMembershipForm = async (formData) => {
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
     industryGroupsToSend = industryGroupsToSend.filter(id => id && id.toString().trim());
     
-    // ตรวจสอบว่ามีจำนวน names เท่ากับ ids หรือไม่
-    // ถ้าไม่เท่ากัน ให้ใช้ ids เป็น fallback
-    if (industryGroupNamesToSend.length !== industryGroupsToSend.length) {
-      industryGroupNamesToSend = industryGroupsToSend.map(id => id.toString());
-    }
+    // หมายเหตุ: ไม่ควร fallback เป็น ID เพราะจะทำให้ column name เก็บเป็นรหัส
+    // หากจำนวน names ไม่เท่ากับ ids ให้ส่งเท่าที่มี และให้ backend ใส่ค่า 'ไม่ระบุ'
     
     formDataToSubmit.append('industryGroups', JSON.stringify(industryGroupsToSend));
     formDataToSubmit.append('industryGroupNames', JSON.stringify(industryGroupNamesToSend));
@@ -204,11 +229,8 @@ export const submitICMembershipForm = async (formData) => {
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
     provinceChaptersToSend = provinceChaptersToSend.filter(id => id && id.toString().trim());
     
-    // ตรวจสอบว่ามีจำนวน names เท่ากับ ids หรือไม่
-    // ถ้าไม่เท่ากัน ให้ใช้ ids เป็น fallback
-    if (provinceChapterNamesToSend.length !== provinceChaptersToSend.length) {
-      provinceChapterNamesToSend = provinceChaptersToSend.map(id => id.toString());
-    }
+    // หมายเหตุ: ไม่ควร fallback เป็น ID เพราะจะทำให้ column name เก็บเป็นรหัส
+    // หากจำนวน names ไม่เท่ากับ ids ให้ส่งเท่าที่มี และให้ backend ใส่ค่า 'ไม่ระบุ'
     
     formDataToSubmit.append('provinceChapters', JSON.stringify(provinceChaptersToSend));
     formDataToSubmit.append('provinceChapterNames', JSON.stringify(provinceChapterNamesToSend));
@@ -258,6 +280,9 @@ export const submitICMembershipForm = async (formData) => {
         const errorData = await response.json();
         console.log('Error response data:', errorData);
         errorMessage = errorData.message || errorData.error || errorMessage;
+        if (errorData.details) {
+          errorMessage += `: ${errorData.details}`;
+        }
       } catch (e) {
         console.log('Could not parse error response as JSON');
         const errorText = await response.text();
@@ -284,7 +309,7 @@ export const submitICMembershipForm = async (formData) => {
     
   } catch (error) {
     console.error('Error submitting IC membership form:', error);
-    console.error('Error stack:', error.stack);
+    console.error('Error stack:', error && error.stack ? error.stack : 'n/a');
     return {
       success: false,
       message: error.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล'

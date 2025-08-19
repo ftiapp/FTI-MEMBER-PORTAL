@@ -52,6 +52,7 @@ const ProductsCard = ({ products }) => (
 );
 
 // Representative card
+// Representative card - แก้ไขเพื่อแสดง phone extension
 const RepresentativeCard = ({ representative }) => (
   <div className="bg-white border border-gray-200 rounded-lg p-4">
     <div className="mb-2">
@@ -82,7 +83,12 @@ const RepresentativeCard = ({ representative }) => (
         </div>
         <div>
           <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-          <p className="text-sm">{representative.phone || '-'}</p>
+          <p className="text-sm">
+            {representative.phone || '-'}
+            {representative.phoneExtension && representative.phoneExtension.trim() && (
+              <span className="text-gray-600 ml-1">ต่อ {representative.phoneExtension}</span>
+            )}
+          </p>
         </div>
       </div>
     ) : (
@@ -90,7 +96,6 @@ const RepresentativeCard = ({ representative }) => (
     )}
   </div>
 );
-
 // Enhanced file display with view functionality
 const FileCard = ({ fileName, description, fileUrl, fileType, documentType }) => {
   const handleViewFile = () => {
@@ -395,12 +400,12 @@ export default function SummarySection({
               <InfoCard title="หมู่" value={formData.address?.moo || '-'} />
               <InfoCard title="ซอย" value={formData.address?.soi || '-'} />
               <InfoCard title="ถนน" value={
-  formData.address?.street || 
-  formData.address?.road || 
-  formData.street || 
-  formData.road || 
-  '-'
-} />
+                formData.address?.street ||
+                formData.address?.road ||
+                formData.street ||
+                formData.road ||
+                '-'
+              } />
               <InfoCard title="ตำบล/แขวง" value={formData.address?.subDistrict || '-'} />
               <InfoCard title="อำเภอ/เขต" value={formData.address?.district || '-'} />
               <InfoCard title="จังหวัด" value={formData.address?.province || '-'} />
@@ -624,7 +629,7 @@ SummarySection.propTypes = {
     addressNumber: PropTypes.string,
     moo: PropTypes.string,
     soi: PropTypes.string,
-    street: PropTypes.string,  // เปลี่ยนจาก road เป็น street
+    road: PropTypes.string,
     subDistrict: PropTypes.string,
     district: PropTypes.string,
     province: PropTypes.string,

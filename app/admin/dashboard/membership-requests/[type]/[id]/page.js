@@ -47,7 +47,7 @@ export default function MembershipRequestDetail({ params }) {
     router.push('/admin/dashboard/membership-requests');
   };
 
-  // แก้ไข: ใช้ useEffect แทน useState
+  // Initialize admin note when application loads
   useEffect(() => {
     if (application?.adminNote) {
       setAdminNote(application.adminNote);
@@ -66,8 +66,17 @@ export default function MembershipRequestDetail({ params }) {
         body: JSON.stringify({ adminNote }),
       });
       
-      const data = await response.json();
-      console.log('Save Note Response:', data); // Debug log
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
+      console.log('Save Note Response:', data);
       
       if (data.success) {
         toast.success('บันทึกหมายเหตุเรียบร้อยแล้ว');
@@ -76,14 +85,14 @@ export default function MembershipRequestDetail({ params }) {
           adminNoteAt: new Date().toISOString()
         });
       } else {
-        console.log('Save Note Error:', data.message); // Debug log
+        console.log('Save Note Error:', data.message);
         toast.error(data.message || 'ไม่สามารถบันทึกหมายเหตุได้');
       }
     } catch (error) {
       console.error('Error saving admin note:', error);
       toast.error('ไม่สามารถบันทึกหมายเหตุได้');
     } finally {
-      setIsSubmitting(false); // ย้ายมาไว้ใน finally
+      setIsSubmitting(false);
     }
   };
 
@@ -95,7 +104,6 @@ export default function MembershipRequestDetail({ params }) {
     const loadingToastId = toast.loading('กำลังอนุมัติการสมัครสมาชิก... กรุณารอสักครู่');
     
     try {
-      // เพิ่ม timeout 60 วินาที
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
       
@@ -108,8 +116,17 @@ export default function MembershipRequestDetail({ params }) {
       
       clearTimeout(timeoutId);
       
-      const data = await response.json();
-      console.log('Approve Response:', data); // Debug log
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
+      console.log('Approve Response:', data);
       
       if (data.success) {
         toast.success('อนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
@@ -118,7 +135,7 @@ export default function MembershipRequestDetail({ params }) {
         setSuccessMessage('ได้ทำการอนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
         setShowSuccessModal(true);
       } else {
-        console.log('Approve Error:', data.message); // Debug log
+        console.log('Approve Error:', data.message);
         toast.error(data.message || 'ไม่สามารถอนุมัติการสมัครสมาชิกได้');
       }
     } catch (error) {
@@ -130,7 +147,7 @@ export default function MembershipRequestDetail({ params }) {
       }
     } finally {
       toast.dismiss(loadingToastId);
-      setIsSubmitting(false); // แน่ใจว่าจะ reset เสมอ
+      setIsSubmitting(false);
     }
   };
 
@@ -139,20 +156,29 @@ export default function MembershipRequestDetail({ params }) {
     setRecipientLoading(true);
     setRecipientEmail(null);
     setRecipientName(null);
+    
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
+      
       const res = await fetch(`/api/admin/membership-requests/${type}/${id}/reject`, {
         method: 'GET',
         signal: controller.signal,
       });
+      
       clearTimeout(timeoutId);
-      const data = await res.json();
-      if (data.success) {
-        setRecipientEmail(data.recipientEmail || null);
-        setRecipientName(data.recipientName || null);
-        setPreviewCompanyName(data.companyName || null);
-        setPreviewTaxId(data.taxId || null);
+      
+      if (res.ok) {
+        const text = await res.text();
+        if (text) {
+          const data = JSON.parse(text);
+          if (data.success) {
+            setRecipientEmail(data.recipientEmail || null);
+            setRecipientName(data.recipientName || null);
+            setPreviewCompanyName(data.companyName || null);
+            setPreviewTaxId(data.taxId || null);
+          }
+        }
       }
     } catch (e) {
       console.error('Failed to fetch recipient preview:', e);
@@ -179,7 +205,6 @@ export default function MembershipRequestDetail({ params }) {
     const loadingToastId = toast.loading('กำลังปฏิเสธการสมัครสมาชิกและส่งอีเมลแจ้ง... กรุณารอสักครู่');
     
     try {
-      // เพิ่ม timeout 60 วินาที
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
       
@@ -192,8 +217,17 @@ export default function MembershipRequestDetail({ params }) {
       
       clearTimeout(timeoutId);
       
-      const data = await response.json();
-      console.log('Reject Response:', data); // Debug log
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const text = await response.text();
+      if (!text) {
+        throw new Error('Empty response from server');
+      }
+      
+      const data = JSON.parse(text);
+      console.log('Reject Response:', data);
       
       if (data.success) {
         toast.success('ปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว');
@@ -209,7 +243,7 @@ export default function MembershipRequestDetail({ params }) {
         setSuccessMessage(`ได้ทำการปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว\n${companyLine}\n${taxLine}\n${recipientLine}`);
         setShowSuccessModal(true);
       } else {
-        console.log('Reject Error:', data.message); // Debug log
+        console.log('Reject Error:', data.message);
         toast.error(data.message || 'ไม่สามารถปฏิเสธการสมัครสมาชิกได้');
         setShowRejectModal(false);
       }
@@ -223,7 +257,7 @@ export default function MembershipRequestDetail({ params }) {
       setShowRejectModal(false);
     } finally {
       toast.dismiss(loadingToastId);
-      setIsSubmitting(false); // แน่ใจว่าจะ reset เสมอ
+      setIsSubmitting(false);
     }
   };
 

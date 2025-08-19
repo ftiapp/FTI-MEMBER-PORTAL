@@ -11,7 +11,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     firstNameEng: '',
     lastNameEng: '',
     email: '',
-    phone: ''
+    phone: '',
+    phoneExtension: ''
   });
 
   const representativeErrors = errors?.representativeErrors || {};

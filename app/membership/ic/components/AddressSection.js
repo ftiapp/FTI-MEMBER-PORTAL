@@ -495,17 +495,17 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               />
             </div>
 
-            {/* Street */}
+            {/* Road */}
             <div className="space-y-2">
-              <label htmlFor="street" className="block text-sm font-medium text-gray-900">
+              <label htmlFor="road" className="block text-sm font-medium text-gray-900">
                 ถนน
               </label>
               <input
                 type="text"
-                id="street"
-                name="street"
-                value={getCurrentAddress().street || ''}
-                onChange={(e) => handleAddressInputChange('street', e.target.value)}
+                id="road"
+                name="road"
+                value={getCurrentAddress().road || ''}
+                onChange={(e) => handleAddressInputChange('road', e.target.value)}
                 placeholder="กรอกถนน"
                 disabled={isLoading}
                 className="

@@ -49,10 +49,16 @@ export default function IndustrialGroupSection({
       provincialChapterId: selectedIds, // เก็บเป็น array
       // เก็บชื่อสำหรับแสดงผล
       provincialCouncilNames: selectedIds.map(id => {
-        const council = Array.isArray(provincialChapters) 
-          ? provincialChapters.find(c => c.id === id)
-          : provincialChapters?.data?.find(c => c.id === id);
-        return council ? council.name_th : '';
+        const sid = id != null ? id.toString() : '';
+        const source = Array.isArray(provincialChapters)
+          ? provincialChapters
+          : (provincialChapters?.data || []);
+        const council = source.find(c => {
+          const cid = c?.id != null ? c.id.toString() : '';
+          const code = c?.MEMBER_GROUP_CODE != null ? c.MEMBER_GROUP_CODE.toString() : '';
+          return cid === sid || code === sid;
+        });
+        return council ? (council.name_th || council.MEMBER_GROUP_NAME || '') : '';
       })
     }));
   };

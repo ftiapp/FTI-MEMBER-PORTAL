@@ -257,24 +257,28 @@ export async function POST(request) {
     if (data.provinceChapters) {
       try {
         const provinceChapters = JSON.parse(data.provinceChapters) || [];
+        const provinceChapterNames = data.provinceChapterNames ? JSON.parse(data.provinceChapterNames) : [];
         console.log('Parsed province chapters:', provinceChapters);
+        console.log('Parsed province chapter names:', provinceChapterNames);
         
         if (provinceChapters.length === 0) {
           await executeQuery(
             trx,
-            `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?)`,
-            [icMemberId, '000']
+            `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?)`,
+            [icMemberId, '000', 'ไม่ระบุ']
           );
           console.log('Saved default province chapter: 000');
         } else {
-          for (const chapterId of provinceChapters) {
+          for (let i = 0; i < provinceChapters.length; i++) {
+            const chapterId = provinceChapters[i];
+            const chapterName = provinceChapterNames[i] || 'ไม่ระบุ';
             if (chapterId) {
               await executeQuery(
                 trx,
-                `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id) VALUES (?, ?)`,
-                [icMemberId, chapterId.toString()]
+                `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?)`,
+                [icMemberId, chapterId.toString(), chapterName]
               );
-              console.log('Saved province chapter:', chapterId);
+              console.log('Saved province chapter:', chapterId, 'Name:', chapterName);
             }
           }
         }

@@ -52,7 +52,8 @@ const INITIAL_FORM_DATA = {
     firstNameEng: '',
     lastNameEng: '',
     email: '',
-    phone: ''
+    phone: '',
+    phoneExtension: ''
   },
   
   // Business info
@@ -337,6 +338,7 @@ const handleSubmit = useCallback(async (e) => {
       representativeLastNameEn: formData.representative?.lastNameEng || '',
       representativeEmail: formData.representative?.email || '',
       representativePhone: formData.representative?.phone || '',
+      representativePhoneExtension: formData.representative?.phoneExtension || '',
       
       // แปลงข้อมูล business types
       businessTypes: Object.keys(formData.businessTypes || {}).filter(key => formData.businessTypes[key]),
