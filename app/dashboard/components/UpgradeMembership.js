@@ -247,7 +247,7 @@ export default function UpgradeMembership() {
       title: 'สส สามัญ-สมาคมการค้า',
       subtitle: 'สำหรับสมาคมการค้าที่เกี่ยวข้องกับอุตสาหกรรม',
       price: '8,000 บาท/ปี',
-      color: 'purple',
+      color: 'blue',
       link: '/membership/am',
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
@@ -260,7 +260,7 @@ export default function UpgradeMembership() {
       title: 'ทน สมทบ-นิติบุคคล',
       subtitle: 'สำหรับนิติบุคคลที่ทำงานด้านอุตสาหกรรม',
       price: '6,000 บาท/ปี',
-      color: 'green',
+      color: 'blue',
       link: '/membership/ac',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
@@ -273,7 +273,7 @@ export default function UpgradeMembership() {
       title: 'ทบ สมทบ-บุคคลธรรมดา',
       subtitle: 'สำหรับบุคคลธรรมดาที่สนใจงานด้านอุตสาหกรรม',
       price: '3,000 บาท/ปี',
-      color: 'amber',
+      color: 'blue',
       link: '/membership/ic',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
@@ -670,15 +670,15 @@ export default function UpgradeMembership() {
                 <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900 border-b w-1/2">
                   สิทธิประโยชน์ ({benefits.length} รายการ)
                 </th>
-                <th className="py-4 px-4 text-center text-sm font-semibold text-amber-600 border-b">
+                <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
                   ทบ สมทบ-บุคคลธรรมดา<br/>
                   <span className="text-xs font-normal">3,000 บาท</span>
                 </th>
-                <th className="py-4 px-4 text-center text-sm font-semibold text-green-600 border-b">
+                <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
                   ทน สมทบ-นิติบุคคล<br/>
                   <span className="text-xs font-normal">6,000 บาท</span>
                 </th>
-                <th className="py-4 px-4 text-center text-sm font-semibold text-purple-600 border-b">
+                <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
                   สส สามัญ-สมาคมการค้า<br/>
                   <span className="text-xs font-normal">8,000 บาท</span>
                 </th>
@@ -697,28 +697,28 @@ export default function UpgradeMembership() {
                   </td>
                   <td className="py-3 px-4 text-center border-b">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.supporting ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      benefit.supporting ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {benefit.supporting ? '✓' : '×'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center border-b">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.supporting ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      benefit.supporting ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {benefit.supporting ? '✓' : '×'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center border-b">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.associate ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      benefit.associate ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {benefit.associate ? '✓' : '×'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center border-b">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.ordinary ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'
+                      benefit.ordinary ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
                     }`}>
                       {benefit.ordinary ? '✓' : '×'}
                     </span>
