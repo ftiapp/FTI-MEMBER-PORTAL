@@ -77,7 +77,13 @@ const INITIAL_FORM_DATA = {
   idCard: null,
   authorityLetter: null,
   companyStamp: null,
-  authorizedSignature: null
+  authorizedSignature: null,
+
+  // Authorized signatory name fields
+  authorizedSignatoryFirstNameTh: '',
+  authorizedSignatoryLastNameTh: '',
+  authorizedSignatoryFirstNameEn: '',
+  authorizedSignatoryLastNameEn: ''
 };
 
 // Custom hook for API data with better error handling

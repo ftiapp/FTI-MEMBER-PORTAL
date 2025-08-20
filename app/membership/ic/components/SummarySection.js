@@ -279,7 +279,17 @@ export default function SummarySection({
         return group ? (group.MEMBER_GROUP_NAME || group.name_th || String(id)) : String(id);
       });
     }
-    
+    // Fallback: ใช้ชื่อจาก props โดยตรง (จาก API summary)
+    if (Array.isArray(industrialGroups) && industrialGroups.length > 0) {
+      return industrialGroups.map(g => g.industryGroupName || g.MEMBER_GROUP_NAME || g.name_th || String(g.id));
+    }
+    if (industrialGroups?.data && Array.isArray(industrialGroups.data)) {
+      return industrialGroups.data.map(g => g.MEMBER_GROUP_NAME || g.name_th || String(g.id || g.MEMBER_GROUP_CODE));
+    }
+    // Fallback เพิ่มเติม: ใช้จาก formData.industryGroups หาก API ใส่มาในฟอร์มโดยตรง
+    if (Array.isArray(formData.industryGroups) && formData.industryGroups.length > 0) {
+      return formData.industryGroups.map(g => g.industryGroupName || g.MEMBER_GROUP_NAME || g.name_th || String(g.id));
+    }
     return [];
   };
 
@@ -302,7 +312,17 @@ export default function SummarySection({
         return chapter ? (chapter.MEMBER_GROUP_NAME || chapter.name_th || String(id)) : String(id);
       });
     }
-    
+    // Fallback: ใช้ชื่อจาก props โดยตรง (จาก API summary)
+    if (Array.isArray(provincialChapters) && provincialChapters.length > 0) {
+      return provincialChapters.map(c => c.provinceChapterName || c.MEMBER_GROUP_NAME || c.name_th || String(c.id));
+    }
+    if (provincialChapters?.data && Array.isArray(provincialChapters.data)) {
+      return provincialChapters.data.map(c => c.MEMBER_GROUP_NAME || c.name_th || String(c.id || c.MEMBER_GROUP_CODE));
+    }
+    // Fallback เพิ่มเติม: ใช้จาก formData.provinceChapters หาก API ใส่มาในฟอร์มโดยตรง
+    if (Array.isArray(formData.provinceChapters) && formData.provinceChapters.length > 0) {
+      return formData.provinceChapters.map(c => c.provinceChapterName || c.MEMBER_GROUP_NAME || c.name_th || String(c.id));
+    }
     return [];
   };
 

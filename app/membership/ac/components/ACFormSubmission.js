@@ -118,11 +118,17 @@ export const submitACMembershipForm = async (data) => {
       mappedData.provincialChapterNames = mappedData.provincialChapters.map(id => id.toString());
     }
 
-    for (const key in mappedData) {
-      if (Object.prototype.hasOwnProperty.call(mappedData, key)) {
-        appendToFormData(key, mappedData[key]);
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        appendToFormData(key, data[key]);
       }
     }
+
+    // Ensure authorized signatory name fields are included
+    if (data.authorizedSignatoryFirstNameTh) formDataToSend.append('authorizedSignatoryFirstNameTh', data.authorizedSignatoryFirstNameTh);
+    if (data.authorizedSignatoryLastNameTh) formDataToSend.append('authorizedSignatoryLastNameTh', data.authorizedSignatoryLastNameTh);
+    if (data.authorizedSignatoryFirstNameEn) formDataToSend.append('authorizedSignatoryFirstNameEn', data.authorizedSignatoryFirstNameEn);
+    if (data.authorizedSignatoryLastNameEn) formDataToSend.append('authorizedSignatoryLastNameEn', data.authorizedSignatoryLastNameEn);
 
     formDataToSend.append('memberType', 'AC');
 

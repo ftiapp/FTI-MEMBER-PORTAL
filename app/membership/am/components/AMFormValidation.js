@@ -283,4 +283,29 @@ const validateDocuments = (formData, errors) => {
   if (!formData.authorizedSignature) {
     errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
   }
+
+  // ตรวจสอบข้อมูลชื่อผู้มีอำนาจลงนาม
+  if (!formData.authorizedSignatoryFirstNameTh) {
+    errors.authorizedSignatoryFirstNameTh = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)';
+  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+    errors.authorizedSignatoryFirstNameTh = 'ชื่อผู้มีอำนาจลงนามต้องเป็นภาษาไทยเท่านั้น';
+  }
+
+  if (!formData.authorizedSignatoryLastNameTh) {
+    errors.authorizedSignatoryLastNameTh = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)';
+  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+    errors.authorizedSignatoryLastNameTh = 'นามสกุลผู้มีอำนาจลงนามต้องเป็นภาษาไทยเท่านั้น';
+  }
+
+  if (!formData.authorizedSignatoryFirstNameEn) {
+    errors.authorizedSignatoryFirstNameEn = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาอังกฤษ)';
+  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
+    errors.authorizedSignatoryFirstNameEn = 'ชื่อผู้มีอำนาจลงนามต้องเป็นภาษาอังกฤษเท่านั้น';
+  }
+
+  if (!formData.authorizedSignatoryLastNameEn) {
+    errors.authorizedSignatoryLastNameEn = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาอังกฤษ)';
+  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
+    errors.authorizedSignatoryLastNameEn = 'นามสกุลผู้มีอำนาจลงนามต้องเป็นภาษาอังกฤษเท่านั้น';
+  }
 };

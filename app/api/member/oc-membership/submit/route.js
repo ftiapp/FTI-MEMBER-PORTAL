@@ -346,7 +346,25 @@ export async function POST(request) {
         );
     }
 
-    // Step 11: Handle Document Uploads
+    // Step 11: Insert Authorized Signatory Names
+    if (data.authorizedSignatoryFirstNameTh && data.authorizedSignatoryLastNameTh && 
+        data.authorizedSignatoryFirstNameEn && data.authorizedSignatoryLastNameEn) {
+      await executeQuery(trx,
+        `INSERT INTO MemberRegist_OC_Signature_Name (
+          main_id, first_name_th, last_name_th, first_name_en, last_name_en
+        ) VALUES (?, ?, ?, ?, ?);`,
+        [
+          mainId,
+          data.authorizedSignatoryFirstNameTh,
+          data.authorizedSignatoryLastNameTh,
+          data.authorizedSignatoryFirstNameEn,
+          data.authorizedSignatoryLastNameEn
+        ]
+      );
+      console.log('✅ Authorized signatory names inserted');
+    }
+
+    // Step 12: Handle Document Uploads
     console.log('Processing document uploads...');
     const uploadedDocuments = {};
 

@@ -250,6 +250,29 @@ export async function POST(request) {
       );
     }
 
+    // Insert authorized signatory name (if provided)
+    try {
+      const sigFirstTh = data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || '';
+      const sigLastTh  = data.authorizedSignatoryLastNameTh  || data.authorizedSignatureLastNameTh  || '';
+      const sigFirstEn = data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || '';
+      const sigLastEn  = data.authorizedSignatoryLastNameEn  || data.authorizedSignatureLastNameEn  || '';
+
+      if ((sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim()) {
+        await executeQuery(
+          trx,
+          `INSERT INTO MemberRegist_IC_Signature_Name (
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en
+          ) VALUES (?, ?, ?, ?, ?)`,
+          [icMemberId, sigFirstTh, sigLastTh, sigFirstEn, sigLastEn]
+        );
+        console.log('Saved authorized signatory name:', { sigFirstTh, sigLastTh, sigFirstEn, sigLastEn });
+      } else {
+        console.log('No authorized signatory name provided. Skipping insert.');
+      }
+    } catch (sigErr) {
+      console.error('Error inserting authorized signatory name:', sigErr.message);
+    }
+
     // ✅ FIX: แก้ไขการบันทึก province chapters ให้ตรงกับ field ที่ส่งมา
     console.log('=== Processing Province Chapters ===');
     console.log('Raw provinceChapters data:', data.provinceChapters);

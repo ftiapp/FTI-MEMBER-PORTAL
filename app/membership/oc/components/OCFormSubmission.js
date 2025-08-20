@@ -44,6 +44,12 @@ export async function submitOCMembershipForm(data) {
       }
     }
 
+    // Ensure authorized signatory name fields are included
+    if (data.authorizedSignatoryFirstNameTh) formData.append('authorizedSignatoryFirstNameTh', data.authorizedSignatoryFirstNameTh);
+    if (data.authorizedSignatoryLastNameTh) formData.append('authorizedSignatoryLastNameTh', data.authorizedSignatoryLastNameTh);
+    if (data.authorizedSignatoryFirstNameEn) formData.append('authorizedSignatoryFirstNameEn', data.authorizedSignatoryFirstNameEn);
+    if (data.authorizedSignatoryLastNameEn) formData.append('authorizedSignatoryLastNameEn', data.authorizedSignatoryLastNameEn);
+
     // Debug: Log what's being sent
     console.log('📤 Sending form data to API...');
     for (let [key, value] of formData.entries()) {

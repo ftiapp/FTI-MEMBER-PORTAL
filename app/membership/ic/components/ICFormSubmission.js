@@ -245,7 +245,21 @@ export const submitICMembershipForm = async (formData) => {
     // ✅ Phase 3: Send files directly to backend - Remove frontend Cloudinary upload
     // Files are now handled by the backend API route like OC
     console.log('=== Preparing files for backend upload ===');
-    
+
+    // ✅ Authorized signatory name fields
+    if (typeof formData.authorizedSignatoryFirstNameTh === 'string') {
+      formDataToSubmit.append('authorizedSignatoryFirstNameTh', formData.authorizedSignatoryFirstNameTh);
+    }
+    if (typeof formData.authorizedSignatoryLastNameTh === 'string') {
+      formDataToSubmit.append('authorizedSignatoryLastNameTh', formData.authorizedSignatoryLastNameTh);
+    }
+    if (typeof formData.authorizedSignatoryFirstNameEn === 'string') {
+      formDataToSubmit.append('authorizedSignatoryFirstNameEn', formData.authorizedSignatoryFirstNameEn);
+    }
+    if (typeof formData.authorizedSignatoryLastNameEn === 'string') {
+      formDataToSubmit.append('authorizedSignatoryLastNameEn', formData.authorizedSignatoryLastNameEn);
+    }
+
     // Append actual files to FormData for backend processing
     if (formData.idCardDocument && formData.idCardDocument instanceof File) {
       formDataToSubmit.append('idCardDocument', formData.idCardDocument);

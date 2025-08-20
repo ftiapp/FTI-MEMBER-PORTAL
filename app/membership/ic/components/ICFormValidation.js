@@ -312,5 +312,32 @@ const validateDocuments = (formData) => {
     errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
   }
 
+  // Authorized signatory name validations (required)
+  // Thai names must be Thai letters/spaces
+  if (!formData.authorizedSignatoryFirstNameTh || formData.authorizedSignatoryFirstNameTh.trim() === '') {
+    errors.authorizedSignatoryFirstNameTh = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)';
+  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+    errors.authorizedSignatoryFirstNameTh = 'กรุณากรอกชื่อภาษาไทยเท่านั้น';
+  }
+
+  if (!formData.authorizedSignatoryLastNameTh || formData.authorizedSignatoryLastNameTh.trim() === '') {
+    errors.authorizedSignatoryLastNameTh = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)';
+  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+    errors.authorizedSignatoryLastNameTh = 'กรุณากรอกนามสกุลภาษาไทยเท่านั้น';
+  }
+
+  // English names must be English letters/spaces
+  if (!formData.authorizedSignatoryFirstNameEn || formData.authorizedSignatoryFirstNameEn.trim() === '') {
+    errors.authorizedSignatoryFirstNameEn = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (อังกฤษ)';
+  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
+    errors.authorizedSignatoryFirstNameEn = 'กรุณากรอกชื่อภาษาอังกฤษเท่านั้น';
+  }
+
+  if (!formData.authorizedSignatoryLastNameEn || formData.authorizedSignatoryLastNameEn.trim() === '') {
+    errors.authorizedSignatoryLastNameEn = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (อังกฤษ)';
+  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
+    errors.authorizedSignatoryLastNameEn = 'กรุณากรอกนามสกุลภาษาอังกฤษเท่านั้น';
+  }
+
   return errors;
 };

@@ -369,7 +369,7 @@ export default function ICSummaryPage() {
               <SummarySection 
                 formData={applicationData}
                 industrialGroups={applicationData.industrialGroups || []}
-                provincialChapters={applicationData.provincialChapters || []}
+                provincialChapters={applicationData.provinceChapters || []}
                 viewMode={true}
               />
             </div>

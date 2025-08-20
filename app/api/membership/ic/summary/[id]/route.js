@@ -117,6 +117,15 @@ export async function GET(request, { params }) {
     `;
     const documentsResult = await query(documentsQuery, [id]);
 
+    // ดึงชื่อผู้มีอำนาจลงนามจากตารางใหม่
+    const signatureNameQuery = `
+      SELECT * FROM MemberRegist_IC_Signature_Name
+      WHERE main_id = ?
+      ORDER BY id DESC
+      LIMIT 1
+    `;
+    const signatureNameResult = await query(signatureNameQuery, [id]);
+
     // ✅ Process Industry Groups และ Province Chapters - ใช้ข้อมูลจากตารางโดยตรง
     const industrialGroupsWithNames = industryGroupsResult.map(ig => ({
       id: ig.industry_group_id,
@@ -237,6 +246,14 @@ export async function GET(request, { params }) {
         fileSize: d.file_size,
         cloudinaryId: d.cloudinary_id
       })),
+
+      // ชื่อผู้มีอำนาจลงนาม (flattened fields for compatibility)
+      authorizedSignatoryFirstNameTh: signatureNameResult?.[0]?.first_name_th || null,
+      authorizedSignatoryLastNameTh:  signatureNameResult?.[0]?.last_name_th  || null,
+      authorizedSignatoryFirstNameEn: signatureNameResult?.[0]?.first_name_en || null,
+      authorizedSignatoryLastNameEn:  signatureNameResult?.[0]?.last_name_en  || null,
+      authorizedSignatoryFullNameTh: `${signatureNameResult?.[0]?.first_name_th || ''} ${signatureNameResult?.[0]?.last_name_th || ''}`.trim() || null,
+      authorizedSignatoryFullNameEn: `${signatureNameResult?.[0]?.first_name_en || ''} ${signatureNameResult?.[0]?.last_name_en || ''}`.trim() || null,
       
       // ID Card document (existing)
       idCardDocument: documentsResult?.find(doc => doc.document_type === 'idCard') ? {

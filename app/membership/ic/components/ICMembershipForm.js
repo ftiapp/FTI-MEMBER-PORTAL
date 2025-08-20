@@ -66,7 +66,13 @@ const INITIAL_FORM_DATA = {
   idCardDocument: null,
   
   // เอกสารที่จำเป็น (บังคับทุกกรณี)
-  authorizedSignature: null
+  authorizedSignature: null,
+
+  // Authorized signatory name fields
+  authorizedSignatoryFirstNameTh: '',
+  authorizedSignatoryLastNameTh: '',
+  authorizedSignatoryFirstNameEn: '',
+  authorizedSignatoryLastNameEn: ''
 };
 
 // Custom hook for API data with better error handling
@@ -560,6 +566,12 @@ const handleNext = useCallback(async (e) => {
         products: formData.products,
         memberCount: formData.memberCount,
         registeredCapital: formData.registeredCapital,
+        
+        // Authorized signatory name fields
+        authorizedSignatoryFirstNameTh: formData.authorizedSignatoryFirstNameTh,
+        authorizedSignatoryLastNameTh: formData.authorizedSignatoryLastNameTh,
+        authorizedSignatoryFirstNameEn: formData.authorizedSignatoryFirstNameEn,
+        authorizedSignatoryLastNameEn: formData.authorizedSignatoryLastNameEn,
         
         // ข้อมูล validation
         _idCardValidation: formData._idCardValidation

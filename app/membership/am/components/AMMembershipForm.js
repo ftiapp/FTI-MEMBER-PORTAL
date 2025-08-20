@@ -73,7 +73,13 @@ const INITIAL_FORM_DATA = {
   
   // เอกสารที่จำเป็น (บังคับทุกกรณี)
   companyStamp: null,
-  authorizedSignature: null
+  authorizedSignature: null,
+  
+  // ข้อมูลชื่อผู้มีอำนาจลงนาม
+  authorizedSignatoryFirstNameTh: '',
+  authorizedSignatoryLastNameTh: '',
+  authorizedSignatoryFirstNameEn: '',
+  authorizedSignatoryLastNameEn: ''
 };
 
 // Custom hook สำหรับ API data พร้อม error handling

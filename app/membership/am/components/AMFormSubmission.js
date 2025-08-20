@@ -51,6 +51,20 @@ export const submitAMMembershipForm = async (formData) => {
       }
     }
     
+    // Ensure authorized signatory name fields are included
+    if (formData.authorizedSignatoryFirstNameTh) {
+      formDataToSubmit.append('authorizedSignatoryFirstNameTh', formData.authorizedSignatoryFirstNameTh);
+    }
+    if (formData.authorizedSignatoryLastNameTh) {
+      formDataToSubmit.append('authorizedSignatoryLastNameTh', formData.authorizedSignatoryLastNameTh);
+    }
+    if (formData.authorizedSignatoryFirstNameEn) {
+      formDataToSubmit.append('authorizedSignatoryFirstNameEn', formData.authorizedSignatoryFirstNameEn);
+    }
+    if (formData.authorizedSignatoryLastNameEn) {
+      formDataToSubmit.append('authorizedSignatoryLastNameEn', formData.authorizedSignatoryLastNameEn);
+    }
+    
     // Debug: แสดงข้อมูลที่จะส่ง
     console.log('📦 [AM] FormData contents:');
     for (let [key, value] of formDataToSubmit.entries()) {

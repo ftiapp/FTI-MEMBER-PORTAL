@@ -9,6 +9,61 @@ const formatThaiDate = (date) => {
   return `${d.getDate()} ${thaiMonths[d.getMonth()]} ${d.getFullYear() + 543}`;
 };
 
+// If URL is Cloudinary, inject a safe transformation to ensure image output and smaller size
+const transformCloudinaryUrl = (url) => {
+  try {
+    if (!url) return url;
+    const u = new URL(url);
+    if (!u.hostname.includes('res.cloudinary.com')) return url;
+    // Insert transformation segment before version segment 'v12345'
+    const parts = u.pathname.split('/');
+    const uploadIdx = parts.findIndex(p => p === 'upload');
+    if (uploadIdx === -1) return url;
+    const nextPart = parts[uploadIdx + 1] || '';
+    const isVersion = /^v\d+$/.test(nextPart);
+    const isTransform = nextPart && !isVersion && !nextPart.includes('.') ;
+    const inject = 'pg_1,f_auto,q_auto:eco,w_600';
+    if (isVersion) {
+      // No existing transform, insert before version
+      parts.splice(uploadIdx + 1, 0, inject);
+    } else if (isTransform) {
+      // Already has transform; if missing f_auto, prepend ours
+      if (!nextPart.includes('f_auto')) {
+        parts[uploadIdx + 1] = `${inject},${nextPart}`;
+      }
+    } else {
+      // Likely directly public_id (with extension). Insert transform here.
+      parts.splice(uploadIdx + 1, 0, inject);
+    }
+    u.pathname = parts.join('/');
+    return u.toString();
+  } catch {
+    return url;
+  }
+};
+
+// Load remote image as Data URL to avoid CORS issues in html2canvas
+const loadImageAsDataURL = async (url) => {
+  try {
+    const res = await fetch(url, { mode: 'cors' });
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    // Only proceed if content is actually an image
+    if (!(blob && blob.type && blob.type.startsWith('image/'))) {
+      return null;
+    }
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    console.warn('Error loading image as data URL:', err);
+    return null;
+  }
+};
+
 // Get title by type
 const getTitleByType = (type) => ({
   'ic': 'เอกสารสมัครสมาชิก สมทบ-บุคคลธรรมดา (ทบ)',
@@ -26,19 +81,39 @@ const getBusinessTypeNames = (app) => {
     'importer': 'ผู้นำเข้า',
     'exporter': 'ผู้ส่งออก',
     'service': 'ผู้ให้บริการ',
+    'service_provider': 'ผู้ให้บริการ',
     'other': 'อื่นๆ'
   };
-  
+
+  // Array format from API: [{ id, businessTypeName }] or legacy { business_type }
   if (Array.isArray(app.businessTypes)) {
-    return app.businessTypes.map(bt => 
-      bt.business_type === 'other' ? `อื่นๆ: ${app.businessTypeOther?.find(o => o.main_id === bt.main_id)?.detail || '-'}` 
-      : names[bt.business_type] || bt.business_type
-    ).join(', ');
+    return app.businessTypes.map(bt => {
+      // Prefer explicit name from API
+      if (bt.businessTypeName) return bt.businessTypeName;
+      const key = bt.id || bt.business_type;
+      if (key === 'other') {
+        // API may provide array of other types: [{ otherType }]
+        const other = Array.isArray(app.businessTypeOther) && app.businessTypeOther.length > 0
+          ? app.businessTypeOther[0].otherType || app.businessTypeOther[0].detail
+          : app.businessTypeOther?.detail;
+        return `อื่นๆ: ${other || '-'}`;
+      }
+      return names[key] || key;
+    }).join(', ');
   }
-  
+
+  // Object format from form: { manufacturer: true, ... }
   return Object.entries(app.businessTypes)
     .filter(([k, v]) => v)
-    .map(([k]) => k === 'other' ? `อื่นๆ: ${app.businessTypeOther?.detail || '-'}` : names[k] || k)
+    .map(([k]) => {
+      if (k === 'other') {
+        const other = Array.isArray(app.businessTypeOther) && app.businessTypeOther.length > 0
+          ? app.businessTypeOther[0].otherType || app.businessTypeOther[0].detail
+          : app.businessTypeOther?.detail || app.otherBusinessTypeDetail;
+        return `อื่นๆ: ${other || '-'}`;
+      }
+      return names[k] || k;
+    })
     .join(', ');
 };
 
@@ -62,17 +137,72 @@ const processData = (app) => {
   let addressType2Email = '';
   let addressType2Website = '';
   
-  // Check if addresses array exists and find type 2
-  if (app.addresses && Array.isArray(app.addresses)) {
-    const addressType2 = app.addresses.find(addr => addr.address_type === '2' || addr.addressType === '2');
-    if (addressType2) {
-      addressType2Phone = addressType2.phone || '';
-      addressType2PhoneExt = addressType2.phone_extension || addressType2.phoneExtension || '';
-      addressType2Email = addressType2.email || '';
-      addressType2Website = addressType2.website || '';
+  // Check if addresses exists and find type 2 (array or object format)
+  if (app.addresses) {
+    if (Array.isArray(app.addresses)) {
+      const addressType2 = app.addresses.find(addr => addr.address_type === '2' || addr.addressType === '2');
+      if (addressType2) {
+        addressType2Phone = addressType2.phone || '';
+        addressType2PhoneExt = addressType2.phone_extension || addressType2.phoneExtension || '';
+        addressType2Email = addressType2.email || '';
+        addressType2Website = addressType2.website || '';
+      }
+    } else if (typeof app.addresses === 'object' && app.addresses['2']) {
+      const a2 = app.addresses['2'];
+      addressType2Phone = a2.phone || '';
+      addressType2PhoneExt = a2.phone_extension || a2.phoneExtension || '';
+      addressType2Email = a2.email || '';
+      addressType2Website = a2.website || '';
     }
   }
   
+  // Extract authorized signature and company stamp from documents if present
+  let documents = app.documents || app.memberDocuments || app.MemberDocuments || [];
+  if (!Array.isArray(documents) && documents?.data && Array.isArray(documents.data)) {
+    documents = documents.data;
+  }
+  const findDoc = (type) => {
+    const doc = documents.find(d => (d.document_type || d.documentType) === type);
+    if (!doc) return null;
+    return {
+      fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path,
+      mimeType: doc.mime_type || doc.mimeType || '',
+      fileName: doc.file_name || doc.fileName || ''
+    };
+  };
+
+  // Build address type 2 object (shipping address) - support array or object format
+  let address2 = null;
+  if (app.addresses) {
+    if (Array.isArray(app.addresses)) {
+      const raw = app.addresses.find(addr => addr.address_type === '2' || addr.addressType === '2' || addr.addressTypeId === 2);
+      if (raw) {
+        address2 = {
+          number: raw.address_number || raw.number || '',
+          moo: raw.moo || '',
+          soi: raw.soi || '',
+          street: raw.street || raw.road || '',
+          subDistrict: raw.sub_district || raw.subDistrict || '',
+          district: raw.district || raw.amphur || '',
+          province: raw.province || '',
+          postalCode: raw.postal_code || raw.postalCode || ''
+        };
+      }
+    } else if (typeof app.addresses === 'object' && app.addresses['2']) {
+      const raw = app.addresses['2'];
+      address2 = {
+        number: raw.addressNumber || raw.address_number || raw.number || '',
+        moo: raw.moo || '',
+        soi: raw.soi || '',
+        street: raw.street || raw.road || '',
+        subDistrict: raw.subDistrict || raw.sub_district || '',
+        district: raw.district || raw.amphur || '',
+        province: raw.province || '',
+        postalCode: raw.postalCode || raw.postal_code || ''
+      };
+    }
+  }
+
   return {
     ...app,
     companyNameTh,
@@ -83,25 +213,56 @@ const processData = (app) => {
     lastNameTh: app.last_name_th || app.lastNameTh,
     firstNameEn: app.first_name_en || app.firstNameEn,
     lastNameEn: app.last_name_en || app.lastNameEn,
-    idCard: app.id_card_number || app.idCard,
-    addressNumber: app.address_number || app.addressNumber,
-    subDistrict: app.sub_district || app.subDistrict,
-    postalCode: app.postal_code || app.postalCode,
+    idCard: app.id_card_number || app.idCardNumber || app.idCard || app.id_card || app.citizen_id || app.nationalId || '-',
+    // Base address fields (fallback to nested legacy address object)
+    addressNumber: app.address_number || app.addressNumber || app.address?.addressNumber,
+    moo: app.moo || app.address?.moo,
+    soi: app.soi || app.address?.soi,
+    street: app.street || app.road || app.address?.street || app.address?.road,
+    district: app.district || app.address?.district,
+    province: app.province || app.address?.province,
+    subDistrict: app.sub_district || app.subDistrict || app.address?.subDistrict,
+    postalCode: app.postal_code || app.postalCode || app.address?.postalCode,
     factoryType: app.factory_type || app.factoryType,
     numberOfMember: app.number_of_member || app.numberOfMember,
     industrialGroupIds: app.industrialGroups || app.industrialGroupIds || [],
     provincialChapterIds: app.provincialCouncils || app.provincialChapterIds || [],
+    // Documents
+    authorizedSignature: app.authorizedSignature || findDoc('authorizedSignature') || null,
+    companyStamp: app.companyStamp || findDoc('companyStamp') || null,
     // Address type 2 contact information
     addressType2Phone,
     addressType2PhoneExt,
     addressType2Email,
     addressType2Website,
-    // Representative name for signature
-    representativeName: app.representatives?.[0] ? 
-      `${app.representatives[0].firstNameTh || app.representatives[0].first_name_th || ''} ${app.representatives[0].lastNameTh || app.representatives[0].last_name_th || ''}`.trim() ||
-      `${app.representatives[0].firstNameEn || app.representatives[0].first_name_en || ''} ${app.representatives[0].lastNameEn || app.representatives[0].last_name_en || ''}`.trim() ||
-      app.representatives[0].name || 'ผู้มีอำนาจลงนาม'
-      : app.representativeName || 'ผู้มีอำนาจลงนาม'
+    // Address type 2 full data
+    address2,
+    // Compute authorized signatory name (prefer Thai, fallback to English, then representative)
+    // Accept multiple possible shapes from API/frontend until APIs are unified
+    authorizedSignatoryName: (() => {
+      const pick = (...vals) => vals.find(v => typeof v === 'string' && v.trim());
+
+      // Possible flat fields
+      const thFirst = pick(app.authorizedSignatoryFirstNameTh, app.authorizedSignatureFirstNameTh, app.authorizedSignatoryNameTh?.firstName, app.authorizedSignatureNameTh?.firstName);
+      const thLast  = pick(app.authorizedSignatoryLastNameTh,  app.authorizedSignatureLastNameTh,  app.authorizedSignatoryNameTh?.lastName,  app.authorizedSignatureNameTh?.lastName);
+      const enFirst = pick(app.authorizedSignatoryFirstNameEn, app.authorizedSignatureFirstNameEn, app.authorizedSignatoryNameEn?.firstName, app.authorizedSignatureNameEn?.firstName);
+      const enLast  = pick(app.authorizedSignatoryLastNameEn,  app.authorizedSignatureLastNameEn,  app.authorizedSignatoryNameEn?.lastName,  app.authorizedSignatureNameEn?.lastName);
+
+      const fullTh = [thFirst || '', thLast || ''].join(' ').trim();
+      const fullEn = [enFirst || '', enLast || ''].join(' ').trim();
+
+      if (fullTh) return fullTh;
+      if (fullEn) return fullEn;
+
+      // Fallback to first representative name if present
+      if (app.representatives?.[0]) {
+        const r = app.representatives[0];
+        const repTh = `${r.firstNameTh || r.first_name_th || ''} ${r.lastNameTh || r.last_name_th || ''}`.trim();
+        const repEn = `${r.firstNameEn || r.first_name_en || ''} ${r.lastNameEn || r.last_name_en || ''}`.trim();
+        return pick(repTh, repEn, r.name, app.representativeName, 'ผู้มีอำนาจลงนาม');
+      }
+      return pick(app.representativeName, 'ผู้มีอำนาจลงนาม');
+    })()
   };
 };
 
@@ -120,6 +281,69 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
     const title = getTitleByType(type);
     const businessTypes = getBusinessTypeNames(data);
     
+    // Resolve Industrial Group & Provincial Chapter names
+    let industrialGroupNames = data.industrialGroupNames || [];
+    let provincialChapterNames = data.provincialChapterNames || [];
+
+    const pickName = (obj, keys) => keys.map(k => obj?.[k]).find(Boolean);
+
+    if ((!industrialGroupNames || industrialGroupNames.length === 0)) {
+      // Try from arrays with names (API provides `industryGroups`)
+      if (Array.isArray(application.industryGroups)) {
+        industrialGroupNames = application.industryGroups
+          .map(g => pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+          .filter(Boolean);
+      } else if (Array.isArray(data.industrialGroupIds)) {
+        const groupsArr = Array.isArray(industrialGroups) ? industrialGroups : (industrialGroups.data || []);
+        industrialGroupNames = data.industrialGroupIds
+          .map(id => groupsArr.find(g => g.id === id || g.MEMBER_GROUP_CODE === id))
+          .map(g => g && pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+          .filter(Boolean);
+      }
+    }
+
+    if ((!provincialChapterNames || provincialChapterNames.length === 0)) {
+      if (Array.isArray(application.provinceChapters) || Array.isArray(application.provincialChapters)) {
+        const src = application.provinceChapters || application.provincialChapters;
+        provincialChapterNames = src
+          .map(c => pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+          .filter(Boolean);
+      } else if (Array.isArray(data.provincialChapterIds)) {
+        const chArr = Array.isArray(provincialChapters) ? provincialChapters : (provincialChapters.data || []);
+        provincialChapterNames = data.provincialChapterIds
+          .map(id => chArr.find(c => c.id === id || c.MEMBER_GROUP_CODE === id))
+          .map(c => c && pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+          .filter(Boolean);
+      }
+    }
+    
+    // Preload signature image as data URL if possible (for Cloudinary or other origins)
+    // Log document info for debugging signature rendering
+    console.debug('[PDF] authorizedSignature doc:', data.authorizedSignature);
+    const sigUrlCandidate = data.authorizedSignature?.fileUrl || '';
+    let signatureImgSrc = '';
+    if (sigUrlCandidate) {
+      const maybeCld = transformCloudinaryUrl(sigUrlCandidate);
+      console.debug('[PDF] signature URL (original):', sigUrlCandidate);
+      console.debug('[PDF] signature URL (transformed):', maybeCld);
+      // Try to fetch as data URL first (best for CORS safety)
+      const dataUrl = await loadImageAsDataURL(maybeCld);
+      if (dataUrl) {
+        signatureImgSrc = dataUrl;
+        console.debug('[PDF] signature loaded as data URL (length):', dataUrl.length);
+      } else {
+        // If fetch failed (CORS/format), fallback to raw URL if it looks like an image
+        const looksLikeImg = /\.(png|jpe?g|webp|gif|bmp|svg)(\?|$)/i.test(maybeCld)
+          || (data.authorizedSignature?.mimeType?.startsWith?.('image/') || data.authorizedSignature?.fileType?.startsWith?.('image/'));
+        if (looksLikeImg) {
+          signatureImgSrc = maybeCld;
+          console.debug('[PDF] signature fallback to URL');
+        } else {
+          console.warn('[PDF] signature appears non-image, skipping <img>');
+        }
+      }
+    }
+
     // Simple CSS
     const styles = `
       * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -180,34 +404,51 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           `)
         }
         
-        ${section('ที่อยู่', `
-          <div class="row">
-            <div class="col">${field('เลขที่', data.addressNumber)}</div>
-            <div class="col">${field('หมู่', data.moo)}</div>
-            <div class="col">${field('ซอย', data.soi)}</div>
-            <div class="col">${field('ถนน', data.street)}</div>
-          </div>
-          <div class="row">
-            <div class="col">${field('ตำบล/แขวง', data.subDistrict)}</div>
-            <div class="col">${field('อำเภอ/เขต', data.district)}</div>
-            <div class="col">${field('จังหวัด', data.province)}</div>
-            <div class="col">${field('รหัสไปรษณีย์', data.postalCode)}</div>
-          </div>
-          ${(data.phone || data.email || data.website) ? `
-            <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
-              ${data.phone ? `<div class="col">${field('โทรศัพท์', data.phone)}${data.phoneExtension ? ` ต่อ ${data.phoneExtension}` : ''}</div>` : '<div class="col"></div>'}
-              ${data.email ? `<div class="col">${field('อีเมล', data.email)}</div>` : '<div class="col"></div>'}
-              ${data.website ? `<div class="col">${field('เว็บไซต์', data.website)}</div>` : '<div class="col"></div>'}
+        ${data.address2 ?
+          section('ที่อยู่จัดส่งเอกสาร (ที่อยู่ 2)', `
+            <div class="row">
+              <div class="col">${field('เลขที่', data.address2.number)}</div>
+              <div class="col">${field('หมู่', data.address2.moo)}</div>
+              <div class="col">${field('ซอย', data.address2.soi)}</div>
+              <div class="col">${field('ถนน', data.address2.street)}</div>
             </div>
-          ` : ''}
-          ${(data.addressType2Phone || data.addressType2Email || data.addressType2Website) ? `
-            <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
-              ${data.addressType2Phone ? `<div class="col">${field('โทรศัพท์', data.addressType2Phone)}${data.addressType2PhoneExt ? ` ต่อ ${data.addressType2PhoneExt}` : ''}</div>` : '<div class="col"></div>'}
-              ${data.addressType2Email ? `<div class="col">${field('อีเมล', data.addressType2Email)}</div>` : '<div class="col"></div>'}
-              ${data.addressType2Website ? `<div class="col">${field('เว็บไซต์', data.addressType2Website)}</div>` : '<div class="col"></div>'}
+            <div class="row">
+              <div class="col">${field('ตำบล/แขวง', data.address2.subDistrict)}</div>
+              <div class="col">${field('อำเภอ/เขต', data.address2.district)}</div>
+              <div class="col">${field('จังหวัด', data.address2.province)}</div>
+              <div class="col">${field('รหัสไปรษณีย์', data.address2.postalCode)}</div>
             </div>
-          ` : ''}
-        `)}
+            ${(data.addressType2Phone || data.addressType2Email || data.addressType2Website) ? `
+              <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                ${data.addressType2Phone ? `<div class=\"col\">${field('โทรศัพท์', data.addressType2Phone)}${data.addressType2PhoneExt ? ` ต่อ ${data.addressType2PhoneExt}` : ''}</div>` : '<div class=\"col\"></div>'}
+                ${data.addressType2Email ? `<div class=\"col\">${field('อีเมล', data.addressType2Email)}</div>` : '<div class=\"col\"></div>'}
+                ${data.addressType2Website ? `<div class=\"col\">${field('เว็บไซต์', data.addressType2Website)}</div>` : '<div class=\"col\"></div>'}
+              </div>
+            ` : ''}
+          `)
+          :
+          section('ที่อยู่', `
+            <div class="row">
+              <div class="col">${field('เลขที่', data.addressNumber)}</div>
+              <div class="col">${field('หมู่', data.moo)}</div>
+              <div class="col">${field('ซอย', data.soi)}</div>
+              <div class="col">${field('ถนน', data.street)}</div>
+            </div>
+            <div class="row">
+              <div class="col">${field('ตำบล/แขวง', data.subDistrict)}</div>
+              <div class="col">${field('อำเภอ/เขต', data.district)}</div>
+              <div class="col">${field('จังหวัด', data.province)}</div>
+              <div class="col">${field('รหัสไปรษณีย์', data.postalCode)}</div>
+            </div>
+            ${(data.phone || data.email || data.website) ? `
+              <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                ${data.phone ? `<div class=\"col\">${field('โทรศัพท์', data.phone)}${data.phoneExtension ? ` ต่อ ${data.phoneExtension}` : ''}</div>` : '<div class=\"col\"></div>'}
+                ${data.email ? `<div class=\"col\">${field('อีเมล', data.email)}</div>` : '<div class=\"col\"></div>'}
+                ${data.website ? `<div class=\"col\">${field('เว็บไซต์', data.website)}</div>` : '<div class=\"col\"></div>'}
+              </div>
+            ` : ''}
+          `)
+        }
         
         ${data.contactPersons?.find(cp => cp.typeContactId === 1) ? (() => {
           const mainContact = data.contactPersons.find(cp => cp.typeContactId === 1);
@@ -246,7 +487,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               <div class="col">
                 <strong>ประเภทธุรกิจ:</strong><br>
                 <div style="margin-top: 5px;">
-                  ${businessTypes.split(', ').map(t => `<span class="business-tag">${t}</span>`).join('')}
+                  ${businessTypes.split(', ').filter(Boolean).map(t => `<span class="business-tag">${t}</span>`).join('')}
                 </div>
               </div>
             </div>
@@ -285,40 +526,36 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         `) : ''}
         
 
-        
-        ${(data.industrialGroupNames?.length || data.provincialChapterNames?.length) ? section('กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด', `
+        ${((industrialGroupNames?.length || provincialChapterNames?.length)) ? section('กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด', `
           <div class="row">
             <div class="col">
               <strong>กลุ่มอุตสาหกรรม:</strong><br>
-              ${data.industrialGroupNames?.length ? 
-                data.industrialGroupNames.map(name => `• ${name}`).join('<br>') : 
+              ${industrialGroupNames?.length ? 
+                industrialGroupNames.map(name => `• ${name}`).join('<br>') : 
                 'ไม่ระบุ'}
             </div>
             <div class="col">
               <strong>สภาอุตสาหกรรมจังหวัด:</strong><br>
-              ${data.provincialChapterNames?.length ? 
-                data.provincialChapterNames.map(name => `• ${name}`).join('<br>') : 
+              ${provincialChapterNames?.length ? 
+                provincialChapterNames.map(name => `• ${name}`).join('<br>') : 
                 '• สภาอุตสาหกรรมแห่งประเทศไทย'}
             </div>
           </div>
         `) : ''}
         
-        ${type !== 'ic' ? `
+        ${type === 'ic' ? `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <div style="display: flex; gap: 20px; font-size: 12px;">
-              <div class="stamp-box">
-                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราประทับ</div>
-                <div class="stamp-img">
-                  ${data.companyStamp?.fileUrl ? '✓' : '(ตราประทับ)'}
-                </div>
-              </div>
               <div class="signature-box">
                 <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
                 <div class="signature-img">
-                  ${data.authorizedSignature?.fileUrl ? '✓' : '(ลายเซ็น)'}
+                  ${signatureImgSrc
+                    ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
+                    : (data.authorizedSignature?.fileUrl ? 'แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)' : '(ลายเซ็น)')}
                 </div>
                 <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
-                  (${data.representativeName || 'ชื่อผู้มีอำนาจลงนาม'})
+                  (${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})
+                  <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
                 </div>
               </div>
             </div>
@@ -340,7 +577,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
       margin: 5,
       filename: `${type?.toUpperCase()}_${data.companyNameTh || data.firstNameTh || 'APPLICATION'}_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true, imageTimeout: 10000 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     };
     
