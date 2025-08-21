@@ -326,9 +326,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         {/* Content */}
         <div className="px-8 py-8">
           <div className="bg-white border border-gray-200 rounded-xl p-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">สำเนาบัตรประชาชน</h3>
-            <p className="text-sm text-gray-600 mb-6">กรุณาอัพโหลดสำเนาบัตรประชาชนพร้อมลายเซ็นรับรองสำเนาถูกต้อง</p>
-            
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7a2 2 0 012-2h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 10h6M7 14h3" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 14a3 3 0 100-6 3 3 0 000 6z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">สำเนาบัตรประชาชน</h3>
+              <p className="text-sm text-gray-600">กรุณาอัพโหลดสำเนาบัตรประชาชนพร้อมลายเซ็นรับรองสำเนาถูกต้อง</p>
+            </div>
+
             {/* Document notification */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <div className="flex">
@@ -430,7 +439,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             
             {/* Additional file upload instructions */}
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="text-sm font-medium text-blue-800 mb-2">คำแนะนำการอัพโหลดไฟล์</h4>
+              <h4 className="text-md font-semibold text-blue-800 mb-2">คำแนะนำการอัพโหลดไฟล์</h4>
               <ul className="text-xs text-blue-700 space-y-1">
                 <li>• ไฟล์ต้องชัดเจน อ่านได้ง่าย</li>
                 <li>• สำเนาต้องมีลายเซ็นรับรองสำเนาถูกต้อง</li>
@@ -444,9 +453,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         {/* Authorized Signature Upload Section */}
         <div className="px-8 pb-8">
           <div className="bg-white border border-gray-200 rounded-xl p-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">ลายเซ็นผู้มีอำนาจลงนาม</h3>
-            <p className="text-sm text-gray-600 mb-6">กรุณาอัพโหลดรูปลายเซ็นของผู้มีอำนาจลงนาม (จำเป็น)</p>
-            
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-100 to-yellow-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="mx-auto h-10 w-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">ลายเซ็นผู้มีอำนาจลงนาม</h3>
+              <p className="text-sm text-gray-600">กรุณาอัพโหลดรูปลายเซ็นของผู้มีอำนาจลงนาม (จำเป็น)</p>
+            </div>
+
             {/* Required document notification */}
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
               <div className="flex">

@@ -373,6 +373,19 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         <div className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
           error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-blue-400'
         } ${isImageRequired ? 'bg-gradient-to-br from-purple-50 to-blue-50' : 'bg-gradient-to-br from-gray-50 to-gray-100'}`}>
+          {/* Document header: icon, title, description */}
+          <div className="text-center mb-6">
+            <div className={`w-16 h-16 ${bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
+              {icon}
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {title}
+            </h3>
+            <p className="text-sm text-gray-600 max-w-md mx-auto">
+              {description}
+            </p>
+          </div>
+
           {!hasFile(file) ? (
             <div className="text-center">
               {UploadIcon}

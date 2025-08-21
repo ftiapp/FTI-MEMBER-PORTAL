@@ -380,6 +380,31 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
     return (
       <div className="max-w-2xl mx-auto mb-8">
+        {/* Header: show document title/description */}
+        <div className="flex items-start mb-3">
+          <div className={`flex items-center justify-center w-10 h-10 rounded ${bgColor || 'bg-gray-100'}`}>
+            <div className={`${iconColor || 'text-gray-600'}`}>
+              {icon || (
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              )}
+            </div>
+          </div>
+          <div className="ml-3">
+            {title && (
+              <h3 className="text-sm font-semibold text-gray-900">
+                {title}
+              </h3>
+            )}
+            {description && (
+              <p className="mt-0.5 text-xs text-gray-600">
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+
         <div className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
           errors?.[name] ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-blue-400'
         }`}>
@@ -546,7 +571,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
                       <span className="text-sm font-medium text-blue-800">
-                        อัปโหลดเอกสารใบอนุญาต (เลือกอย่างน้อย 1 ไฟล์)
+                        อัปโหลดเอกสาร (เลือกอย่างน้อย 1 ไฟล์)
                       </span>
                     </div>
                   </div>

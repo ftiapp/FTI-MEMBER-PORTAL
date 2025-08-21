@@ -37,6 +37,12 @@ export const metadata = {
   },
   icons: {
     icon: [
+      // Primary favicon (requested PNG logo)
+      {
+        url: '/FTI-MasterLogo_RGB_forLightBG.png',
+        type: 'image/png',
+      },
+      // Fallbacks
       {
         url: '/favicon-16x16.png',
         sizes: '16x16',

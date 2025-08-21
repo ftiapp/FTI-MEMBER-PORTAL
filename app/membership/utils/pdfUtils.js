@@ -302,6 +302,39 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
       }
     }
 
+    // Preload company stamp image (if any)
+    const stampUrlCandidate = data.companyStamp?.fileUrl || '';
+    let companyStampImgSrc = '';
+    if (stampUrlCandidate) {
+      const maybeCld = transformCloudinaryUrl(stampUrlCandidate);
+      console.debug('[PDF] companyStamp URL (original):', stampUrlCandidate);
+      console.debug('[PDF] companyStamp URL (transformed):', maybeCld);
+      const dataUrl = await loadImageAsDataURL(maybeCld);
+      if (dataUrl) {
+        companyStampImgSrc = dataUrl;
+        console.debug('[PDF] companyStamp loaded as data URL (length):', dataUrl.length);
+      } else {
+        const looksLikeImg = /\.(png|jpe?g|webp|gif|bmp|svg)(\?|$)/i.test(maybeCld)
+          || (data.companyStamp?.mimeType?.startsWith?.('image/') || data.companyStamp?.fileType?.startsWith?.('image/'));
+        if (looksLikeImg) {
+          companyStampImgSrc = maybeCld;
+          console.debug('[PDF] companyStamp fallback to URL');
+        } else {
+          console.warn('[PDF] companyStamp appears non-image, skipping <img>');
+        }
+      }
+    }
+
+    // Preload FTI logo as Data URL to avoid any CORS/path issues
+    const logoPublicPath = '/FTI-MasterLogo_RGB_forLightBG.png';
+    let logoSrc = logoPublicPath;
+    try {
+      const logoDataUrl = await loadImageAsDataURL(logoPublicPath);
+      if (logoDataUrl) logoSrc = logoDataUrl;
+    } catch (e) {
+      console.warn('[PDF] failed to preload logo as data URL, fallback to public path', e);
+    }
+
     if ((!provincialChapterNames || provincialChapterNames.length === 0)) {
       if (Array.isArray(application.provinceChapters) || Array.isArray(application.provincialChapters)) {
         const src = application.provinceChapters || application.provincialChapters;
@@ -316,6 +349,26 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           .filter(Boolean);
       }
     }
+    
+    // Limit long lists to help fit within 2 pages
+    const MAX_PRODUCTS_DISPLAY = 12;
+    const MAX_GROUPS_DISPLAY = 10;
+    const MAX_CHAPTERS_DISPLAY = 10;
+
+    const displayProducts = Array.isArray(data.products) ? data.products.slice(0, MAX_PRODUCTS_DISPLAY) : [];
+    const extraProducts = Array.isArray(data.products) && data.products.length > MAX_PRODUCTS_DISPLAY
+      ? data.products.length - MAX_PRODUCTS_DISPLAY
+      : 0;
+
+    const displayIndustryGroups = Array.isArray(industrialGroupNames) ? industrialGroupNames.slice(0, MAX_GROUPS_DISPLAY) : [];
+    const extraIndustryGroups = Array.isArray(industrialGroupNames) && industrialGroupNames.length > MAX_GROUPS_DISPLAY
+      ? industrialGroupNames.length - MAX_GROUPS_DISPLAY
+      : 0;
+
+    const displayProvincialChapters = Array.isArray(provincialChapterNames) ? provincialChapterNames.slice(0, MAX_CHAPTERS_DISPLAY) : [];
+    const extraProvincialChapters = Array.isArray(provincialChapterNames) && provincialChapterNames.length > MAX_CHAPTERS_DISPLAY
+      ? provincialChapterNames.length - MAX_CHAPTERS_DISPLAY
+      : 0;
     
     // Preload signature image as data URL if possible (for Cloudinary or other origins)
     // Log document info for debugging signature rendering
@@ -347,25 +400,31 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
     // Simple CSS
     const styles = `
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Sarabun', sans-serif; font-size: 12px; line-height: 1.4; padding: 10px; }
-      .header { text-align: center; font-size: 14px; font-weight: bold; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #333; }
-      .section { border: 1px solid #ddd; margin-bottom: 8px; padding: 8px; }
-      .section-title { font-weight: bold; font-size: 11px; background: #f5f5f5; padding: 3px 5px; margin: -8px -8px 5px -8px; border-bottom: 1px solid #ddd; }
-      .field { margin-bottom: 4px; font-size: 11px; }
-      .label { font-weight: 600; display: inline-block; min-width: 80px; }
+      body { font-family: 'Sarabun', sans-serif; font-size: 11px; line-height: 1.3; padding: 6px; }
+      .logo-wrap { text-align: center; margin-bottom: 2px; display: flex; justify-content: center; }
+      .logo-wrap img { height: 28px; object-fit: contain; display: block; margin: 0 auto; }
+      .header { text-align: center; font-size: 11.5px; font-weight: bold; margin-bottom: 2px; padding-bottom: 1px; border-bottom: 1px solid #333; }
+      .section { border: 1px solid #ddd; margin-bottom: 4px; padding: 5px; }
+      .section-title { font-weight: bold; font-size: 10px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
+      .field { margin-bottom: 2px; font-size: 10px; }
+      .label { font-weight: 600; display: inline-block; min-width: 70px; }
       .value { color: #333; }
-      .row { display: flex; gap: 15px; }
+      .row { display: flex; gap: 12px; }
       .col { flex: 1; }
-      .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-      .rep-box { border: 1px solid #e0e0e0; padding: 6px; background: #fafafa; }
-      .rep-title { font-weight: bold; font-size: 10px; color: #0066cc; margin-bottom: 3px; }
-      .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 2px 6px; border-radius: 3px; font-size: 10px; margin: 2px; }
-      .signature-area { display: flex; gap: 20px; margin-top: 10px; }
-      .signature-box { flex: 1; border: 1px solid #ddd; padding: 15px; text-align: center; min-width: 150px; }
-      .signature-img { border: 1px dashed #999; height: 60px; width: 120px; margin: 10px auto; display: flex; align-items: center; justify-content: center; }
-      .stamp-box { border: 1px solid #ddd; padding: 15px; text-align: center; min-width: 150px; }
-      .stamp-img { border: 1px dashed #999; width: 120px; height: 60px; margin: 10px auto; display: flex; align-items: center; justify-content: center; }
-      .footer { text-align: center; font-size: 9px; color: #999; margin-top: 10px; }
+      .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .rep-box { border: 1px solid #e0e0e0; padding: 5px; background: #fafafa; }
+      .rep-title { font-weight: bold; font-size: 9.5px; color: #0066cc; margin-bottom: 2px; }
+      .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 9.5px; margin: 1px; }
+      .signature-area { display: flex; gap: 16px; margin-top: 8px; }
+      .signature-box { flex: 1; border: 1px solid #ddd; padding: 12px; text-align: center; min-width: 140px; }
+      .signature-img { border: 1px dashed #999; height: 55px; width: 110px; margin: 8px auto; display: flex; align-items: center; justify-content: center; }
+      .stamp-box { border: 1px solid #ddd; padding: 12px; text-align: center; min-width: 140px; }
+      .stamp-img { border: 1px dashed #999; width: 110px; height: 55px; margin: 8px auto; display: flex; align-items: center; justify-content: center; }
+      .footer { text-align: center; font-size: 8.5px; color: #999; margin-top: 8px; }
+      .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
+      .list-2col .span-all { grid-column: 1 / -1; }
+      .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; row-gap: 4px; align-items: start; }
+      .list-3col .span-all { grid-column: 1 / -1; }
     `;
 
     // Generate HTML content
@@ -377,6 +436,9 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         <style>${styles}</style>
       </head>
       <body>
+        <div class="logo-wrap">
+          <img src="${logoSrc}" alt="FTI Logo" crossorigin="anonymous" />
+        </div>
         <div class="header">${title}</div>
         
         ${type === 'ic' ? 
@@ -482,47 +544,46 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         `) : ''}
         
         ${data.businessTypes ? section('ข้อมูลธุรกิจ', `
-          <div style="margin-bottom: 12px;">
-            <div class="row">
-              <div class="col">
+          <div class="row">
+            <div class="col">
+              <div style="margin-bottom: 10px;">
                 <strong>ประเภทธุรกิจ:</strong><br>
                 <div style="margin-top: 5px;">
                   ${businessTypes.split(', ').filter(Boolean).map(t => `<span class="business-tag">${t}</span>`).join('')}
                 </div>
               </div>
+              ${type !== 'ic' ? `
+                <div class="row">
+                  <div class="col">${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}</div>
+                  ${type === 'oc' ? `<div class="col">${field('ประเภทโรงงาน', data.factoryType === 'TYPE1' ? '> 50 แรงม้า' : '< 50 แรงม้า')}</div>` : '<div class="col"></div>'}
+                </div>
+              ` : ''}
+            </div>
+            <div class="col">
+              ${displayProducts.length ? `
+                <div>
+                  <strong>สินค้าและบริการ (${data.products.length} รายการ):</strong>
+                  <div style="margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 4px;">
+                    <div class="list-3col">
+                      ${displayProducts.map((p, i) => `
+                        <div style="font-size: 11px;">
+                          <strong>${i + 1}.</strong> 
+                          <span style="color: #0066cc;">${p.name_th || p.nameTh || '-'}</span>
+                          ${(p.name_en || p.nameEn) && (p.name_en || p.nameEn) !== '-' ? ` / <span style=\"color: #666;\">${p.name_en || p.nameEn}</span>` : ''}
+                        </div>
+                      `).join('')}
+                      ${extraProducts > 0 ? `<div class="span-all" style="font-size: 10px; color: #666;">... และอีก ${extraProducts} รายการ</div>` : ''}
+                    </div>
+                  </div>
+                </div>
+              ` : `
+                <div>
+                  <strong>สินค้าและบริการ:</strong>
+                  <div style="margin-top: 6px; color: #666;">-</div>
+                </div>
+              `}
             </div>
           </div>
-          
-          ${type !== 'ic' ? `
-            <div style="margin-bottom: 12px;">
-              <div class="row">
-                <div class="col">
-                  ${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}
-                </div>
-                ${type === 'oc' ? `
-                  <div class="col">
-                    ${field('ประเภทโรงงาน', data.factoryType === 'TYPE1' ? '> 50 แรงม้า' : '< 50 แรงม้า')}
-                  </div>
-                ` : '<div class="col"></div>'}
-                <div class="col"></div>
-              </div>
-            </div>
-          ` : ''}
-          
-          ${data.products?.length ? `
-            <div style="margin-top: 12px;">
-              <strong>สินค้าและบริการ (${data.products.length} รายการ):</strong>
-              <div style="margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 4px;">
-                ${data.products.map((p, i) => `
-                  <div style="margin-bottom: 4px; font-size: 11px;">
-                    <strong>${i + 1}.</strong> 
-                    <span style="color: #0066cc;">${p.name_th || p.nameTh || '-'}</span>
-                    ${(p.name_en || p.nameEn) && (p.name_en || p.nameEn) !== '-' ? ` / <span style="color: #666;">${p.name_en || p.nameEn}</span>` : ''}
-                  </div>
-                `).join('')}
-              </div>
-            </div>
-          ` : ''}
         `) : ''}
         
 
@@ -530,20 +591,20 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           <div class="row">
             <div class="col">
               <strong>กลุ่มอุตสาหกรรม:</strong><br>
-              ${industrialGroupNames?.length ? 
-                industrialGroupNames.map(name => `• ${name}`).join('<br>') : 
+              ${displayIndustryGroups?.length ? 
+                `<div class=\"list-2col\">${displayIndustryGroups.map(name => `<div>• ${name}</div>`).join('')}${extraIndustryGroups > 0 ? `<div class=\"span-all\" style=\"font-size: 9.5px; color: #666;\">... และอีก ${extraIndustryGroups} รายการ</div>` : ''}</div>` : 
                 'ไม่ระบุ'}
             </div>
             <div class="col">
               <strong>สภาอุตสาหกรรมจังหวัด:</strong><br>
-              ${provincialChapterNames?.length ? 
-                provincialChapterNames.map(name => `• ${name}`).join('<br>') : 
+              ${displayProvincialChapters?.length ? 
+                `<div class=\"list-2col\">${displayProvincialChapters.map(name => `<div>• ${name}</div>`).join('')}${extraProvincialChapters > 0 ? `<div class=\"span-all\" style=\"font-size: 9.5px; color: #666;\">... และอีก ${extraProvincialChapters} รายการ</div>` : ''}</div>` : 
                 '• สภาอุตสาหกรรมแห่งประเทศไทย'}
             </div>
           </div>
         `) : ''}
         
-        ${type === 'ic' ? `
+        ${(['oc','ac','am'].includes(type)) ? `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <div style="display: flex; gap: 20px; font-size: 12px;">
               <div class="signature-box">
@@ -558,9 +619,34 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                   <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
                 </div>
               </div>
+              <div class="stamp-box">
+                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
+                <div class="stamp-img">
+                  ${companyStampImgSrc 
+                    ? `<img src="${companyStampImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Company Stamp" />`
+                    : `<img src="${logoSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="FTI Logo" />`}
+                </div>
+              </div>
             </div>
           </div>
-        ` : ''}
+        ` : ((signatureImgSrc || data.authorizedSignature?.fileUrl) ? `
+          <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
+            <div style="display: flex; gap: 20px; font-size: 12px;">
+              <div class="signature-box">
+                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
+                <div class="signature-img">
+                  ${signatureImgSrc
+                    ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
+                    : 'แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)'}
+                </div>
+                <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
+                  (${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})
+                  <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ` : '')}
         
         <div class="footer">
           สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString('th-TH')}
@@ -578,7 +664,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
       filename: `${type?.toUpperCase()}_${data.companyNameTh || data.firstNameTh || 'APPLICATION'}_${new Date().toISOString().split('T')[0]}.pdf`,
       image: { type: 'jpeg', quality: 0.95 },
       html2canvas: { scale: 2, useCORS: true, allowTaint: true, imageTimeout: 10000 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak: { mode: ['css', 'avoid-all'] }
     };
     
     await html2pdf().set(opt).from(element).save();
