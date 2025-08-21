@@ -447,30 +447,27 @@ export default function OCMembershipForm({
   const deleteDraft = useCallback(async () => {
     try {
       // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ tax ID
-      const response = await fetch('/api/membership/get-drafts?type=oc', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch('/api/membership/get-drafts?type=oc');
 
       if (!response.ok) {
         console.error('Failed to fetch drafts for deletion');
         return;
       }
 
-      const drafts = await response.json();
+      const data = await response.json();
+      const drafts = Array.isArray(data) ? data : (data?.drafts || []);
       
       // หา draft ที่ตรงกับ tax ID ของผู้สมัคร
-      const draftToDelete = drafts.find(draft => 
-        draft.draftData?.taxId === formData.taxId
-      );
+      const draftToDelete = drafts.find(draft => {
+        const draftTaxId = draft?.draftData?.taxId || draft?.tax_id || draft?.taxId;
+        return String(draftTaxId || '') === String(formData.taxId || '');
+      });
 
       if (draftToDelete) {
         const deleteResponse = await fetch('/api/membership/delete-draft', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             memberType: 'oc',

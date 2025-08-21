@@ -187,7 +187,8 @@ export const submitICMembershipForm = async (formData) => {
     
     // ✅ FIX: ดึงข้อมูลชื่อกลุ่มอุตสาหกรรมให้ถูกต้อง
     if (formData.industrialGroupNames && Array.isArray(formData.industrialGroupNames)) {
-      industryGroupNamesToSend = formData.industrialGroupNames.filter(name => name && name.trim());
+      // ✅ Keep array length aligned with IDs; do not filter out empties
+      industryGroupNamesToSend = formData.industrialGroupNames.map(name => (typeof name === 'string' ? name : ''));
     }
     
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string
@@ -224,9 +225,11 @@ export const submitICMembershipForm = async (formData) => {
     
     // ✅ FIX: ดึงข้อมูลชื่อสภาอุตสาหกรรมจังหวัดให้ถูกต้อง
     if (formData.provincialChapterNames && Array.isArray(formData.provincialChapterNames)) {
-      provinceChapterNamesToSend = formData.provincialChapterNames.filter(name => name && name.trim());
+      // ✅ Keep array length aligned with IDs; do not filter out empties
+      provinceChapterNamesToSend = formData.provincialChapterNames.map(name => (typeof name === 'string' ? name : ''));
     } else if (formData.provincialCouncilNames && Array.isArray(formData.provincialCouncilNames)) {
-      provinceChapterNamesToSend = formData.provincialCouncilNames.filter(name => name && name.trim());
+      // Backward compatibility
+      provinceChapterNamesToSend = formData.provincialCouncilNames.map(name => (typeof name === 'string' ? name : ''));
     }
     
     // กรองเฉพาะค่าที่ไม่ใช่ null, undefined, หรือ empty string

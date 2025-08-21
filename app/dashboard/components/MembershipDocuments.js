@@ -13,51 +13,124 @@ export default function MembershipDocuments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [submittedPagination, setSubmittedPagination] = useState(null);
-  const itemsPerPage = 5;
+  
+  // เพิ่มตัวเลือกจำนวนรายการต่อหน้า
+  const [itemsPerPage, setItemsPerPage] = useState(5); // เปลี่ยนกลับเป็น 5 รายการ
+  const [loading, setLoading] = useState(false);
+  
   const searchParams = useSearchParams();
   const detail = searchParams.get('detail');
 
-  // ดึงจำนวนรายการจาก API
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch(`/api/membership/count?type=${activeSection}`);
-        if (response.ok) {
-          const data = await response.json();
-          setTotalItems(data.count || 0);
-        } else {
-          setTotalItems(0);
-        }
-      } catch (error) {
-        console.error('Error fetching count:', error);
-        setTotalItems(0);
-      }
-    };
-    fetchData();
-  }, [activeSection]);
+  // ฟังก์ชันสำหรับรับ totalItems จาก child components
+  const handleTotalItemsChange = (total) => {
+    setTotalItems(total);
+  };
+
+  // ลบ useEffect เดิมที่เรียก API เพื่อนับจำนวน เพราะจะให้ child components ส่งมาแทน
 
   const handleTabChange = (section) => {
     setActiveSection(section);
-    setCurrentPage(1);
+    setCurrentPage(1); // reset หน้าเป็น 1 เมื่อเปลี่ยน tab
+    setTotalItems(0); // reset totalItems เมื่อเปลี่ยน tab
   };
 
-  // Simple Pagination Component
-  const SimplePagination = ({ totalItems, currentPage, itemsPerPage, onPageChange }) => {
+  const handleItemsPerPageChange = (newItemsPerPage) => {
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // reset หน้าเป็น 1 เมื่อเปลี่ยนจำนวนรายการ
+  };
+
+  // Enhanced Pagination Component
+  const EnhancedPagination = ({ totalItems, currentPage, itemsPerPage, onPageChange, onItemsPerPageChange }) => {
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
-    if (totalPages <= 1) return null;
+    if (totalItems === 0) return null;
+
+    // สร้าง array ของหน้าที่จะแสดง
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisiblePages = 5;
+      
+      if (totalPages <= maxVisiblePages) {
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // แสดงหน้าแรก
+        pages.push(1);
+        
+        // แสดง ... ถ้าจำเป็น
+        if (currentPage > 3) {
+          pages.push('...');
+        }
+        
+        // แสดงหน้าปัจจุบันและหน้าข้างเคียง
+        const start = Math.max(2, currentPage - 1);
+        const end = Math.min(totalPages - 1, currentPage + 1);
+        
+        for (let i = start; i <= end; i++) {
+          if (i !== 1 && i !== totalPages) {
+            pages.push(i);
+          }
+        }
+        
+        // แสดง ... ถ้าจำเป็น
+        if (currentPage < totalPages - 2) {
+          pages.push('...');
+        }
+        
+        // แสดงหน้าสุดท้าย
+        if (totalPages > 1) {
+          pages.push(totalPages);
+        }
+      }
+      
+      return pages;
+    };
 
     return (
-      <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-        <p className="text-sm text-gray-700">
-          หน้า {currentPage} จาก {totalPages} ({totalItems} รายการ)
-        </p>
+      <div className="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t border-gray-200 space-y-4 sm:space-y-0">
+        {/* ข้อมูลสถิติ */}
+        <div className="flex items-center space-x-4">
+          <p className="text-sm text-gray-700">
+            แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-{Math.min(currentPage * itemsPerPage, totalItems)} จาก {totalItems} รายการ
+          </p>
+          
+          {/* ตัวเลือกจำนวนรายการต่อหน้า */}
+          <div className="flex items-center space-x-2">
+            <label className="text-sm text-gray-700">รายการต่อหน้า:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
+              className="border border-gray-300 rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value={5}>5</option>
+              <option value={10}>10</option>
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+            </select>
+          </div>
+        </div>
         
-        <div className="flex space-x-2">
+        {/* ปุ่ม Pagination */}
+        <div className="flex items-center space-x-1">
+          {/* ปุ่มหน้าแรก */}
+          <button
+            onClick={() => onPageChange(1)}
+            disabled={currentPage === 1}
+            className={`px-3 py-2 rounded text-sm ${
+              currentPage === 1
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            หน้าแรก
+          </button>
+          
+          {/* ปุ่มก่อนหน้า */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`px-3 py-1 rounded text-sm flex items-center space-x-1 ${
+            className={`px-3 py-2 rounded text-sm flex items-center space-x-1 ${
               currentPage === 1
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -69,14 +142,29 @@ export default function MembershipDocuments() {
             <span>ก่อนหน้า</span>
           </button>
           
-          <span className="px-3 py-1 bg-blue-600 text-white rounded text-sm">
-            {currentPage}
-          </span>
+          {/* หมายเลขหน้า */}
+          {getPageNumbers().map((page, index) => (
+            <button
+              key={index}
+              onClick={() => typeof page === 'number' ? onPageChange(page) : null}
+              disabled={typeof page !== 'number'}
+              className={`px-3 py-2 rounded text-sm min-w-[40px] ${
+                page === currentPage
+                  ? 'bg-blue-600 text-white'
+                  : typeof page === 'number'
+                  ? 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                  : 'bg-transparent text-gray-400 cursor-default'
+              }`}
+            >
+              {page}
+            </button>
+          ))}
           
+          {/* ปุ่มถัดไป */}
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className={`px-3 py-1 rounded text-sm flex items-center space-x-1 ${
+            className={`px-3 py-2 rounded text-sm flex items-center space-x-1 ${
               currentPage === totalPages
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -86,6 +174,19 @@ export default function MembershipDocuments() {
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
+          </button>
+          
+          {/* ปุ่มหน้าสุดท้าย */}
+          <button
+            onClick={() => onPageChange(totalPages)}
+            disabled={currentPage === totalPages}
+            className={`px-3 py-2 rounded text-sm ${
+              currentPage === totalPages
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+            }`}
+          >
+            หน้าสุดท้าย
           </button>
         </div>
       </div>
@@ -153,6 +254,14 @@ export default function MembershipDocuments() {
             </nav>
           </div>
 
+          {/* Loading Indicator */}
+          {loading && (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+              <span className="ml-3 text-gray-600">กำลังโหลด...</span>
+            </div>
+          )}
+
           {/* Content Area */}
           <div className="p-6">
             {activeSection === 'drafts' ? (
@@ -172,13 +281,16 @@ export default function MembershipDocuments() {
                 <DraftApplications 
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onTotalItemsChange={handleTotalItemsChange}
                 />
                 
-                <SimplePagination
+                <EnhancedPagination
                   totalItems={totalItems}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
                 />
               </div>
             ) : activeSection === 'rejected' ? (
@@ -198,13 +310,16 @@ export default function MembershipDocuments() {
                 <RejectedApplications 
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onTotalItemsChange={handleTotalItemsChange}
                 />
                 
-                <SimplePagination
+                <EnhancedPagination
                   totalItems={totalItems}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
                 />
               </div>
             ) : (
@@ -226,14 +341,17 @@ export default function MembershipDocuments() {
                 <SubmittedApplications 
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
                   onPaginationChange={setSubmittedPagination}
+                  onTotalItemsChange={handleTotalItemsChange}
                 />
                 
-                <SimplePagination
-                  totalItems={submittedPagination?.totalItems || 0}
+                <EnhancedPagination
+                  totalItems={submittedPagination?.totalItems || totalItems}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
                 />
               </div>
             )}
@@ -256,7 +374,7 @@ export default function MembershipDocuments() {
             </div>
             <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium flex items-center space-x-2">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 3 6V5z" />
               </svg>
               <span>ติดต่อเรา</span>
             </button>

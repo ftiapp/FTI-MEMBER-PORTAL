@@ -33,9 +33,17 @@ export default function IndustrialGroupSection({
       industrialGroupId: selectedIds, // เก็บเป็น array
       // เก็บชื่อสำหรับแสดงผล
       industrialGroupNames: selectedIds.map(id => {
-        const group = industrialGroups?.data?.find(g => g.MEMBER_GROUP_CODE === id) ||
-                     industrialGroups?.find(g => g.id === id);
-        return group ? (group.MEMBER_GROUP_NAME || group.name_th) : '';
+        // ✅ Normalize numeric/string IDs for reliable matching
+        const sid = id != null ? id.toString() : '';
+        const source = Array.isArray(industrialGroups)
+          ? industrialGroups
+          : (industrialGroups?.data || []);
+        const group = source.find(g => {
+          const gid = g?.id != null ? g.id.toString() : '';
+          const code = g?.MEMBER_GROUP_CODE != null ? g.MEMBER_GROUP_CODE.toString() : '';
+          return gid === sid || code === sid;
+        });
+        return group ? (group.MEMBER_GROUP_NAME || group.name_th || '') : '';
       })
     }));
   };
@@ -241,11 +249,20 @@ export default function IndustrialGroupSection({
                       </div>
                       <div className="flex flex-wrap gap-2.5">
                         {formData.industrialGroupId.map(id => {
+                          const sid = id != null ? id.toString() : '';
                           let group = null;
                           if (industrialGroups?.data) {
-                            group = industrialGroups.data.find(g => g.MEMBER_GROUP_CODE === id);
+                            group = industrialGroups.data.find(g => {
+                              const code = g?.MEMBER_GROUP_CODE != null ? g.MEMBER_GROUP_CODE.toString() : '';
+                              const gid = g?.id != null ? g.id.toString() : '';
+                              return code === sid || gid === sid;
+                            });
                           } else if (Array.isArray(industrialGroups)) {
-                            group = industrialGroups.find(g => g.id === id || g.MEMBER_GROUP_CODE === id);
+                            group = industrialGroups.find(g => {
+                              const gid = g?.id != null ? g.id.toString() : '';
+                              const code = g?.MEMBER_GROUP_CODE != null ? g.MEMBER_GROUP_CODE.toString() : '';
+                              return gid === sid || code === sid;
+                            });
                           }
                           return group ? (
                             <div

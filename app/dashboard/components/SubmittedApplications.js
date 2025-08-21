@@ -4,35 +4,60 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { th } from 'date-fns/locale';
 
-export default function SubmittedApplications({ userId, currentPage, itemsPerPage, onPaginationChange }) {
+export default function SubmittedApplications({ 
+  userId, 
+  currentPage = 1, 
+  itemsPerPage = 5, // เปลี่ยน default เป็น 5
+  onPaginationChange, 
+  onTotalItemsChange 
+}) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     fetchApplications();
   }, [userId, currentPage, itemsPerPage]);
 
+  // ส่ง totalItems กลับไปให้ parent component เมื่อมีการเปลี่ยนแปลง
+  useEffect(() => {
+    if (pagination && onTotalItemsChange) {
+      onTotalItemsChange(pagination.totalItems || 0);
+    }
+  }, [pagination, onTotalItemsChange]);
+
   const fetchApplications = async () => {
     try {
+      setLoading(true);
+      setError(null);
+      
       const params = new URLSearchParams({
         page: currentPage?.toString() || '1',
-        limit: itemsPerPage?.toString() || '5'
+        limit: itemsPerPage?.toString() || '10'
       });
       
       const response = await fetch(`/api/membership/submitted-applications?${params}`);
       const data = await response.json();
       
       if (data.success) {
-        setApplications(data.applications);
-        setPagination(data.pagination);
+        setApplications(data.applications || []);
+        setPagination(data.pagination || null);
+        
         // ส่ง pagination data กลับไปยัง parent component
         if (onPaginationChange) {
           onPaginationChange(data.pagination);
         }
+      } else {
+        setError(data.message || 'ไม่สามารถโหลดข้อมูลได้');
+        setApplications([]);
+        setPagination(null);
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
+      setError('เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      setApplications([]);
+      setPagination(null);
     } finally {
       setLoading(false);
     }
@@ -75,13 +100,34 @@ export default function SubmittedApplications({ userId, currentPage, itemsPerPag
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex justify-center items-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
       </div>
     );
   }
 
-  if (applications.length === 0) {
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-600 mb-4">
+          <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-lg font-medium">เกิดข้อผิดพลาด</p>
+          <p className="text-sm text-gray-600 mt-1">{error}</p>
+        </div>
+        <button
+          onClick={fetchApplications}
+          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          ลองใหม่
+        </button>
+      </div>
+    );
+  }
+
+  if (applications.length === 0 && (!pagination || pagination.totalItems === 0)) {
     return (
       <div className="text-center py-12">
         <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
@@ -96,61 +142,111 @@ export default function SubmittedApplications({ userId, currentPage, itemsPerPag
   }
 
   return (
-    <div className="space-y-6">
-      {applications.map((app) => {
-        const memberTypeInfo = getMemberTypeInfo(app.memberType);
-        const statusBadge = getStatusBadge(app.status);
-        
-        return (
-          <div key={`${app.memberType}-${app.id}`} className={`bg-white rounded-lg shadow-sm border-2 ${memberTypeInfo.color} overflow-hidden`}>
-            {/* Header */}
-            <div className="bg-blue-600 px-6 py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
-                    <span className={`text-lg font-bold ${memberTypeInfo.iconColor}`}>
-                      {app.memberType === 'IC' ? 'ทบ' : 
-                       app.memberType === 'OC' ? 'สน' : 
-                       app.memberType === 'AC' ? 'ทน' : 
-                       app.memberType === 'AM' ? 'สส' : app.memberType}
-                    </span>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-white">
-                      {app.displayName || 'ไม่ระบุชื่อ'}
-                    </h3>
-                    <p className="text-blue-100 text-sm">
-                      {memberTypeInfo.text}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-4">
-                  <div className="text-right">
-                    <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}>
-                      {statusBadge.text}
+    <div className="space-y-4">
+      {/* แสดงข้อมูลสถิติ */}
+      {pagination && pagination.totalItems > 0 && (
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-6">
+          <span>
+            แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, pagination.totalItems)}-{Math.min(currentPage * itemsPerPage, pagination.totalItems)} จาก {pagination.totalItems} รายการ
+          </span>
+          <span>หน้า {currentPage} จาก {Math.ceil(pagination.totalItems / itemsPerPage)}</span>
+        </div>
+      )}
+
+      {/* รายการใบสมัคร */}
+      <div className="space-y-6">
+        {applications.map((app) => {
+          const memberTypeInfo = getMemberTypeInfo(app.memberType);
+          const statusBadge = getStatusBadge(app.status);
+          
+          return (
+            <div key={`${app.memberType}-${app.id}`} className={`bg-white rounded-lg shadow-sm border-2 ${memberTypeInfo.color} overflow-hidden`}>
+              {/* Header */}
+              <div className="bg-blue-600 px-6 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                      <span className={`text-lg font-bold ${memberTypeInfo.iconColor}`}>
+                        {app.memberType === 'IC' ? 'ทบ' : 
+                         app.memberType === 'OC' ? 'สน' : 
+                         app.memberType === 'AC' ? 'ทน' : 
+                         app.memberType === 'AM' ? 'สส' : app.memberType}
+                      </span>
                     </div>
-                    <p className="text-blue-100 text-xs mt-1">
-                      ส่งเมื่อ {format(new Date(app.createdAt), 'dd MMM yyyy', { locale: th })}
-                    </p>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">
+                        {app.displayName || 'ไม่ระบุชื่อ'}
+                      </h3>
+                      <p className="text-blue-100 text-sm">
+                        {memberTypeInfo.text}
+                      </p>
+                    </div>
                   </div>
                   
-                  <button
-                    onClick={() => openDetailPage(app)}
-                    className="inline-flex items-center px-4 py-2 border border-white text-sm font-medium rounded-lg text-white bg-transparent hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200"
-                  >
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    ดูรายละเอียด
-                  </button>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-right">
+                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}>
+                        {statusBadge.text}
+                      </div>
+                      <p className="text-blue-100 text-xs mt-1">
+                        ส่งเมื่อ {format(new Date(app.createdAt), 'dd MMM yyyy', { locale: th })}
+                      </p>
+                    </div>
+                    
+                    <button
+                      onClick={() => openDetailPage(app)}
+                      className="inline-flex items-center px-4 py-2 border border-white text-sm font-medium rounded-lg text-white bg-transparent hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200"
+                    >
+                      <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      ดูรายละเอียด
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* เพิ่มข้อมูลเพิ่มเติมในส่วน Body */}
+              <div className="p-4 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div>
+                    <span className="font-medium text-gray-700">รหัสใบสมัคร:</span>
+                    <span className="ml-1 text-gray-600">{app.id}</span>
+                  </div>
+                  {app.identifier && (
+                    <div>
+                      <span className="font-medium text-gray-700">เลขประจำตัว:</span>
+                      <span className="ml-1 text-gray-600">{app.identifier}</span>
+                    </div>
+                  )}
+                  {app.updatedAt && (
+                    <div>
+                      <span className="font-medium text-gray-700">อัปเดตล่าสุด:</span>
+                      <span className="ml-1 text-gray-600">
+                        {format(new Date(app.updatedAt), 'dd/MM/yyyy HH:mm', { locale: th })}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
+      {/* หากไม่มีข้อมูลในหน้านี้ แต่มีข้อมูลรวม */}
+      {applications.length === 0 && pagination && pagination.totalItems > 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>ไม่มีข้อมูลในหน้านี้</p>
+          <button
+            onClick={() => onPageChange && onPageChange(1)}
+            className="mt-2 text-blue-600 hover:text-blue-800 underline"
+          >
+            กลับไปหน้าแรก
+          </button>
+        </div>
+      )}
     </div>
   );
 }

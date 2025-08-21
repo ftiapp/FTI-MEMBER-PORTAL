@@ -197,24 +197,27 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         return;
       }
 
-      // อนุญาตเฉพาะไฟล์รูปภาพเท่านั้น
-      if (!file.type || !file.type.startsWith('image/')) {
-        alert('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)');
-        return;
-      }
+      // Validation per document type
+      const isImage = !!file.type && file.type.startsWith('image/');
+      const isPdf = (file.type === 'application/pdf') || file.name?.toLowerCase().endsWith('.pdf');
 
-      if (documentType === 'idCardDocument') {
+      if (documentType === 'authorizedSignature') {
+        // Signature: images only
+        if (!isImage) {
+          alert('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)');
+          return;
+        }
+        // Open editor for image signatures
+        setEditingSignature(file);
+        setShowSignatureEditor(true);
+      } else if (documentType === 'idCardDocument') {
+        // ID card: allow image or PDF
+        if (!(isImage || isPdf)) {
+          alert('ประเภทไฟล์ไม่ถูกต้อง สำเนาบัตรประชาชนรองรับไฟล์ภาพ (JPG, JPEG, PNG) หรือ PDF');
+          return;
+        }
         setSelectedFile(file);
         setFormData(prev => ({ ...prev, [documentType]: file }));
-      } else if (documentType === 'authorizedSignature') {
-        // For signature, open editor if it's an image
-        if (file.type.startsWith('image/')) {
-          setEditingSignature(file);
-          setShowSignatureEditor(true);
-        } else {
-          setSelectedSignature(file);
-          setFormData(prev => ({ ...prev, [documentType]: file }));
-        }
       }
     }
   };
@@ -362,13 +365,13 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         id="idCardDocument"
                         name="idCardDocument"
                         type="file"
-                        accept=".jpg,.jpeg,.png"
+                        accept=".jpg,.jpeg,.png,.pdf"
                         onChange={(e) => handleFileChange(e, 'idCardDocument')}
                         className="hidden"
                       />
                     </label>
                     <p className="mt-2 text-xs text-gray-500">
-                      รองรับไฟล์ JPG, JPEG, PNG ขนาดไม่เกิน 5MB
+                      รองรับไฟล์ JPG, JPEG, PNG หรือ PDF ขนาดไม่เกิน 5MB
                     </p>
                   </div>
                 </div>
@@ -432,7 +435,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 <li>• ไฟล์ต้องชัดเจน อ่านได้ง่าย</li>
                 <li>• สำเนาต้องมีลายเซ็นรับรองสำเนาถูกต้อง</li>
                 <li>• ขนาดไฟล์ไม่เกิน 5MB</li>
-                <li>• รองรับไฟล์ JPG, JPEG, PNG</li>
+                <li>• รองรับไฟล์ JPG, JPEG, PNG หรือ PDF</li>
               </ul>
             </div>
           </div>

@@ -460,35 +460,25 @@ export default function AMMembershipForm(props = {}) {
   const deleteDraft = useCallback(async () => {
     try {
       // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ tax ID
-      const response = await fetch('/api/membership/get-drafts?type=am', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch('/api/membership/get-drafts?type=am');
 
       if (!response.ok) {
         console.error('Failed to fetch drafts for deletion');
         return;
       }
 
-      const drafts = await response.json();
+      const data = await response.json();
+      const drafts = data?.success ? (data.drafts || []) : [];
       
-      // ตรวจสอบว่า drafts เป็น array และหา draft ที่ตรงกับ tax ID
-      const draftsArray = Array.isArray(drafts) ? drafts : [];
-      const draftToDelete = draftsArray.find(draft => {
-        // ตรวจสอบว่า draft_data เป็น object และมี tax_id
-        const draftData = typeof draft.draft_data === 'string' 
-          ? JSON.parse(draft.draft_data) 
-          : draft.draft_data || {};
-        return draftData.tax_id === formData.taxId;
-      });
+      const normalize = (v) => String(v ?? '').replace(/\D/g, '');
+      const targetTax = normalize(formData.taxId);
+      const draftToDelete = drafts.find(draft => normalize(draft.draftData?.taxId) === targetTax);
 
       if (draftToDelete) {
         const deleteResponse = await fetch('/api/membership/delete-draft', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             memberType: 'am',

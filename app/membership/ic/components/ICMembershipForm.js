@@ -613,11 +613,7 @@ const handleNext = useCallback(async (e) => {
   const deleteDraft = useCallback(async () => {
     try {
       // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ ID card number
-      const response = await fetch('/api/membership/get-drafts?type=ic', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch('/api/membership/get-drafts?type=ic');
 
       if (!response.ok) {
         console.error('Failed to fetch drafts for deletion');
@@ -625,20 +621,17 @@ const handleNext = useCallback(async (e) => {
       }
 
       const data = await response.json();
+      const drafts = data?.success ? (data.drafts || []) : [];
       
-      // ตรวจสอบว่า response เป็น array หรือไม่
-      const drafts = Array.isArray(data) ? data : (data.drafts || []);
-      
-      // หา draft ที่ตรงกับ ID card number ของผู้สมัคร
-      const draftToDelete = drafts.find(draft => 
-        draft.draftData?.idCardNumber === formData.idCardNumber
-      );
+      const normalize = (v) => String(v ?? '').replace(/\D/g, '');
+      const targetId = normalize(formData.idCardNumber);
+      const draftToDelete = drafts.find(draft => normalize(draft.draftData?.idCardNumber) === targetId);
 
       if (draftToDelete) {
         const deleteResponse = await fetch('/api/membership/delete-draft', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             memberType: 'ic',

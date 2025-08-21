@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function RejectedApplications({ currentPage, itemsPerPage }) {
+export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5, onPageChange, onTotalItemsChange }) {
   const [rejectedApps, setRejectedApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,6 +14,13 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
     fetchRejectedApplications();
   }, [currentPage, itemsPerPage]);
 
+  // ส่ง totalItems กลับไปให้ parent component เมื่อมีการเปลี่ยนแปลง
+  useEffect(() => {
+    if (onTotalItemsChange) {
+      onTotalItemsChange(totalItems);
+    }
+  }, [totalItems, onTotalItemsChange]);
+
   const fetchRejectedApplications = async () => {
     try {
       setLoading(true);
@@ -21,14 +28,18 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
       const result = await response.json();
 
       if (result.success) {
-        setRejectedApps(result.data);
-        setTotalItems(result.pagination.totalItems);
+        setRejectedApps(result.data || []);
+        setTotalItems(result.pagination?.totalItems || result.totalItems || 0);
       } else {
         setError(result.message || 'Failed to fetch rejected applications');
+        setRejectedApps([]);
+        setTotalItems(0);
       }
     } catch (error) {
       console.error('Error fetching rejected applications:', error);
       setError('Failed to fetch rejected applications');
+      setRejectedApps([]);
+      setTotalItems(0);
     } finally {
       setLoading(false);
     }
@@ -74,6 +85,7 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return '-';
     return new Date(dateString).toLocaleDateString('th-TH', {
       year: 'numeric',
       month: 'long',
@@ -112,7 +124,7 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
     );
   }
 
-  if (rejectedApps.length === 0) {
+  if (rejectedApps.length === 0 && totalItems === 0) {
     return (
       <div className="text-center py-12">
         <div className="text-gray-400 mb-4">
@@ -128,6 +140,17 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
 
   return (
     <div className="space-y-4">
+      {/* แสดงข้อมูลสถิติ */}
+      {totalItems > 0 && (
+        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+          <span>
+            แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-{Math.min(currentPage * itemsPerPage, totalItems)} จาก {totalItems} รายการ
+          </span>
+          <span>หน้า {currentPage} จาก {Math.ceil(totalItems / itemsPerPage)}</span>
+        </div>
+      )}
+
+      {/* รายการใบสมัครที่ถูกปฏิเสธ */}
       {rejectedApps.map((app) => (
         <div key={app.id} className="bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
           <div className="p-6">
@@ -141,7 +164,7 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {app.application_name}
+                      {app.application_name || 'ใบสมัครสมาชิก'}
                     </h3>
                     <p className="text-sm text-gray-600">
                       {getMembershipTypeLabel(app.membership_type)}
@@ -152,7 +175,7 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">เลขประจำตัว:</p>
-                    <p className="text-sm text-gray-600">{app.identifier}</p>
+                    <p className="text-sm text-gray-600">{app.identifier || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-700">วันที่ปฏิเสธ:</p>
@@ -165,6 +188,16 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
                     <p className="text-sm font-medium text-gray-700 mb-1">เหตุผลการปฏิเสธ:</p>
                     <div className="bg-red-50 border border-red-200 rounded-md p-3">
                       <p className="text-sm text-red-800">{app.rejection_reason}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* เพิ่มข้อมูลเพิ่มเติมถ้ามี */}
+                {app.additional_notes && (
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700 mb-1">หมายเหตุ:</p>
+                    <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+                      <p className="text-sm text-gray-600">{app.additional_notes}</p>
                     </div>
                   </div>
                 )}
@@ -189,6 +222,19 @@ export default function RejectedApplications({ currentPage, itemsPerPage }) {
           </div>
         </div>
       ))}
+
+      {/* หากไม่มีข้อมูลในหน้านี้ แต่มีข้อมูลรวม */}
+      {rejectedApps.length === 0 && totalItems > 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>ไม่มีข้อมูลในหน้านี้</p>
+          <button
+            onClick={() => onPageChange && onPageChange(1)}
+            className="mt-2 text-blue-600 hover:text-blue-800 underline"
+          >
+            กลับไปหน้าแรก
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -310,11 +310,7 @@ export default function ACMembershipForm({
     if (!taxId) return;
     try {
       // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ tax ID
-      const response = await fetch('/api/membership/get-drafts?type=ac', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
+      const response = await fetch('/api/membership/get-drafts?type=ac');
 
       if (!response.ok) {
         console.error('Failed to fetch drafts for deletion');
@@ -322,19 +318,18 @@ export default function ACMembershipForm({
       }
 
       const draftsData = await response.json();
-      const drafts = draftsData.success ? draftsData.drafts : [];
+      const drafts = draftsData?.success ? (draftsData.drafts || []) : [];
       
       // หา draft ที่ตรงกับ tax ID ของผู้สมัคร
-      const draftToDelete = drafts.find(draft => 
-        draft.draftData?.taxId === taxId
-      );
+      const normalize = (v) => String(v ?? '').replace(/\D/g, '');
+      const targetTax = normalize(taxId);
+      const draftToDelete = drafts.find(draft => normalize(draft.draftData?.taxId) === targetTax);
 
       if (draftToDelete) {
         const deleteResponse = await fetch('/api/membership/delete-draft', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             memberType: 'ac',

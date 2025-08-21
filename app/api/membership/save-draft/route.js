@@ -103,26 +103,26 @@ export async function POST(request) {
     
     if (existingRecords.length > 0) {
       const record = existingRecords[0];
-      let message = '';
-      
-      switch(record.status) {
-        case 0:
-          message = `เลขประจำตัวผู้เสียภาษีนี้มีคำขอสมัคร${getMemberTypeName(memberType)}อยู่ระหว่างการพิจารณา กรุณารอให้เสร็จสิ้นก่อน`;
-          break;
-        case 1:
-          message = `เลขประจำตัวผู้เสียภาษีนี้ได้เป็นสมาชิก${getMemberTypeName(memberType)}แล้ว กรุณาตรวจสอบหน้าข้อมูลสมาชิก`;
-          break;
-        case 2:
-          message = `เลขประจำตัวผู้เสียภาษีนี้เคยถูกปฏิเสธการสมัคร${getMemberTypeName(memberType)} สามารถสมัครใหม่ได้`;
-          break;
-        default:
-          message = `เลขประจำตัวผู้เสียภาษีนี้มีอยู่ในระบบแล้ว`;
+      // อนุญาตให้บันทึกร่างได้เมื่อเคยถูกปฏิเสธ (status = 2)
+      if (record.status === 2) {
+        // proceed without blocking
+      } else {
+        let message = '';
+        switch (record.status) {
+          case 0:
+            message = `เลขประจำตัวผู้เสียภาษีนี้มีคำขอสมัคร${getMemberTypeName(memberType)}อยู่ระหว่างการพิจารณา กรุณารอให้เสร็จสิ้นก่อน`;
+            break;
+          case 1:
+            message = `เลขประจำตัวผู้เสียภาษีนี้ได้เป็นสมาชิก${getMemberTypeName(memberType)}แล้ว กรุณาตรวจสอบหน้าข้อมูลสมาชิก`;
+            break;
+          default:
+            message = `เลขประจำตัวผู้เสียภาษีนี้มีอยู่ในระบบแล้ว`;
+        }
+        return NextResponse.json({
+          success: false,
+          message: message
+        }, { status: 409 });
       }
-      
-      return NextResponse.json({ 
-        success: false, 
-        message: message 
-      }, { status: 409 });
     }
 
     // Helper function to get Thai member type name
