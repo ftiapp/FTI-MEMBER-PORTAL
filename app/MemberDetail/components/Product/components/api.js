@@ -380,7 +380,7 @@ export async function deleteTsicCode(memberCode, tsicCode) {
  * @param {string} replacingTsicCode - TSIC code to replace (optional)
  * @returns {Object} - Result with success status and message
  */
-export async function submitTsicUpdate(email, memberCode, tsicCodes, replacingTsicCode = null) {
+export async function submitTsicUpdate(email, memberCode, tsicCodes, replacingTsicCode = null, explicitUserId = null) {
   try {
     console.log('submitTsicUpdate called with:', { email, memberCode, tsicCodes });
     
@@ -404,17 +404,19 @@ export async function submitTsicUpdate(email, memberCode, tsicCodes, replacingTs
       };
     }
 
-    // Get user ID from session storage for direct use in API
-    let userId = null;
-    const userStr = sessionStorage.getItem('user');
-    if (userStr) {
-      try {
-        const userData = JSON.parse(userStr);
-        // Check both userData.id and userData directly since the structure might vary
-        userId = userData.id || userData.userId || (userData.user && userData.user.id);
-        console.log('Found user ID in session storage:', userId);
-      } catch (e) {
-        console.error('Error parsing user data from session storage:', e);
+    // Resolve user ID: prefer explicitUserId, then sessionStorage fallback
+    let userId = explicitUserId || null;
+    if (!userId) {
+      const userStr = sessionStorage.getItem('user');
+      if (userStr) {
+        try {
+          const userData = JSON.parse(userStr);
+          // Check both userData.id and userData directly since the structure might vary
+          userId = userData.id || userData.userId || (userData.user && userData.user.id);
+          console.log('Found user ID in session storage:', userId);
+        } catch (e) {
+          console.error('Error parsing user data from session storage:', e);
+        }
       }
     }
 

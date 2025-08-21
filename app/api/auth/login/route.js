@@ -262,8 +262,8 @@ export async function POST(request) {
       sessionId
     });
 
-    // เก็บ token ใน cookie with expiration - always use 30 days for consistency
-    const maxAge = 60 * 60 * 24 * 30; // Always use 30 days for better session persistence
+    // เก็บ token ใน cookie with expiration matching JWT expiry to avoid mismatch
+    const maxAge = rememberMe ? (60 * 60 * 24 * 30) : (60 * 60 * 24 * 1);
     
     // Get the hostname from request headers to set domain correctly
     const host = request.headers.get('host') || '';
@@ -272,7 +272,7 @@ export async function POST(request) {
     // Calculate explicit expiry date
     const expiryDate = new Date(Date.now() + maxAge * 1000);
     
-    // Store credentials in both HTTP-only cookie and regular cookie
+    // Store credentials in HTTP-only cookie
     response.cookies.set({
       name: 'token',
       value: token,
@@ -300,7 +300,7 @@ export async function POST(request) {
     });
     
     // Store email in a non-httpOnly cookie for auto-fill functionality
-    // Always set userEmail cookie regardless of rememberMe to ensure session persistence
+    // Always set userEmail cookie regardless of rememberMe and align expiry with token
     response.cookies.set({
       name: 'userEmail',
       value: email,

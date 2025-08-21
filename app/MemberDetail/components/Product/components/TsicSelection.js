@@ -701,7 +701,8 @@ export default function TsicSelection({ onSuccess, memberCode, isEditMode = fals
         user.email,
         memberCode || '',
         tsicCodes,
-        editMode.active ? editMode.tsicCode : null // ส่งรหัส TSIC ที่ต้องการแทนที่ไปด้วย (ถ้ามี)
+        editMode.active ? editMode.tsicCode : null, // ส่งรหัส TSIC ที่ต้องการแทนที่ไปด้วย (ถ้ามี)
+        user.id // ส่ง userId โดยตรงเพื่อความเสถียร
       );
       
       console.log('TSIC update result:', result);
