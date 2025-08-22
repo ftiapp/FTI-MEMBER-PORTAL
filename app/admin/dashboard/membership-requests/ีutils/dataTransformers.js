@@ -362,12 +362,26 @@ export const normalizeContactPersons = (application) => {
 };
 
 export const normalizeDocuments = (application) => {
-  const docs = application.documents || [];
-  return docs.map(doc => ({
+  // Accept multiple possible sources for documents across types
+  const docs = application.documents ||
+               application.memberDocuments ||
+               application.MemberDocuments ||
+               application.member_docs ||
+               application.memberDocs ||
+               application.ic_documents ||
+               application.icDocuments ||
+               application.ac_documents ||
+               application.oc_documents ||
+               application.am_documents ||
+               [];
+
+  return (Array.isArray(docs) ? docs : [docs]).map(doc => ({
     type: doc.document_type || doc.type,
-    name: doc.document_name || doc.name || getDocumentDisplayName(doc),
+    name: doc.document_name || doc.name || doc.file_name || getDocumentDisplayName(doc),
     filePath: doc.file_path || doc.filePath,
-    fileUrl: doc.file_url || doc.fileUrl
+    // Prefer explicit file_url, then cloudinary_url, then generic url
+    fileUrl: doc.file_url || doc.fileUrl || doc.cloudinary_url || doc.url,
+    mimeType: doc.mime_type || doc.mimeType || doc.type
   }));
 };
 

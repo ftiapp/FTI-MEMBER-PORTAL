@@ -15,6 +15,7 @@ import { getMemberTypeInfo } from '../../ีutils/dataTransformers';
 import { formatThaiDate } from '../../ีutils/formatters';
 import { STATUS } from '../../ีutils/constants';
 import ApplicationComments from '../../../../components/ApplicationComments';
+import { generateMembershipPDF } from './components/PDFGenerator';
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
@@ -273,8 +274,40 @@ export default function MembershipRequestDetail({ params }) {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownload = async () => {
+    if (!application) {
+      toast.error('ไม่พบข้อมูลสำหรับสร้าง PDF');
+      return;
+    }
+    try {
+      toast.loading('กำลังสร้างไฟล์ PDF...', { id: 'pdf' });
+      
+      // ดึงข้อมูลจาก API เดียวกับที่ User ใช้ เพื่อให้ PDF เหมือนกัน 100%
+      let payload = application;
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
+        const res = await fetch(`/api/membership/${type}/summary/${id}`, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.success && data?.data) {
+            console.log('ใช้ข้อมูลจาก User API สำหรับสร้าง PDF');
+            payload = data.data;
+          }
+        }
+      } catch (e) {
+        console.warn('ไม่สามารถดึงข้อมูลจาก User API ได้ ใช้ข้อมูลจากฝั่ง Admin แทน', e);
+      }
+      
+      // ใช้ payload จาก User API (หรือ fallback เป็น Admin data ถ้าดึงไม่ได้)
+      await generateMembershipPDF(payload, type, industrialGroups, provincialChapters);
+      toast.success('ดาวน์โหลดไฟล์ PDF เรียบร้อย', { id: 'pdf' });
+    } catch (e) {
+      console.error('PDF download failed:', e);
+      toast.error('ไม่สามารถสร้างไฟล์ PDF ได้', { id: 'pdf' });
+    }
   };
 
   if (isLoading) {
@@ -352,7 +385,7 @@ export default function MembershipRequestDetail({ params }) {
           onOpenRejectModal={handleOpenRejectModal}
           onViewDocument={handleViewDocument}
           isSubmitting={isSubmitting}
-          onPrint={handlePrint}
+          onDownload={handleDownload}
         />
 
         {/* Comments Section */}

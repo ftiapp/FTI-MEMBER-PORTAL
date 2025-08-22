@@ -74,7 +74,6 @@ const getTitleByType = (type) => ({
 
 // Get business type names
 const getBusinessTypeNames = (app) => {
-  if (!app.businessTypes) return '-';
   const names = {
     'manufacturer': 'ผู้ผลิต',
     'distributor': 'ผู้จัดจำหน่าย',
@@ -85,12 +84,27 @@ const getBusinessTypeNames = (app) => {
     'other': 'อื่นๆ'
   };
 
-  // Array format from API: [{ id, businessTypeName }] or legacy { business_type }
-  if (Array.isArray(app.businessTypes)) {
-    return app.businessTypes.map(bt => {
+  // Normalize possible sources
+  let src = app.businessTypes || app.business_types || app.businessType || app.business_type || null;
+  if (!src) return '-';
+
+  // String (comma separated)
+  if (typeof src === 'string') {
+    return src.split(',').map(s => s.trim()).filter(Boolean).map(s => names[s] || s).join(', ');
+  }
+
+  // Array of primitives (ids/labels)
+  if (Array.isArray(src) && src.length && typeof src[0] !== 'object') {
+    return src.map(k => names[k] || String(k)).join(', ');
+  }
+
+  // Array of objects
+  if (Array.isArray(src)) {
+    return src.map(bt => {
       // Prefer explicit name from API
-      if (bt.businessTypeName) return bt.businessTypeName;
-      const key = bt.id || bt.business_type;
+      const named = bt.businessTypeName || bt.name_th || bt.nameTh || bt.label || bt.name;
+      if (named) return named;
+      const key = bt.id || bt.key || bt.business_type || bt.type;
       if (key === 'other') {
         // API may provide array of other types: [{ otherType }]
         const other = Array.isArray(app.businessTypeOther) && app.businessTypeOther.length > 0
@@ -103,7 +117,7 @@ const getBusinessTypeNames = (app) => {
   }
 
   // Object format from form: { manufacturer: true, ... }
-  return Object.entries(app.businessTypes)
+  return Object.entries(src)
     .filter(([k, v]) => v)
     .map(([k]) => {
       if (k === 'other') {
@@ -157,17 +171,34 @@ const processData = (app) => {
   }
   
   // Extract authorized signature and company stamp from documents if present
-  let documents = app.documents || app.memberDocuments || app.MemberDocuments || [];
+  let documents = app.documents 
+    || app.memberDocuments 
+    || app.MemberDocuments 
+    || app.icDocuments 
+    || app.ICDocuments 
+    || app.member_docs 
+    || app.memberDocs 
+    || [];
   if (!Array.isArray(documents) && documents?.data && Array.isArray(documents.data)) {
     documents = documents.data;
   }
   const findDoc = (type) => {
-    const doc = documents.find(d => (d.document_type || d.documentType) === type);
+    // normalize and support multiple aliases from different flows
+    const aliasesMap = {
+      authorizedSignature: ['authorizedSignature', 'authorized_signature', 'signature', 'authorizedSign'],
+      companyStamp: ['companyStamp', 'company_stamp', 'stamp']
+    };
+    const aliases = aliasesMap[type] || [type];
+    const doc = documents.find(d => {
+      const t = (d.document_type || d.documentType || d.type || '').toString().trim();
+      const tLower = t.toLowerCase();
+      return aliases.some(a => t === a || tLower === a.toLowerCase());
+    });
     if (!doc) return null;
     return {
-      fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path,
-      mimeType: doc.mime_type || doc.mimeType || '',
-      fileName: doc.file_name || doc.fileName || ''
+      fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path || doc.url,
+      mimeType: doc.mime_type || doc.mimeType || doc.type || '',
+      fileName: doc.file_name || doc.fileName || doc.name || ''
     };
   };
 
@@ -178,7 +209,7 @@ const processData = (app) => {
       const raw = app.addresses.find(addr => addr.address_type === '2' || addr.addressType === '2' || addr.addressTypeId === 2);
       if (raw) {
         address2 = {
-          number: raw.address_number || raw.number || '',
+          number: raw.address_number || raw.addressNumber || raw.address_no || raw.addressNo || raw.house_number || raw.houseNumber || raw.number || '',
           moo: raw.moo || '',
           soi: raw.soi || '',
           street: raw.street || raw.road || '',
@@ -191,7 +222,7 @@ const processData = (app) => {
     } else if (typeof app.addresses === 'object' && app.addresses['2']) {
       const raw = app.addresses['2'];
       address2 = {
-        number: raw.addressNumber || raw.address_number || raw.number || '',
+        number: raw.addressNumber || raw.address_number || raw.address_no || raw.addressNo || raw.house_number || raw.houseNumber || raw.number || '',
         moo: raw.moo || '',
         soi: raw.soi || '',
         street: raw.street || raw.road || '',
@@ -200,6 +231,37 @@ const processData = (app) => {
         province: raw.province || '',
         postalCode: raw.postalCode || raw.postal_code || ''
       };
+    }
+  }
+
+  // Fallback: If base address fields are missing, try to derive from addresses type 1 or the first entry
+  let baseAddress = {
+    number: app.address_number || app.addressNumber || app.address?.addressNumber,
+    moo: app.moo || app.address?.moo,
+    soi: app.soi || app.address?.soi,
+    street: app.street || app.road || app.address?.street || app.address?.road,
+    subDistrict: app.sub_district || app.subDistrict || app.address?.subDistrict,
+    district: app.district || app.address?.district,
+    province: app.province || app.address?.province,
+    postalCode: app.postal_code || app.postalCode || app.address?.postalCode,
+  };
+  if ((!baseAddress.number && app.addresses)) {
+    const pick = (raw) => ({
+      number: raw.address_number || raw.addressNumber || raw.address_no || raw.addressNo || raw.house_number || raw.houseNumber || raw.number || '',
+      moo: raw.moo || '',
+      soi: raw.soi || '',
+      street: raw.street || raw.road || '',
+      subDistrict: raw.sub_district || raw.subDistrict || '',
+      district: raw.district || raw.amphur || '',
+      province: raw.province || '',
+      postalCode: raw.postal_code || raw.postalCode || ''
+    });
+    if (Array.isArray(app.addresses)) {
+      const a1 = app.addresses.find(addr => addr.address_type === '1' || addr.addressType === '1' || addr.addressTypeId === 1) || app.addresses[0];
+      if (a1) baseAddress = pick(a1);
+    } else if (typeof app.addresses === 'object') {
+      const a1 = app.addresses['1'] || app.addresses['main'] || null;
+      if (a1) baseAddress = pick(a1);
     }
   }
 
@@ -214,15 +276,17 @@ const processData = (app) => {
     firstNameEn: app.first_name_en || app.firstNameEn,
     lastNameEn: app.last_name_en || app.lastNameEn,
     idCard: app.id_card_number || app.idCardNumber || app.idCard || app.id_card || app.citizen_id || app.nationalId || '-',
-    // Base address fields (fallback to nested legacy address object)
-    addressNumber: app.address_number || app.addressNumber || app.address?.addressNumber,
-    moo: app.moo || app.address?.moo,
-    soi: app.soi || app.address?.soi,
-    street: app.street || app.road || app.address?.street || app.address?.road,
-    district: app.district || app.address?.district,
-    province: app.province || app.address?.province,
-    subDistrict: app.sub_district || app.subDistrict || app.address?.subDistrict,
-    postalCode: app.postal_code || app.postalCode || app.address?.postalCode,
+    // Normalize phone extension for consistent display (IC main uses phone_extension)
+    phoneExtension: app.phone_extension || app.phoneExtension,
+    // Base address fields (with robust fallbacks including addresses[0]/type1)
+    addressNumber: baseAddress.number,
+    moo: baseAddress.moo,
+    soi: baseAddress.soi,
+    street: baseAddress.street,
+    district: baseAddress.district,
+    province: baseAddress.province,
+    subDistrict: baseAddress.subDistrict,
+    postalCode: baseAddress.postalCode,
     factoryType: app.factory_type || app.factoryType,
     numberOfMember: app.number_of_member || app.numberOfMember,
     industrialGroupIds: app.industrialGroups || app.industrialGroupIds || [],
@@ -230,6 +294,22 @@ const processData = (app) => {
     // Documents
     authorizedSignature: app.authorizedSignature || findDoc('authorizedSignature') || null,
     companyStamp: app.companyStamp || findDoc('companyStamp') || null,
+    // Representatives (normalize to a consistent array)
+    representatives: (() => {
+      let reps = app.representatives || app.reps || [];
+  
+      // IC uses singular 'representative' field
+      if (!reps || reps.length === 0) {
+        if (app.representative) {
+          reps = [app.representative];
+        }
+      }
+  
+      if (!Array.isArray(reps)) {
+        reps = reps ? [reps] : [];
+      }
+      return reps;
+    })(),
     // Address type 2 contact information
     addressType2Phone,
     addressType2PhoneExt,
@@ -293,12 +373,29 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         industrialGroupNames = application.industryGroups
           .map(g => pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
           .filter(Boolean);
-      } else if (Array.isArray(data.industrialGroupIds)) {
-        const groupsArr = Array.isArray(industrialGroups) ? industrialGroups : (industrialGroups.data || []);
-        industrialGroupNames = data.industrialGroupIds
-          .map(id => groupsArr.find(g => g.id === id || g.MEMBER_GROUP_CODE === id))
-          .map(g => g && pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+      } 
+      // Admin normalized data uses `industrialGroups` (not `industrialGroupIds`)
+      else if (Array.isArray(data.industrialGroups)) {
+        industrialGroupNames = data.industrialGroups
+          .map(g => pickName(g, ['name', 'industryGroupName', 'industry_group_name', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
           .filter(Boolean);
+      }
+      // Legacy: Check for industrialGroupIds
+      else if (Array.isArray(data.industrialGroupIds)) {
+        // Case 1: Admin may provide array of objects that already include name fields
+        if (data.industrialGroupIds.length > 0 && typeof data.industrialGroupIds[0] === 'object') {
+          industrialGroupNames = data.industrialGroupIds
+            .map(g => pickName(g, ['industryGroupName', 'industry_group_name', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+            .filter(Boolean);
+        }
+        // Case 2: Fallback to lookup arrays (ids only)
+        if ((!industrialGroupNames || industrialGroupNames.length === 0)) {
+          const groupsArr = Array.isArray(industrialGroups) ? industrialGroups : (industrialGroups.data || []);
+          industrialGroupNames = data.industrialGroupIds
+            .map(id => groupsArr.find(g => g.id === id || g.MEMBER_GROUP_CODE === id))
+            .map(g => g && pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+            .filter(Boolean);
+        }
       }
     }
 
@@ -341,12 +438,29 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         provincialChapterNames = src
           .map(c => pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
           .filter(Boolean);
-      } else if (Array.isArray(data.provincialChapterIds)) {
-        const chArr = Array.isArray(provincialChapters) ? provincialChapters : (provincialChapters.data || []);
-        provincialChapterNames = data.provincialChapterIds
-          .map(id => chArr.find(c => c.id === id || c.MEMBER_GROUP_CODE === id))
-          .map(c => c && pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+      } 
+      // Admin normalized data uses `provincialChapters` (not `provincialChapterIds`)
+      else if (Array.isArray(data.provincialChapters)) {
+        provincialChapterNames = data.provincialChapters
+          .map(c => pickName(c, ['name', 'provinceChapterName', 'province_chapter_name', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
           .filter(Boolean);
+      }
+      // Legacy: Check for provincialChapterIds
+      else if (Array.isArray(data.provincialChapterIds)) {
+        // Case 1: Admin may provide array of objects that already include name fields
+        if (data.provincialChapterIds.length > 0 && typeof data.provincialChapterIds[0] === 'object') {
+          provincialChapterNames = data.provincialChapterIds
+            .map(c => pickName(c, ['provinceChapterName', 'province_chapter_name', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+            .filter(Boolean);
+        }
+        // Case 2: Fallback to lookup arrays (ids only)
+        if ((!provincialChapterNames || provincialChapterNames.length === 0)) {
+          const chArr = Array.isArray(provincialChapters) ? provincialChapters : (provincialChapters.data || []);
+          provincialChapterNames = data.provincialChapterIds
+            .map(id => chArr.find(c => c.id === id || c.MEMBER_GROUP_CODE === id))
+            .map(c => c && pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+            .filter(Boolean);
+        }
       }
     }
     
@@ -449,7 +563,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             </div>
             <div class="row">
               <div class="col">${field('บัตรประชาชน', data.idCard)}</div>
-              <div class="col">${field('โทรศัพท์', data.phone)}</div>
+              <div class="col">${field('โทรศัพท์', data.phone ? `${data.phone}${data.phoneExtension ? ` ต่อ ${data.phoneExtension}` : ''}` : '')}</div>
               <div class="col">${field('อีเมล', data.email)}</div>
             </div>
           `) :
@@ -530,20 +644,30 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         
         ${data.representatives?.length ? section('ข้อมูลผู้แทน (สูงสุด 3 คน)', `
           <div class="col-3">
-            ${data.representatives.slice(0, 3).map((rep, i) => `
-              <div class="rep-box">
-                <div class="rep-title">ผู้แทน ${i + 1}</div>
-                ${field('ชื่อ (ไทย)', `${rep.firstNameThai || rep.first_name_th || ''} ${rep.lastNameThai || rep.last_name_th || ''}`)}
-                ${field('ชื่อ (อังกฤษ)', `${rep.firstNameEnglish || rep.first_name_en || ''} ${rep.lastNameEnglish || rep.last_name_en || ''}`)}
-                ${field('ตำแหน่ง', rep.position)}
-                ${field('โทร', rep.phone ? `${rep.phone}${rep.phoneExtension ? ` ต่อ ${rep.phoneExtension}` : ''}` : '')}
-                ${field('อีเมล', rep.email)}
-              </div>
-            `).join('')}
+            ${data.representatives.slice(0, 3).map((rep, i) => {
+              const firstTh = rep.firstNameTh || rep.first_name_th || rep.firstNameThai || rep.firstname_th || rep.firstnameThai || rep.firstname;
+              const lastTh  = rep.lastNameTh  || rep.last_name_th  || rep.lastNameThai  || rep.lastname_th  || rep.lastnameThai  || rep.lastname;
+              const firstEn = rep.firstNameEn || rep.first_name_en || rep.firstNameEnglish || rep.firstname_en || rep.firstnameEnglish;
+              const lastEn  = rep.lastNameEn  || rep.last_name_en  || rep.lastNameEnglish  || rep.lastname_en  || rep.lastnameEnglish;
+              const position = rep.position || rep.positionName || rep.role || '';
+              const phone = rep.phone || rep.tel || rep.telephone || '';
+              const phoneExt = rep.phoneExtension || rep.phone_extension || rep.ext || rep.extension || '';
+              const email = rep.email || rep.mail || rep.e_mail || '';
+              return `
+                <div class=\"rep-box\">
+                  <div class=\"rep-title\">ผู้แทน ${i + 1}</div>
+                  ${field('ชื่อ (ไทย)', `${firstTh || ''} ${lastTh || ''}`)}
+                  ${field('ชื่อ (อังกฤษ)', `${firstEn || ''} ${lastEn || ''}`)}
+                  ${field('ตำแหน่ง', position)}
+                  ${field('โทร', phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ''}` : '')}
+                  ${field('อีเมล', email)}
+                </div>
+              `;
+            }).join('')}
           </div>
         `) : ''}
         
-        ${data.businessTypes ? section('ข้อมูลธุรกิจ', `
+        ${(businessTypes && businessTypes !== '-') ? section('ข้อมูลธุรกิจ', `
           <div class="row">
             <div class="col">
               <div style="margin-bottom: 10px;">
@@ -629,7 +753,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               </div>
             </div>
           </div>
-        ` : ((signatureImgSrc || data.authorizedSignature?.fileUrl) ? `
+        ` : `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <div style="display: flex; gap: 20px; font-size: 12px;">
               <div class="signature-box">
@@ -637,7 +761,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 <div class="signature-img">
                   ${signatureImgSrc
                     ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
-                    : 'แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)'}
+                    : (data.authorizedSignature?.fileUrl ? 'แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)' : '(ลายเซ็น)')}
                 </div>
                 <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
                   (${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})
@@ -646,7 +770,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               </div>
             </div>
           </div>
-        ` : '')}
+        `}
         
         <div class="footer">
           สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString('th-TH')}

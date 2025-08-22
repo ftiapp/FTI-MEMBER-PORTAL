@@ -23,7 +23,7 @@ const DetailView = ({
   onOpenRejectModal,
   onViewDocument,
   isSubmitting,
-  onPrint
+  onDownload
 }) => {
   // ฟังก์ชันสำหรับอัปเดตข้อมูลแต่ละส่วน
   const handleSectionUpdate = async (section, data) => {
@@ -72,17 +72,17 @@ const DetailView = ({
 
   return (
     <div className="space-y-6">
-      {/* Print Button */}
+      {/* Download PDF Button */}
       <div className="flex justify-end print:hidden">
         <button
-          onClick={onPrint}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          onClick={onDownload}
+          className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                  d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10l5 5m0 0l5-5m-5 5V4" />
           </svg>
-          พิมพ์
+          ดาวน์โหลด PDF
         </button>
       </div>
 

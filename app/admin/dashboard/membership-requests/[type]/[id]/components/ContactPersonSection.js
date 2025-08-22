@@ -79,8 +79,8 @@ const ContactPersonSection = ({ application }) => {
                 <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
                 <p className="text-sm text-gray-900">
                   {contact.phone || '-'}
-                  {contact.phone_extension && (
-                    <span className="text-blue-600 ml-2">ต่อ {contact.phone_extension}</span>
+                  {(contact.phone_extension || contact.phoneExtension) && (
+                    <span className="text-blue-600 ml-2">ต่อ {contact.phone_extension || contact.phoneExtension}</span>
                   )}
                 </p>
               </div>
