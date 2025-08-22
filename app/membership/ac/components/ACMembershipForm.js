@@ -366,14 +366,27 @@ export default function ACMembershipForm({
     try {
       setTaxIdValidating(true);
       
-      // ใช้ API endpoint เดียวกับที่ใช้ใน ACFormSubmission.js
-      const response = await fetch('/api/membership/check-tax-id', {
+      // ตรวจสอบกับ API ที่ถูกต้องของ AC
+      const response = await fetch('/api/member/ac-membership/check-tax-id', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taxId }),
+        signal: abortControllerRef.current.signal
       });
       const result = await response.json();
-      return result;
+
+      // Map ให้เข้ากับรูปแบบที่ฟอร์มนี้ใช้งาน { isUnique, message }
+      if (!response.ok) {
+        if (response.status === 409) {
+          return { isUnique: false, message: result.error || result.message || 'เลขประจำตัวผู้เสียภาษีซ้ำ' };
+        }
+        return { isUnique: false, message: result.error || result.message || 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล' };
+      }
+
+      return {
+        isUnique: result.valid === true,
+        message: result.message || (result.valid ? 'เลขประจำตัวผู้เสียภาษีสามารถใช้ได้' : 'ไม่สามารถตรวจสอบได้')
+      };
     } catch (error) {
       console.error('Error checking tax ID uniqueness:', error);
       return { 
@@ -521,7 +534,11 @@ export default function ACMembershipForm({
       }
   
       console.log('✅ Step validation passed, moving to next step');
-      handleNextStep(formData, setErrors);
+      // Increment step directly to avoid re-validating with possibly different internal step in navigation hook
+      if (setCurrentStep) {
+        setCurrentStep(prev => prev + 1);
+        window.scrollTo(0, 0);
+      }
       return;
     }
   

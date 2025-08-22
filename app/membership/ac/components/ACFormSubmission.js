@@ -81,9 +81,15 @@ export const submitACMembershipForm = async (data) => {
     }
 
     const appendToFormData = (key, value) => {
-      if (value && typeof value === 'object' && value.file instanceof File) {
-        formDataToSend.append(key, value.file, value.name);
+      // 1) If value is a direct File (e.g., from ImageEditor for companyStamp/authorizedSignature)
+      if (value instanceof File) {
+        formDataToSend.append(key, value, value.name);
       }
+      // 2) If value is an object containing a File under the 'file' property (common for other uploads)
+      else if (value && typeof value === 'object' && value.file instanceof File) {
+        formDataToSend.append(key, value.file, value.name || value.file.name);
+      }
+      // 3) Special handling for multiple production images
       else if (key === 'productionImages' && Array.isArray(value)) {
         value.forEach((fileObj, index) => {
           if (fileObj && fileObj.file instanceof File) {
@@ -91,9 +97,11 @@ export const submitACMembershipForm = async (data) => {
           }
         });
       }
+      // 4) Objects/arrays are stringified (non-file payloads)
       else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
         formDataToSend.append(key, JSON.stringify(value));
       }
+      // 5) Primitives
       else if (value !== null && value !== undefined) {
         formDataToSend.append(key, value);
       }
