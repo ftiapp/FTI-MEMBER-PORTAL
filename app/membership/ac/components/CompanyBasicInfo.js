@@ -80,7 +80,7 @@ export default function CompanyBasicInfo({
         setFormData(prev => ({
           ...prev,
           companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
-          companyNameEng: companyData['cd:OrganizationJuristicNameEN'] || '',
+          companyNameEn: companyData['cd:OrganizationJuristicNameEN'] || '',
           addresses: {
             ...prev.addresses,
             '2': {
@@ -99,7 +99,7 @@ export default function CompanyBasicInfo({
         setErrors(prev => ({
           ...prev,
           companyName: '',
-          companyNameEng: ''
+          companyNameEn: ''
         }));
         
         toast.success('ดึงข้อมูลสำเร็จ');

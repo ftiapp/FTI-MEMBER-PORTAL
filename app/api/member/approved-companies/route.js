@@ -22,6 +22,7 @@ export async function GET(request) {
          c.id,
          c.user_id,
          c.MEMBER_CODE,
+         c.MEMBER_DATE,
          c.company_name,
          c.company_type,
          c.tax_id,

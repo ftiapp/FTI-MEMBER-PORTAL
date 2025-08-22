@@ -1,7 +1,7 @@
 // แสดงรายละเอียดของสมาชิกที่เลือก
 'use client';
 
-export default function UpdateDetail({ member, onApprove, onReject, isProcessing, comment, setComment }) {
+export default function UpdateDetail({ member, onApprove, onReject, isProcessing, comment, setComment, memberData, handleInputChange, handleSubmit }) {
   if (!member) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center h-64">
@@ -43,6 +43,28 @@ export default function UpdateDetail({ member, onApprove, onReject, isProcessing
             <p className="text-black font-semibold"><span className="font-bold text-black">เว็บไซต์:</span> {member.website}</p>
           </div>
         </div>
+
+        {/* Editable: MEMBER_DATE */}
+        {memberData && (
+          <form onSubmit={handleSubmit} className="mt-4">
+            <label className="block text-black font-bold mb-1">วันที่เริ่มเป็นสมาชิก (MEMBER_DATE)</label>
+            <input
+              type="date"
+              name="MEMBER_DATE"
+              className="w-full border rounded p-2 text-black"
+              value={memberData.MEMBER_DATE || ''}
+              onChange={handleInputChange}
+              disabled={isProcessing}
+            />
+            <div className="mt-3">
+              <button
+                type="submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold disabled:opacity-50"
+                disabled={isProcessing}
+              >บันทึกการแก้ไข</button>
+            </div>
+          </form>
+        )}
         <div className="mt-4">
           <label className="block text-black font-bold mb-1">หมายเหตุ (สำหรับแอดมิน):</label>
           <textarea

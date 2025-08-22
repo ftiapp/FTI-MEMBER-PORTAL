@@ -36,7 +36,8 @@ export default function UpdateMembers() {
     postal_code: '',
     phone: '',
     website: '',
-    admin_comment: ''
+    admin_comment: '',
+    MEMBER_DATE: ''
   });
 
   // Reference to previous search term for animation control
@@ -63,7 +64,8 @@ export default function UpdateMembers() {
         postal_code: selectedMember.postal_code || '',
         phone: selectedMember.phone || '',
         website: selectedMember.website || '',
-        admin_comment: selectedMember.admin_comment || ''
+        admin_comment: selectedMember.admin_comment || '',
+        MEMBER_DATE: (selectedMember.MEMBER_DATE || '').toString().slice(0,10)
       });
     }
   }, [selectedMember]);

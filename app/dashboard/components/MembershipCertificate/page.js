@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import CertificateTable from './CertificateTable';
-import { handlePrintCertificate, handleDownloadCertificate } from './utils';
 
 export default function MembershipCertificate() {
   const { user } = useAuth();

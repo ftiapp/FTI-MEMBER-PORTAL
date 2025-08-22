@@ -16,6 +16,49 @@ const getMemberTypeAbbr = (type) => {
   }
 };
 
+// Loading Overlay Component
+function LoadingOverlay({ isOpen, text = 'กำลังเชื่อมต่อฐานข้อมูล...' }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-sm shadow-xl text-center">
+        <svg className="animate-spin mx-auto h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <div className="mt-3 text-gray-800 font-medium">{text}</div>
+      </div>
+    </div>
+  );
+}
+
+// Success Modal Component
+function SuccessModal({ isOpen, onClose, memberCode, companyName }) {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-lg shadow-xl">
+        <div className="flex items-center mb-4">
+          <svg className="h-6 w-6 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <h3 className="text-lg font-semibold text-gray-900">เชื่อมต่อเรียบร้อยแล้ว</h3>
+        </div>
+        <div className="space-y-2 text-gray-800">
+          <div><span className="font-bold">หมายเลขสมาชิก:</span> {memberCode}</div>
+          <div><span className="font-bold">ชื่อบริษัท:</span> {companyName}</div>
+          <div className="text-sm text-gray-600 mt-2">
+            กรุณาแจ้งผู้ใช้งานให้ตรวจสอบในระบบของผู้ใช้งาน ที่เมนู <span className="font-semibold">ข้อมูลสมาชิก</span>
+          </div>
+        </div>
+        <div className="mt-6 flex justify-end">
+          <button onClick={onClose} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium">ปิด</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Confirmation Modal Component
 function ConfirmationModal({ isOpen, onClose, onConfirm, member, isLoading }) {
   if (!isOpen) return null;
@@ -88,6 +131,8 @@ export default function ConnectDatabasePage() {
   const [connecting, setConnecting] = useState({});
   const [showModal, setShowModal] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
+  const [loadingOverlayOpen, setLoadingOverlayOpen] = useState(false);
+  const [successInfo, setSuccessInfo] = useState({ open: false, memberCode: '', companyName: '' });
 
   useEffect(() => {
     fetchApprovedMembers();
@@ -122,6 +167,7 @@ export default function ConnectDatabasePage() {
     if (!selectedMember) return;
     
     setConnecting(prev => ({ ...prev, [selectedMember.id]: true }));
+    setLoadingOverlayOpen(true);
     
     try {
       const response = await fetch('/api/admin/connect-database/connect', {
@@ -143,25 +189,22 @@ export default function ConnectDatabasePage() {
         throw new Error(result.message || 'Failed to connect member');
       }
 
+      // Compute info before clearing selection
+      const resolvedCompanyName = result?.memberData?.COMPANY_NAME 
+        || selectedMember?.company_name_th 
+        || selectedMember?.company_name_en 
+        || '';
+
       // Close modal first
       setShowModal(false);
       setSelectedMember(null);
-      
-      // Show success toast
-      toast.success(
-        <div>
-          <div className="font-medium">เชื่อมต่อสำเร็จ!</div>
-          <div className="text-sm">หมายเลขสมาชิก: {result.memberCode}</div>
-        </div>,
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
-      );
+
+      // Show success modal with details
+      setSuccessInfo({
+        open: true,
+        memberCode: result.memberCode,
+        companyName: resolvedCompanyName
+      });
       
       // Refresh the list
       fetchApprovedMembers();
@@ -179,6 +222,7 @@ export default function ConnectDatabasePage() {
       );
     } finally {
       setConnecting(prev => ({ ...prev, [selectedMember.id]: false }));
+      setLoadingOverlayOpen(false);
     }
   };
 
@@ -213,6 +257,13 @@ export default function ConnectDatabasePage() {
   return (
     <AdminLayout>
       <ToastContainer />
+      <LoadingOverlay isOpen={loadingOverlayOpen} />
+      <SuccessModal
+        isOpen={successInfo.open}
+        memberCode={successInfo.memberCode}
+        companyName={successInfo.companyName}
+        onClose={() => setSuccessInfo({ open: false, memberCode: '', companyName: '' })}
+      />
       <ConfirmationModal
         isOpen={showModal}
         onClose={handleCloseModal}

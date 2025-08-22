@@ -1,3 +1,4 @@
+
 'use client';
 
 // Member type mapping
@@ -76,13 +77,17 @@ export const formatEnglishDate = (dateString) => {
  * @param {Object} selectedMember - The member data
  * @returns {string} HTML content for the certificate
  */
-export const generateThaiCertificateHTML = (selectedMember) => {
+export const generateThaiCertificateHTML = (selectedMember, refInfo) => {
   if (!selectedMember) return '';
 
   const currentDate = formatThaiDate(new Date().toISOString());
-  const joinDate = selectedMember?.JOIN_DATE ? formatThaiDate(selectedMember.JOIN_DATE) : '...........................';
+  const rawMemberSince = selectedMember?.MEMBER_DATE || selectedMember?.member_date || selectedMember?.JOIN_DATE;
+  const joinDate = rawMemberSince ? formatThaiDate(rawMemberSince) : '...........................';
   const currentYear = new Date().getFullYear() + 543;
   const memberType = getFullMemberType(selectedMember?.company_type) || '........';
+  const refText = refInfo?.thaiYear
+    ? `ที่ ${refInfo.orderNo || 1}/${refInfo.totalCount || 0}/${refInfo.thaiYear}`
+    : 'ที่...... /....... .......';
 
   return `
     <!DOCTYPE html>
@@ -186,7 +191,7 @@ export const generateThaiCertificateHTML = (selectedMember) => {
         }
         .document-footer {
           position: absolute;
-          bottom: 20px;
+          bottom: 5px;
           left: 20px;
           font-size: 10px;
           color: #666;
@@ -212,7 +217,7 @@ export const generateThaiCertificateHTML = (selectedMember) => {
           <img src="/FTI-MasterLogo_RGB_forLightBG.png" style="width: 70%; height: auto; opacity: 0.1; display: block !important;" alt="FTI Watermark" />
         </div>
         <div style="text-align: left; margin-bottom: 40px; margin-top: 40px;">
-          <p>ที่...... /....... .......</p>
+          <p>${refText}</p>
         </div>
 
         <div class="certificate-header" style="margin-bottom: 60px;">
@@ -248,11 +253,7 @@ export const generateThaiCertificateHTML = (selectedMember) => {
           <p>F-PRD-005 เริ่มใช้วันที่ 15 พฤษภาคม 2568 แก้ไขครั้งที่ 3</p>
         </div>
       </div>
-      <div class="print-button" style="text-align: center; margin-top: 30px;">
-        <button onclick="setTimeout(() => { window.print(); }, 100);" style="padding: 10px 20px; background-color: #1e40af; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          พิมพ์เอกสาร
-        </button>
-      </div>
+      
     </body>
     </html>
   `;
@@ -263,13 +264,17 @@ export const generateThaiCertificateHTML = (selectedMember) => {
  * @param {Object} selectedMember - The member data
  * @returns {string} HTML content for the certificate
  */
-export const generateEnglishCertificateHTML = (selectedMember) => {
+export const generateEnglishCertificateHTML = (selectedMember, refInfo) => {
   if (!selectedMember) return '';
 
   const currentDate = formatEnglishDate(new Date().toISOString());
-  const joinDate = selectedMember?.JOIN_DATE ? formatEnglishDate(selectedMember.JOIN_DATE) : '...........................';
+  const rawMemberSince = selectedMember?.MEMBER_DATE || selectedMember?.member_date || selectedMember?.JOIN_DATE;
+  const joinDate = rawMemberSince ? formatEnglishDate(rawMemberSince) : '...........................';
   const currentYear = new Date().getFullYear();
   const memberType = getFullMemberType(selectedMember?.company_type) || '........';
+  const refText = refInfo?.year
+    ? `Ref: ${refInfo.orderNo || 1}/${refInfo.totalCount || 0}/${refInfo.year}`
+    : `Ref: ...... /....... .......`;
 
   return `
     <!DOCTYPE html>
@@ -337,7 +342,7 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
         }
         .document-footer {
           position: absolute;
-          bottom: 20px;
+          bottom: 5px;
           left: 20px;
           font-size: 10px;
           color: #666;
@@ -364,7 +369,7 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
         </div>
         <div style="position: relative; z-index: 1;">
         <div style="text-align: left; margin-bottom: 40px; margin-top: 40px;">
-          <p>Ref: ...... /....... .......</p>
+          <p>${refText}</p>
         </div>
 
         <div class="certificate-header">
@@ -374,9 +379,6 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
         </div>
         
         <div class="certificate-body">
-          <div style="text-align: left; margin-bottom: 20px;">
-            <p>Ref: ...... /....... .......</p>
-          </div>
             
           <p style="text-align: left;">This is to certify that</p>
             
@@ -397,15 +399,10 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
           <p>The Federation of Thai Industries</p>
         </div>
         
-        <div class="document-footer" style="position: absolute; bottom: 20px; left: 20px; font-size: 10px; color: #666;">
+        <div class="document-footer" style="position: absolute; bottom: 5px; left: 20px; font-size: 10px; color: #666;">
           <p>แบบหนังสือรับรองสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย (ภาษาอังกฤษ)</p>
           <p>F-PRD-005 เริ่มใช้วันที่ 15 พฤษภาคม 2568 แก้ไขครั้งที่ 3</p>
         </div>
-      </div>
-      <div class="print-button" style="text-align: center; margin-top: 30px;">
-        <button onclick="setTimeout(() => { window.print(); }, 100);" style="padding: 10px 20px; background-color: #1e40af; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          พิมพ์เอกสาร
-        </button>
       </div>
     </body>
     </html>
@@ -418,26 +415,7 @@ export const generateEnglishCertificateHTML = (selectedMember) => {
  * @param {string} language - 'thai' or 'english'
  * @param {Object} member - The member data
  */
-const logCertificateAction = async (actionType, language, member) => {
-  try {
-    if (!member || !member.MEMBER_CODE) return;
-    
-    await fetch('/api/member/certificate-log', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        memberCode: member.MEMBER_CODE,
-        actionType,
-        language
-      }),
-    });
-  } catch (error) {
-    console.error('Failed to log certificate action:', error);
-    // Continue with certificate operation even if logging fails
-  }
-};
+// removed legacy logCertificateAction; replaced by certificate-request API
 
 /**
  * Handle printing a certificate
@@ -445,33 +423,7 @@ const logCertificateAction = async (actionType, language, member) => {
  * @param {Object} member - The member data
  * @param {Array} memberData - Array of all member data
  */
-export const handlePrintCertificate = (language, member, memberData) => {
-  // Use the selected member or the first member in the array
-  const selectedMember = member || (memberData.length > 0 ? memberData[0] : null);
-  if (!selectedMember) return;
-
-  // Log the print action
-  logCertificateAction('print', language, selectedMember);
-
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    alert('โปรดอนุญาตให้เปิดหน้าต่างป๊อปอัพเพื่อพิมพ์เอกสาร');
-    return;
-  }
-
-  const html = language === 'thai' 
-    ? generateThaiCertificateHTML(selectedMember) 
-    : generateEnglishCertificateHTML(selectedMember);
-
-  printWindow.document.write(html);
-  printWindow.document.close();
-  printWindow.onload = function() {
-    setTimeout(() => {
-      printWindow.focus();
-      printWindow.print();
-    }, 500);
-  };
-};
+// print flow removed; download-only
 
 /**
  * Handle direct download of certificate as PDF
@@ -479,13 +431,26 @@ export const handlePrintCertificate = (language, member, memberData) => {
  * @param {Object} member - The member data
  * @param {Array} memberData - Array of all member data
  */
-export const handleDownloadCertificate = (language, member, memberData) => {
+export const handleDownloadCertificate = async (language, member, memberData) => {
   // Use the selected member or the first member in the array
   const selectedMember = member || (memberData.length > 0 ? memberData[0] : null);
   if (!selectedMember) return;
-  
-  // Log the download action
-  logCertificateAction('download', language, selectedMember);
+
+  // Get numbering from backend and persist request
+  let refInfo = null;
+  try {
+    const res = await fetch('/api/member/certificate-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ memberCode: selectedMember.MEMBER_CODE })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      refInfo = data;
+    }
+  } catch (e) {
+    console.error('Failed to get certificate numbering:', e);
+  }
   
   // Create a filename based on member information
   const companyName = selectedMember.COMPANY_NAME || selectedMember.company_name || 'certificate';
@@ -500,8 +465,8 @@ export const handleDownloadCertificate = (language, member, memberData) => {
   }
   
   const html = language === 'thai' 
-    ? generateThaiCertificateHTML(selectedMember) 
-    : generateEnglishCertificateHTML(selectedMember);
+    ? generateThaiCertificateHTML(selectedMember, refInfo) 
+    : generateEnglishCertificateHTML(selectedMember, refInfo);
   
   // Add html2pdf script to the new window
   const modifiedHtml = html.replace('</head>', `

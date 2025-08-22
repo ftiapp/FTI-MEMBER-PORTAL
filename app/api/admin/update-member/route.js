@@ -33,7 +33,8 @@ export async function POST(request) {
       phone,
       website,
       admin_comment,
-      status // เพิ่ม status เพื่อรองรับการอนุมัติ/ปฏิเสธ
+      status, // เพิ่ม status เพื่อรองรับการอนุมัติ/ปฏิเสธ
+      MEMBER_DATE // optional: YYYY-MM-DD
     } = await request.json();
     
     if (!id || !company_name) {
@@ -73,6 +74,7 @@ export async function POST(request) {
           phone = ?,
           website = ?,
           admin_comment = ?,
+          MEMBER_DATE = ?,
           Admin_Submit = ?,
           admin_id = ?,
           admin_name = ?,
@@ -90,6 +92,7 @@ export async function POST(request) {
           phone || '',
           website || '',
           admin_comment || '',
+          MEMBER_DATE || null,
           status === 'approved' ? 1 : 0,
           admin.id,
           admin.username, // ใช้ username ของ admin เนื่องจากอาจไม่มี name
@@ -111,6 +114,7 @@ export async function POST(request) {
           phone = ?,
           website = ?,
           admin_comment = ?,
+          MEMBER_DATE = ?,
           updated_at = NOW()
         WHERE id = ?`,
         [
@@ -125,6 +129,7 @@ export async function POST(request) {
           phone || '',
           website || '',
           admin_comment || '',
+          MEMBER_DATE || null,
           id
         ]
       );

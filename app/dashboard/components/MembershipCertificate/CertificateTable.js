@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { FaPrint, FaInfoCircle, FaDesktop, FaDownload } from 'react-icons/fa';
-import { handlePrintCertificate, handleDownloadCertificate } from './utils';
+import { FaInfoCircle, FaDesktop, FaDownload } from 'react-icons/fa';
+import { handleDownloadCertificate } from './utils';
 
 const CertificateTable = ({ 
   currentItems, 
@@ -59,8 +59,7 @@ const CertificateTable = ({
           <div>
             <h3 className="font-semibold text-sm">หมายเหตุการใช้งาน</h3>
             <p className="text-blue-100 text-sm mt-1">
-              คลิกปุ่ม <FaPrint className="inline mx-1" /> เพื่อพิมพ์เอกสาร หรือ
-              <FaDownload className="inline mx-1" /> เพื่อดาวน์โหลดเอกสาร
+              คลิกปุ่ม <FaDownload className="inline mx-1" /> เพื่อดาวน์โหลดเอกสารเท่านั้น (ปิดการพิมพ์)
             </p>
           </div>
         </div>
@@ -110,13 +109,6 @@ const CertificateTable = ({
                     <td className="py-4 px-6 text-center">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handlePrintCertificate('thai', member, memberData)}
-                          className="flex items-center justify-center p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                          title="พิมพ์"
-                        >
-                          <FaPrint />
-                        </button>
-                        <button
                           onClick={() => handleDownloadCertificate('thai', member, memberData)}
                           className="flex items-center justify-center p-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                           title="ดาวน์โหลด"
@@ -127,13 +119,6 @@ const CertificateTable = ({
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex space-x-2">
-                        <button
-                          onClick={() => handlePrintCertificate('english', member, memberData)}
-                          className="flex items-center justify-center p-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
-                          title="พิมพ์"
-                        >
-                          <FaPrint />
-                        </button>
                         <button
                           onClick={() => handleDownloadCertificate('english', member, memberData)}
                           className="flex items-center justify-center p-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
