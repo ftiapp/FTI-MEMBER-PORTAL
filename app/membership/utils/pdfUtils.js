@@ -484,6 +484,24 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
       ? provincialChapterNames.length - MAX_CHAPTERS_DISPLAY
       : 0;
     
+    // Prepare applicant account info (users table fields if present)
+    const applicantAccount = (() => {
+      const u = application?.user || application?.account || application?.applicant || application?.createdBy || application?.created_by || application?.createdUser || null;
+      if (u && typeof u === 'object') return u;
+      // Fallback to flat fields possibly present on application
+      return {
+        id: application?.userId || application?.user_id || application?.created_by_id || application?.createdById,
+        firstname: application?.userFirstName || application?.firstname || application?.first_name || application?.firstName,
+        lastname: application?.userLastName || application?.lastname || application?.last_name || application?.lastName,
+        email: application?.userEmail || application?.email,
+        phone: application?.userPhone || application?.phone,
+      };
+    })();
+    const applicantFullName = [
+      applicantAccount?.firstname || applicantAccount?.first_name || applicantAccount?.firstName || '',
+      applicantAccount?.lastname || applicantAccount?.last_name || applicantAccount?.lastName || ''
+    ].join(' ').trim();
+
     // Preload signature image as data URL if possible (for Cloudinary or other origins)
     // Log document info for debugging signature rendering
     console.debug('[PDF] authorizedSignature doc:', data.authorizedSignature);
@@ -515,9 +533,9 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
     const styles = `
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Sarabun', sans-serif; font-size: 11px; line-height: 1.3; padding: 6px; }
-      .logo-wrap { text-align: center; margin-bottom: 2px; display: flex; justify-content: center; }
-      .logo-wrap img { height: 28px; object-fit: contain; display: block; margin: 0 auto; }
-      .header { text-align: center; font-size: 11.5px; font-weight: bold; margin-bottom: 2px; padding-bottom: 1px; border-bottom: 1px solid #333; }
+      .logo-wrap { text-align: center; margin-bottom: 0px; display: flex; justify-content: center; }
+      .logo-wrap img { height: 42px; object-fit: contain; display: block; margin: 0 auto; }
+      .header { text-align: center; font-size: 11.5px; font-weight: bold; margin-top: -10px; margin-bottom: 0px; padding-bottom: 4px; border-bottom: 1px solid #333; line-height: 2.5; }
       .section { border: 1px solid #ddd; margin-bottom: 4px; padding: 5px; }
       .section-title { font-weight: bold; font-size: 10px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
       .field { margin-bottom: 2px; font-size: 10px; }
@@ -529,11 +547,11 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
       .rep-box { border: 1px solid #e0e0e0; padding: 5px; background: #fafafa; }
       .rep-title { font-weight: bold; font-size: 9.5px; color: #0066cc; margin-bottom: 2px; }
       .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 9.5px; margin: 1px; }
-      .signature-area { display: flex; gap: 16px; margin-top: 8px; }
-      .signature-box { flex: 1; border: 1px solid #ddd; padding: 12px; text-align: center; min-width: 140px; }
-      .signature-img { border: 1px dashed #999; height: 55px; width: 110px; margin: 8px auto; display: flex; align-items: center; justify-content: center; }
-      .stamp-box { border: 1px solid #ddd; padding: 12px; text-align: center; min-width: 140px; }
-      .stamp-img { border: 1px dashed #999; width: 110px; height: 55px; margin: 8px auto; display: flex; align-items: center; justify-content: center; }
+      .signature-area { display: flex; gap: 12px; margin-top: 6px; }
+      .signature-box { flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; min-width: 130px; }
+      .signature-img { border: 1px dashed #999; height: 50px; width: 100px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
+      .stamp-box { border: 1px solid #ddd; padding: 10px; text-align: center; min-width: 130px; }
+      .stamp-img { border: 1px dashed #999; width: 100px; height: 50px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
       .footer { text-align: center; font-size: 8.5px; color: #999; margin-top: 8px; }
       .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
       .list-2col .span-all { grid-column: 1 / -1; }
@@ -749,6 +767,14 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         })()}
         
         
+        ${section('ข้อมูลบัญชีผู้สมัคร', `
+          <div class="row">
+            <div class="col">${field('ชื่อ-นามสกุล', applicantFullName || '-')}</div>
+            <div class="col">${field('อีเมล', applicantAccount?.email || '-')}</div>
+            <div class="col">${field('โทรศัพท์', applicantAccount?.phone || '-')}</div>
+          </div>
+        `)}
+
         ${(['oc','ac','am'].includes(type)) ? `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <div style="display: flex; gap: 20px; font-size: 12px;">

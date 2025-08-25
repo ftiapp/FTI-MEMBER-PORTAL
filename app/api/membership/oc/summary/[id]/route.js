@@ -167,6 +167,17 @@ export async function GET(request, { params }) {
       }
     };
 
+    // Fetch applicant user via user_id (for PDF applicant info)
+    let applicantUser = null;
+    if (ocData?.user_id) {
+      const userRows = await query(
+        'SELECT id, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1',
+        [ocData.user_id]
+      );
+      const normalized = Array.isArray(userRows) ? userRows : (userRows ? [userRows] : []);
+      applicantUser = normalized?.[0] || null;
+    }
+
     const relatedData = await fetchRelatedData();
 
     // ✅ Process industry groups - ใช้ industry_group_name จากตารางโดยตรง
@@ -378,6 +389,21 @@ export async function GET(request, { params }) {
       createdAt: ocData.created_at,
       updatedAt: ocData.updated_at
     };
+
+    // Add applicant account info for PDF
+    response.userId = ocData.user_id || null;
+    response.user = applicantUser ? {
+      id: applicantUser.id,
+      firstname: applicantUser.firstname,
+      lastname: applicantUser.lastname,
+      email: applicantUser.email,
+      phone: applicantUser.phone
+    } : null;
+    // Flat fallbacks
+    response.firstname = applicantUser?.firstname || null;
+    response.lastname = applicantUser?.lastname || null;
+    response.email = applicantUser?.email || response.email || null;
+    response.phone = applicantUser?.phone || response.phone || null;
 
     console.log('=== OC API Debug ===');
     console.log('Factory Type:', response.factoryType);

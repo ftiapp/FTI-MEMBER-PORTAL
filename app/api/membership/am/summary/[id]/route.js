@@ -38,6 +38,16 @@ export async function GET(request, { params }) {
 
     const amData = mainResult[0];
 
+    // Fetch applicant user account via user_id
+    let applicantUser = null;
+    if (amData?.user_id) {
+      const userRows = await query(
+        'SELECT id, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1',
+        [amData.user_id]
+      );
+      applicantUser = userRows?.[0] || null;
+    }
+
     // Fetch all addresses (multi-address support)
     const addressResult = await query(
       'SELECT * FROM MemberRegist_AM_Address WHERE main_id = ? ORDER BY address_type',
@@ -149,6 +159,7 @@ export async function GET(request, { params }) {
     // Transform data to match the format expected by the frontend
     const transformedData = {
       id: amData.id,
+      userId: amData.user_id || null,
       memberCode: amData.member_code,
       associationName: amData.company_name_th,
       associationNameEng: amData.company_name_en,
@@ -279,6 +290,20 @@ export async function GET(request, { params }) {
       shareholder_thai_percent: amData.shareholder_thai_percent || '',
       shareholderForeignPercent: amData.shareholder_foreign_percent || '',
       shareholder_foreign_percent: amData.shareholder_foreign_percent || '',
+      
+      // Applicant account (for PDF section: ข้อมูลบัญชีผู้สมัคร)
+      user: applicantUser ? {
+        id: applicantUser.id,
+        firstname: applicantUser.firstname,
+        lastname: applicantUser.lastname,
+        email: applicantUser.email,
+        phone: applicantUser.phone
+      } : null,
+      // Flat fallbacks so frontend/PDF can read even if not using nested user
+      firstname: applicantUser?.firstname || null,
+      lastname: applicantUser?.lastname || null,
+      email: applicantUser?.email || null,
+      phone: applicantUser?.phone || null,
       
       // ✅ Industry Groups / Province Chapters
       // Keep arrays of IDs for backward compatibility

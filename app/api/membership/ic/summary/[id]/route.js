@@ -35,6 +35,16 @@ export async function GET(request, { params }) {
 
     const mainData = mainResult[0];
 
+    // Fetch applicant user via user_id (for PDF applicant info)
+    let applicantUser = null;
+    if (mainData?.user_id) {
+      const userRows = await query(
+        'SELECT id, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1',
+        [mainData.user_id]
+      );
+      applicantUser = userRows?.[0] || null;
+    }
+
     // ดึงข้อมูลที่อยู่ทั้งหมด (multi-address support)
     const addressQuery = `
       SELECT * FROM MemberRegist_IC_Address 
@@ -166,6 +176,7 @@ export async function GET(request, { params }) {
     // สร้างข้อมูลที่จะส่งกลับ
     const applicationData = {
       // ข้อมูลหลักของผู้สมัคร
+      userId: mainData.user_id || null,
       idCardNumber: mainData.id_card_number,
       firstNameTh: mainData.first_name_th,
       lastNameTh: mainData.last_name_th,
@@ -180,6 +191,15 @@ export async function GET(request, { params }) {
       status: mainData.status,
       createdAt: mainData.created_at,
       updatedAt: mainData.updated_at,
+
+      // Applicant account (nested)
+      user: applicantUser ? {
+        id: applicantUser.id,
+        firstname: applicantUser.firstname,
+        lastname: applicantUser.lastname,
+        email: applicantUser.email,
+        phone: applicantUser.phone
+      } : null,
 
       // Multi-address data
       addresses: addressesFormatted,

@@ -31,6 +31,16 @@ export async function GET(request, { params }) {
     
     const acData = mainQuery?.[0];
 
+    // Fetch applicant user account via user_id (for PDF applicant info)
+    let applicantUser = null;
+    if (acData?.user_id) {
+      const userRows = await query(
+        'SELECT id, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1',
+        [acData.user_id]
+      );
+      applicantUser = userRows?.[0] || null;
+    }
+
     if (!acData || !acData.id) {
       return NextResponse.json({ 
         success: false,
@@ -159,6 +169,7 @@ export async function GET(request, { params }) {
     // Transform data to match the format expected by the frontend
     const transformedData = {
       id: acData.id,
+      userId: acData.user_id || null,
       memberCode: acData.member_code,
       companyName: acData.company_name_th, // แก้ไขให้ตรงกับ column จริง
       companyNameEn: acData.company_name_en,
@@ -279,6 +290,15 @@ export async function GET(request, { params }) {
         fileType: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.mime_type,
         fileSize: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.file_size,
         cloudinaryId: documentsRows.find(doc => doc.document_type === 'companyRegistration')?.cloudinary_id
+      } : null,
+      
+      // Applicant account (nested, for PDF section ข้อมูลบัญชีผู้สมัคร)
+      user: applicantUser ? {
+        id: applicantUser.id,
+        firstname: applicantUser.firstname,
+        lastname: applicantUser.lastname,
+        email: applicantUser.email,
+        phone: applicantUser.phone
       } : null,
       
       // Company stamp document (new required document)

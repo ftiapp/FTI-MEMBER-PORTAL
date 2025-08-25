@@ -601,6 +601,15 @@ export async function GET(request, { params }) {
     const mainData = result[0];
     const convertedMainData = convertFieldNames(mainData, type);
     
+    // Normalize field names for frontend expectations
+    // Ensure contactPersons (plural) is always present for UI components
+    if (Array.isArray(additionalData.contactPerson)) {
+      additionalData.contactPersons = additionalData.contactPerson;
+      delete additionalData.contactPerson;
+    } else if (!Array.isArray(additionalData.contactPersons)) {
+      additionalData.contactPersons = [];
+    }
+    
     // Combine main data with additional data
     const membershipData = {
       ...convertedMainData,
