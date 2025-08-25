@@ -161,6 +161,18 @@ const Section = ({ title, children, className }) => (
 );
 
 export default function SummarySection({ formData, industrialGroups, provincialChapters }) {
+  
+  // 🔥 Debug logging
+  console.log('🔍 SummarySection Debug:', {
+    formDataKeys: Object.keys(formData || {}),
+    industrialGroupsCount: industrialGroups?.length || 0,
+    provincialChaptersCount: provincialChapters?.length || 0,
+    selectedIndustrialGroups: formData?.industrialGroups,
+    selectedProvincialCouncils: formData?.provincialCouncils,
+    selectedProvincialChapters: formData?.provincialChapters,
+    industrialGroupsData: industrialGroups,
+    provincialChaptersData: provincialChapters
+  });
 
   // Helper functions
   const getFileName = (file) => {
@@ -205,10 +217,16 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     return types;
   };
 
-  // ฟังก์ชันสำหรับแสดงกลุ่มอุตสาหกรรมที่เลือก (เหมือน AC)
+  // ✅ FIXED: ฟังก์ชันสำหรับแสดงกลุ่มอุตสาหกรรมที่เลือก
   const getSelectedIndustrialGroupsArray = () => {
-    // รองรับทั้งรูปแบบเก่า (industrialGroups) และใหม่ (industrialGroupIds)
-    const groupIds = formData.industrialGroups || formData.industrialGroupIds || [];
+    // รองรับหลายรูปแบบของ key names
+    const groupIds = formData.industrialGroups || 
+                    formData.industrialGroupIds || 
+                    formData.industryGroups || 
+                    [];
+    
+    console.log('🔍 Industrial Groups - Group IDs:', groupIds);
+    console.log('🔍 Industrial Groups - Available lookup:', industrialGroups);
     
     if (!groupIds || groupIds.length === 0) {
       return [];
@@ -216,15 +234,24 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     
     return groupIds.map(groupId => {
       // ค้นหาชื่อกลุ่มอุตสาหกรรมจาก industrialGroups prop
-      const group = industrialGroups.find(g => String(g.id) === String(groupId));
-      return group ? group.name_th : `กลุ่มอุตสาหกรรม ${groupId}`;
+      const group = industrialGroups?.find(g => String(g.id) === String(groupId));
+      const name = group ? group.name_th : `กลุ่มอุตสาหกรรม ${groupId}`;
+      console.log(`🔍 Industrial Group mapping: ${groupId} -> ${name}`);
+      return name;
     });
   };
 
-  // ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัดที่เลือก (เหมือน AC)
+  // ✅ FIXED: ฟังก์ชันสำหรับแสดงสภาอุตสาหกรรมจังหวัดที่เลือก  
   const getSelectedProvincialChaptersArray = () => {
-    // รองรับทั้งรูปแบบเก่า (provincialCouncils) และใหม่ (provincialChapterIds) และ API (provincialChapters)
-    const chapterIds = formData.provincialCouncils || formData.provincialChapterIds || formData.provincialChapters || [];
+    // รองรับหลายรูปแบบของ key names
+    const chapterIds = formData.provincialCouncils || 
+                      formData.provincialChapterIds || 
+                      formData.provincialChapters || 
+                      formData.provinceChapters ||
+                      [];
+    
+    console.log('🔍 Provincial Chapters - Chapter IDs:', chapterIds);
+    console.log('🔍 Provincial Chapters - Available lookup:', provincialChapters);
     
     if (!chapterIds || chapterIds.length === 0) {
       return [];
@@ -232,8 +259,10 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     
     return chapterIds.map(chapterId => {
       // ค้นหาชื่อสภาอุตสาหกรรมจังหวัดจาก provincialChapters prop
-      const chapter = provincialChapters.find(c => String(c.id) === String(chapterId));
-      return chapter ? chapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapterId}`;
+      const chapter = provincialChapters?.find(c => String(c.id) === String(chapterId));
+      const name = chapter ? chapter.name_th : `สภาอุตสาหกรรมจังหวัด ${chapterId}`;
+      console.log(`🔍 Provincial Chapter mapping: ${chapterId} -> ${name}`);
+      return name;
     });
   };
 
@@ -498,10 +527,12 @@ export default function SummarySection({ formData, industrialGroups, provincialC
             title="จำนวนสมาชิกสมาคม" 
             value={formData.memberCount || formData.number_of_member ? formatNumber(formData.memberCount || formData.number_of_member) : '-'} 
           />
+        </div>
+        
+        {/* แยก Industrial Groups และ Provincial Chapters ออกมาเป็นแถวแยก */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-4">
           <ListCard title="กลุ่มอุตสาหกรรม" items={getSelectedIndustrialGroupsArray()} />
-          <div className="md:col-span-2">
-            <ListCard title="สภาอุตสาหกรรมจังหวัด" items={getSelectedProvincialChaptersArray()} />
-          </div>
+          <ListCard title="สภาอุตสาหกรรมจังหวัด" items={getSelectedProvincialChaptersArray()} />
         </div>
       </Section>
 

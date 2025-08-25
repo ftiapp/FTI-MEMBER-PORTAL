@@ -501,6 +501,24 @@ export async function POST(request) {
         const email = cp.email ?? null;
         const phone = cp.phone ?? null;
         const phoneExtension = cp.phoneExtension ?? cp.phone_extension ?? null;
+        const typeContactId = cp.typeContactId ?? cp.type_contact_id ?? null;
+        let typeContactName = cp.typeContactName ?? cp.type_contact_name ?? null;
+        const typeContactOtherDetail = cp.typeContactOtherDetail ?? cp.type_contact_other_detail ?? null;
+
+        // If we have typeContactId but no name, try to resolve from lookup table
+        if (typeContactId && !typeContactName) {
+          try {
+            const rows = await query(
+              'SELECT type_name_th FROM MemberRegist_ContactPerson_TYPE WHERE id = ? AND is_active = 1',
+              [typeContactId]
+            );
+            if (rows && rows.length > 0) {
+              typeContactName = rows[0].type_name_th || typeContactName;
+            }
+          } catch (e) {
+            console.warn('⚠️ [AM Membership Submit] contact person TYPE lookup failed, proceeding with provided data');
+          }
+        }
 
         // Minimal validation for NOT NULL columns in DB (th names, email, phone)
         if (!firstNameTh || !lastNameTh || !email || !phone) {
@@ -517,8 +535,8 @@ export async function POST(request) {
           trx,
           `INSERT INTO MemberRegist_AM_ContactPerson (
             main_id, first_name_th, last_name_th, first_name_en, last_name_en,
-            position, email, phone, phone_extension, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+            position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             mainId,
             firstNameTh,
@@ -528,7 +546,10 @@ export async function POST(request) {
             toNull(position),
             email,
             phone,
-            toNull(phoneExtension)
+            toNull(phoneExtension),
+            toNull(typeContactId),
+            toNull(typeContactName),
+            toNull(typeContactOtherDetail)
           ]
         );
       }

@@ -574,7 +574,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             </div>
             <div class="row">
               <div class="col">${field('เลขทะเบียน', data.taxId)}</div>
-              ${type === 'am' ? `<div class="col">${field('สมาชิก', `${data.numberOfMember || '-'} คน`)}</div>` : '<div class="col"></div>'}
+              <div class="col"></div>
               <div class="col"></div>
             </div>
           `)
@@ -626,16 +626,19 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           `)
         }
         
-        ${data.contactPersons?.find(cp => cp.typeContactId === 1) ? (() => {
-          const mainContact = data.contactPersons.find(cp => cp.typeContactId === 1);
+        ${data.contactPersons?.length ? (() => {
+          const isMain = (cp) => cp?.isMain === true
+            || cp?.typeContactId === 1 || cp?.type_contact_id === 1
+            || /หลัก|main/i.test(cp?.typeContactName || cp?.type_contact_name || '');
+          const mainContact = data.contactPersons.find(isMain) || data.contactPersons[0];
           return section('ข้อมูลผู้ประสานงาน', `
             <div class="row">
-              <div class="col">${field('ชื่อ (ไทย)', `${mainContact.firstNameTh || ''} ${mainContact.lastNameTh || ''}`)}</div>
-              <div class="col">${field('ชื่อ (อังกฤษ)', `${mainContact.firstNameEn || ''} ${mainContact.lastNameEn || ''}`)}</div>
+              <div class="col">${field('ชื่อ (ไทย)', `${mainContact.firstNameTh || mainContact.first_name_th || ''} ${mainContact.lastNameTh || mainContact.last_name_th || ''}`)}</div>
+              <div class="col">${field('ชื่อ (อังกฤษ)', `${mainContact.firstNameEn || mainContact.first_name_en || ''} ${mainContact.lastNameEn || mainContact.last_name_en || ''}`)}</div>
               <div class="col">${field('ตำแหน่ง', mainContact.position || '')}</div>
             </div>
             <div class="row">
-              <div class="col">${field('โทรศัพท์', mainContact.phone ? `${mainContact.phone}${mainContact.phoneExtension ? ` ต่อ ${mainContact.phoneExtension}` : ''}` : '')}</div>
+              <div class="col">${field('โทรศัพท์', mainContact.phone ? `${mainContact.phone}${(mainContact.phoneExtension || mainContact.phone_extension) ? ` ต่อ ${(mainContact.phoneExtension || mainContact.phone_extension)}` : ''}` : '')}</div>
               <div class="col">${field('อีเมล', mainContact.email || '')}</div>
               <div class="col"></div>
             </div>
@@ -677,9 +680,10 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 </div>
               </div>
               ${type !== 'ic' ? `
-                <div class="row">
-                  <div class="col">${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}</div>
-                  ${type === 'oc' ? `<div class="col">${field('ประเภทโรงงาน', data.factoryType === 'TYPE1' ? '> 50 แรงม้า' : '< 50 แรงม้า')}</div>` : '<div class="col"></div>'}
+                <div class=\"row\">
+                  ${type === 'am'
+                    ? `<div class=\"col\">${field('สมาชิกสมาคม', `${data.numberOfMember || '-'} คน`)}</div><div class=\"col\">${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}</div>`
+                    : `<div class=\"col\">${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}</div>${type === 'oc' ? `<div class=\"col\">${field('ประเภทโรงงาน', data.factoryType === 'TYPE1' ? '> 50 แรงม้า' : '< 50 แรงม้า')}</div>` : '<div class=\"col\"></div>'}`}
                 </div>
               ` : ''}
             </div>
@@ -711,22 +715,39 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         `) : ''}
         
 
-        ${((industrialGroupNames?.length || provincialChapterNames?.length)) ? section('กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด', `
-          <div class="row">
-            <div class="col">
-              <strong>กลุ่มอุตสาหกรรม:</strong><br>
-              ${displayIndustryGroups?.length ? 
-                `<div class=\"list-2col\">${displayIndustryGroups.map(name => `<div>• ${name}</div>`).join('')}${extraIndustryGroups > 0 ? `<div class=\"span-all\" style=\"font-size: 9.5px; color: #666;\">... และอีก ${extraIndustryGroups} รายการ</div>` : ''}</div>` : 
-                'ไม่ระบุ'}
+        ${(() => {
+          // Ensure fallback names from IDs if names are still empty
+          let igNames = industrialGroupNames && industrialGroupNames.length ? industrialGroupNames : null;
+          let pcNames = provincialChapterNames && provincialChapterNames.length ? provincialChapterNames : null;
+          if (!igNames && Array.isArray(data.industrialGroupIds) && data.industrialGroupIds.length) {
+            igNames = data.industrialGroupIds.map(id => `กลุ่มอุตสาหกรรม ${id}`);
+          }
+          if (!pcNames && Array.isArray(data.provincialChapterIds) && data.provincialChapterIds.length) {
+            pcNames = data.provincialChapterIds.map(id => `สภาอุตสาหกรรมจังหวัด ${id}`);
+          }
+          if (!(igNames?.length || pcNames?.length)) return '';
+          const dispIG = Array.isArray(igNames) ? igNames.slice(0, MAX_GROUPS_DISPLAY) : [];
+          const dispPC = Array.isArray(pcNames) ? pcNames.slice(0, MAX_CHAPTERS_DISPLAY) : [];
+          const extraIG = igNames.length > MAX_GROUPS_DISPLAY ? igNames.length - MAX_GROUPS_DISPLAY : 0;
+          const extraPC = pcNames.length > MAX_CHAPTERS_DISPLAY ? pcNames.length - MAX_CHAPTERS_DISPLAY : 0;
+          return section('กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด', `
+            <div class="row">
+              <div class="col">
+                <strong>กลุ่มอุตสาหกรรม:</strong><br>
+                ${dispIG.length ? 
+                  `<div class=\"list-2col\">${dispIG.map(name => `<div>• ${name}</div>`).join('')}${extraIG > 0 ? `<div class=\"span-all\" style=\"font-size: 9.5px; color: #666;\">... และอีก ${extraIG} รายการ</div>` : ''}</div>` : 
+                  'ไม่ระบุ'}
+              </div>
+              <div class="col">
+                <strong>สภาอุตสาหกรรมจังหวัด:</strong><br>
+                ${dispPC.length ? 
+                  `<div class=\"list-2col\">${dispPC.map(name => `<div>• ${name}</div>`).join('')}${extraPC > 0 ? `<div class=\"span-all\" style=\"font-size: 9.5px; color: #666;\">... และอีก ${extraPC} รายการ</div>` : ''}</div>` : 
+                  '• สภาอุตสาหกรรมแห่งประเทศไทย'}
+              </div>
             </div>
-            <div class="col">
-              <strong>สภาอุตสาหกรรมจังหวัด:</strong><br>
-              ${displayProvincialChapters?.length ? 
-                `<div class=\"list-2col\">${displayProvincialChapters.map(name => `<div>• ${name}</div>`).join('')}${extraProvincialChapters > 0 ? `<div class=\"span-all\" style=\"font-size: 9.5px; color: #666;\">... และอีก ${extraProvincialChapters} รายการ</div>` : ''}</div>` : 
-                '• สภาอุตสาหกรรมแห่งประเทศไทย'}
-            </div>
-          </div>
-        `) : ''}
+          `);
+        })()}
+        
         
         ${(['oc','ac','am'].includes(type)) ? `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
@@ -803,7 +824,12 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
 
 // Download helper function
 export const downloadMembershipPDF = async (application, type) => {
-  const result = await generateMembershipPDF(application, type);
+  // Allow calling with API response shape: { success, data, industrialGroups, provincialChapters }
+  const appData = application?.data ? application.data : application;
+  const lookupIndustrialGroups = application?.industrialGroups || application?.lookupIndustrialGroups || [];
+  const lookupProvincialChapters = application?.provincialChapters || application?.lookupProvincialChapters || [];
+
+  const result = await generateMembershipPDF(appData, type, lookupIndustrialGroups, lookupProvincialChapters);
   if (!result.success) {
     throw new Error(result.error || 'เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
   }

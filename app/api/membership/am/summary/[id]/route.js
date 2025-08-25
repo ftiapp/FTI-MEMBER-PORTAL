@@ -97,17 +97,22 @@ export async function GET(request, { params }) {
       [id]
     );
 
-    // ✅ Process industry groups - เตรียมข้อมูลสำหรับ lookup
-    const industryGroupsWithNames = (industryGroupsResult || []).map(ig => ({
+    // 🔥 FIXED: ใช้ข้อมูลจากตารางย่อยที่มีอยู่แล้ว แทนการ fetch จาก master tables ที่ไม่มี
+    // สร้าง lookup data จากข้อมูลที่มีอยู่ในตารางย่อย
+    const allIndustrialGroupsResult = (industryGroupsResult || []).map(ig => ({
       id: ig.industry_group_id,
-      name_th: ig.industry_group_name || ig.industry_group_id
+      name_th: ig.industry_group_name || `กลุ่มอุตสาหกรรม ${ig.industry_group_id}`
     }));
 
-    // Process province chapters
-    const provinceChaptersWithNames = (provinceChaptersResult || []).map(pc => ({
+    const allProvincialChaptersResult = (provinceChaptersResult || []).map(pc => ({
       id: pc.province_chapter_id,
-      name_th: pc.province_chapter_name || pc.province_chapter_id
+      name_th: pc.province_chapter_name || `สภาอุตสาหกรรมจังหวัด ${pc.province_chapter_id}`
     }));
+
+    console.log('🔍 Debug - Industry groups from DB:', industryGroupsResult);
+    console.log('🔍 Debug - Province chapters from DB:', provinceChaptersResult);
+    console.log('🔍 Debug - Generated industrial groups lookup:', allIndustrialGroupsResult);
+    console.log('🔍 Debug - Generated provincial chapters lookup:', allProvincialChaptersResult);
 
     // Process addresses into multi-address format
     const addressesFormatted = {};
@@ -115,6 +120,7 @@ export async function GET(request, { params }) {
       const addressType = addr.address_type || '2'; // Default to type 2 if not specified
       addressesFormatted[addressType] = {
         addressType: addressType,
+        address_number: addr.address_number || '',
         addressNumber: addr.address_number || '',
         building: addr.building || '',
         moo: addr.moo || '',
@@ -122,11 +128,14 @@ export async function GET(request, { params }) {
         // Keep both keys to match OC and ensure compatibility
         street: addr.street || '',
         road: addr.street || '',
+        sub_district: addr.sub_district || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
         province: addr.province || '',
+        postal_code: addr.postal_code || '',
         postalCode: addr.postal_code || '',
         phone: addr.phone || '',
+        phone_extension: addr.phone_extension || '',
         phoneExtension: addr.phone_extension || '',
         email: addr.email || '',
         website: addr.website || ''
@@ -143,13 +152,18 @@ export async function GET(request, { params }) {
       memberCode: amData.member_code,
       associationName: amData.company_name_th,
       associationNameEng: amData.company_name_en,
+      associationNameEn: amData.company_name_en, // Alternative key
+      company_name_th: amData.company_name_th, // DB key
+      company_name_en: amData.company_name_en, // DB key
       associationRegistrationNumber: amData.association_registration_number,
       associationEmail: amData.company_email || mainAddress?.email || '',
       associationPhone: amData.company_phone || mainAddress?.phone || '',
       associationPhoneExtension: amData.company_phone_extension || '',
       associationWebsite: mainAddress?.website || '',
+      website: mainAddress?.website || '', // Alternative key
       // Tax ID
       taxId: amData.tax_id || '',
+      tax_id: amData.tax_id || '', // DB key
       // Employee/Member counts (map to both camelCase and snake_case expected by SummarySection)
       numberOfEmployees: amData.number_of_employees ?? null,
       number_of_employees: amData.number_of_employees ?? null,
@@ -164,19 +178,26 @@ export async function GET(request, { params }) {
       
       // Legacy single address fields (for backward compatibility)
       addressNumber: mainAddress?.address_number || '',
+      address_number: mainAddress?.address_number || '', // DB key
       moo: mainAddress?.moo || '',
       soi: mainAddress?.soi || '',
       // Provide both street and road for compatibility with OC components
       street: mainAddress?.street || '',
       road: mainAddress?.street || '',
       subDistrict: mainAddress?.sub_district || '',
+      sub_district: mainAddress?.sub_district || '', // DB key
       district: mainAddress?.district || '',
       province: mainAddress?.province || '',
       postalCode: mainAddress?.postal_code || '',
+      postal_code: mainAddress?.postal_code || '', // DB key
       
       // Multiple contact persons
       contactPersons: (contactPersonsResult || []).map((cp, index) => ({
         id: cp.id || index + 1,
+        first_name_th: cp.first_name_th || '',
+        last_name_th: cp.last_name_th || '',
+        first_name_en: cp.first_name_en || '',
+        last_name_en: cp.last_name_en || '',
         firstNameTh: cp.first_name_th || '',
         lastNameTh: cp.last_name_th || '',
         firstNameEn: cp.first_name_en || '',
@@ -184,9 +205,13 @@ export async function GET(request, { params }) {
         position: cp.position || '',
         email: cp.email || '',
         phone: cp.phone || '',
+        phone_extension: cp.phone_extension || '',
         phoneExtension: cp.phone_extension || '',
+        type_contact_id: cp.type_contact_id || null,
         typeContactId: cp.type_contact_id || null,
+        type_contact_name: cp.type_contact_name || '',
         typeContactName: cp.type_contact_name || '',
+        type_contact_other_detail: cp.type_contact_other_detail || '',
         typeContactOtherDetail: cp.type_contact_other_detail || '',
         isMain: cp.type_contact_id === 1 || index === 0
       })),
@@ -202,6 +227,7 @@ export async function GET(request, { params }) {
       
       // Representatives - align keys with SummarySection expectations
       representatives: (representativesResult || []).map(rep => ({
+        id: rep.id,
         // snake_case
         first_name_th: rep.first_name_th,
         last_name_th: rep.last_name_th,
@@ -232,40 +258,63 @@ export async function GET(request, { params }) {
       
       // Products/Services
       products: (productsResult || []).map(product => ({
+        name_th: product.name_th,
         nameTh: product.name_th,
+        name_en: product.name_en,
         nameEn: product.name_en
       })),
       
       // 🔥 เพิ่มข้อมูลทางการเงิน
       registeredCapital: amData.registered_capital || '',
+      registered_capital: amData.registered_capital || '',
       productionCapacityValue: amData.production_capacity_value || '',
+      production_capacity_value: amData.production_capacity_value || '',
       productionCapacityUnit: amData.production_capacity_unit || '',
+      production_capacity_unit: amData.production_capacity_unit || '',
       salesDomestic: amData.sales_domestic || '',
+      sales_domestic: amData.sales_domestic || '',
       salesExport: amData.sales_export || '',
+      sales_export: amData.sales_export || '',
       shareholderThaiPercent: amData.shareholder_thai_percent || '',
+      shareholder_thai_percent: amData.shareholder_thai_percent || '',
       shareholderForeignPercent: amData.shareholder_foreign_percent || '',
+      shareholder_foreign_percent: amData.shareholder_foreign_percent || '',
       
-      // ✅ FIXED: Industry Groups - ส่งเป็น array ของ ID สำหรับ SummarySection ที่จะค้นหาชื่อจาก industrialGroups
+      // ✅ Industry Groups / Province Chapters
+      // Keep arrays of IDs for backward compatibility
       industrialGroups: (industryGroupsResult || []).map(ig => ig.industry_group_id),
-      
-      // ✅ FIXED: Province Chapters - ส่งเป็น array ของ ID สำหรับ SummarySection ที่จะค้นหาชื่อจาก provincialChapters
+      industrialGroupIds: (industryGroupsResult || []).map(ig => ig.industry_group_id), // Alternative key
       provincialCouncils: (provinceChaptersResult || []).map(pc => pc.province_chapter_id),
+      provincialChapterIds: (provinceChaptersResult || []).map(pc => pc.province_chapter_id), // Alternative key
+      provincialChapters: (provinceChaptersResult || []).map(pc => pc.province_chapter_id), // Alternative key for API compatibility
+      // Provide explicit name arrays so UIs/PDF can directly render names
+      industrialGroupNames: (industryGroupsResult || []).map(ig => ig.industry_group_name).filter(Boolean),
+      provincialChapterNames: (provinceChaptersResult || []).map(pc => pc.province_chapter_name).filter(Boolean),
       
       // Documents
       associationCertificate: documentsResult?.find(doc => doc.document_type === 'associationCertificate') ? {
         name: documentsResult.find(doc => doc.document_type === 'associationCertificate')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
-        fileUrl: documentsResult.find(doc => doc.document_type === 'associationCertificate')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'associationCertificate')?.file_path
+        file_name: documentsResult.find(doc => doc.document_type === 'associationCertificate')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsResult.find(doc => doc.document_type === 'associationCertificate')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'associationCertificate')?.file_path,
+        cloudinary_url: documentsResult.find(doc => doc.document_type === 'associationCertificate')?.cloudinary_url,
+        file_path: documentsResult.find(doc => doc.document_type === 'associationCertificate')?.file_path
       } : null,
       
       memberList: documentsResult?.find(doc => doc.document_type === 'memberList') ? {
         name: documentsResult.find(doc => doc.document_type === 'memberList')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
-        fileUrl: documentsResult.find(doc => doc.document_type === 'memberList')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'memberList')?.file_path
+        file_name: documentsResult.find(doc => doc.document_type === 'memberList')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        fileUrl: documentsResult.find(doc => doc.document_type === 'memberList')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'memberList')?.file_path,
+        cloudinary_url: documentsResult.find(doc => doc.document_type === 'memberList')?.cloudinary_url,
+        file_path: documentsResult.find(doc => doc.document_type === 'memberList')?.file_path
       } : null,
       
       // Company stamp document (new required document)
       companyStamp: documentsResult?.find(doc => doc.document_type === 'companyStamp') ? {
         name: documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        file_name: documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
         fileUrl: documentsResult.find(doc => doc.document_type === 'companyStamp')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_path,
+        cloudinary_url: documentsResult.find(doc => doc.document_type === 'companyStamp')?.cloudinary_url,
+        file_path: documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_path,
         fileType: documentsResult.find(doc => doc.document_type === 'companyStamp')?.mime_type,
         fileSize: documentsResult.find(doc => doc.document_type === 'companyStamp')?.file_size,
         cloudinaryId: documentsResult.find(doc => doc.document_type === 'companyStamp')?.cloudinary_id
@@ -274,21 +323,31 @@ export async function GET(request, { params }) {
       // Authorized signature document (new required document)
       authorizedSignature: documentsResult?.find(doc => doc.document_type === 'authorizedSignature') ? {
         name: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
+        file_name: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_name || 'ไฟล์ถูกอัปโหลดแล้ว',
         fileUrl: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_url || documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_path,
+        cloudinary_url: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_url,
+        file_path: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_path,
         fileType: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.mime_type,
         fileSize: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.file_size,
         cloudinaryId: documentsResult.find(doc => doc.document_type === 'authorizedSignature')?.cloudinary_id
       } : null
     };
 
-    // ✅ FIXED: ส่งข้อมูลรวมทั้ง lookup data
+    // ✅ FIXED: ส่งข้อมูลรวมทั้ง lookup data จาก master tables
     const responseData = {
       success: true, 
       data: transformedData,
-      // ส่งข้อมูล lookup สำหรับ SummarySection ใช้ค้นหาชื่อ
-      industrialGroups: industryGroupsWithNames,
-      provincialChapters: provinceChaptersWithNames
+      // ส่งข้อมูล lookup ทั้งหมดจาก master tables สำหรับ SummarySection ใช้ค้นหาชื่อ
+      industrialGroups: allIndustrialGroupsResult || [],
+      provincialChapters: allProvincialChaptersResult || []
     };
+
+    console.log('🚀 Final Response Data:', {
+      selectedIndustrialGroups: transformedData.industrialGroups,
+      selectedProvincialChapters: transformedData.provincialCouncils,
+      lookupIndustrialGroups: allIndustrialGroupsResult?.length || 0,
+      lookupProvincialChapters: allProvincialChaptersResult?.length || 0
+    });
 
     return NextResponse.json(responseData);
 
