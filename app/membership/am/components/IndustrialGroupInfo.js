@@ -169,7 +169,7 @@ export default function IndustrialGroupInfo({
               <div className="relative z-50">
                 <MultiSelectDropdown
                   options={industrialGroups}
-                  selectedIds={getSafeSelectedIds(formData.industrialGroups)}
+                  selectedValues={getSafeSelectedIds(formData.industrialGroups)}
                   onChange={handleIndustrialGroupChange}
                   placeholder="-- เลือกกลุ่มอุตสาหกรรม --"
                   isLoading={isLoading}
@@ -194,7 +194,7 @@ export default function IndustrialGroupInfo({
               <div className="relative z-40">
                 <MultiSelectDropdown
                   options={provincialCouncils}
-                  selectedIds={getSafeSelectedIds(formData.provincialCouncils)}
+                  selectedValues={getSafeSelectedIds(formData.provincialCouncils)}
                   onChange={handleProvincialCouncilChange}
                   placeholder="-- เลือกสภาอุตสาหกรรมจังหวัด --"
                   isLoading={isLoading}

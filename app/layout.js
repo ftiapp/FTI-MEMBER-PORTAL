@@ -37,10 +37,10 @@ export const metadata = {
   },
   icons: {
     icon: [
-      // Primary favicon (requested PNG logo)
+      // Primary favicon (FTI WebP logo)
       {
-        url: '/FTI-MasterLogo_RGB_forLightBG.png',
-        type: 'image/png',
+        url: '/images/Logo_FTI.webp',
+        type: 'image/webp',
       },
       // Fallbacks
       {

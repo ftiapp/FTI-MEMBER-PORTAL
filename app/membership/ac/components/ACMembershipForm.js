@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import MembershipSuccessModal from '@/app/components/MembershipSuccessModal';
 
 // Import components
 import CompanyInfoSection from './CompanyInfoSection';
@@ -178,6 +179,8 @@ export default function ACMembershipForm({
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
   
   // Determine which form data and setters to use
   const isExternal = externalFormData !== undefined;
@@ -474,16 +477,12 @@ export default function ACMembershipForm({
   
         if (result.success) {
           console.log('✅ Submission successful');
-          toast.success(result.message || 'ดำเนินการเรียบร้อยแล้ว');
-          
           if (!rejectionId) {
             await deleteDraft(formData.taxId);
           }
-          
-          // เพิ่ม delay เล็กน้อยก่อน redirect
-          setTimeout(() => {
-            router.push('/dashboard?tab=status');
-          }, 1500);
+          // แสดง Success Modal แทนการ redirect ทันที
+          setSubmissionResult(result);
+          setShowSuccessModal(true);
         } else {
           console.log('❌ Submission failed:', result.message);
           toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
@@ -600,15 +599,12 @@ export default function ACMembershipForm({
   
       if (result.success) {
         console.log('✅ Final submission successful');
-        toast.success(result.message || 'ดำเนินการเรียบร้อยแล้ว');
-        
         if (!rejectionId) {
           await deleteDraft(formData.taxId);
         }
-        
-        setTimeout(() => {
-          router.push('/dashboard?tab=status');
-        }, 1500);
+        // แสดง Success Modal แทนการ redirect ทันที
+        setSubmissionResult(result);
+        setShowSuccessModal(true);
       } else {
         console.log('❌ Final submission failed:', result.message);
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
@@ -838,6 +834,21 @@ export default function ACMembershipForm({
         onClose={() => setShowDraftSavePopup(false)}
         taxId={formData.taxId}
         companyName={formData.companyName}
+      />
+
+      {/* Success Modal */}
+      <MembershipSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        membershipType="ac"
+        memberData={{
+          taxId: formData.taxId,
+          companyNameTh: formData.companyName
+        }}
+        onConfirm={() => {
+          setShowSuccessModal(false);
+          router.push('/dashboard?tab=status');
+        }}
       />
     </div>
   );

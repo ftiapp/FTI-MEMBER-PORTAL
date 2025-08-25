@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/app/lib/session';
-import { executeQuery, beginTransaction, commitTransaction, rollbackTransaction } from '@/app/lib/db';
+import { query, executeQuery, beginTransaction, commitTransaction, rollbackTransaction } from '@/app/lib/db';
 import { uploadToCloudinary } from '@/app/lib/cloudinary';
+
+// Ensure Node.js runtime (required for Buffer and other Node APIs)
+export const runtime = 'nodejs';
 
 export async function GET(request, { params }) {
   try {
@@ -14,6 +17,7 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
     }
 
+
     const { id } = params;
     console.log('📋 [AM Summary API] Fetching data for ID:', id);
 
@@ -25,7 +29,7 @@ export async function GET(request, { params }) {
     }
 
     // ดึงข้อมูลหลัก
-    const [mainData] = await executeQuery(
+    const [mainData] = await query(
       `SELECT 
         m.*,
         DATE_FORMAT(m.created_at, '%Y-%m-%d %H:%i:%s') as formatted_created_at
@@ -45,66 +49,66 @@ export async function GET(request, { params }) {
     console.log('✅ [AM Summary API] Main data found for:', mainData.company_name_th);
 
     // ดึงข้อมูลที่อยู่
-    const addresses = await executeQuery(
+    const addresses = await query(
       `SELECT * FROM MemberRegist_AM_Address WHERE main_id = ? ORDER BY address_type`,
       [id]
     );
 
     // ดึงข้อมูลผู้ติดต่อ
-    const contactPersons = await executeQuery(
+    const contactPersons = await query(
       `SELECT * FROM MemberRegist_AM_ContactPerson WHERE main_id = ? ORDER BY id`,
       [id]
     );
 
     // ดึงข้อมูลผู้แทน
-    const representatives = await executeQuery(
+    const representatives = await query(
       `SELECT * FROM MemberRegist_AM_Representatives WHERE main_id = ? ORDER BY rep_order`,
       [id]
     );
 
     // ดึงข้อมูลประเภทธุรกิจ
-    const businessTypes = await executeQuery(
+    const businessTypes = await query(
       `SELECT * FROM MemberRegist_AM_BusinessTypes WHERE main_id = ?`,
       [id]
     );
 
     // ดึงข้อมูลประเภทธุรกิจอื่นๆ
-    const [otherBusinessType] = await executeQuery(
+    const [otherBusinessType] = await query(
       `SELECT * FROM MemberRegist_AM_BusinessTypeOther WHERE main_id = ?`,
       [id]
     );
 
     // ดึงข้อมูลผลิตภัณฑ์
-    const products = await executeQuery(
+    const products = await query(
       `SELECT * FROM MemberRegist_AM_Products WHERE main_id = ?`,
       [id]
     );
 
     // ดึงข้อมูลกลุ่มอุตสาหกรรม
-    const industryGroups = await executeQuery(
+    const industryGroups = await query(
       `SELECT * FROM MemberRegist_AM_IndustryGroups WHERE main_id = ?`,
       [id]
     );
 
     // ดึงข้อมูลสภาจังหวัด
-    const provinceChapters = await executeQuery(
+    const provinceChapters = await query(
       `SELECT * FROM MemberRegist_AM_ProvinceChapters WHERE main_id = ?`,
       [id]
     );
 
     // ดึงข้อมูลเอกสาร
-    const documents = await executeQuery(
+    const documents = await query(
       `SELECT * FROM MemberRegist_AM_Documents WHERE main_id = ?`,
       [id]
     );
 
     // ดึงข้อมูล lookup สำหรับ industrial groups
-    const allIndustrialGroups = await executeQuery(
+    const allIndustrialGroups = await query(
       'SELECT id, name_th, name_en FROM industrial_groups ORDER BY name_th'
     );
 
     // ดึงข้อมูล lookup สำหรับ provincial chapters
-    const allProvincialChapters = await executeQuery(
+    const allProvincialChapters = await query(
       'SELECT id, name_th, name_en FROM provincial_chapters ORDER BY name_th'
     );
 
@@ -266,20 +270,8 @@ export async function POST(request) {
     const userId = session.user.id;
     console.log('👤 [AM Membership Submit] User ID:', userId);
 
-    // ตรวจสอบสถานะการยื่นใบสมัครที่รอดำเนินการ
-    const existingSubmissions = await executeQuery(
-      `SELECT id, status FROM MemberRegist_AM_Main 
-       WHERE user_id = ? AND status IN ('pending_review', 'approved')`,
-      [userId]
-    );
-
-    if (existingSubmissions.length > 0) {
-      console.log('⚠️ [AM Membership Submit] User has existing pending/approved submission');
-      return NextResponse.json({
-        success: false,
-        error: 'คุณมีใบสมัครที่รอดำเนินการหรือได้รับการอนุมัติแล้ว'
-      }, { status: 400 });
-    }
+    // อนุญาตให้ผู้ใช้ส่งใบสมัคร AM ได้หลายครั้ง (ไม่บล็อคตาม user_id)
+    // หมายเหตุ: ยังกันซ้ำโดยใช้เลขประจำตัวผู้เสียภาษีด้านล่าง
 
     // Parse form data
     const formData = await request.formData();
@@ -306,6 +298,9 @@ export async function POST(request) {
     const authorizedSignatoryFirstNameEn = formData.get('authorizedSignatoryFirstNameEn');
     const authorizedSignatoryLastNameEn = formData.get('authorizedSignatoryLastNameEn');
 
+    // Small helper to convert undefined to SQL NULL
+    const toNull = (v) => (v === undefined ? null : v);
+
     // Validate required fields
     if (!associationName || !taxId || !memberCount) {
       return NextResponse.json({
@@ -314,39 +309,66 @@ export async function POST(request) {
       }, { status: 400 });
     }
 
-    // ตรวจสอบเลขประจำตัวผู้เสียภาษีซ้ำ
-    const existingTaxId = await executeQuery(
-      `SELECT id FROM MemberRegist_AM_Main 
-       WHERE tax_id = ? AND user_id != ? AND status IN ('pending_review', 'approved')`,
-      [taxId, userId]
+    // ตรวจสอบเลขประจำตัวผู้เสียภาษีซ้ำ (เช็คข้ามตาราง AM/AC/OC และไม่ยกเว้น user เดิม)
+    // AM (ใช้สถานะเป็นตัวเลข: 0=pending,1=approved)
+    const [amDup] = await query(
+      `SELECT status FROM MemberRegist_AM_Main 
+       WHERE tax_id = ? AND (status = 0 OR status = 1)
+       LIMIT 1`,
+      [taxId]
+    );
+    // AC
+    const [acDup] = await query(
+      `SELECT status FROM MemberRegist_AC_Main 
+       WHERE tax_id = ? AND (status = 0 OR status = 1) 
+       LIMIT 1`,
+      [taxId]
+    );
+    // OC
+    const [ocDup] = await query(
+      `SELECT status FROM MemberRegist_OC_Main 
+       WHERE tax_id = ? AND (status = 0 OR status = 1) 
+       LIMIT 1`,
+      [taxId]
     );
 
-    if (existingTaxId.length > 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'เลขประจำตัวผู้เสียภาษีนี้ถูกใช้งานแล้ว'
-      }, { status: 400 });
+    if (amDup || acDup || ocDup) {
+      // จัดข้อความตามสถานะ ถ้าพบรายการที่สถานะกำลังพิจารณา ให้แจ้งตามนั้น มิฉะนั้นถือว่าเป็นสมาชิกแล้ว
+      let isPending = false;
+      if (amDup) {
+        isPending = Number(amDup.status) === 0;
+      } else if (acDup) {
+        isPending = Number(acDup.status) === 0;
+      } else if (ocDup) {
+        isPending = Number(ocDup.status) === 0;
+      }
+
+      const message = isPending
+        ? `คำขอสมัครสมาชิกของท่านสำหรับเลขประจำตัวผู้เสียภาษี ${taxId} อยู่ระหว่างการพิจารณา`
+        : `เลขประจำตัวผู้เสียภาษี ${taxId} นี้ได้เป็นสมาชิกแล้ว`;
+
+      return NextResponse.json({ success: false, error: message }, { status: 409 });
     }
 
     // Begin transaction
     trx = await beginTransaction();
     console.log('🔄 [AM Membership Submit] Transaction started');
 
-    // Insert main data
+    // Insert main data (status ใช้ 0 = pending)
     const mainInsertResult = await executeQuery(
+      trx,
       `INSERT INTO MemberRegist_AM_Main (
         user_id, company_name_th, company_name_en, tax_id, number_of_member,
         number_of_employees, registered_capital, production_capacity_value, production_capacity_unit,
         sales_domestic, sales_export, shareholder_thai_percent, shareholder_foreign_percent,
         factory_type, status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_review', NOW())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
       [
         userId, associationName, associationNameEn, taxId, memberCount,
         numberOfEmployees, registeredCapital, productionCapacityValue, productionCapacityUnit,
         salesDomestic, salesExport, shareholderThaiPercent, shareholderForeignPercent,
         factoryType
-      ],
-      trx
+      ]
     );
 
     const mainId = mainInsertResult.insertId;
@@ -359,6 +381,7 @@ export async function POST(request) {
       console.log('📝 [AM Membership Submit] Inserting authorized signatory names...');
       
       await executeQuery(
+        trx,
         `INSERT INTO MemberRegist_AM_Signature_Name (
           main_id, first_name_th, last_name_th, first_name_en, last_name_en, created_at
         ) VALUES (?, ?, ?, ?, ?, NOW())`,
@@ -368,8 +391,7 @@ export async function POST(request) {
           authorizedSignatoryLastNameTh, 
           authorizedSignatoryFirstNameEn,
           authorizedSignatoryLastNameEn
-        ],
-        trx
+        ]
       );
       
       console.log('✅ [AM Membership Submit] Authorized signatory names inserted');
@@ -384,19 +406,29 @@ export async function POST(request) {
       for (const [addressType, addressInfo] of Object.entries(addresses)) {
         if (addressInfo && addressInfo.addressNumber) {
           await executeQuery(
+            trx,
             `INSERT INTO MemberRegist_AM_Address (
               main_id, address_type, address_number, building, moo, soi, street,
               sub_district, district, province, postal_code, phone, phone_extension,
               email, website, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
             [
-              mainId, addressType, addressInfo.addressNumber, addressInfo.building,
-              addressInfo.moo, addressInfo.soi, addressInfo.street,
-              addressInfo.subDistrict, addressInfo.district, addressInfo.province,
-              addressInfo.postalCode, addressInfo.phone, addressInfo.phoneExtension,
-              addressInfo.email, addressInfo.website
-            ],
-            trx
+              mainId,
+              addressType,
+              addressInfo.addressNumber,
+              toNull(addressInfo.building),
+              toNull(addressInfo.moo),
+              toNull(addressInfo.soi),
+              toNull(addressInfo.street),
+              toNull(addressInfo.subDistrict),
+              toNull(addressInfo.district),
+              toNull(addressInfo.province),
+              toNull(addressInfo.postalCode),
+              toNull(addressInfo.phone),
+              toNull(addressInfo.phoneExtension),
+              toNull(addressInfo.email),
+              toNull(addressInfo.website)
+            ]
           );
         }
       }
@@ -408,19 +440,96 @@ export async function POST(request) {
       const representatives = JSON.parse(representativesData);
       console.log('👥 [AM Membership Submit] Processing representatives...');
       
+      // Normalize keys from frontend (supports both firstNameTh/firstNameThai, etc.)
       for (let i = 0; i < representatives.length; i++) {
-        const rep = representatives[i];
+        const rep = representatives[i] || {};
+
+        const firstNameTh = rep.firstNameTh ?? rep.firstNameThai ?? null;
+        const lastNameTh = rep.lastNameTh ?? rep.lastNameThai ?? null;
+        const firstNameEn = rep.firstNameEn ?? rep.firstNameEnglish ?? null;
+        const lastNameEn = rep.lastNameEn ?? rep.lastNameEnglish ?? null;
+        const position = rep.position ?? null;
+        const email = rep.email ?? null;
+        const phone = rep.phone ?? null;
+        const isPrimary = rep.isPrimary ? 1 : 0;
+
+        // Minimal validation for required fields in DB
+        if (!firstNameTh || !lastNameTh) {
+          console.warn(`⚠️ [AM Membership Submit] Skipping representative #${i} due to missing Thai name fields`, {
+            keys: Object.keys(rep || {}),
+          });
+          continue;
+        }
+
         await executeQuery(
+          trx,
           `INSERT INTO MemberRegist_AM_Representatives (
-            main_id, id_card, first_name_th, last_name_th, first_name_en, last_name_en,
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en,
             position, email, phone, rep_order, is_primary, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
-            mainId, rep.idCardNumber, rep.firstNameThai, rep.lastNameThai,
-            rep.firstNameEnglish, rep.lastNameEnglish, rep.position,
-            rep.email, rep.phone, i, rep.isPrimary || false
-          ],
-          trx
+            mainId,
+            toNull(firstNameTh),
+            toNull(lastNameTh),
+            toNull(firstNameEn),
+            toNull(lastNameEn),
+            toNull(position),
+            toNull(email),
+            toNull(phone),
+            i,
+            isPrimary
+          ]
+        );
+      }
+    }
+
+    // Process contact persons
+    const contactPersonsData = formData.get('contactPersons');
+    if (contactPersonsData) {
+      const contactPersons = JSON.parse(contactPersonsData);
+      console.log('📞 [AM Membership Submit] Processing contact persons...');
+
+      for (let i = 0; i < contactPersons.length; i++) {
+        const cp = contactPersons[i] || {};
+
+        // Normalize expected keys from frontend
+        const firstNameTh = cp.firstNameTh ?? cp.first_name_th ?? null;
+        const lastNameTh = cp.lastNameTh ?? cp.last_name_th ?? null;
+        const firstNameEn = cp.firstNameEn ?? cp.first_name_en ?? null;
+        const lastNameEn = cp.lastNameEn ?? cp.last_name_en ?? null;
+        const position = cp.position ?? null;
+        const email = cp.email ?? null;
+        const phone = cp.phone ?? null;
+        const phoneExtension = cp.phoneExtension ?? cp.phone_extension ?? null;
+
+        // Minimal validation for NOT NULL columns in DB (th names, email, phone)
+        if (!firstNameTh || !lastNameTh || !email || !phone) {
+          console.warn(`⚠️ [AM Membership Submit] Skipping contact person #${i} due to missing required fields`, {
+            hasFirstNameTh: !!firstNameTh,
+            hasLastNameTh: !!lastNameTh,
+            hasEmail: !!email,
+            hasPhone: !!phone,
+          });
+          continue;
+        }
+
+        await executeQuery(
+          trx,
+          `INSERT INTO MemberRegist_AM_ContactPerson (
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en,
+            position, email, phone, phone_extension, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+          [
+            mainId,
+            firstNameTh,
+            lastNameTh,
+            toNull(firstNameEn),
+            toNull(lastNameEn),
+            toNull(position),
+            email,
+            phone,
+            toNull(phoneExtension)
+          ]
         );
       }
     }
@@ -434,10 +543,10 @@ export async function POST(request) {
       for (const [businessType, isSelected] of Object.entries(businessTypes)) {
         if (isSelected) {
           await executeQuery(
+            trx,
             `INSERT INTO MemberRegist_AM_BusinessTypes (main_id, business_type, created_at) 
              VALUES (?, ?, NOW())`,
-            [mainId, businessType],
-            trx
+            [mainId, businessType]
           );
         }
       }
@@ -447,10 +556,10 @@ export async function POST(request) {
     const otherBusinessTypeDetail = formData.get('otherBusinessTypeDetail');
     if (otherBusinessTypeDetail) {
       await executeQuery(
+        trx,
         `INSERT INTO MemberRegist_AM_BusinessTypeOther (main_id, detail, created_at) 
          VALUES (?, ?, NOW())`,
-        [mainId, otherBusinessTypeDetail],
-        trx
+        [mainId, otherBusinessTypeDetail]
       );
     }
 
@@ -463,10 +572,10 @@ export async function POST(request) {
       for (const product of products) {
         if (product.nameTh) {
           await executeQuery(
-            `INSERT INTO MemberRegist_AM_Products (main_id, product_name_th, product_name_en, created_at) 
+            trx,
+            `INSERT INTO MemberRegist_AM_Products (main_id, name_th, name_en, created_at) 
              VALUES (?, ?, ?, NOW())`,
-            [mainId, product.nameTh, product.nameEn],
-            trx
+            [mainId, product.nameTh, toNull(product.nameEn)]
           );
         }
       }
@@ -476,30 +585,63 @@ export async function POST(request) {
     const industrialGroupsData = formData.get('industrialGroups');
     if (industrialGroupsData) {
       const industrialGroups = JSON.parse(industrialGroupsData);
+      const industrialGroupNamesData = formData.get('industrialGroupNames');
+      const industrialGroupNames = industrialGroupNamesData ? JSON.parse(industrialGroupNamesData) : [];
       console.log('🏭 [AM Membership Submit] Processing industrial groups...');
+      // Build lookup map from DB as reliable source for names (fallback-safe)
+      let igMap = new Map();
+      try {
+        const igLookupRows = await query('SELECT id, name_th FROM industrial_groups');
+        igMap = new Map(igLookupRows.map(r => [String(r.id), r.name_th]));
+      } catch (e) {
+        console.warn('⚠️ [AM Membership Submit] industrial_groups table not available, using frontend names only');
+      }
+      const namesByIndex = new Map(industrialGroups.map((id, idx) => [String(id), industrialGroupNames[idx]]));
       
       for (const groupId of industrialGroups) {
+        const idStr = String(groupId);
+        const groupName = namesByIndex.get(idStr) || igMap.get(idStr) || null;
         await executeQuery(
-          `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id, created_at) 
-           VALUES (?, ?, NOW())`,
-          [mainId, groupId],
-          trx
+          trx,
+          `INSERT INTO MemberRegist_AM_IndustryGroups (main_id, industry_group_id, industry_group_name, created_at) 
+           VALUES (?, ?, ?, NOW())`,
+          [mainId, groupId, toNull(groupName)]
         );
       }
     }
 
-    // Process provincial chapters
-    const provincialChaptersData = formData.get('provincialChapters');
+    // Process provincial chapters (accept alias: provincialCouncils)
+    let provincialChaptersData = formData.get('provincialChapters');
+    if (!provincialChaptersData) {
+      provincialChaptersData = formData.get('provincialCouncils');
+    }
     if (provincialChaptersData) {
       const provincialChapters = JSON.parse(provincialChaptersData);
+      let provincialChapterNamesData = formData.get('provincialChapterNames');
+      if (!provincialChapterNamesData) {
+        provincialChapterNamesData = formData.get('provincialCouncilNames');
+      }
+      const provincialChapterNames = provincialChapterNamesData ? JSON.parse(provincialChapterNamesData) : [];
       console.log('🏛️ [AM Membership Submit] Processing provincial chapters...');
+
+      // Build lookup map from DB for names (fallback-safe)
+      let pcMap = new Map();
+      try {
+        const pcLookupRows = await query('SELECT id, name_th FROM provincial_chapters');
+        pcMap = new Map(pcLookupRows.map(r => [String(r.id), r.name_th]));
+      } catch (e) {
+        console.warn('⚠️ [AM Membership Submit] provincial_chapters table not available, using frontend names only');
+      }
+      const pcNamesByIndex = new Map(provincialChapters.map((id, idx) => [String(id), provincialChapterNames[idx]]));
       
       for (const chapterId of provincialChapters) {
+        const idStr = String(chapterId);
+        const chapterName = pcNamesByIndex.get(idStr) || pcMap.get(idStr) || null;
         await executeQuery(
-          `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id, created_at) 
-           VALUES (?, ?, NOW())`,
-          [mainId, chapterId],
-          trx
+          trx,
+          `INSERT INTO MemberRegist_AM_ProvinceChapters (main_id, province_chapter_id, province_chapter_name, created_at) 
+           VALUES (?, ?, ?, NOW())`,
+          [mainId, chapterId, toNull(chapterName)]
         );
       }
     }
@@ -508,14 +650,14 @@ export async function POST(request) {
     console.log('📄 [AM Membership Submit] Processing document uploads...');
     
     const documentTypes = [
-      'associationCertificate', 'memberList', 'authorizedSignature',
+      'associationCertificate', 'memberList', 'companyStamp', 'authorizedSignature',
       'companyRegistration', 'taxCertificate', 'financialStatement',
       'productCatalog', 'factoryLicense', 'otherDocuments'
     ];
 
     for (const docType of documentTypes) {
       const file = formData.get(docType);
-      if (file && file instanceof File && file.size > 0) {
+      if (file && typeof file.arrayBuffer === 'function' && Number(file.size) > 0) {
         console.log(`📎 [AM Membership Submit] Uploading ${docType}:`, file.name);
         
         try {
@@ -531,11 +673,11 @@ export async function POST(request) {
 
           if (uploadResult.success) {
             await executeQuery(
+              trx,
               `INSERT INTO MemberRegist_AM_Documents (
                 main_id, document_type, file_name, file_path, cloudinary_url, created_at
               ) VALUES (?, ?, ?, ?, ?, NOW())`,
-              [mainId, docType, file.name, uploadResult.url, uploadResult.url],
-              trx
+              [mainId, docType, file.name, uploadResult.url, uploadResult.url]
             );
             console.log(`✅ [AM Membership Submit] ${docType} uploaded successfully`);
           } else {
@@ -554,7 +696,7 @@ export async function POST(request) {
       
       for (let i = 0; i < productionImagesCount; i++) {
         const imageFile = formData.get(`productionImages[${i}]`);
-        if (imageFile && imageFile instanceof File && imageFile.size > 0) {
+        if (imageFile && typeof imageFile.arrayBuffer === 'function' && Number(imageFile.size) > 0) {
           try {
             const fileBuffer = await imageFile.arrayBuffer();
             const uploadResult = await uploadToCloudinary(
@@ -568,11 +710,11 @@ export async function POST(request) {
 
             if (uploadResult.success) {
               await executeQuery(
+                trx,
                 `INSERT INTO MemberRegist_AM_Documents (
                   main_id, document_type, file_name, file_path, cloudinary_url, created_at
                 ) VALUES (?, ?, ?, ?, ?, NOW())`,
-                [mainId, 'productionImage', imageFile.name, uploadResult.url, uploadResult.url],
-                trx
+                [mainId, 'productionImage', imageFile.name, uploadResult.url, uploadResult.url]
               );
             }
           } catch (uploadError) {
@@ -582,17 +724,9 @@ export async function POST(request) {
       }
     }
 
-    // Log submission
-    await executeQuery(
-      `INSERT INTO MemberRegist_AM_StatusLog (
-        main_id, status, changed_by_user_id, notes, created_at
-      ) VALUES (?, 'pending_review', ?, 'ใบสมัครถูกส่งเพื่อรอการพิจารณา', NOW())`,
-      [mainId, userId],
-      trx
-    );
-
     // Log user action
     await executeQuery(
+      trx,
       `INSERT INTO Member_portal_User_log (
         user_id, action, details, created_at
       ) VALUES (?, 'submit_membership', ?, NOW())`,
@@ -604,8 +738,7 @@ export async function POST(request) {
           associationName: associationName,
           taxId: taxId
         })
-      ],
-      trx
+      ]
     );
 
     // Commit transaction

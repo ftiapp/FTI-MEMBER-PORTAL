@@ -6,6 +6,8 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
   const representativeErrors = errors?.representativeErrors || [];
   const isInitialized = useRef(false);
   const [duplicateErrors, setDuplicateErrors] = useState([]);
+  // Track touched state for phone inputs per representative to defer error display
+  const [touchedPhones, setTouchedPhones] = useState({});
 
   const createDefaultRepresentative = (index = 0) => ({
     id: `rep_${Date.now()}_${index}`,
@@ -135,7 +137,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
       
       <div className="px-8 py-8">
         {/* Info Alert */}
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-8">
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
           <div className="flex gap-4">
             <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
               <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
@@ -144,7 +146,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
             </div>
             <div>
               <p className="text-base font-medium text-blue-900 mb-2">การเพิ่มผู้แทนสมาคม</p>
-              <p className="text-sm text-blue-700 leading-relaxed">
+              <p className="text-sm text-blue-800 leading-relaxed">
                 สามารถเพิ่มผู้แทนได้สูงสุด 3 ท่าน ควรเป็นผู้มีอำนาจลงนามแทนสมาคมตามหนังสือรับรอง
               </p>
             </div>
@@ -154,9 +156,9 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
         {/* Representatives Cards */}
         <div className="space-y-8">
           {representatives.map((rep, index) => (
-            <div key={rep.id} className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden">
+            <div key={rep.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               {/* Card Header */}
-              <div className="bg-white border-b border-gray-200 px-6 py-4">
+              <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -236,7 +238,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                   {/* English Name Section - ด้านล่าง */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-1 h-6 bg-green-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาอังกฤษ</h4>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -284,7 +286,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                   {/* Contact Info Section */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">
-                      <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
+                      <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ข้อมูลติดต่อ</h4>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
@@ -327,9 +329,10 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               type="tel"
                               value={rep.phone}
                               onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
+                              onBlur={() => setTouchedPhones(prev => ({ ...prev, [rep.id]: true }))}
                               placeholder="02-123-4567"
                               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                                getFieldError(rep, 'phone', index) ? 
+                                (touchedPhones[rep.id] && getFieldError(rep, 'phone', index)) ? 
                                   'border-red-300 bg-red-50 focus:ring-red-500' : 
                                   'border-gray-300 bg-white hover:border-gray-400'
                               }`}
@@ -345,7 +348,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                             />
                           </div>
                         </div>
-                        {getFieldError(rep, 'phone', index) && (
+                        {touchedPhones[rep.id] && getFieldError(rep, 'phone', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'phone', index)}</p>
                         )}
                       </div>

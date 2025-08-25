@@ -16,8 +16,14 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   
   const [products, setProducts] = useState(() => 
     (formData.products && formData.products.length > 0 
-      ? formData.products.map(p => ({ ...p, key: p.key || uuidv4() })) 
-      : [{ key: uuidv4(), id: null, name: '' }])
+      ? formData.products.map(p => ({ 
+          ...p, 
+          key: p.key || uuidv4(), 
+          // migrate legacy single-name to TH field
+          nameTh: p.nameTh !== undefined ? p.nameTh : (p.name !== undefined ? p.name : ''),
+          nameEn: p.nameEn !== undefined ? p.nameEn : ''
+        })) 
+      : [{ key: uuidv4(), id: null, nameTh: '', nameEn: '' }])
   );
 
   // Memoize handlers to prevent unnecessary re-renders
@@ -52,7 +58,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   const addProduct = useCallback(() => {
     if (products.length >= 10) return;
     
-    const newProduct = { key: uuidv4(), id: null, name: '' };
+    const newProduct = { key: uuidv4(), id: null, nameTh: '', nameEn: '' };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
@@ -356,7 +362,8 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
           </div>
         </div>
         
-        {/* Products */}
+        {/* Products */
+        }
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
             <h4 className="text-base font-medium text-gray-900 mb-2">
@@ -381,19 +388,33 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                     </button>
                   )}
                 </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor={`product-name-${product.key}`} className="block text-sm font-medium text-gray-900">
-                    ชื่อผลิตภัณฑ์/บริการ<span className="text-red-500 ml-1">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id={`product-name-${product.key}`}
-                    value={product.name || ''}
-                    onChange={(e) => handleProductChange(product.key, 'name', e.target.value)}
-                    placeholder="ระบุชื่อผลิตภัณฑ์/บริการ..."
-                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
-                  />
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label htmlFor={`product-th-${product.key}`} className="block text-sm font-medium text-gray-900">
+                      ชื่อผลิตภัณฑ์/บริการ (ภาษาไทย)<span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      id={`product-th-${product.key}`}
+                      value={product.nameTh || ''}
+                      onChange={(e) => handleProductChange(product.key, 'nameTh', e.target.value)}
+                      placeholder="ระบุชื่อผลิตภัณฑ์/บริการ..."
+                      className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor={`product-en-${product.key}`} className="block text-sm font-medium text-gray-900">
+                      ชื่อผลิตภัณฑ์/บริการ (ภาษาอังกฤษ)
+                    </label>
+                    <input
+                      type="text"
+                      id={`product-en-${product.key}`}
+                      value={product.nameEn || ''}
+                      onChange={(e) => handleProductChange(product.key, 'nameEn', e.target.value)}
+                      placeholder="Product/Service name..."
+                      className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                    />
+                  </div>
                 </div>
               </div>
             ))}
@@ -442,7 +463,8 @@ BusinessInfoSection.propTypes = {
     products: PropTypes.arrayOf(PropTypes.shape({
       key: PropTypes.string.isRequired,
       id: PropTypes.number,
-      name: PropTypes.string
+      nameTh: PropTypes.string,
+      nameEn: PropTypes.string
     }))
   }).isRequired,
   setFormData: PropTypes.func.isRequired,

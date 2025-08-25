@@ -6,6 +6,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
   const representativeErrors = errors?.representativeErrors || [];
   const isInitialized = useRef(false);
   const [duplicateErrors, setDuplicateErrors] = useState([]);
+  const [touchedPhones, setTouchedPhones] = useState({});
   
   // สร้าง default representative object
   const createDefaultRepresentative = (index = 0) => ({
@@ -149,9 +150,18 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     }
 
     if (field === 'phone') {
-      const phonePattern = /^[0-9\-\s\+\(\)]{10,15}$/;
+      // Defer showing validation until the field has been touched (blurred)
+      if (!touchedPhones[rep.id]) {
+        return null;
+      }
+      const phonePattern = /^[0-9\-\s\+\(\)]+$/; // allow only valid characters
       if (!phonePattern.test(value)) {
-        return 'รูปแบบเบอร์โทรไม่ถูกต้อง';
+        return 'อนุญาตเฉพาะตัวเลข เครื่องหมาย - + () และเว้นวรรค';
+      }
+      // Validate digit length (10-15) after blur
+      const digits = (value.match(/\d/g) || []).length;
+      if (digits < 10 || digits > 15) {
+        return 'กรุณากรอกหมายเลข 10-15 หลัก';
       }
     }
 
@@ -228,7 +238,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
               
               {/* Card Content */}
               <div className="p-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 gap-6">
                   {/* Thai Name Section */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 mb-3">
@@ -348,7 +358,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                   </div>
 
                   {/* Contact Info Section */}
-                  <div className="lg:col-span-2">
+                  <div>
                     <div className="flex items-center gap-2 mb-4">
                       <div className="w-1 h-6 bg-purple-500 rounded-full"></div>
                       <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ข้อมูลติดต่อ</h4>
@@ -403,6 +413,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               type="tel"
                               value={rep.phone}
                               onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
+                              onBlur={() => setTouchedPhones(prev => ({ ...prev, [rep.id]: true }))}
                               placeholder="02-123-4567"
                               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                                 getFieldError(rep, 'phone', index) ? 

@@ -6,6 +6,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   const representativeErrors = errors?.representativeErrors || [];
   const isInitialized = useRef(false);
   const [duplicateErrors, setDuplicateErrors] = useState([]);
+  // Track touched state to prevent immediate phone validation while typing
+  const [touchedPhones, setTouchedPhones] = useState({});
   
   // สร้าง default representative object
   const createDefaultRepresentative = (index = 0) => ({
@@ -377,9 +379,10 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                               type="tel"
                               value={rep.phone}
                               onChange={(e) => updateRepresentative(rep.id, 'phone', e.target.value)}
+                              onBlur={() => setTouchedPhones(prev => ({ ...prev, [rep.id]: true }))}
                               placeholder="02-123-4567"
                               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                                representativeErrors[index]?.phone ? 
+                                (touchedPhones[rep.id] && representativeErrors[index]?.phone) ? 
                                   'border-red-300 bg-red-50 focus:ring-red-500' : 
                                   'border-gray-300 bg-white hover:border-gray-400'
                               }`}
@@ -395,7 +398,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                             />
                           </div>
                         </div>
-                        {representativeErrors[index]?.phone && (
+                        {touchedPhones[rep.id] && representativeErrors[index]?.phone && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />

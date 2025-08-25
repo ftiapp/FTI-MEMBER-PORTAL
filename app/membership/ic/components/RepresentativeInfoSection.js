@@ -14,6 +14,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     phone: '',
     phoneExtension: ''
   });
+  // Track touched state for phone to defer error display until after blur
+  const [phoneTouched, setPhoneTouched] = useState(false);
 
   const representativeErrors = errors?.representativeErrors || {};
 
@@ -253,12 +255,13 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                           id="phone"
                           value={representative.phone || ''}
                           onChange={(e) => handleRepresentativeChange('phone', e.target.value)}
+                          onBlur={() => setPhoneTouched(true)}
                           placeholder="02-123-4567"
                           className={`w-full px-4 py-2 border ${
-                            representativeErrors?.phone ? 'border-red-300' : 'border-gray-300'
+                            (phoneTouched && representativeErrors?.phone) ? 'border-red-300' : 'border-gray-300'
                           } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
                         />
-                        {representativeErrors?.phone && (
+                        {phoneTouched && representativeErrors?.phone && (
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
                             {ErrorIcon}
                           </div>
@@ -275,7 +278,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                       />
                     </div>
                   </div>
-                  {representativeErrors?.phone && (
+                  {phoneTouched && representativeErrors?.phone && (
                     <p className="mt-1 text-sm text-red-600">{representativeErrors.phone}</p>
                   )}
                 </div>

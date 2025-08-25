@@ -371,8 +371,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     return (
       <div className="max-w-3xl mx-auto mb-8">
         <div className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
-          error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-blue-400'
-        } ${isImageRequired ? 'bg-gradient-to-br from-purple-50 to-blue-50' : 'bg-gradient-to-br from-gray-50 to-gray-100'}`}>
+          error ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-blue-400 bg-white'
+        }`}>
           {/* Document header: icon, title, description */}
           <div className="text-center mb-6">
             <div className={`w-16 h-16 ${bgColor} rounded-full flex items-center justify-center mx-auto mb-4`}>
@@ -394,9 +394,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   ลากไฟล์มาวางที่นี่ หรือ
                 </p>
                 <label htmlFor={name} className="mt-2 cursor-pointer">
-                  <span className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 ${
-                    isImageRequired ? 'bg-purple-600 hover:bg-purple-700' : 'bg-blue-600 hover:bg-blue-700'
-                  }`}>
+                  <span className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors duration-200">
                     เลือกไฟล์
                   </span>
                   <input
@@ -419,8 +417,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
@@ -433,11 +431,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 <button
                   type="button"
                   onClick={() => viewFile(file)}
-                  className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 text-sm font-medium ${
-                    isImageRequired 
-                      ? 'text-purple-600 hover:bg-purple-50' 
-                      : 'text-blue-600 hover:bg-blue-50'
-                  }`}
+                  className="px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 text-sm font-medium text-blue-600 hover:bg-blue-50"
                   title="ดูไฟล์"
                 >
                   {ViewIcon}
@@ -479,7 +473,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
           {/* Success message */}
           {hasFile(file) && !error && (
-            <div className="mt-4 flex items-center text-sm text-green-600">
+            <div className="mt-4 flex items-center text-sm text-blue-600">
               <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -507,34 +501,34 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         {/* Content Section */}
         <div className="px-8 py-8 space-y-8">
           {/* Required Documents Notice */}
-          <div className="bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-400 p-6 rounded-lg">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg className="h-6 w-6 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                <svg className="h-6 w-6 text-blue-500" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                 </svg>
               </div>
               <div className="ml-4">
-                <h3 className="text-base font-semibold text-amber-800 mb-2">ข้อมูลสำคัญ</h3>
-                <p className="text-sm text-amber-700 mb-2">
+                <h3 className="text-base font-semibold text-blue-900 mb-2">ข้อมูลสำคัญ</h3>
+                <p className="text-sm text-blue-800 mb-2">
                   <strong>โปรดอัพโหลดเอกสารที่จำเป็น</strong> เอกสารต้องเป็นไฟล์ PDF, JPG หรือ PNG ขนาดไม่เกิน 5MB
                 </p>
-                <p className="text-sm text-amber-700">
+                <p className="text-sm text-blue-800">
                   รายการเอกสารที่ท่านต้องเตรียม: หนังสือรับรองการจดทะเบียนสมาคมการค้า และรายชื่อสมาชิกสมาคม
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Document Upload Section */}
-          <div className="bg-gradient-to-br from-gray-50 to-white border border-gray-200 rounded-2xl p-8">
+          {/* Document Upload Section - เอกสารทั่วไป */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
             <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-full">
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-white border border-blue-200 rounded-full shadow-sm">
                 <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 <span className="text-base font-semibold text-blue-800">
-                  อัปโหลดเอกสารประกอบการสมัคร
+                  เอกสารรับรอง
                 </span>
               </div>
             </div>
@@ -546,12 +540,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               name="associationCertificate"
               file={selectedFiles.associationCertificate}
               icon={
-                <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               }
-              iconColor="text-purple-600"
-              bgColor="bg-gradient-to-br from-purple-100 to-purple-200"
+              iconColor="text-blue-600"
+              bgColor="bg-blue-100"
               error={errors?.associationCertificate}
             />
 
@@ -567,12 +561,29 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 </svg>
               }
               iconColor="text-blue-600"
-              bgColor="bg-gradient-to-br from-blue-100 to-blue-200"
+              bgColor="bg-blue-100"
               error={errors?.memberList}
             />
+          </div>
+
+          {/* เพิ่มช่องว่างระหว่างส่วน */}
+          <div className="h-12"></div>
+
+          {/* Document Upload Section - ตราประทับและลายเซ็น */}
+          <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
+            <div className="text-center mb-10">
+              <div className="inline-flex items-center gap-3 px-6 py-3 bg-white border border-blue-200 rounded-full shadow-sm">
+                <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-base font-semibold text-blue-800">
+                  ตราประทับและลายเซ็น
+                </span>
+              </div>
+            </div>
 
             {/* Required Documents Notice */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-8">
               <div className="flex items-center gap-2">
                 <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                   จำเป็น
@@ -591,36 +602,36 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 name="companyStamp"
                 file={selectedFiles.companyStamp}
                 icon={
-                  <svg className="w-10 h-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                   </svg>
                 }
-                iconColor="text-purple-600"
-                bgColor="bg-gradient-to-br from-purple-100 to-purple-200"
+                iconColor="text-blue-600"
+                bgColor="bg-blue-100"
                 error={errors?.companyStamp}
                 isImageRequired={true}
               />
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="text-sm">
-                    <p className="font-semibold text-purple-800 mb-3">คำแนะนำสำหรับตราประทับสมาคม:</p>
+                    <p className="font-semibold text-blue-800 mb-3">คำแนะนำสำหรับตราประทับสมาคม:</p>
                     
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded border border-purple-100">
-                        <h5 className="font-medium text-purple-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                        <ul className="text-purple-700 space-y-1 text-xs">
+                      <div className="bg-white p-3 rounded border border-blue-100">
+                        <h5 className="font-medium text-blue-800 mb-2">📐 ขนาดที่แนะนำ</h5>
+                        <ul className="text-blue-700 space-y-1 text-xs">
                           <li>• <strong>300 x 300 พิกเซล</strong> (สำหรับตราประทับแบบกลม)</li>
                           <li>• หรือ 400 x 200 พิกเซล (สำหรับตราประทับแบบสี่เหลี่ยม)</li>
                           <li>• ความละเอียดสูง: 600x600 พิกเซล</li>
                         </ul>
                       </div>
                       
-                      <div className="bg-white p-3 rounded border border-purple-100">
-                        <h5 className="font-medium text-purple-800 mb-2">🎨 คุณภาพภาพ</h5>
-                        <ul className="text-purple-700 space-y-1 text-xs">
+                      <div className="bg-white p-3 rounded border border-blue-100">
+                        <h5 className="font-medium text-blue-800 mb-2">🎨 คุณภาพภาพ</h5>
+                        <ul className="text-blue-700 space-y-1 text-xs">
                           <li>• <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว</li>
                           <li>• ตราประทับสีชัดเจน</li>
                           <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
@@ -628,7 +639,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
+                    <div className="bg-white border border-blue-200 rounded p-3 mb-3">
                       <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
                       <p className="text-blue-700 text-xs">
                         หลังอัปโหลดภาพตราประทับ คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
@@ -641,14 +652,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-purple-600">
+                      <div className="text-xs text-blue-600">
                         💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพตราประทับบนกระดาษขาวด้วยแสงที่เพียงพอ
                       </div>
                       <a 
                         href="/images/FTI-LOGOsample.jpg" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 underline text-xs"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
@@ -663,20 +674,20 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             </div>
 
             {/* Authorized Signatory Name Fields */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6 mb-6">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                  <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-green-800">ข้อมูลผู้มีอำนาจลงนาม</h3>
+                <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้มีอำนาจลงนาม</h3>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Thai Name Fields */}
                 <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-green-700 border-b border-green-200 pb-2">ชื่อ-นามสกุล (ภาษาไทย)</h4>
+                  <h4 className="text-sm font-medium text-blue-700 border-b border-blue-200 pb-2">ชื่อ-นามสกุล (ภาษาไทย)</h4>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -689,7 +700,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryFirstNameTh: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                         errors?.authorizedSignatoryFirstNameTh ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="กรอกชื่อผู้มีอำนาจลงนาม"
@@ -710,7 +721,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryLastNameTh: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                         errors?.authorizedSignatoryLastNameTh ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="กรอกนามสกุลผู้มีอำนาจลงนาม"
@@ -723,7 +734,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
                 {/* English Name Fields */}
                 <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-green-700 border-b border-green-200 pb-2">ชื่อ-นามสกุล (ภาษาอังกฤษ)</h4>
+                  <h4 className="text-sm font-medium text-blue-700 border-b border-blue-200 pb-2">ชื่อ-นามสกุล (ภาษาอังกฤษ)</h4>
                   
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -736,7 +747,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryFirstNameEn: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                         errors?.authorizedSignatoryFirstNameEn ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="Enter first name in English"
@@ -757,7 +768,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryLastNameEn: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors ${
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
                         errors?.authorizedSignatoryLastNameEn ? 'border-red-300 bg-red-50' : 'border-gray-300'
                       }`}
                       placeholder="Enter last name in English"
@@ -769,14 +780,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 </div>
               </div>
 
-              <div className="mt-4 p-3 bg-green-100 border border-green-200 rounded-lg">
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
                 <div className="flex items-start gap-2">
-                  <svg className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="text-sm text-green-800">
+                  <div className="text-sm text-blue-800">
                     <p className="font-medium mb-1">หมายเหตุ:</p>
-                    <ul className="list-disc list-inside space-y-1 text-green-700">
+                    <ul className="list-disc list-inside space-y-1 text-blue-700">
                       <li>กรุณากรอกชื่อ-นามสกุลของผู้มีอำนาจลงนามให้ครบถ้วนทั้งภาษาไทยและภาษาอังกฤษ</li>
                       <li>ชื่อที่กรอกต้องตรงกับเอกสารทางการและลายเซ็นที่อัปโหลด</li>
                       <li>ข้อมูลนี้จะใช้สำหรับการตรวจสอบและออกเอกสารรับรองสมาชิกภาพ</li>
@@ -794,36 +805,36 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 name="authorizedSignature"
                 file={selectedFiles.authorizedSignature}
                 icon={
-                  <svg className="w-10 h-10 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-10 h-10 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 }
-                iconColor="text-orange-600"
-                bgColor="bg-gradient-to-br from-orange-100 to-orange-200"
+                iconColor="text-blue-600"
+                bgColor="bg-blue-100"
                 error={errors?.authorizedSignature}
                 isImageRequired={true}
               />
-              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <div className="text-sm">
-                    <p className="font-semibold text-orange-800 mb-3">คำแนะนำสำหรับลายเซ็นที่จะแปะในขวาล่างของเอกสาร A4:</p>
+                    <p className="font-semibold text-blue-800 mb-3">คำแนะนำสำหรับลายเซ็นที่จะแปะในขวาล่างของเอกสาร A4:</p>
                     
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded border border-orange-100">
-                        <h5 className="font-medium text-orange-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                        <ul className="text-orange-700 space-y-1 text-xs">
+                      <div className="bg-white p-3 rounded border border-blue-100">
+                        <h5 className="font-medium text-blue-800 mb-2">📐 ขนาดที่แนะนำ</h5>
+                        <ul className="text-blue-700 space-y-1 text-xs">
                           <li>• <strong>120 x 60 พิกเซล</strong> (อัตราส่วน 2:1)</li>
                           <li>• หรือ 240 x 120 พิกเซล (ความละเอียดสูง)</li>
                           <li>• ขนาดจริงบนกระดาษ: ประมาณ 3 x 1.5 ซม.</li>
                         </ul>
                       </div>
                       
-                      <div className="bg-white p-3 rounded border border-orange-100">
-                        <h5 className="font-medium text-orange-800 mb-2">🎨 คุณภาพภาพ</h5>
-                        <ul className="text-orange-700 space-y-1 text-xs">
+                      <div className="bg-white p-3 rounded border border-blue-100">
+                        <h5 className="font-medium text-blue-800 mb-2">🎨 คุณภาพภาพ</h5>
+                        <ul className="text-blue-700 space-y-1 text-xs">
                           <li>• <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว</li>
                           <li>• ลายเซ็นสีดำหรือสีเข้ม</li>
                           <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
@@ -831,7 +842,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
+                    <div className="bg-white border border-blue-200 rounded p-3 mb-3">
                       <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
                       <p className="text-blue-700 text-xs">
                         หลังอัปโหลดภาพลายเซ็น คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
@@ -844,14 +855,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <div className="text-xs text-orange-600">
+                      <div className="text-xs text-blue-600">
                         💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพลายเซ็นบนกระดาษขาวด้วยแสงที่เพียงพอ
                       </div>
                       <a 
                         href="/images/FTI-SIGNATUREsample.jpg" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-800 underline text-xs"
+                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
@@ -867,7 +878,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
           </div>
 
           {/* Additional Information */}
-          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-6">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
             <div className="flex items-start gap-4">
               <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mt-1">
                 <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

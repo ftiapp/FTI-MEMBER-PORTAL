@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import MembershipSuccessModal from '@/app/components/MembershipSuccessModal';
 
 // Import components
 import CompanyInfoSection from './CompanyInfoSection';
@@ -187,6 +188,8 @@ export default function OCMembershipForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
 
   // Determine which form data and setters to use
   const isExternal = externalFormData !== undefined;
@@ -347,12 +350,11 @@ export default function OCMembershipForm({
       toast.dismiss('submitting');
       
       if (result.success) {
-        toast.success(result.message || 'ส่งข้อมูลการสมัครเรียบร้อยแล้ว');
-        
         // ลบ draft หลังจากสมัครสำเร็จ
         await deleteDraft();
-        
-        setTimeout(() => router.push('/dashboard?tab=status'), 2000);
+        // แสดง Success Modal แทนการ redirect ทันที
+        setSubmissionResult(result);
+        setShowSuccessModal(true);
       } else {
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
         setIsSubmitting(false);
@@ -677,6 +679,21 @@ export default function OCMembershipForm({
         onClose={() => setShowDraftSavePopup(false)}
         taxId={formData.taxId}
         companyName={formData.companyName}
+      />
+
+      {/* Success Modal */}
+      <MembershipSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        membershipType="oc"
+        memberData={{
+          taxId: formData.taxId,
+          companyNameTh: formData.companyName
+        }}
+        onConfirm={() => {
+          setShowSuccessModal(false);
+          router.push('/dashboard?tab=status');
+        }}
       />
     </div>
   );

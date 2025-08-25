@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from 'next/navigation';
+import MembershipSuccessModal from '@/app/components/MembershipSuccessModal';
 
 // นำเข้าคอมโพเนนต์ย่อยสำหรับแต่ละขั้นตอน
 import AssociationInfoSection from './AssociationInfoSection';
@@ -176,6 +177,8 @@ export default function AMMembershipForm(props = {}) {
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState(null);
 
   // Determine which form data and setters to use
   const isExternal = props.formData !== undefined;
@@ -352,12 +355,11 @@ export default function AMMembershipForm(props = {}) {
       toast.dismiss('submitting');
       
       if (result.success) {
-        toast.success(result.message || 'ส่งข้อมูลการสมัครเรียบร้อยแล้ว');
-        
         // ลบ draft หลังจากสมัครสำเร็จ
         await deleteDraft();
-        
-        setTimeout(() => router.push('/dashboard?tab=status'), 2000);
+        // เก็บผลลัพธ์และแสดง Success Modal
+        setSubmissionResult(result);
+        setShowSuccessModal(true);
       } else {
         toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
         setIsSubmitting(false);
@@ -629,8 +631,8 @@ export default function AMMembershipForm(props = {}) {
             </div>
 
             <div className="flex items-center space-x-3">
-              {/* Save Draft Button - Show on steps 1-4 */}
-              {currentStep < 5 && (
+              {/* Save Draft Button - Show on steps 1-3 (hidden on step 4) */}
+              {currentStep < 5 && currentStep !== 4 && (
                 <button
                   type="button"
                   onClick={handleSaveDraft}
@@ -685,6 +687,21 @@ export default function AMMembershipForm(props = {}) {
         onClose={() => setShowDraftSavePopup(false)}
         taxId={formData.taxId}
         associationName={formData.associationName}
+      />
+
+      {/* Success Modal */}
+      <MembershipSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        membershipType="am"
+        memberData={{
+          taxId: formData.taxId,
+          companyNameTh: formData.associationName
+        }}
+        onConfirm={() => {
+          setShowSuccessModal(false);
+          router.push('/dashboard?tab=status');
+        }}
       />
     </div>
   );

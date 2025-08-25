@@ -756,8 +756,8 @@ export default function AssociationAddressInfo({
                 type="url"
                 id="website"
                 name="website"
-                value={formData.website || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
+                value={currentAddress?.website || ''}
+                onChange={(e) => handleInputChange('website', e.target.value)}
                 placeholder="https://example.com"
                 className="
                   w-full px-4 py-3 text-sm

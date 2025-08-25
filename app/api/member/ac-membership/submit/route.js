@@ -99,21 +99,35 @@ export async function POST(request) {
     console.log('📄 [AC] Data fields:', Object.keys(data));
     console.log('🔍 [AC] Raw data dump:', data);
 
-    // Step 2: Check for duplicate Tax ID
+    // Step 2: Check for duplicate Tax ID (cross-table AM/AC/OC)
     const { taxId } = data;
     if (!taxId) {
       await rollbackTransaction(trx);
       return NextResponse.json({ error: 'กรุณาระบุเลขประจำตัวผู้เสียภาษี' }, { status: 400 });
     }
 
-    const [existingMember] = await executeQuery(trx, 
-      'SELECT status FROM MemberRegist_AC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', 
+    // AC
+    const [acDup] = await executeQuery(trx,
+      'SELECT status FROM MemberRegist_AC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
+      [taxId]
+    );
+    // AM (0=pending,1=approved)
+    const [amDup] = await executeQuery(trx,
+      `SELECT status FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1`,
+      [taxId]
+    );
+    // OC
+    const [ocDup] = await executeQuery(trx,
+      'SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
       [taxId]
     );
 
-    if (existingMember) {
+    if (acDup || amDup || ocDup) {
       await rollbackTransaction(trx);
-      const message = existingMember.status === 0
+      const isPending = (amDup && Number(amDup.status) === 0)
+        || (acDup && Number(acDup.status) === 0)
+        || (ocDup && Number(ocDup.status) === 0);
+      const message = isPending
         ? `คำขอสมัครสมาชิกของท่านสำหรับเลขประจำตัวผู้เสียภาษี ${taxId} อยู่ระหว่างการพิจารณา`
         : `เลขประจำตัวผู้เสียภาษี ${taxId} นี้ได้เป็นสมาชิกแล้ว`;
       return NextResponse.json({ error: message }, { status: 409 });

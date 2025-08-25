@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
 import { motion } from 'framer-motion';
 
 export default function ResetPassword() {
@@ -101,20 +101,8 @@ export default function ResetPassword() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Header with Logo */}
-      <header className="bg-white shadow-sm">
-        <div className="container-custom py-4">
-          <Link href="/" className="flex-shrink-0">
-            <Image
-              src="/FTI-MasterLogo_RGB_forLightBG.png"
-              alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-              width={180}
-              height={60}
-              priority
-            />
-          </Link>
-        </div>
-      </header>
+      {/* Global Navbar */}
+      <Navbar />
 
       <motion.div 
         className="container-custom py-12"

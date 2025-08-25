@@ -54,16 +54,27 @@ export async function POST(request) {
     console.log('📁 Files detected:', Object.keys(files));
     console.log('📄 Data fields:', Object.keys(data));
 
-    // Step 2: Check for duplicate Tax ID
+    // Step 2: Check for duplicate Tax ID (cross-table OC/AC/AM)
     const { taxId } = data;
-    const [existingMember] = await executeQuery(trx, 
-      'SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1', 
+    const [ocDup] = await executeQuery(trx,
+      'SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
+      [taxId]
+    );
+    const [acDup] = await executeQuery(trx,
+      'SELECT status FROM MemberRegist_AC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1',
+      [taxId]
+    );
+    const [amDup] = await executeQuery(trx,
+      `SELECT status FROM MemberRegist_AM_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1`,
       [taxId]
     );
 
-    if (existingMember) {
+    if (ocDup || acDup || amDup) {
       await rollbackTransaction(trx);
-      const message = existingMember.status === 0
+      const isPending = (amDup && Number(amDup.status) === 0)
+        || (acDup && Number(acDup.status) === 0)
+        || (ocDup && Number(ocDup.status) === 0);
+      const message = isPending
         ? `คำขอสมัครสมาชิกของท่านสำหรับเลขประจำตัวผู้เสียภาษี ${taxId} อยู่ระหว่างการพิจารณา`
         : `เลขประจำตัวผู้เสียภาษี ${taxId} นี้ได้เป็นสมาชิกแล้ว`;
       return NextResponse.json({ error: message }, { status: 409 });

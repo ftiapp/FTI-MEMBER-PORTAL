@@ -206,29 +206,19 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("รีเซ็ตรหัสผ่านของคุณ - FTI Portal")
-    .setHtml(`
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #1a56db;">รีเซ็ตรหัสผ่านของคุณ</h1>
-        </div>
-        <div style="margin-bottom: 30px;">
-          <p>สวัสดี ${name},</p>
-          <p>เราได้รับคำขอให้รีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ กรุณาคลิกที่ปุ่มด้านล่างเพื่อตั้งรหัสผ่านใหม่:</p>
-        </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "รีเซ็ตรหัสผ่านของคุณ",
+      bodyContent: `
+        <p>สวัสดี ${name},</p>
+        <p>เราได้รับคำขอให้รีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ กรุณาคลิกที่ปุ่มด้านล่างเพื่อตั้งรหัสผ่านใหม่:</p>
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${resetLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">รีเซ็ตรหัสผ่าน</a>
         </div>
-        <div>
-          <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
-          <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${resetLink}</p>
-        </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-          <p>ลิงก์นี้จะหมดอายุใน 15 นาที</p>
-          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `)
+        <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
+        <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${resetLink}</p>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">ลิงก์นี้จะหมดอายุใน 15 นาที</p>
+      `
+    }))
     .setText(`
       รีเซ็ตรหัสผ่านของคุณ - FTI Portal
       

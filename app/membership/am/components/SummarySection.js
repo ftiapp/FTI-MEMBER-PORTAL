@@ -317,10 +317,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
             title="ชื่อสมาคม (อังกฤษ)" 
             value={formData.associationNameEn || formData.associationNameEng || formData.company_name_en} 
           />
-          <InfoCard 
-            title="เลขทะเบียนสมาคม" 
-            value={formData.associationRegistrationNumber || formData.member_code || formData.registrationNumber} 
-          />
+      
           <InfoCard 
             title="เลขประจำตัวผู้เสียภาษี" 
             value={formData.taxId || formData.tax_id} 
