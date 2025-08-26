@@ -114,7 +114,7 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
         <div className="mb-4">
           <canvas
             ref={canvasRef}
-            className="border border-gray-300 rounded cursor-move"
+            className="border border-gray-300 rounded cursor-move block mx-auto"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -128,7 +128,7 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
           </label>
           <input
             type="range"
-            min="0.5"
+            min="0.1"
             max="3"
             step="0.1"
             value={scale}

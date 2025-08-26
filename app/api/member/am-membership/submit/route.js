@@ -126,8 +126,8 @@ export async function GET(request, { params }) {
         building: addr.building,
         moo: addr.moo,
         soi: addr.soi,
-        street: addr.street,
-        road: addr.street, // เพื่อความเข้ากันได้
+        street: addr.street || addr.road, // prefer street, fallback to road if exists
+        road: addr.road || addr.street, // prefer road, fallback to street
         subDistrict: addr.sub_district,
         district: addr.district,
         province: addr.province,
@@ -216,7 +216,7 @@ export async function GET(request, { params }) {
       responseData.moo = firstAddress.moo;
       responseData.soi = firstAddress.soi;
       responseData.street = firstAddress.street;
-      responseData.road = firstAddress.street;
+      responseData.road = firstAddress.road || firstAddress.street;
       responseData.subDistrict = firstAddress.sub_district;
       responseData.district = firstAddress.district;
       responseData.province = firstAddress.province;
@@ -419,7 +419,7 @@ export async function POST(request) {
               toNull(addressInfo.building),
               toNull(addressInfo.moo),
               toNull(addressInfo.soi),
-              toNull(addressInfo.street),
+              toNull(addressInfo.road ?? addressInfo.street),
               toNull(addressInfo.subDistrict),
               toNull(addressInfo.district),
               toNull(addressInfo.province),

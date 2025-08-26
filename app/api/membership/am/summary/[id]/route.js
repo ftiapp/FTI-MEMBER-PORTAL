@@ -136,8 +136,8 @@ export async function GET(request, { params }) {
         moo: addr.moo || '',
         soi: addr.soi || '',
         // Keep both keys to match OC and ensure compatibility
-        street: addr.street || '',
-        road: addr.street || '',
+        street: (addr.street || addr.road || ''),
+        road: (addr.road || addr.street || ''),
         sub_district: addr.sub_district || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
@@ -193,8 +193,8 @@ export async function GET(request, { params }) {
       moo: mainAddress?.moo || '',
       soi: mainAddress?.soi || '',
       // Provide both street and road for compatibility with OC components
-      street: mainAddress?.street || '',
-      road: mainAddress?.street || '',
+      street: mainAddress?.street || mainAddress?.road || '',
+      road: mainAddress?.road || mainAddress?.street || '',
       subDistrict: mainAddress?.sub_district || '',
       sub_district: mainAddress?.sub_district || '', // DB key
       district: mainAddress?.district || '',

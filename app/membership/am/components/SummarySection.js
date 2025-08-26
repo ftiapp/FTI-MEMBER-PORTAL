@@ -351,10 +351,7 @@ export default function SummarySection({ formData, industrialGroups, provincialC
             title="เลขประจำตัวผู้เสียภาษี" 
             value={formData.taxId || formData.tax_id} 
           />
-          <InfoCard 
-            title="เว็บไซต์" 
-            value={formData.associationWebsite || formData.website} 
-          />
+          
         </div>
       </Section>
 
