@@ -45,7 +45,8 @@ export default function Membership() {
       id: 'oc',
       name: 'สามัญ-โรงงาน',
       description: 'สน (OC)',
-      annual_fee: 12000,
+      annual_fee: 1000,
+      feeText: '1,000–100,000 บาท/ปี (คำนวณตามรายได้)',
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
         'สิทธิในการออกเสียงเลือกตั้ง',
@@ -56,9 +57,10 @@ export default function Membership() {
     },
     {
       id: 'am',
-      name: 'สมาชิกสามัญ-โรงงาน',
+      name: 'สมาชิกสามัญ-สมาคมการค้า',
       description: 'สส (AM)',
-      annual_fee: 8000,
+      annual_fee: 10000,
+      feeText: '10,000–100,000 บาท/ปี (คำนวณตามจำนวนสมาชิก)',
       features: [
         'สิทธิในการเข้าร่วมประชุมใหญ่',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
@@ -70,8 +72,9 @@ export default function Membership() {
     {
       id: 'ac',
       name: 'สมทบ-บุคคลธรรมดา',
-      description: 'ทน (AC)',
-      annual_fee: 6000,
+      description: 'ทบ (AC)',
+      annual_fee: 600,
+      feeText: '600 บาท/ปี',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
@@ -83,8 +86,9 @@ export default function Membership() {
     {
       id: 'ic',
       name: 'สมทบ-นิติบุคคล',
-      description: 'ทบ (IC)',
-      annual_fee: 3000,
+      description: 'ทน (IC)',
+      annual_fee: 2400,
+      feeText: '2,400 บาท/ปี',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
@@ -324,16 +328,16 @@ export default function Membership() {
           title: 'ประเภทที่ 1',
           subtitle: 'มีเครื่องจักร มากกว่า 50 แรงม้า',
           requirements: [
-            'มีใบอนุญาตประกอบกิจการโรงงาน (รง.4) / ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (นอ.)'
+            'มีใบอนุญาตประกอบกิจการโรงงาน (รง.4) / ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (กนอ.)'
           ]
         },
         {
           title: 'ประเภทที่ 2',
-          subtitle: 'ไม่มีเครื่องจักร / มีเครื่องจักร ตํ่ากว่า 50 แรงม้า',
+          subtitle: 'ไม่มีเครื่องจักร/ มีเครื่องจักร ต่ำกว่า 50 แรงม้า',
           requirements: [
-            'ไม่มีใบอนุญาต พิจารณาจากเลขหลักธุรกิจ (TSIC Code) ที่จดทะเบียนกับกรมพัฒนาธุรกิจการค้าที่แสดงถึงความเกี่ยวข้องกับอุตสาหกรรม โดยใช้หลักฐานเพิ่มเติม ได้แก่',
-            '> รูปถ่ายเครื่องจักร อุปกรณ์ กระบวนการผลิต และสถานที่ผลิต',
-            '> เอกสารคำร้องขอโดยผู้บริหารงานการรับที่แสดงถึงการผลิต (ถ้ามี)'
+            'ไม่มีใบอนุญาตพิจารณาจากรหัส (TSIC Code) ที่จดทะเบียนกับกรมพัฒนาธุรกิจการค้ากระทรวงพาณิชย์ ซึ่งแสดงถึงความเกี่ยวข้องกับอุตสาหกรรม หมวดที่เป็น Positive list โดยใช้หลักฐานเพิ่มเติมได้แก่',
+            '> - เอกสารที่ออกโดยหน่วยงานภาครัฐที่แสดงถึงการผลิต และ/หรือ',
+            '> - รูปถ่าย เครื่องจักร อุปกรณ์ และสถานที่ผลิต'
           ]
         }
       ]
@@ -432,7 +436,7 @@ export default function Membership() {
         {/* Step Workflow */}
         <div className="bg-white rounded-xl shadow p-6 mb-8">
           <h3 className="text-xl font-bold text-blue-900 mb-4">ขั้นตอนการสมัคร</h3>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-6 md:space-y-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Step 1 */}
             <div className="flex items-center md:flex-1">
               <div className="flex items-center">
@@ -448,14 +452,6 @@ export default function Membership() {
                 </div>
               </div>
             </div>
-
-            {/* Arrow */}
-            <div className="hidden md:flex mx-4 text-blue-300">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-
             {/* Step 2 */}
             <div className="flex items-center md:flex-1">
               <div className="flex items-center">
@@ -471,14 +467,6 @@ export default function Membership() {
                 </div>
               </div>
             </div>
-
-            {/* Arrow */}
-            <div className="hidden md:flex mx-4 text-blue-300">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-
             {/* Step 3 */}
             <div className="flex items-center md:flex-1">
               <div className="flex items-center">
@@ -494,14 +482,6 @@ export default function Membership() {
                 </div>
               </div>
             </div>
-
-            {/* Arrow */}
-            <div className="hidden md:flex mx-4 text-blue-300">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-
             {/* Step 4 */}
             <div className="flex items-center md:flex-1">
               <div className="flex items-center">
@@ -526,7 +506,7 @@ export default function Membership() {
             <div className="w-16 h-1 bg-blue-600 mx-auto mt-3"></div>
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6">
             {membershipTypes.map((type) => (
               <div
                 key={type.id}
@@ -546,7 +526,7 @@ export default function Membership() {
                   {type.description}
                 </p>
                 <div className="text-2xl font-bold mb-4 text-blue-600">
-                  {type.annual_fee.toLocaleString()} บาท/ปี
+                  {type.feeText ? type.feeText : `${type.annual_fee.toLocaleString()} บาท/ปี`}
                 </div>
                 <ul className="mb-6 space-y-2">
                   {type.features.map((feature, featureIndex) => (
@@ -674,7 +654,7 @@ export default function Membership() {
                     <span className="font-medium text-blue-800">หมายเหตุ</span>
                   </div>
                   <p className="text-blue-700 mt-1 text-sm">
-                    เอกสารทั้งหมดต้องเป็นสำเนาที่มีการรับรองความถูกต้อง และอาจมีเอกสารเพิ่มเติมตามดุลยพินิจของสภาอุตสาหกรรม
+                    เอกสารทั้งหมด ให้รับรองสำเนาถูกต้อง หากไม่ครบถ้วนเจ้าหน้าที่อาจขอเอกสารเพิ่มเติม
                   </p>
                 </div>
               </div>
@@ -704,19 +684,19 @@ export default function Membership() {
                     สิทธิประโยชน์ ({benefits.length} รายการ)
                   </th>
                   <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                    ทบ สมทบ-บุคคลธรรมดา<br/>
+                     สมทบ-บุคคลธรรมดา (ทบ)<br/>
                     <span className="text-xs font-normal">3,000 บาท</span>
                   </th>
                   <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                    ทน สมทบ-นิติบุคคล<br/>
+                     สมทบ-นิติบุคคล (ทน)<br/>
                     <span className="text-xs font-normal">6,000 บาท</span>
                   </th>
                   <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                    สส สามัญ-สมาคมการค้า<br/>
+                  สามัญ-สมาคมการค้า (สส)<br/>
                     <span className="text-xs font-normal">8,000 บาท</span>
                   </th>
                   <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                    สน สามัญ-โรงงาน<br/>
+                    สามัญ-โรงงงาน (สน)<br/>
                     <span className="text-xs font-normal">12,000 บาท</span>
                   </th>
                 </tr>

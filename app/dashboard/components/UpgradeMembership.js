@@ -231,9 +231,9 @@ export default function UpgradeMembership() {
   const membershipTypes = [
     {
       id: 'ordinary',
-      title: 'สน สามัญ-โรงงาน',
+      title: 'สามัญ-โรงงาน (สน)',
       subtitle: 'สำหรับผู้ประกอบการภาคอุตสาหกรรมโรงงาน',
-      price: '12,000 บาท/ปี',
+      price: '1,000–100,000 บาท/ปี (คำนวณตามรายได้)',
       color: 'blue',
       link: '/membership/oc',
       features: [
@@ -244,9 +244,9 @@ export default function UpgradeMembership() {
     },
     {
       id: 'associate',
-      title: 'สส สามัญ-สมาคมการค้า',
+      title: 'สามัญ-สมาคมการค้า (สส)',
       subtitle: 'สำหรับสมาคมการค้าที่เกี่ยวข้องกับอุตสาหกรรม',
-      price: '8,000 บาท/ปี',
+      price: '10,000–100,000 บาท/ปี (คำนวณตามจำนวนสมาชิก)',
       color: 'blue',
       link: '/membership/am',
       features: [
@@ -257,11 +257,11 @@ export default function UpgradeMembership() {
     },
     {
       id: 'supporting_corporate',
-      title: 'ทน สมทบ-นิติบุคคล',
+      title: 'สมทบ-นิติบุคคล (ทน)',
       subtitle: 'สำหรับนิติบุคคลที่ทำงานด้านอุตสาหกรรม',
-      price: '6,000 บาท/ปี',
+      price: '2,400 บาท/ปี',
       color: 'blue',
-      link: '/membership/ac',
+      link: '/membership/ic',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากสภาอุตสาหกรรม',
@@ -270,11 +270,11 @@ export default function UpgradeMembership() {
     },
     {
       id: 'supporting_individual',
-      title: 'ทบ สมทบ-บุคคลธรรมดา',
+      title: 'สมทบ-บุคคลธรรมดา (ทบ)',
       subtitle: 'สำหรับบุคคลธรรมดาที่สนใจงานด้านอุตสาหกรรม',
-      price: '3,000 บาท/ปี',
+      price: '600 บาท/ปี',
       color: 'blue',
-      link: '/membership/ic',
+      link: '/membership/ac',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากสภาอุตสาหกรรม',
@@ -297,11 +297,11 @@ export default function UpgradeMembership() {
         },
         {
           title: 'ประเภทที่ 2',
-          subtitle: 'ไม่มีเครื่องจักร / มีเครื่องจักร ตํ่ากว่า 50 แรงม้า',
+          subtitle: 'ไม่มีเครื่องจักร/ มีเครื่องจักร ต่ำกว่า 50 แรงม้า',
           requirements: [
-            'ไม่มีใบอนุญาต พิจารณาจากเลขหลักธุรกิจ (TSIC Code) ที่จดทะเบียนกับกรมพัฒนาธุรกิจการค้าที่แสดงถึงความเกี่ยวข้องกับอุตสาหกรรม โดยใช้หลักฐานเพิ่มเติม ได้แก่',
-            '> รูปถ่ายเครื่องจักร อุปกรณ์ กระบวนการผลิต และสถานที่ผลิต',
-            '> เอกสารคำร้องขอโดยผู้บริหารงานการรับที่แสดงถึงการผลิต (ถ้ามี)'
+            'ไม่มีใบอนุญาตพิจารณาจากรหัส (TSIC Code) ที่จดทะเบียนกับกรมพัฒนาธุรกิจการค้ากระทรวงพาณิชย์ ซึ่งแสดงถึงความเกี่ยวข้องกับอุตสาหกรรม หมวดที่เป็น Positive list โดยใช้หลักฐานเพิ่มเติมได้แก่',
+            '- เอกสารที่ออกโดยหน่วยงานภาครัฐที่แสดงถึงการผลิต และ/หรือ',
+            '- รูปถ่าย เครื่องจักร อุปกรณ์ และสถานที่ผลิต'
           ]
         }
       ]
@@ -408,7 +408,7 @@ export default function UpgradeMembership() {
       {/* Step Workflow */}
       <div className="bg-white rounded-xl shadow p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">ขั้นตอนการสมัคร</h2>
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-6 md:space-y-0">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Step 1 */}
           <div className="flex items-center md:flex-1">
             <div className="flex items-center">
@@ -424,13 +424,6 @@ export default function UpgradeMembership() {
                 <p className="font-medium text-gray-900">สมาชิกสมัครผ่านระบบออนไลน์</p>
               </div>
             </div>
-          </div>
-
-          {/* Arrow */}
-          <div className="hidden md:flex mx-4 text-gray-300">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
           </div>
 
           {/* Step 2 */}
@@ -450,13 +443,6 @@ export default function UpgradeMembership() {
             </div>
           </div>
 
-          {/* Arrow */}
-          <div className="hidden md:flex mx-4 text-gray-300">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-
           {/* Step 3 */}
           <div className="flex items-center md:flex-1">
             <div className="flex items-center">
@@ -472,13 +458,6 @@ export default function UpgradeMembership() {
                 <p className="font-medium text-gray-900">ชำระเงิน</p>
               </div>
             </div>
-          </div>
-
-          {/* Arrow */}
-          <div className="hidden md:flex mx-4 text-gray-300">
-            <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-            </svg>
           </div>
 
           {/* Step 4 */}
@@ -498,26 +477,15 @@ export default function UpgradeMembership() {
           </div>
         </div>
 
-        {/* Mobile arrows (vertical) */}
-        <div className="md:hidden flex flex-col items-center mt-4 space-y-2 text-gray-300">
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-          <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
+        
       </div>
 
       {/* Membership Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
         {membershipTypes.map((membership) => (
           <div key={membership.id} className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
             <div className={`${colorClasses[membership.color].bg} text-white p-4`}>
-              <h3 className="text-lg font-semibold">{membership.title}</h3>
+              <h3 className="text-lg font-bold">{membership.title}</h3>
               <p className="text-sm opacity-90">{membership.subtitle}</p>
             </div>
             <div className="p-4">
@@ -641,7 +609,7 @@ export default function UpgradeMembership() {
                   <span className="font-medium text-yellow-800">หมายเหตุ</span>
                 </div>
                 <p className="text-yellow-700 mt-1 text-sm">
-                  เอกสารทั้งหมดต้องเป็นสำเนาที่มีการรับรองความถูกต้อง และอาจมีเอกสารเพิ่มเติมตามดุลยพินิจของสภาอุตสาหกรรม
+                  เอกสารทั้งหมด ให้รับรองสำเนาถูกต้อง หากไม่ครบถ้วนเจ้าหน้าที่อาจขอเอกสารเพิ่มเติม
                 </p>
               </div>
             </div>
@@ -671,19 +639,19 @@ export default function UpgradeMembership() {
                   สิทธิประโยชน์ ({benefits.length} รายการ)
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  ทบ สมทบ-บุคคลธรรมดา<br/>
+                  สมทบ-บุคคลธรรมดา (ทบ)<br/>
                   <span className="text-xs font-normal">3,000 บาท</span>
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  ทน สมทบ-นิติบุคคล<br/>
+                  สมทบ-นิติบุคคล (ทน)<br/>
                   <span className="text-xs font-normal">6,000 บาท</span>
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  สส สามัญ-สมาคมการค้า<br/>
+                  สามัญ-สมาคมการค้า (สส)<br/>
                   <span className="text-xs font-normal">8,000 บาท</span>
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  สน สามัญ-โรงงาน<br/>
+                  สามัญ-โรงงาน (สน)<br/>
                   <span className="text-xs font-normal">12,000 บาท</span>
                 </th>
               </tr>
@@ -807,7 +775,7 @@ export default function UpgradeMembership() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-8">
         <div className="bg-gradient-to-r from-amber-500 to-amber-600 rounded-lg p-6 text-white">
           <div className="text-center">
-            <h3 className="text-lg font-semibold">ทบ สมทบ-บุคคลธรรมดา</h3>
+            <h3 className="text-lg font-semibold">สมทบ-บุคคลธรรมดา (ทบ)</h3>
             <p className="text-2xl font-bold mt-2">
               {benefits.filter(b => b.supporting).length} สิทธิ
             </p>
@@ -817,7 +785,7 @@ export default function UpgradeMembership() {
         
         <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
           <div className="text-center">
-            <h3 className="text-lg font-semibold">ทน สมทบ-นิติบุคคล</h3>
+            <h3 className="text-lg font-semibold">สมทบ-นิติบุคคล (ทน)</h3>
             <p className="text-2xl font-bold mt-2">
               {benefits.filter(b => b.supporting).length} สิทธิ
             </p>
@@ -827,7 +795,7 @@ export default function UpgradeMembership() {
         
         <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg p-6 text-white">
           <div className="text-center">
-            <h3 className="text-lg font-semibold">สส สามัญ-สมาคมการค้า</h3>
+            <h3 className="text-lg font-semibold">สามัญ-สมาคมการค้า (สส)</h3>
             <p className="text-2xl font-bold mt-2">
               {benefits.filter(b => b.associate).length} สิทธิ
             </p>
@@ -837,7 +805,7 @@ export default function UpgradeMembership() {
         
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
           <div className="text-center">
-            <h3 className="text-lg font-semibold">สน สามัญ-โรงงาน</h3>
+            <h3 className="text-lg font-semibold">สามัญ-โรงงาน (สน)</h3>
             <p className="text-2xl font-bold mt-2">
               {benefits.filter(b => b.ordinary).length} สิทธิ
             </p>

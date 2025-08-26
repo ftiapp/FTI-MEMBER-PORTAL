@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 import dynamic from 'next/dynamic';
 
@@ -26,6 +26,7 @@ export default function ApplicationDetailView() {
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const searchParams = useSearchParams();
+  const router = useRouter();
   const id = searchParams.get('detail');
   const type = searchParams.get('type');
 
@@ -80,7 +81,7 @@ export default function ApplicationDetailView() {
       <div className="text-center py-8">
         <p className="text-gray-500">ไม่พบข้อมูลการสมัคร</p>
         <button 
-          onClick={() => window.history.back()}
+          onClick={() => router.push('/dashboard?tab=member')}
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           กลับไปหน้ารายการ
@@ -229,7 +230,7 @@ export default function ApplicationDetailView() {
     <div className="max-w-6xl mx-auto p-4">
       <div className="mb-4">
         <button 
-          onClick={() => window.history.back()}
+          onClick={() => router.push('/dashboard?tab=member')}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
         >
           กลับไปหน้ารายการ

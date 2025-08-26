@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { 
   FaBuilding, 
   FaFileAlt, 
-  FaCheckCircle, 
   FaSearch,
   FaPencilAlt,
-  FaEdit
+  FaEye
 } from 'react-icons/fa';
 
 import InfoBox from './InfoBox';
@@ -73,14 +72,21 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
             วันที่อนุมัติ
           </th>
+          {/*
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
             สถานะ
           </th>
+          */}
+          {/*
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
             สถานะสมาชิก
           </th>
+          */}
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
             เอกสารยืนยัน
+          </th>
+          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
+            ดูข้อมูล
           </th>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
             แก้ไขข้อมูล
@@ -134,6 +140,7 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 border-r border-gray-100">
                 {formatDate(company.updated_at)}
               </td>
+              {/*
               <td className="px-6 py-4 whitespace-nowrap border-r border-gray-100">
                 <motion.span 
                   className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800 shadow-sm"
@@ -146,6 +153,8 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   อนุมัติ
                 </motion.span>
               </td>
+              */}
+              {/*
               <td className="px-6 py-4 whitespace-nowrap text-sm border-r border-gray-100">
                 {company.memberStatus ? (
                   <motion.span 
@@ -161,6 +170,7 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   <span className="text-gray-400 italic">ไม่พบข้อมูล</span>
                 )}
               </td>
+              */}
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                 {company.file_path ? (
                   <motion.a 
@@ -212,6 +222,28 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   ) : (
                     <span className="text-gray-400 italic">ไม่มีเอกสาร</span>
                   )
+                )}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {company.MEMBER_CODE ? (
+                  <motion.a 
+                    href={`/MemberDetail?memberCode=${company.MEMBER_CODE}`}
+                    className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click
+                      e.preventDefault(); // Prevent default navigation
+                      // authorize access
+                      sessionStorage.setItem('memberDetailAccess', `${company.MEMBER_CODE}_${Date.now()}`);
+                      window.location.href = `/MemberDetail?memberCode=${encodeURIComponent(company.MEMBER_CODE)}`;
+                    }}
+                  >
+                    <FaEye className="mr-1" size={14} />
+                    ดูข้อมูล
+                  </motion.a>
+                ) : (
+                  <span className="text-gray-400 italic">-</span>
                 )}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
