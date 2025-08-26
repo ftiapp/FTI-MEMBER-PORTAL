@@ -34,10 +34,10 @@ export default function MembershipSuccessModal({
 
   const getMembershipTypeName = (type) => {
     const typeNames = {
-      'oc': 'สมาชิกสามัญ-โรงงาน (OC)',
-      'ac': 'สมาชิกสมทบ-นิติบุคคล (AC)', 
-      'ic': 'สมาชิกสมทบ-บุคคลธรรมดา (IC)',
-      'am': 'สมาชิกสามัญ-สมาคมการค้า (AM)'
+      'oc': 'สมาชิกประเภท สามัญ-โรงงาน (สน)',
+      'ac': 'สมาชิกประเภท สมทบ-นิติบุคคล (ทน)', 
+      'ic': 'สมาชิกประเภท สมทบ-บุคคลธรรมดา (ทบ)',
+      'am': 'สมาชิกประเภท สามัญ-สมาคมการค้า (สส)'
     };
     return typeNames[type?.toLowerCase()] || 'สมาชิก';
   };

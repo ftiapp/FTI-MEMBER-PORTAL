@@ -106,50 +106,57 @@ export default function EditAddressForm({
     setActiveLanguage(lang);
   };
   
-  // Handle document file change
+  // Handle document file change (including clearing when file is null)
   const handleDocumentChange = (file) => {
-    if (file) {
-      // Check file size (max 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setErrorMessage('ไฟล์มีขนาดใหญ่เกินไป กรุณาอัพโหลดไฟล์ขนาดไม่เกิน 5MB');
-        return;
-      }
-      
-      // Check file type
-      const fileExt = file.name.split('.').pop().toLowerCase();
-      const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png'];
-      
-      if (!allowedTypes.includes(fileExt)) {
-        setErrorMessage(`ไฟล์ประเภท ${fileExt} ไม่ได้รับการสนับสนุน กรุณาอัพโหลดไฟล์ประเภท PDF, JPG, JPEG, PNG`);
-        return;
-      }
-      
-      // Validate PDF content for address types 001 and 003
-      if (fileExt === 'pdf' && (addrCode === '001' || addrCode === '003')) {
-        // Create a FileReader to check the PDF content
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const content = new Uint8Array(e.target.result);
-          // Check for PDF header signature %PDF-
-          const header = content.subarray(0, 5);
-          const isPDF = header[0] === 37 && header[1] === 80 && header[2] === 68 && header[3] === 70 && header[4] === 45;
-          
-          if (!isPDF) {
-            setErrorMessage('ไฟล์ PDF ไม่ถูกต้อง กรุณาอัพโหลดไฟล์ PDF ที่ถูกต้อง');
-            setDocumentFile(null);
-            return;
-          }
-          
-          // If all checks pass, set the document file
-          setDocumentFile(file);
-          setErrorMessage(''); // Clear any previous error messages
-        };
-        reader.readAsArrayBuffer(file.slice(0, 5)); // Only read the first few bytes for the header check
-      } else {
-        // For non-PDF files, just set the document file
+    // If child requests clearing the file
+    if (!file) {
+      setDocumentFile(null);
+      // Do not keep old validation error when user removed the file manually
+      setErrorMessage('');
+      return;
+    }
+
+    // Validate new file
+    // Check file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrorMessage('ไฟล์มีขนาดใหญ่เกินไป กรุณาอัพโหลดไฟล์ขนาดไม่เกิน 5MB');
+      return;
+    }
+    
+    // Check file type
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png'];
+    
+    if (!allowedTypes.includes(fileExt)) {
+      setErrorMessage(`ไฟล์ประเภท ${fileExt} ไม่ได้รับการสนับสนุน กรุณาอัพโหลดไฟล์ประเภท PDF, JPG, JPEG, PNG`);
+      return;
+    }
+    
+    // Validate PDF content for address types 001 and 003
+    if (fileExt === 'pdf' && (addrCode === '001' || addrCode === '003')) {
+      // Create a FileReader to check the PDF content
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = new Uint8Array(e.target.result);
+        // Check for PDF header signature %PDF-
+        const header = content.subarray(0, 5);
+        const isPDF = header[0] === 37 && header[1] === 80 && header[2] === 68 && header[3] === 70 && header[4] === 45;
+        
+        if (!isPDF) {
+          setErrorMessage('ไฟล์ PDF ไม่ถูกต้อง กรุณาอัพโหลดไฟล์ PDF ที่ถูกต้อง');
+          setDocumentFile(null);
+          return;
+        }
+        
+        // If all checks pass, set the document file
         setDocumentFile(file);
         setErrorMessage(''); // Clear any previous error messages
-      }
+      };
+      reader.readAsArrayBuffer(file.slice(0, 5)); // Only read the first few bytes for the header check
+    } else {
+      // For non-PDF files, just set the document file
+      setDocumentFile(file);
+      setErrorMessage(''); // Clear any previous error messages
     }
   };
   
@@ -563,6 +570,7 @@ export default function EditAddressForm({
             addrCode={addrCode}
             onFileChange={handleDocumentChange}
             itemVariants={itemVariants}
+            file={documentFile}
           />
         </div>
       )}

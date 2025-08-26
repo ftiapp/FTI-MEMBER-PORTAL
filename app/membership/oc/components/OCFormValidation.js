@@ -293,22 +293,19 @@ export const validateOCForm = (formData, step) => {
       formData.products.forEach((product, index) => {
         const prodError = {};
         
-        // ตรวจสอบชื่อผลิตภัณฑ์/บริการภาษาไทย
+        // ตรวจสอบชื่อผลิตภัณฑ์/บริการภาษาไทย (บังคับ)
         if (!product.nameTh) {
           prodError.nameTh = 'กรุณากรอกชื่อผลิตภัณฑ์/บริการภาษาไทย';
         }
-        
-        // ตรวจสอบชื่อผลิตภัณฑ์/บริการภาษาอังกฤษ
-        if (!product.nameEn) {
-          prodError.nameEn = 'กรุณากรอกชื่อผลิตภัณฑ์/บริการภาษาอังกฤษ';
-        }
-        
-        // เพิ่มข้อผิดพลาดของผลิตภัณฑ์/บริการรายการนี้เข้าไปใน array
+
+        // ชื่อผลิตภัณฑ์/บริการภาษาอังกฤษ: ไม่บังคับกรอก
+
+        // เพิ่มข้อผิดพลาดของผลิตภัณฑ์/บริการรายการนี้เข้าไปใน array หากมี
         if (Object.keys(prodError).length > 0) {
           productErrors[index] = prodError;
         }
       });
-      
+
       // ถ้ามีข้อผิดพลาดในผลิตภัณฑ์/บริการรายการใดรายการหนึ่ง
       if (productErrors.length > 0) {
         errors.products = 'กรุณากรอกข้อมูลผลิตภัณฑ์/บริการให้ครบถ้วน';

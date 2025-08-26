@@ -262,7 +262,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
           {/* Sales Information */}
           <div className="space-y-2 mb-6">
             <label className="block text-sm font-medium text-gray-900 mb-3">
-              ยอดจำหน่าย (บาท/ปี)
+              ยอดจำหน่าย (%)
             </label>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -276,6 +276,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   value={formData.salesDomestic || ''}
                   onChange={handleInputChange}
                   min="0"
+                  max="100"
                   step="0.01"
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
@@ -292,6 +293,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   value={formData.salesExport || ''}
                   onChange={handleInputChange}
                   min="0"
+                  max="100"
                   step="0.01"
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"

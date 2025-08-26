@@ -90,7 +90,7 @@ export default function ICMembership() {
           
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-              สมัครสมาชิกประเภทสมทบ-บุคคลธรรมดา
+              สมัครสมาชิกประเภท สมทบ-บุคคลธรรมดา (ทบ)
             </h1>
             <motion.div 
               className="w-24 h-1 bg-white mx-auto mb-6"

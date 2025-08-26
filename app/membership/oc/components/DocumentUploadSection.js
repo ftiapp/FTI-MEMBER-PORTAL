@@ -867,7 +867,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       </div>
                       
                       <div className="bg-white p-3 rounded border border-orange-100">
-                        <h5 className="font-medium text-orange-800 mb-2">🎨 คุณภาพภาพ</h5>
+                        <h5 className="font-medium text-orange-800 mb-2">🎨 รูปแบบภาพ</h5>
                         <ul className="text-orange-700 space-y-1 text-xs">
                           <li>• <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว</li>
                           <li>• ลายเซ็นสีดำหรือสีเข้ม</li>

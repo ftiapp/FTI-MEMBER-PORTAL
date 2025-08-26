@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaFileUpload, FaFilePdf, FaFileAlt, FaTrash, FaSpinner, FaEye, FaTimes } from 'react-icons/fa';
 
@@ -12,13 +12,27 @@ import { FaFileUpload, FaFilePdf, FaFileAlt, FaTrash, FaSpinner, FaEye, FaTimes 
  * @param {Function} props.onFileChange Function to call when file is selected or removed
  * @param {Object} props.itemVariants Animation variants
  */
-export default function DocumentUpload({ addrCode, onFileChange, itemVariants }) {
+export default function DocumentUpload({ addrCode, onFileChange, itemVariants, file: controlledFile }) {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef(null);
+
+  // Sync with controlled file from parent so the selection persists across step navigation
+  useEffect(() => {
+    if (controlledFile) {
+      setFile(controlledFile);
+    }
+    // If parent cleared the file, reflect it
+    if (!controlledFile) {
+      setFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [controlledFile]);
 
   // Get document type requirements based on address code
   const getDocumentTypeInfo = (code) => {

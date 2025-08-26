@@ -292,7 +292,7 @@ export default function UpgradeMembership() {
           title: 'ประเภทที่ 1',
           subtitle: 'มีเครื่องจักร มากกว่า 50 แรงม้า',
           requirements: [
-            'มีใบอนุญาตประกอบกิจการโรงงาน (รง.4) / ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (นอ.)'
+            'มีใบอนุญาตประกอบกิจการโรงงาน (รง.4) / ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (กนอ.)'
           ]
         },
         {
@@ -639,20 +639,20 @@ export default function UpgradeMembership() {
                   สิทธิประโยชน์ ({benefits.length} รายการ)
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  สมทบ-บุคคลธรรมดา (ทบ)<br/>
-                  <span className="text-xs font-normal">3,000 บาท</span>
-                </th>
-                <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  สมทบ-นิติบุคคล (ทน)<br/>
-                  <span className="text-xs font-normal">6,000 บาท</span>
+                  สามัญ-โรงงาน (สน)<br/>
+                  <span className="text-xs font-normal">12,000 บาท</span>
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
                   สามัญ-สมาคมการค้า (สส)<br/>
                   <span className="text-xs font-normal">8,000 บาท</span>
                 </th>
                 <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
-                  สามัญ-โรงงาน (สน)<br/>
-                  <span className="text-xs font-normal">12,000 บาท</span>
+                  สมทบ-นิติบุคคล (ทน)<br/>
+                  <span className="text-xs font-normal">6,000 บาท</span>
+                </th>
+                <th className="py-4 px-4 text-center text-sm font-semibold text-blue-600 border-b">
+                  สมทบ-บุคคลธรรมดา (ทบ)<br/>
+                  <span className="text-xs font-normal">3,000 บาท</span>
                 </th>
               </tr>
             </thead>
@@ -665,16 +665,9 @@ export default function UpgradeMembership() {
                   </td>
                   <td className="py-3 px-4 text-center border-b">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.supporting ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+                      benefit.ordinary ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
                     }`}>
-                      {benefit.supporting ? '✓' : '×'}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-center border-b">
-                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.supporting ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
-                    }`}>
-                      {benefit.supporting ? '✓' : '×'}
+                      {benefit.ordinary ? '✓' : '×'}
                     </span>
                   </td>
                   <td className="py-3 px-4 text-center border-b">
@@ -686,9 +679,16 @@ export default function UpgradeMembership() {
                   </td>
                   <td className="py-3 px-4 text-center border-b">
                     <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.ordinary ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+                      benefit.supporting ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
                     }`}>
-                      {benefit.ordinary ? '✓' : '×'}
+                      {benefit.supporting ? '✓' : '×'}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-center border-b">
+                    <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
+                      benefit.supporting ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'
+                    }`}>
+                      {benefit.supporting ? '✓' : '×'}
                     </span>
                   </td>
                 </tr>

@@ -112,7 +112,7 @@ export default function RootLayout({ children }) {
           <ClientLayout>
             {children}
           </ClientLayout>
-          <FaqBotProvider />
+          {process.env.NEXT_PUBLIC_ENABLE_FAQ_BOT === 'true' && <FaqBotProvider />}
         </Providers>
       </body>
     </html>

@@ -1,14 +1,17 @@
-'use client';
-
+import { notFound } from 'next/navigation';
 import FaqBotProvider from '../components/FaqBot/FaqBotProvider';
 
 export default function TestChatbot() {
+  if (process.env.NEXT_PUBLIC_ENABLE_FAQ_BOT !== 'true') {
+    return notFound();
+  }
+
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
       justifyContent: 'center',
       padding: '20px',
       fontFamily: 'Kanit, sans-serif'

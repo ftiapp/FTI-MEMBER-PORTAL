@@ -282,9 +282,7 @@ const validateBusinessInfo = (formData) => {
         productError.nameTh = 'กรุณากรอกชื่อสินค้า/บริการภาษาไทย';
       }
       
-      if (!product.nameEn) {
-        productError.nameEn = 'กรุณากรอกชื่อสินค้า/บริการภาษาอังกฤษ';
-      }
+      // ชื่อสินค้า/บริการภาษาอังกฤษ: ไม่บังคับกรอก (optional)
       
       if (Object.keys(productError).length > 0) {
         productErrors[index] = productError;
