@@ -5,10 +5,16 @@ export const normalizeApplicationData = (application, type) => {
   
   // Map numeric status to string status for UI
   let statusString = 'pending';
-  if (application.status === 1) {
-    statusString = 'approved';
-  } else if (application.status === 2) {
-    statusString = 'rejected';
+  const rawStatus = application.status;
+  if (typeof rawStatus === 'number') {
+    if (rawStatus === 1) statusString = 'approved';
+    else if (rawStatus === 2) statusString = 'rejected';
+    else statusString = 'pending';
+  } else if (typeof rawStatus === 'string') {
+    const s = rawStatus.toLowerCase();
+    if (s === 'approved' || s === '1') statusString = 'approved';
+    else if (s === 'rejected' || s === '2') statusString = 'rejected';
+    else statusString = 'pending';
   }
   
   // Normalize field names to consistent format

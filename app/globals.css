@@ -13,12 +13,18 @@
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+  /* Define default (light mode) colors for global text/background */
+  --foreground: #1f2937; /* Tailwind gray-800 */
+  --background: #ffffff;
 }
 
 html {
   font-family: var(--font-thai);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Force light UI rendering for built-in controls on iOS/Safari */
+  color-scheme: light;
   scroll-behavior: smooth;
 }
 
@@ -28,8 +34,15 @@ body {
   font-kerning: normal;
   line-height: 1.8;
   letter-spacing: -0.01em;
+  font-weight: 500; /* Improve Thai font weight on Windows */
   color: var(--foreground);
   background: var(--background);
+}
+
+/* Darken placeholder text globally for readability */
+::placeholder {
+  color: rgb(107 114 128); /* slate-500 */
+  opacity: 1; /* Avoid extra fading on Windows */
 }
 
 /* Container */
@@ -149,10 +162,64 @@ h1, h2, h3, h4, h5, h6 {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-/* Dark Mode */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Global contrast bump for readability across the entire app (both light and dark) */
+/* Gray */
+.text-gray-400 { color: rgb(75 85 99) !important; }   /* -> gray-600 */
+.text-gray-500 { color: rgb(55 65 81) !important; }   /* -> gray-700 */
+.text-gray-600 { color: rgb(31 41 55) !important; }   /* -> gray-800 */
+
+/* Slate */
+.text-slate-400 { color: rgb(107 114 128) !important; } /* -> slate-600 */
+.text-slate-500 { color: rgb(100 116 139) !important; } /* -> slate-600/700 hybrid */
+.text-slate-600 { color: rgb(71 85 105) !important; }   /* -> slate-700 */
+
+/* Neutral */
+.text-neutral-400 { color: rgb(115 115 115) !important; } /* -> neutral-600 */
+.text-neutral-500 { color: rgb(82 82 82) !important; }    /* -> neutral-700 */
+.text-neutral-600 { color: rgb(64 64 64) !important; }    /* -> neutral-800 */
+
+/* Broad overrides to also catch slash-opacity variants like text-gray-500/70 */
+[class*="text-gray-4"] { color: rgb(75 85 99) !important; }  /* >= gray-600 */
+[class*="text-gray-5"] { color: rgb(55 65 81) !important; }  /* >= gray-700 */
+[class*="text-slate-4"] { color: rgb(71 85 105) !important; } /* >= slate-700 */
+[class*="text-slate-5"] { color: rgb(51 65 85) !important; }  /* slate-800-ish */
+[class*="text-neutral-4"] { color: rgb(115 115 115) !important; } /* >= neutral-600 */
+[class*="text-neutral-5"] { color: rgb(82 82 82) !important; }    /* >= neutral-700 */
+
+/* Neutralize Tailwind text opacity utilities so text doesn't look faded */
+[class*="text-opacity-"] { --tw-text-opacity: 1 !important; }
+
+/* Form controls: ensure high-contrast text & placeholders in inputs */
+input, textarea, select {
+  color: var(--foreground) !important;
+  caret-color: var(--foreground);
+  opacity: 1 !important; /* avoid accidental fading on inputs */
 }
+
+/* Stronger placeholder visibility inside inputs */
+input::placeholder,
+textarea::placeholder {
+  color: rgb(100 116 139) !important; /* slate-500/600 */
+  opacity: 1 !important;
+}
+
+/* Disabled/readOnly inputs: still readable (no ultra-faded text) */
+input:disabled,
+textarea:disabled,
+select:disabled,
+input[readonly],
+textarea[readonly] {
+  color: rgb(55 65 81) !important; /* gray-700 */
+  opacity: 1 !important;
+}
+
+/* Chrome autofill: keep text color readable and background subtle */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground);
+  transition: background-color 9999s ease-out 0s; /* neutralize bright bg */
+}
+
+/* Removed dark-mode variable overrides to avoid white text on white backgrounds in iOS Dark Mode */

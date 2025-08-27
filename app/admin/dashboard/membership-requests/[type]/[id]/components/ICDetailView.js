@@ -27,19 +27,32 @@ const ICDetailView = ({
   application, 
   industrialGroups = {}, 
   provincialChapters = {}, 
+  // Prefer on* props from parent page, fall back to legacy handle* props
+  onViewDocument,
   handleViewDocument,
+  onSaveNote,
   handleSaveNote,
-  handleApprove,
-  handleReject,
   adminNote = '',
+  onAdminNoteChange,
   setAdminNote,
   isSubmitting = false,
   handleConnectMemberCode,
+  onApprove,
+  handleApprove,
+  onReject,
+  handleReject,
+  onOpenRejectModal,
   type = 'ic',
   onDownload
 }) => {
   const [showApprovalModal, setShowApprovalModal] = useState(false);
-
+  const viewDocument = onViewDocument || handleViewDocument;
+  const saveNote = onSaveNote || handleSaveNote;
+  const approveFn = onApprove || handleApprove;
+  const rejectFn = onReject || handleReject;
+  const openReject = onOpenRejectModal || rejectFn;
+  const setNote = onAdminNoteChange || setAdminNote;
+  
   // Utility functions
   const safeValue = (value) => {
     if (value === null || value === undefined || value === '') return '-';
@@ -115,9 +128,14 @@ const ICDetailView = ({
   const getStatusDisplay = (status) => {
     switch (status) {
       case 1:
+      case 'approved':
         return { text: 'อนุมัติ', className: 'bg-green-500 text-white' };
       case 2:
+      case 'rejected':
         return { text: 'ปฏิเสธ', className: 'bg-red-500 text-white' };
+      case 0:
+      case 'pending':
+        return { text: 'รอพิจารณา', className: 'bg-yellow-500 text-black' };
       default:
         return { text: 'รอพิจารณา', className: 'bg-yellow-500 text-black' };
     }
@@ -127,7 +145,7 @@ const ICDetailView = ({
   const handleApproveClick = () => setShowApprovalModal(true);
   const handleApprovalConfirm = () => {
     setShowApprovalModal(false);
-    handleApprove();
+    approveFn && approveFn();
   };
   const handleApprovalCancel = () => setShowApprovalModal(false);
 
@@ -481,9 +499,9 @@ const ICDetailView = ({
                     {safeValue(doc.file_path || doc.filePath)}
                   </p>
                 </div>
-                {(doc.file_path || doc.filePath) && handleViewDocument && (
+                {(doc.file_path || doc.filePath) && viewDocument && (
                   <button 
-                    onClick={() => handleViewDocument(doc.file_path || doc.filePath)}
+                    onClick={() => viewDocument(doc.file_path || doc.filePath)}
                     className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
                     title="ดูเอกสาร"
                   >
@@ -503,6 +521,7 @@ const ICDetailView = ({
   };
 
   const renderApprovalSection = () => {
+    const isPending = application?.status === 0 || application?.status === 'pending' || application?.status === undefined || application?.status === null;
     return (
       <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
         <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
@@ -517,15 +536,15 @@ const ICDetailView = ({
               className="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               rows="4"
               value={adminNote}
-              onChange={(e) => setAdminNote(e.target.value)}
+              onChange={(e) => setNote && setNote(e.target.value)}
               placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
             />
           </div>
           
-          {handleSaveNote && (
+          {saveNote && (
             <div className="flex justify-end mb-6">
               <button
-                onClick={handleSaveNote}
+                onClick={saveNote}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 disabled={isSubmitting}
               >
@@ -536,13 +555,13 @@ const ICDetailView = ({
         </div>
         
         {/* Action Buttons */}
-        {application?.status !== 1 && (handleApprove || handleReject) && (
+        {isPending && (approveFn || openReject) && (
           <div>
             <h4 className="text-lg font-semibold mb-4 text-gray-800">การดำเนินการ</h4>
             <div className="flex justify-end space-x-4">
-              {handleReject && (
+              {openReject && (
                 <button
-                  onClick={handleReject}
+                  onClick={openReject}
                   className="flex items-center gap-2 px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
                   disabled={isSubmitting}
                 >
@@ -552,7 +571,7 @@ const ICDetailView = ({
                   {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
                 </button>
               )}
-              {handleApprove && (
+              {approveFn && (
                 <button
                   onClick={handleApproveClick}
                   className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"
@@ -569,22 +588,22 @@ const ICDetailView = ({
         )}
         
         {/* Show Member Code if available */}
-        {application?.status === 1 && application?.member_code && (
+        {(application?.status === 1 || application?.status === 'approved') && (application?.member_code || application?.memberCode) && (
           <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
             <h4 className="text-lg font-semibold mb-2 text-green-800">หมายเลขสมาชิก</h4>
-            <p className="text-xl font-bold text-green-700">{safeValue(application.member_code)}</p>
+            <p className="text-xl font-bold text-green-700">{safeValue(application.member_code || application.memberCode)}</p>
             <p className="text-sm text-green-600 mt-1">เชื่อมต่อฐานข้อมูลสำเร็จแล้ว</p>
           </div>
         )}
 
         {/* Connect Member Code Button */}
-        {application?.status === 1 && !application?.member_code && handleConnectMemberCode && (
+        {(application?.status === 1 || application?.status === 'approved') && !(application?.member_code || application?.memberCode) && handleConnectMemberCode && (
           <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
             <h4 className="text-lg font-semibold mb-4 text-yellow-800">เชื่อมต่อฐานข้อมูลสมาชิก</h4>
             <button
               onClick={() => handleConnectMemberCode(application.id)}
               className="flex items-center gap-2 px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 disabled:opacity-50 transition-colors"
-              disabled={isSubmitting || !application?.id_card_number}
+              disabled={isSubmitting || !(application?.id_card_number || application?.idCard)}
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
