@@ -84,6 +84,57 @@ export default function ActionCounts({ title }) {
       bgColor: 'bg-red-100',
       textColor: 'text-red-600'
     },
+    // Membership submit actions (custom labels)
+    AM_membership_submit: {
+      title: 'สมัครสมาชิก สส',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      bgColor: 'bg-blue-100',
+      textColor: 'text-blue-600'
+    },
+    AC_membership_submit: {
+      title: 'สมัครสมาชิก ทน',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      bgColor: 'bg-green-100',
+      textColor: 'text-green-600'
+    },
+    OC_membership_submit: {
+      title: 'สมัครสมาชิก สน',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      bgColor: 'bg-orange-100',
+      textColor: 'text-orange-600'
+    },
+    IC_membership_submit: {
+      title: 'สมัครสมาชิก ทบ',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      bgColor: 'bg-purple-100',
+      textColor: 'text-purple-600'
+    },
+    ICmembership_Regist: {
+      title: 'สมัครสมาชิก ทบ',
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+      bgColor: 'bg-purple-100',
+      textColor: 'text-purple-600'
+    },
     other: {
       title: 'อื่นๆ',
       icon: (
@@ -94,6 +145,72 @@ export default function ActionCounts({ title }) {
       bgColor: 'bg-gray-100',
       textColor: 'text-gray-600'
     }
+  };
+
+  // Generate a Thai label from the action key when it's not predefined
+  const translateActionKey = (key) => {
+    if (!key) return 'อื่นๆ';
+    const tokens = key.toString().split(/[\s_-]+/).map(w => w.toLowerCase());
+    const has = (w) => tokens.includes(w);
+
+    const nounMap = {
+      profile: 'โปรไฟล์',
+      address: 'ที่อยู่',
+      product: 'สินค้า',
+      email: 'อีเมล',
+      password: 'รหัสผ่าน',
+      document: 'เอกสาร',
+      company: 'บริษัท',
+      code: 'รหัส',
+      member: 'สมาชิก',
+      message: 'ข้อความ',
+      database: 'ฐานข้อมูล',
+      phone: 'โทรศัพท์'
+    };
+
+    const joinNouns = () => {
+      // special combinations
+      if (has('code') && has('company')) return 'รหัสบริษัท';
+      if (has('message') && has('contact')) return 'ข้อความติดต่อ';
+      // default priority order
+      const order = ['profile','address','product','code','company','email','password','document','database','member','message','phone'];
+      const parts = [];
+      order.forEach(k => { if (has(k) && nounMap[k]) parts.push(nounMap[k]); });
+      // Join without spaces to form natural Thai compound words where possible
+      return parts.join('');
+    };
+
+    // Pattern-based phrases (verbs first, then noun phrase)
+    if (has('upload') && has('document')) return 'อัปโหลดเอกสาร';
+    if (has('change') && has('email')) return 'เปลี่ยนอีเมล';
+    if (has('reset') && has('password')) return 'รีเซ็ตรหัสผ่าน';
+    if (has('verification') && has('member')) return 'ยืนยันตัวตนสมาชิก';
+    if (has('approve') && has('request')) return 'อนุมัติคำขอ';
+    if (has('reject') && has('request')) return 'ปฏิเสธคำขอ';
+    if (has('connect') && has('database')) return 'เชื่อมต่อฐานข้อมูล';
+
+    if (has('update')) {
+      const np = joinNouns();
+      const preferFix = ['ที่อยู่','อีเมล','รหัสผ่าน','รหัสบริษัท'];
+      const verb = preferFix.some(w => np.includes(w)) ? 'แก้ไข' : 'อัปเดต';
+      return np ? `${verb}${np}` : `${verb}ข้อมูล`;
+    }
+
+    if (has('request') && has('profile')) return 'คำขอแก้ไขโปรไฟล์';
+    if (has('message')) return has('contact') ? 'ข้อความติดต่อ' : 'ข้อความ';
+    if (has('login')) return 'เข้าสู่ระบบ';
+    if (has('logout')) return 'ออกจากระบบ';
+
+    const verbMap = { approve: 'อนุมัติ', reject: 'ปฏิเสธ', create: 'สร้าง', delete: 'ลบ', change: 'เปลี่ยน', upload: 'อัปโหลด' };
+    for (const v of Object.keys(verbMap)) {
+      if (has(v)) {
+        const np = joinNouns();
+        return np ? `${verbMap[v]}${np}` : verbMap[v];
+      }
+    }
+
+    // Fallback if unknown
+    return 'กิจกรรมอื่น';
   };
 
   useEffect(() => {
@@ -160,17 +277,18 @@ export default function ActionCounts({ title }) {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {Object.entries(actionCounts).map(([action, count]) => {
-            const info = actionInfo[action] || actionInfo.other;
+            const baseInfo = actionInfo[action] || actionInfo.other;
+            const title = actionInfo[action]?.title || translateActionKey(action);
             
             return (
               <div key={action} className="bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between mb-3">
-                  <div className={`${info.bgColor} p-3 rounded-full`}>
-                    {info.icon}
+                  <div className={`${baseInfo.bgColor} p-3 rounded-full`}>
+                    {baseInfo.icon}
                   </div>
-                  <p className={`text-3xl font-bold ${info.textColor}`}>{count}</p>
+                  <p className={`text-3xl font-bold ${baseInfo.textColor}`}>{count}</p>
                 </div>
-                <p className="text-lg font-semibold text-gray-700">{info.title}</p>
+                <p className="text-lg font-semibold text-gray-700">{title}</p>
                 <p className="text-sm text-gray-500">{action}</p>
               </div>
             );

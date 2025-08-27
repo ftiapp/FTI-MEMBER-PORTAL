@@ -47,7 +47,9 @@ export async function GET(request) {
         id: admin.id,
         username: admin.username,
         name: admin.name,
-        adminLevel: admin.adminLevel || admin.admin_level || 0
+        adminLevel: admin.adminLevel || admin.admin_level || 0,
+        canCreate: admin.canCreate,
+        canUpdate: admin.canUpdate
       }
     }), {
       status: 200,
