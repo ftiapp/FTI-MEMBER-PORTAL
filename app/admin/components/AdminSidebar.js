@@ -45,14 +45,14 @@ function AdminSidebar() {
   // If still loading admin data, show a simple loading indicator
   if (isLoading) {
     return (
-      <aside className="bg-gray-800 text-white w-64 min-h-screen h-full flex items-center justify-center fade-in">
+      <aside className="bg-gray-800 text-white w-72 min-h-screen h-full flex items-center justify-center fade-in">
         <LoadingSpinner size={8} color="white" />
       </aside>
     );
   }
   
   return (
-    <aside className={`bg-gray-800 text-white ${collapsed ? 'w-20' : 'w-64'} transition-all duration-300 ease-in-out min-h-screen h-full flex flex-col ${mounted ? 'fade-in' : ''}`}>
+    <aside className={`bg-gray-800 text-white ${collapsed ? 'w-20' : 'w-72'} transition-all duration-300 ease-in-out min-h-screen h-full flex flex-col ${mounted ? 'fade-in' : ''}`}>
       {/* Header */}
       <div className="p-4 flex justify-between items-center">
         <div className={`flex items-center ${collapsed ? 'justify-center w-full' : ''}`}>

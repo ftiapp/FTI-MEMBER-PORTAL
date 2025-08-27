@@ -11,7 +11,7 @@ export default function CompanyAddressInfo({
   isAutofill 
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('2'); // Default to document delivery address
+  const [activeTab, setActiveTab] = useState('1'); // Default to office address
 
   // Address types configuration
   const addressTypes = {
@@ -358,7 +358,7 @@ export default function CompanyAddressInfo({
       {/* Address Type Tabs */}
       <div className="px-8">
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          {['2', '1', '3'].map((type) => {
+          {['1', '2', '3'].map((type) => {
             const config = addressTypes[type];
             const isActive = activeTab === type;
             return (

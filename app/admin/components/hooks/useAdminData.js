@@ -11,6 +11,7 @@ const globalState = {
     addressUpdates: 0,
     guestMessages: 0,
     productUpdates: 0,
+    membershipRequests: 0,
   },
   lastFetched: 0,
   listeners: new Set(),
@@ -94,6 +95,7 @@ export function useAdminData() {
 export function usePendingCounts() {
   const [counts, setCounts] = useState(globalState.pendingCounts);
   const intervalRef = useRef(null);
+  const esRef = useRef(null);
 
   const fetchPendingCounts = useCallback(() => {
     fetchDashboardData(true);
@@ -111,9 +113,36 @@ export function usePendingCounts() {
     // Set initial state
     updateFromGlobalState();
 
-    // Set up interval to refresh count every 10 minutes
+    // Set up interval to refresh count every 10 minutes (fallback)
     if (!intervalRef.current) {
       intervalRef.current = setInterval(() => fetchDashboardData(true), 600000);
+    }
+
+    // Connect to SSE for real-time updates
+    if (typeof window !== 'undefined' && !esRef.current) {
+      try {
+        const es = new EventSource('/api/admin/pending-counts/stream');
+        esRef.current = es;
+        es.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data || '{}');
+            if (data && data.success && data.counts) {
+              // Update global state and notify listeners
+              globalState.pendingCounts = { ...globalState.pendingCounts, ...data.counts };
+              updateFromGlobalState();
+            }
+          } catch (e) {
+            // ignore JSON errors
+          }
+        };
+        es.onerror = () => {
+          // On error, close and allow fallback interval to keep working
+          try { es.close(); } catch {}
+          esRef.current = null;
+        };
+      } catch (e) {
+        // If EventSource fails, fallback to interval only
+      }
     }
     
     return () => {
@@ -121,6 +150,10 @@ export function usePendingCounts() {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
+      }
+      if (esRef.current) {
+        try { esRef.current.close(); } catch {}
+        esRef.current = null;
       }
     };
   }, []);

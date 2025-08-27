@@ -132,15 +132,15 @@ const fetchCompanyInfo = async (taxId) => {
         companyNameEng: companyData['cd:OrganizationJuristicNameEN'] || '',
         addresses: {
           ...prev.addresses,
-          '2': {
-            ...prev.addresses?.['2'],
+          '1': {
+            ...prev.addresses?.['1'],
             addressNumber: address?.['cd:AddressNo'] || '',
             building: address?.['cd:Building'] || address?.['cd:Village'] || '',
             street: address?.['cd:Road'] || '',
             subDistrict: subDistrictName,
             district: address?.['cd:City']?.['cr:CityTextTH'] || '',
             province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || '',
-            addressType: '2'
+            addressType: '1'
           }
         }
       }));
@@ -181,8 +181,8 @@ const fetchCompanyInfo = async (taxId) => {
                   ...prev,
                   addresses: {
                     ...prev.addresses,
-                    '2': {
-                      ...prev.addresses?.['2'],
+                    '1': {
+                      ...prev.addresses?.['1'],
                       postalCode: selectedItem.postalCode
                     }
                   }

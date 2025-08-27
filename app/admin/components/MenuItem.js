@@ -50,15 +50,13 @@ function MenuItem({
             <span>{item.name}</span>
             {item.badge && (
               <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
-                {item.badge}
+                {item.badge > 99 ? '99+' : item.badge}
               </span>
             )}
           </div>
         )}
         {collapsed && item.badge && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white bg-red-500 rounded-full">
-            {item.badge}
-          </span>
+          <span className="absolute -top-1 -right-1 inline-block w-2.5 h-2.5 bg-red-500 rounded-full" />
         )}
       </Link>
     </div>

@@ -12,6 +12,7 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
       name: 'จัดการคำขอสมาชิกใหม่',
       path: '/admin/dashboard/membership-requests',
       icon: MenuIcons.manageAdmins,
+      badge: pendingCounts.membershipRequests > 0 ? pendingCounts.membershipRequests : null,
     },
     {
       name: 'เชื่อมต่อฐานข้อมูล',

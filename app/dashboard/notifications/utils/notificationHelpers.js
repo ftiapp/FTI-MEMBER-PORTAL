@@ -127,7 +127,7 @@ export const formatDate = (dateString) => {
   };
   
   // Handle notification click navigation
-  export const handleNotificationClick = (notification) => {
+  export const handleNotificationClick = async (notification) => {
     console.log('Notification data:', notification);
   
     // สร้างตัวแปรเพื่อเก็บ URL ที่จะนำทางไป
@@ -252,19 +252,57 @@ export const formatDate = (dateString) => {
       targetLink = '/dashboard';
     }
 
-    console.log('Final target link:', targetLink);
-  
-    // ใช้วิธีการนำทางที่แน่นอนกว่า
+    console.log('Final target link after normalization:', targetLink);
+
+    // URL dashboard สำหรับ fallback
+    const dashboardUrl = (typeof window !== 'undefined' && window.location && window.location.origin)
+      ? `${window.location.origin}/dashboard`
+      : 'http://localhost:3456/dashboard';
+
+    // ตรวจสอบก่อนนำทาง: ถ้า URL ปลายทางเป็น 404 ให้พาไป dashboard แทน
     try {
-      // ใช้ setTimeout เพื่อให้แน่ใจว่าการนำทางเกิดขึ้นหลังจากการทำงานอื่นๆ เสร็จสิ้น
+      if (targetLink) {
+        let res;
+        try {
+          res = await fetch(targetLink, {
+            method: 'HEAD',
+            credentials: 'include',
+            cache: 'no-store',
+          });
+        } catch (e) {
+          console.warn('HEAD check failed, will try GET:', e);
+        }
+
+        if (!res || (res && (res.status === 405 || res.status === 501))) {
+          try {
+            res = await fetch(targetLink, {
+              method: 'GET',
+              credentials: 'include',
+              cache: 'no-store',
+            });
+          } catch (e2) {
+            console.warn('GET check failed, fallback to navigating directly:', e2);
+          }
+        }
+
+        if (res && res.status === 404) {
+          console.warn('Target link returned 404. Redirecting to dashboard instead:', targetLink);
+          window.location.href = dashboardUrl;
+          return;
+        }
+      }
+    } catch (preNavErr) {
+      console.warn('Pre-navigation check error, will proceed with normal navigation:', preNavErr);
+    }
+
+    // นำทางตามปกติ
+    try {
       setTimeout(() => {
         console.log('Navigating to:', targetLink);
-        // ใช้ window.location.href แทน replace เพื่อให้แน่ใจว่า query parameters ไม่หายไป
         window.location.href = targetLink;
       }, 100);
     } catch (error) {
       console.error('Navigation error:', error);
-      // กรณีเกิดข้อผิดพลาด ให้ใช้วิธีการนำทางแบบดั้งเดิม
-      window.location.href = targetLink;
+      window.location.href = dashboardUrl;
     }
   };
