@@ -22,9 +22,9 @@ import InfoBox from './InfoBox';
 const ApprovedCompaniesTable = ({ companies, formatDate }) => (
   <motion.div 
     className="overflow-x-auto rounded-lg shadow-lg border border-gray-200"
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.5, delay: 0.2 }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.2 }}
   >
     <InfoBox />
     
@@ -32,14 +32,14 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
       className="p-4 bg-gradient-to-r from-blue-50 to-white border-b border-gray-200"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, delay: 0.3 }}
+      transition={{ duration: 0.2 }}
     >
       <div className="flex items-center">
         <motion.div 
           className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3"
-          initial={{ scale: 0, rotate: -180 }}
-          animate={{ scale: 1, rotate: 0 }}
-          transition={{ type: "spring", stiffness: 260, damping: 20, delay: 0.4 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
         >
           <FaBuilding className="text-blue-600" size={16} />
         </motion.div>
@@ -48,7 +48,7 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
             className="text-sm text-gray-500"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.6 }}
+            transition={{ duration: 0.2 }}
           >
             พบ {companies.length} รายการบริษัทที่ได้รับการอุมัติ
           </motion.p>
@@ -58,9 +58,9 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
     <table className="min-w-full divide-y divide-gray-200 border-collapse">
       <motion.thead 
         className="bg-blue-600"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.4 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
       >
         <tr>
           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">
@@ -97,17 +97,13 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
         className="bg-white divide-y divide-gray-200"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
+        transition={{ duration: 0.2 }}
       >
         {companies.length > 0 ? (
           companies.map((company, index) => (
             <motion.tr 
               key={company.id} 
               className={index % 2 === 0 ? 'bg-white hover:bg-blue-50 cursor-pointer' : 'bg-blue-50 hover:bg-blue-100 cursor-pointer'}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.1 * index }}
-              whileHover={{ backgroundColor: "#eff6ff", scale: 1.01 }}
               onClick={(e) => {
                 // Only navigate if not clicking on a link or button
                 if (!e.target.closest('a') && !e.target.closest('button') && company.MEMBER_CODE) {
@@ -178,8 +174,6 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:text-blue-800 flex items-center"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent row click
                     }}
@@ -192,8 +186,6 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   company.tax_id ? (
                     <motion.button 
                       className="text-green-600 hover:text-green-800 flex items-center"
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                       onClick={async (e) => {
                         e.stopPropagation(); // Prevent row click
                         
@@ -229,8 +221,6 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                   <motion.a 
                     href={`/MemberDetail?memberCode=${company.MEMBER_CODE}`}
                     className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={(e) => {
                       e.stopPropagation(); // Prevent row click
                       e.preventDefault(); // Prevent default navigation
@@ -250,8 +240,6 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
                 <motion.a 
                   href={`/MemberDetail?memberCode=${company.MEMBER_CODE}&memberType=000&member_group_code=000&typeCode=000`}
                   className="text-blue-600 hover:text-blue-800 flex items-center justify-center"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                   onClick={(e) => {
                     e.stopPropagation(); // Prevent row click
                     e.preventDefault(); // Prevent default navigation
@@ -276,22 +264,22 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
           <motion.tr
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.2 }}
           >
             <td colSpan="7" className="px-6 py-10 text-center">
               <div className="flex flex-col items-center justify-center">
                 <motion.div
-                  initial={{ scale: 0.5, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.5 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
                 >
                   <FaSearch className="text-gray-300 mb-3" size={24} />
                 </motion.div>
                 <motion.p 
                   className="text-gray-500 font-medium"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.2 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
                 >
                   ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา
                 </motion.p>

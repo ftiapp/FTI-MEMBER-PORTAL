@@ -22,7 +22,7 @@ const MemberDetailPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-2xl font-semibold mb-6 text-blue-900">
-        ข้อมูลบริษัทที่ได้รับอนุมัติ
+        ข้อมูลสมาชิกของคุณ
       </h1>
       <MemberDetail userId={userId} />
     </div>

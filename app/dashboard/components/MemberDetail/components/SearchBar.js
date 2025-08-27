@@ -13,16 +13,16 @@ import { FaSearch } from 'react-icons/fa';
 const SearchBar = ({ searchTerm, onSearchChange }) => (
   <motion.div 
     className="mb-4"
-    initial={{ opacity: 0, y: -10 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ duration: 0.3, delay: 0.1 }}
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    transition={{ duration: 0.2 }}
   >
     <div className="relative">
       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ delay: 0.2 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.2 }}
         >
           <FaSearch className="h-5 w-5 text-gray-400" />
         </motion.div>
@@ -30,13 +30,10 @@ const SearchBar = ({ searchTerm, onSearchChange }) => (
       <motion.input
         type="text"
         className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-        placeholder="ค้นหาชื่อบริษัท..."
+        placeholder="ค้นหาชื่อบริษัทหรือหมายเลขสมาชิก..."
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
         whileFocus={{ boxShadow: "0 0 0 3px rgba(59, 130, 246, 0.2)" }}
-        initial={{ width: "95%" }}
-        animate={{ width: "100%" }}
-        transition={{ duration: 0.3 }}
       />
     </div>
   </motion.div>

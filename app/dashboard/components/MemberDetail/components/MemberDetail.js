@@ -48,6 +48,15 @@ const MemberDetail = ({ userId }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5; // Show 5 items per page
 
+  // Debounced search term to avoid filtering on every keystroke
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 250);
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
   // Function to fetch data - memoized with useCallback to prevent unnecessary recreations
   const fetchData = useCallback(async () => {
     if (!userId) {
@@ -134,8 +143,8 @@ const MemberDetail = ({ userId }) => {
       filterEndDate.setHours(23, 59, 59, 999); // Set to end of day
     }
     
-    // Optimize search term
-    const lowerSearchTerm = searchTerm.toLowerCase();
+    // Optimize search term (use debounced and trimmed value)
+    const lowerSearchTerm = debouncedSearch.toLowerCase();
     const hasSearchTerm = lowerSearchTerm.length > 0;
     const hasDateFilter = startDate || endDate;
     
@@ -146,10 +155,11 @@ const MemberDetail = ({ userId }) => {
       // Skip filtering if company is missing
       if (!company) return false;
       
-      // Search by company name (only if search term exists)
+      // Search by company name or member code (only if search term exists)
       if (hasSearchTerm) {
-        const companyName = company.company_name || '';
-        if (!companyName.toLowerCase().includes(lowerSearchTerm)) {
+        const companyName = (company.company_name || '').toLowerCase();
+        const memberCode = (company.MEMBER_CODE || '').toString().toLowerCase();
+        if (!(companyName.includes(lowerSearchTerm) || memberCode.includes(lowerSearchTerm))) {
           return false;
         }
       }
@@ -169,7 +179,7 @@ const MemberDetail = ({ userId }) => {
       
       return true;
     });
-  }, [approvedCompanies, searchTerm, startDate, endDate]);
+  }, [approvedCompanies, debouncedSearch, startDate, endDate]);
   
   // Calculate pagination
   const totalPages = Math.ceil(filteredCompanies.length / itemsPerPage);
@@ -213,8 +223,8 @@ const MemberDetail = ({ userId }) => {
       searchParams.delete('view');
     }
     
-    // Use shallow routing to update URL without full page reload
-    router.push(`/dashboard?${searchParams.toString()}`, undefined, { shallow: true });
+    // Update URL without scrolling to top
+    router.push(`/dashboard?${searchParams.toString()}`, { scroll: false });
   }, [tableView, router]);
 
   // Loading state
@@ -236,10 +246,9 @@ const MemberDetail = ({ userId }) => {
   return (
     <motion.div 
       className="bg-white shadow rounded-lg p-6 mb-6"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
     >
       {/* Optimize AnimatePresence by using it only when necessary */}
       <AnimatePresence mode="wait" initial={false}>
@@ -294,7 +303,7 @@ const MemberDetail = ({ userId }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
           >
             <MemberDetailView 
               memberData={memberData || approvedCompanies[0]} 

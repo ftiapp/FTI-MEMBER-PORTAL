@@ -24,6 +24,14 @@ export default function Dashboard() {
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState('ข้อมูลผู้ใช้งาน');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Notification state for member updates
+  const [hasMemberAlert, setHasMemberAlert] = useState(false);
+  const [lastSeenAt, setLastSeenAt] = useState(null);
+  const [lastSeenLoaded, setLastSeenLoaded] = useState(false);
+  // Notification state for membership documents (drafts/submitted)
+  const [hasDocsAlert, setHasDocsAlert] = useState(false);
+  const [docsLastSeenAt, setDocsLastSeenAt] = useState(null);
+  const [docsLastSeenLoaded, setDocsLastSeenLoaded] = useState(false);
   
   // Create refs for menu items
   const menuRefs = {
@@ -127,6 +135,28 @@ export default function Dashboard() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  // Initialize lastSeenAt from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('member_last_seen_at');
+      if (stored) setLastSeenAt(stored);
+    } catch (e) {
+      // ignore
+    }
+    setLastSeenLoaded(true);
+  }, []);
+
+  // Initialize docsLastSeenAt from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('docs_last_seen_at');
+      if (stored) setDocsLastSeenAt(stored);
+    } catch (e) {
+      // ignore
+    }
+    setDocsLastSeenLoaded(true);
+  }, []);
   
   // Handle URL parameters and navigation
   useEffect(() => {
@@ -171,7 +201,166 @@ export default function Dashboard() {
     const searchParams = new URLSearchParams(window.location.search);
     searchParams.set('tab', item.tab);
     window.history.pushState({}, '', `/dashboard?${searchParams.toString()}`);
+
+    // If user opens the member tab, clear the alert and update lastSeenAt
+    if (item.tab === 'member') {
+      const now = new Date().toISOString();
+      setHasMemberAlert(false);
+      setLastSeenAt(now);
+      try {
+        localStorage.setItem('member_last_seen_at', now);
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // If user opens the documents tab, clear the documents alert and update docsLastSeenAt
+    if (item.tab === 'documents') {
+      const now = new Date().toISOString();
+      setHasDocsAlert(false);
+      setDocsLastSeenAt(now);
+      try {
+        localStorage.setItem('docs_last_seen_at', now);
+      } catch (e) {
+        // ignore
+      }
+    }
   };
+
+  // Lightweight polling for latest member updates
+  useEffect(() => {
+    // Do not start polling until lastSeenAt has been loaded from localStorage
+    if (!lastSeenLoaded) return;
+
+    let intervalId;
+    let stopped = false;
+
+    const isVisible = () => typeof document !== 'undefined' && document.visibilityState === 'visible';
+
+    const checkForUpdates = async () => {
+      if (!user?.id) return;
+      if (!isVisible()) return; // only when tab visible
+      try {
+        const res = await fetch(`/api/member/approved-companies?userId=${user.id}`, {
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const companies = Array.isArray(data?.companies) ? data.companies : [];
+        if (companies.length === 0) return;
+
+        // Compute latest timestamp from created_at/updated_at
+        let latest = null;
+        for (const c of companies) {
+          const t = c.updated_at || c.created_at;
+          if (t) {
+            if (!latest || new Date(t) > new Date(latest)) latest = t;
+          }
+        }
+        if (!latest) return;
+
+        // Compare with lastSeenAt; if newer, set alert (only if not currently on member tab)
+        const last = lastSeenAt ? new Date(lastSeenAt) : null;
+        if (!last || new Date(latest) > last) {
+          if (activeTab !== 'ข้อมูลสมาชิก') {
+            setHasMemberAlert(true);
+          }
+        }
+      } catch (e) {
+        // silent fail; keep lightweight
+      }
+    };
+
+    // Kick off immediately, then at interval
+    checkForUpdates();
+    intervalId = setInterval(checkForUpdates, 60000); // 60s
+
+    const onVisibility = () => {
+      if (stopped) return;
+      // When tab becomes visible, perform a quick check
+      if (isVisible()) checkForUpdates();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [user?.id, lastSeenAt, activeTab, lastSeenLoaded]);
+
+  // Lightweight polling for latest membership documents updates (drafts and submitted)
+  useEffect(() => {
+    // Do not start polling until docsLastSeenAt has been loaded
+    if (!docsLastSeenLoaded) return;
+
+    let intervalId;
+    let stopped = false;
+
+    const isVisible = () => typeof document !== 'undefined' && document.visibilityState === 'visible';
+
+    const checkDocsUpdates = async () => {
+      if (!user?.id) return;
+      if (!isVisible()) return; // only when tab visible
+      try {
+        // Fetch drafts and submitted in parallel
+        const params = new URLSearchParams({ page: '1', limit: '1' });
+        const [draftRes, submittedRes] = await Promise.all([
+          fetch('/api/membership/get-drafts', { headers: { 'Content-Type': 'application/json' }, credentials: 'include', cache: 'no-store' }),
+          fetch(`/api/membership/submitted-applications?${params}`, { headers: { 'Content-Type': 'application/json' }, credentials: 'include', cache: 'no-store' })
+        ]);
+
+        let latest = null;
+
+        if (draftRes.ok) {
+          const draftData = await draftRes.json();
+          const drafts = Array.isArray(draftData?.drafts) ? draftData.drafts : [];
+          for (const d of drafts) {
+            const t = d.updatedAt || d.createdAt; // drafts usually have updatedAt
+            if (t && (!latest || new Date(t) > new Date(latest))) latest = t;
+          }
+        }
+
+        if (submittedRes.ok) {
+          const subData = await submittedRes.json();
+          const apps = Array.isArray(subData?.applications) ? subData.applications : [];
+          for (const a of apps) {
+            const t = a.updatedAt || a.createdAt; // submitted have createdAt and maybe updatedAt
+            if (t && (!latest || new Date(t) > new Date(latest))) latest = t;
+          }
+        }
+
+        if (!latest) return;
+
+        const last = docsLastSeenAt ? new Date(docsLastSeenAt) : null;
+        if (!last || new Date(latest) > last) {
+          if (activeTab !== 'เอกสารสมัครสมาชิก') {
+            setHasDocsAlert(true);
+          }
+        }
+      } catch (e) {
+        // silent
+      }
+    };
+
+    // Kickoff and interval
+    checkDocsUpdates();
+    intervalId = setInterval(checkDocsUpdates, 60000);
+
+    const onVisibility = () => {
+      if (stopped) return;
+      if (isVisible()) checkDocsUpdates();
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      stopped = true;
+      clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [user?.id, docsLastSeenAt, activeTab, docsLastSeenLoaded]);
 
   // Get user status badge
   const getUserStatusBadge = () => {
@@ -347,7 +536,13 @@ export default function Dashboard() {
                           <span className={`flex-shrink-0 ${activeTab === item.name ? 'text-blue-600' : 'text-gray-500'}`}>
                             {item.icon}
                           </span>
-                          <span className="font-medium">{item.name}</span>
+                          <span className="font-medium flex-1 text-left">{item.name}</span>
+                          {(item.tab === 'member' && hasMemberAlert) || (item.tab === 'documents' && hasDocsAlert) ? (
+                            <span
+                              aria-label="มีข้อมูลสมาชิกใหม่"
+                              className="ml-2 inline-block w-2.5 h-2.5 rounded-full bg-green-500 ring-2 ring-blue-100"
+                            />
+                          ) : null}
                         </button>
                       </li>
                     ))}

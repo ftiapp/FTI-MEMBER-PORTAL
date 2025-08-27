@@ -45,8 +45,8 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
       }
     });
     
-    // Update the URL
-    router.push(`/dashboard?${params.toString()}`);
+    // Update the URL without scrolling to top
+    router.push(`/dashboard?${params.toString()}`, { scroll: false });
     
     // Call the original onPageChange function
     onPageChange(page);
@@ -74,9 +74,9 @@ const Pagination = ({ currentPage, totalPages, totalItems, itemsPerPage, onPageC
   return (
     <motion.div 
       className="mt-4 flex items-center justify-between"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.3 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
     >
       <div className="flex-1 flex justify-between sm:hidden">
         <motion.button
