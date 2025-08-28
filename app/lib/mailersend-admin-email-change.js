@@ -75,7 +75,7 @@ export async function sendAdminEmailChangeNotification(oldEmail, name, newEmail)
     .setHtml(`
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${process.env.NEXT_PUBLIC_BASE_URL}/FTI-MasterLogo_RGB_forLightBG.png" alt="FTI Logo" style="max-width: 180px; height: auto; margin-bottom: 15px;" />
+          <img src="${process.env.NEXT_PUBLIC_BASE_URL}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="FTI Logo" style="max-width: 180px; height: auto; margin-bottom: 15px;" />
           <h1 style="color: #1a56db;">การเปลี่ยนแปลงอีเมลบัญชีของคุณ</h1>
         </div>
         <div style="margin-bottom: 30px;">

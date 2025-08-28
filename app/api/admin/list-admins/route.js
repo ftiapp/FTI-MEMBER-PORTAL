@@ -19,6 +19,7 @@ export async function GET(request) {
       `SELECT 
         id, 
         username, 
+        COALESCE(NULLIF(name, ''), username) AS name,
         admin_level, 
         is_active, 
         can_create, 

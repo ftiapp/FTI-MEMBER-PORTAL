@@ -53,17 +53,12 @@ const LogoutConfirmation = memo(({ onConfirm, onCancel }) => (
 const Logo = memo(() => (
   <Link href="/" className="flex-shrink-0 flex items-center">
     <Image
-      src="/images/FTI-MasterLogo_RGB_forLightBG.png"
-      alt="สภาอุตสาหกรรมแห่งประเทศไทย"
-      width={90}
-      height={45}
+      src="/FTI-MasterLogo-Naming_RGB-forLightBG.png"
+      alt="สภาอุตสาหกรรมแห่งประเทศไทย (FTI Portal)"
+      width={300}
+      height={66}
       priority
-      className="mr-3"
     />
-    <div className="flex flex-col">
-      <span className="text-blue-900 font-semibold text-lg">สภาอุตสาหกรรมแห่งประเทศไทย</span>
-      <span className="text-gray-600 text-sm">The Federation of Thai Industries</span>
-    </div>
   </Link>
 ));
 
@@ -294,13 +289,14 @@ export default function Navbar() {
                     </Link>
                   </motion.div>
 
-                  {/* Minimal logout button */}
+                  {/* Logout button - icon only */}
                   <motion.button
                     onClick={handleLogout}
-                    className="p-2 text-gray-500 hover:text-red-600 transition-colors group"
+                    className="p-2 rounded-full bg-gray-100 text-gray-700 hover:bg-red-50 hover:text-red-700 ring-1 ring-gray-200 hover:ring-red-200 transition-all"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     title="ออกจากระบบ"
+                    aria-label="ออกจากระบบ"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 

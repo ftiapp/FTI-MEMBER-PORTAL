@@ -12,7 +12,7 @@ export function getFTIEmailHtmlTemplate({ title, bodyContent }) {
   // Use absolute URL for logo: prefer deployed public logo, fallback to FTI official logo
   const logoUrl =
     (typeof process !== 'undefined' && process.env && process.env.NEXT_PUBLIC_BASE_URL)
-      ? `${process.env.NEXT_PUBLIC_BASE_URL}/FTI-MasterLogo_RGB_forLightBG.png`
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/FTI-MasterLogo-Naming_RGB-forLightBG.png`
       : 'https://www.fti.or.th/wp-content/uploads/2022/01/cropped-logo-fti-1.png';
   const promptFontUrl =
     'https://fonts.googleapis.com/css2?family=Prompt:wght@400;600&display=swap';

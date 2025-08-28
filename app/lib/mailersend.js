@@ -30,25 +30,25 @@ export async function sendVerificationEmail(email, name, verificationToken) {
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("ยืนยันอีเมลของคุณ - FTI Portal")
-.setHtml(getFTIEmailHtmlTemplate({
-  title: "ยืนยันอีเมลของคุณ",
-  bodyContent: `
-    <p>สวัสดี ${name},</p>
-    <p>ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
-    <div style="text-align: center; margin-bottom: 30px;">
-      <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยืนยันอีเมลของฉัน</a>
-    </div>
-    <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
-    <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
-    <p style="color: #d97706; margin-top: 32px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-  `
-}))
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "ยืนยันอีเมลของคุณ",
+      bodyContent: `
+        <p>สวัสดี ${name},</p>
+        <p>ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
+        <div style="text-align: center; margin-bottom: 30px;">
+          <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยืนยันอีเมลของฉัน</a>
+        </div>
+        <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
+        <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
+        <p style="color: #d97706; margin-top: 32px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
+      `
+    }))
     .setText(`
       ยืนยันอีเมลของคุณ - FTI Portal
       
       สวัสดี ${name},
       
-      ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกที่ลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:
+      ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกลิงก์ด้านล่างเพื่อยืนยันอีเมลของคุณ:
       
       ${verificationLink}
       
@@ -65,6 +65,56 @@ export async function sendVerificationEmail(email, name, verificationToken) {
     throw error;
   }
 }
+
+/**
+ * Send admin invitation email
+ * @param {string} email - Recipient email (new admin)
+ * @param {string} token - Invitation token
+ * @param {Object} options - Optional details
+ * @param {number} [options.adminLevel=1] - Admin level in the invite
+ * @returns {Promise}
+ */
+export async function sendAdminInviteEmail(email, token, options = {}) {
+  const adminLevel = options.adminLevel ?? 1;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const acceptLink = `${baseUrl}/admin/invite/accept?token=${token}`;
+
+  const recipients = [new Recipient(email, email)];
+
+  const emailParams = new EmailParams()
+    .setFrom(defaultSender)
+    .setTo(recipients)
+    .setSubject("คำเชิญเป็นผู้ดูแลระบบ FTI Portal")
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "คำเชิญเป็นผู้ดูแลระบบ",
+      bodyContent: `
+        <p>เรียน ${email},</p>
+        <p>ท่านได้รับคำเชิญให้เป็น <strong>ผู้ดูแลระบบ (Admin Level ${adminLevel})</strong> บน FTI Portal</p>
+        <p>กรุณาคลิกปุ่มด้านล่างเพื่อตั้งรหัสผ่านและเปิดใช้งานบัญชีแอดมินของท่าน:</p>
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${acceptLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยอมรับคำเชิญ</a>
+        </div>
+        <p>หากคลิกปุ่มไม่ได้ ให้ใช้ลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
+        <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${acceptLink}</p>
+        <p style="color: #6b7280; font-size: 14px;">ลิงก์นี้มีอายุ 24 ชั่วโมง</p>
+      `
+    }))
+    .setText(`
+      คำเชิญเป็นผู้ดูแลระบบ FTI Portal\n\n
+      ท่านได้รับคำเชิญให้เป็นผู้ดูแลระบบ (Admin Level ${adminLevel})\n
+      โปรดเปิดลิงก์เพื่อตั้งรหัสผ่าน: ${acceptLink}\n\n
+      ลิงก์นี้มีอายุ 24 ชั่วโมง
+    `);
+
+  try {
+    const response = await mailerSend.email.send(emailParams);
+    return response;
+  } catch (error) {
+    console.error("Error sending admin invite email:", error);
+    throw error;
+  }
+}
+
 
 /**
  * Send verification email for new email address
@@ -270,7 +320,7 @@ export async function sendApprovalEmail(email, firstname, lastname, memberCode, 
       <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
+          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
           <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการอนุมัติยืนยันตัวตน</h1>
         </div>
         <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
@@ -357,7 +407,7 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
       <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
+          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
           <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาการสมัครสมาชิก</h1>
         </div>
         <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
@@ -449,7 +499,7 @@ export async function sendAddressApprovalEmail(email, firstname, lastname, membe
       <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
+          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
           <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่</h1>
         </div>
         <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
@@ -532,7 +582,7 @@ export async function sendAddressRejectionEmail(email, firstname, lastname, memb
       <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
         <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo_RGB_forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
+          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
           <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่</h1>
         </div>
         <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
