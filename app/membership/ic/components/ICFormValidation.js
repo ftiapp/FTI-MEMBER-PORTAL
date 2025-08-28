@@ -1,7 +1,7 @@
 'use client';
 
 // Function to validate Thai ID Card number
-const validateThaiIDCard = (id) => {
+export const validateThaiIDCard = (id) => {
   if (id.length !== 13 || !/^\d{13}$/.test(id)) return false;
   
   let sum = 0;

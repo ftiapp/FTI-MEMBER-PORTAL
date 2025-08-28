@@ -5,7 +5,7 @@ import PropTypes from 'prop-types';
 import SearchableAddressDropdown from './SearchableAddressDropdown';
 import AddressSection from './AddressSection';
 import IndustrialGroupSection from './IndustrialGroupSection';
-import { checkIdCard } from './ICFormSubmission'; // ✅ import จากไฟล์ที่ถูกต้อง
+import { validateThaiIDCard } from './ICFormValidation';
 
 export default function ApplicantInfoSection({ formData, setFormData, errors, industrialGroups, provincialChapters, isLoading }) {
   const [subDistricts, setSubDistricts] = useState([]);
@@ -20,6 +20,7 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
   const [idCardValidation, setIdCardValidation] = useState({
     isChecking: false,
     exists: null,
+    isValid: null,
     message: '',
     status: null
   });
@@ -79,6 +80,18 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
   const handleIdCardBlur = (e) => {
     const value = e.target.value;
     if (value && value.length === 13) {
+      // ตรวจ checksum ทันที ถ้าไม่ผ่านให้แจ้งและไม่ต้องเรียก API
+      if (!validateThaiIDCard(value)) {
+        setIdCardValidation({
+          isChecking: false,
+          exists: null,
+          isValid: false,
+          status: null,
+          message: 'เลขบัตรประชาชนไม่ถูกต้อง'
+        });
+        return;
+      }
+      // ผ่าน checksum ค่อยเรียกตรวจซ้ำซ้อนกับระบบ
       checkIdCardNumber(value);
     }
   };
@@ -94,11 +107,24 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
       
       // ตรวจสอบเลขบัตรประชาชนแบบทันที
       if (onlyDigits.length === 13) {
+        // ถ้า checksum ไม่ถูกต้อง แสดงผลทันทีและไม่เรียก API
+        if (!validateThaiIDCard(onlyDigits)) {
+          setIdCardValidation({
+            isChecking: false,
+            exists: null,
+            isValid: false,
+            status: null,
+            message: 'เลขบัตรประชาชนไม่ถูกต้อง'
+          });
+          return;
+        }
+        // checksum ถูกต้อง → เรียก API ตรวจซ้ำซ้อน
         checkIdCardNumber(onlyDigits);
       } else {
         setIdCardValidation({
           isChecking: false,
           exists: null,
+          isValid: null,
           message: '',
           status: null
         });
