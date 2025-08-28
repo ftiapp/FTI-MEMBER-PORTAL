@@ -110,6 +110,13 @@ function RegisterForm() {
       setError('กรุณากรอกข้อมูลให้ครบทุกช่อง');
       return false;
     }
+
+    // ตรวจสอบให้ชื่อและนามสกุลเป็นภาษาไทยเท่านั้น
+    const thaiRegex = /^[\u0E00-\u0E7F\s]+$/;
+    if (!thaiRegex.test(formData.firstName) || !thaiRegex.test(formData.lastName)) {
+      setError('กรุณากรอกชื่อและนามสกุลเป็นภาษาไทยเท่านั้น');
+      return false;
+    }
     
     if (formData.password !== formData.confirmPassword) {
       setError('รหัสผ่านไม่ตรงกัน');
@@ -251,6 +258,8 @@ function RegisterForm() {
                   onChange={handleChange}
                   placeholder="ชื่อ (ไม่ต้องใส่คำนำหน้า)"
                   autoComplete="given-name"
+                  pattern="^[\u0E00-\u0E7F\s]+$"
+                  title="กรุณากรอกเป็นภาษาไทยเท่านั้น"
                   required
                   note="(ไม่ต้องใส่คำนำหน้า)"
                 />
@@ -261,6 +270,8 @@ function RegisterForm() {
                   onChange={handleChange}
                   placeholder="นามสกุล"
                   autoComplete="family-name"
+                  pattern="^[\u0E00-\u0E7F\s]+$"
+                  title="กรุณากรอกเป็นภาษาไทยเท่านั้น"
                   required
                 />
               </div>

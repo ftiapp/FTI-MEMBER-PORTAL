@@ -129,7 +129,6 @@ export default function IndustrialGroupInfo({
             <div className="space-y-2">
               <label className="block text-sm font-medium text-gray-900 mb-3">
                 กลุ่มอุตสาหกรรม
-                <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="relative z-50">
                 <MultiSelectDropdown
