@@ -25,8 +25,8 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
       params.set('tab', searchParams.get('tab'));
     }
     
-    // Update the URL
-    router.push(`/dashboard?${params.toString()}`);
+    // Update the URL without scrolling to top
+    router.push(`/dashboard?${params.toString()}`, { scroll: false });
     
     // Call the original onPageChange function
     onPageChange(page);

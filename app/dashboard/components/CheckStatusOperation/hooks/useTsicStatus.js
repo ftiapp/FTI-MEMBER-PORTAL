@@ -33,12 +33,24 @@ const useTsicStatus = (userId) => {
         }
         
         const data = await response.json();
-        
+
         if (data.success) {
           setTsicUpdates(data.tsicUpdates || []);
           setError(null);
         } else {
-          throw new Error(data.message || 'Failed to fetch TSIC code update status');
+          // Gracefully handle no data cases instead of throwing
+          const msg = (data.message || '').toLowerCase();
+          if (
+            msg.includes('no member codes') ||
+            msg.includes('not found') ||
+            Array.isArray(data.tsicUpdates) && data.tsicUpdates.length === 0
+          ) {
+            // Treat as empty state
+            setTsicUpdates([]);
+            setError(null);
+          } else {
+            throw new Error(data.message || 'Failed to fetch TSIC code update status');
+          }
         }
       } catch (err) {
         console.error('useTsicStatus:', err);

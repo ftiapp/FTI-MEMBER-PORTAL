@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { FaTimes } from 'react-icons/fa';
 import { FaFile, FaUpload, FaTimesCircle } from 'react-icons/fa';
 
 export default function FileUploadField({ 
@@ -14,6 +15,8 @@ export default function FileUploadField({
   helpText = 'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
 }) {
   const [fileName, setFileName] = useState('');
+  const [showSizeErrorModal, setShowSizeErrorModal] = useState(false);
+  const [sizeErrorMessage, setSizeErrorMessage] = useState('');
 
   // Sync fileName with value prop from parent (reset filename when parent reset)
   useEffect(() => {
@@ -31,9 +34,10 @@ export default function FileUploadField({
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Check file size (max 5MB)
+      // Check file size (max 5MB) -> show modal instead of alert
       if (file.size > 5 * 1024 * 1024) {
-        alert('ไฟล์มีขนาดใหญ่เกินไป กรุณาอัพโหลดไฟล์ขนาดไม่เกิน 5MB');
+        setSizeErrorMessage('ไฟล์มีขนาดใหญ่เกินไป กรุณาอัพโหลดไฟล์ขนาดไม่เกิน 5MB');
+        setShowSizeErrorModal(true);
         e.target.value = null;
         return;
       }
@@ -59,6 +63,7 @@ export default function FileUploadField({
   };
   
   return (
+    <>
     <div className="mb-4">
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       
@@ -103,5 +108,37 @@ export default function FileUploadField({
         <p className="mt-1 text-sm text-red-600">{errorMessage}</p>
       )}
     </div>
+
+    {/* Oversize File Error Modal */}
+    {showSizeErrorModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg w-full max-w-md mx-4">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h3 className="text-lg font-semibold">ไฟล์มีขนาดใหญ่เกินกำหนด</h3>
+            <button
+              type="button"
+              onClick={() => setShowSizeErrorModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="ปิด"
+            >
+              <FaTimes />
+            </button>
+          </div>
+          <div className="p-4">
+            <p className="text-gray-700">{sizeErrorMessage || 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 5MB'}</p>
+          </div>
+          <div className="flex justify-end gap-2 p-4 border-t">
+            <button
+              type="button"
+              onClick={() => setShowSizeErrorModal(false)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              ตกลง
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 }

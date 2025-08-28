@@ -16,6 +16,8 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants, f
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [showSizeErrorModal, setShowSizeErrorModal] = useState(false);
+  const [sizeErrorMessage, setSizeErrorMessage] = useState('');
   const [showPreview, setShowPreview] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
   const fileInputRef = useRef(null);
@@ -83,9 +85,10 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants, f
         return;
       }
       
-      // Validate file size (max 5MB)
+      // Validate file size (max 5MB) - show modal for better UX
       if (selectedFile.size > 5 * 1024 * 1024) {
-        setUploadError('ขนาดไฟล์ต้องไม่เกิน 5MB');
+        setSizeErrorMessage('ขนาดไฟล์ต้องไม่เกิน 5MB');
+        setShowSizeErrorModal(true);
         setFile(null);
         onFileChange(null);
         if (fileInputRef.current) {
@@ -308,6 +311,37 @@ export default function DocumentUpload({ addrCode, onFileChange, itemVariants, f
                   className="w-full h-full" 
                   title="ตัวอย่างเอกสาร PDF"
                 />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Oversize File Error Modal */}
+        {showSizeErrorModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg w-full max-w-md mx-4">
+              <div className="flex justify-between items-center p-4 border-b">
+                <h3 className="text-lg font-semibold">ไฟล์มีขนาดใหญ่เกินกำหนด</h3>
+                <button
+                  onClick={() => setShowSizeErrorModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                  aria-label="ปิด"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              <div className="p-4">
+                <p className="text-gray-700">{sizeErrorMessage || 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 5MB'}</p>
+                <p className="text-sm text-gray-500 mt-2">ไฟล์ PDF ที่รองรับควรมีขนาดไม่เกิน 5MB</p>
+              </div>
+              <div className="flex justify-end gap-2 p-4 border-t">
+                <button
+                  type="button"
+                  onClick={() => setShowSizeErrorModal(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  ตกลง
+                </button>
               </div>
             </div>
           </div>

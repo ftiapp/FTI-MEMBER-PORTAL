@@ -36,6 +36,8 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [existingDocuments, setExistingDocuments] = useState([]);
   const [rejectionComment, setRejectionComment] = useState('');
+  const [showSizeErrorModal, setShowSizeErrorModal] = useState(false);
+  const [sizeErrorMessage, setSizeErrorMessage] = useState('');
   
   // Handle form field changes
   const handleChange = (e) => {
@@ -58,6 +60,14 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Size validation: 10MB as per help text
+      if (file.size > 10 * 1024 * 1024) {
+        setSizeErrorMessage('ไฟล์มีขนาดใหญ่เกินไป กรุณาอัปโหลดไฟล์ขนาดไม่เกิน 10MB');
+        setShowSizeErrorModal(true);
+        e.target.value = null;
+        return;
+      }
+
       setFormData(prev => ({
         ...prev,
         documentFile: file
@@ -202,6 +212,7 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
   };
   
   return (
+    <>
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
       <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
         <button 
@@ -473,6 +484,41 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
         )}
       </div>
     </div>
+
+    {/* Oversize File Error Modal */}
+    {showSizeErrorModal && (
+      <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg w-full max-w-md mx-4">
+          <div className="flex justify-between items-center p-4 border-b">
+            <h3 className="text-lg font-semibold">ไฟล์มีขนาดใหญ่เกินกำหนด</h3>
+            <button
+              type="button"
+              onClick={() => setShowSizeErrorModal(false)}
+              className="text-gray-500 hover:text-gray-700"
+              aria-label="ปิด"
+            >
+              {/* reuse simple X */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+          </div>
+          <div className="p-4">
+            <p className="text-gray-700">{sizeErrorMessage || 'กรุณาอัปโหลดไฟล์ที่มีขนาดไม่เกิน 10MB'}</p>
+          </div>
+          <div className="flex justify-end gap-2 p-4 border-t">
+            <button
+              type="button"
+              onClick={() => setShowSizeErrorModal(false)}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              ตกลง
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
