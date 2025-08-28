@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Membership() {
   const [isMobile, setIsMobile] = useState(false);
@@ -11,6 +13,8 @@ export default function Membership() {
   const [activeDocumentTab, setActiveDocumentTab] = useState('ordinary');
   const [memberCount, setMemberCount] = useState(0);
   const itemsPerPage = 5;
+  const router = useRouter();
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     const checkMobile = () => {
@@ -389,6 +393,17 @@ export default function Membership() {
     }
   };
 
+  const handleApply = (path) => {
+    // Avoid action while auth state is loading
+    if (isLoading) return;
+    if (!user) {
+      const redirect = encodeURIComponent(path);
+      router.push(`/login?redirect=${redirect}`);
+    } else {
+      router.push(path);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -548,7 +563,7 @@ export default function Membership() {
                     </li>
                   ))}
                 </ul>
-                <button className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                <button onClick={() => handleApply(type.path)} className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
                   สมัครสมาชิก
                 </button>
               </div>

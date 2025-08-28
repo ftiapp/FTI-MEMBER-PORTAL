@@ -10,11 +10,13 @@ import Navbar from '../components/Navbar';
 import { motion, AnimatePresence } from 'framer-motion';
 import Script from 'next/script';
 import { FaSpinner } from 'react-icons/fa';
+import { useSearchParams } from 'next/navigation';
 
 export default function Login() {
   // Load reCAPTCHA script
   const recaptchaLoaded = useRef(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [formData, setFormData] = useState({
@@ -300,7 +302,12 @@ export default function Login() {
           })
         });
       } catch (e) { /* ignore log errors */ }
-      router.push('/dashboard');
+      const redirectTarget = searchParams?.get('redirect');
+      if (redirectTarget && redirectTarget.startsWith('/')) {
+        router.push(redirectTarget);
+      } else {
+        router.push('/dashboard');
+      }
     } catch (err) {
       setError(err.message);
     } finally {
