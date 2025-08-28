@@ -178,6 +178,18 @@ export async function GET(request, { params }) {
       companyPhone: acData.company_phone || mainAddress?.phone || '',
       companyPhoneExtension: acData.company_phone_extension || '',
       companyWebsite: acData.company_website || mainAddress?.website || '',
+      // Employee count (preserve 0) with robust fallbacks for legacy/alternate column names
+      numberOfEmployees: (
+        acData.number_of_employees ??
+        acData.employee_count ??
+        acData.employeeCount ??
+        acData.employees ??
+        acData.total_employees ??
+        acData.number_of_employee ??
+        acData.num_employees ??
+        acData.employee_number ??
+        null
+      ),
       status: acData.status,
       createdAt: acData.created_at,
       updatedAt: acData.updated_at,

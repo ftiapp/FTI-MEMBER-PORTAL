@@ -9,6 +9,8 @@ import SummarySection from '@/app/membership/ac/components/SummarySection'; // �
 
 export default function ACSummaryPage() {
   const [applicationData, setApplicationData] = useState(null);
+  const [industrialGroups, setIndustrialGroups] = useState([]);
+  const [provincialChapters, setProvincialChapters] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -49,6 +51,9 @@ export default function ACSummaryPage() {
       
       if (result.success) {
         setApplicationData(result.data);
+        // Set lookup data for PDF generation
+        setIndustrialGroups(result.data?.industrialGroups || []);
+        setProvincialChapters(result.data?.provinceChapters || []);
         console.log('AC Data set to state:', result.data);
         console.log('=== AC Summary Page Debug ===');
         console.log('AC applicationData structure:', {
@@ -72,8 +77,24 @@ export default function ACSummaryPage() {
 
   const handleDownloadPDF = async () => {
     try {
-      const { downloadMembershipPDF } = await import('@/app/membership/utils/pdfUtils');
-      await downloadMembershipPDF(applicationData, 'ac');
+      const { generateMembershipPDF } = await import('@/app/membership/utils/pdfUtils');
+      
+      // สร้าง lookup objects สำหรับ PDF
+      const industrialGroupsLookup = {};
+      const provincialChaptersLookup = {};
+      
+      // แปลง industrialGroups array เป็น lookup object
+      industrialGroups.forEach(group => {
+        industrialGroupsLookup[group.id] = group.name_th || group.name || group.id;
+      });
+      
+      // แปลง provincialChapters array เป็น lookup object
+      provincialChapters.forEach(chapter => {
+        provincialChaptersLookup[chapter.id] = chapter.name_th || chapter.name || chapter.id;
+      });
+      
+      // Generate PDF with lookup data
+      await generateMembershipPDF(applicationData, 'ac', industrialGroupsLookup, provincialChaptersLookup);
     } catch (error) {
       console.error('Error generating PDF:', error);
       alert('เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');

@@ -270,7 +270,8 @@ const processData = (app) => {
     companyNameTh,
     companyNameEn,
     taxId: app.tax_id || app.taxId,
-    numberOfEmployees: app.number_of_employees || app.numberOfEmployees,
+    // Preserve 0 for employee count
+    numberOfEmployees: (app.number_of_employees ?? app.numberOfEmployees ?? app.employee_count ?? app.employeeCount ?? null),
     firstNameTh: app.first_name_th || app.firstNameTh,
     lastNameTh: app.last_name_th || app.lastNameTh,
     firstNameEn: app.first_name_en || app.firstNameEn,
@@ -338,7 +339,7 @@ const processData = (app) => {
       if (app.representatives?.[0]) {
         const r = app.representatives[0];
         const repTh = `${r.firstNameTh || r.first_name_th || ''} ${r.lastNameTh || r.last_name_th || ''}`.trim();
-        const repEn = `${r.firstNameEn || r.first_name_en || ''} ${r.lastNameEn || r.last_name_en || ''}`.trim();
+        const repEn = `${r.firstNameEn || r.firstNameEng || r.first_name_en || ''} ${r.lastNameEn || r.lastNameEng || r.last_name_en || ''}`.trim();
         return pick(repTh, repEn, r.name, app.representativeName, 'ผู้มีอำนาจลงนาม');
       }
       return pick(app.representativeName, 'ผู้มีอำนาจลงนาม');
@@ -668,8 +669,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             ${data.representatives.slice(0, 3).map((rep, i) => {
               const firstTh = rep.firstNameTh || rep.first_name_th || rep.firstNameThai || rep.firstname_th || rep.firstnameThai || rep.firstname;
               const lastTh  = rep.lastNameTh  || rep.last_name_th  || rep.lastNameThai  || rep.lastname_th  || rep.lastnameThai  || rep.lastname;
-              const firstEn = rep.firstNameEn || rep.first_name_en || rep.firstNameEnglish || rep.firstname_en || rep.firstnameEnglish;
-              const lastEn  = rep.lastNameEn  || rep.last_name_en  || rep.lastNameEnglish  || rep.lastname_en  || rep.lastnameEnglish;
+              const firstEn = rep.firstNameEn || rep.firstNameEng || rep.first_name_en || rep.firstNameEnglish || rep.firstname_en || rep.firstnameEnglish || rep.firstName_en || rep.firstName_eng;
+              const lastEn  = rep.lastNameEn  || rep.lastNameEng  || rep.last_name_en  || rep.lastNameEnglish  || rep.lastname_en  || rep.lastnameEnglish || rep.lastName_en || rep.lastName_eng;
               const position = rep.position || rep.positionName || rep.role || '';
               const phone = rep.phone || rep.tel || rep.telephone || '';
               const phoneExt = rep.phoneExtension || rep.phone_extension || rep.ext || rep.extension || '';
@@ -698,19 +699,18 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 </div>
               </div>
               ${type !== 'ic' ? `
-                <div class=\"row\">
+                <div class="row">
                   ${type === 'am'
-                    ? `<div class=\"col\">${field('สมาชิกสมาคม', `${data.numberOfMember || '-'} คน`)}</div><div class=\"col\">${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}</div>`
-                    : `<div class=\"col\">${field('จำนวนพนักงาน', `${data.numberOfEmployees || '-'} คน`)}</div>${type === 'oc' ? `<div class=\"col\">${field('ประเภทโรงงาน', data.factoryType === 'TYPE1' ? '> 50 แรงม้า' : '< 50 แรงม้า')}</div>` : '<div class=\"col\"></div>'}`}
+                    ? `<div class="col">${field('สมาชิกสมาคม', `${(data.numberOfMember ?? 0)} คน`)}</div><div class="col">${field('จำนวนพนักงาน', `${(data.numberOfEmployees ?? 0)} คน`)}</div>`
+                    : `<div class="col">${field('จำนวนพนักงาน', `${(data.numberOfEmployees ?? 0)} คน`)}</div>${type === 'oc' ? `<div class="col">${field('ประเภทโรงงาน', data.factoryType === 'TYPE1' ? '> 50 แรงม้า' : '< 50 แรงม้า')}</div>` : '<div class="col"></div>'}`}
                 </div>
               ` : ''}
-            </div>
+              </div>
             <div class="col">
               ${displayProducts.length ? `
                 <div>
                   <strong>สินค้าและบริการ (${data.products.length} รายการ):</strong>
                   <div style="margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 4px;">
-                    <div class="list-3col">
                       ${displayProducts.map((p, i) => `
                         <div style="font-size: 11px;">
                           <strong>${i + 1}.</strong> 

@@ -75,11 +75,11 @@ export default function CompanyAddressInfo({
     }));
   };
 
-  // Copy address from document delivery (type 2) to other types
-  const copyAddressFromDocumentDelivery = (targetType) => {
-    const documentAddress = formData.addresses?.['2'];
-    if (!documentAddress) {
-      toast.error('กรุณากรอกที่อยู่จัดส่งเอกสารก่อน');
+  // Copy address from office address (type 1) to other types
+  const copyAddressFromOffice = (targetType) => {
+    const officeAddress = formData.addresses?.['1'];
+    if (!officeAddress) {
+      toast.error('กรุณากรอกที่อยู่สำนักงานก่อน');
       return;
     }
     setFormData(prev => ({
@@ -87,7 +87,7 @@ export default function CompanyAddressInfo({
       addresses: {
         ...prev.addresses,
         [targetType]: {
-          ...documentAddress,
+          ...officeAddress,
           addressType: targetType
         }
       }
@@ -375,7 +375,7 @@ export default function CompanyAddressInfo({
               >
                 <span className="text-lg">{config.icon}</span>
                 <span>{config.label}</span>
-                {type === '2' && (
+                {type === '1' && (
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1">
                     หลัก
                   </span>
@@ -386,8 +386,8 @@ export default function CompanyAddressInfo({
         </div>
       </div>
 
-      {/* Copy Address Buttons */}
-      {(activeTab === '1' || activeTab === '3') && (
+      {/* Copy Address Buttons - แสดงเฉพาะในแท็บ "ที่อยู่จัดส่งเอกสาร" และ "ที่อยู่ใบกำกับภาษี" */}
+      {(activeTab === '2' || activeTab === '3') && (
         <div className="px-8 pt-4">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
@@ -396,11 +396,11 @@ export default function CompanyAddressInfo({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 <span className="text-sm font-medium text-green-800">
-                  คัดลอกที่อยู่จากที่อยู่จัดส่งเอกสาร
+                  คัดลอกที่อยู่จากที่อยู่สำนักงาน
                 </span>
               </div>
               <button
-                onClick={() => copyAddressFromDocumentDelivery(activeTab)}
+                onClick={() => copyAddressFromOffice(activeTab)}
                 className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2"
               >
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -422,11 +422,7 @@ export default function CompanyAddressInfo({
               <h4 className="text-base font-medium text-gray-900">
                 {addressTypes[activeTab].label}
               </h4>
-              <p className="text-sm text-gray-500">
-                {activeTab === '2' && 'ที่อยู่หลักสำหรับการจัดส่งเอกสาร'}
-                {activeTab === '1' && 'ที่อยู่สำนักงานของบริษัท'}
-                {activeTab === '3' && 'ที่อยู่ตามใบกำกับภาษี'}
-              </p>
+            
             </div>
           </div>
           

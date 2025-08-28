@@ -3,12 +3,15 @@
 import React from 'react';
 
 // Simplified info card with consistent blue theme
-const InfoCard = ({ title, value }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-4">
-    <h4 className="text-sm font-medium text-gray-700 mb-1">{title}</h4>
-    <p className="text-sm text-gray-900">{value || '-'}</p>
-  </div>
-);
+const InfoCard = ({ title, value }) => {
+  const hasValue = value !== undefined && value !== null && !(typeof value === 'string' && value.trim() === '');
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <h4 className="text-sm font-medium text-gray-700 mb-1">{title}</h4>
+      <p className="text-sm text-gray-900">{hasValue ? value : '-'}</p>
+    </div>
+  );
+};
 
 // Special card for business types with tags
 const BusinessTypesCard = ({ title, businessTypes }) => (
@@ -602,7 +605,18 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             title="ประเภทธุรกิจ" 
             businessTypes={getSelectedBusinessTypesArray()} 
           />
-          <InfoCard title="จำนวนพนักงาน" value={formData?.numberOfEmployees || formData?.number_of_employees} />
+          {(() => {
+            const employeesValue = (
+              formData?.numberOfEmployees ??
+              formData?.number_of_employees ??
+              formData?.employee_count ??
+              formData?.employeeCount ??
+              formData?.employees
+            );
+            return (
+              <InfoCard title="จำนวนพนักงาน" value={employeesValue} />
+            );
+          })()}
           <ProductsCard products={formData?.products || []} />
           <IndustrialGroupsCard 
             title="กลุ่มอุตสาหกรรม" 
@@ -706,11 +720,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             fileUrl={getFileUrl(formData?.companyRegistration)}
             description="สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล" 
           />
-          <FileCard 
-            fileName={getFileName(formData?.vatCertificate)} 
-            fileUrl={getFileUrl(formData?.vatCertificate)}
-            description="สำเนาใบทะเบียนภาษีมูลค่าเพิ่ม (ถ้ามี)" 
-          />
+         
         </div>
       </Section>
 

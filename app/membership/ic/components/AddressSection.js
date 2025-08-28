@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import SearchableDropdown from './SearchableDropdown';
 
 export default function AddressSection({ formData, setFormData, errors, isLoading }) {
-  const [activeTab, setActiveTab] = useState('2'); // Default to document delivery address
+  const [activeTab, setActiveTab] = useState('1'); // เปลี่ยนเป็น default ที่อยู่สำนักงาน
 
   // Address types configuration
   const addressTypes = {
@@ -52,16 +52,16 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     }));
   };
 
-  // Copy address from document delivery (type 2) to other types
-  const copyAddressFromDocumentDelivery = (targetType) => {
-    const documentDeliveryAddress = formData.addresses?.['2'];
-    if (!documentDeliveryAddress) {
-      toast.error('ไม่พบข้อมูลที่อยู่จัดส่งเอกสารเพื่อคัดลอก');
+  // Copy address from office address (type 1) to other types
+  const copyAddressFromOffice = (targetType) => {
+    const officeAddress = formData.addresses?.['1'];
+    if (!officeAddress) {
+      toast.error('กรุณากรอกที่อยู่สำนักงานก่อน');
       return;
     }
 
     const addressToCopy = {
-      ...documentDeliveryAddress,
+      ...officeAddress,
       addressType: targetType
     };
 
@@ -335,7 +335,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
         
         {/* Address Type Tabs */}
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          {['2', '1', '3'].map((type) => {
+          {['1', '2', '3'].map((type) => {
             const config = addressTypes[type];
             const isActive = activeTab === type;
             return (
@@ -352,8 +352,8 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               >
                 <span>{config.label}</span>
                 {type === '2' && (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1">
-                    หลัก
+                  <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full ml-1 font-semibold">
+                    สำคัญ
                   </span>
                 )}
               </button>
@@ -361,21 +361,21 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
           })}
         </div>
 
-        {/* Copy Address Buttons */}
-        {(activeTab === '1' || activeTab === '3') && (
+        {/* Copy Address Buttons - แสดงเฉพาะในแท็บ "ที่อยู่จัดส่งเอกสาร" และ "ที่อยู่ใบกำกับภาษี" */}
+        {(activeTab === '2' || activeTab === '3') && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 <span className="text-sm text-green-800">
-                  คัดลอกที่อยู่จากที่อยู่จัดส่งเอกสาร
+                  คัดลอกที่อยู่จากที่อยู่สำนักงาน
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => copyAddressFromDocumentDelivery(activeTab)}
+                onClick={() => copyAddressFromOffice(activeTab)}
                 className="flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-md transition-colors duration-200"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -389,9 +389,18 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
 
         {/* Address Details Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            {addressTypes[activeTab].label}
-          </h4>
+          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
+            <div>
+              <h4 className="text-base font-medium text-gray-900">
+                {addressTypes[activeTab].label}
+              </h4>
+              <p className="text-sm text-gray-500">
+                {activeTab === '1' && 'ที่อยู่สำนักงานหลัก'}
+                {activeTab === '2' && 'ที่อยู่สำหรับการจัดส่งเอกสาร'}
+                {activeTab === '3' && 'ที่อยู่ตามใบกำกับภาษี'}
+              </p>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Address Number */}
@@ -581,61 +590,58 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
               />
             </div>
 
-           
-{/* Company Phone */}
-<div className="lg:col-span-2 space-y-2">
-  <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
-    โทรศัพท์
-    <span className="text-red-500 ml-1">*</span>
-  </label>
-  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-    <div className="lg:col-span-2">
-      <input
-        type="tel"
-        id="phone"
-        name="phone"
-        value={getCurrentAddress().phone || ''}
-        onChange={(e) => handleAddressInputChange('phone', e.target.value)}
-        placeholder="02-123-4567"
-        disabled={isLoading}
-        className={`
-          w-full px-4 py-3 text-sm
-          border rounded-lg
-          bg-white
-          placeholder-gray-400
-          transition-all duration-200
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          ${errors?.[`addresses.${activeTab}.phone`] 
-            ? 'border-red-300 bg-red-50' 
-            : 'border-gray-300 hover:border-gray-400'
-          }
-        `}
-      />
-    </div>
-    <div>
-      <input
-        type="text"
-        id="phoneExtension"
-        name="phoneExtension"
-        value={getCurrentAddress().phoneExtension || ''}
-        onChange={(e) => handleAddressInputChange('phoneExtension', e.target.value)}
-        placeholder="ต่อ (ถ้ามี)"
-        disabled={isLoading}
-        className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
-      />
-    </div>
-  </div>
-  {errors?.[`addresses.${activeTab}.phone`] && (
-    <p className="text-sm text-red-600 flex items-center gap-2">
-      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-      </svg>
-      {errors[`addresses.${activeTab}.phone`]}
-    </p>
-  )}
-</div>
-
-           
+            {/* Company Phone */}
+            <div className="lg:col-span-2 space-y-2">
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
+                โทรศัพท์
+                <span className="text-red-500 ml-1">*</span>
+              </label>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-2">
+                  <input
+                    type="tel"
+                    id="phone"
+                    name="phone"
+                    value={getCurrentAddress().phone || ''}
+                    onChange={(e) => handleAddressInputChange('phone', e.target.value)}
+                    placeholder="02-123-4567"
+                    disabled={isLoading}
+                    className={`
+                      w-full px-4 py-3 text-sm
+                      border rounded-lg
+                      bg-white
+                      placeholder-gray-400
+                      transition-all duration-200
+                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                      ${errors?.[`addresses.${activeTab}.phone`] 
+                        ? 'border-red-300 bg-red-50' 
+                        : 'border-gray-300 hover:border-gray-400'
+                      }
+                    `}
+                  />
+                </div>
+                <div>
+                  <input
+                    type="text"
+                    id="phoneExtension"
+                    name="phoneExtension"
+                    value={getCurrentAddress().phoneExtension || ''}
+                    onChange={(e) => handleAddressInputChange('phoneExtension', e.target.value)}
+                    placeholder="ต่อ (ถ้ามี)"
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
+                  />
+                </div>
+              </div>
+              {errors?.[`addresses.${activeTab}.phone`] && (
+                <p className="text-sm text-red-600 flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors[`addresses.${activeTab}.phone`]}
+                </p>
+              )}
+            </div>
 
             {/* Email */}
             <div className="space-y-2">
@@ -675,7 +681,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
             </div>
 
             {/* Website */}
-            <div className="space-y-2 lg:col-span-2">
+            <div className="space-y-2">
               <label htmlFor={`website-${activeTab}`} className="block text-sm font-medium text-gray-900">
                 เว็บไซต์
               </label>

@@ -14,7 +14,7 @@ export default function CompanyAddressInfo({
   isAutofill 
 }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('2'); // Default to document delivery address
+  const [activeTab, setActiveTab] = useState('1'); // เปลี่ยนเป็น default ที่อยู่สำนักงาน
   const prevAddressErrorSig = useRef('');
 
   // Address types configuration
@@ -78,16 +78,17 @@ export default function CompanyAddressInfo({
       [name]: value
     }));
   };
+
   // Get current address based on active tab
   const getCurrentAddress = () => {
     return formData.addresses?.[activeTab] || {};
   };
 
-  // Copy address from document delivery (type 2) to other types
-  const copyAddressFromDocumentDelivery = (targetType) => {
-    const documentAddress = formData.addresses?.['2'];
-    if (!documentAddress) {
-      toast.error('กรุณากรอกที่อยู่จัดส่งเอกสารก่อน');
+  // Copy address from office address (type 1) to other types
+  const copyAddressFromOffice = (targetType) => {
+    const officeAddress = formData.addresses?.['1'];
+    if (!officeAddress) {
+      toast.error('กรุณากรอกที่อยู่สำนักงานก่อน');
       return;
     }
     setFormData(prev => ({
@@ -95,7 +96,7 @@ export default function CompanyAddressInfo({
       addresses: {
         ...prev.addresses,
         [targetType]: {
-          ...documentAddress,
+          ...officeAddress,
           addressType: targetType
         }
       }
@@ -147,7 +148,7 @@ export default function CompanyAddressInfo({
             }
           }
         }));
-        toast.success('ดึงรหัสไปรษณีย์สำเร็จ');
+        // ลดการแจ้งเตือนซ้ำ ๆ: ไม่ต้องแสดง toast สำเร็จทุกครั้ง
       } else {
         console.log(`No postal code found for subdistrict: ${subDistrict}`);
         toast.error('ไม่พบรหัสไปรษณีย์สำหรับตำบล/แขวงนี้');
@@ -235,11 +236,8 @@ export default function CompanyAddressInfo({
         }
       }
     }));
-    
-    if (value && value.trim().length > 2) {
-      console.log(`Subdistrict changed to: ${value}, fetching postal code...`);
-      fetchPostalCode(value);
-    }
+    // หยุดเรียก API ระหว่างพิมพ์เพื่อลดการ fetch รัว ๆ
+    // จะทำการ autofill ผ่าน onSelect แทน (เมื่อผู้ใช้เลือกจาก dropdown)
   }, [setFormData, fetchPostalCode, activeTab]);
   
   const handleSubDistrictSelect = useCallback((option) => {
@@ -259,7 +257,7 @@ export default function CompanyAddressInfo({
         }
       }
     }));
-    toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
+    // ลดการแจ้งเตือนเพื่อป้องกัน toast เด้งรัว ๆ ระหว่างใช้งาน
   }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
@@ -335,7 +333,7 @@ export default function CompanyAddressInfo({
         }
       }
     }));
-    toast.success('ดึงข้อมูลที่อยู่สำเร็จ');
+    // ไม่ต้องแสดง toast สำเร็จเพื่อลดการรบกวนผู้ใช้
   }, [setFormData, activeTab]);
 
   const currentAddress = getCurrentAddress();
@@ -375,7 +373,7 @@ export default function CompanyAddressInfo({
       {/* Address Type Tabs */}
       <div className="px-8">
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          {['2', '1', '3'].map((type) => {
+          {['1', '2', '3'].map((type) => {
             const config = addressTypes[type];
             const isActive = activeTab === type;
             return (
@@ -393,8 +391,8 @@ export default function CompanyAddressInfo({
               >
                 <span>{config.label}</span>
                 {type === '2' && (
-                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1">
-                    หลัก
+                  <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full ml-1 font-semibold">
+                    สำคัญ
                   </span>
                 )}
               </button>
@@ -403,8 +401,8 @@ export default function CompanyAddressInfo({
         </div>
       </div>
 
-      {/* Copy Address Buttons */}
-      {(activeTab === '1' || activeTab === '3') && (
+      {/* Copy Address Buttons - แสดงเฉพาะในแท็บ "ที่อยู่จัดส่งเอกสาร" และ "ที่อยู่ใบกำกับภาษี" */}
+      {(activeTab === '2' || activeTab === '3') && (
         <div className="px-8 pt-4">
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <div className="flex items-center justify-between">
@@ -413,12 +411,12 @@ export default function CompanyAddressInfo({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
                 </svg>
                 <span className="text-sm font-medium text-green-800">
-                  คัดลอกที่อยู่จากที่อยู่จัดส่งเอกสาร
+                  คัดลอกที่อยู่จากที่อยู่สำนักงาน
                 </span>
               </div>
               <button
                 type="button"
-                onClick={() => copyAddressFromDocumentDelivery(activeTab)}
+                onClick={() => copyAddressFromOffice(activeTab)}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,9 +433,18 @@ export default function CompanyAddressInfo({
       <div className="px-8 py-8 space-y-8">
         {/* Address Details Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            รายละเอียดที่อยู่
-          </h4>
+          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
+            <div>
+              <h4 className="text-base font-medium text-gray-900">
+                {addressTypes[activeTab].label}
+              </h4>
+              <p className="text-sm text-gray-500">
+                {activeTab === '1' && 'ที่อยู่สำนักงานหลักของบริษัท'}
+                {activeTab === '2' && 'ที่อยู่สำหรับการจัดส่งเอกสาร'}
+                {activeTab === '3' && 'ที่อยู่ตามใบกำกับภาษี'}
+              </p>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Address Number */}
@@ -458,25 +465,25 @@ export default function CompanyAddressInfo({
                   border rounded-lg
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.addressNumber 
+                  ${errors?.addresses?.[activeTab]?.addressNumber 
                     ? 'border-red-300 bg-red-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
-                  ${isAutofill && formData.addressNumber
+                  ${isAutofill && currentAddress?.addressNumber
                     ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
                     : 'bg-white'
                   }
                 `}
               />
-              {errors?.addressNumber && (
+              {errors?.addresses?.[activeTab]?.addressNumber && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors.addressNumber}
+                  {errors.addresses[activeTab].addressNumber}
                 </p>
               )}
-              {isAutofill && formData.addressNumber && (
+              {isAutofill && currentAddress?.addressNumber && (
                 <p className="text-xs text-blue-600 flex items-center gap-2">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -538,13 +545,13 @@ export default function CompanyAddressInfo({
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                   border-gray-300 hover:border-gray-400
-                  ${isAutofill && formData.moo
+                  ${isAutofill && currentAddress?.moo
                     ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
                     : 'bg-white'
                   }
                 `}
               />
-              {isAutofill && formData.moo && (
+              {isAutofill && currentAddress?.moo && (
                 <p className="text-xs text-blue-600 flex items-center gap-2">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -572,13 +579,13 @@ export default function CompanyAddressInfo({
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                   border-gray-300 hover:border-gray-400
-                  ${isAutofill && formData.soi
+                  ${isAutofill && currentAddress?.soi
                     ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
                     : 'bg-white'
                   }
                 `}
               />
-              {isAutofill && formData.soi && (
+              {isAutofill && currentAddress?.soi && (
                 <p className="text-xs text-blue-600 flex items-center gap-2">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -606,13 +613,13 @@ export default function CompanyAddressInfo({
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
                   border-gray-300 hover:border-gray-400
-                  ${isAutofill && formData.road
+                  ${isAutofill && currentAddress?.road
                     ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
                     : 'bg-white'
                   }
                 `}
               />
-              {isAutofill && formData.road && (
+              {isAutofill && currentAddress?.road && (
                 <p className="text-xs text-blue-600 flex items-center gap-2">
                   <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -781,7 +788,7 @@ export default function CompanyAddressInfo({
               </div>
 
               {/* Company Website */}
-              <div className="space-y-2 lg:col-span-2">
+              <div className="space-y-2">
                 <label htmlFor="companyWebsite" className="block text-sm font-medium text-gray-900">
                   เว็บไซต์
                 </label>
