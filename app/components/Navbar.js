@@ -104,7 +104,7 @@ export default function Navbar() {
   const menuItems = useMemo(() => [
     { name: 'หน้าแรก', href: '/' },
     { name: 'เกี่ยวกับเรา', href: '/about' },
-    { name: 'บริการของเรา', href: '/services' },
+ 
     { name: 'ประเภทสมาชิก', href: '/membership' },
     { name: 'ติดต่อเรา', href: '/contact' },
   ], []);

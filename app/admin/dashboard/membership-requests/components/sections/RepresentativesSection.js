@@ -12,6 +12,19 @@ const RepresentativesSection = ({ application }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {application.representatives.map((rep, index) => {
           const repType = rep.isPrimary ? 'ผู้แทน 1 (หลัก)' : `ผู้แทน ${rep.order || index + 1} (รอง)`;
+          const resolvePrename = (th, en, other, lang = 'th') => {
+            const normTh = (th || '').trim();
+            const normEn = (en || '').trim();
+            const normOther = (other || '').trim();
+            if (lang === 'th') {
+              if (!normTh && !normOther) return '';
+              if (/^อื่นๆ$/i.test(normTh) || /^other$/i.test(normEn)) return normOther || '';
+              return normTh || normOther || '';
+            }
+            if (!normEn && !normOther) return '';
+            if (/^other$/i.test(normEn) || /^อื่นๆ$/i.test(normTh)) return normOther || '';
+            return normEn || normOther || '';
+          };
           
           return (
             <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-6">
@@ -28,7 +41,10 @@ const RepresentativesSection = ({ application }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
-                    <p className="text-sm text-gray-900">{rep.firstNameTh || '-'}</p>
+                    <p className="text-sm text-gray-900">{[
+                      resolvePrename(rep.prename_th || rep.prenameTh, rep.prename_en || rep.prenameEn, rep.prename_other || rep.prenameOther, 'th'),
+                      rep.firstNameTh
+                    ].filter(Boolean).join(' ') || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
@@ -39,7 +55,10 @@ const RepresentativesSection = ({ application }) => {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
-                    <p className="text-sm text-gray-900">{rep.firstNameEn || '-'}</p>
+                    <p className="text-sm text-gray-900">{[
+                      resolvePrename(rep.prename_th || rep.prenameTh, rep.prename_en || rep.prenameEn, rep.prename_other || rep.prenameOther, 'en'),
+                      rep.firstNameEn
+                    ].filter(Boolean).join(' ') || '-'}</p>
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>

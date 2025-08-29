@@ -169,6 +169,23 @@ export const validateACForm = (formData, step) => {
       formData.representatives.forEach((rep, index) => {
         const repError = {};
         
+        // ตรวจสอบคำนำหน้าชื่อ (prename)
+        if (!rep.prename_th) {
+          repError.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
+        } else if (!/^[ก-๙\.\s]+$/.test(rep.prename_th)) {
+          repError.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
+        }
+
+        if (!rep.prename_en) {
+          repError.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+        } else if (!/^[A-Za-z\.\s]+$/.test(rep.prename_en)) {
+          repError.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
+        }
+
+        if ((rep.prename_th === 'อื่นๆ' || (rep.prename_en && rep.prename_en.toLowerCase() === 'other')) && !rep.prename_other) {
+          repError.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
+        }
+
         // ตรวจสอบชื่อภาษาไทย - ใช้ regex ที่ตรงกับ component
         if (!rep.firstNameTh || rep.firstNameTh.trim() === '') {
           repError.firstNameTh = 'กรุณากรอกชื่อภาษาไทย';

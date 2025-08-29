@@ -23,6 +23,8 @@ export default function AcceptAdminInvitePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   useEffect(() => {
     async function verify() {
@@ -90,7 +92,16 @@ export default function AcceptAdminInvitePage() {
       if (!data.success) {
         setError(data.message || 'ไม่สามารถสร้างบัญชีได้');
       } else {
-        setSuccess('ตั้งรหัสผ่านสำเร็จ คุณสามารถเข้าสู่ระบบผู้ดูแลระบบได้แล้ว');
+        setSuccess('ตั้งรหัสผ่านสำเร็จ กำลังพาไปหน้าเข้าสู่ระบบผู้ดูแลระบบ...');
+        // Redirect to external admin login with email prefilled via query param (if supported there)
+        try {
+          const emailParam = encodeURIComponent(invite?.email || '');
+          setTimeout(() => {
+            window.location.href = `https://ftimemberportal-529sy.kinsta.app/admin?email=${emailParam}`;
+          }, 1500);
+        } catch (redirectErr) {
+          console.error('Redirect error:', redirectErr);
+        }
       }
     } catch (e) {
       console.error(e);
@@ -183,26 +194,68 @@ export default function AcceptAdminInvitePage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">รหัสผ่านใหม่</label>
-                  <input
-                    type="password"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="********"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="********"
+                      required
+                    />
+                    <button
+                      type="button"
+                      aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showPassword ? (
+                        // eye-off icon
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 15.91 7.244 19 12 19c1.518 0 2.964-.282 4.285-.795M6.228 6.228A10.45 10.45 0 0112 5c4.756 0 8.774 3.09 10.066 7-.463 1.384-1.245 2.63-2.27 3.672M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65M9.88 9.88a3 3 0 104.24 4.24" />
+                        </svg>
+                      ) : (
+                        // eye icon
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 5 12 5c4.64 0 8.577 2.51 9.964 6.678.07.207.07.437 0 .644C20.577 16.49 16.64 19 12 19c-4.64 0-8.577-2.51-9.964-6.678z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                   <p className="text-xs text-gray-600 mt-1">{passwordPolicy.message}</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">ยืนยันรหัสผ่าน</label>
-                  <input
-                    type="password"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    value={confirm}
-                    onChange={(e) => setConfirm(e.target.value)}
-                    placeholder="********"
-                    required
-                  />
+                  <div className="relative">
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                      value={confirm}
+                      onChange={(e) => setConfirm(e.target.value)}
+                      placeholder="********"
+                      required
+                    />
+                    <button
+                      type="button"
+                      aria-label={showConfirm ? 'ซ่อนยืนยันรหัสผ่าน' : 'แสดงยืนยันรหัสผ่าน'}
+                      onClick={() => setShowConfirm((v) => !v)}
+                      className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-gray-700"
+                    >
+                      {showConfirm ? (
+                        // eye-off icon
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 15.91 7.244 19 12 19c1.518 0 2.964-.282 4.285-.795M6.228 6.228A10.45 10.45 0 0112 5c4.756 0 8.774 3.09 10.066 7-.463 1.384-1.245 2.63-2.27 3.672M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65M9.88 9.88a3 3 0 104.24 4.24" />
+                        </svg>
+                      ) : (
+                        // eye icon
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-5 h-5">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.423 7.51 7.36 5 12 5c4.64 0 8.577 2.51 9.964 6.678.07.207.07.437 0 .644C20.577 16.49 16.64 19 12 19c-4.64 0-8.577-2.51-9.964-6.678z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="submit"

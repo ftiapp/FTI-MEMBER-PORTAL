@@ -50,6 +50,23 @@ const validateApplicantInfo = (formData) => {
     errors.idCardNumber = 'เลขบัตรประชาชนไม่ถูกต้อง';
   }
 
+  // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้ยื่นสมัคร
+  if (!formData.prename_th) {
+    errors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
+  } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(formData.prename_th)) {
+    errors.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
+  }
+
+  if (!formData.prename_en) {
+    errors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+  } else if (!/^[A-Za-z\.\s]+$/.test(formData.prename_en)) {
+    errors.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
+  }
+
+  if ((formData.prename_th === 'อื่นๆ' || (formData.prename_en && formData.prename_en.toLowerCase() === 'other')) && !formData.prename_other) {
+    errors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
+  }
+
   // Thai name validation
   if (!formData.firstNameThai) {
     errors.firstNameThai = 'กรุณากรอกชื่อภาษาไทย';
@@ -206,6 +223,23 @@ const validateRepresentativeInfo = (formData) => {
   if (!representative || Object.keys(representative).length === 0) {
     errors.representative = 'กรุณากรอกข้อมูลผู้แทน';
     return errors;
+  }
+
+  // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้แทน
+  if (!representative.prename_th) {
+    representativeErrors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
+  } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(representative.prename_th)) {
+    representativeErrors.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
+  }
+
+  if (!representative.prename_en) {
+    representativeErrors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+  } else if (!/^[A-Za-z\.\s]+$/.test(representative.prename_en)) {
+    representativeErrors.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
+  }
+
+  if ((representative.prename_th === 'อื่นๆ' || (representative.prename_en && representative.prename_en.toLowerCase() === 'other')) && !representative.prename_other) {
+    representativeErrors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
   }
 
   // Thai name validation

@@ -272,6 +272,10 @@ const processData = (app) => {
     taxId: app.tax_id || app.taxId,
     // Preserve 0 for employee count
     numberOfEmployees: (app.number_of_employees ?? app.numberOfEmployees ?? app.employee_count ?? app.employeeCount ?? null),
+    // Applicant name fields (IC)
+    prenameTh: app.prename_th || app.prenameTh,
+    prenameEn: app.prename_en || app.prenameEn,
+    prenameOther: app.prename_other || app.prenameOther,
     firstNameTh: app.first_name_th || app.firstNameTh,
     lastNameTh: app.last_name_th || app.lastNameTh,
     firstNameEn: app.first_name_en || app.firstNameEn,
@@ -361,6 +365,21 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
     const data = processData(application);
     const title = getTitleByType(type);
     const businessTypes = getBusinessTypeNames(data);
+    // Helper to resolve prename for display
+    const resolvePrename = (prenameTh, prenameEn, prenameOther, lang = 'th') => {
+      const normTh = (prenameTh || '').trim();
+      const normEn = (prenameEn || '').trim();
+      const normOther = (prenameOther || '').trim();
+      if (lang === 'th') {
+        if (!normTh && !normOther) return '';
+        if (/^อื่นๆ$/i.test(normTh) || /^other$/i.test(normEn)) return normOther || '';
+        return normTh || normOther || '';
+      } else {
+        if (!normEn && !normOther) return '';
+        if (/^other$/i.test(normEn) || /^อื่นๆ$/i.test(normTh)) return normOther || '';
+        return normEn || normOther || '';
+      }
+    };
     
     // Resolve Industrial Group & Provincial Chapter names
     let industrialGroupNames = data.industrialGroupNames || [];
@@ -577,8 +596,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         ${type === 'ic' ? 
           section('ข้อมูลผู้สมัคร', `
             <div class="row">
-              <div class="col">${field('ชื่อ-นามสกุล (ไทย)', `${data.firstNameTh || ''} ${data.lastNameTh || ''}`)}</div>
-              <div class="col">${field('ชื่อ-นามสกุล (อังกฤษ)', `${data.firstNameEn || ''} ${data.lastNameEn || ''}`)}</div>
+              <div class="col">${field('ชื่อ-นามสกุล (ไทย)', `${resolvePrename(data.prenameTh, data.prenameEn, data.prenameOther, 'th')} ${data.firstNameTh || ''} ${data.lastNameTh || ''}`.trim())}</div>
+              <div class="col">${field('ชื่อ-นามสกุล (อังกฤษ)', `${resolvePrename(data.prenameTh, data.prenameEn, data.prenameOther, 'en')} ${data.firstNameEn || ''} ${data.lastNameEn || ''}`.trim())}</div>
             </div>
             <div class="row">
               <div class="col">${field('บัตรประชาชน', data.idCard)}</div>
@@ -652,8 +671,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           const mainContact = data.contactPersons.find(isMain) || data.contactPersons[0];
           return section('ข้อมูลผู้ประสานงาน', `
             <div class="row">
-              <div class="col">${field('ชื่อ (ไทย)', `${mainContact.firstNameTh || mainContact.first_name_th || ''} ${mainContact.lastNameTh || mainContact.last_name_th || ''}`)}</div>
-              <div class="col">${field('ชื่อ (อังกฤษ)', `${mainContact.firstNameEn || mainContact.first_name_en || ''} ${mainContact.lastNameEn || mainContact.last_name_en || ''}`)}</div>
+              <div class="col">${field('ชื่อ (ไทย)', `${resolvePrename(mainContact.prename_th || mainContact.prenameTh, mainContact.prename_en || mainContact.prenameEn, mainContact.prename_other || mainContact.prenameOther, 'th')} ${mainContact.firstNameTh || mainContact.first_name_th || ''} ${mainContact.lastNameTh || mainContact.last_name_th || ''}`.trim())}</div>
+              <div class="col">${field('ชื่อ (อังกฤษ)', `${resolvePrename(mainContact.prename_th || mainContact.prenameTh, mainContact.prename_en || mainContact.prenameEn, mainContact.prename_other || mainContact.prenameOther, 'en')} ${mainContact.firstNameEn || mainContact.first_name_en || ''} ${mainContact.lastNameEn || mainContact.last_name_en || ''}`.trim())}</div>
               <div class="col">${field('ตำแหน่ง', mainContact.position || '')}</div>
             </div>
             <div class="row">
@@ -678,8 +697,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
               return `
                 <div class=\"rep-box\">
                   <div class=\"rep-title\">ผู้แทน ${i + 1}</div>
-                  ${field('ชื่อ (ไทย)', `${firstTh || ''} ${lastTh || ''}`)}
-                  ${field('ชื่อ (อังกฤษ)', `${firstEn || ''} ${lastEn || ''}`)}
+                  ${field('ชื่อ (ไทย)', `${resolvePrename(rep.prename_th || rep.prenameTh, rep.prename_en || rep.prenameEn, rep.prename_other || rep.prenameOther, 'th')} ${firstTh || ''} ${lastTh || ''}`.trim())}
+                  ${field('ชื่อ (อังกฤษ)', `${resolvePrename(rep.prename_th || rep.prenameTh, rep.prename_en || rep.prenameEn, rep.prename_other || rep.prenameOther, 'en')} ${firstEn || ''} ${lastEn || ''}`.trim())}
                   ${field('ตำแหน่ง', position)}
                   ${field('โทร', phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ''}` : '')}
                   ${field('อีเมล', email)}
