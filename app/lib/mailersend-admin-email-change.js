@@ -72,29 +72,18 @@ export async function sendAdminEmailChangeNotification(oldEmail, name, newEmail)
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("การเปลี่ยนแปลงอีเมลบัญชีของคุณ - FTI Portal")
-    .setHtml(`
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${process.env.NEXT_PUBLIC_BASE_URL}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="FTI Logo" style="max-width: 180px; height: auto; margin-bottom: 15px;" />
-          <h1 style="color: #1a56db;">การเปลี่ยนแปลงอีเมลบัญชีของคุณ</h1>
-        </div>
-        <div style="margin-bottom: 30px;">
-          <p>สวัสดี ${name},</p>
-          <p>เราขอแจ้งให้ทราบว่า ผู้ดูแลระบบได้ดำเนินการเปลี่ยนอีเมลสำหรับบัญชีของคุณใน FTI Portal จาก <strong>${oldEmail}</strong> เป็น <strong>${newEmail}</strong></p>
-          <p>การเปลี่ยนแปลงนี้ได้รับการดำเนินการโดยผู้ดูแลระบบตามคำขอของคุณ หรือเนื่องจากมีการยืนยันตัวตนของคุณผ่านช่องทางอื่น</p>
-          <p>หากคุณไม่ได้ขอให้เปลี่ยนอีเมล กรุณาติดต่อผู้ดูแลระบบทันที</p>
-        </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "การเปลี่ยนแปลงอีเมลบัญชีของคุณ",
+      bodyContent: `
+        <p>สวัสดี ${name},</p>
+        <p>เราขอแจ้งให้ทราบว่า ผู้ดูแลระบบได้ดำเนินการเปลี่ยนอีเมลสำหรับบัญชีของคุณใน FTI Portal จาก <strong>${oldEmail}</strong> เป็น <strong>${newEmail}</strong></p>
+        <p>การเปลี่ยนแปลงนี้ได้รับการดำเนินการโดยผู้ดูแลระบบตามคำขอของคุณ หรือเนื่องจากมีการยืนยันตัวตนของคุณผ่านช่องทางอื่น</p>
+        <p>หากคุณไม่ได้ขอให้เปลี่ยนอีเมล กรุณาติดต่อผู้ดูแลระบบทันที</p>
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${contactLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ติดต่อผู้ดูแลระบบ</a>
         </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
-          <p>โทรศัพท์: 02-345-1000</p>
-          <p>อีเมล: member@fti.or.th</p>
-          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `);
+      `
+    }));
 
   try {
     const response = await mailerSend.email.send(emailParams);

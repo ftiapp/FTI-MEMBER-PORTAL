@@ -135,28 +135,19 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("ยืนยันอีเมลใหม่ของคุณ - FTI Portal")
-    .setHtml(`
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #1a56db;">ยืนยันอีเมลใหม่ของคุณ</h1>
-        </div>
-        <div style="margin-bottom: 30px;">
-          <p>สวัสดี ${name},</p>
-          <p>คุณได้ขอเปลี่ยนอีเมลของคุณใน FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลใหม่ของคุณ:</p>
-        </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "ยืนยันอีเมลใหม่ของคุณ",
+      bodyContent: `
+        <p>สวัสดี ${name},</p>
+        <p>คุณได้ขอเปลี่ยนอีเมลของคุณใน FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลใหม่ของคุณ:</p>
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ยืนยันอีเมลใหม่ของฉัน</a>
         </div>
-        <div>
-          <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
-          <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
-        </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-          <p>&copy; 2025 FTI Portal. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `);
+        <p>หากคลิกปุ่มไม่ได้ ให้คัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
+        <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 16px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
+      `
+    }));
 
   return await mailerSend.email.send(emailParams);
 }
@@ -316,37 +307,24 @@ export async function sendApprovalEmail(email, firstname, lastname, memberCode, 
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("การยืนยันตัวตนได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(`
-      <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
-          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการอนุมัติยืนยันตัวตน</h1>
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "แจ้งผลการอนุมัติยืนยันตัวตน",
+      bodyContent: `
+        <p>เรียน คุณ${fullName}</p>
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การยืนยันตัวตนของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
+        <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+          <p style="margin: 0 0 10px 0;"><strong>ข้อมูลสมาชิก:</strong></p>
+          <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
         </div>
-        <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
-          <p>เรียน คุณ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การยืนยันตัวตนของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
-          
-          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
-            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลสมาชิก:</strong></p>
-            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
-            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
-          </div>
-          
-          <p>ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ <strong>"ข้อมูลสมาชิก"</strong> บนแดชบอร์ดของท่าน</p>
-          
-          ${comment ? `<div style="background-color: #f0fdf4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #16a34a;"><p style="margin: 0;"><strong>ความคิดเห็นจากผู้ดูแลระบบ:</strong></p><p style="margin: 10px 0 0;">${comment}</p></div>` : ''}
-        </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+        <p>ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ <strong>"ข้อมูลสมาชิก"</strong> บนแดชบอร์ดของท่าน</p>
+        ${comment ? `<div style="background-color: #f0fdf4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #16a34a;"><p style="margin: 0;"><strong>ความคิดเห็นจากผู้ดูแลระบบ:</strong></p><p style=\"margin: 10px 0 0;\">${comment}</p></div>` : ''}
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
           <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ไปที่แดชบอร์ด</a>
         </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากต้องการสอบถามข้อมูลเพิ่มเติม กรุณาติดต่อ CALL CENTER: 1453 กด 2</p>
-          <p>&copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `)
+      `
+    }))
     .setText(`
       การยืนยันตัวตนได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
       
@@ -403,40 +381,27 @@ export async function sendRejectionEmail(email, firstname, lastname, memberCode,
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(`
-      <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
-          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาการสมัครสมาชิก</h1>
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "แจ้งผลการพิจารณาการสมัครสมาชิก",
+      bodyContent: `
+        <p>เรียน คุณ${fullName}</p>
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ</strong></p>
+        <div style=\"background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;\">
+          <p style=\"margin: 0 0 10px 0;\"><strong>ข้อมูลการสมัครของท่าน:</strong></p>
+          <p style=\"margin: 5px 0;\"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          <p style=\"margin: 5px 0;\"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
         </div>
-        <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
-          <p>เรียน คุณ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ</strong></p>
-          
-          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
-            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลการสมัครของท่าน:</strong></p>
-            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
-            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
-          </div>
-          
-          <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;">
-            <p style="margin: 0;"><strong>เหตุผลที่ไม่ได้รับการอนุมัติ:</strong></p>
-            <p style="margin: 10px 0 0;">${rejectReason || '-'}</p>
-          </div>
-          
-          <p>ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <div style=\"background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;\">
+          <p style=\"margin: 0;\"><strong>เหตุผลที่ไม่ได้รับการอนุมัติ:</strong></p>
+          <p style=\"margin: 10px 0 0;\">${rejectReason || '-'}</p>
         </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+        <p>ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
           <a href="${dashboardLink}" style="background-color: #4b5563; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ไปที่แดชบอร์ด</a>
         </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากต้องการสอบถามข้อมูลเพิ่มเติม กรุณาติดต่อ CALL CENTER: 1453 กด 2</p>
-          <p>&copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `)
+      `
+    }))
     .setText(`
       แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย
       
@@ -495,40 +460,27 @@ export async function sendAddressApprovalEmail(email, firstname, lastname, membe
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("คำขอแก้ไขที่อยู่ได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(`
-      <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
-          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่</h1>
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่",
+      bodyContent: `
+        <p>เรียน คุณ${fullName}</p>
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขที่อยู่ของท่านได้รับการอนุมัติแล้ว</strong></p>
+        <div style=\"background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;\">
+          <p style=\"margin: 0 0 10px 0;\"><strong>ข้อมูลที่ท่านยื่น:</strong></p>
+          <p style=\"margin: 5px 0;\"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          <p style=\"margin: 5px 0;\"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
         </div>
-        <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
-          <p>เรียน คุณ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขที่อยู่ของท่านได้รับการอนุมัติแล้ว</strong></p>
-          
-          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
-            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลที่ท่านยื่น:</strong></p>
-            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
-            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
-          </div>
-          
-          <div style="background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #16a34a;">
-            <p style="margin: 0;"><strong>สถานะ:</strong> ได้รับการอนุมัติแล้ว</p>
-            ${comment ? `<p style="margin: 10px 0 0;"><strong>ความคิดเห็นจากผู้ดูแลระบบ:</strong> ${comment}</p>` : ''}
-          </div>
-          
-          <p>ข้อมูลที่อยู่ใหม่ของท่านได้ถูกบันทึกเข้าสู่ระบบเรียบร้อยแล้ว หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <div style=\"background-color: #f0fff4; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #16a34a;\">
+          <p style=\"margin: 0;\"><strong>สถานะ:</strong> ได้รับการอนุมัติแล้ว</p>
+          ${comment ? `<p style=\"margin: 10px 0 0;\"><strong>ความคิดเห็นจากผู้ดูแลระบบ:</strong> ${comment}</p>` : ''}
         </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+        <p>ข้อมูลที่อยู่ใหม่ของท่านได้ถูกบันทึกเข้าสู่ระบบเรียบร้อยแล้ว หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
           <a href="${dashboardLink}" style="background-color: #4b5563; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ไปที่แดชบอร์ด</a>
         </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากต้องการสอบถามข้อมูลเพิ่มเติม กรุณาติดต่อ CALL CENTER: 1453 กด 2</p>
-          <p>&copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `)
+      `
+    }))
     .setText(`
       คำขอแก้ไขที่อยู่ได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
       
@@ -578,40 +530,27 @@ export async function sendAddressRejectionEmail(email, firstname, lastname, memb
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("คำขอแก้ไขที่อยู่ไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(`
-      <div style="font-family: 'Prompt', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
-        <link href='https://fonts.googleapis.com/css2?family=Prompt:wght@400;700&display=swap' rel='stylesheet'>
-        <div style="text-align: center; margin-bottom: 20px;">
-          <img src="${baseUrl}/FTI-MasterLogo-Naming_RGB-forLightBG.png" alt="สภาอุตสาหกรรมแห่งประเทศไทย" style="max-width: 200px; margin-bottom: 15px;">
-          <h1 style="color: #1e3a8a; margin-top: 0;">แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่</h1>
+    .setHtml(getFTIEmailHtmlTemplate({
+      title: "แจ้งผลการพิจารณาคำขอแก้ไขที่อยู่",
+      bodyContent: `
+        <p>เรียน คุณ${fullName}</p>
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขที่อยู่ของท่านไม่ได้รับการอนุมัติ</strong></p>
+        <div style=\"background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;\">
+          <p style=\"margin: 0 0 10px 0;\"><strong>ข้อมูลที่ท่านยื่น:</strong></p>
+          <p style=\"margin: 5px 0;\"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          <p style=\"margin: 5px 0;\"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
         </div>
-        <div style="margin-bottom: 30px; font-size: 16px; line-height: 1.6;">
-          <p>เรียน คุณ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขที่อยู่ของท่านไม่ได้รับการอนุมัติ</strong></p>
-          
-          <div style="background-color: #f0f9ff; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
-            <p style="margin: 0 0 10px 0;"><strong>ข้อมูลที่ท่านยื่น:</strong></p>
-            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
-            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
-          </div>
-          
-          <div style="background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;">
-            <p style="margin: 0;"><strong>เหตุผลที่ไม่ได้รับการอนุมัติ:</strong></p>
-            <p style="margin: 10px 0 0;">${rejectReason || '-'}</p>
-          </div>
-          
-          <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอแก้ไขที่อยู่ใหม่ได้จากหน้ารายละเอียดสมาชิก หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <div style=\"background-color: #fef2f2; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #dc2626;\">
+          <p style=\"margin: 0;\"><strong>เหตุผลที่ไม่ได้รับการอนุมัติ:</strong></p>
+          <p style=\"margin: 10px 0 0;\">${rejectReason || '-'}</p>
         </div>
-        <div style="text-align: center; margin-bottom: 30px;">
+        <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอแก้ไขที่อยู่ใหม่ได้จากหน้ารายละเอียดสมาชิก หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+        <div style="text-align: center; margin: 24px 0;">
           <a href="${loginLink}" style="background-color: #1e3a8a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold; margin-right: 10px;">เข้าสู่ระบบ</a>
           <a href="${dashboardLink}" style="background-color: #4b5563; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ไปที่แดชบอร์ด</a>
         </div>
-        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #6b7280; font-size: 14px;">
-          <p>หากต้องการสอบถามข้อมูลเพิ่มเติม กรุณาติดต่อ CALL CENTER: 1453 กด 2</p>
-          <p>&copy; 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.</p>
-        </div>
-      </div>
-    `)
+      `
+    }))
     .setText(`
       คำขอแก้ไขที่อยู่ไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
       
