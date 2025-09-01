@@ -53,6 +53,28 @@ export async function POST(request) {
     console.log('Extracted data:', data);
     console.log('Products:', products);
 
+    // Server-side validation: Require authorized signatory position if names are provided
+    try {
+      const sigFirstTh = data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || '';
+      const sigLastTh  = data.authorizedSignatoryLastNameTh  || data.authorizedSignatureLastNameTh  || '';
+      const sigFirstEn = data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || '';
+      const sigLastEn  = data.authorizedSignatoryLastNameEn  || data.authorizedSignatureLastNameEn  || '';
+      const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || '';
+      const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || '';
+
+      const hasNames = (sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim().length > 0;
+      const hasPosition = (posTh && posTh.trim().length > 0) || (posEn && posEn.trim().length > 0);
+
+      if (hasNames && !hasPosition) {
+        await rollbackTransaction(trx);
+        return NextResponse.json({
+          error: 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)'
+        }, { status: 400 });
+      }
+    } catch (vErr) {
+      // If any unexpected error occurs during validation, proceed to normal flow
+    }
+
     // Extract email, phone, and website from document delivery address (type 2)
     let userEmail = data.email || '';
     let userPhone = data.phone || '';
@@ -109,7 +131,7 @@ export async function POST(request) {
           await executeQuery(
             trx,
             `INSERT INTO MemberRegist_IC_Address (
-              main_id, address_number, building, moo, soi, road,
+              main_id, address_number, building, moo, soi, street,
               sub_district, district, province, postal_code,
               phone, phone_extension, email, website, address_type
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -119,7 +141,7 @@ export async function POST(request) {
               addressData.building || '',
               addressData.moo || '',
               addressData.soi || '',
-              addressData.road || '',
+              (addressData.street || addressData.road || ''),
               addressData.subDistrict || '',
               addressData.district || '',
               addressData.province || '',
@@ -138,7 +160,7 @@ export async function POST(request) {
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_IC_Address (
-          main_id, address_number, moo, soi, road,
+          main_id, address_number, moo, soi, street,
           sub_district, district, province, postal_code,
           phone, phone_extension, email, website, address_type
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -147,7 +169,7 @@ export async function POST(request) {
           data.addressNumber || '',
           data.moo || '',
           data.soi || '',
-          data.road || '',
+          (data.street || data.road || ''),
           data.subDistrict || '',
           data.district || '',
           data.province || '',
@@ -161,7 +183,7 @@ export async function POST(request) {
       );
     }
 
-    console.log('Address saved with road:', data.road);
+    console.log('Address saved with street:', data.street || data.road);
 
     // Handle business types with correct mapping
     if (data.businessTypes) {
@@ -227,16 +249,19 @@ export async function POST(request) {
       }
     }
 
-    // Insert representative
+    // Insert representative (now includes prename fields)
     if (data.representativeFirstNameTh) {
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_IC_Representatives (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en,
+          main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en,
           phone, phone_extension, email, position, rep_order
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           icMemberId,
+          data.representativePrenameTh || null,
+          data.representativePrenameEn || null,
+          data.representativePrenameOther || null,
           data.representativeFirstNameTh || '',
           data.representativeLastNameTh || '',
           data.representativeFirstNameEn || '',
@@ -256,14 +281,23 @@ export async function POST(request) {
       const sigLastTh  = data.authorizedSignatoryLastNameTh  || data.authorizedSignatureLastNameTh  || '';
       const sigFirstEn = data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || '';
       const sigLastEn  = data.authorizedSignatoryLastNameEn  || data.authorizedSignatureLastNameEn  || '';
+      const sigPosTh  = data.authorizedSignatoryPositionTh   || data.authorizedSignaturePositionTh  || null;
+      const sigPosEn  = data.authorizedSignatoryPositionEn   || data.authorizedSignaturePositionEn  || null;
 
       if ((sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim()) {
+        // Enforce at least one position (TH/EN)
+        if (!( (sigPosTh && String(sigPosTh).trim()) || (sigPosEn && String(sigPosEn).trim()) )) {
+          await rollbackTransaction(trx);
+          return NextResponse.json({
+            error: 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)'
+          }, { status: 400 });
+        }
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_IC_Signature_Name (
-            main_id, first_name_th, last_name_th, first_name_en, last_name_en
-          ) VALUES (?, ?, ?, ?, ?)`,
-          [icMemberId, sigFirstTh, sigLastTh, sigFirstEn, sigLastEn]
+            main_id, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [icMemberId, sigFirstTh, sigLastTh, sigFirstEn, sigLastEn, sigPosTh, sigPosEn]
         );
         console.log('Saved authorized signatory name:', { sigFirstTh, sigLastTh, sigFirstEn, sigLastEn });
       } else {

@@ -125,16 +125,6 @@ export default function WasMember() {
     const editId = searchParams.get('edit');
     const tabParam = searchParams.get('tab');
     
-    // If we're on this component but URL doesn't have tab=wasmember, update it
-    if (!tabParam || tabParam !== 'wasmember') {
-      // Preserve edit parameter if it exists
-      if (editId) {
-        window.history.pushState({}, '', `/dashboard?tab=wasmember&edit=${editId}`);
-      } else {
-        window.history.pushState({}, '', '/dashboard?tab=wasmember');
-      }
-    }
-    
     if (editId && user) {
       // Find the submission to edit
       const fetchSubmissionToEdit = async () => {
@@ -523,14 +513,29 @@ export default function WasMember() {
         data.append('companyName', company.companyName);
         data.append('taxId', company.taxId);
         data.append('documentFile', company.documentFile);
-        
-        // Submit data to API
-        const response = await fetch('/api/member/submit', {
-          method: 'POST',
-          body: data
-        });
-        
-        return await response.json();
+
+        try {
+          const response = await fetch('/api/member/submit', {
+            method: 'POST',
+            body: data
+          });
+
+          // Normalize result even on non-OK or non-JSON responses
+          let result;
+          if (response.headers.get('content-type')?.includes('application/json')) {
+            try {
+              result = await response.json();
+            } catch (e) {
+              result = { success: false, message: 'ไม่สามารถอ่านผลลัพธ์จากเซิร์ฟเวอร์ได้' };
+            }
+          } else {
+            result = { success: response.ok, message: `HTTP ${response.status}` };
+          }
+          return result;
+        } catch (err) {
+          console.error('Submit request failed:', err);
+          return { success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว' };
+        }
       });
       
       // Wait for all submissions to complete

@@ -328,29 +328,47 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
   // ฟังก์ชันสำหรับแสดงชื่อผู้ติดต่อ
   const getContactPersonFullName = (isEnglish = false) => {
     if (!formData) return '-';
-    
+
     // ระบบใหม่: ใช้ contactPersons array
     if (formData.contactPersons && formData.contactPersons.length > 0) {
       const mainContact = formData.contactPersons[0];
+      // helper to get prename with fallbacks
+      const getPrename = (contact, en = false) => {
+        if (!contact) return '';
+        if (en) {
+          const pre = contact.prenameEn || '';
+          if (pre && pre.toLowerCase() === 'other') return contact.prenameOther || '';
+          return pre;
+        } else {
+          const pre = contact.prenameTh || '';
+          if (pre && (pre === 'อื่นๆ' || pre === 'อื่น ๆ')) return contact.prenameOther || '';
+          return pre;
+        }
+      };
+
       if (isEnglish) {
-        return mainContact.firstNameEn && mainContact.lastNameEn 
-          ? `${mainContact.firstNameEn} ${mainContact.lastNameEn}` 
-          : '-';
+        const prename = getPrename(mainContact, true);
+        return (mainContact.firstNameEn || mainContact.firstNameEng) && (mainContact.lastNameEn || mainContact.lastNameEng)
+          ? `${[prename, (mainContact.firstNameEn || mainContact.firstNameEng), (mainContact.lastNameEn || mainContact.lastNameEng)].filter(Boolean).join(' ')}`
+          : (prename ? prename : '-');
       }
-      return mainContact.firstNameTh && mainContact.lastNameTh 
-        ? `${mainContact.firstNameTh} ${mainContact.lastNameTh}` 
-        : '-';
+      const prename = getPrename(mainContact, false);
+      return (mainContact.firstNameTh || mainContact.firstNameThai) && (mainContact.lastNameTh || mainContact.lastNameThai)
+        ? `${[prename, (mainContact.firstNameTh || mainContact.firstNameThai), (mainContact.lastNameTh || mainContact.lastNameThai)].filter(Boolean).join(' ')}`
+        : (prename ? prename : '-');
     }
     
     // ระบบเก่า: backward compatibility
     if (isEnglish) {
+      const prename = formData.contactPersonPrenameEn === 'Other' ? (formData.contactPersonPrenameOther || '') : (formData.contactPersonPrenameEn || '');
       return formData.contactPersonFirstNameEng && formData.contactPersonLastNameEng 
-        ? `${formData.contactPersonFirstNameEng} ${formData.contactPersonLastNameEng}` 
-        : '-';
+        ? `${[prename, formData.contactPersonFirstNameEng, formData.contactPersonLastNameEng].filter(Boolean).join(' ')}` 
+        : (prename ? prename : '-');
     }
+    const prename = (formData.contactPersonPrenameTh === 'อื่นๆ' || formData.contactPersonPrenameTh === 'อื่น ๆ') ? (formData.contactPersonPrenameOther || '') : (formData.contactPersonPrenameTh || '');
     return formData.contactPersonFirstName && formData.contactPersonLastName 
-      ? `${formData.contactPersonFirstName} ${formData.contactPersonLastName}` 
-      : '-';
+      ? `${[prename, formData.contactPersonFirstName, formData.contactPersonLastName].filter(Boolean).join(' ')}` 
+      : (prename ? prename : '-');
   };
 
   // ฟังก์ชันสำหรับแสดงข้อมูลผู้ติดต่อทั้งหมด
@@ -572,7 +590,16 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
                           </span>
                         </div>
                         <div className="space-y-1 text-sm">
-                          <div><span className="font-medium">ชื่อ:</span> {contact.firstNameTh} {contact.lastNameTh}</div>
+                          <div><span className="font-medium">ชื่อ:</span> {(() => {
+                            const getPrenameTh = (c) => {
+                              const pre = c.prenameTh || '';
+                              if (pre && (pre === 'อื่นๆ' || pre === 'อื่น ๆ')) return c.prenameOther || '';
+                              return pre;
+                            };
+                            const parts = [getPrenameTh(contact), contact.firstNameTh || '', contact.lastNameTh || ''].filter(Boolean);
+                            const nameTh = parts.join(' ').trim();
+                            return nameTh || '-';
+                          })()}</div>
                           <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
                           <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
                           <div><span className="font-medium">โทร:</span> {(function(){ const p = contact.phone || '-'; const ext = contact.phoneExtension || ''; if (p === '-') return '-'; return ext ? `${p} ต่อ ${ext}` : p; })()} </div>

@@ -180,6 +180,13 @@ export async function GET(request, { params }) {
 
     const relatedData = await fetchRelatedData();
 
+    // Fetch authorized signatory name & position (latest)
+    const signatureNameRows = await query(
+      'SELECT first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_OC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1',
+      [id]
+    );
+    const signatureName = Array.isArray(signatureNameRows) && signatureNameRows.length ? signatureNameRows[0] : null;
+
     // ✅ Process industry groups - ใช้ industry_group_name จากตารางโดยตรง
     const industryGroupsWithNames = relatedData.industryGroupsRows.map(ig => ({
       id: ig.industry_group_id,
@@ -225,6 +232,9 @@ export async function GET(request, { params }) {
     // Convert representatives to the format SummarySection expects
     const representativesFormatted = relatedData.representatives.map((rep, index) => ({
       id: `rep_${rep.id || index}`,
+      prenameTh: rep.prename_th || '',
+      prenameEn: rep.prename_en || '',
+      prenameOther: rep.prename_other || '',
       firstNameThai: rep.first_name_th || '',
       lastNameThai: rep.last_name_th || '',
       firstNameEnglish: rep.first_name_en || '',
@@ -246,8 +256,7 @@ export async function GET(request, { params }) {
         building: addr.building || '',
         moo: addr.moo || '',
         soi: addr.soi || '',
-        road: addr.road || '',
-        street: addr.road || '', // alias for road
+        street: addr.street || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
         province: addr.province || '',
@@ -288,7 +297,7 @@ export async function GET(request, { params }) {
       addressNumber: mainAddress?.address_number || '',
       moo: mainAddress?.moo || '',
       soi: mainAddress?.soi || '',
-      street: mainAddress?.road || '',
+      street: mainAddress?.street || '',
       subDistrict: mainAddress?.sub_district || '',
       district: mainAddress?.district || '',
       province: mainAddress?.province || '',
@@ -303,6 +312,9 @@ export async function GET(request, { params }) {
       // Multiple contact persons
       contactPersons: relatedData.contactPersons.map((cp, index) => ({
         id: cp.id || index + 1,
+        prenameTh: cp.prename_th || '',
+        prenameEn: cp.prename_en || '',
+        prenameOther: cp.prename_other || '',
         firstNameTh: cp.first_name_th || '',
         lastNameTh: cp.last_name_th || '',
         firstNameEn: cp.first_name_en || '',
@@ -342,6 +354,8 @@ export async function GET(request, { params }) {
       registeredCapital: ocData.registered_capital || '',
       productionCapacityValue: ocData.production_capacity_value || '',
       productionCapacityUnit: ocData.production_capacity_unit || '',
+      revenueLastYear: ocData.revenue_last_year || '',
+      revenuePreviousYear: ocData.revenue_previous_year || '',
       salesDomestic: ocData.sales_domestic || '',
       salesExport: ocData.sales_export || '',
       shareholderThaiPercent: ocData.shareholder_thai_percent || '',
@@ -387,7 +401,15 @@ export async function GET(request, { params }) {
       memberCode: ocData.member_code,
       status: ocData.status,
       createdAt: ocData.created_at,
-      updatedAt: ocData.updated_at
+      updatedAt: ocData.updated_at,
+      
+      // Authorized signatory (names & positions)
+      authorizedSignatoryFirstNameTh: signatureName?.first_name_th || null,
+      authorizedSignatoryLastNameTh: signatureName?.last_name_th || null,
+      authorizedSignatoryFirstNameEn: signatureName?.first_name_en || null,
+      authorizedSignatoryLastNameEn: signatureName?.last_name_en || null,
+      authorizedSignatoryPositionTh: signatureName?.position_th || null,
+      authorizedSignatoryPositionEn: signatureName?.position_en || null
     };
 
     // Add applicant account info for PDF

@@ -570,7 +570,7 @@ export default function OCMembershipForm({
           <p className="mt-2 text-white text-md">กรุณาอย่าปิดหน้านี้</p>
         </div>
       )}
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit} noValidate className="space-y-8">
         {/* Error Messages */}
         {Object.keys(errors).filter(key => 
           errors[key] && 
@@ -692,7 +692,7 @@ export default function OCMembershipForm({
         }}
         onConfirm={() => {
           setShowSuccessModal(false);
-          router.push('/dashboard?tab=status');
+          router.push('/dashboard?tab=documents');
         }}
       />
     </div>

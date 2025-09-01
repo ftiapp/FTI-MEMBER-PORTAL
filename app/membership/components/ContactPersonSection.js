@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronDownIcon, ChevronRightIcon, PlusIcon, TrashIcon, UserIcon } from '@heroicons/react/24/outline';
+import { ChevronDown, ChevronRight, Plus, Trash2, User } from 'lucide-react';
 
 const ContactPersonSection = ({ 
   contactPersons = [], 
@@ -16,6 +16,9 @@ const ContactPersonSection = ({
     if (contactPersons.length === 0) {
       const mainContact = {
         id: Date.now(),
+        prenameTh: '',
+        prenameEn: '',
+        prenameOther: '',
         firstNameTh: '',
         lastNameTh: '',
         firstNameEn: '',
@@ -32,23 +35,16 @@ const ContactPersonSection = ({
     }
   }, []);
 
-  // Fetch contact types
+  // Mock contact types for demo
   useEffect(() => {
-    const fetchContactTypes = async () => {
-      try {
-        const response = await fetch('/api/contact-person-types');
-        const result = await response.json();
-        if (result.success) {
-          setContactTypes(result.data);
-        }
-      } catch (error) {
-        console.error('Error fetching contact types:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContactTypes();
+    const mockContactTypes = [
+      { id: 1, type_code: 'MAIN', type_name_th: 'ผู้ประสานงานหลัก' },
+      { id: 2, type_code: 'DEPUTY', type_name_th: 'รองผู้ประสานงาน' },
+      { id: 3, type_code: 'ADMIN', type_name_th: 'เจ้าหน้าที่ประสานงาน' },
+      { id: 4, type_code: 'OTHER', type_name_th: 'อื่นๆ' }
+    ];
+    setContactTypes(mockContactTypes);
+    setLoading(false);
   }, []);
 
   // Set main contact type when contact types are loaded
@@ -101,6 +97,9 @@ const ContactPersonSection = ({
     if (contactPersons.length < 4) { // 1 main + 3 additional
       const newContact = {
         id: Date.now(),
+        prenameTh: '',
+        prenameEn: '',
+        prenameOther: '',
         firstNameTh: '',
         lastNameTh: '',
         firstNameEn: '',
@@ -142,7 +141,8 @@ const ContactPersonSection = ({
   };
 
   const getContactSummary = (contact, index) => {
-    const name = contact.firstNameTh || contact.firstNameEn || 'ยังไม่ระบุชื่อ';
+    const namePrefix = contact.prenameTh || contact.prenameEn || contact.prenameOther || '';
+    const name = (namePrefix ? namePrefix + ' ' : '') + (contact.firstNameTh || contact.firstNameEn || 'ยังไม่ระบุชื่อ');
     const lastName = contact.lastNameTh || contact.lastNameEn || '';
     const position = contact.position || 'ยังไม่ระบุตำแหน่ง';
     return `${name} ${lastName} - ${position}`;
@@ -162,7 +162,7 @@ const ContactPersonSection = ({
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center">
-          <UserIcon className="h-6 w-6 text-blue-600 mr-3" />
+          <User className="h-6 w-6 text-blue-600 mr-3" />
           <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ติดต่อ</h3>
           <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
             {contactPersons.length}/4
@@ -174,7 +174,7 @@ const ContactPersonSection = ({
             onClick={addContactPerson}
             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <PlusIcon className="h-4 w-4 mr-2" />
+            <Plus className="h-4 w-4 mr-2" />
             เพิ่มผู้ติดต่อ
           </button>
         )}
@@ -196,9 +196,9 @@ const ContactPersonSection = ({
                 <div className="flex items-center flex-1">
                   <div className="flex items-center mr-3">
                     {isExpanded ? (
-                      <ChevronDownIcon className="h-5 w-5 text-gray-400" />
+                      <ChevronDown className="h-5 w-5 text-gray-400" />
                     ) : (
-                      <ChevronRightIcon className="h-5 w-5 text-gray-400" />
+                      <ChevronRight className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
                   
@@ -240,7 +240,7 @@ const ContactPersonSection = ({
                       }}
                       className="p-1 text-red-500 hover:bg-red-50 rounded-full transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-red-500"
                     >
-                      <TrashIcon className="h-4 w-4" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   )}
                 </div>
@@ -309,91 +309,149 @@ const ContactPersonSection = ({
                         </div>
                       )}
 
-                      {/* Thai Names */}
-                      <div>
+                      {/* Thai Names with Prename */}
+                      <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ชื่อ (ภาษาไทย) {isMain && <span className="text-red-500">*</span>}
+                          ชื่อ-นามสกุล (ภาษาไทย) {isMain && <span className="text-red-500">*</span>}
                         </label>
-                        <input
-                          type="text"
-                          value={contact.firstNameTh}
-                          onChange={(e) => {
-                            if (validateThaiName(e.target.value)) {
-                              handleContactChange(index, 'firstNameTh', e.target.value);
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="ชื่อภาษาไทย"
-                          required={isMain}
-                        />
+                        <div className="grid grid-cols-4 gap-2">
+                          {/* Prename Thai */}
+                          <div>
+                            <select
+                              value={contact.prenameTh || ''}
+                              onChange={(e) => handleContactChange(index, 'prenameTh', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              required={isMain}
+                            >
+                              <option value="">คำนำหน้า</option>
+                              <option value="นาย">นาย</option>
+                              <option value="นาง">นาง</option>
+                              <option value="นางสาว">นางสาว</option>
+                              <option value="อื่นๆ">อื่นๆ</option>
+                            </select>
+                          </div>
+                          {/* First Name Thai */}
+                          <div>
+                            <input
+                              type="text"
+                              value={contact.firstNameTh}
+                              onChange={(e) => {
+                                if (validateThaiName(e.target.value)) {
+                                  handleContactChange(index, 'firstNameTh', e.target.value);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="ชื่อ"
+                              required={isMain}
+                            />
+                          </div>
+                          {/* Last Name Thai */}
+                          <div className="col-span-2">
+                            <input
+                              type="text"
+                              value={contact.lastNameTh}
+                              onChange={(e) => {
+                                if (validateThaiName(e.target.value)) {
+                                  handleContactChange(index, 'lastNameTh', e.target.value);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="นามสกุล"
+                              required={isMain}
+                            />
+                          </div>
+                        </div>
                         {errors[`contactPerson${index}FirstNameTh`] && (
                           <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}FirstNameTh`]}</p>
                         )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          นามสกุล (ภาษาไทย) {isMain && <span className="text-red-500">*</span>}
-                        </label>
-                        <input
-                          type="text"
-                          value={contact.lastNameTh}
-                          onChange={(e) => {
-                            if (validateThaiName(e.target.value)) {
-                              handleContactChange(index, 'lastNameTh', e.target.value);
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="นามสกุลภาษาไทย"
-                          required={isMain}
-                        />
                         {errors[`contactPerson${index}LastNameTh`] && (
                           <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}LastNameTh`]}</p>
                         )}
                       </div>
 
-                      {/* English Names */}
-                      <div>
+                      {/* English Names with Prename (optional) */}
+                      <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ชื่อ (ภาษาอังกฤษ) {isMain && <span className="text-red-500">*</span>}
+                          Name (English)
                         </label>
-                        <input
-                          type="text"
-                          value={contact.firstNameEn}
-                          onChange={(e) => {
-                            if (validateEnglishName(e.target.value)) {
-                              handleContactChange(index, 'firstNameEn', e.target.value);
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="First Name"
-                          required={isMain}
-                        />
+                        <div className="grid grid-cols-4 gap-2">
+                          {/* Prename English */}
+                          <div>
+                            <select
+                              value={contact.prenameEn || ''}
+                              onChange={(e) => handleContactChange(index, 'prenameEn', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              required={false}
+                              onInvalid={(e) => e.preventDefault()}
+                            >
+                              <option value="">Prename</option>
+                              <option value="Mr">Mr</option>
+                              <option value="Mrs">Mrs</option>
+                              <option value="Ms">Ms</option>
+                              <option value="Other">Other</option>
+                            </select>
+                          </div>
+                          {/* First Name English */}
+                          <div>
+                            <input
+                              type="text"
+                              value={contact.firstNameEn}
+                              onChange={(e) => {
+                                if (validateEnglishName(e.target.value)) {
+                                  handleContactChange(index, 'firstNameEn', e.target.value);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="First Name"
+                              required={false}
+                              onInvalid={(e) => e.preventDefault()}
+                            />
+                          </div>
+                          {/* Last Name English */}
+                          <div className="col-span-2">
+                            <input
+                              type="text"
+                              value={contact.lastNameEn}
+                              onChange={(e) => {
+                                if (validateEnglishName(e.target.value)) {
+                                  handleContactChange(index, 'lastNameEn', e.target.value);
+                                }
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Last Name"
+                              required={false}
+                              onInvalid={(e) => e.preventDefault()}
+                            />
+                          </div>
+                        </div>
                         {errors[`contactPerson${index}FirstNameEn`] && (
                           <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}FirstNameEn`]}</p>
                         )}
-                      </div>
-
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                          นามสกุล (ภาษาอังกฤษ) {isMain && <span className="text-red-500">*</span>}
-                        </label>
-                        <input
-                          type="text"
-                          value={contact.lastNameEn}
-                          onChange={(e) => {
-                            if (validateEnglishName(e.target.value)) {
-                              handleContactChange(index, 'lastNameEn', e.target.value);
-                            }
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                          placeholder="Last Name"
-                          required={isMain}
-                        />
                         {errors[`contactPerson${index}LastNameEn`] && (
                           <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}LastNameEn`]}</p>
                         )}
                       </div>
+
+                      {/* Other Prename Detail (Thai-only, required when TH/EN selects Other) */}
+                      {(contact.prenameTh === 'อื่นๆ' || contact.prenameEn === 'Other') && (
+                        <div className="lg:col-span-2">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            ระบุคำนำหน้า (ภาษาไทยเท่านั้น) <span className="text-red-500">*</span>
+                          </label>
+                          <input
+                            type="text"
+                            value={contact.prenameOther || ''}
+                            onChange={(e) => {
+                              const thaiOnly = e.target.value.replace(/[^ก-๙\.\s]/g, '');
+                              handleContactChange(index, 'prenameOther', thaiOnly);
+                            }}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
+                            required
+                          />
+                          <p className="mt-1 text-xs text-gray-500">รองรับตัวอักษรไทย เว้นวรรค และจุด (.)</p>
+                        </div>
+                      )}
 
                       {/* Position and Email */}
                       <div>
@@ -478,7 +536,7 @@ const ContactPersonSection = ({
             onClick={addContactPerson}
             className="w-full flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            <PlusIcon className="h-5 w-5 mr-2" />
+            <Plus className="h-5 w-5 mr-2" />
             เพิ่มผู้ติดต่อ (เพิ่มได้อีก {4 - contactPersons.length} ท่าน)
           </button>
         </div>

@@ -847,7 +847,7 @@ export default function ACMembershipForm({
         }}
         onConfirm={() => {
           setShowSuccessModal(false);
-          router.push('/dashboard?tab=status');
+          router.push('/dashboard?tab=documents');
         }}
       />
     </div>

@@ -553,6 +553,40 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
+                <div>
+                  <label htmlFor="authorizedSignatoryPositionTh" className="block text-sm font-medium text-gray-700">ตำแหน่ง (ภาษาไทย)</label>
+                  <input
+                    id="authorizedSignatoryPositionTh"
+                    name="authorizedSignatoryPositionTh"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionTh || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPositionTh: e.target.value }))}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPositionTh ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                    placeholder="เช่น กรรมการผู้จัดการ"
+                  />
+                  {errors?.authorizedSignatoryPositionTh && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>{errors.authorizedSignatoryPositionTh}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="authorizedSignatoryPositionEn" className="block text-sm font-medium text-gray-700">ตำแหน่ง (อังกฤษ)</label>
+                  <input
+                    id="authorizedSignatoryPositionEn"
+                    name="authorizedSignatoryPositionEn"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionEn || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPositionEn: e.target.value }))}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPositionEn ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                    placeholder="e.g. Managing Director"
+                  />
+                  {errors?.authorizedSignatoryPositionEn && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>{errors.authorizedSignatoryPositionEn}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 

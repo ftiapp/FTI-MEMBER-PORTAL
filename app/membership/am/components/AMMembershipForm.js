@@ -700,7 +700,7 @@ export default function AMMembershipForm(props = {}) {
         }}
         onConfirm={() => {
           setShowSuccessModal(false);
-          router.push('/dashboard?tab=status');
+          router.push('/dashboard?tab=documents');
         }}
       />
     </div>

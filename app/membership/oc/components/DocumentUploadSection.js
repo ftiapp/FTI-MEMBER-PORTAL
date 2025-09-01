@@ -686,70 +686,21 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 name="companyStamp"
                 file={selectedFiles.companyStamp}
                 icon={
-                  <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                   </svg>
                 }
-                iconColor="text-purple-600"
-                bgColor="bg-purple-100"
                 isImageRequired={true}
               />
-              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="text-sm">
-                    <p className="font-semibold text-purple-800 mb-3">คำแนะนำสำหรับตราประทับบริษัท:</p>
-                    
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded border border-purple-100">
-                        <h5 className="font-medium text-purple-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                        <ul className="text-purple-700 space-y-1 text-xs">
-                          <li>• <strong>300 x 300 พิกเซล</strong> (สำหรับตราประทับแบบกลม)</li>
-                          <li>• หรือ 400 x 200 พิกเซล (สำหรับตราประทับแบบสี่เหลี่ยม)</li>
-                          <li>• ความละเอียดสูง: 600x600 พิกเซล</li>
-                        </ul>
-                      </div>
-                      
-                      <div className="bg-white p-3 rounded border border-purple-100">
-                        <h5 className="font-medium text-purple-800 mb-2">🎨 คุณภาพภาพ</h5>
-                        <ul className="text-purple-700 space-y-1 text-xs">
-                          <li>• <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว</li>
-                          <li>• ตราประทับสีชัดเจน</li>
-                          <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
-                      <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
-                      <p className="text-blue-700 text-xs">
-                        หลังอัปโหลดภาพตราประทับ คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
-                      </p>
-                      <ul className="text-blue-700 space-y-1 text-xs mt-1">
-                        <li>• <strong>ซูมเข้า/ออก</strong> เพื่อปรับขนาดให้เหมาะสม</li>
-                        <li>• <strong>เลื่อนตำแหน่ง</strong> เพื่อจัดตำแหน่งให้ตรงกลาง</li>
-                        <li>• <strong>ครอบตัด</strong> เพื่อให้ได้สัดส่วนที่ต้องการ</li>
-                      </ul>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-purple-600">
-                        💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพตราประทับบนกระดาษขาวด้วยแสงที่เพียงพอ
-                      </div>
-                      <a 
-                        href="/images/FTI-LOGOsample.jpg" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-purple-600 hover:text-purple-800 underline text-xs"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        ดูตัวอย่าง
-                      </a>
+                  <div className="text-xs">
+                    <p className="font-medium text-blue-800 mb-2">ขนาดแนะนำ: 300x300 พิกเซล, พื้นหลังโปร่งใส (PNG)</p>
+                    <div className="flex gap-4">
+                      <a href="/images/FTI-LOGOsample.jpg" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">ดูตัวอย่างตราประทับ</a>
                     </div>
                   </div>
                 </div>
@@ -829,6 +780,40 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
+                <div>
+                  <label htmlFor="authorizedSignatoryPositionTh" className="block text-sm font-medium text-gray-700">ตำแหน่ง (ภาษาไทย)</label>
+                  <input
+                    id="authorizedSignatoryPositionTh"
+                    name="authorizedSignatoryPositionTh"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionTh || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPositionTh: e.target.value }))}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPositionTh ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                    placeholder="เช่น กรรมการผู้จัดการ"
+                  />
+                  {errors?.authorizedSignatoryPositionTh && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>{errors.authorizedSignatoryPositionTh}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="authorizedSignatoryPositionEn" className="block text-sm font-medium text-gray-700">ตำแหน่ง (อังกฤษ)</label>
+                  <input
+                    id="authorizedSignatoryPositionEn"
+                    name="authorizedSignatoryPositionEn"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionEn || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPositionEn: e.target.value }))}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPositionEn ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                    placeholder="e.g. Managing Director"
+                  />
+                  {errors?.authorizedSignatoryPositionEn && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>{errors.authorizedSignatoryPositionEn}
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -840,70 +825,21 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 name="authorizedSignature"
                 file={selectedFiles.authorizedSignature}
                 icon={
-                  <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 }
-                iconColor="text-orange-600"
-                bgColor="bg-orange-100"
                 isImageRequired={true}
               />
-              <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  <div className="text-sm">
-                    <p className="font-semibold text-orange-800 mb-3">คำแนะนำสำหรับลายเซ็นที่จะแปะในขวาล่างของเอกสาร A4:</p>
-                    
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded border border-orange-100">
-                        <h5 className="font-medium text-orange-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                        <ul className="text-orange-700 space-y-1 text-xs">
-                          <li>• <strong>120 x 60 พิกเซล</strong> (อัตราส่วน 2:1)</li>
-                          <li>• หรือ 240 x 120 พิกเซล (ความละเอียดสูง)</li>
-                          <li>• ขนาดจริงบนกระดาษ: ประมาณ 3 x 1.5 ซม.</li>
-                        </ul>
-                      </div>
-                      
-                      <div className="bg-white p-3 rounded border border-orange-100">
-                        <h5 className="font-medium text-orange-800 mb-2">🎨 รูปแบบภาพ</h5>
-                        <ul className="text-orange-700 space-y-1 text-xs">
-                          <li>• <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว</li>
-                          <li>• ลายเซ็นสีดำหรือสีเข้ม</li>
-                          <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
-                      <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
-                      <p className="text-blue-700 text-xs">
-                        หลังอัปโหลดภาพลายเซ็น คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
-                      </p>
-                      <ul className="text-blue-700 space-y-1 text-xs mt-1">
-                        <li>• <strong>ซูมเข้า/ออก</strong> เพื่อปรับขนาดให้เหมาะสม</li>
-                        <li>• <strong>เลื่อนตำแหน่ง</strong> เพื่อจัดตำแหน่งให้ตรงกลาง</li>
-                        <li>• <strong>ครอบตัด</strong> เพื่อให้ได้สัดส่วนที่ต้องการ</li>
-                      </ul>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-orange-600">
-                        💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพลายเซ็นบนกระดาษขาวด้วยแสงที่เพียงพอ
-                      </div>
-                      <a 
-                        href="/images/FTI-SIGNATUREsample.jpg" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-orange-600 hover:text-orange-800 underline text-xs"
-                      >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        ดูตัวอย่าง
-                      </a>
+                  <div className="text-xs">
+                    <p className="font-medium text-blue-800 mb-2">ขนาดแนะนำ: 120x60 พิกเซล, พื้นหลังโปร่งใส (PNG)</p>
+                    <div className="flex gap-4">
+                      <a href="/images/FTI-SIGNATUREsample.jpg" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">ดูตัวอย่างลายเซ็น</a>
                     </div>
                   </div>
                 </div>

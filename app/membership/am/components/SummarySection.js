@@ -278,28 +278,56 @@ export default function SummarySection({ formData, industrialGroups, provincialC
     // ระบบใหม่: ใช้ contactPersons array
     if (formData.contactPersons && formData.contactPersons.length > 0) {
       const mainContact = formData.contactPersons[0]; // ผู้ประสานงานหลัก
+      const getPrename = (c, en = false) => {
+        if (!c) return '';
+        if (en) {
+          const pre = c.prenameEn || c.prename_en || '';
+          if (pre && pre.toLowerCase() === 'other') return c.prenameOther || c.prename_other || '';
+          return pre;
+        } else {
+          const pre = c.prenameTh || c.prename_th || '';
+          if (pre && (pre === 'อื่นๆ' || pre === 'อื่น ๆ')) return c.prenameOther || c.prename_other || '';
+          return pre;
+        }
+      };
+
       if (isEnglish) {
-        return (mainContact.first_name_en || mainContact.firstNameEn) && (mainContact.last_name_en || mainContact.lastNameEn)
-          ? `${mainContact.first_name_en || mainContact.firstNameEn} ${mainContact.last_name_en || mainContact.lastNameEn}` 
-          : '-';
+        const prename = getPrename(mainContact, true);
+        const first = mainContact.first_name_en || mainContact.firstNameEn || '';
+        const last = mainContact.last_name_en || mainContact.lastNameEn || '';
+        const parts = [prename, first, last].filter(Boolean);
+        const name = parts.join(' ').trim();
+        return name || '-';
       }
-      return (mainContact.first_name_th || mainContact.firstNameTh) && (mainContact.last_name_th || mainContact.lastNameTh)
-        ? `${mainContact.first_name_th || mainContact.firstNameTh} ${mainContact.last_name_th || mainContact.lastNameTh}` 
-        : '-';
+      const prename = getPrename(mainContact, false);
+      const first = mainContact.first_name_th || mainContact.firstNameTh || '';
+      const last = mainContact.last_name_th || mainContact.lastNameTh || '';
+      const parts = [prename, first, last].filter(Boolean);
+      const name = parts.join(' ').trim();
+      return name || '-';
     }
     
     // ระบบเก่า: ใช้ contactPerson object หรือ direct fields
     if (isEnglish) {
-      // ลองหาข้อมูลภาษาอังกฤษจากหลายแหล่ง
+      const prename = (formData.contactPersonPrenameEn === 'Other') 
+        ? (formData.contactPersonPrenameOther || '') 
+        : (formData.contactPersonPrenameEn || '');
       const firstNameEng = formData.contactPersonFirstNameEng || formData.contactPersonFirstName;
       const lastNameEng = formData.contactPersonLastNameEng || formData.contactPersonLastName;
-      return firstNameEng && lastNameEng ? `${firstNameEng} ${lastNameEng}` : '-';
+      const parts = [prename, firstNameEng || '', lastNameEng || ''].filter(Boolean);
+      const name = parts.join(' ').trim();
+      return name || '-';
     }
     
     // ภาษาไทย
+    const prename = (formData.contactPersonPrenameTh === 'อื่นๆ' || formData.contactPersonPrenameTh === 'อื่น ๆ') 
+      ? (formData.contactPersonPrenameOther || '') 
+      : (formData.contactPersonPrenameTh || '');
     const firstNameTh = formData.contactPersonFirstName;
     const lastNameTh = formData.contactPersonLastName;
-    return firstNameTh && lastNameTh ? `${firstNameTh} ${lastNameTh}` : '-';
+    const parts = [prename, firstNameTh || '', lastNameTh || ''].filter(Boolean);
+    const name = parts.join(' ').trim();
+    return name || '-';
   };
 
   // ฟังก์ชันสำหรับแสดงข้อมูลผู้ติดต่อทั้งหมด
@@ -478,7 +506,16 @@ export default function SummarySection({ formData, industrialGroups, provincialC
                           </span>
                         </div>
                         <div className="space-y-1 text-sm">
-                          <div><span className="font-medium">ชื่อ:</span> {contact.first_name_th || contact.firstNameTh} {contact.last_name_th || contact.lastNameTh}</div>
+                          <div><span className="font-medium">ชื่อ:</span> {(() => {
+                            const getPrenameTh = (c) => {
+                              const pre = c.prenameTh || c.prename_th || '';
+                              if (pre && (pre === 'อื่นๆ' || pre === 'อื่น ๆ')) return c.prenameOther || c.prename_other || '';
+                              return pre;
+                            };
+                            const parts = [getPrenameTh(contact), (contact.first_name_th || contact.firstNameTh || ''), (contact.last_name_th || contact.lastNameTh || '')].filter(Boolean);
+                            const nameTh = parts.join(' ').trim();
+                            return nameTh || '-';
+                          })()}</div>
                           <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
                           <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
                           <div><span className="font-medium">โทร:</span> {(function(){ const p = contact.phone || '-'; const ext = contact.phone_extension || contact.phoneExtension || ''; if (p === '-') return '-'; return ext ? `${p} ต่อ ${ext}` : p; })()} </div>

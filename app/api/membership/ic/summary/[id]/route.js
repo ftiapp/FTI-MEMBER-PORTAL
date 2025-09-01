@@ -157,6 +157,8 @@ export async function GET(request, { params }) {
         building: addr.building || '',
         moo: addr.moo || '',
         soi: addr.soi || '',
+        // Canonicalize to 'street' (DB uses 'road' in IC). Keep 'road' alias for compatibility.
+        street: addr.road || '',
         road: addr.road || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
@@ -209,6 +211,8 @@ export async function GET(request, { params }) {
         addressNumber: mainAddress?.address_number || '',
         moo: mainAddress?.moo || '',
         soi: mainAddress?.soi || '',
+        // Expose as 'street' canonically and keep 'road' alias
+        street: mainAddress?.road || '',
         road: mainAddress?.road || '',
         subDistrict: mainAddress?.sub_district || '',
         district: mainAddress?.district || '',
@@ -272,6 +276,8 @@ export async function GET(request, { params }) {
       authorizedSignatoryLastNameTh:  signatureNameResult?.[0]?.last_name_th  || null,
       authorizedSignatoryFirstNameEn: signatureNameResult?.[0]?.first_name_en || null,
       authorizedSignatoryLastNameEn:  signatureNameResult?.[0]?.last_name_en  || null,
+      authorizedSignatoryPositionTh:  signatureNameResult?.[0]?.position_th   || null,
+      authorizedSignatoryPositionEn:  signatureNameResult?.[0]?.position_en   || null,
       authorizedSignatoryFullNameTh: `${signatureNameResult?.[0]?.first_name_th || ''} ${signatureNameResult?.[0]?.last_name_th || ''}`.trim() || null,
       authorizedSignatoryFullNameEn: `${signatureNameResult?.[0]?.first_name_en || ''} ${signatureNameResult?.[0]?.last_name_en || ''}`.trim() || null,
       

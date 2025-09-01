@@ -99,6 +99,27 @@ export async function POST(request) {
     console.log('📄 [AC] Data fields:', Object.keys(data));
     console.log('🔍 [AC] Raw data dump:', data);
 
+    // Validation: Require authorized signatory position if names are provided
+    try {
+      const sigFirstTh = data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || '';
+      const sigLastTh  = data.authorizedSignatoryLastNameTh  || data.authorizedSignatureLastNameTh  || '';
+      const sigFirstEn = data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || '';
+      const sigLastEn  = data.authorizedSignatoryLastNameEn  || data.authorizedSignatureLastNameEn  || '';
+      const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || '';
+      const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || '';
+
+      const hasNames = (sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim().length > 0;
+      const hasPosition = (posTh && posTh.trim().length > 0) || (posEn && posEn.trim().length > 0);
+      if (hasNames && !hasPosition) {
+        await rollbackTransaction(trx);
+        return NextResponse.json({
+          error: 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)'
+        }, { status: 400 });
+      }
+    } catch (e) {
+      // proceed; we'll enforce again before insert
+    }
+
     // Step 2: Check for duplicate Tax ID (cross-table AM/AC/OC)
     const { taxId } = data;
     if (!taxId) {
@@ -160,8 +181,8 @@ export async function POST(request) {
         user_id, company_name_th, company_name_en, tax_id, 
         company_email, company_phone, company_phone_extension, company_website, number_of_employees,
         registered_capital, production_capacity_value, production_capacity_unit,
-        sales_domestic, sales_export, shareholder_thai_percent, shareholder_foreign_percent, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+        sales_domestic, sales_export, revenue_last_year, revenue_previous_year, shareholder_thai_percent, shareholder_foreign_percent, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
       [
         userId,
         data.companyName || '',
@@ -177,6 +198,8 @@ export async function POST(request) {
         data.productionCapacityUnit || null,
         data.salesDomestic ? parseFloat(data.salesDomestic) : null,
         data.salesExport ? parseFloat(data.salesExport) : null,
+        data.revenueLastYear ? parseFloat(data.revenueLastYear) : null,
+        data.revenuePreviousYear ? parseFloat(data.revenuePreviousYear) : null,
         data.shareholderThaiPercent ? parseFloat(data.shareholderThaiPercent) : null,
         data.shareholderForeignPercent ? parseFloat(data.shareholderForeignPercent) : null,
       ]
@@ -192,7 +215,7 @@ export async function POST(request) {
         if (addressData && Object.keys(addressData).length > 0) {
           await executeQuery(trx, 
             `INSERT INTO MemberRegist_AC_Address (
-              main_id, address_number, building, moo, soi, road, sub_district, 
+              main_id, address_number, building, moo, soi, street, sub_district, 
               district, province, postal_code, phone, phone_extension, email, website, address_type
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             [
@@ -201,7 +224,7 @@ export async function POST(request) {
               addressData.building || '',
               addressData.moo || '',
               addressData.soi || '',
-              addressData.road || '',
+              (addressData.street || addressData.road || ''),
               addressData.subDistrict || '',
               addressData.district || '',
               addressData.province || '',
@@ -219,7 +242,7 @@ export async function POST(request) {
       // Fallback for old single address format
       await executeQuery(trx, 
         `INSERT INTO MemberRegist_AC_Address (
-          main_id, address_number, moo, soi, road, sub_district, 
+          main_id, address_number, moo, soi, street, sub_district, 
           district, province, postal_code, phone, phone_extension, email, website, address_type
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
@@ -227,7 +250,7 @@ export async function POST(request) {
           data.addressNumber || '',
           data.moo || '',
           data.soi || '',
-          data.road || '',
+          (data.street || data.road || ''),
           data.subDistrict || '',
           data.district || '',
           data.province || '',
@@ -249,11 +272,14 @@ export async function POST(request) {
         const contact = contactPersons[index];
         await executeQuery(trx,
           `INSERT INTO MemberRegist_AC_ContactPerson (
-            main_id, first_name_th, last_name_th, first_name_en, last_name_en, 
+            main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, 
             position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
             mainId, 
+            contact.prenameTh || null,
+            contact.prenameEn || null,
+            contact.prenameOther || null,
             contact.firstNameTh || '', 
             contact.lastNameTh || '', 
             contact.firstNameEn || '', 
@@ -272,11 +298,13 @@ export async function POST(request) {
       // Fallback for old single contact person format
       await executeQuery(trx, 
         `INSERT INTO MemberRegist_AC_ContactPerson (
-          main_id, first_name_th, last_name_th, first_name_en, 
-          last_name_en, position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId, 
+          null,
+          null,
+          null,
           data.contactPersonFirstName || '',
           data.contactPersonLastName || '',
           data.contactPersonFirstNameEng || '',
@@ -303,11 +331,14 @@ if (data.representatives) {
       // ✅ เพิ่ม rep_order โดยใช้ index + 1 (เริ่มจาก 1)
       await executeQuery(trx,
         `INSERT INTO MemberRegist_AC_Representatives (
-          main_id, first_name_th, last_name_th, first_name_en, 
+          main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, 
           last_name_en, position, email, phone, phone_extension, rep_order, is_primary
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId, 
+          rep.prenameTh || null,
+          rep.prenameEn || null,
+          rep.prenameOther || null,
           rep.firstNameTh || rep.firstNameThai || '', 
           rep.lastNameTh || rep.lastNameThai || '', 
           rep.firstNameEn || rep.firstNameEng || '',   
@@ -490,16 +521,26 @@ if (data.representatives) {
     // Step 11: Insert Authorized Signatory Names
     if (data.authorizedSignatoryFirstNameTh && data.authorizedSignatoryLastNameTh && 
         data.authorizedSignatoryFirstNameEn && data.authorizedSignatoryLastNameEn) {
+      const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || '';
+      const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || '';
+      if (!( (posTh && String(posTh).trim()) || (posEn && String(posEn).trim()) )) {
+        await rollbackTransaction(trx);
+        return NextResponse.json({
+          error: 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)'
+        }, { status: 400 });
+      }
       await executeQuery(trx,
         `INSERT INTO MemberRegist_AC_Signature_Name (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en
-        ) VALUES (?, ?, ?, ?, ?);`,
+          main_id, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId,
           data.authorizedSignatoryFirstNameTh,
           data.authorizedSignatoryLastNameTh,
           data.authorizedSignatoryFirstNameEn,
-          data.authorizedSignatoryLastNameEn
+          data.authorizedSignatoryLastNameEn,
+          (posTh && String(posTh).trim()) ? posTh : null,
+          (posEn && String(posEn).trim()) ? posEn : null
         ]
       );
       console.log('✅ [AC] Authorized signatory names inserted');

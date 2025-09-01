@@ -99,11 +99,14 @@ export const submitICMembershipForm = async (formData) => {
     formDataToSubmit.append('phoneExtension', formData.phoneExtension || '');
     formDataToSubmit.append('email', formData.email || '');
     
-    // ข้อมูลที่อยู่ - แก้ไขให้รองรับทั้ง road และ street
+    // ข้อมูลที่อยู่ - แก้ไขให้รองรับทั้ง road และ street (มาตรฐานคือ street)
     formDataToSubmit.append('addressNumber', formData.addressNumber || '');
     formDataToSubmit.append('moo', formData.moo || '');
     formDataToSubmit.append('soi', formData.soi || '');
-    formDataToSubmit.append('road', formData.road || formData.street || '');
+    // ใช้ key ใหม่ 'street' เป็นหลัก และแนบ 'road' เผื่อความเข้ากันได้ย้อนหลัง
+    const streetValue = formData.street || formData.road || '';
+    formDataToSubmit.append('street', streetValue);
+    formDataToSubmit.append('road', streetValue);
     formDataToSubmit.append('subDistrict', formData.subDistrict || '');
     formDataToSubmit.append('district', formData.district || '');
     formDataToSubmit.append('province', formData.province || '');
@@ -114,7 +117,13 @@ export const submitICMembershipForm = async (formData) => {
     // Backend จะอ่าน key 'addresses' (JSON) และบันทึกลงตาราง MemberRegist_IC_Address
     if (formData.addresses && typeof formData.addresses === 'object') {
       try {
-        const addressesPayload = JSON.stringify(formData.addresses);
+        // Normalize: map road -> street if needed per address entry
+        const normalizedAddresses = Object.entries(formData.addresses).reduce((acc, [type, addr]) => {
+          const a = { ...(addr || {}) };
+          if (!a.street && a.road) a.street = a.road;
+          return { ...acc, [type]: a };
+        }, {});
+        const addressesPayload = JSON.stringify(normalizedAddresses);
         formDataToSubmit.append('addresses', addressesPayload);
         console.log('Addresses payload to submit:', addressesPayload);
       } catch (e) {

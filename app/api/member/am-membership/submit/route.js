@@ -174,6 +174,8 @@ export async function GET(request, { params }) {
       productionCapacityUnit: mainData.production_capacity_unit,
       salesDomestic: mainData.sales_domestic,
       salesExport: mainData.sales_export,
+      revenueLastYear: mainData.revenue_last_year,
+      revenuePreviousYear: mainData.revenue_previous_year,
       shareholderThaiPercent: mainData.shareholder_thai_percent,
       shareholderForeignPercent: mainData.shareholder_foreign_percent,
       factoryType: mainData.factory_type,
@@ -288,6 +290,8 @@ export async function POST(request) {
     const productionCapacityUnit = formData.get('productionCapacityUnit');
     const salesDomestic = formData.get('salesDomestic');
     const salesExport = formData.get('salesExport');
+    const revenueLastYear = formData.get('revenueLastYear');
+    const revenuePreviousYear = formData.get('revenuePreviousYear');
     const shareholderThaiPercent = formData.get('shareholderThaiPercent');
     const shareholderForeignPercent = formData.get('shareholderForeignPercent');
     const factoryType = formData.get('factoryType');
@@ -297,9 +301,31 @@ export async function POST(request) {
     const authorizedSignatoryLastNameTh = formData.get('authorizedSignatoryLastNameTh');
     const authorizedSignatoryFirstNameEn = formData.get('authorizedSignatoryFirstNameEn');
     const authorizedSignatoryLastNameEn = formData.get('authorizedSignatoryLastNameEn');
+    const authorizedSignatoryPositionTh = formData.get('authorizedSignatoryPositionTh');
+    const authorizedSignatoryPositionEn = formData.get('authorizedSignatoryPositionEn');
 
     // Small helper to convert undefined to SQL NULL
     const toNull = (v) => (v === undefined ? null : v);
+
+    // Validation: Require authorized signatory position if names are provided
+    try {
+      const hasNames = [
+        authorizedSignatoryFirstNameTh,
+        authorizedSignatoryLastNameTh,
+        authorizedSignatoryFirstNameEn,
+        authorizedSignatoryLastNameEn
+      ].filter(Boolean).join('').trim().length > 0;
+      const hasPosition = (authorizedSignatoryPositionTh && authorizedSignatoryPositionTh.trim().length > 0)
+        || (authorizedSignatoryPositionEn && authorizedSignatoryPositionEn.trim().length > 0);
+      if (hasNames && !hasPosition) {
+        return NextResponse.json({
+          success: false,
+          error: 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)'
+        }, { status: 400 });
+      }
+    } catch (e) {
+      // proceed; safeguard exists before DB insert
+    }
 
     // Validate required fields
     if (!associationName || !taxId || !memberCount) {
@@ -360,13 +386,13 @@ export async function POST(request) {
       `INSERT INTO MemberRegist_AM_Main (
         user_id, company_name_th, company_name_en, tax_id, number_of_member,
         number_of_employees, registered_capital, production_capacity_value, production_capacity_unit,
-        sales_domestic, sales_export, shareholder_thai_percent, shareholder_foreign_percent,
+        sales_domestic, sales_export, revenue_last_year, revenue_previous_year, shareholder_thai_percent, shareholder_foreign_percent,
         factory_type, status, created_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
       [
         userId, associationName, associationNameEn, taxId, memberCount,
         numberOfEmployees, registeredCapital, productionCapacityValue, productionCapacityUnit,
-        salesDomestic, salesExport, shareholderThaiPercent, shareholderForeignPercent,
+        salesDomestic, salesExport, revenueLastYear, revenuePreviousYear, shareholderThaiPercent, shareholderForeignPercent,
         factoryType
       ]
     );
@@ -377,20 +403,32 @@ export async function POST(request) {
     // Insert authorized signatory name fields if all are provided
     if (authorizedSignatoryFirstNameTh && authorizedSignatoryLastNameTh && 
         authorizedSignatoryFirstNameEn && authorizedSignatoryLastNameEn) {
-      
+
       console.log('📝 [AM Membership Submit] Inserting authorized signatory names...');
-      
+
+      // Enforce at least one of TH/EN position
+      if (!((authorizedSignatoryPositionTh && String(authorizedSignatoryPositionTh).trim())
+         || (authorizedSignatoryPositionEn && String(authorizedSignatoryPositionEn).trim()))) {
+        await rollbackTransaction(trx);
+        return NextResponse.json({
+          success: false,
+          error: 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)'
+        }, { status: 400 });
+      }
+
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_AM_Signature_Name (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en, created_at
-        ) VALUES (?, ?, ?, ?, ?, NOW())`,
+          main_id, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
         [
           mainId,
           authorizedSignatoryFirstNameTh,
           authorizedSignatoryLastNameTh, 
           authorizedSignatoryFirstNameEn,
-          authorizedSignatoryLastNameEn
+          authorizedSignatoryLastNameEn,
+          (authorizedSignatoryPositionTh && String(authorizedSignatoryPositionTh).trim()) ? authorizedSignatoryPositionTh : null,
+          (authorizedSignatoryPositionEn && String(authorizedSignatoryPositionEn).trim()) ? authorizedSignatoryPositionEn : null
         ]
       );
       
@@ -464,11 +502,14 @@ export async function POST(request) {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_AM_Representatives (
-            main_id, first_name_th, last_name_th, first_name_en, last_name_en,
+            main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en,
             position, email, phone, rep_order, is_primary, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             mainId,
+            toNull(rep.prenameTh),
+            toNull(rep.prenameEn),
+            toNull(rep.prenameOther),
             toNull(firstNameTh),
             toNull(lastNameTh),
             toNull(firstNameEn),
@@ -534,11 +575,14 @@ export async function POST(request) {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_AM_ContactPerson (
-            main_id, first_name_th, last_name_th, first_name_en, last_name_en,
+            main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en,
             position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             mainId,
+            toNull(cp.prenameTh),
+            toNull(cp.prenameEn),
+            toNull(cp.prenameOther),
             firstNameTh,
             lastNameTh,
             toNull(firstNameEn),

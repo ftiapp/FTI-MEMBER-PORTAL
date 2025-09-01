@@ -259,8 +259,8 @@ const processData = (app) => {
     if (Array.isArray(app.addresses)) {
       const a1 = app.addresses.find(addr => addr.address_type === '1' || addr.addressType === '1' || addr.addressTypeId === 1) || app.addresses[0];
       if (a1) baseAddress = pick(a1);
-    } else if (typeof app.addresses === 'object') {
-      const a1 = app.addresses['1'] || app.addresses['main'] || null;
+    } else if (typeof app.addresses === 'object' && app.addresses['1']) {
+      const a1 = app.addresses['1'];
       if (a1) baseAddress = pick(a1);
     }
   }
@@ -347,6 +347,26 @@ const processData = (app) => {
         return pick(repTh, repEn, r.name, app.representativeName, 'ผู้มีอำนาจลงนาม');
       }
       return pick(app.representativeName, 'ผู้มีอำนาจลงนาม');
+    })(),
+    // Compute authorized signatory position (prefer Thai, fallback to English, then representative position)
+    authorizedSignatoryPosition: (() => {
+      const pick = (...vals) => vals.find(v => typeof v === 'string' && v.trim());
+      const posTh = pick(
+        app.authorizedSignatoryPositionTh,
+        app.authorizedSignaturePositionTh,
+        app.authorizedSignatoryPosition?.th,
+        app.authorizedSignaturePosition?.th
+      );
+      const posEn = pick(
+        app.authorizedSignatoryPositionEn,
+        app.authorizedSignaturePositionEn,
+        app.authorizedSignatoryPosition?.en,
+        app.authorizedSignaturePosition?.en
+      );
+      if (posTh) return posTh;
+      if (posEn) return posEn;
+      if (app.representatives?.[0]?.position) return app.representatives[0].position;
+      return '';
     })()
   };
 };
@@ -379,6 +399,13 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
         if (/^other$/i.test(normEn) || /^อื่นๆ$/i.test(normTh)) return normOther || '';
         return normEn || normOther || '';
       }
+    };
+    // Number format helper
+    const nf = (v) => {
+      if (v === 0 || v === '0') return '0';
+      if (v === null || v === undefined || v === '') return '-';
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toLocaleString() : String(v);
     };
     
     // Resolve Industrial Group & Provincial Chapter names
@@ -708,6 +735,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           </div>
         `) : ''}
         
+        
         ${(businessTypes && businessTypes !== '-') ? section('ข้อมูลธุรกิจ', `
           <div class="row">
             <div class="col">
@@ -734,7 +762,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                         <div style="font-size: 11px;">
                           <strong>${i + 1}.</strong> 
                           <span style="color: #0066cc;">${p.name_th || p.nameTh || '-'}</span>
-                          ${(p.name_en || p.nameEn) && (p.name_en || p.nameEn) !== '-' ? ` / <span style=\"color: #666;\">${p.name_en || p.nameEn}</span>` : ''}
+                          ${(p.name_en || p.nameEn) && (p.name_en || p.nameEn) !== '-' ? ` / <span style="color: #666;">${p.name_en || p.nameEn}</span>` : ''}
                         </div>
                       `).join('')}
                       ${extraProducts > 0 ? `<div class="span-all" style="font-size: 10px; color: #666;">... และอีก ${extraProducts} รายการ</div>` : ''}
@@ -751,7 +779,6 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           </div>
         `) : ''}
         
-
         ${(() => {
           // Ensure fallback names from IDs if names are still empty
           let igNames = industrialGroupNames && industrialGroupNames.length ? industrialGroupNames : null;
@@ -806,6 +833,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 </div>
                 <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
                   (${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})
+                  ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ''}
                   <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
                 </div>
               </div>
@@ -831,6 +859,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
                 </div>
                 <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
                   (${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})
+                  ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ''}
                   <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
                 </div>
               </div>

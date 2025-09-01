@@ -80,11 +80,31 @@ const RepresentativeCard = ({ representative, index }) => (
     <div className="space-y-3">
       <div>
         <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-        <p className="text-sm">{representative.firstNameThai || '-'} {representative.lastNameThai || '-'}</p>
+        <p className="text-sm">
+          {(() => {
+            const pre = representative.prenameTh === 'อื่นๆ' && representative.prenameOther
+              ? representative.prenameOther
+              : representative.prenameTh || '';
+            const first = representative.firstNameThai || '-';
+            const last = representative.lastNameThai || '-';
+            const name = `${pre ? pre + ' ' : ''}${first} ${last}`.trim();
+            return name || '-';
+          })()}
+        </p>
       </div>
       <div>
         <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-        <p className="text-sm">{representative.firstNameEnglish || '-'} {representative.lastNameEnglish || '-'}</p>
+        <p className="text-sm">
+          {(() => {
+            const pre = representative.prenameEn === 'Other' && representative.prenameOther
+              ? representative.prenameOther
+              : representative.prenameEn || '';
+            const first = representative.firstNameEnglish || '-';
+            const last = representative.lastNameEnglish || '-';
+            const name = `${pre ? pre + ' ' : ''}${first} ${last}`.trim();
+            return name || '-';
+          })()}
+        </p>
       </div>
       <div>
         <p className="text-xs text-gray-500">ตำแหน่ง</p>
@@ -337,12 +357,19 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
     if (formData.contactPersons && formData.contactPersons.length > 0) {
       const mainContact = formData.contactPersons[0]; // ผู้ประสานงานหลัก
       if (isEnglish) {
-        return mainContact.firstNameEn && mainContact.lastNameEn 
-          ? `${mainContact.firstNameEn} ${mainContact.lastNameEn}` 
-          : '-';
+        const pre = mainContact.prenameEn === 'Other' && mainContact.prenameOther
+          ? mainContact.prenameOther
+          : mainContact.prenameEn || '';
+        if (mainContact.firstNameEn && mainContact.lastNameEn) {
+          return `${pre ? pre + ' ' : ''}${mainContact.firstNameEn} ${mainContact.lastNameEn}`;
+        }
+        return '-';
       }
+      const preTh = mainContact.prenameTh === 'อื่นๆ' && mainContact.prenameOther
+        ? mainContact.prenameOther
+        : mainContact.prenameTh || '';
       return mainContact.firstNameTh && mainContact.lastNameTh 
-        ? `${mainContact.firstNameTh} ${mainContact.lastNameTh}` 
+        ? `${preTh ? preTh + ' ' : ''}${mainContact.firstNameTh} ${mainContact.lastNameTh}` 
         : '-';
     }
     
@@ -413,7 +440,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         building: address.building || '-',
         moo: address.moo || '-',
         soi: address.soi || '-',
-        street: address.street || '-',
+        street: address.street || address.road || '-',
         subDistrict: address.subDistrict || '-',
         district: address.district || '-',
         province: address.province || '-',
@@ -598,7 +625,13 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
                           </span>
                         </div>
                         <div className="space-y-1 text-sm">
-                          <div><span className="font-medium">ชื่อ:</span> {contact.firstNameTh} {contact.lastNameTh}</div>
+                          <div><span className="font-medium">ชื่อ:</span> {(() => {
+                            const pre = contact.prenameTh === 'อื่นๆ' && contact.prenameOther ? contact.prenameOther : (contact.prenameTh || '');
+                            const first = contact.firstNameTh || '';
+                            const last = contact.lastNameTh || '';
+                            const name = `${pre ? pre + ' ' : ''}${first} ${last}`.trim();
+                            return name || '-';
+                          })()}</div>
                           <div><span className="font-medium">ตำแหน่ง:</span> {contact.position || '-'}</div>
                           <div><span className="font-medium">อีเมล:</span> {contact.email || '-'}</div>
                           <div>
@@ -664,6 +697,14 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
               ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}` 
               : '-'
             } 
+          />
+          <InfoCard 
+            title="รายได้ปีล่าสุด (บาท/ปี)" 
+            value={formData?.revenueLastYear ? Number(formData.revenueLastYear).toLocaleString() : '-'} 
+          />
+          <InfoCard 
+            title="รายได้ปีก่อนหน้า (บาท/ปี)" 
+            value={formData?.revenuePreviousYear ? Number(formData.revenuePreviousYear).toLocaleString() : '-'} 
           />
           <InfoCard 
             title="ยอดจำหน่ายในประเทศ (บาท/ปี)" 

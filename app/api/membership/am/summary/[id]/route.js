@@ -101,6 +101,13 @@ export async function GET(request, { params }) {
       [id]
     );
 
+    // Fetch authorized signatory name & position
+    const signatureNameRows = await query(
+      'SELECT first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_AM_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1',
+      [id]
+    );
+    const signatureName = Array.isArray(signatureNameRows) && signatureNameRows.length ? signatureNameRows[0] : null;
+
     // Fetch documents
     const documentsResult = await query(
       'SELECT * FROM MemberRegist_AM_Documents WHERE main_id = ?',
@@ -205,6 +212,9 @@ export async function GET(request, { params }) {
       // Multiple contact persons
       contactPersons: (contactPersonsResult || []).map((cp, index) => ({
         id: cp.id || index + 1,
+        prename_th: cp.prename_th || '',
+        prename_en: cp.prename_en || '',
+        prename_other: cp.prename_other || '',
         first_name_th: cp.first_name_th || '',
         last_name_th: cp.last_name_th || '',
         first_name_en: cp.first_name_en || '',
@@ -239,6 +249,9 @@ export async function GET(request, { params }) {
       // Representatives - align keys with SummarySection expectations
       representatives: (representativesResult || []).map(rep => ({
         id: rep.id,
+        prename_th: rep.prename_th || '',
+        prename_en: rep.prename_en || '',
+        prename_other: rep.prename_other || '',
         // snake_case
         first_name_th: rep.first_name_th,
         last_name_th: rep.last_name_th,
@@ -282,6 +295,8 @@ export async function GET(request, { params }) {
       production_capacity_value: amData.production_capacity_value || '',
       productionCapacityUnit: amData.production_capacity_unit || '',
       production_capacity_unit: amData.production_capacity_unit || '',
+      revenueLastYear: amData.revenue_last_year || '',
+      revenuePreviousYear: amData.revenue_previous_year || '',
       salesDomestic: amData.sales_domestic || '',
       sales_domestic: amData.sales_domestic || '',
       salesExport: amData.sales_export || '',
@@ -304,6 +319,14 @@ export async function GET(request, { params }) {
       lastname: applicantUser?.lastname || null,
       email: applicantUser?.email || null,
       phone: applicantUser?.phone || null,
+      
+      // Authorized signatory (names & positions)
+      authorizedSignatoryFirstNameTh: signatureName?.first_name_th || null,
+      authorizedSignatoryLastNameTh: signatureName?.last_name_th || null,
+      authorizedSignatoryFirstNameEn: signatureName?.first_name_en || null,
+      authorizedSignatoryLastNameEn: signatureName?.last_name_en || null,
+      authorizedSignatoryPositionTh: signatureName?.position_th || null,
+      authorizedSignatoryPositionEn: signatureName?.position_en || null,
       
       // ✅ Industry Groups / Province Chapters
       // Keep arrays of IDs for backward compatibility

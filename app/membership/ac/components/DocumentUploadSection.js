@@ -659,6 +659,51 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     )}
                   </div>
                 </div>
+
+                {/* Position Fields */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ตำแหน่ง (ภาษาไทย) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.authorizedSignatoryPositionTh || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        authorizedSignatoryPositionTh: e.target.value
+                      }))}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                        errors?.authorizedSignatoryPositionTh ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="เช่น กรรมการผู้จัดการ"
+                    />
+                    {errors?.authorizedSignatoryPositionTh && (
+                      <p className="mt-1 text-sm text-red-600">{errors.authorizedSignatoryPositionTh}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      ตำแหน่ง (อังกฤษ) <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.authorizedSignatoryPositionEn || ''}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        authorizedSignatoryPositionEn: e.target.value
+                      }))}
+                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                        errors?.authorizedSignatoryPositionEn ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                      }`}
+                      placeholder="e.g. Managing Director"
+                    />
+                    {errors?.authorizedSignatoryPositionEn && (
+                      <p className="mt-1 text-sm text-red-600">{errors.authorizedSignatoryPositionEn}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="mt-4 p-3 bg-blue-100 border border-blue-200 rounded-lg">

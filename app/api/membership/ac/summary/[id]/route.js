@@ -100,6 +100,13 @@ export async function GET(request, { params }) {
     );
     const productsRows = productsQuery || [];
 
+    // Fetch authorized signatory name & position
+    const signatureNameRows = await query(
+      'SELECT first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_AC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1',
+      [id]
+    );
+    const signatureName = Array.isArray(signatureNameRows) && signatureNameRows.length > 0 ? signatureNameRows[0] : null;
+
     // Fetch industry groups - ใช้ข้อมูลจากตารางโดยตรง
     const industryGroupsQuery = await query(
       'SELECT * FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?',
@@ -150,6 +157,8 @@ export async function GET(request, { params }) {
         building: addr.building || '',
         moo: addr.moo || '',
         soi: addr.soi || '',
+        // Canonicalize to 'street' (DB uses 'road' in AC, map to street) and keep 'road' alias
+        street: addr.road || '',
         road: addr.road || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
@@ -201,6 +210,8 @@ export async function GET(request, { params }) {
       addressNumber: mainAddress?.address_number || '',
       moo: mainAddress?.moo || '',
       soi: mainAddress?.soi || '',
+      // Expose as 'street' canonically and keep 'road' alias
+      street: mainAddress?.road || '',
       road: mainAddress?.road || '',
       subDistrict: mainAddress?.sub_district || '',
       district: mainAddress?.district || '',
@@ -210,6 +221,9 @@ export async function GET(request, { params }) {
       // Multiple contact persons
       contactPersons: contactPersonsResult.map((cp, index) => ({
         id: cp.id || index + 1,
+        prenameTh: cp.prename_th || '',
+        prenameEn: cp.prename_en || '',
+        prenameOther: cp.prename_other || '',
         firstNameTh: cp.first_name_th || '',
         lastNameTh: cp.last_name_th || '',
         firstNameEn: cp.first_name_en || '',
@@ -246,6 +260,9 @@ export async function GET(request, { params }) {
       
       // Representatives
       representatives: (representativesResult || []).map(rep => ({
+        prenameTh: rep.prename_th || '',
+        prenameEn: rep.prename_en || '',
+        prenameOther: rep.prename_other || '',
         firstNameThai: rep.first_name_th,
         lastNameThai: rep.last_name_th,
         firstNameEng: rep.first_name_en,
@@ -276,10 +293,20 @@ export async function GET(request, { params }) {
       registeredCapital: acData.registered_capital || '',
       productionCapacityValue: acData.production_capacity_value || '',
       productionCapacityUnit: acData.production_capacity_unit || '',
+      revenueLastYear: acData.revenue_last_year || '',
+      revenuePreviousYear: acData.revenue_previous_year || '',
       salesDomestic: acData.sales_domestic || '',
       salesExport: acData.sales_export || '',
       shareholderThaiPercent: acData.shareholder_thai_percent || '',
       shareholderForeignPercent: acData.shareholder_foreign_percent || '',
+      
+      // Authorized signatory (names & positions)
+      authorizedSignatoryFirstNameTh: signatureName?.first_name_th || null,
+      authorizedSignatoryLastNameTh: signatureName?.last_name_th || null,
+      authorizedSignatoryFirstNameEn: signatureName?.first_name_en || null,
+      authorizedSignatoryLastNameEn: signatureName?.last_name_en || null,
+      authorizedSignatoryPositionTh: signatureName?.position_th || null,
+      authorizedSignatoryPositionEn: signatureName?.position_en || null,
       
       // Industry Groups - ใช้ข้อมูลจากตารางโดยตรง
       industrialGroups: industryGroupsRows.map(ig => ({

@@ -125,10 +125,24 @@ export const submitACMembershipForm = async (data) => {
       console.log('Setting provincialChapterNames as fallback from IDs');
       mappedData.provincialChapterNames = mappedData.provincialChapters.map(id => id.toString());
     }
+    // ✅ Normalize address fields to use 'street' (keep 'road' for backward compatibility)
+    const streetValue = mappedData.street || mappedData.road || '';
+    if (streetValue) {
+      mappedData.street = streetValue;
+      mappedData.road = streetValue;
+    }
+    // Normalize nested addresses object if provided
+    if (mappedData.addresses && typeof mappedData.addresses === 'object') {
+      mappedData.addresses = Object.entries(mappedData.addresses).reduce((acc, [type, addr]) => {
+        const a = { ...(addr || {}) };
+        if (!a.street && a.road) a.street = a.road;
+        return { ...acc, [type]: a };
+      }, {});
+    }
 
-    for (const key in data) {
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        appendToFormData(key, data[key]);
+    for (const key in mappedData) {
+      if (Object.prototype.hasOwnProperty.call(mappedData, key)) {
+        appendToFormData(key, mappedData[key]);
       }
     }
 

@@ -39,9 +39,6 @@ export default function UpdateMember() {
       fetchUserData();
       fetchUpdateStatus();
       fetchProfileUpdateLimit();
-      
-      // Update URL when component loads
-      window.history.pushState({}, '', '/dashboard?tab=updatemember');
     }
   }, [user]);
 

@@ -114,23 +114,28 @@ export async function POST(request) {
     );
     
     // Log the activity
-    await query(
-      `INSERT INTO Member_portal_User_log 
-       (user_id, action, details, ip_address, user_agent, created_at) 
-       VALUES (?, ?, ?, ?, ?, NOW())`,
-      [
-        userId,
-        'member_verification',
-        JSON.stringify({
-          action: 'MEMBER_INFO_SUBMITTED',
-          companyName,
-          documentType: documentType || 'other',
-          timestamp: new Date().toISOString()
-        }),
-        request.headers.get('x-forwarded-for') || '',
-        request.headers.get('user-agent') || ''
-      ]
-    );
+    try {
+      await query(
+        `INSERT INTO Member_portal_User_log 
+         (user_id, action, details, ip_address, user_agent, created_at) 
+         VALUES (?, ?, ?, ?, ?, NOW())`,
+        [
+          userId,
+          'member_verification',
+          JSON.stringify({
+            action: 'MEMBER_INFO_SUBMITTED',
+            companyName,
+            documentType: documentType || 'other',
+            timestamp: new Date().toISOString()
+          }),
+          request.headers.get('x-forwarded-for') || '',
+          request.headers.get('user-agent') || ''
+        ]
+      );
+    } catch (logErr) {
+      // Do not block the main flow if logging fails (e.g., FK constraint or missing user)
+      console.warn('Member verification: failed to write user log', logErr);
+    }
     
     return NextResponse.json({
       success: true,

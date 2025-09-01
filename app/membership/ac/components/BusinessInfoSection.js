@@ -220,6 +220,47 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
             />
           </div>
 
+          {/* Revenue (Optional) */}
+          <div className="space-y-2 mb-6">
+            <label className="block text-sm font-medium text-gray-900 mb-3">
+              รายได้รวมก่อนหักค่าใช้จ่าย (ย้อนหลัง 2 ปี) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+            </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label htmlFor="revenueLastYear" className="block text-sm font-medium text-gray-700">
+                  ปีล่าสุด (บาท)
+                </label>
+                <input
+                  type="number"
+                  id="revenueLastYear"
+                  name="revenueLastYear"
+                  value={formData.revenueLastYear || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="revenuePreviousYear" className="block text-sm font-medium text-gray-700">
+                  ปีก่อนหน้า (บาท)
+                </label>
+                <input
+                  type="number"
+                  id="revenuePreviousYear"
+                  name="revenuePreviousYear"
+                  value={formData.revenuePreviousYear || ''}
+                  onChange={handleInputChange}
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Production Capacity */}
           <div className="space-y-2 mb-6">
             <label className="block text-sm font-medium text-gray-900 mb-3">
@@ -441,6 +482,8 @@ BusinessInfoSection.propTypes = {
     otherBusinessTypeDetail: PropTypes.string,
     numberOfEmployees: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     registeredCapital: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    revenueLastYear: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    revenuePreviousYear: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     productionCapacityValue: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     productionCapacityUnit: PropTypes.string,
     salesDomestic: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),

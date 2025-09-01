@@ -269,7 +269,7 @@ export default function Navbar() {
                     transition={{ duration: 0.1 }}
                   >
                     <Link
-                      href="/dashboard"
+                      href="/dashboard?tab=documents"
                       className={`
                         px-4 py-2 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 
                         text-white rounded-lg font-semibold hover:shadow-lg 
@@ -429,7 +429,7 @@ export default function Navbar() {
                           whileTap={{ scale: 0.98 }}
                         >
                           <Link
-                            href="/dashboard"
+                            href="/dashboard?tab=documents"
                             className={`
                               px-4 py-3 bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 
                               text-white rounded-lg font-semibold w-full transition-all block text-center
