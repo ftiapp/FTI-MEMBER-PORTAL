@@ -10,7 +10,7 @@ export default function MemberSearchField({
   onSelectResult,
   hasError,
   errorMessage = 'กรุณาค้นหาสมาชิก',
-  verifiedCompanies = [],
+  verifiedCompanies = {},
   selectedCompanies = []
 }) {
   const [searchTerm, setSearchTerm] = useState(value || '');
@@ -38,8 +38,6 @@ export default function MemberSearchField({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
-
 
   // Function to perform search
   const performSearch = async (term) => {
@@ -150,11 +148,16 @@ export default function MemberSearchField({
           </div>
           <ul className="py-1">
             {searchResults.map((result, index) => {
+              // Normalize MEMBER_CODE for consistent lookups
+              const code = (result.MEMBER_CODE || '').trim();
+              const normalizedSelected = Array.isArray(selectedCompanies)
+                ? selectedCompanies.map(c => (c || '').trim())
+                : [];
               // Check if this company is already verified, pending, or selected
-              const isNonSelectable = verifiedCompanies && verifiedCompanies[result.MEMBER_CODE];
-              const status = isNonSelectable ? verifiedCompanies[result.MEMBER_CODE] : null;
-              const isSelected = selectedCompanies.includes(result.MEMBER_CODE);
-              const isDisabled = isNonSelectable || isSelected;
+              const isNonSelectable = verifiedCompanies && verifiedCompanies[code];
+              const status = isNonSelectable ? verifiedCompanies[code] : null;
+              const isSelected = normalizedSelected.includes(code);
+              const isDisabled = !!isNonSelectable || isSelected;
               
               return (
                 <li key={index}>

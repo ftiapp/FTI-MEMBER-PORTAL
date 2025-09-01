@@ -33,7 +33,7 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const { verifications, isLoading: verificationsLoading } = useVerificationStatus(userId);
   const productUpdates = useProductUpdateStatus(userId);
   const { socialMediaUpdates, isLoading: socialMediaLoading } = useSocialMediaStatus(userId);
-  const { logoUpdates, isLoading: logoLoading } = useLogoStatus(userId);
+  const { logoUpdates, loading: logoLoading } = useLogoStatus(userId);
   const { tsicUpdates, isLoading: tsicLoading } = useTsicStatus(userId);
   
   // Merge all operations

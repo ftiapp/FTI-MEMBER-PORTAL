@@ -36,14 +36,7 @@ export default function useLogoStatus(userId) {
       } catch (err) {
         console.error('useLogoStatus:', err);
         setError(err.message);
-        setLogoUpdates([{
-          id: Date.now(),
-          title: 'อัปเดตโลโก้บริษัท',
-          description: 'ไม่สามารถโหลดข้อมูลได้',
-          status: 'error',
-          created_at: new Date().toISOString(),
-          type: 'อัปเดตโลโก้บริษัท'
-        }]);
+        setLogoUpdates([]);
       } finally {
         setLoading(false);
       }

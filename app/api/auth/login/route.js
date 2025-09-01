@@ -4,10 +4,10 @@ import jwt from 'jsonwebtoken';
 import { query } from '@/app/lib/db';
 import { cookies } from 'next/headers';
 
-// Progressive rate limiter with increasing lockout times (following security best practices)
+// Progressive rate limiter with increasing lockout times (only increments on failed attempts)
 const rateLimit = {
   attempts: new Map(),
-  maxAttempts: 4, // 4 attempts before lockout
+  maxAttempts: 4, // 4 failed attempts before lockout
   captchaThreshold: 3, // Require CAPTCHA after 3 failed attempts
   lockoutLevels: [
     5 * 60 * 1000,   // 5 minutes for first lockout
@@ -15,70 +15,77 @@ const rateLimit = {
     30 * 60 * 1000,  // 30 minutes for third lockout
     60 * 60 * 1000,  // 1 hour for fourth and subsequent lockouts
   ],
-  
-  check(ip) {
+
+  // Get current status without incrementing counters
+  getStatus(key) {
     const now = Date.now();
-    const userAttempts = this.attempts.get(ip) || { 
-      count: 0, 
-      resetAt: 0, 
+    const userAttempts = this.attempts.get(key) || {
+      count: 0,
+      resetAt: 0,
       lockoutCount: 0,
       isLocked: false,
-      captchaRequired: false
+      captchaRequired: false,
     };
-    
-    // Reset counter if lockout period has expired
+
     if (userAttempts.isLocked && now > userAttempts.resetAt) {
+      // Lockout expired
       userAttempts.count = 0;
       userAttempts.isLocked = false;
-      // Keep captchaRequired true even after lockout expires
-      // User still needs to pass CAPTCHA after any lockout
+      // Keep captchaRequired true after a lockout only if there were multiple failures
+      // but allow it to be cleared on successful login via reset()
     }
-    
-    // If not locked, increment attempt counter
-    if (!userAttempts.isLocked) {
-      userAttempts.count++;
-      
-      // Check if CAPTCHA threshold reached
-      if (userAttempts.count >= this.captchaThreshold) {
-        userAttempts.captchaRequired = true;
-      }
-      
-      // Check if max attempts reached, apply lockout
-      if (userAttempts.count > this.maxAttempts) {
-        userAttempts.isLocked = true;
-        
-        // Determine lockout duration based on previous lockouts
-        const lockoutLevel = Math.min(userAttempts.lockoutCount, this.lockoutLevels.length - 1);
-        const lockoutDuration = this.lockoutLevels[lockoutLevel];
-        
-        userAttempts.resetAt = now + lockoutDuration;
-        userAttempts.lockoutCount++; // Increment for next time
-        userAttempts.count = 0; // Reset count for next window
-      }
-    }
-    
-    this.attempts.set(ip, userAttempts);
-    
+
+    // Persist any changes
+    this.attempts.set(key, userAttempts);
+
     return {
       limited: userAttempts.isLocked,
       remaining: userAttempts.isLocked ? 0 : Math.max(0, this.maxAttempts - userAttempts.count),
       resetAt: userAttempts.resetAt,
       lockoutCount: userAttempts.lockoutCount,
-      captchaRequired: userAttempts.captchaRequired
+      captchaRequired: userAttempts.captchaRequired,
     };
   },
-  
-  reset(ip) {
-    // On successful login, reset attempts but keep track of lockout history
-    const userAttempts = this.attempts.get(ip);
+
+  // Record a failed attempt
+  fail(key) {
+    const now = Date.now();
+    const userAttempts = this.attempts.get(key) || {
+      count: 0,
+      resetAt: 0,
+      lockoutCount: 0,
+      isLocked: false,
+      captchaRequired: false,
+    };
+
+    if (!userAttempts.isLocked) {
+      userAttempts.count += 1;
+      if (userAttempts.count >= this.captchaThreshold) {
+        userAttempts.captchaRequired = true;
+      }
+      if (userAttempts.count > this.maxAttempts) {
+        userAttempts.isLocked = true;
+        const lockoutLevel = Math.min(userAttempts.lockoutCount, this.lockoutLevels.length - 1);
+        const lockoutDuration = this.lockoutLevels[lockoutLevel];
+        userAttempts.resetAt = now + lockoutDuration;
+        userAttempts.lockoutCount += 1;
+        userAttempts.count = 0;
+      }
+    }
+    this.attempts.set(key, userAttempts);
+    return this.getStatus(key);
+  },
+
+  // On successful login, fully reset attempts and CAPTCHA requirement
+  reset(key) {
+    const userAttempts = this.attempts.get(key);
     if (userAttempts) {
       userAttempts.count = 0;
       userAttempts.isLocked = false;
-      this.attempts.set(ip, userAttempts);
-    } else {
-      this.attempts.delete(ip);
+      userAttempts.captchaRequired = false;
+      this.attempts.set(key, userAttempts);
     }
-  }
+  },
 };
 
 // Mock users สำหรับการทดสอบ
@@ -109,15 +116,19 @@ const mockUsers = [
 
 export async function POST(request) {
   try {
+    // Get request body first (so we can build a more specific rate limit key)
+    const body = await request.json();
+
     // Get client IP address from request headers
     const forwardedFor = request.headers.get('x-forwarded-for');
     const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown-ip';
-    
-    // Check rate limit
-    const rateLimitResult = rateLimit.check(ip);
-    
-    // Get request body
-    const body = await request.json();
+
+    // Build a tighter rate-limit key: IP + email to avoid global IP-wide CAPTCHA
+    const emailForKey = (body?.email || 'unknown-email').toLowerCase();
+    const rlKey = `${ip}:${emailForKey}`;
+
+    // Check rate limit status (no increment)
+    const rateLimitResult = rateLimit.getStatus(rlKey);
     
     if (rateLimitResult.limited) {
       // Calculate time remaining in minutes and seconds
@@ -200,6 +211,8 @@ export async function POST(request) {
 
     if (users.length === 0) {
       console.log('User not found:', email);
+      // Record failed attempt
+      rateLimit.fail(rlKey);
       return NextResponse.json(
         { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
         { status: 401 }
@@ -217,6 +230,8 @@ export async function POST(request) {
     });
 
     if (!isValidPassword) {
+      // Record failed attempt
+      rateLimit.fail(rlKey);
       return NextResponse.json(
         { error: 'อีเมลหรือรหัสผ่านไม่ถูกต้อง' },
         { status: 401 }
@@ -225,6 +240,7 @@ export async function POST(request) {
     
     // Check if email is verified
     if (!user.email_verified) {
+      // Do not count this as a failed password attempt
       return NextResponse.json(
         { 
           error: 'กรุณายืนยันอีเมลของคุณก่อนเข้าสู่ระบบ',
@@ -254,7 +270,7 @@ export async function POST(request) {
     const sessionId = `${Date.now()}_${user.id}`;
     
     // Reset rate limit after successful login
-    rateLimit.reset(ip);
+    rateLimit.reset(rlKey);
     
     // สร้าง response object
     const response = NextResponse.json({

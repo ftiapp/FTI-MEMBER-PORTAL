@@ -14,12 +14,7 @@ const useTsicStatus = (userId) => {
     const fetchTsicStatus = async () => {
       if (!userId) {
         setIsLoading(false);
-        setTsicUpdates([{
-          id: 'no-user-id',
-          status: 'none',
-          description: 'ไม่พบข้อมูลผู้ใช้',
-          created_at: new Date().toISOString()
-        }]);
+        setTsicUpdates([]);
         return;
       }
 
@@ -55,14 +50,7 @@ const useTsicStatus = (userId) => {
       } catch (err) {
         console.error('useTsicStatus:', err);
         setError(err.message);
-        setTsicUpdates([{
-          id: Date.now(),
-          title: 'อัปเดตรหัส TSIC',
-          description: 'ไม่สามารถโหลดข้อมูลได้',
-          status: 'error',
-          created_at: new Date().toISOString(),
-          type: 'อัปเดตรหัส TSIC'
-        }]);
+        setTsicUpdates([]);
       } finally {
         setIsLoading(false);
       }

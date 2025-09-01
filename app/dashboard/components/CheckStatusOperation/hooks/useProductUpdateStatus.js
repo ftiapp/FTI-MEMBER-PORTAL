@@ -34,27 +34,13 @@ const useProductUpdateStatus = (userId) => {
         if (data.success && Array.isArray(data.updates) && data.updates.length > 0) {
           setProductUpdates(data.updates);
         } else {
-          // Create a placeholder if no product updates found
-          setProductUpdates([{
-            id: Date.now(),
-            title: 'แก้ไขข้อมูลสินค้า',
-            description: 'คุณยังไม่มีคำขอแก้ไขข้อมูลสินค้า',
-            status: 'none',
-            created_at: new Date().toISOString(),
-            type: 'แก้ไขข้อมูลสินค้า'
-          }]);
+          // No updates -> leave empty so nothing renders
+          setProductUpdates([]);
         }
       })
       .catch(error => {
         console.error('Error fetching product update status:', error);
-        setProductUpdates([{
-          id: Date.now(),
-          title: 'แก้ไขข้อมูลสินค้า',
-          description: 'ไม่สามารถดึงข้อมูลสถานะการแก้ไขข้อมูลสินค้าได้',
-          status: 'error',
-          created_at: new Date().toISOString(),
-          type: 'แก้ไขข้อมูลสินค้า'
-        }]);
+        setProductUpdates([]);
       });
   }, [userId]);
 

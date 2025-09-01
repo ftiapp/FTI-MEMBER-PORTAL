@@ -6,7 +6,6 @@ import { mssqlQuery } from '@/app/lib/mssql';
 export async function POST(request) {
   try {
     const formData = await request.formData();
-    
     // Extract form data
     const userId = formData.get('userId');
     const memberNumber = formData.get('memberNumber');
@@ -26,6 +25,9 @@ export async function POST(request) {
     const documentType = formData.get('documentType');
     const documentFile = formData.get('documentFile');
     
+    // Normalize MEMBER_CODE to avoid whitespace issues (after extraction)
+    const trimmedMemberNumber = (memberNumber || '').trim();
+    
     // Validate required fields
     if (!userId || !memberNumber || !memberType || !companyName || !taxId || !documentFile) {
       return NextResponse.json(
@@ -37,7 +39,7 @@ export async function POST(request) {
     // Check if MEMBER_CODE is already used by another user (only check pending or approved records)
     const existingMemberOtherUser = await query(
       `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
-      [memberNumber, userId]
+      [trimmedMemberNumber, userId]
     );
     
     if (existingMemberOtherUser.length > 0) {
@@ -50,7 +52,7 @@ export async function POST(request) {
     // Check if current user has already submitted this MEMBER_CODE (only check pending or approved records)
     const existingMemberSameUser = await query(
       `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
-      [memberNumber, userId]
+      [trimmedMemberNumber, userId]
     );
     
     if (existingMemberSameUser.length > 0) {
@@ -102,7 +104,7 @@ export async function POST(request) {
       `INSERT INTO companies_Member 
        (user_id, MEMBER_CODE, COMP_PERSON_CODE, REGIST_CODE, MEMBER_DATE, company_name, company_type, tax_id, Admin_Submit) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
-      [userId, memberNumber, compPersonCode, registCode, memberDate || null, companyName, memberType, taxId]
+      [userId, trimmedMemberNumber, compPersonCode, registCode, memberDate || null, companyName, memberType, taxId]
     );
     
     // Save document information to database
@@ -110,7 +112,7 @@ export async function POST(request) {
       `INSERT INTO documents_Member 
        (user_id, MEMBER_CODE, document_type, file_name, file_path, status, Admin_Submit) 
        VALUES (?, ?, ?, ?, ?, 'pending', 0)`,
-      [userId, memberNumber, documentType || 'other', fileName, uploadResult.url]
+      [userId, trimmedMemberNumber, documentType || 'other', fileName, uploadResult.url]
     );
     
     // Log the activity

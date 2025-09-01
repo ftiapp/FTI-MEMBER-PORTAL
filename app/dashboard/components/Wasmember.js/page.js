@@ -113,10 +113,10 @@ export default function WasMember() {
     
     setSubmissions(paginatedResults);
     
-    // Extract verified companies for preventing re-selection
+    // Extract verified companies for preventing re-selection (trimmed)
     const verified = filteredResults
       .filter(item => item.status === 'approved')
-      .map(item => item.memberNumber);
+      .map(item => (item.memberNumber || '').trim());
     setVerifiedCompanies(verified);
   }, [allSubmissions, statusFilter, typeFilter, searchTerm, currentPage, itemsPerPage]);
 
@@ -259,40 +259,76 @@ export default function WasMember() {
               formattedSubmissions.forEach(sub => {
                 // ใช้ updated_at หรือ created_at เป็นตัวเปรียบเทียบแทน id
                 const subDate = sub.updated_at ? new Date(sub.updated_at) : new Date(sub.created_at);
-                const currentLatest = latestSubmissionByMemberCode[sub.memberNumber];
+                const code = (sub.memberNumber || '').trim();
+                const currentLatest = latestSubmissionByMemberCode[code];
                 const currentLatestDate = currentLatest ? 
                   (currentLatest.updated_at ? new Date(currentLatest.updated_at) : new Date(currentLatest.created_at)) : 
                   new Date(0);
                 
                 // ถ้ายังไม่มีรายการสำหรับรหัสสมาชิกนี้ หรือรายการนี้ใหม่กว่ารายการที่มีอยู่
                 if (!currentLatest || subDate > currentLatestDate) {
-                  latestSubmissionByMemberCode[sub.memberNumber] = sub;
-                  console.log(`Found newer submission for ${sub.memberNumber}: ${subDate} > ${currentLatestDate}`);
+                  latestSubmissionByMemberCode[code] = sub;
+                  console.log(`Found newer submission for ${code}: ${subDate} > ${currentLatestDate}`);
                 }
               });
               
-              // Create an object with member code as key and status as value
+              // Create an object with member code as key and status as value (user's own)
               const nonSelectableCompaniesWithStatus = {};
               Object.keys(latestSubmissionByMemberCode).forEach(memberCode => {
-                const latestSubmission = latestSubmissionByMemberCode[memberCode];
+                const key = (memberCode || '').trim();
+                const latestSubmission = latestSubmissionByMemberCode[key];
                 // Check if the latest submission has Admin_Submit = 0 or 1
                 if (latestSubmission.adminSubmit === 0 || latestSubmission.adminSubmit === 1) {
-                  nonSelectableCompaniesWithStatus[memberCode] = latestSubmission.adminSubmit === 0 ? 'pending' : 'approved';
+                  nonSelectableCompaniesWithStatus[key] = latestSubmission.adminSubmit === 0 ? 'pending' : 'approved';
                 }
               });
               
-              // Get array of member codes that cannot be selected
-              const nonSelectableCompanies = Object.keys(nonSelectableCompaniesWithStatus);
-              
-              console.log('Latest submission by member code:', latestSubmissionByMemberCode);
-              console.log('Non-selectable companies with status:', nonSelectableCompaniesWithStatus);
-              console.log('Non-selectable companies:', nonSelectableCompanies);
-              setNonSelectableCompanies(nonSelectableCompaniesWithStatus);
+              // Merge with global non-selectable (pending/approved across ALL users)
+              try {
+                const globalRes = await fetch('/api/member/global-nonselectable');
+                let mergedMap = { ...nonSelectableCompaniesWithStatus };
+                if (globalRes.ok) {
+                  const globalData = await globalRes.json();
+                  const globalMap = globalData?.nonSelectable || {};
+                  // Merge with priority for 'approved' over 'pending'
+                  Object.keys(globalMap).forEach(code => {
+                    const status = globalMap[code];
+                    if (!mergedMap[code] || mergedMap[code] === 'pending') {
+                      mergedMap[code] = status;
+                    }
+                  });
+                }
+                const nonSelectableCompanies = Object.keys(mergedMap);
+                console.log('Latest submission by member code (trimmed keys):', latestSubmissionByMemberCode);
+                console.log('User non-selectable (trimmed keys):', nonSelectableCompaniesWithStatus);
+                console.log('Global non-selectable merged:', mergedMap);
+                console.log('Non-selectable companies:', nonSelectableCompanies);
+                setNonSelectableCompanies(mergedMap);
+              } catch (mergeErr) {
+                console.warn('Failed to fetch/merge global non-selectable, using user map only', mergeErr);
+                const nonSelectableCompanies = Object.keys(nonSelectableCompaniesWithStatus);
+                console.log('Non-selectable companies (user only):', nonSelectableCompanies);
+                setNonSelectableCompanies(nonSelectableCompaniesWithStatus);
+              }
               
               // Initial submissions will be filtered and paginated in useEffect
             } else {
               setAllSubmissions([]);
               setSubmissions([]);
+              // No user submissions; still fetch global non-selectable
+              try {
+                const globalRes = await fetch('/api/member/global-nonselectable');
+                if (globalRes.ok) {
+                  const globalData = await globalRes.json();
+                  const globalMap = globalData?.nonSelectable || {};
+                  setNonSelectableCompanies(globalMap);
+                } else {
+                  setNonSelectableCompanies({});
+                }
+              } catch (e) {
+                console.warn('Failed to fetch global non-selectable when no submissions');
+                setNonSelectableCompanies({});
+              }
             }
           }
         } catch (submissionsError) {
@@ -317,7 +353,8 @@ export default function WasMember() {
     
     if (editingCompanyIndex === null) {
       // Only check for duplicates when adding a new company, not when editing
-      isDuplicate = companies.some(company => company.memberNumber === formSubmitData.memberNumber);
+      const newCode = (formSubmitData.memberNumber || '').trim();
+      isDuplicate = companies.some(company => (company.memberNumber || '').trim() === newCode);
     }
     
     if (isDuplicate) {
@@ -325,9 +362,10 @@ export default function WasMember() {
       return;
     }
     
-    // Check if the company is already verified or pending
-    if (nonSelectableCompanies && nonSelectableCompanies[formSubmitData.memberNumber]) {
-      const status = nonSelectableCompanies[formSubmitData.memberNumber];
+    // Check if the company is already verified or pending (by trimmed MEMBER_CODE only)
+    const checkCode = (formSubmitData.memberNumber || '').trim();
+    if (nonSelectableCompanies && nonSelectableCompanies[checkCode]) {
+      const status = nonSelectableCompanies[checkCode];
       const statusText = status === 'pending' ? 'รอการอนุมัติ' : 'ยืนยันแล้ว';
       toast.error(`บริษัทนี้มีสถานะ ${statusText} ไม่สามารถเพิ่มซ้ำได้`);
       return;
@@ -342,7 +380,7 @@ export default function WasMember() {
     const newCompany = {
       id: editingCompanyIndex !== null ? companies[editingCompanyIndex].id : Date.now(), // Keep same ID when editing
       memberSearch: formSubmitData.memberSearch,
-      memberNumber: formSubmitData.memberNumber,
+      memberNumber: (formSubmitData.memberNumber || '').trim(),
       compPersonCode: formSubmitData.compPersonCode,
       registCode: formSubmitData.registCode,
       memberType: formSubmitData.memberType,
@@ -564,22 +602,33 @@ export default function WasMember() {
           memberType: company.memberType,
           companyName: company.companyName,
           taxId: company.taxId,
-          status: 'pending'
+          status: 'pending',
+          adminSubmit: 0 // เพิ่มฟิลด์นี้เพื่อใช้ในการตรวจสอบสถานะ
         }));
         
         // Add to allSubmissions and let the filter useEffect handle the rest
         setAllSubmissions(prev => [...prev, ...newSubmissions]);
         
+        // อัปเดต nonSelectableCompanies ทันทีหลังจากส่งข้อมูล
+        const updatedNonSelectableCompanies = { ...nonSelectableCompanies };
+        companies.forEach(company => {
+          const code = (company.memberNumber || '').trim();
+          updatedNonSelectableCompanies[code] = 'pending';
+        });
+        setNonSelectableCompanies(updatedNonSelectableCompanies);
+        
         // Reset state
         setCompanies([]);
         setCurrentStep(4); // Move to success step
       } else {
-        // Show error message for failed submissions
-        const failedCompanies = results
-          .map((result, index) => !result.success ? companies[index].memberNumber : null)
-          .filter(Boolean);
-        
-        toast.error(`ไม่สามารถส่งข้อมูลบางบริษัทได้: ${failedCompanies.join(', ')}`);
+        // Show specific popup for each failed company
+        results.forEach((result, index) => {
+          if (!result.success) {
+            const code = (companies[index]?.memberNumber || '').trim();
+            // Provide a clear message for duplicate/pending/approved cases
+            toast.error(`รหัสสมาชิก ${code} อยู่ระหว่างพิจารณา หรือได้รับการยืนยันสมาชิกเดิม`);
+          }
+        });
       }
     } catch (error) {
       console.error('Error submitting forms:', error);

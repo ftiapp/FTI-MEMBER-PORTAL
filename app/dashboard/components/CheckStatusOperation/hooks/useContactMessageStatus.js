@@ -10,7 +10,12 @@ const useContactMessageStatus = (userId) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      // Clear state when no user
+      setContactMessageStatus([]);
+      setIsLoading(false);
+      return;
+    }
     
     setIsLoading(true);
     console.log('Fetching contact message status for user:', userId);
@@ -43,29 +48,14 @@ const useContactMessageStatus = (userId) => {
           }));
           setContactMessageStatus(contactMessages);
         } else {
-          // แม้ไม่มีข้อความก็ให้แสดงสถานะว่าไม่มีข้อความ
-          console.log('No contact messages found, creating placeholder');
-          setContactMessageStatus([{
-            id: Date.now(),
-            title: 'ติดต่อเจ้าหน้าที่',
-            description: 'คุณยังไม่มีการติดต่อเจ้าหน้าที่',
-            status: 'none',
-            created_at: new Date().toISOString(),
-            type: 'ติดต่อเจ้าหน้าที่'
-          }]);
+          // No messages: return empty list (no placeholders)
+          setContactMessageStatus([]);
         }
       })
       .catch(error => {
         console.error('Error fetching contact message status:', error);
-        // แม้มี error ก็ให้แสดงสถานะว่าไม่มีข้อความ
-        setContactMessageStatus([{
-          id: Date.now(),
-          title: 'ติดต่อเจ้าหน้าที่',
-          description: 'ไม่สามารถดึงข้อมูลสถานะการติดต่อได้',
-          status: 'error',
-          created_at: new Date().toISOString(),
-          type: 'ติดต่อเจ้าหน้าที่'
-        }]);
+        // On error: return empty list (no placeholders)
+        setContactMessageStatus([]);
       })
       .finally(() => {
         setIsLoading(false);

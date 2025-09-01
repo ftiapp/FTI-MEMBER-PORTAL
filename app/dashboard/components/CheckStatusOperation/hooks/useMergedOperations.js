@@ -42,7 +42,7 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
       mergedOps = [...verificationOps];
     }
     
-    // Add all contact messages as operation cards
+    // Add all contact messages as operation cards (ignore placeholders)
     if (contactMessageStatus && contactMessageStatus.length > 0) {
       // Filter out any contact messages that might already exist in initialOperations
       const existingContactIds = new Set(
@@ -52,7 +52,8 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
       );
       
       const newContactMessages = contactMessageStatus
-        .filter(msg => !existingContactIds.has(msg.id));
+        .filter(msg => !existingContactIds.has(msg.id))
+        .filter(msg => msg.status !== 'none' && msg.status !== 'error');
         
       // Add all contact messages to the operations list without special priority
       mergedOps = [...mergedOps, ...newContactMessages];
@@ -82,20 +83,7 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
           type: 'แก้ไขข้อมูลสมาชิก'
         }));
       
-      // Add placeholder if no actual address updates
-      if (addressUpdateOps.length === 0 && addressUpdates.some(update => update.status === 'none' || update.status === 'error')) {
-        const placeholder = addressUpdates.find(update => update.status === 'none' || update.status === 'error');
-        if (placeholder) {
-          addressUpdateOps.push({
-            id: placeholder.id,
-            title: 'แก้ไขข้อมูลสมาชิก',
-            description: placeholder.description || 'สถานะการแก้ไขที่อยู่',
-            status: placeholder.status,
-            created_at: placeholder.created_at,
-            type: 'แก้ไขข้อมูลสมาชิก'
-          });
-        }
-      }
+      
       
       // Add all address updates to the operations list
       mergedOps = [...addressUpdateOps, ...mergedOps];
@@ -127,20 +115,7 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
           type: 'แก้ไขข้อมูลสินค้า'
         }));
       
-      // Add placeholder if no actual product updates
-      if (productUpdateOps.length === 0 && productUpdates.some(update => update.status === 'none' || update.status === 'error')) {
-        const placeholder = productUpdates.find(update => update.status === 'none' || update.status === 'error');
-        if (placeholder) {
-          productUpdateOps.push({
-            id: placeholder.id,
-            title: 'แก้ไขข้อมูลสินค้า',
-            description: placeholder.description || 'สถานะการแก้ไขข้อมูลสินค้า',
-            status: placeholder.status,
-            created_at: placeholder.created_at,
-            type: 'แก้ไขข้อมูลสินค้า'
-          });
-        }
-      }
+      
       
       // Add all product updates to the operations list
       mergedOps = [...productUpdateOps, ...mergedOps];
@@ -169,20 +144,7 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
           type: 'อัปเดตโซเชียลมีเดีย'
         }));
       
-      // Add placeholder if no actual social media updates
-      if (socialMediaOps.length === 0 && socialMediaUpdates.some(update => update.status === 'none' || update.status === 'error')) {
-        const placeholder = socialMediaUpdates.find(update => update.status === 'none' || update.status === 'error');
-        if (placeholder) {
-          socialMediaOps.push({
-            id: placeholder.id,
-            title: 'อัปเดตโซเชียลมีเดีย',
-            description: placeholder.description || 'คุณยังไม่มีการอัปเดตโซเชียลมีเดีย',
-            status: placeholder.status,
-            created_at: placeholder.created_at,
-            type: 'อัปเดตโซเชียลมีเดีย'
-          });
-        }
-      }
+      
       
       // Add all social media updates to the operations list
       mergedOps = [...socialMediaOps, ...mergedOps];
@@ -212,20 +174,7 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
           type: 'อัปเดตโลโก้บริษัท'
         }));
       
-      // Add placeholder if no actual logo updates
-      if (logoOps.length === 0 && logoUpdates.some(update => update.status === 'none' || update.status === 'error')) {
-        const placeholder = logoUpdates.find(update => update.status === 'none' || update.status === 'error');
-        if (placeholder) {
-          logoOps.push({
-            id: placeholder.id,
-            title: 'อัปเดตโลโก้บริษัท',
-            description: placeholder.description || 'คุณยังไม่มีการอัปเดตโลโก้บริษัท',
-            status: placeholder.status,
-            created_at: placeholder.created_at,
-            type: 'อัปเดตโลโก้บริษัท'
-          });
-        }
-      }
+      
       
       // Add all logo updates to the operations list
       mergedOps = [...logoOps, ...mergedOps];
@@ -279,20 +228,7 @@ const useMergedOperations = (initialOperations, contactMessageStatus, verificati
         });
       });
       
-      // Add placeholder if no actual TSIC updates
-      if (tsicOps.length === 0 && tsicUpdates.some(update => update.status === 'none' || update.status === 'error')) {
-        const placeholder = tsicUpdates.find(update => update.status === 'none' || update.status === 'error');
-        if (placeholder) {
-          tsicOps.push({
-            id: placeholder.id,
-            title: 'อัปเดตรหัส TSIC',
-            description: placeholder.description || 'คุณยังไม่มีการอัปเดตรหัส TSIC',
-            status: placeholder.status,
-            created_at: placeholder.created_at,
-            type: 'อัปเดตรหัส TSIC'
-          });
-        }
-      }
+      
       
       // Add all TSIC updates to the operations list
       mergedOps = [...tsicOps, ...mergedOps];
