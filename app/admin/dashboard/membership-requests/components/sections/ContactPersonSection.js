@@ -83,6 +83,21 @@ const ContactPersonSection = ({ application, onUpdate }) => {
     return 'ไม่ระบุประเภท';
   };
   
+  // Resolve prename (TH/EN) with support for "Other"
+  const resolvePrename = (th, en, other, lang = 'th') => {
+    const normTh = (th || '').trim();
+    const normEn = (en || '').trim();
+    const normOther = (other || '').trim();
+    if (lang === 'th') {
+      if (!normTh && !normOther) return '';
+      if (/^อื่นๆ$/i.test(normTh) || /^other$/i.test(normEn)) return normOther || '';
+      return normTh || normOther || '';
+    }
+    if (!normEn && !normOther) return '';
+    if (/^other$/i.test(normEn) || /^อื่นๆ$/i.test(normTh)) return normOther || '';
+    return normEn || normOther || '';
+  };
+  
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
@@ -145,7 +160,12 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                   placeholder="ชื่อ (ไทย)"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.first_name_th || contact.firstNameTh || '-'}</p>
+                <p className="text-lg text-gray-900">{
+                  [
+                    resolvePrename(contact.prename_th || contact.prenameTh, contact.prename_en || contact.prenameEn, contact.prename_other || contact.prenameOther, 'th'),
+                    contact.first_name_th || contact.firstNameTh
+                  ].filter(Boolean).join(' ') || '-'
+                }</p>
               )}
             </div>
             <div>
@@ -173,7 +193,12 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                   placeholder="ชื่อ (อังกฤษ)"
                 />
               ) : (
-                <p className="text-lg text-gray-900">{contact.first_name_en || contact.firstNameEn || '-'}</p>
+                <p className="text-lg text-gray-900">{
+                  [
+                    resolvePrename(contact.prename_th || contact.prenameTh, contact.prename_en || contact.prenameEn, contact.prename_other || contact.prenameOther, 'en'),
+                    contact.first_name_en || contact.firstNameEn
+                  ].filter(Boolean).join(' ') || '-'
+                }</p>
               )}
             </div>
             <div>

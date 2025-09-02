@@ -50,7 +50,7 @@ export default function WasMember() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isAddingMore, setIsAddingMore] = useState(false);
   const [editingCompanyIndex, setEditingCompanyIndex] = useState(null);
-  const MAX_COMPANIES = 10;
+  const MAX_COMPANIES = 5;
   
   const [submissions, setSubmissions] = useState([]);
   const [allSubmissions, setAllSubmissions] = useState([]);
@@ -75,6 +75,18 @@ export default function WasMember() {
   // State to track verified companies (to prevent re-selection)
   const [verifiedCompanies, setVerifiedCompanies] = useState([]);
   const [nonSelectableCompanies, setNonSelectableCompanies] = useState([]);
+
+  // Helper: fetch with timeout to avoid hanging UI when backend stalls
+  const fetchWithTimeout = async (url, options = {}, timeoutMs = 60000) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetch(url, { ...options, signal: controller.signal });
+      return res;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
   
   // For debugging
   useEffect(() => {
@@ -540,11 +552,14 @@ export default function WasMember() {
       // Show loading toast
       const loadingToast = toast.loading('กำลังส่งข้อมูล โปรดรอสักครู่...');
       
-      // Create an array of promises for each company submission
-      const submissionPromises = companies.map(async (company) => {
+      // Sequential submission to reduce load on Production
+      const results = [];
+      for (let i = 0; i < companies.length; i++) {
+        const company = companies[i];
         const data = new FormData();
         data.append('userId', user?.id || '');
-        data.append('memberNumber', company.memberNumber);
+        const trimmedMemberNumber = (company.memberNumber || '').trim();
+        data.append('memberNumber', trimmedMemberNumber);
         data.append('compPersonCode', company.compPersonCode);
         data.append('registCode', company.registCode);
         data.append('memberType', company.memberType);
@@ -553,12 +568,11 @@ export default function WasMember() {
         data.append('documentFile', company.documentFile);
 
         try {
-          const response = await fetch('/api/member/submit', {
+          const response = await fetchWithTimeout('/api/member/submit', {
             method: 'POST',
             body: data
-          });
+          }, 60000);
 
-          // Normalize result even on non-OK or non-JSON responses
           let result;
           if (response.headers.get('content-type')?.includes('application/json')) {
             try {
@@ -569,15 +583,20 @@ export default function WasMember() {
           } else {
             result = { success: response.ok, message: `HTTP ${response.status}` };
           }
-          return result;
+          if (!response.ok && response.status === 503) {
+            result.message = 'เซิร์ฟเวอร์ไม่พร้อมให้บริการ (503) กรุณาลองใหม่ภายหลัง';
+          }
+          results.push(result);
         } catch (err) {
           console.error('Submit request failed:', err);
-          return { success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว' };
+          const isAbort = typeof err?.name === 'string' && err.name === 'AbortError';
+          if (isAbort) {
+            results.push({ success: false, message: 'หมดเวลาเชื่อมต่อ (60 วินาที) โปรดลองอีกครั้ง' });
+          } else {
+            results.push({ success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว' });
+          }
         }
-      });
-      
-      // Wait for all submissions to complete
-      const results = await Promise.all(submissionPromises);
+      }
       
       // Dismiss loading toast
       toast.dismiss(loadingToast);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -21,6 +21,16 @@ import MembershipDocuments from './components/MembershipDocuments';
 export default function Dashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
+
+  // Early return BEFORE any hooks to prevent hook order issues
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState('ข้อมูลผู้ใช้งาน');
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -33,11 +43,13 @@ export default function Dashboard() {
   const [docsLastSeenAt, setDocsLastSeenAt] = useState(null);
   const [docsLastSeenLoaded, setDocsLastSeenLoaded] = useState(false);
   
-  // Create refs for menu items
-  const menuRefs = {
-    'ติดต่อเรา/แจ้งปัญหาการใช้งาน': useRef(null),
-    'ข้อมูลสมาชิก': useRef(null)
-  };
+  // Create refs for menu items (define refs individually to keep hook order stable)
+  const contactMenuRef = useRef(null);
+  const memberMenuRef = useRef(null);
+  const menuRefs = useMemo(() => ({
+    'ติดต่อเรา / แจ้งปัญหาการใช้งาน': contactMenuRef,
+    'ข้อมูลสมาชิก': memberMenuRef
+  }), [contactMenuRef, memberMenuRef]);
 
   // Menu items configuration
   const menuItems = [
@@ -177,20 +189,23 @@ export default function Dashboard() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, []);
 
+  // Extract messageId for Contact tab without computing it during render
+  const [contactMessageId, setContactMessageId] = useState(null);
+  useEffect(() => {
+    try {
+      const searchParams = new URLSearchParams(window.location.search);
+      setContactMessageId(searchParams.get('messageId'));
+    } catch (e) {
+      // ignore
+    }
+  }, []);
+
   // Authentication check
   useEffect(() => {
     if (!user) {
       router.push('/login');
     }
   }, [user, router]);
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   // Handle menu click
   const handleMenuClick = (item) => {
@@ -388,11 +403,7 @@ export default function Dashboard() {
       'เอกสารสมัครสมาชิก': <MembershipDocuments />,
       'เอกสารยืนยันสมาชิก': <MembershipCertificate />,
       'สถานะการดำเนินการ': <CheckStatusOperation />,
-      'ติดต่อเรา / แจ้งปัญหาการใช้งาน': (() => {
-        const searchParams = new URLSearchParams(window.location.search);
-        const messageId = searchParams.get('messageId');
-        return <ContactUs messageId={messageId} />;
-      })()
+      'ติดต่อเรา / แจ้งปัญหาการใช้งาน': <ContactUs messageId={contactMessageId} />
     };
 
     const content = contentMap[activeTab] || <p>เนื้อหาสำหรับ {activeTab} จะแสดงที่นี่</p>;

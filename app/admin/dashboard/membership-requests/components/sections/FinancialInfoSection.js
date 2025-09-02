@@ -10,7 +10,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
     salesDomestic: application?.salesDomestic || '',
     salesExport: application?.salesExport || '',
     shareholderThaiPercent: application?.shareholderThaiPercent || '',
-    shareholderForeignPercent: application?.shareholderForeignPercent || ''
+    shareholderForeignPercent: application?.shareholderForeignPercent || '',
+    revenueLastYear: application?.revenueLastYear || '',
+    revenuePreviousYear: application?.revenuePreviousYear || ''
   });
   
   if (!application || type === 'ic') return null;
@@ -20,7 +22,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
                           application.salesDomestic ||
                           application.salesExport ||
                           application.shareholderThaiPercent ||
-                          application.shareholderForeignPercent;
+                          application.shareholderForeignPercent ||
+                          application.revenueLastYear ||
+                          application.revenuePreviousYear;
   
   if (!hasFinancialData && !isEditing) return null;
   
@@ -33,7 +37,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
       salesDomestic: application?.salesDomestic || '',
       salesExport: application?.salesExport || '',
       shareholderThaiPercent: application?.shareholderThaiPercent || '',
-      shareholderForeignPercent: application?.shareholderForeignPercent || ''
+      shareholderForeignPercent: application?.shareholderForeignPercent || '',
+      revenueLastYear: application?.revenueLastYear || '',
+      revenuePreviousYear: application?.revenuePreviousYear || ''
     });
   };
 
@@ -117,6 +123,50 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมต่อปี - ปีล่าสุด</p>
+          {isEditing ? (
+            <div className="flex items-center">
+              <input
+                type="number"
+                value={editData.revenueLastYear}
+                onChange={(e) => updateField('revenueLastYear', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ปีล่าสุด"
+                min="0"
+                step="0.01"
+              />
+              <span className="ml-2 text-gray-600">ล้านบาท</span>
+            </div>
+          ) : (
+            application.revenueLastYear && (
+              <p className="text-lg text-gray-900">{`${formatNumber(application.revenueLastYear)} ล้านบาท`}</p>
+            )
+          )}
+        </div>
+
+        <div>
+          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมต่อปี - ปีก่อนหน้า</p>
+          {isEditing ? (
+            <div className="flex items-center">
+              <input
+                type="number"
+                value={editData.revenuePreviousYear}
+                onChange={(e) => updateField('revenuePreviousYear', e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ปีก่อนหน้า"
+                min="0"
+                step="0.01"
+              />
+              <span className="ml-2 text-gray-600">ล้านบาท</span>
+            </div>
+          ) : (
+            application.revenuePreviousYear && (
+              <p className="text-lg text-gray-900">{`${formatNumber(application.revenuePreviousYear)} ล้านบาท`}</p>
+            )
+          )}
+        </div>
+
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">ทุนจดทะเบียน</p>
           {isEditing ? (

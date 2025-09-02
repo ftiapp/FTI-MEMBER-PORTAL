@@ -141,6 +141,10 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('representativeEmail', formData.representative.email || '');
       formDataToSubmit.append('representativePhone', formData.representative.phone || '');
       formDataToSubmit.append('representativePhoneExtension', formData.representative.phoneExtension || '');
+      // ✅ Add prename fields (object form)
+      formDataToSubmit.append('representativePrenameTh', formData.representative.prenameTh || '');
+      formDataToSubmit.append('representativePrenameEn', formData.representative.prenameEn || '');
+      formDataToSubmit.append('representativePrenameOther', formData.representative.prenameOther || '');
       console.log('Representative data from object:', formData.representative);
     } else {
       // รูปแบบเก่า (แบบ flat)
@@ -151,6 +155,10 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('representativeEmail', formData.representativeEmail || '');
       formDataToSubmit.append('representativePhone', formData.representativePhone || '');
       formDataToSubmit.append('representativePhoneExtension', formData.representativePhoneExtension || '');
+      // ✅ Add prename fields (flat fallback)
+      formDataToSubmit.append('representativePrenameTh', formData.representativePrenameTh || '');
+      formDataToSubmit.append('representativePrenameEn', formData.representativePrenameEn || '');
+      formDataToSubmit.append('representativePrenameOther', formData.representativePrenameOther || '');
       console.log('Representative data from flat structure');
     }
     

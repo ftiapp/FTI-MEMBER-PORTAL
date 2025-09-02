@@ -4,7 +4,7 @@ import { verifyAdminPassword, createAdminSession, logAdminAction } from '@/app/l
 // Progressive rate limiter with increasing lockout times (following security best practices)
 const rateLimit = {
   attempts: new Map(),
-  maxAttempts: 4, // 4 attempts before lockout
+  maxAttempts: 4, // 4 failed attempts before lockout
   captchaThreshold: 3, // Require CAPTCHA after 3 failed attempts
   lockoutLevels: [
     5 * 60 * 1000,   // 5 minutes for first lockout
@@ -12,88 +12,100 @@ const rateLimit = {
     30 * 60 * 1000,  // 30 minutes for third lockout
     60 * 60 * 1000,  // 1 hour for fourth and subsequent lockouts
   ],
-  
-  check(ip) {
+
+  // Get current state without mutating counts (used before verifying credentials)
+  inspect(ip) {
     const now = Date.now();
-    const userAttempts = this.attempts.get(ip) || { 
-      count: 0, 
-      resetAt: 0, 
+    const userAttempts = this.attempts.get(ip) || {
+      count: 0,
+      resetAt: 0,
       lockoutCount: 0,
       isLocked: false,
-      captchaRequired: false
+      captchaRequired: false,
     };
-    
-    // Reset counter if lockout period has expired
+
+    // If lockout expired, clear lock but keep captchaRequired state
     if (userAttempts.isLocked && now > userAttempts.resetAt) {
-      userAttempts.count = 0;
       userAttempts.isLocked = false;
-      // Keep captchaRequired true even after lockout expires
-      // User still needs to pass CAPTCHA after any lockout
+      userAttempts.count = 0;
+      this.attempts.set(ip, userAttempts);
     }
-    
-    // If not locked, increment attempt counter
+
+    return {
+      limited: userAttempts.isLocked,
+      remaining: userAttempts.isLocked
+        ? 0
+        : Math.max(0, this.maxAttempts - userAttempts.count),
+      resetAt: userAttempts.resetAt,
+      lockoutCount: userAttempts.lockoutCount,
+      captchaRequired: userAttempts.captchaRequired,
+    };
+  },
+
+  // Record a failed attempt and update state
+  recordFailure(ip) {
+    const now = Date.now();
+    const userAttempts = this.attempts.get(ip) || {
+      count: 0,
+      resetAt: 0,
+      lockoutCount: 0,
+      isLocked: false,
+      captchaRequired: false,
+    };
+
     if (!userAttempts.isLocked) {
-      userAttempts.count++;
-      
-      // Check if CAPTCHA threshold reached
+      userAttempts.count += 1;
+
       if (userAttempts.count >= this.captchaThreshold) {
         userAttempts.captchaRequired = true;
       }
-      
-      // Check if max attempts reached, apply lockout
+
       if (userAttempts.count > this.maxAttempts) {
         userAttempts.isLocked = true;
-        
-        // Determine lockout duration based on previous lockouts
-        const lockoutLevel = Math.min(userAttempts.lockoutCount, this.lockoutLevels.length - 1);
+        const lockoutLevel = Math.min(
+          userAttempts.lockoutCount,
+          this.lockoutLevels.length - 1
+        );
         const lockoutDuration = this.lockoutLevels[lockoutLevel];
-        
         userAttempts.resetAt = now + lockoutDuration;
-        userAttempts.lockoutCount++; // Increment for next time
-        userAttempts.count = 0; // Reset count for next window
+        userAttempts.lockoutCount += 1;
+        userAttempts.count = 0; // reset window after lockout starts
       }
     }
-    
+
     this.attempts.set(ip, userAttempts);
-    
-    return {
-      limited: userAttempts.isLocked,
-      remaining: userAttempts.isLocked ? 0 : Math.max(0, this.maxAttempts - userAttempts.count),
-      resetAt: userAttempts.resetAt,
-      lockoutCount: userAttempts.lockoutCount,
-      captchaRequired: userAttempts.captchaRequired
-    };
+    return this.inspect(ip);
   },
-  
+
   reset(ip) {
-    // On successful login, reset attempts but keep track of lockout history
     const userAttempts = this.attempts.get(ip);
     if (userAttempts) {
       userAttempts.count = 0;
       userAttempts.isLocked = false;
+      // Keep captchaRequired as-is; success path will naturally pass without CAPTCHA next time
       this.attempts.set(ip, userAttempts);
-    } else {
-      this.attempts.delete(ip);
     }
-  }
+  },
 };
 
 export async function POST(request) {
   try {
-    // Get client IP address from request headers
+    // Get client IP address from request headers (try multiple headers, fallback distinct per session if possible)
     const forwardedFor = request.headers.get('x-forwarded-for');
-    const ip = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown-ip';
-    
-    // Check rate limit
-    const rateLimitResult = rateLimit.check(ip);
+    const realIp = request.headers.get('x-real-ip');
+    const ip = (forwardedFor ? forwardedFor.split(',')[0].trim() : realIp) || 'unknown-ip';
+
+    // Inspect rate limit WITHOUT incrementing (avoid penalizing before verification)
+    const rateLimitState = rateLimit.inspect(ip);
     
     // Get request body
     const body = await request.json();
     const { username, password, captchaToken } = body;
-    
-    if (rateLimitResult.limited) {
+
+    // If currently locked, block immediately
+    if (rateLimitState.limited) {
       // Calculate time remaining in minutes and seconds
-      const timeRemaining = Math.max(0, rateLimitResult.resetAt - Date.now());
+      const timeRemaining = Math.max(0, rateLimitState.resetAt - Date.now());
       const minutes = Math.floor(timeRemaining / 60000);
       const seconds = Math.floor((timeRemaining % 60000) / 1000);
       
@@ -113,27 +125,27 @@ export async function POST(request) {
             'Retry-After': Math.ceil(timeRemaining / 1000).toString(),
             'X-RateLimit-Limit': rateLimit.maxAttempts.toString(),
             'X-RateLimit-Remaining': '0',
-            'X-RateLimit-Reset': Math.ceil(rateLimitResult.resetAt / 1000).toString()
+            'X-RateLimit-Reset': Math.ceil(rateLimitState.resetAt / 1000).toString()
           }
         }
       );
     }
     
-    // Check if CAPTCHA is required but not provided
-    if (rateLimitResult.captchaRequired && (!captchaToken || captchaToken.trim() === '')) {
+    // If CAPTCHA is required (due to previous failures) but not provided
+    if (rateLimitState.captchaRequired && (!captchaToken || captchaToken.trim() === '')) {
       return new NextResponse(
         JSON.stringify({
           success: false,
           message: 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ',
           captchaRequired: true,
-          remaining: rateLimitResult.remaining
+          remaining: rateLimitState.remaining
         }),
         {
           status: 400,
           headers: {
             'Content-Type': 'application/json',
             'X-RateLimit-Limit': rateLimit.maxAttempts.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString()
+            'X-RateLimit-Remaining': rateLimitState.remaining.toString()
           }
         }
       );
@@ -141,7 +153,7 @@ export async function POST(request) {
     
     // If CAPTCHA is required, verify the token (placeholder for actual verification)
     // In a real implementation, you would verify the token with Google reCAPTCHA or hCaptcha API
-    if (rateLimitResult.captchaRequired && captchaToken) {
+    if (rateLimitState.captchaRequired && captchaToken) {
       // TODO: Implement actual CAPTCHA verification
       // const captchaValid = await verifyCaptcha(captchaToken);
       // if (!captchaValid) {
@@ -167,7 +179,9 @@ export async function POST(request) {
     const result = await verifyAdminPassword(username, password);
     
     if (!result.success) {
-      // Log failed login attempt but don't reset rate limit
+      // Record failed attempt AFTER verifying credentials
+      rateLimit.recordFailure(ip);
+      // Log failed login attempt
       console.log(`Failed admin login attempt for username: ${username}`);
       
       return NextResponse.json(

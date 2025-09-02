@@ -6,6 +6,9 @@ import PropTypes from 'prop-types';
 export default function RepresentativeInfoSection({ formData, setFormData, errors }) {
   // For IC form, only one representative is allowed
   const [representative, setRepresentative] = useState({
+    prenameTh: '',
+    prenameEn: '',
+    prenameOther: '',
     firstNameThai: '',
     lastNameThai: '',
     firstNameEng: '',
@@ -24,14 +27,25 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   // เมื่อ component ถูกโหลดครั้งแรกเท่านั้น
   useEffect(() => {
     if (formData.representative) {
-      setRepresentative(formData.representative);
+      setRepresentative({
+        prenameTh: formData.representative.prenameTh || '',
+        prenameEn: formData.representative.prenameEn || '',
+        prenameOther: formData.representative.prenameOther || '',
+        firstNameThai: formData.representative.firstNameThai || '',
+        lastNameThai: formData.representative.lastNameThai || '',
+        firstNameEng: formData.representative.firstNameEng || '',
+        lastNameEng: formData.representative.lastNameEng || '',
+        email: formData.representative.email || '',
+        phone: formData.representative.phone || '',
+        phoneExtension: formData.representative.phoneExtension || ''
+      });
     }
   }, []); // ไม่มี dependency เพื่อให้ทำงานเฉพาะครั้งแรกที่ component ถูกโหลด
 
   // Handle representative input changes
   const handleRepresentativeChange = (field, value) => {
     // Thai language validation
-    if ((field === 'firstNameThai' || field === 'lastNameThai') && value) {
+    if ((field === 'firstNameThai' || field === 'lastNameThai' || field === 'prenameOther') && value) {
       const thaiPattern = /^[ก-๙\s]*$/;
       if (!thaiPattern.test(value) && value !== '') {
         // Allow input but don't update state
@@ -92,7 +106,28 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                 <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาไทย</h4>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Prename Thai */}
+                <div>
+                  <label htmlFor="prenameTh" className="block text-sm font-medium text-gray-700 mb-1">
+                    คำนำหน้า
+                  </label>
+                  <select
+                    id="prenameTh"
+                    value={representative.prenameTh || ''}
+                    onChange={(e) => handleRepresentativeChange('prenameTh', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="">เลือกคำนำหน้า</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  {representativeErrors?.prenameTh && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.prenameTh}</p>
+                  )}
+                </div>
                 <div>
                   <label htmlFor="firstNameThai" className="block text-sm font-medium text-gray-700 mb-1">
                     ชื่อ <span className="text-red-500">*</span>
@@ -145,6 +180,27 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   )}
                 </div>
               </div>
+
+              {/* Other Thai prename detail */}
+              {representative.prenameTh === 'อื่นๆ' && (
+                <div className="mt-4">
+                  <label htmlFor="prenameOther" className="block text-sm font-medium text-gray-700 mb-1">
+                    ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
+                  </label>
+                  <input
+                    type="text"
+                    id="prenameOther"
+                    value={representative.prenameOther || ''}
+                    onChange={(e) => handleRepresentativeChange('prenameOther', e.target.value)}
+                    placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {representativeErrors?.prenameOther && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.prenameOther}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">รองรับตัวอักษรไทย เว้นวรรค และจุด (.)</p>
+                </div>
+              )}
             </div>
 
             {/* English Name Section - ด้านล่าง */}
@@ -154,7 +210,28 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                 <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">ชื่อภาษาอังกฤษ</h4>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Prename English */}
+                <div>
+                  <label htmlFor="prenameEn" className="block text-sm font-medium text-gray-700 mb-1">
+                    Prename
+                  </label>
+                  <select
+                    id="prenameEn"
+                    value={representative.prenameEn || ''}
+                    onChange={(e) => handleRepresentativeChange('prenameEn', e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white"
+                  >
+                    <option value="">Select Prename</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Ms">Ms</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {representativeErrors?.prenameEn && (
+                    <p className="mt-1 text-sm text-red-600">{representativeErrors.prenameEn}</p>
+                  )}
+                </div>
                 <div>
                   <label htmlFor="firstNameEng" className="block text-sm font-medium text-gray-700 mb-1">
                     ชื่อ <span className="text-red-500">*</span>
