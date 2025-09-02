@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { getSession } from '@/app/lib/session';
-import { pool } from '@/app/lib/db';
-import { createNotification } from '@/app/lib/notifications';
+import { getSession } from '../../../lib/session';
+import { query as dbQuery, beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '../../../lib/db';
+import { createNotification } from '../../../lib/notifications';
 
 /**
  * API endpoint to submit a product update request
@@ -43,7 +43,7 @@ export async function POST(request) {
     }
 
     // Check if there's already a pending request for this member
-    const [existingRequests] = await pool.query(`
+    const existingRequests = await dbQuery(`
       SELECT COUNT(*) as count
       FROM pending_product_updates
       WHERE member_code = ? AND status = 'pending'
@@ -57,7 +57,7 @@ export async function POST(request) {
     }
 
     // Create the pending_product_updates table if it doesn't exist
-    await pool.query(`
+    await dbQuery(`
       CREATE TABLE IF NOT EXISTS pending_product_updates (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -82,11 +82,11 @@ export async function POST(request) {
     `);
 
     // Start a transaction
-    await pool.query('START TRANSACTION');
+    const conn = await beginTransaction();
 
     try {
       // Insert the product update request
-      const [insertResult] = await pool.query(`
+      const insertResult = await executeQuery(conn, `
         INSERT INTO pending_product_updates
         (user_id, member_code, company_name, member_type, member_group_code, type_code, old_products_th, new_products_th, old_products_en, new_products_en)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -112,7 +112,7 @@ export async function POST(request) {
         }
       });
 
-      await pool.query(`
+      await executeQuery(conn, `
         INSERT INTO Member_portal_User_log
         (user_id, action, details, ip_address, user_agent)
         VALUES (?, 'other', ?, ?, ?)
@@ -133,7 +133,7 @@ export async function POST(request) {
       });
 
       // Commit the transaction
-      await pool.query('COMMIT');
+      await commitTransaction(conn);
 
       return NextResponse.json({
         success: true,
@@ -141,7 +141,7 @@ export async function POST(request) {
       });
     } catch (error) {
       // Rollback the transaction if there's an error
-      await pool.query('ROLLBACK');
+      await rollbackTransaction(conn);
       throw error;
     }
   } catch (error) {

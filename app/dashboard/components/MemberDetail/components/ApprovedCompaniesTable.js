@@ -102,7 +102,7 @@ const ApprovedCompaniesTable = ({ companies, formatDate }) => (
         {companies.length > 0 ? (
           companies.map((company, index) => (
             <motion.tr 
-              key={company.id} 
+              key={company.MEMBER_CODE || `${company?.id ?? 'row'}-${index}`} 
               className={index % 2 === 0 ? 'bg-white hover:bg-blue-50 cursor-pointer' : 'bg-blue-50 hover:bg-blue-100 cursor-pointer'}
               onClick={(e) => {
                 // Only navigate if not clicking on a link or button

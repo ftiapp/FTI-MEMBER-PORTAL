@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { checkAdminSession } from '@/app/lib/auth';
-import { pool } from '@/app/lib/db';
+import { checkAdminSession } from '../../../../lib/auth';
+import { query as dbQuery } from '../../../../lib/db';
 
 /**
  * API endpoint to list all product update requests
@@ -29,15 +29,10 @@ export async function GET(request) {
     const search = searchParams.get('search') || '';
     const offset = (page - 1) * limit;
 
-    // Check if the table exists
-    const [tableExists] = await pool.query(`
-      SELECT COUNT(*) as count
-      FROM information_schema.tables
-      WHERE table_schema = DATABASE()
-      AND table_name = 'pending_product_updates'
-    `);
+    // Check if the table exists without using information_schema (avoid permission issues)
+    const tables = await dbQuery('SHOW TABLES LIKE ?', ['pending_product_updates']);
 
-    if (tableExists[0].count === 0) {
+    if (!tables || tables.length === 0) {
       // Table doesn't exist yet, so there are no requests
       return NextResponse.json({ 
         success: true, 
@@ -52,7 +47,7 @@ export async function GET(request) {
     }
 
     // Build the query based on status and search parameters
-    let query = `
+    let sql = `
       SELECT p.*, u.name as user_name, u.email as user_email
       FROM pending_product_updates p
       LEFT JOIN users u ON p.user_id = u.id
@@ -62,26 +57,26 @@ export async function GET(request) {
     const queryParams = [];
     
     if (status && status !== 'all') {
-      query += ` AND p.status = ?`;
+      sql += ` AND p.status = ?`;
       queryParams.push(status);
     }
     
     if (search) {
-      query += ` AND (p.member_code LIKE ? OR p.company_name LIKE ?)`;
+      sql += ` AND (p.member_code LIKE ? OR p.company_name LIKE ?)`;
       queryParams.push(`%${search}%`, `%${search}%`);
     }
     
     // Count total results for pagination
-    const countQuery = query.replace('p.*, u.name as user_name, u.email as user_email', 'COUNT(*) as total');
-    const [countResult] = await pool.query(countQuery, queryParams);
+    const countQuery = sql.replace('p.*, u.name as user_name, u.email as user_email', 'COUNT(*) as total');
+    const countResult = await dbQuery(countQuery, queryParams);
     const total = countResult[0].total;
     
     // Add sorting and pagination
-    query += ` ORDER BY p.created_at DESC LIMIT ? OFFSET ?`;
+    sql += ` ORDER BY p.created_at DESC LIMIT ? OFFSET ?`;
     queryParams.push(limit, offset);
     
     // Execute the query
-    const [updates] = await pool.query(query, queryParams);
+    const updates = await dbQuery(sql, queryParams);
     
     // Calculate total pages
     const totalPages = Math.ceil(total / limit);
