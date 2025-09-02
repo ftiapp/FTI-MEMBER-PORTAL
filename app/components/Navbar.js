@@ -260,6 +260,22 @@ export default function Navbar() {
                     item={{ name: 'แจ้งเปลี่ยนอีเมล', href: '/ChangeEmail' }}
                     isActive={pathname === '/ChangeEmail'}
                   />
+                  {/* ค้นหาสมาชิก - external link opens in new tab */}
+                  <motion.div
+                    initial={{ scale: 1 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <a
+                      href="https://membersearch.fti.or.th/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-gray-700 hover:text-blue-900 font-medium transition-all duration-200 relative"
+                    >
+                      ค้นหาสมาชิก
+                    </a>
+                  </motion.div>
                   
                   {/* จัดการสมาชิก - Most prominent */}
                   <motion.div
@@ -418,6 +434,22 @@ export default function Navbar() {
                               <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-900"></div>
                             )}
                           </Link>
+                        </motion.div>
+                        {/* ค้นหาสมาชิก - external link opens in new tab (mobile) */}
+                        <motion.div 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.15, delay: 0.12 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          <a
+                            href="https://membersearch.fti.or.th/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium transition-colors px-6 py-4 block hover:bg-gray-50 relative text-gray-700 hover:text-blue-900"
+                          >
+                            ค้นหาสมาชิก
+                          </a>
                         </motion.div>
                         
                         {/* จัดการสมาชิก - Mobile prominent */}

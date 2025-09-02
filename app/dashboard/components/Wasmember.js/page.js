@@ -82,7 +82,40 @@ export default function WasMember() {
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
       const res = await fetch(url, { ...options, signal: controller.signal });
+      // Check specifically for 503 errors
+      if (res.status === 503) {
+        console.warn('Server returned 503 Service Unavailable');
+        return {
+          status: 503,
+          ok: false,
+          statusText: 'Service Unavailable',
+          headers: {
+            get: () => 'application/json'
+          },
+          json: async () => ({ 
+            success: false, 
+            message: 'เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) กรุณาลองใหม่ภายหลัง' 
+          })
+        };
+      }
       return res;
+    } catch (error) {
+      console.error('Fetch error:', error);
+      // Create a response-like object for consistent error handling
+      return {
+        status: error.name === 'AbortError' ? 408 : 0,
+        ok: false,
+        statusText: error.name === 'AbortError' ? 'Timeout' : 'Network Error',
+        headers: {
+          get: () => 'application/json'
+        },
+        json: async () => ({ 
+          success: false, 
+          message: error.name === 'AbortError' 
+            ? 'หมดเวลาเชื่อมต่อ (60 วินาที) โปรดลองอีกครั้ง' 
+            : 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ' 
+        })
+      };
     } finally {
       clearTimeout(timer);
     }
@@ -554,6 +587,8 @@ export default function WasMember() {
       
       // Sequential submission to reduce load on Production
       const results = [];
+      let hasServerError = false;
+      
       for (let i = 0; i < companies.length; i++) {
         const company = companies[i];
         const data = new FormData();
@@ -567,34 +602,74 @@ export default function WasMember() {
         data.append('taxId', company.taxId);
         data.append('documentFile', company.documentFile);
 
+        // Add progress indicator for multiple submissions
+        if (companies.length > 1) {
+          toast.loading(`กำลังส่งข้อมูลบริษัทที่ ${i+1} จาก ${companies.length}...`, 
+            { id: `company-${i}` });
+        }
+
         try {
-          const response = await fetchWithTimeout('/api/member/submit', {
-            method: 'POST',
-            body: data
-          }, 60000);
+          // Add retry logic for 503 errors
+          let retries = 0;
+          const maxRetries = 2;
+          let response;
+          
+          while (retries <= maxRetries) {
+            response = await fetchWithTimeout('/api/member/submit', {
+              method: 'POST',
+              body: data
+            }, 60000);
+            
+            // If not a 503 error or we've used all retries, break the loop
+            if (response.status !== 503 || retries === maxRetries) break;
+            
+            // Increment retry counter and wait before retrying
+            retries++;
+            await new Promise(resolve => setTimeout(resolve, 2000 * retries)); // Exponential backoff
+            console.log(`Retrying submission ${i+1} (attempt ${retries} of ${maxRetries})`);
+          }
 
           let result;
-          if (response.headers.get('content-type')?.includes('application/json')) {
-            try {
-              result = await response.json();
-            } catch (e) {
-              result = { success: false, message: 'ไม่สามารถอ่านผลลัพธ์จากเซิร์ฟเวอร์ได้' };
-            }
-          } else {
-            result = { success: response.ok, message: `HTTP ${response.status}` };
+          try {
+            result = await response.json();
+          } catch (e) {
+            result = { 
+              success: false, 
+              message: 'ไม่สามารถอ่านผลลัพธ์จากเซิร์ฟเวอร์ได้',
+              status: response.status 
+            };
           }
-          if (!response.ok && response.status === 503) {
-            result.message = 'เซิร์ฟเวอร์ไม่พร้อมให้บริการ (503) กรุณาลองใหม่ภายหลัง';
+          
+          // Clear company progress toast
+          if (companies.length > 1) {
+            toast.dismiss(`company-${i}`);
           }
+          
+          // Handle 503 errors with clear user feedback
+          if (response.status === 503) {
+            hasServerError = true;
+            result.message = 'เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) กรุณาลองใหม่ภายหลัง';
+            toast.error(`เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) - บริษัท ${company.companyName}`, 
+              { duration: 5000 });
+          }
+          
           results.push(result);
         } catch (err) {
           console.error('Submit request failed:', err);
           const isAbort = typeof err?.name === 'string' && err.name === 'AbortError';
-          if (isAbort) {
-            results.push({ success: false, message: 'หมดเวลาเชื่อมต่อ (60 วินาที) โปรดลองอีกครั้ง' });
-          } else {
-            results.push({ success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว' });
+          const errorMessage = isAbort
+            ? 'หมดเวลาเชื่อมต่อ (60 วินาที) โปรดลองอีกครั้ง'
+            : 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ';
+          
+          results.push({ success: false, message: errorMessage });
+          
+          // Clear company progress toast
+          if (companies.length > 1) {
+            toast.dismiss(`company-${i}`);
           }
+          
+          // Show specific error for this company
+          toast.error(`${errorMessage} - บริษัท ${company.companyName}`, { duration: 5000 });
         }
       }
       
@@ -603,6 +678,7 @@ export default function WasMember() {
       
       // Check if all submissions were successful
       const allSuccessful = results.every(result => result.success);
+      const serverErrorOnly = results.every(result => !result.success && result.status === 503);
       
       if (allSuccessful) {
         toast.success('ส่งข้อมูลทั้งหมดเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน 1-2 วันทำการ');
@@ -639,19 +715,49 @@ export default function WasMember() {
         // Reset state
         setCompanies([]);
         setCurrentStep(4); // Move to success step
+      } else if (serverErrorOnly) {
+        // Special case: all failures were due to server errors
+        toast.error(
+          'เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) กรุณาลองใหม่ภายหลัง',
+          { duration: 8000, id: 'server-error' }
+        );
+        
+        // Show a more detailed error message
+        setSuccessMessage('');
+        setShowSuccessMessage(false);
+        
+        // Don't reset companies so user can try again
       } else {
-        // Show specific popup for each failed company
+        // Some submissions failed for other reasons
         results.forEach((result, index) => {
-          if (!result.success) {
+          if (!result.success && result.status !== 503) {
             const code = (companies[index]?.memberNumber || '').trim();
+            const companyName = companies[index]?.companyName || '';
+            
             // Provide a clear message for duplicate/pending/approved cases
-            toast.error(`รหัสสมาชิก ${code} อยู่ระหว่างพิจารณา หรือได้รับการยืนยันสมาชิกเดิม`);
+            toast.error(`รหัสสมาชิก ${code} (${companyName}) อยู่ระหว่างพิจารณา หรือได้รับการยืนยันสมาชิกเดิม`, 
+              { duration: 5000 });
           }
         });
+        
+        // Filter out failed companies
+        const failedIndices = results.map((result, index) => 
+          result.success ? -1 : index).filter(index => index !== -1);
+        
+        // Remove failed companies from the list
+        const updatedCompanies = companies.filter((_, index) => 
+          !failedIndices.includes(index));
+        
+        setCompanies(updatedCompanies);
+        
+        // If we have successful submissions, show partial success message
+        if (updatedCompanies.length < companies.length) {
+          toast.success(`ส่งข้อมูลสำเร็จบางส่วน (${companies.length - failedIndices.length}/${companies.length} รายการ)`);
+        }
       }
     } catch (error) {
       console.error('Error submitting forms:', error);
-      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+      toast.error('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', { duration: 5000 });
     } finally {
       setIsSubmitting(false);
     }

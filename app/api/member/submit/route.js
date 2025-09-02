@@ -89,27 +89,80 @@ export async function POST(request) {
     // Upload document to Cloudinary
     const fileBuffer = await documentFile.arrayBuffer();
     const fileName = documentFile.name;
-    log('before_upload', { fileName, fileSize: documentFile.size });
+    const fileSize = documentFile.size;
+    const fileSizeMB = fileSize / (1024 * 1024);
+    
+    // Log detailed file information
+    log('before_upload', { 
+      fileName, 
+      fileSize, 
+      fileSizeMB: fileSizeMB.toFixed(2) + 'MB',
+      fileType: documentFile.type || 'unknown' 
+    });
+    
+    // Validate file size early
+    if (fileSizeMB > 5) {
+      log('file_too_large_rejected', { fileSizeMB });
+      return NextResponse.json(
+        { success: false, message: `ไฟล์มีขนาดใหญ่เกินไป (${fileSizeMB.toFixed(2)}MB) กรุณาอัปโหลดไฟล์ขนาดไม่เกิน 5MB` },
+        { status: 400 }
+      );
+    }
 
-    // Small retry for transient upload errors
-    const uploadWithRetry = async (buf, name, maxRetry = 2) => {
+    // Enhanced retry for Cloudinary upload with better error handling
+    const uploadWithRetry = async (buf, name, maxRetry = 3) => {
       let attempt = 0;
       let lastErr;
+      
+      // Check file size before attempting upload (prevent large uploads)
+      const fileSizeInMB = buf.byteLength / (1024 * 1024);
+      log('file_size_check', { fileSizeInMB, name });
+      
+      if (fileSizeInMB > 5) {
+        log('file_too_large', { fileSizeInMB, name });
+        throw new Error(`ไฟล์มีขนาดใหญ่เกินไป (${fileSizeInMB.toFixed(2)}MB > 5MB)`);
+      }
+      
       while (attempt <= maxRetry) {
         attempt++;
         try {
+          // Log attempt start time for tracking
+          const attemptStartTime = Date.now();
+          log('upload_attempt_start', { attempt, maxRetry, name });
+          
           const res = await uploadToCloudinary(Buffer.from(buf), name);
+          
+          // Log attempt duration
+          const attemptDuration = Date.now() - attemptStartTime;
+          log('upload_attempt_complete', { attempt, duration: attemptDuration });
+          
           if (res?.success) return res;
+          
           lastErr = new Error(res?.error || 'Upload failed');
-          log('upload_failed', { attempt, error: res?.error });
+          log('upload_failed', { attempt, error: res?.error, duration: attemptDuration });
         } catch (e) {
           lastErr = e;
-          log('upload_exception', { attempt, message: e?.message });
+          log('upload_exception', { 
+            attempt, 
+            message: e?.message,
+            code: e?.code,
+            name: e?.name
+          });
         }
+        
         if (attempt <= maxRetry) {
-          await new Promise(r => setTimeout(r, attempt * 500));
+          // Exponential backoff with jitter
+          const baseDelay = 1000; // 1 second base
+          const maxDelay = 10000; // Max 10 seconds
+          const expBackoff = Math.min(baseDelay * Math.pow(2, attempt-1), maxDelay);
+          const jitter = Math.random() * 1000; // Add up to 1 second of jitter
+          const delay = expBackoff + jitter;
+          
+          log('retry_delay', { attempt, delay, nextAttemptIn: new Date(Date.now() + delay).toISOString() });
+          await new Promise(r => setTimeout(r, delay));
         }
       }
+      
       throw lastErr;
     };
 
