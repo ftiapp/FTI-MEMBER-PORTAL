@@ -74,7 +74,7 @@ export const validateOCForm = (formData, step) => {
       addressTypes.forEach(type => {
         const address = formData.addresses[type];
         const label = addressLabels[type];
-        
+
         if (!address || Object.keys(address).length === 0) {
           errors[`addresses.${type}`] = `❗ กรุณากรอก${label} (บังคับทั้ง 3 ประเภท)`;
           return;
@@ -102,17 +102,22 @@ export const validateOCForm = (formData, step) => {
           errors[`addresses.${type}.postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
         }
 
-        // ตรวจสอบอีเมล (บังคับ)
-        if (!address.email) {
-          errors[`addresses.${type}.email`] = `กรุณากรอกอีเมล (${label})`;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
-          errors[`addresses.${type}.email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+        // อ่านค่า email/phone จากทั้งคีย์มาตรฐานและคีย์ไดนามิกของ UI
+        const emailVal = address.email ?? address[`email-${type}`];
+        const phoneRaw = address.phone ?? address[`phone-${type}`];
+        const phoneVal = typeof phoneRaw === 'string' ? phoneRaw.replace(/[-\s]/g, '') : phoneRaw;
+
+        // อีเมลไม่บังคับ: ตรวจรูปแบบเฉพาะเมื่อมีค่า
+        if (emailVal) {
+          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+            errors[`addresses.${type}.email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+          }
         }
 
-        // ตรวจสอบเบอร์โทรศัพท์ (บังคับ)
-        if (!address.phone) {
+        // เบอร์โทรศัพท์บังคับ
+        if (!phoneVal) {
           errors[`addresses.${type}.phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-        } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
+        } else if (!/^\d{9,10}$/.test(phoneVal)) {
           errors[`addresses.${type}.phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
         }
       });
@@ -241,6 +246,13 @@ export const validateOCForm = (formData, step) => {
         const repPrenameEn = rep.prename_en ?? rep.prenameEn;
         const repPrenameOther = rep.prename_other ?? rep.prenameOther;
         
+        // ตรวจสอบคำนำหน้าชื่อภาษาไทย (บังคับ)
+        if (!repPrenameTh) {
+          repError.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ';
+        } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(repPrenameTh)) {
+          repError.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
+        }
+        
         // ตรวจสอบชื่อภาษาไทย
         if (!rep.firstNameThai) {
           repError.firstNameThai = 'กรุณากรอกชื่อภาษาไทย';
@@ -310,12 +322,14 @@ export const validateOCForm = (formData, step) => {
     }
     
     // ถ้าเลือก "อื่นๆ" ต้องกรอกรายละเอียด
-    if (formData.businessTypes?.other && !formData.otherBusinessTypeDetail) {
+    if (formData.businessTypes?.other && (!formData.otherBusinessTypeDetail || formData.otherBusinessTypeDetail.trim() === '')) {
       errors.otherBusinessTypeDetail = 'กรุณาระบุรายละเอียดประเภทธุรกิจอื่นๆ';
     }
     
-    // ตรวจสอบจำนวนพนักงานและข้อมูลทางการเงิน
+    // ตรวจสอบจำนวนพนักงาน (ยังคงบังคับกรอก)
     if (!formData.numberOfEmployees) errors.numberOfEmployees = 'กรุณากรอกจำนวนพนักงาน';
+    
+    // หมายเหตุ: ข้อมูลทางการเงินไม่บังคับกรอก (ทุนจดทะเบียน, รายได้, สัดส่วนผู้ถือหุ้น)
     
     // ตรวจสอบผลิตภัณฑ์/บริการ
     if (!formData.products || formData.products.length === 0) {
@@ -323,13 +337,17 @@ export const validateOCForm = (formData, step) => {
     } else {
       // ตรวจสอบข้อมูลผลิตภัณฑ์/บริการแต่ละรายการ
       const productErrors = [];
+      let hasValidProduct = false;
       
       formData.products.forEach((product, index) => {
         const prodError = {};
         
         // ตรวจสอบชื่อผลิตภัณฑ์/บริการภาษาไทย (บังคับ)
-        if (!product.nameTh) {
+        if (!product.nameTh || product.nameTh.trim() === '') {
           prodError.nameTh = 'กรุณากรอกชื่อผลิตภัณฑ์/บริการภาษาไทย';
+        } else {
+          // มีอย่างน้อย 1 รายการที่มีชื่อภาษาไทย
+          hasValidProduct = true;
         }
 
         // ชื่อผลิตภัณฑ์/บริการภาษาอังกฤษ: ไม่บังคับกรอก
@@ -340,9 +358,13 @@ export const validateOCForm = (formData, step) => {
         }
       });
 
+      // ถ้าไม่มีผลิตภัณฑ์ที่มีชื่อภาษาไทยเลย
+      if (!hasValidProduct) {
+        errors.products = 'กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยอย่างน้อย 1 รายการ';
+      }
+
       // ถ้ามีข้อผิดพลาดในผลิตภัณฑ์/บริการรายการใดรายการหนึ่ง
       if (productErrors.length > 0) {
-        errors.products = 'กรุณากรอกข้อมูลผลิตภัณฑ์/บริการให้ครบถ้วน';
         errors.productErrors = productErrors; // เก็บรายละเอียดข้อผิดพลาดไว้ในตัวแปรแยก
       }
     }
@@ -399,6 +421,16 @@ export const validateOCForm = (formData, step) => {
       errors.authorizedSignatoryLastNameEn = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาอังกฤษ)';
     } else if (!/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
       errors.authorizedSignatoryLastNameEn = 'นามสกุลภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น';
+    }
+
+    // ตรวจสอบตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับกรอก
+    if (!formData.authorizedSignatoryPositionTh) {
+      errors.authorizedSignatoryPositionTh = 'กรุณากรอกตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย)';
+    }
+    
+    // ตรวจสอบตำแหน่งผู้มีอำนาจลงนาม (ภาษาอังกฤษ) - ไม่บังคับกรอก แต่ตรวจสอบรูปแบบถ้ามีค่า
+    if (formData.authorizedSignatoryPositionEn && !/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryPositionEn)) {
+      errors.authorizedSignatoryPositionEn = 'ตำแหน่งภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น';
     }
   }
   

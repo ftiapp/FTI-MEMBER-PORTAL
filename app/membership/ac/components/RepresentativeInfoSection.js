@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 
 export default function RepresentativeInfoSection({ formData = {}, setFormData = () => {}, errors = {} }) {
   const representativeErrors = errors?.representativeErrors || [];
@@ -114,7 +115,43 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
 
   const updateRepresentative = (id, field, value) => {
     setRepresentatives(prev => 
-      prev.map(rep => rep.id === id ? { ...rep, [field]: value } : rep)
+      prev.map(rep => {
+        if (rep.id === id) {
+          const updatedRep = { ...rep, [field]: value };
+          
+          // Auto-select matching prename in the other language
+          if (field === 'prenameTh') {
+            // Map Thai prenames to English equivalents
+            const thaiToEnglishMap = {
+              'นาย': 'Mr',
+              'นาง': 'Mrs',
+              'นางสาว': 'Ms',
+              'อื่นๆ': 'Other'
+            };
+            
+            // If English prename is empty or doesn't match the Thai selection, update it
+            if (!updatedRep.prenameEn || thaiToEnglishMap[value] !== updatedRep.prenameEn) {
+              updatedRep.prenameEn = thaiToEnglishMap[value] || '';
+            }
+          } else if (field === 'prenameEn') {
+            // Map English prenames to Thai equivalents
+            const englishToThaiMap = {
+              'Mr': 'นาย',
+              'Mrs': 'นาง',
+              'Ms': 'นางสาว',
+              'Other': 'อื่นๆ'
+            };
+            
+            // If Thai prename is empty or doesn't match the English selection, update it
+            if (!updatedRep.prenameTh || englishToThaiMap[value] !== updatedRep.prenameTh) {
+              updatedRep.prenameTh = englishToThaiMap[value] || '';
+            }
+          }
+          
+          return updatedRep;
+        }
+        return rep;
+      })
     );
   };
 
@@ -124,8 +161,40 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     return '';
   };
 
+  // Create refs for prename fields
+  const prenameThRefs = useRef([]);
+  const prenameEnRefs = useRef([]);
+  const prenameOtherRefs = useRef([]);
+
+  // Effect to check for prename errors and scroll to them
+  useEffect(() => {
+    if (representativeErrors.length > 0) {
+      // Find the first representative with a prename error
+      const errorIndex = representativeErrors.findIndex(err => err?.prename_th || err?.prename_en || err?.prename_other);
+      
+      if (errorIndex !== -1) {
+        // Determine which prename field has the error
+        const errors = representativeErrors[errorIndex];
+        
+        if (errors?.prename_th && prenameThRefs.current[errorIndex]) {
+          // Scroll to Thai prename field with error
+          prenameThRefs.current[errorIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          toast.error(`กรุณาเลือกคำนำหน้าชื่อภาษาไทยสำหรับผู้แทนคนที่ ${errorIndex + 1}`);
+        } else if (errors?.prename_en && prenameEnRefs.current[errorIndex]) {
+          // Scroll to English prename field with error
+          prenameEnRefs.current[errorIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          toast.error(`กรุณาเลือกคำนำหน้าชื่อภาษาอังกฤษสำหรับผู้แทนคนที่ ${errorIndex + 1}`);
+        } else if (errors?.prename_other && prenameOtherRefs.current[errorIndex]) {
+          // Scroll to Other prename field with error
+          prenameOtherRefs.current[errorIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+          toast.error(`กรุณาระบุคำนำหน้าชื่ออื่นๆ สำหรับผู้แทนคนที่ ${errorIndex + 1}`);
+        }
+      }
+    }
+  }, [representativeErrors]);
+
   return (
-    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden" data-section="representative-info">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-6">
         <div className="flex items-center gap-3">
@@ -206,10 +275,12 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           คำนำหน้า
                         </label>
                         <select
+                          ref={el => prenameThRefs.current[index] = el}
                           value={rep.prenameTh || ''}
                           onChange={(e) => updateRepresentative(rep.id, 'prenameTh', e.target.value)}
                           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
                           data-error-key={`rep-${index}-prename_th`}
+                          id={`prenameTh-${index}`}
                         >
                           <option value="">เลือกคำนำหน้า</option>
                           <option value="นาย">นาย</option>
@@ -269,12 +340,14 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
                         </label>
                         <input
+                          ref={el => prenameOtherRefs.current[index] = el}
                           type="text"
                           value={rep.prenameOther || ''}
                           onChange={(e) => updateRepresentative(rep.id, 'prenameOther', e.target.value.replace(/[^ก-๙\.\s]/g, ''))}
                           placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
                           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
                           data-error-key={`rep-${index}-prename_other`}
+                          id={`prenameOther-${index}`}
                         />
                         {representativeErrors[index]?.prename_other && (
                           <p className="text-sm text-red-600 mt-2">{representativeErrors[index].prename_other}</p>
@@ -297,10 +370,12 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           Prename
                         </label>
                         <select
+                          ref={el => prenameEnRefs.current[index] = el}
                           value={rep.prenameEn || ''}
                           onChange={(e) => updateRepresentative(rep.id, 'prenameEn', e.target.value)}
                           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
                           data-error-key={`rep-${index}-prename_en`}
+                          id={`prenameEn-${index}`}
                         >
                           <option value="">Select Prename</option>
                           <option value="Mr">Mr</option>

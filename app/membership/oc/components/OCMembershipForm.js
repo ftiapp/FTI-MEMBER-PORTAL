@@ -190,6 +190,7 @@ export default function OCMembershipForm({
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
+  const [showErrors, setShowErrors] = useState(false);
 
   // Determine which form data and setters to use
   const isExternal = externalFormData !== undefined;
@@ -319,16 +320,46 @@ export default function OCMembershipForm({
       console.log('OC Form submit prevented - not on final step');
       return;
     }
+    
+    // Clean up empty contact persons before submission (except the main contact person)
+    let updatedFormData = {...formData};
+    if (formData.contactPersons && formData.contactPersons.length > 1) {
+      const cleanedContactPersons = [formData.contactPersons[0]]; // Keep main contact person
+      
+      // Only keep additional contact persons that have at least some data filled in
+      for (let i = 1; i < formData.contactPersons.length; i++) {
+        const contact = formData.contactPersons[i];
+        const hasData = contact.firstNameTh || contact.lastNameTh || 
+                       contact.firstNameEn || contact.lastNameEn || 
+                       contact.position || contact.email || contact.phone;
+        
+        if (hasData) {
+          cleanedContactPersons.push(contact);
+        }
+      }
+      
+      // Update form data if we removed any contact persons
+      if (cleanedContactPersons.length !== formData.contactPersons.length) {
+        updatedFormData = {
+          ...formData,
+          contactPersons: cleanedContactPersons
+        };
+        setFormData(updatedFormData);
+      }
+    }
 
     // Re-validate all fields before final submission
-    const formErrors = validateOCForm(formData, STEPS.length);
+    const formErrors = validateOCForm(updatedFormData, STEPS.length);
     setErrors(formErrors);
 
     if (Object.keys(formErrors).length > 0) {
+      // Set showErrors to true to trigger error UI in child components
+      setShowErrors(true);
+      
       toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
       // Optionally, navigate to the first step with an error
       const firstErrorStep = STEPS.find(step => 
-        Object.keys(validateOCForm(formData, step)).length > 0
+        Object.keys(validateOCForm(updatedFormData, step)).length > 0
       );
       if (firstErrorStep) {
         setCurrentStep(firstErrorStep.id);
@@ -374,11 +405,118 @@ export default function OCMembershipForm({
       e.stopPropagation();
     }
 
+    // Clean up empty contact persons before validation (except the main contact person)
+    if (formData.contactPersons && formData.contactPersons.length > 1) {
+      const cleanedContactPersons = [formData.contactPersons[0]]; // Keep main contact person
+      
+      // Only keep additional contact persons that have at least some data filled in
+      for (let i = 1; i < formData.contactPersons.length; i++) {
+        const contact = formData.contactPersons[i];
+        const hasData = contact.firstNameTh || contact.lastNameTh || 
+                       contact.firstNameEn || contact.lastNameEn || 
+                       contact.position || contact.email || contact.phone;
+        
+        if (hasData) {
+          cleanedContactPersons.push(contact);
+        }
+      }
+      
+      // Update form data if we removed any contact persons
+      if (cleanedContactPersons.length !== formData.contactPersons.length) {
+        setFormData(prev => ({
+          ...prev,
+          contactPersons: cleanedContactPersons
+        }));
+        
+        // Continue with validation after state update in next render cycle
+        return;
+      }
+    }
+
     const formErrors = validateOCForm(formData, currentStep);
     setErrors(formErrors);
 
     if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+      // Set showErrors to true to trigger error UI in child components
+      setShowErrors(true);
+      
+      // Show a specific message for the first error and scroll to the field
+      const [firstKey, firstValue] = Object.entries(formErrors)[0] || [];
+
+      // Prepare toast message
+      const firstMessage = typeof firstValue === 'string'
+        ? firstValue
+        : 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
+
+      toast.error(firstMessage);
+
+      // Helper: map error key to DOM element id/name
+      const scrollToErrorField = (errorKey) => {
+        if (!errorKey) return;
+
+        // Address fields: addresses.{type}.{field}
+        if (errorKey.startsWith('addresses.')) {
+          const match = errorKey.match(/addresses\.(\d+)\.(.+)$/);
+          if (match) {
+            const tab = match[1];
+            const field = match[2];
+
+            // Map validation field to actual input id in CompanyAddressInfo
+            let targetId = null;
+            if (field === 'email') targetId = `email-${tab}`;
+            else if (field === 'phone') targetId = `phone-${tab}`;
+            else if (['addressNumber', 'building', 'moo', 'soi', 'street'].includes(field)) targetId = field;
+            // subDistrict/district/province/postalCode are SearchableDropdowns; scrolling to section is sufficient
+
+            // Allow CompanyAddressInfo to auto-switch tab via its useEffect (based on errors), then focus
+            setTimeout(() => {
+              let el = null;
+              if (targetId) {
+                el = document.getElementById(targetId);
+                if (!el) el = document.querySelector(`[name="${targetId}"]`);
+              }
+
+              // Fallback: scroll to the address section container
+              if (!el) {
+                const section = document.querySelector('[data-section="company-address"]')
+                  || document.querySelector('.company-address')
+                  || document.querySelector('.bg-white');
+                if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+              }
+
+              try {
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Focus without jumping again
+                el.focus({ preventScroll: true });
+              } catch {}
+            }, 250);
+            return;
+          }
+        }
+
+        // Non-address fields: try matching by id or name
+        setTimeout(() => {
+          const byId = document.getElementById(errorKey);
+          const byName = document.querySelector(`[name="${errorKey}"]`);
+          const el = byId || byName;
+          if (el) {
+            try {
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              el.focus({ preventScroll: true });
+              return;
+            } catch {}
+          }
+
+          // Fallbacks by section
+          if (errorKey.startsWith('contactPerson')) {
+            const section = document.querySelector('[data-section="contact-person"]');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+      };
+
+      scrollToErrorField(firstKey);
       return;
     }
 
@@ -509,7 +647,7 @@ export default function OCMembershipForm({
           industrialGroups={industrialGroups} 
           provincialChapters={provincialChapters} 
         />,
-      4: <DocumentsSection {...commonProps} />,
+      4: <DocumentsSection {...commonProps} showErrors={showErrors} />,
       5: <SummarySection 
           formData={formData} 
           businessTypes={businessTypes} 
@@ -519,7 +657,7 @@ export default function OCMembershipForm({
     };
 
     return stepComponents[currentStep] || null;
-  }, [currentStep, formData, errors, businessTypes, industrialGroups, provincialChapters, taxIdValidating]);
+  }, [currentStep, formData, errors, businessTypes, industrialGroups, provincialChapters, taxIdValidating, showErrors]);
 
   // Render error message helper
   const renderErrorMessage = (errorValue, key, index) => {

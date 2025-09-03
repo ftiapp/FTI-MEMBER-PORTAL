@@ -21,14 +21,6 @@ export const validateACForm = (formData, step) => {
       errors.taxId = 'เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลขเท่านั้น';
     }
     
-    if (!formData.companyEmail) {
-      errors.companyEmail = 'กรุณากรอกอีเมลบริษัท';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.companyEmail)) {
-      errors.companyEmail = 'รูปแบบอีเมลไม่ถูกต้อง';
-    }
-    
-    if (!formData.companyPhone) errors.companyPhone = 'กรุณากรอกเบอร์โทรศัพท์บริษัท';
-    
     // ตรวจสอบที่อยู่ - รองรับ multi-address
     const addressTypes = ['1', '2', '3'];
     const addressLabels = {
@@ -39,48 +31,75 @@ export const validateACForm = (formData, step) => {
 
     // ตรวจสอบว่ามี addresses object หรือไม่
     if (formData.addresses && typeof formData.addresses === 'object') {
+      // เตรียม object เก็บข้อผิดพลาดแบบซ้อนภายในให้ตรงกับ UI (errors.addresses[type].field)
+      errors.addresses = errors.addresses || {};
+      let hasAddressErrors = false;
+
       // ตรวจสอบ multi-address format
       addressTypes.forEach(type => {
         const address = formData.addresses[type];
         const label = addressLabels[type];
+        // เตรียมที่เก็บ error ของ address แต่ละประเภท
+        if (!errors.addresses[type]) errors.addresses[type] = {};
         
         if (!address) {
-          errors[`address_${type}`] = `กรุณากรอก${label}`;
+          errors.addresses[type].base = `กรุณากรอก${label}`;
+          hasAddressErrors = true;
           return;
         }
 
         if (!address.addressNumber) {
-          errors[`address_${type}_addressNumber`] = `กรุณากรอกเลขที่ (${label})`;
+          errors.addresses[type].addressNumber = `กรุณากรอกเลขที่ (${label})`;
+          hasAddressErrors = true;
         }
 
         if (!address.subDistrict) {
-          errors[`address_${type}_subDistrict`] = `กรุณากรอกตำบล/แขวง (${label})`;
+          errors.addresses[type].subDistrict = `กรุณากรอกตำบล/แขวง (${label})`;
+          hasAddressErrors = true;
         }
 
         if (!address.district) {
-          errors[`address_${type}_district`] = `กรุณากรอกอำเภอ/เขต (${label})`;
+          errors.addresses[type].district = `กรุณากรอกอำเภอ/เขต (${label})`;
+          hasAddressErrors = true;
         }
 
         if (!address.province) {
-          errors[`address_${type}_province`] = `กรุณากรอกจังหวัด (${label})`;
+          errors.addresses[type].province = `กรุณากรอกจังหวัด (${label})`;
+          hasAddressErrors = true;
         }
 
         if (!address.postalCode) {
-          errors[`address_${type}_postalCode`] = `กรุณากรอกรหัสไปรษณีย์ (${label})`;
+          errors.addresses[type].postalCode = `กรุณากรอกรหัสไปรษณีย์ (${label})`;
+          hasAddressErrors = true;
         } else if (address.postalCode.length !== 5 || !/^\d+$/.test(address.postalCode)) {
-          errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
+          errors.addresses[type].postalCode = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
+          hasAddressErrors = true;
         }
 
-        // ตรวจสอบอีเมลถ้ามี
-        if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
-          errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+        // ตรวจสอบอีเมลบริษัทของที่อยู่นั้น (companyEmail) บังคับกรอก
+        if (!address.companyEmail) {
+          errors.addresses[type].companyEmail = `กรุณากรอกอีเมล (${label})`;
+          hasAddressErrors = true;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.companyEmail)) {
+          errors.addresses[type].companyEmail = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+          hasAddressErrors = true;
         }
 
-        // ตรวจสอบเบอร์โทรศัพท์ถ้ามี
-        if (address.phone && !/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
-          errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+        // ตรวจสอบเบอร์โทรศัพท์บริษัทของที่อยู่นั้น (companyPhone) บังคับกรอก
+        if (!address.companyPhone) {
+          errors.addresses[type].companyPhone = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
+          hasAddressErrors = true;
+        } else if (!/^\d{9,10}$/.test(String(address.companyPhone).replace(/[-\s]/g, ''))) {
+          errors.addresses[type].companyPhone = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+          hasAddressErrors = true;
         }
       });
+
+      // เพิ่มข้อความสรุปเพื่อแสดงใน Alert ด้านบน (หลีกเลี่ยง [object Object])
+      if (hasAddressErrors) {
+        // ใช้คีย์ _error เพื่อให้ renderer แสดงข้อความสรุป
+        errors.addresses._error = 'กรุณาตรวจสอบข้อมูลที่อยู่ทั้ง 3 ประเภทให้ครบถ้วน';
+      }
     } else {
       // Fallback สำหรับ single address format เก่า
       if (!formData.addressNumber) errors.addressNumber = 'กรุณากรอกเลขที่';
@@ -132,9 +151,8 @@ export const validateACForm = (formData, step) => {
           errors.contactPerson0Position = 'กรุณากรอกตำแหน่ง';
         }
 
-        if (!mainContact.email) {
-          errors.contactPerson0Email = 'กรุณากรอกอีเมลผู้ประสานงาน';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mainContact.email)) {
+        // Email is optional, but validate format if provided
+        if (mainContact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mainContact.email)) {
           errors.contactPerson0Email = 'รูปแบบอีเมลไม่ถูกต้อง';
         }
 
@@ -273,12 +291,19 @@ export const validateACForm = (formData, step) => {
     if (!formData.products || formData.products.length === 0) {
       errors.products = 'กรุณาระบุผลิตภัณฑ์/บริการอย่างน้อย 1 รายการ';
     } else {
-      // ตรวจสอบว่าผลิตภัณฑ์แต่ละรายการมีชื่อภาษาไทย
-      const invalidProducts = formData.products.filter(product => !product.nameTh || product.nameTh.trim() === '');
-      if (invalidProducts.length > 0) {
-        errors.products = 'กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยให้ครบทุกรายการ';
+      // ตรวจสอบว่ามีผลิตภัณฑ์อย่างน้อย 1 รายการที่มีชื่อภาษาไทย
+      const validThaiProducts = formData.products.filter(product => product.nameTh && product.nameTh.trim() !== '');
+      if (validThaiProducts.length === 0) {
+        errors.products = 'กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยอย่างน้อย 1 รายการ';
       }
     }
+    
+    // หมายเหตุ: ข้อมูลทางการเงินทั้งหมดเป็นข้อมูลที่ไม่บังคับกรอก ได้แก่
+    // - registeredCapital (ทุนจดทะเบียน)
+    // - revenueLastYear, revenuePreviousYear (รายได้รวมย้อนหลัง)
+    // - productionCapacityValue, productionCapacityUnit (กำลังการผลิต)
+    // - salesDomestic, salesExport (ยอดจำหน่าย)
+    // - shareholderThaiPercent, shareholderForeignPercent (สัดส่วนผู้ถือหุ้น)
   }
   
   else if (step === 4) {

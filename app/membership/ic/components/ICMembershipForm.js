@@ -319,8 +319,24 @@ const handleSubmit = useCallback(async (e) => {
       console.log('Validation failed:', allErrors);
       setErrors(allErrors);
       toast.dismiss(loadingToastId);
-      toast.error('กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน');
-      scrollToFirstError(allErrors);
+      
+      // Find the step with errors and navigate to it
+      for (let step = 1; step <= totalSteps - 1; step++) {
+        const stepErrors = validateCurrentStep(step, formData);
+        if (Object.keys(stepErrors).length > 0) {
+          if (setCurrentStep) {
+            setCurrentStep(step);
+            
+            // Wait for step change to complete before scrolling
+            setTimeout(() => {
+              scrollToFirstError(allErrors);
+            }, 100);
+          } else {
+            scrollToFirstError(allErrors);
+          }
+          break;
+        }
+      }
       return;
     }
 
@@ -427,26 +443,63 @@ const handleSubmit = useCallback(async (e) => {
   }
 }, [formData, totalSteps, currentStep, isSubmitting]);
 
-  // Function to scroll to the first error field
+  // Function to scroll to the first error field with improved targeting
   const scrollToFirstError = useCallback((errors) => {
     if (!errors || Object.keys(errors).length === 0) return;
     
-    // Get the first error field ID
-    const firstErrorField = Object.keys(errors)[0];
+    // Get the first error field key
+    const firstErrorKey = Object.keys(errors)[0];
+    if (!firstErrorKey || typeof document === 'undefined') return;
     
-    // Find the element with that ID or name
-    const errorElement = document.getElementById(firstErrorField) || 
-                         document.getElementsByName(firstErrorField)[0] ||
-                         document.querySelector(`[data-field="${firstErrorField}"]`);
+    // Define multiple selectors to try for better targeting
+    const selectors = [
+      `[name="${firstErrorKey}"]`,
+      `#${CSS.escape(firstErrorKey)}`,
+      `.${CSS.escape(firstErrorKey)}`,
+      `[data-error-key="${firstErrorKey}"]`,
+      `[data-field="${firstErrorKey}"]`
+    ];
     
-    if (errorElement) {
-      // Scroll to the element with smooth behavior
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Focus on the element
-      setTimeout(() => {
-        errorElement.focus();
-      }, 500);
+    // Try to find the element using different selectors
+    let target = null;
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) { target = el; break; }
     }
+    
+    if (target) {
+      // Calculate position with offset for sticky header
+      const stickyOffset = 120; // Offset for sticky header
+      const rect = target.getBoundingClientRect();
+      const absoluteTop = rect.top + window.pageYOffset;
+      
+      // Scroll with offset
+      window.scrollTo({ 
+        top: absoluteTop - stickyOffset, 
+        behavior: 'smooth' 
+      });
+      
+      // Focus after scroll completes
+      if (typeof target.focus === 'function') {
+        setTimeout(() => target.focus({ preventScroll: true }), 250);
+      }
+    } else {
+      // If no specific element found, scroll to top of form
+      const formElement = document.querySelector('form');
+      if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    
+    // Show specific error message in toast
+    const errorMessage = typeof errors[firstErrorKey] === 'string'
+      ? errors[firstErrorKey]
+      : 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
+    
+    toast.error(errorMessage, {
+      position: 'top-right',
+      duration: 4000
+    });
   }, []);
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
@@ -470,17 +523,7 @@ const handleNext = useCallback(async (e) => {
   if (Object.keys(formErrors).length > 0) {
     console.log('Validation failed with errors:', formErrors);
     
-    if (currentStep === 4 && formErrors.idCardDocument) {
-      toast.error('กรุณาอัพโหลดสำเนาบัตรประชาชนก่อนดำเนินการต่อ', {
-        position: 'top-right',
-        duration: 4000
-      });
-    } else {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง', {
-        position: 'top-right'
-      });
-    }
-    
+    // Use the enhanced scrollToFirstError function which handles toast notifications
     scrollToFirstError(formErrors);
     return;
   }

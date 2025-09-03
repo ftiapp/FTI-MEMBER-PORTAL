@@ -89,6 +89,35 @@ const ContactPersonSection = ({
         }
       }
     }
+    
+    // Auto-select matching prename in the other language
+    if (field === 'prenameTh') {
+      // Map Thai prenames to English equivalents
+      const thaiToEnglishMap = {
+        'นาย': 'Mr',
+        'นาง': 'Mrs',
+        'นางสาว': 'Ms',
+        'อื่นๆ': 'Other'
+      };
+      
+      // If English prename is empty or doesn't match the Thai selection, update it
+      if (!updatedContacts[index].prenameEn || thaiToEnglishMap[value] !== updatedContacts[index].prenameEn) {
+        updatedContacts[index].prenameEn = thaiToEnglishMap[value] || '';
+      }
+    } else if (field === 'prenameEn') {
+      // Map English prenames to Thai equivalents
+      const englishToThaiMap = {
+        'Mr': 'นาย',
+        'Mrs': 'นาง',
+        'Ms': 'นางสาว',
+        'Other': 'อื่นๆ'
+      };
+      
+      // If Thai prename is empty or doesn't match the English selection, update it
+      if (!updatedContacts[index].prenameTh || englishToThaiMap[value] !== updatedContacts[index].prenameTh) {
+        updatedContacts[index].prenameTh = englishToThaiMap[value] || '';
+      }
+    }
 
     onContactPersonsChange(updatedContacts);
   };
@@ -214,7 +243,7 @@ const ContactPersonSection = ({
                         <h4 className="text-sm font-medium text-gray-900">
                           {isMain ? 'ผู้ประสานงานหลัก' : `ผู้ติดต่อคนที่ ${index + 1}`}
                         </h4>
-                        {isMain && <span className="text-red-500 ml-1 text-sm">*</span>}
+                        {/* removed required asterisk */}
                       </div>
                       <p className="text-sm text-gray-500 mt-1">
                         {getContactSummary(contact, index)}
@@ -254,9 +283,11 @@ const ContactPersonSection = ({
                       {/* Contact Type */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ประเภทผู้ติดต่อ {isMain && <span className="text-red-500">*</span>}
+                          ประเภทผู้ติดต่อ
                         </label>
                         <select
+                          id={`contactPerson${index}TypeContactId`}
+                          name={`contactPerson${index}TypeContactId`}
                           value={isMain ? (contactTypes.find(t => t.type_code === 'MAIN')?.id || '') : (contact.typeContactId || '')}
                           onChange={(e) => {
                             if (!isMain) {
@@ -296,10 +327,12 @@ const ContactPersonSection = ({
                       {contact.typeContactId && contactTypes.find(t => t.id === parseInt(contact.typeContactId))?.type_code === 'OTHER' && (
                         <div className="lg:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            รายละเอียดประเภทอื่นๆ <span className="text-red-500">*</span>
+                            รายละเอียดประเภทอื่นๆ
                           </label>
                           <input
                             type="text"
+                            id={`contactPerson${index}TypeContactOtherDetail`}
+                            name={`contactPerson${index}TypeContactOtherDetail`}
                             value={contact.typeContactOtherDetail || ''}
                             onChange={(e) => handleContactChange(index, 'typeContactOtherDetail', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -312,7 +345,7 @@ const ContactPersonSection = ({
                       {/* Thai Names with Prename */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ชื่อ-นามสกุล (ภาษาไทย) {isMain && <span className="text-red-500">*</span>}
+                          ชื่อ-นามสกุล (ภาษาไทย)
                         </label>
                         <div className="grid grid-cols-4 gap-2">
                           {/* Prename Thai */}
@@ -334,6 +367,8 @@ const ContactPersonSection = ({
                           <div>
                             <input
                               type="text"
+                              id={`contactPerson${index}FirstNameTh`}
+                              name={`contactPerson${index}FirstNameTh`}
                               value={contact.firstNameTh}
                               onChange={(e) => {
                                 if (validateThaiName(e.target.value)) {
@@ -349,6 +384,8 @@ const ContactPersonSection = ({
                           <div className="col-span-2">
                             <input
                               type="text"
+                              id={`contactPerson${index}LastNameTh`}
+                              name={`contactPerson${index}LastNameTh`}
                               value={contact.lastNameTh}
                               onChange={(e) => {
                                 if (validateThaiName(e.target.value)) {
@@ -436,10 +473,12 @@ const ContactPersonSection = ({
                       {(contact.prenameTh === 'อื่นๆ' || contact.prenameEn === 'Other') && (
                         <div className="lg:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
-                            ระบุคำนำหน้า (ภาษาไทยเท่านั้น) <span className="text-red-500">*</span>
+                            ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
                           </label>
                           <input
                             type="text"
+                            id={`contactPerson${index}PrenameOther`}
+                            name={`contactPerson${index}PrenameOther`}
                             value={contact.prenameOther || ''}
                             onChange={(e) => {
                               const thaiOnly = e.target.value.replace(/[^ก-๙\.\s]/g, '');
@@ -456,10 +495,12 @@ const ContactPersonSection = ({
                       {/* Position and Email */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ตำแหน่ง {isMain && <span className="text-red-500">*</span>}
+                          ตำแหน่ง
                         </label>
                         <input
                           type="text"
+                          id={`contactPerson${index}Position`}
+                          name={`contactPerson${index}Position`}
                           value={contact.position}
                           onChange={(e) => handleContactChange(index, 'position', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -473,10 +514,12 @@ const ContactPersonSection = ({
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          อีเมล {isMain && <span className="text-red-500">*</span>}
+                          อีเมล
                         </label>
                         <input
                           type="email"
+                          id={`contactPerson${index}Email`}
+                          name={`contactPerson${index}Email`}
                           value={contact.email}
                           onChange={(e) => handleContactChange(index, 'email', e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -491,12 +534,14 @@ const ContactPersonSection = ({
                       {/* Phone */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          หมายเลขโทรศัพท์ {isMain && <span className="text-red-500">*</span>}
+                          หมายเลขโทรศัพท์
                         </label>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           <div className="lg:col-span-2">
                             <input
                               type="tel"
+                              id={`contactPerson${index}Phone`}
+                              name={`contactPerson${index}Phone`}
                               value={contact.phone}
                               onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"

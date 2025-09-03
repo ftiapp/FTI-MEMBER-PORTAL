@@ -164,7 +164,7 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
   );
 };
 
-export default function DocumentUploadSection({ formData, setFormData, errors }) {
+export default function DocumentUploadSection({ formData, setFormData, errors, showErrors }) {
   // ใช้ข้อมูลจาก formData เป็นค่าเริ่มต้น
   const [selectedFiles, setSelectedFiles] = useState({
     factoryLicense: formData.factoryLicense || null,
@@ -781,19 +781,19 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
                 <div>
-                  <label htmlFor="authorizedSignatoryPositionTh" className="block text-sm font-medium text-gray-700">ตำแหน่ง (ภาษาไทย)</label>
+                  <label htmlFor="authorizedSignatoryPositionTh" className="block text-sm font-medium text-gray-700">ตำแหน่ง (ภาษาไทย) <span className="text-red-600">*</span></label>
                   <input
                     id="authorizedSignatoryPositionTh"
                     name="authorizedSignatoryPositionTh"
                     type="text"
                     value={formData.authorizedSignatoryPositionTh || ''}
                     onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPositionTh: e.target.value }))}
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPositionTh ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${(showErrors && !formData.authorizedSignatoryPositionTh) || errors?.authorizedSignatoryPositionTh ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
                     placeholder="เช่น กรรมการผู้จัดการ"
                   />
-                  {errors?.authorizedSignatoryPositionTh && (
+                  {((showErrors && !formData.authorizedSignatoryPositionTh) || errors?.authorizedSignatoryPositionTh) && (
                     <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>{errors.authorizedSignatoryPositionTh}
+                      <span className="mr-1">*</span>{errors?.authorizedSignatoryPositionTh || 'กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย)'}
                     </p>
                   )}
                 </div>

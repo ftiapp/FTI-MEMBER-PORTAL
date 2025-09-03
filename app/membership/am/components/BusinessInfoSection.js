@@ -1,10 +1,50 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'react-toastify';
 
-export default function BusinessInfoSection({ formData, setFormData, errors }) {
+export default function BusinessInfoSection({ formData, setFormData, errors, showErrors = false }) {
+  // Refs for scrolling to error fields
+  const businessTypesRef = useRef(null);
+  const otherBusinessTypeDetailRef = useRef(null);
+  const memberCountRef = useRef(null);
+  const employeeCountRef = useRef(null);
+  const productsRef = useRef(null);
+
+  // Effect for scrolling to first error when showErrors is true
+  useEffect(() => {
+    if (showErrors) {
+      // Define the order of fields to check
+      const errorFields = [
+        { ref: businessTypesRef, error: errors.businessTypes },
+        { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail },
+        { ref: memberCountRef, error: errors.memberCount },
+        { ref: employeeCountRef, error: errors.numberOfEmployees },
+        { ref: productsRef, error: errors.products }
+      ];
+
+      // Find the first field with an error
+      const firstErrorField = errorFields.find(field => field.error && field.ref.current);
+      
+      if (firstErrorField) {
+        // Scroll to the first error field
+        firstErrorField.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        
+        // Show toast notification
+        toast.error('กรุณาตรวจสอบข้อมูลที่กรอกให้ถูกต้องครบถ้วน', {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true
+        });
+      }
+    }
+  }, [showErrors, errors]);
+
   const BUSINESS_TYPES = useMemo(() => [
     { id: 'manufacturer', nameTh: 'ผู้ผลิต' },
     { id: 'distributor', nameTh: 'ผู้จัดจำหน่าย' },
@@ -101,7 +141,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
       
       <div className="px-8 py-8 space-y-8">
         {/* Business Types */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={businessTypesRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
             <h3 className="text-base font-medium text-gray-900 mb-2">
               ประเภทธุรกิจ<span className="text-red-500 ml-1">*</span>
@@ -125,7 +165,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
           </div>
 
           {formData.businessTypes?.other && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div ref={otherBusinessTypeDetailRef} className="mt-6 pt-6 border-t border-gray-100">
               <label htmlFor="otherBusinessTypeDetail" className="block text-sm font-medium text-gray-900 mb-2">
                 โปรดระบุประเภทธุรกิจอื่นๆ<span className="text-red-500 ml-1">*</span>
               </label>
@@ -158,7 +198,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         </div>
 
         {/* Member Count - เพิ่มส่วนนี้สำหรับ AM */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={memberCountRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลสมาชิกสมาคม</h4>
           <div className="space-y-2">
             <label htmlFor="memberCount" className="block text-sm font-medium text-gray-900">
@@ -186,7 +226,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         </div>
 
         {/* Employee Count */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={employeeCountRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลพนักงาน</h4>
           <div className="space-y-2">
             <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-900">
@@ -215,12 +255,12 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
 
         {/* Financial Information */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน</h4>
+          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></h4>
           
           {/* Registered Capital */}
           <div className="space-y-2 mb-6">
             <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
-              ทุนจดทะเบียน (บาท)
+              ทุนจดทะเบียน (บาท) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
             </label>
             <input
               type="number"
@@ -405,9 +445,8 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
           </div>
         </div>
         
-        {/* Products */
-        }
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        {/* Products */}
+        <div ref={productsRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
             <h4 className="text-base font-medium text-gray-900 mb-2">
               ผลิตภัณฑ์/บริการ
@@ -491,6 +530,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
 }
 
 BusinessInfoSection.propTypes = {
+  showErrors: PropTypes.bool,
   formData: PropTypes.shape({
     businessTypes: PropTypes.object,
     otherBusinessTypeDetail: PropTypes.string,

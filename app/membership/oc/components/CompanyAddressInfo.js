@@ -85,15 +85,44 @@ export default function CompanyAddressInfo({
     
     // Create a deep copy of the office address to ensure complete independence
     const addressCopy = JSON.parse(JSON.stringify(officeAddress));
-    
+
+    // Remap dynamic contact fields to the target tab
+    const phoneKeySource = `phone-1`;
+    const phoneExtKeySource = `phoneExtension-1`;
+    const emailKeySource = `email-1`;
+    const websiteKeySource = `website-1`;
+
+    const phoneKeyTarget = `phone-${targetType}`;
+    const phoneExtKeyTarget = `phoneExtension-${targetType}`;
+    const emailKeyTarget = `email-${targetType}`;
+    const websiteKeyTarget = `website-${targetType}`;
+
+    // Remove source-specific contact keys from the copied object
+    const {
+      [phoneKeySource]: _omitPhone,
+      [phoneExtKeySource]: _omitPhoneExt,
+      [emailKeySource]: _omitEmail,
+      [websiteKeySource]: _omitWebsite,
+      ...restAddress
+    } = addressCopy;
+
+    // Build the target address by spreading common fields and overriding dynamic ones
+    const targetAddress = {
+      ...restAddress,
+      // Ensure correct address type
+      addressType: targetType,
+      // Map contact fields from source (type 1) to target type keys
+      [phoneKeyTarget]: addressCopy[phoneKeySource] || '',
+      [phoneExtKeyTarget]: addressCopy[phoneExtKeySource] || '',
+      [emailKeyTarget]: addressCopy[emailKeySource] || '',
+      [websiteKeyTarget]: addressCopy[websiteKeySource] || ''
+    };
+
     setFormData(prev => ({
       ...prev,
       addresses: {
         ...prev.addresses,
-        [targetType]: {
-          ...addressCopy,
-          addressType: targetType
-        }
+        [targetType]: targetAddress
       }
     }));
     toast.success(`คัดลอกที่อยู่ไปยัง${addressTypes[targetType].label}สำเร็จ`);
@@ -326,7 +355,7 @@ export default function CompanyAddressInfo({
   const currentAddress = getCurrentAddress();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div data-section="company-address" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Address Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">
@@ -719,19 +748,18 @@ export default function CompanyAddressInfo({
                   />
                 </div>
               </div>
-              {errors?.[`addresses.${activeTab}.phone-${activeTab}`] && (
+              {errors?.[`addresses.${activeTab}.phone`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors[`addresses.${activeTab}.phone-${activeTab}`]}
+                  {errors[`addresses.${activeTab}.phone`]}
                 </p>
               )}
             </div>
             <div className="space-y-2">
               <label htmlFor={`email-${activeTab}`} className="block text-sm font-medium text-gray-900">
-                อีเมล
-                <span className="text-red-500 ml-1">*</span>
+                อีเมล (ถ้ามี)
               </label>
               <input
                 type="email"
@@ -739,7 +767,6 @@ export default function CompanyAddressInfo({
                 name={`email-${activeTab}`}
                 value={currentAddress[`email-${activeTab}`] || ''}
                 onChange={handleInputChange}
-                required
                 placeholder="company@example.com"
                 className={`
                   w-full px-4 py-3 text-sm
@@ -748,18 +775,18 @@ export default function CompanyAddressInfo({
                   placeholder-gray-400
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.[`addresses.${activeTab}.email-${activeTab}`] 
+                  ${errors?.[`addresses.${activeTab}.email`] 
                     ? 'border-red-300 bg-red-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
                 `}
               />
-              {errors?.[`addresses.${activeTab}.email-${activeTab}`] && (
+              {errors?.[`addresses.${activeTab}.email`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors[`addresses.${activeTab}.email-${activeTab}`]}
+                  {errors[`addresses.${activeTab}.email`]}
                 </p>
               )}
             </div>

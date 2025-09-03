@@ -14,6 +14,7 @@ export default function AMPageClient() {
   const [isMobile, setIsMobile] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showErrors, setShowErrors] = useState(false);
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const abortControllerRef = useRef(null);
@@ -161,6 +162,8 @@ export default function AMPageClient() {
                 formData={formData} 
                 setFormData={setFormData}
                 totalSteps={steps.length}
+                showErrors={showErrors}
+                setShowErrors={setShowErrors}
               />
             </div>
           </motion.div>

@@ -113,9 +113,7 @@ const validateAssociationInfo = (formData, errors) => {
         errors.contactPerson0Position = 'กรุณากรอกตำแหน่ง';
       }
 
-      if (!mainContact.email) {
-        errors.contactPerson0Email = 'กรุณากรอกอีเมลผู้ประสานงาน';
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mainContact.email)) {
+      if (mainContact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mainContact.email)) {
         errors.contactPerson0Email = 'รูปแบบอีเมลไม่ถูกต้อง';
       }
 
@@ -182,13 +180,17 @@ const validateAssociationInfo = (formData, errors) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมลถ้ามี
-      if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+      // ตรวจสอบอีเมล (บังคับกรอก)
+      if (!address.email) {
+        errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
-      // ตรวจสอบเบอร์โทรศัพท์ถ้ามี
-      if (address.phone && !/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
+      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก)
+      if (!address.phone) {
+        errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
+      } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
         errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
       }
     });
@@ -273,10 +275,11 @@ const validateRepresentatives = (formData, errors) => {
  * ตรวจสอบข้อมูลธุรกิจ
  */
 const validateBusinessInfo = (formData, errors) => {
-  // ตรวจสอบประเภทธุรกิจ
-  if (!formData.businessTypes || Object.keys(formData.businessTypes).length === 0) {
+  // ตรวจสอบประเภทธุรกิจ - ต้องเลือกอย่างน้อย 1 ประเภท
+  if (!formData.businessTypes || Object.keys(formData.businessTypes).filter(key => formData.businessTypes[key]).length === 0) {
     errors.businessTypes = 'กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ประเภท';
   } else if (formData.businessTypes.other && !formData.otherBusinessTypeDetail) {
+    // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
     errors.otherBusinessTypeDetail = 'กรุณาระบุรายละเอียดประเภทธุรกิจอื่นๆ';
   }
 
@@ -287,9 +290,36 @@ const validateBusinessInfo = (formData, errors) => {
     errors.memberCount = 'จำนวนสมาชิกต้องเป็นตัวเลขมากกว่า 0';
   }
 
-  // ตรวจสอบทุนจดทะเบียน
+  // ตรวจสอบจำนวนพนักงาน
+  if (!formData.numberOfEmployees) {
+    errors.numberOfEmployees = 'กรุณากรอกจำนวนพนักงาน';
+  } else if (isNaN(formData.numberOfEmployees) || parseInt(formData.numberOfEmployees) < 0) {
+    errors.numberOfEmployees = 'จำนวนพนักงานต้องเป็นตัวเลขและมีค่ามากกว่าหรือเท่ากับ 0';
+  }
+
+  // ตรวจสอบผลิตภัณฑ์ - ต้องมีอย่างน้อย 1 รายการและต้องมีชื่อภาษาไทย
+  if (formData.products && formData.products.length > 0) {
+    const hasValidProduct = formData.products.some(product => product.nameTh && product.nameTh.trim() !== '');
+    if (!hasValidProduct) {
+      errors.products = 'กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยอย่างน้อย 1 รายการ';
+    }
+  } else {
+    errors.products = 'กรุณาเพิ่มผลิตภัณฑ์/บริการอย่างน้อย 1 รายการ';
+  }
+
+  // ตรวจสอบทุนจดทะเบียน (ไม่บังคับกรอก)
   if (formData.registeredCapital && (isNaN(formData.registeredCapital) || parseFloat(formData.registeredCapital) < 0)) {
     errors.registeredCapital = 'ทุนจดทะเบียนต้องเป็นตัวเลขและมีค่ามากกว่าหรือเท่ากับ 0';
+  }
+
+  // ตรวจสอบรายได้ปีล่าสุด (ไม่บังคับกรอก)
+  if (formData.revenueLastYear && (isNaN(formData.revenueLastYear) || parseFloat(formData.revenueLastYear) < 0)) {
+    errors.revenueLastYear = 'รายได้ปีล่าสุดต้องเป็นตัวเลขและมีค่ามากกว่าหรือเท่ากับ 0';
+  }
+
+  // ตรวจสอบรายได้ปีก่อนหน้า (ไม่บังคับกรอก)
+  if (formData.revenuePreviousYear && (isNaN(formData.revenuePreviousYear) || parseFloat(formData.revenuePreviousYear) < 0)) {
+    errors.revenuePreviousYear = 'รายได้ปีก่อนหน้าต้องเป็นตัวเลขและมีค่ามากกว่าหรือเท่ากับ 0';
   }
 
   // กลุ่มอุตสาหกรรมเป็นฟิลด์ทางเลือก ไม่ต้องตรวจสอบ

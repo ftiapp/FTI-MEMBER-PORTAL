@@ -153,13 +153,17 @@ const validateApplicantInfo = (formData) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมลถ้ามี
-      if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+      // ตรวจสอบอีเมล (บังคับกรอก)
+      if (!address.email) {
+        errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
-      // ตรวจสอบเบอร์โทรศัพท์ถ้ามี
-      if (address.phone && !/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
+      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก)
+      if (!address.phone) {
+        errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
+      } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
         errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
       }
 

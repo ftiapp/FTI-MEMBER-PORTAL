@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import PropTypes from 'prop-types';
 
 export default function RepresentativeInfoSection({ formData, setFormData, errors }) {
@@ -68,6 +69,35 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
       [field]: value
     };
     
+    // Auto-select matching prename in the other language
+    if (field === 'prenameTh') {
+      // Map Thai prenames to English equivalents
+      const thaiToEnglishMap = {
+        'นาย': 'Mr',
+        'นาง': 'Mrs',
+        'นางสาว': 'Ms',
+        'อื่นๆ': 'Other'
+      };
+      
+      // If English prename is empty or doesn't match the Thai selection, update it
+      if (!updatedRepresentative.prenameEn || thaiToEnglishMap[value] !== updatedRepresentative.prenameEn) {
+        updatedRepresentative.prenameEn = thaiToEnglishMap[value] || '';
+      }
+    } else if (field === 'prenameEn') {
+      // Map English prenames to Thai equivalents
+      const englishToThaiMap = {
+        'Mr': 'นาย',
+        'Mrs': 'นาง',
+        'Ms': 'นางสาว',
+        'Other': 'อื่นๆ'
+      };
+      
+      // If Thai prename is empty or doesn't match the English selection, update it
+      if (!updatedRepresentative.prenameTh || englishToThaiMap[value] !== updatedRepresentative.prenameTh) {
+        updatedRepresentative.prenameTh = englishToThaiMap[value] || '';
+      }
+    }
+    
     setRepresentative(updatedRepresentative);
     
     // อัปเดต formData โดยตรง
@@ -84,8 +114,29 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     </svg>
   ), []);
 
+  // Create refs for prename fields
+  const prenameThRef = useRef(null);
+  const prenameEnRef = useRef(null);
+  const prenameOtherRef = useRef(null);
+
+  // Effect to check for prename errors and scroll to them
+  useEffect(() => {
+    if (representativeErrors) {
+      if (representativeErrors.prenameTh && prenameThRef.current) {
+        prenameThRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error('กรุณาเลือกคำนำหน้าชื่อภาษาไทย');
+      } else if (representativeErrors.prenameEn && prenameEnRef.current) {
+        prenameEnRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error('กรุณาเลือกคำนำหน้าชื่อภาษาอังกฤษ');
+      } else if (representativeErrors.prenameOther && prenameOtherRef.current) {
+        prenameOtherRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error('กรุณาระบุคำนำหน้าชื่ออื่นๆ');
+      }
+    }
+  }, [representativeErrors]);
+
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10" data-section="representative-info">
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลผู้แทน</h2>
@@ -113,6 +164,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     คำนำหน้า
                   </label>
                   <select
+                    ref={prenameThRef}
                     id="prenameTh"
                     value={representative.prenameTh || ''}
                     onChange={(e) => handleRepresentativeChange('prenameTh', e.target.value)}
@@ -183,11 +235,12 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
 
               {/* Other Thai prename detail */}
               {representative.prenameTh === 'อื่นๆ' && (
-                <div className="mt-4">
+                <div className="mt-4" data-section="prename-other">
                   <label htmlFor="prenameOther" className="block text-sm font-medium text-gray-700 mb-1">
                     ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
                   </label>
                   <input
+                    ref={prenameOtherRef}
                     type="text"
                     id="prenameOther"
                     value={representative.prenameOther || ''}
@@ -217,6 +270,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     Prename
                   </label>
                   <select
+                    ref={prenameEnRef}
                     id="prenameEn"
                     value={representative.prenameEn || ''}
                     onChange={(e) => handleRepresentativeChange('prenameEn', e.target.value)}

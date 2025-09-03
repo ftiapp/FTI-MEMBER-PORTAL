@@ -1,9 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { toast } from 'react-hot-toast';
 import PropTypes from 'prop-types';
 
 export default function BusinessInfoSection({ formData, setFormData, errors, businessTypes }) {
+  // Create refs for scrolling to error fields
+  const businessTypesRef = useRef(null);
+  const otherBusinessTypeRef = useRef(null);
+  const productsRef = useRef(null);
   const BUSINESS_TYPES = useMemo(() => [
     { id: 'manufacturer', nameTh: 'ผู้ผลิต' },
     { id: 'distributor', nameTh: 'ผู้จัดจำหน่าย' },
@@ -26,6 +31,20 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   }, [setFormData]);
+  
+  // Scroll to error fields when errors change
+  useEffect(() => {
+    if (errors.businessTypes && businessTypesRef.current) {
+      businessTypesRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast.error(errors.businessTypes);
+    } else if (errors.otherBusinessTypeDetail && otherBusinessTypeRef.current) {
+      otherBusinessTypeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast.error(errors.otherBusinessTypeDetail);
+    } else if (errors.products && productsRef.current) {
+      productsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      toast.error(errors.products);
+    }
+  }, [errors]);
 
   const handleCheckboxChange = useCallback((e) => {
     const { name, checked } = e.target;
@@ -96,7 +115,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
       
       <div className="px-8 py-8 space-y-8">
         {/* Business Types */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6" ref={businessTypesRef}>
           <div className="mb-6">
             <h3 className="text-base font-medium text-gray-900 mb-2">
               ประเภทธุรกิจ<span className="text-red-500 ml-1">*</span>
@@ -120,7 +139,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
           </div>
 
           {formData.businessTypes?.other && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
+            <div className="mt-6 pt-6 border-t border-gray-100" ref={otherBusinessTypeRef}>
               <label htmlFor="otherBusinessTypeDetail" className="block text-sm font-medium text-gray-900 mb-2">
                 โปรดระบุประเภทธุรกิจอื่นๆ<span className="text-red-500 ml-1">*</span>
               </label>
@@ -187,7 +206,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
           {/* Registered Capital */}
           <div className="space-y-2 mb-6">
             <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
-              ทุนจดทะเบียน (บาท)
+              ทุนจดทะเบียน (บาท) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
             </label>
             <input
               type="number"
@@ -373,7 +392,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
         </div>
         
         {/* Products */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-6" ref={productsRef}>
           <div className="mb-6">
             <h4 className="text-base font-medium text-gray-900 mb-2">
               ผลิตภัณฑ์/บริการ<span className="text-red-500 ml-1">*</span>

@@ -191,15 +191,22 @@ export default function ACMembershipForm({
       if (el) { target = el; break; }
     }
 
-    if (!target) return;
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      const absoluteTop = rect.top + window.pageYOffset;
+      const offset = Math.max(0, stickyOffsetRef.current || 0);
+      window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
 
-    const rect = target.getBoundingClientRect();
-    const absoluteTop = rect.top + window.pageYOffset;
-    const offset = Math.max(0, stickyOffsetRef.current || 0);
-    window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
-
-    if (typeof target.focus === 'function') {
-      setTimeout(() => target.focus({ preventScroll: true }), 250);
+      if (typeof target.focus === 'function') {
+        setTimeout(() => target.focus({ preventScroll: true }), 250);
+      }
+      return;
+    }
+    
+    // Fallbacks by section
+    if (fieldKey.startsWith('contactPerson')) {
+      const section = document.querySelector('[data-section="contact-person"]');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
   

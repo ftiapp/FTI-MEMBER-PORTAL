@@ -170,6 +170,43 @@ const useApiData = () => {
 export default function AMMembershipForm(props = {}) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
+  const stickyOffsetRef = useRef(120); // Offset for sticky header
+  
+  // Helper: Scroll to a field key with offset and focus
+  const scrollToErrorField = useCallback((fieldKey) => {
+    if (!fieldKey || typeof document === 'undefined') return;
+    
+    const selectors = [
+      `[name="${fieldKey}"]`,
+      `#${CSS.escape(fieldKey)}`,
+      `.${CSS.escape(fieldKey)}`,
+      `[data-error-key="${fieldKey}"]`,
+    ];
+    
+    let target = null;
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) { target = el; break; }
+    }
+    
+    if (target) {
+      const rect = target.getBoundingClientRect();
+      const absoluteTop = rect.top + window.pageYOffset;
+      const offset = Math.max(0, stickyOffsetRef.current || 0);
+      window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
+      
+      if (typeof target.focus === 'function') {
+        setTimeout(() => target.focus({ preventScroll: true }), 250);
+      }
+      return;
+    }
+    
+    // Fallbacks by section
+    if (fieldKey.startsWith('contactPerson')) {
+      const section = document.querySelector('[data-section="contact-person"]');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
   
   // Support controlled formData from parent while keeping internal fallback
   const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
@@ -184,6 +221,10 @@ export default function AMMembershipForm(props = {}) {
   const isExternal = props.formData !== undefined;
   const formData = isExternal ? props.formData : internalFormData;
   const setFormData = isExternal ? props.setFormData : setInternalFormData;
+  
+  // Get showErrors from props or use internal state
+  const showErrors = props.showErrors !== undefined ? props.showErrors : false;
+  const setShowErrors = props.setShowErrors || (() => {});
 
   // Sync externalFormData with internal state when it changes
   useEffect(() => {
@@ -217,9 +258,12 @@ export default function AMMembershipForm(props = {}) {
     hasSetFormDataProp: !!props.setFormData,
     hasCurrentStepProp: !!props.currentStep,
     hasSetCurrentStepProp: !!props.setCurrentStep,
+    hasShowErrorsProp: !!props.showErrors,
+    hasSetShowErrorsProp: !!props.setShowErrors,
     formDataKeys: props.formData ? Object.keys(props.formData) : 'none',
     currentStepValue: currentStep,
-    totalStepsValue: effectiveTotalSteps
+    totalStepsValue: effectiveTotalSteps,
+    showErrorsValue: showErrors
   });
   console.log('📝 Current formData:', formData);
 
@@ -330,14 +374,33 @@ export default function AMMembershipForm(props = {}) {
     setErrors(formErrors);
 
     if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
-      // Optionally, navigate to the first step with an error
+      // Set showErrors to true to trigger error display and scrolling
+      if (typeof setShowErrors === 'function') {
+        setShowErrors(true);
+      }
+      
+      // Find first error key and step with errors
+      const firstErrorKey = Object.keys(formErrors)[0];
       const firstErrorStep = STEPS.find(step => 
         Object.keys(validateAMForm(formData, step.id)).length > 0
       );
+      
+      // Navigate to the step with the error
       if (firstErrorStep && setCurrentStep) {
         setCurrentStep(firstErrorStep.id);
+        
+        // Wait for step change to complete before scrolling
+        setTimeout(() => {
+          scrollToErrorField(firstErrorKey);
+        }, 100);
       }
+      
+      // Show toast with more specific error message if available
+      const errorMessage = typeof formErrors[firstErrorKey] === 'string'
+        ? formErrors[firstErrorKey]
+        : 'กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน';
+      
+      toast.error(errorMessage);
       return;
     }
 
@@ -384,7 +447,23 @@ export default function AMMembershipForm(props = {}) {
     setErrors(formErrors);
     
     if (Object.keys(formErrors).length > 0) {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+      // Set showErrors to true to trigger error display and scrolling
+      if (typeof setShowErrors === 'function') {
+        setShowErrors(true);
+      }
+      
+      // Find first error key to scroll to
+      const firstErrorKey = Object.keys(formErrors)[0];
+      
+      // Scroll to the error field
+      scrollToErrorField(firstErrorKey);
+      
+      // Show toast with more specific error message if available
+      const errorMessage = typeof formErrors[firstErrorKey] === 'string'
+        ? formErrors[firstErrorKey]
+        : 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
+      
+      toast.error(errorMessage);
       return;
     }
 
@@ -516,7 +595,8 @@ export default function AMMembershipForm(props = {}) {
           {...commonProps} 
           businessTypes={businessTypes} 
           industrialGroups={industrialGroups} 
-          provincialChapters={provincialChapters} 
+          provincialChapters={provincialChapters}
+          showErrors={showErrors}
         />,
       4: <DocumentsSection {...commonProps} />,
       5: <SummarySection 

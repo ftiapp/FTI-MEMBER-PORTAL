@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import toast from 'react-hot-toast';
 
 /**
  * คอมโพเนนต์สำหรับกรอกข้อมูลธุรกิจในฟอร์มสมัครสมาชิกประเภท AC (สมทบ-นิติบุคคล)
@@ -12,6 +13,10 @@ import PropTypes from 'prop-types';
  * @returns {JSX.Element} BusinessInfoSection component
  */
 export default function BusinessInfoSection({ formData, setFormData, errors }) {
+  // Refs for scrolling to errors
+  const businessTypesRef = useRef(null);
+  const otherBusinessTypeDetailRef = useRef(null);
+  const productsRef = useRef(null);
   // Use business types from props or fallback to default
   const BUSINESS_TYPES = useMemo(() => [
     { id: 'manufacturer', nameTh: 'ผู้ผลิต' },
@@ -28,6 +33,30 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   const [nextProductId, setNextProductId] = useState(() => 
     formData.products?.length > 0 ? Math.max(...formData.products.map(p => p.id)) + 1 : 2
   );
+
+  // Handle errors and scroll to the first error field
+  useEffect(() => {
+    if (errors) {
+      // Check for specific errors and scroll to them
+      if (errors.businessTypes && businessTypesRef.current) {
+        businessTypesRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error('กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ข้อ');
+        return;
+      }
+      
+      if (errors.otherBusinessTypeDetail && otherBusinessTypeDetailRef.current) {
+        otherBusinessTypeDetailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error('กรุณาระบุรายละเอียดประเภทธุรกิจอื่นๆ');
+        return;
+      }
+      
+      if (errors.products && productsRef.current) {
+        productsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error('กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยอย่างน้อย 1 รายการ');
+        return;
+      }
+    }
+  }, [errors]);
 
   const handleProductChange = useCallback((id, field, value) => {
     const updatedProducts = products.map(product => 
@@ -105,7 +134,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
       
       <div className="px-8 py-8 space-y-8">
         {/* Business Types */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={businessTypesRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
             <h3 className="text-base font-medium text-gray-900 mb-2">
               ประเภทธุรกิจ<span className="text-red-500 ml-1">*</span>
@@ -143,6 +172,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                 โปรดระบุประเภทธุรกิจอื่นๆ<span className="text-red-500 ml-1">*</span>
               </label>
               <input
+                ref={otherBusinessTypeDetailRef}
                 type="text"
                 id="otherBusinessTypeDetail"
                 name="otherBusinessTypeDetail"
@@ -200,12 +230,12 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
 
         {/* Financial Information */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน</h4>
+          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></h4>
           
           {/* Registered Capital */}
           <div className="space-y-2 mb-6">
             <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
-              ทุนจดทะเบียน (บาท)
+              ทุนจดทะเบียน (บาท) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
             </label>
             <input
               type="number"
@@ -391,7 +421,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         </div>
         
         {/* Products */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={productsRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
             <h4 className="text-base font-medium text-gray-900 mb-2">
               ผลิตภัณฑ์/บริการ<span className="text-red-500 ml-1">*</span>
