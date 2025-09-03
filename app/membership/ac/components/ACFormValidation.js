@@ -169,20 +169,27 @@ export const validateACForm = (formData, step) => {
       formData.representatives.forEach((rep, index) => {
         const repError = {};
         
-        // ตรวจสอบคำนำหน้าชื่อ (prename)
-        if (!rep.prename_th) {
+        // Normalize prename fields from UI (camelCase) or legacy (snake_case)
+        const prenameTh = rep.prenameTh ?? rep.prename_th ?? '';
+        const prenameEn = rep.prenameEn ?? rep.prename_en ?? '';
+        const prenameOther = rep.prenameOther ?? rep.prename_other ?? '';
+
+        // ตรวจสอบคำนำหน้าชื่อ (ภาษาไทย)
+        if (!prenameTh) {
           repError.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
-        } else if (!/^[ก-๙\.\s]+$/.test(rep.prename_th)) {
+        } else if (!/^[ก-๙\.\s]+$/.test(prenameTh)) {
           repError.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
         }
 
-        if (!rep.prename_en) {
+        // ตรวจสอบคำนำหน้าชื่อ (ภาษาอังกฤษ)
+        if (!prenameEn) {
           repError.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
-        } else if (!/^[A-Za-z\.\s]+$/.test(rep.prename_en)) {
+        } else if (!/^[A-Za-z\.\s]+$/.test(prenameEn)) {
           repError.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
         }
 
-        if ((rep.prename_th === 'อื่นๆ' || (rep.prename_en && rep.prename_en.toLowerCase() === 'other')) && !rep.prename_other) {
+        // ตรวจสอบกรณีเลือก "อื่นๆ/Other" ต้องระบุรายละเอียด
+        if ((prenameTh === 'อื่นๆ' || (prenameEn && prenameEn.toLowerCase() === 'other')) && !prenameOther) {
           repError.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
         }
 

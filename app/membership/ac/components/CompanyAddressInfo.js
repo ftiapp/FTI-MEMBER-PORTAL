@@ -73,10 +73,30 @@ export default function CompanyAddressInfo({
   
   const handleContactInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    
+    // Store contact fields in the current address object instead of globally
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
+      }
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update the contact field in the current address object
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        [name]: value
+      };
+      
+      return newFormData;
+    });
   };
 
   // Get current address based on active tab
@@ -91,12 +111,16 @@ export default function CompanyAddressInfo({
       toast.error('กรุณากรอกที่อยู่สำนักงานก่อน');
       return;
     }
+    
+    // Create a deep copy of the office address to ensure complete independence
+    const addressCopy = JSON.parse(JSON.stringify(officeAddress));
+    
     setFormData(prev => ({
       ...prev,
       addresses: {
         ...prev.addresses,
         [targetType]: {
-          ...officeAddress,
+          ...addressCopy,
           addressType: targetType
         }
       }
@@ -105,16 +129,28 @@ export default function CompanyAddressInfo({
   };
 
   const handleInputChange = (name, value) => {
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          [name]: value
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific field for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        [name]: value
+      };
+      
+      return newFormData;
+    });
   };
 
   const fetchPostalCode = useCallback(async (subDistrict) => {
@@ -138,16 +174,28 @@ export default function CompanyAddressInfo({
         const postalCode = data.data[0].postalCode;
         console.log(`Found postal code: ${postalCode}`);
         
-        setFormData(prev => ({
-          ...prev,
-          addresses: {
-            ...prev.addresses,
-            [activeTab]: {
-              ...prev.addresses?.[activeTab],
-              postalCode: postalCode
-            }
+        setFormData(prev => {
+          // Create a new object with the same properties
+          const newFormData = { ...prev };
+          
+          // Ensure addresses object exists
+          if (!newFormData.addresses) {
+            newFormData.addresses = {};
           }
-        }));
+          
+          // Ensure the current tab's address object exists
+          if (!newFormData.addresses[activeTab]) {
+            newFormData.addresses[activeTab] = { addressType: activeTab };
+          }
+          
+          // Update only the specific field for the current tab
+          newFormData.addresses[activeTab] = {
+            ...newFormData.addresses[activeTab],
+            postalCode: postalCode
+          };
+          
+          return newFormData;
+        });
         // ลดการแจ้งเตือนซ้ำ ๆ: ไม่ต้องแสดง toast สำเร็จทุกครั้ง
       } else {
         console.log(`No postal code found for subdistrict: ${subDistrict}`);
@@ -159,7 +207,7 @@ export default function CompanyAddressInfo({
     } finally {
       setIsLoading(false);
     }
-  }, [setFormData]);
+  }, [setFormData, activeTab]);
 
   const fetchSubDistricts = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.trim().length < 2) return [];
@@ -226,113 +274,197 @@ export default function CompanyAddressInfo({
   }, []);
 
   const handleSubDistrictChange = useCallback((value) => {
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          subDistrict: value
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific field for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        subDistrict: value
+      };
+      
+      return newFormData;
+    });
     // หยุดเรียก API ระหว่างพิมพ์เพื่อลดการ fetch รัว ๆ
     // จะทำการ autofill ผ่าน onSelect แทน (เมื่อผู้ใช้เลือกจาก dropdown)
-  }, [setFormData, fetchPostalCode, activeTab]);
+  }, [setFormData, activeTab]);
   
   const handleSubDistrictSelect = useCallback((option) => {
     if (!option) return;
     
     console.log('Selected subdistrict option:', option);
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          subDistrict: option.text || option.name || '',
-          district: option.district || '',
-          province: option.province || '',
-          postalCode: option.postalCode || ''
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific fields for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        subDistrict: option.text || option.name || '',
+        district: option.district || '',
+        province: option.province || '',
+        postalCode: option.postalCode || ''
+      };
+      
+      return newFormData;
+    });
     // ลดการแจ้งเตือนเพื่อป้องกัน toast เด้งรัว ๆ ระหว่างใช้งาน
   }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          district: value
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific field for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        district: value
+      };
+      
+      return newFormData;
+    });
   }, [setFormData, activeTab]);
   
   const handleDistrictSelect = useCallback((option) => {
     if (!option) return;
     
     console.log('Selected district option:', option);
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          district: option.text || option.name || '',
-          province: option.province || ''
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific fields for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        district: option.text || option.name || '',
+        province: option.province || ''
+      };
+      
+      return newFormData;
+    });
   }, [setFormData, activeTab]);
   
   const handleProvinceChange = useCallback((value) => {
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          province: value
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific field for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        province: value
+      };
+      
+      return newFormData;
+    });
   }, [setFormData, activeTab]);
   
   const handlePostalCodeChange = useCallback((value) => {
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          postalCode: value
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific field for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        postalCode: value
+      };
+      
+      return newFormData;
+    });
   }, [setFormData, activeTab]);
   
   const handlePostalCodeSelect = useCallback((option) => {
     if (!option) return;
     
     console.log('Selected postal code option:', option);
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          subDistrict: option.subdistrict || option.subDistrict || '',
-          district: option.district || '',
-          province: option.province || '',
-          postalCode: option.text || option.postalCode || ''
-        }
+    setFormData(prev => {
+      // Create a new object with the same properties
+      const newFormData = { ...prev };
+      
+      // Ensure addresses object exists
+      if (!newFormData.addresses) {
+        newFormData.addresses = {};
       }
-    }));
+      
+      // Ensure the current tab's address object exists
+      if (!newFormData.addresses[activeTab]) {
+        newFormData.addresses[activeTab] = { addressType: activeTab };
+      }
+      
+      // Update only the specific fields for the current tab
+      newFormData.addresses[activeTab] = {
+        ...newFormData.addresses[activeTab],
+        subDistrict: option.subdistrict || option.subDistrict || '',
+        district: option.district || '',
+        province: option.province || '',
+        postalCode: option.text || option.postalCode || ''
+      };
+      
+      return newFormData;
+    });
     // ไม่ต้องแสดง toast สำเร็จเพื่อลดการรบกวนผู้ใช้
   }, [setFormData, activeTab]);
 
@@ -710,7 +842,7 @@ export default function CompanyAddressInfo({
                       type="tel"
                       id="companyPhone"
                       name="companyPhone"
-                      value={formData.companyPhone || ''}
+                      value={currentAddress?.companyPhone || ''}
                       onChange={handleContactInputChange}
                       required
                       placeholder="02-123-4567"
@@ -733,19 +865,19 @@ export default function CompanyAddressInfo({
                       type="text"
                       id="companyPhoneExtension"
                       name="companyPhoneExtension"
-                      value={formData.companyPhoneExtension || ''}
+                      value={currentAddress?.companyPhoneExtension || ''}
                       onChange={handleContactInputChange}
                       placeholder="ต่อ (ถ้ามี)"
                       className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
                     />
                   </div>
                 </div>
-                {errors?.companyPhone && (
+                {errors?.addresses?.[activeTab]?.companyPhone && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {errors.companyPhone}
+                    {errors.addresses[activeTab].companyPhone}
                   </p>
                 )}
               </div>
@@ -760,7 +892,7 @@ export default function CompanyAddressInfo({
                   type="email"
                   id="companyEmail"
                   name="companyEmail"
-                  value={formData.companyEmail || ''}
+                  value={currentAddress?.companyEmail || ''}
                   onChange={handleContactInputChange} 
                   required
                   placeholder="company@example.com"
@@ -777,12 +909,12 @@ export default function CompanyAddressInfo({
                     }
                   `}
                 />
-                {errors?.companyEmail && (
+                {errors?.addresses?.[activeTab]?.companyEmail && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {errors.companyEmail}
+                    {errors.addresses[activeTab].companyEmail}
                   </p>
                 )}
               </div>
@@ -796,7 +928,7 @@ export default function CompanyAddressInfo({
                   type="url"
                   id="companyWebsite"
                   name="companyWebsite"
-                  value={formData.companyWebsite || ''}
+                  value={currentAddress?.companyWebsite || ''}
                   onChange={handleContactInputChange} 
                   placeholder="https://example.com"
                   className="

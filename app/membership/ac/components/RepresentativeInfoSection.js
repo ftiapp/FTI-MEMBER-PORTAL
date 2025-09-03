@@ -209,6 +209,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           value={rep.prenameTh || ''}
                           onChange={(e) => updateRepresentative(rep.id, 'prenameTh', e.target.value)}
                           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
+                          data-error-key={`rep-${index}-prename_th`}
                         >
                           <option value="">เลือกคำนำหน้า</option>
                           <option value="นาย">นาย</option>
@@ -234,6 +235,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          data-error-key={`rep-${index}-firstNameTh`}
                         />
                         {getFieldError(rep, 'firstNameTh', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'firstNameTh', index)}</p>
@@ -253,6 +255,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          data-error-key={`rep-${index}-lastNameTh`}
                         />
                         {getFieldError(rep, 'lastNameTh', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'lastNameTh', index)}</p>
@@ -271,6 +274,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           onChange={(e) => updateRepresentative(rep.id, 'prenameOther', e.target.value.replace(/[^ก-๙\.\s]/g, ''))}
                           placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
                           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
+                          data-error-key={`rep-${index}-prename_other`}
                         />
                         {representativeErrors[index]?.prename_other && (
                           <p className="text-sm text-red-600 mt-2">{representativeErrors[index].prename_other}</p>
@@ -296,6 +300,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                           value={rep.prenameEn || ''}
                           onChange={(e) => updateRepresentative(rep.id, 'prenameEn', e.target.value)}
                           className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
+                          data-error-key={`rep-${index}-prename_en`}
                         >
                           <option value="">Select Prename</option>
                           <option value="Mr">Mr</option>
@@ -321,6 +326,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          data-error-key={`rep-${index}-firstNameEn`}
                         />
                         {getFieldError(rep, 'firstNameEn', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'firstNameEn', index)}</p>
@@ -340,6 +346,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          data-error-key={`rep-${index}-lastNameEn`}
                         />
                         {getFieldError(rep, 'lastNameEn', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'lastNameEn', index)}</p>
@@ -379,6 +386,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          data-error-key={`rep-${index}-email`}
                         />
                         {getFieldError(rep, 'email', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'email', index)}</p>
@@ -401,6 +409,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                                   'border-red-300 bg-red-50 focus:ring-red-500' : 
                                   'border-gray-300 bg-white hover:border-gray-400'
                               }`}
+                              data-error-key={`rep-${index}-phone`}
                             />
                           </div>
                           <div>

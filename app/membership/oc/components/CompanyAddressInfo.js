@@ -82,12 +82,16 @@ export default function CompanyAddressInfo({
       toast.error('กรุณากรอกที่อยู่สำนักงานก่อน');
       return;
     }
+    
+    // Create a deep copy of the office address to ensure complete independence
+    const addressCopy = JSON.parse(JSON.stringify(officeAddress));
+    
     setFormData(prev => ({
       ...prev,
       addresses: {
         ...prev.addresses,
         [targetType]: {
-          ...officeAddress,
+          ...addressCopy,
           addressType: targetType
         }
       }
@@ -683,9 +687,9 @@ export default function CompanyAddressInfo({
                 <div className="lg:col-span-2">
                   <input
                     type="tel"
-                    id="phone"
-                    name="phone"
-                    value={currentAddress.phone || ''}
+                    id={`phone-${activeTab}`}
+                    name={`phone-${activeTab}`}
+                    value={currentAddress[`phone-${activeTab}`] || ''}
                     onChange={handleInputChange}
                     required
                     placeholder="02-123-4567"
@@ -696,7 +700,7 @@ export default function CompanyAddressInfo({
                       placeholder-gray-400
                       transition-all duration-200
                       focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                      ${errors?.[`addresses.${activeTab}.phone`] 
+                      ${errors?.[`addresses.${activeTab}.phone-${activeTab}`] 
                         ? 'border-red-300 bg-red-50' 
                         : 'border-gray-300 hover:border-gray-400'
                       }
@@ -706,36 +710,34 @@ export default function CompanyAddressInfo({
                 <div>
                   <input
                     type="text"
-                    id="phoneExtension"
-                    name="phoneExtension"
-                    value={currentAddress.phoneExtension || ''}
+                    id={`phoneExtension-${activeTab}`}
+                    name={`phoneExtension-${activeTab}`}
+                    value={currentAddress[`phoneExtension-${activeTab}`] || ''}
                     onChange={handleInputChange}
                     placeholder="ต่อ (ถ้ามี)"
                     className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
                   />
                 </div>
               </div>
-              {errors?.[`addresses.${activeTab}.phone`] && (
+              {errors?.[`addresses.${activeTab}.phone-${activeTab}`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors[`addresses.${activeTab}.phone`]}
+                  {errors[`addresses.${activeTab}.phone-${activeTab}`]}
                 </p>
               )}
             </div>
-
-            {/* Company Email and Website */}
             <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-medium text-gray-900">
+              <label htmlFor={`email-${activeTab}`} className="block text-sm font-medium text-gray-900">
                 อีเมล
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="email"
-                id="email"
-                name="email"
-                value={currentAddress.email || ''}
+                id={`email-${activeTab}`}
+                name={`email-${activeTab}`}
+                value={currentAddress[`email-${activeTab}`] || ''}
                 onChange={handleInputChange}
                 required
                 placeholder="company@example.com"
@@ -746,32 +748,32 @@ export default function CompanyAddressInfo({
                   placeholder-gray-400
                   transition-all duration-200
                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.[`addresses.${activeTab}.email`] 
+                  ${errors?.[`addresses.${activeTab}.email-${activeTab}`] 
                     ? 'border-red-300 bg-red-50' 
                     : 'border-gray-300 hover:border-gray-400'
                   }
                 `}
               />
-              {errors?.[`addresses.${activeTab}.email`] && (
+              {errors?.[`addresses.${activeTab}.email-${activeTab}`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
-                  {errors[`addresses.${activeTab}.email`]}
+                  {errors[`addresses.${activeTab}.email-${activeTab}`]}
                 </p>
               )}
             </div>
 
             {/* Company Website */}
             <div className="space-y-2">
-              <label htmlFor="website" className="block text-sm font-medium text-gray-900">
+              <label htmlFor={`website-${activeTab}`} className="block text-sm font-medium text-gray-900">
                 เว็บไซต์
               </label>
               <input
                 type="url"
-                id="website"
-                name="website"
-                value={currentAddress.website || ''}
+                id={`website-${activeTab}`}
+                name={`website-${activeTab}`}
+                value={currentAddress[`website-${activeTab}`] || ''}
                 onChange={handleInputChange}
                 placeholder="https://example.com"
                 className="

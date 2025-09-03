@@ -261,7 +261,7 @@ export default function UpgradeMembership() {
       subtitle: 'สำหรับนิติบุคคลที่ทำงานด้านอุตสาหกรรม',
       price: '2,400 บาท/ปี',
       color: 'blue',
-      link: '/membership/ic',
+      link: '/membership/ac',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากสภาอุตสาหกรรม',
@@ -274,7 +274,7 @@ export default function UpgradeMembership() {
       subtitle: 'สำหรับบุคคลธรรมดาที่สนใจงานด้านอุตสาหกรรม',
       price: '600 บาท/ปี',
       color: 'blue',
-      link: '/membership/ac',
+      link: '/membership/ic',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากสภาอุตสาหกรรม',

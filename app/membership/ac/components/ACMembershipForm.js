@@ -172,6 +172,36 @@ export default function ACMembershipForm({
 }) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
+  const stickyOffsetRef = useRef(120); // Approx header/toolbar height to offset when scrolling
+
+  // Helper: Scroll to a field key with offset and focus
+  const scrollToErrorField = useCallback((fieldKey) => {
+    if (!fieldKey || typeof document === 'undefined') return;
+
+    const selectors = [
+      `[name="${fieldKey}"]`,
+      `#${CSS.escape(fieldKey)}`,
+      `.${CSS.escape(fieldKey)}`,
+      `[data-error-key="${fieldKey}"]`, // optional wrapper hook
+    ];
+
+    let target = null;
+    for (const sel of selectors) {
+      const el = document.querySelector(sel);
+      if (el) { target = el; break; }
+    }
+
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    const absoluteTop = rect.top + window.pageYOffset;
+    const offset = Math.max(0, stickyOffsetRef.current || 0);
+    window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
+
+    if (typeof target.focus === 'function') {
+      setTimeout(() => target.focus({ preventScroll: true }), 250);
+    }
+  }, []);
   
   // Use external form data if provided, otherwise use internal state
   const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
@@ -203,7 +233,12 @@ export default function ACMembershipForm({
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error: apiError } = useApiData();
   
   // Use external navigation if provided, otherwise use internal hook
-  const internalNavigation = useACFormNavigation((formData, step) => validateACForm(formData, step));
+  const internalNavigation = useACFormNavigation(
+    (formData, step) => validateACForm(formData, step),
+    externalCurrentStep,
+    externalSetCurrentStep,
+    externalTotalSteps
+  );
   
   const currentStep = externalCurrentStep || internalNavigation.currentStep;
   const setCurrentStep = externalSetCurrentStep || internalNavigation.setCurrentStep;
@@ -424,14 +459,19 @@ export default function ACMembershipForm({
         console.log('❌ Validation errors found:', formErrors);
         toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน');
         
-        // หา section แรกที่มี error แล้ว scroll ไป
-        const firstErrorField = Object.keys(formErrors)[0];
-        const errorElement = document.querySelector(`[name="${firstErrorField}"]`) || 
-                            document.querySelector(`#${firstErrorField}`) ||
-                            document.querySelector(`.${firstErrorField}`);
-        if (errorElement) {
-          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // รองรับ error ที่ซ้อนใน representativeErrors
+        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
+          const repIndex = formErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
+          if (repIndex !== -1) {
+            const field = Object.keys(formErrors.representativeErrors[repIndex])[0];
+            const compositeKey = `rep-${repIndex}-${field}`;
+            scrollToErrorField(compositeKey);
+            return;
+          }
         }
+
+        const firstErrorField = Object.keys(formErrors)[0];
+        scrollToErrorField(firstErrorField);
         return;
       }
   
@@ -515,6 +555,16 @@ export default function ACMembershipForm({
       if (Object.keys(formErrors).length > 0) {
         console.log('❌ Step validation errors:', formErrors);
         toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
+          const repIndex = formErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
+          if (repIndex !== -1) {
+            const field = Object.keys(formErrors.representativeErrors[repIndex])[0];
+            scrollToErrorField(`rep-${repIndex}-${field}`);
+            return;
+          }
+        }
+        const firstErrorField = Object.keys(formErrors)[0];
+        scrollToErrorField(firstErrorField);
         return;
       }
   
@@ -556,6 +606,24 @@ export default function ACMembershipForm({
       );
       if (firstErrorStep && setCurrentStep) {
         setCurrentStep(firstErrorStep.id);
+        // หลังเปลี่ยนสเต็ป ให้เลื่อนและโฟกัสไปยังฟิลด์แรกของสเต็ปนั้น
+        const stepErrors = validateACForm(formData, firstErrorStep.id);
+        // representativeErrors support
+        if (stepErrors.representativeErrors && Array.isArray(stepErrors.representativeErrors)) {
+          const repIndex = stepErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
+          if (repIndex !== -1) {
+            const field = Object.keys(stepErrors.representativeErrors[repIndex])[0];
+            setTimeout(() => scrollToErrorField(`rep-${repIndex}-${field}`), 350);
+            return;
+          }
+        }
+        const firstField = Object.keys(stepErrors)[0];
+        if (firstField) {
+          // รอให้สเต็ป render เสร็จ
+          setTimeout(() => {
+            scrollToErrorField(firstField);
+          }, 350);
+        }
       }
       return;
     }

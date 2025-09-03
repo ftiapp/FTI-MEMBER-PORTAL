@@ -589,6 +589,9 @@ export default function WasMember() {
       const results = [];
       let hasServerError = false;
       
+      // Check if there are multiple companies - add delay between submissions
+      const hasMultipleCompanies = companies.length > 1;
+      
       for (let i = 0; i < companies.length; i++) {
         const company = companies[i];
         const data = new FormData();
@@ -614,19 +617,40 @@ export default function WasMember() {
           const maxRetries = 2;
           let response;
           
+          // Add delay between submissions if this is not the first company
+          if (i > 0 && hasMultipleCompanies) {
+            const delayBetweenSubmissions = 3000 + (Math.random() * 2000); // 3-5 seconds delay
+            console.log(`Adding delay of ${delayBetweenSubmissions}ms between submissions ${i} and ${i+1}`);
+            toast.loading(`กำลังเตรียมส่งข้อมูลบริษัทถัดไป...`, { id: `delay-${i}`, duration: delayBetweenSubmissions });
+            await new Promise(resolve => setTimeout(resolve, delayBetweenSubmissions));
+            toast.dismiss(`delay-${i}`);
+          }
+          
           while (retries <= maxRetries) {
-            response = await fetchWithTimeout('/api/member/submit', {
-              method: 'POST',
-              body: data
-            }, 60000);
+            // Add a small random delay before each retry to prevent server overload
+            if (retries > 0) {
+              const retryDelay = 2000 * retries + (Math.random() * 1000);
+              console.log(`Waiting ${retryDelay}ms before retry ${retries}`);
+              await new Promise(resolve => setTimeout(resolve, retryDelay));
+            }
             
-            // If not a 503 error or we've used all retries, break the loop
-            if (response.status !== 503 || retries === maxRetries) break;
-            
-            // Increment retry counter and wait before retrying
-            retries++;
-            await new Promise(resolve => setTimeout(resolve, 2000 * retries)); // Exponential backoff
-            console.log(`Retrying submission ${i+1} (attempt ${retries} of ${maxRetries})`);
+            try {
+              response = await fetchWithTimeout('/api/member/submit', {
+                method: 'POST',
+                body: data
+              }, 60000);
+              
+              // If not a 503 error or we've used all retries, break the loop
+              if (response.status !== 503 || retries === maxRetries) break;
+              
+              // Increment retry counter
+              retries++;
+              console.log(`Retrying submission ${i+1} (attempt ${retries} of ${maxRetries})`);
+            } catch (fetchError) {
+              console.error(`Fetch error during attempt ${retries}:`, fetchError);
+              retries++;
+              if (retries > maxRetries) break;
+            }
           }
 
           let result;

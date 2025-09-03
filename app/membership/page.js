@@ -75,10 +75,10 @@ export default function Membership() {
     },
     {
       id: 'ac',
-      name: 'สมทบ-บุคคลธรรมดา',
-      description: 'ทบ (AC)',
-      annual_fee: 600,
-      feeText: '600 บาท/ปี',
+      name: 'สมทบ-นิติบุคคล',
+      description: 'ทน (AC)',
+      annual_fee: 2400,
+      feeText: '2,400 บาท/ปี',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
@@ -89,10 +89,10 @@ export default function Membership() {
     },
     {
       id: 'ic',
-      name: 'สมทบ-นิติบุคคล',
-      description: 'ทน (IC)',
-      annual_fee: 2400,
-      feeText: '2,400 บาท/ปี',
+      name: 'สมทบ-บุคคลธรรมดา',
+      description: 'ทบ (IC)',
+      annual_fee: 600,
+      feeText: '600 บาท/ปี',
       features: [
         'เข้าร่วมกิจกรรมของสภาอุตสาหกรรม',
         'รับข้อมูลข่าวสารจากภาคอุตสาหกรรม',
