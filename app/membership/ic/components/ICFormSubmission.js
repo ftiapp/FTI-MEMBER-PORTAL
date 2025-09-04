@@ -95,6 +95,14 @@ export const submitICMembershipForm = async (formData) => {
     formDataToSubmit.append('lastNameTh', formData.lastNameThai || '');
     formDataToSubmit.append('firstNameEn', formData.firstNameEng || '');
     formDataToSubmit.append('lastNameEn', formData.lastNameEng || '');
+    // Applicant prename fields
+    formDataToSubmit.append('prenameTh', formData.prenameTh || '');
+    formDataToSubmit.append('prenameEn', formData.prenameEn || '');
+    formDataToSubmit.append('prenameOther', formData.prenameOther || '');
+    // Duplicate in snake_case for compatibility with some backends
+    formDataToSubmit.append('prename_th', formData.prenameTh || '');
+    formDataToSubmit.append('prename_en', formData.prenameEn || '');
+    formDataToSubmit.append('prename_other', formData.prenameOther || '');
     formDataToSubmit.append('phone', formData.phone || '');
     formDataToSubmit.append('phoneExtension', formData.phoneExtension || '');
     formDataToSubmit.append('email', formData.email || '');

@@ -669,6 +669,18 @@ const ICDetailView = ({
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">คำนำหน้า (ไทย)</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.prename_th || application?.prenameTh || application?.prename_thai)}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">คำนำหน้า (อังกฤษ)</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.prename_en || application?.prenameEn || application?.prename_english)}</p>
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-green-700 mb-1">คำนำหน้า (อื่นๆ)</p>
+            <p className="text-lg text-gray-900">{safeValue(application?.prename_other || application?.prenameOther)}</p>
+          </div>
+          <div>
             <p className="text-sm font-semibold text-green-700 mb-1">ชื่อ</p>
             <p className="text-lg text-gray-900">{userInfo.firstname}</p>
           </div>

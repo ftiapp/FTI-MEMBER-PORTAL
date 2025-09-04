@@ -351,6 +351,9 @@ export default function SummarySection({
       <Section title="ข้อมูลผู้สมัคร">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="เลขบัตรประจำตัวประชาชน" value={formData.idCardNumber} />
+          <InfoCard title="คำนำหน้าชื่อ (ไทย)" value={viewMode ? (formData.prename_th || formData.prenameTh) : (formData.prenameTh)} />
+          <InfoCard title="คำนำหน้าชื่อ (อังกฤษ)" value={viewMode ? (formData.prename_en || formData.prenameEn) : (formData.prenameEn)} />
+          <InfoCard title="คำนำหน้าชื่อ (อื่นๆ)" value={viewMode ? (formData.prename_other || formData.prenameOther) : (formData.prenameOther)} />
           <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={
             viewMode ? 
               (formData.fullNameTh || `${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()) :
@@ -647,6 +650,9 @@ export default function SummarySection({
 SummarySection.propTypes = {
   formData: PropTypes.shape({
     idCardNumber: PropTypes.string,
+    prenameTh: PropTypes.string,
+    prenameEn: PropTypes.string,
+    prenameOther: PropTypes.string,
     firstNameThai: PropTypes.string,
     lastNameThai: PropTypes.string,
     firstNameEng: PropTypes.string,

@@ -118,6 +118,15 @@ export default function ICMemberDetailHeader({ application, onStatusChange, isLo
           <h2 className="text-lg font-semibold mb-2">ข้อมูลผู้สมัคร</h2>
           <div className="bg-gray-50 p-4 rounded-md">
             <div className="mb-2">
+              <span className="font-medium">คำนำหน้าชื่อ (ไทย):</span> {application?.prename_th || application?.prenameTh || '-'}
+            </div>
+            <div className="mb-2">
+              <span className="font-medium">คำนำหน้าชื่อ (อังกฤษ):</span> {application?.prename_en || application?.prenameEn || '-'}
+            </div>
+            <div className="mb-2">
+              <span className="font-medium">คำนำหน้าชื่อ (อื่นๆ):</span> {application?.prename_other || application?.prenameOther || '-'}
+            </div>
+            <div className="mb-2">
               <span className="font-medium">ชื่อ-นามสกุล (ไทย):</span> {application?.first_name_thai} {application?.last_name_thai}
             </div>
             <div className="mb-2">

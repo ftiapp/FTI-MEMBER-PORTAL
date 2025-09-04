@@ -235,6 +235,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
   // ฟังก์ชันสำหรับแสดงประเภทธุรกิจที่เลือกแบบ array
   const getSelectedBusinessTypesArray = () => {
     console.log('formData.businessTypes:', formData?.businessTypes);
+    console.log('formData.otherBusinessTypeDetail:', formData?.otherBusinessTypeDetail);
     
     if (!formData || !formData.businessTypes) {
       return [];
@@ -435,6 +436,11 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
     // ตรวจสอบ addresses structure ใหม่
     if (formData.addresses && formData.addresses[addressType]) {
       const address = formData.addresses[addressType];
+      // รองรับคีย์แบบไดนามิกที่ใช้ใน CompanyAddressInfo (เช่น phone-1, email-2)
+      const phoneKey = `phone-${addressType}`;
+      const phoneExtKey = `phoneExtension-${addressType}`;
+      const emailKey = `email-${addressType}`;
+      const websiteKey = `website-${addressType}`;
       return {
         addressNumber: address.addressNumber || '-',
         building: address.building || '-',
@@ -445,10 +451,10 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         district: address.district || '-',
         province: address.province || '-',
         postalCode: address.postalCode || '-',
-        phone: address.phone || '-',
-        phoneExtension: address.phoneExtension || '-', // 🔥 เพิ่มนี้
-        email: address.email || '-',
-        website: address.website || '-'
+        phone: address[phoneKey] || address.phone || '-',
+        phoneExtension: address[phoneExtKey] || address.phoneExtension || '-', // 🔥 เพิ่มนี้
+        email: address[emailKey] || address.email || '-',
+        website: address[websiteKey] || address.website || '-'
       };
     }
     
@@ -570,6 +576,17 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             <InfoCard title="อำเภอ/เขต" value={addressFields['2'].district} />
             <InfoCard title="จังหวัด" value={addressFields['2'].province} />
             <InfoCard title="รหัสไปรษณีย์" value={addressFields['2'].postalCode} />
+            <InfoCard 
+              title="โทรศัพท์" 
+              value={(() => {
+                const phone = addressFields['2'].phone;
+                const extension = addressFields['2'].phoneExtension;
+                if (phone === '-') return '-';
+                return extension && extension !== '-' ? `${phone} ต่อ ${extension}` : phone;
+              })()} 
+            />
+            <InfoCard title="อีเมล" value={addressFields['2'].email} />
+            <InfoCard title="เว็บไซต์" value={addressFields['2'].website} />
           </div>
         </Section>
       )}
@@ -672,6 +689,25 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
             title="ประเภทธุรกิจ" 
             businessTypes={getSelectedBusinessTypesArray()} 
           />
+          {formData?.businessTypes?.other && (formData?.otherBusinessTypeDetail || '').trim() !== '' && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h4 className="text-sm font-medium text-gray-700 mb-3">รายละเอียดประเภทธุรกิจ (อื่นๆ)</h4>
+              <div className="overflow-x-auto">
+                <table className="min-w-full border border-gray-200 text-sm">
+                  <thead>
+                    <tr className="bg-gray-50">
+                      <th className="text-left px-3 py-2 border-b border-gray-200">รายละเอียด</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="px-3 py-2 align-top">{formData.otherBusinessTypeDetail}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
           <InfoCard title="จำนวนพนักงาน" value={formData?.numberOfEmployees || formData?.number_of_employees} />
           <ProductsCard products={formData?.products || []} />
           <IndustrialGroupsCard 

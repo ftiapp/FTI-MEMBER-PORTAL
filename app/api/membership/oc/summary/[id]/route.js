@@ -113,7 +113,9 @@ export async function GET(request, { params }) {
 
         // Fetch business type other if exists
         let businessTypeOther = null;
-        const hasOtherBusinessType = businessTypesRows.find(bt => bt.business_type_id === 6 || bt.business_type_id === '6');
+        const hasOtherBusinessType = businessTypesRows.some(bt => 
+          bt.business_type === 'other' || bt.business_type_id === 6 || bt.business_type_id === '6'
+        );
         if (hasOtherBusinessType) {
           const otherQueryResult = await query(
             'SELECT * FROM MemberRegist_OC_BusinessTypeOther WHERE main_id = ?',

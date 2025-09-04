@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/app/lib/session';
-import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
+import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction, executeQueryWithoutTransaction } from '@/app/lib/db';
 import { uploadToCloudinary } from '@/app/lib/cloudinary';
 
 export async function POST(request) {
@@ -112,9 +112,10 @@ export async function POST(request) {
         const addresses = JSON.parse(data.addresses);
         const documentAddress = addresses['2']; // Document delivery address
         if (documentAddress) {
-          companyEmail = documentAddress.email || companyEmail;
-          companyPhone = documentAddress.phone || companyPhone;
-          companyPhoneExtension = documentAddress.phoneExtension || companyPhoneExtension;
+          // Support dynamic keys like email-2, phone-2, phoneExtension-2 with fallback to generic keys
+          companyEmail = documentAddress['email-2'] || documentAddress.email || companyEmail;
+          companyPhone = documentAddress['phone-2'] || documentAddress.phone || companyPhone;
+          companyPhoneExtension = documentAddress['phoneExtension-2'] || documentAddress.phoneExtension || companyPhoneExtension;
         }
       } catch (error) {
         console.error('Error parsing addresses:', error);
@@ -161,6 +162,17 @@ export async function POST(request) {
       for (const addressType of ['1', '2', '3']) {
         const address = addresses[addressType];
         if (address) {
+          // Normalize dynamic contact keys to generic fields per address type
+          const phoneKey = `phone-${addressType}`;
+          const phoneExtKey = `phoneExtension-${addressType}`;
+          const emailKey = `email-${addressType}`;
+          const websiteKey = `website-${addressType}`;
+
+          const phoneVal = address[phoneKey] || address.phone || '';
+          const phoneExtVal = address[phoneExtKey] || address.phoneExtension || '';
+          const emailVal = address[emailKey] || address.email || '';
+          const websiteVal = address[websiteKey] || address.website || '';
+
           await executeQuery(trx, 
             `INSERT INTO MemberRegist_OC_Address (
               main_id, address_number, building, moo, soi, street, 
@@ -178,10 +190,10 @@ export async function POST(request) {
               address.district || '', 
               address.province || '', 
               address.postalCode || '', 
-              address.phone || '', 
-              address.phoneExtension || '',
-              address.email || '', 
-              address.website || '', 
+              phoneVal, 
+              phoneExtVal,
+              emailVal, 
+              websiteVal, 
               addressType
             ]
           );
@@ -499,36 +511,6 @@ export async function POST(request) {
       }
     }
 
-    // ✅ Part 2: Insert uploaded document info into the database
-    console.log(`💾 Inserting ${Object.keys(uploadedDocuments).length} documents into database`);
-    
-    for (const documentKey in uploadedDocuments) {
-      const doc = uploadedDocuments[documentKey];
-      try {
-        const insertResult = await executeQuery(trx,
-          `INSERT INTO MemberRegist_OC_Documents 
-            (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-          [
-            mainId,
-            doc.document_type,
-            doc.file_name,
-            doc.file_path,
-            doc.file_size,
-            doc.mime_type,
-            doc.cloudinary_id,
-            doc.cloudinary_url
-          ]
-        );
-        
-        console.log(`✅ Document inserted: ${doc.document_type} - ID: ${insertResult.insertId}`);
-        
-      } catch (dbError) {
-        console.error(`❌ Error inserting document ${documentKey} into database:`, dbError);
-        // Continue with other documents instead of failing completely
-      }
-    }
-
     // Step 12: Add status log
     await executeQuery(trx,
       `INSERT INTO MemberRegist_OC_StatusLogs (main_id, status, note, created_by) VALUES (?, ?, ?, ?);`,
@@ -543,10 +525,36 @@ export async function POST(request) {
     await commitTransaction(trx);
     console.log('🎉 [OC API] Transaction committed successfully');
 
+    // ✅ Insert uploaded document info into the database AFTER commit (ensure FK visibility)
+    console.log(`💾 Inserting ${Object.keys(uploadedDocuments).length} documents into database (post-commit)`);
+    for (const documentKey in uploadedDocuments) {
+      const doc = uploadedDocuments[documentKey];
+      try {
+        const insertResult = await executeQueryWithoutTransaction(
+          `INSERT INTO MemberRegist_OC_Documents 
+            (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId,
+            doc.document_type,
+            doc.file_name,
+            doc.file_path,
+            doc.file_size,
+            doc.mime_type,
+            doc.cloudinary_id,
+            doc.cloudinary_url
+          ]
+        );
+        console.log(`✅ Document inserted: ${doc.document_type} - ID: ${insertResult.insertId}`);
+      } catch (dbError) {
+        console.error(`❌ Error inserting document ${documentKey} into database:`, dbError);
+      }
+    }
+
     // บันทึก user log สำหรับการสมัครสมาชิก OC
     try {
       const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
-      await executeQuery(trx, 
+      await executeQueryWithoutTransaction(
         'INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)',
         [userId, 'OC_membership_submit', logDetails, request.headers.get('x-forwarded-for') || 'unknown', request.headers.get('user-agent') || 'unknown']
       );
@@ -565,7 +573,7 @@ export async function POST(request) {
       let deletedRows = 0;
       
       if (taxIdFromData) {
-        const deleteResult = await executeQuery(trx, 
+        const deleteResult = await executeQueryWithoutTransaction(
           'DELETE FROM MemberRegist_OC_Draft WHERE tax_id = ? AND user_id = ?',
           [taxIdFromData, userId]
         );

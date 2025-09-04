@@ -133,7 +133,7 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
     }
     
     // Thai language validation
-    if (name === 'firstNameThai' || name === 'lastNameThai') {
+    if (name === 'firstNameThai' || name === 'lastNameThai' || name === 'prenameTh') {
       const thaiPattern = /^[ก-๙\s]*$/;
       if (!thaiPattern.test(value) && value !== '') {
         // Allow input but don't update state
@@ -142,7 +142,7 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
     }
     
     // English language validation
-    if (name === 'firstNameEng' || name === 'lastNameEng') {
+    if (name === 'firstNameEng' || name === 'lastNameEng' || name === 'prenameEn') {
       const engPattern = /^[a-zA-Z\s]*$/;
       if (!engPattern.test(value) && value !== '') {
         // Allow input but don't update state
@@ -329,6 +329,114 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
                     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                   </svg>
                   {errors.idCardNumber}
+                </p>
+              )}
+            </div>
+          </div>
+          
+          {/* Prename (Thai/English) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-2">
+            {/* Prename Thai */}
+            <div className="space-y-2">
+              <label htmlFor="prenameTh" className="block text-sm font-medium text-gray-900">
+                คำนำหน้า (ภาษาไทย)
+              </label>
+              <input
+                type="text"
+                id="prenameTh"
+                name="prenameTh"
+                value={formData.prenameTh || ''}
+                onChange={handleInputChange}
+                placeholder="เช่น นาย, นาง, นางสาว"
+                disabled={isLoading}
+                className={`
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  ${(errors?.prenameTh || errors?.prename_th) 
+                    ? 'border-red-300 bg-red-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }
+                  bg-white
+                `}
+              />
+              {(errors?.prenameTh || errors?.prename_th) && (
+                <p className="text-sm text-red-600 flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.prenameTh || errors.prename_th}
+                </p>
+              )}
+            </div>
+            {/* Prename English */}
+            <div className="space-y-2">
+              <label htmlFor="prenameEn" className="block text-sm font-medium text-gray-900">
+                คำนำหน้า (ภาษาอังกฤษ)
+              </label>
+              <input
+                type="text"
+                id="prenameEn"
+                name="prenameEn"
+                value={formData.prenameEn || ''}
+                onChange={handleInputChange}
+                placeholder="e.g., Mr., Mrs., Ms."
+                disabled={isLoading}
+                className={`
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  ${(errors?.prenameEn || errors?.prename_en) 
+                    ? 'border-red-300 bg-red-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }
+                  bg-white
+                `}
+              />
+              {(errors?.prenameEn || errors?.prename_en) && (
+                <p className="text-sm text-red-600 flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.prenameEn || errors.prename_en}
+                </p>
+              )}
+            </div>
+          </div>
+          {/* Prename Other */}
+          <div className="mb-2">
+            <div className="space-y-2">
+              <label htmlFor="prenameOther" className="block text-sm font-medium text-gray-900">
+                คำนำหน้า (อื่นๆ)
+              </label>
+              <input
+                type="text"
+                id="prenameOther"
+                name="prenameOther"
+                value={formData.prenameOther || ''}
+                onChange={handleInputChange}
+                placeholder="ระบุคำนำหน้าอื่นๆ (ถ้ามี)"
+                disabled={isLoading}
+                className={`
+                  w-full px-4 py-3 text-sm
+                  border rounded-lg
+                  transition-all duration-200
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                  ${(errors?.prenameOther || errors?.prename_other) 
+                    ? 'border-red-300 bg-red-50' 
+                    : 'border-gray-300 hover:border-gray-400'
+                  }
+                  bg-white
+                `}
+              />
+              {(errors?.prenameOther || errors?.prename_other) && (
+                <p className="text-sm text-red-600 flex items-center gap-2">
+                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {errors.prenameOther || errors.prename_other}
                 </p>
               )}
             </div>

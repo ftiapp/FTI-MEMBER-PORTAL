@@ -9,6 +9,7 @@ const ContactPersonSection = ({
 }) => {
   const [contactTypes, setContactTypes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
   const [expandedContacts, setExpandedContacts] = useState([0]); // Main contact expanded by default
 
   // Initialize with main contact person if empty
@@ -35,16 +36,29 @@ const ContactPersonSection = ({
     }
   }, []);
 
-  // Mock contact types for demo
+  // Load contact types from API
   useEffect(() => {
-    const mockContactTypes = [
-      { id: 1, type_code: 'MAIN', type_name_th: 'ผู้ประสานงานหลัก' },
-      { id: 2, type_code: 'DEPUTY', type_name_th: 'รองผู้ประสานงาน' },
-      { id: 3, type_code: 'ADMIN', type_name_th: 'เจ้าหน้าที่ประสานงาน' },
-      { id: 4, type_code: 'OTHER', type_name_th: 'อื่นๆ' }
-    ];
-    setContactTypes(mockContactTypes);
-    setLoading(false);
+    let active = true;
+    async function loadTypes() {
+      setLoading(true);
+      setLoadError(null);
+      try {
+        const res = await fetch('/api/member/contact-person-types', { method: 'GET' });
+        const json = await res.json();
+        if (!res.ok || json.success === false) {
+          throw new Error(json.error || 'โหลดประเภทผู้ติดต่อไม่สำเร็จ');
+        }
+        if (active) {
+          setContactTypes(Array.isArray(json.data) ? json.data : []);
+        }
+      } catch (e) {
+        if (active) setLoadError(e.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+      } finally {
+        if (active) setLoading(false);
+      }
+    }
+    loadTypes();
+    return () => { active = false; };
   }, []);
 
   // Set main contact type when contact types are loaded
@@ -182,6 +196,14 @@ const ContactPersonSection = ({
       <div className="flex items-center justify-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+        ไม่สามารถโหลดประเภทผู้ติดต่อได้: {loadError}
       </div>
     );
   }
