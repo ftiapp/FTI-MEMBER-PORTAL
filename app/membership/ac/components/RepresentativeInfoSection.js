@@ -161,10 +161,14 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
     return '';
   };
 
-  // Create refs for prename fields
+  // Create refs for prename and name fields
   const prenameThRefs = useRef([]);
   const prenameEnRefs = useRef([]);
   const prenameOtherRefs = useRef([]);
+  const firstNameThRefs = useRef([]);
+  const lastNameThRefs = useRef([]);
+  const firstNameEnRefs = useRef([]);
+  const lastNameEnRefs = useRef([]);
 
   // Effect to check for prename errors and scroll to them
   useEffect(() => {
@@ -189,6 +193,43 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
           prenameOtherRefs.current[errorIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
           toast.error(`กรุณาระบุคำนำหน้าชื่ออื่นๆ สำหรับผู้แทนคนที่ ${errorIndex + 1}`);
         }
+      }
+    }
+  }, [representativeErrors]);
+
+  // Effect to check for first/last name errors and scroll to them (Thai then English)
+  useEffect(() => {
+    if (!representativeErrors || representativeErrors.length === 0) return;
+
+    // Find first index with Thai name error
+    let idx = representativeErrors.findIndex(err => err?.firstNameTh || err?.lastNameTh);
+    if (idx !== -1) {
+      const errs = representativeErrors[idx];
+      if (errs?.firstNameTh && firstNameThRefs.current[idx]) {
+        firstNameThRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error(`กรุณากรอกชื่อภาษาไทยสำหรับผู้แทนคนที่ ${idx + 1}`);
+        return;
+      }
+      if (errs?.lastNameTh && lastNameThRefs.current[idx]) {
+        lastNameThRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error(`กรุณากรอกนามสกุลภาษาไทยสำหรับผู้แทนคนที่ ${idx + 1}`);
+        return;
+      }
+    }
+
+    // If no Thai name errors, check English name errors
+    idx = representativeErrors.findIndex(err => err?.firstNameEn || err?.lastNameEn);
+    if (idx !== -1) {
+      const errs = representativeErrors[idx];
+      if (errs?.firstNameEn && firstNameEnRefs.current[idx]) {
+        firstNameEnRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error(`กรุณากรอกชื่อภาษาอังกฤษสำหรับผู้แทนคนที่ ${idx + 1}`);
+        return;
+      }
+      if (errs?.lastNameEn && lastNameEnRefs.current[idx]) {
+        lastNameEnRefs.current[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error(`กรุณากรอกนามสกุลภาษาอังกฤษสำหรับผู้แทนคนที่ ${idx + 1}`);
+        return;
       }
     }
   }, [representativeErrors]);
@@ -307,6 +348,9 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                           data-error-key={`rep-${index}-firstNameTh`}
+                          ref={el => firstNameThRefs.current[index] = el}
+                          id={`rep-${index}-firstNameTh`}
+                          name={`representatives[${index}][firstNameTh]`}
                         />
                         {getFieldError(rep, 'firstNameTh', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'firstNameTh', index)}</p>
@@ -327,6 +371,9 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                           data-error-key={`rep-${index}-lastNameTh`}
+                          ref={el => lastNameThRefs.current[index] = el}
+                          id={`rep-${index}-lastNameTh`}
+                          name={`representatives[${index}][lastNameTh]`}
                         />
                         {getFieldError(rep, 'lastNameTh', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'lastNameTh', index)}</p>
@@ -402,6 +449,9 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                           data-error-key={`rep-${index}-firstNameEn`}
+                          ref={el => firstNameEnRefs.current[index] = el}
+                          id={`rep-${index}-firstNameEn`}
+                          name={`representatives[${index}][firstNameEn]`}
                         />
                         {getFieldError(rep, 'firstNameEn', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'firstNameEn', index)}</p>
@@ -422,6 +472,9 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
                           data-error-key={`rep-${index}-lastNameEn`}
+                          ref={el => lastNameEnRefs.current[index] = el}
+                          id={`rep-${index}-lastNameEn`}
+                          name={`representatives[${index}][lastNameEn]`}
                         />
                         {getFieldError(rep, 'lastNameEn', index) && (
                           <p className="text-sm text-red-600 mt-2">{getFieldError(rep, 'lastNameEn', index)}</p>
@@ -449,7 +502,7 @@ export default function RepresentativeInfoSection({ formData = {}, setFormData =
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
-                          อีเมล <span className="text-red-500">*</span>
+                          อีเมล
                         </label>
                         <input
                           type="email"

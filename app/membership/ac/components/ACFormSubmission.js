@@ -53,20 +53,9 @@ export const submitACMembershipForm = async (data) => {
     // ✅ Map Contact Person fields ให้ตรงกับที่ API คาดหวัง
     const mappedData = { ...data };
 
-    // Map representatives fields to match database columns
-    if (Array.isArray(mappedData.representatives)) {
-      mappedData.representatives = mappedData.representatives.map(rep => ({
-        first_name_th: rep.firstNameThai,
-        last_name_th: rep.lastNameThai,
-        first_name_en: rep.firstNameEnglish,
-        last_name_en: rep.lastNameEnglish,
-        position: rep.position,
-        email: rep.email,
-        phone: rep.phone,
-        phone_extension: rep.phoneExtension,
-        is_primary: rep.isPrimary
-      }));
-    }
+    // Keep representatives as-is using camelCase keys expected by the API route
+    // API will parse and accept: prenameTh, prenameEn, prenameOther, firstNameTh, lastNameTh, firstNameEn, lastNameEn, position, email, phone, phoneExtension, isPrimary
+    // Do NOT remap to snake_case here; the API does its own mapping/fallbacks.
     
     if (data.contactPerson) {
       mappedData.contactPersonPosition = data.contactPerson.position;

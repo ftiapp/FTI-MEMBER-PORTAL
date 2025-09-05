@@ -73,7 +73,10 @@ const INITIAL_FORM_DATA = {
   authorizedSignatoryFirstNameTh: '',
   authorizedSignatoryLastNameTh: '',
   authorizedSignatoryFirstNameEn: '',
-  authorizedSignatoryLastNameEn: ''
+  authorizedSignatoryLastNameEn: '',
+  // Authorized signatory position fields
+  authorizedSignatoryPositionTh: '',
+  authorizedSignatoryPositionEn: ''
 };
 
 // Custom hook for API data with better error handling
@@ -230,7 +233,7 @@ export default function ACMembershipForm({
         let targetId = null;
         if (field === 'email') targetId = `email-${tab}`;
         else if (field === 'phone') targetId = `phone-${tab}`;
-        else if (['addressNumber', 'building', 'moo', 'soi', 'street'].includes(field)) targetId = field;
+        else if (['addressNumber', 'building', 'moo', 'soi', 'road', 'street'].includes(field)) targetId = field;
         // subDistrict/district/province/postalCode are SearchableDropdowns; scrolling to section is sufficient
 
         // Allow CompanyAddressInfo to auto-switch tab via its useEffect (based on errors), then focus
@@ -987,13 +990,26 @@ export default function ACMembershipForm({
 
   // Render error message helper
   const renderErrorMessage = (errorValue, key, index) => {
+    // Helper to extract the first string message from nested objects
+    const getFirstStringMessage = (obj) => {
+      if (!obj || typeof obj !== 'object') return null;
+      // Prefer summary key if present
+      if (typeof obj._error === 'string') return obj._error;
+      for (const [k, v] of Object.entries(obj)) {
+        if (typeof v === 'string') return `${key === 'addresses' ? '' : `${k}: `}${v}`.trim();
+        if (v && typeof v === 'object') {
+          const nested = getFirstStringMessage(v);
+          if (nested) return nested;
+        }
+      }
+      return null;
+    };
+
     if (typeof errorValue === 'object' && errorValue !== null) {
-      // Handle nested error objects
-      const firstErrorKey = Object.keys(errorValue)[0];
-      const message = firstErrorKey === '_error' 
-        ? errorValue._error 
-        : `${key}: ${errorValue[firstErrorKey]}`;
-      return <li key={`${key}-${index}`} className="text-base">{message}</li>;
+      // Special handling for addresses to avoid [object Object]
+      const message = getFirstStringMessage(errorValue);
+      const display = message || (key ? `${key}` : 'เกิดข้อผิดพลาด');
+      return <li key={`${key}-${index}`} className="text-base">{display}</li>;
     }
     return <li key={`${key}-${index}`} className="text-base">{errorValue}</li>;
   };

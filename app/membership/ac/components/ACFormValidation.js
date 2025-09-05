@@ -20,6 +20,18 @@ export const validateACForm = (formData, step) => {
     } else if (!/^\d+$/.test(formData.taxId)) {
       errors.taxId = 'เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลขเท่านั้น';
     }
+
+    // ตรวจสอบอีเมลและเบอร์โทรของบริษัท (ฟิลด์ระดับบนสุดของ AC)
+    // อีเมล: ไม่บังคับ กรอกเมื่อมีแล้วตรวจรูปแบบเท่านั้น
+    if (formData.companyEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.companyEmail)) {
+      errors.companyEmail = 'รูปแบบอีเมลบริษัทไม่ถูกต้อง';
+    }
+
+    if (!formData.companyPhone) {
+      errors.companyPhone = 'กรุณากรอกเบอร์โทรศัพท์บริษัท';
+    } else if (!/^\d{9,10}$/.test(String(formData.companyPhone).replace(/[-\s]/g, ''))) {
+      errors.companyPhone = 'รูปแบบเบอร์โทรศัพท์บริษัทไม่ถูกต้อง';
+    }
     
     // ตรวจสอบที่อยู่ - รองรับ multi-address
     const addressTypes = ['1', '2', '3'];
@@ -31,73 +43,60 @@ export const validateACForm = (formData, step) => {
 
     // ตรวจสอบว่ามี addresses object หรือไม่
     if (formData.addresses && typeof formData.addresses === 'object') {
-      // เตรียม object เก็บข้อผิดพลาดแบบซ้อนภายในให้ตรงกับ UI (errors.addresses[type].field)
-      errors.addresses = errors.addresses || {};
+      // เก็บข้อผิดพลาดที่อยู่ในตัวแปรชั่วคราว และจะผนวกเข้า errors ก็ต่อเมื่อมีจริง
+      const addressErrors = {};
       let hasAddressErrors = false;
 
       // ตรวจสอบ multi-address format
       addressTypes.forEach(type => {
         const address = formData.addresses[type];
         const label = addressLabels[type];
-        // เตรียมที่เก็บ error ของ address แต่ละประเภท
-        if (!errors.addresses[type]) errors.addresses[type] = {};
+        // สร้าง object เฉพาะเมื่อพบ error ของประเภทนั้น
+        const typeErrors = {};
         
         if (!address) {
-          errors.addresses[type].base = `กรุณากรอก${label}`;
+          typeErrors.base = `กรุณากรอก${label}`;
           hasAddressErrors = true;
-          return;
+        } else {
+          if (!address.addressNumber) {
+            typeErrors.addressNumber = `กรุณากรอกเลขที่ (${label})`;
+            hasAddressErrors = true;
+          }
+
+          if (!address.subDistrict) {
+            typeErrors.subDistrict = `กรุณากรอกตำบล/แขวง (${label})`;
+            hasAddressErrors = true;
+          }
+
+          if (!address.district) {
+            typeErrors.district = `กรุณากรอกอำเภอ/เขต (${label})`;
+            hasAddressErrors = true;
+          }
+
+          if (!address.province) {
+            typeErrors.province = `กรุณากรอกจังหวัด (${label})`;
+            hasAddressErrors = true;
+          }
+
+          if (!address.postalCode) {
+            typeErrors.postalCode = `กรุณากรอกรหัสไปรษณีย์ (${label})`;
+            hasAddressErrors = true;
+          } else if (address.postalCode.length !== 5 || !/^\d+$/.test(address.postalCode)) {
+            typeErrors.postalCode = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
+            hasAddressErrors = true;
+          }
+
+          // สำหรับ AC: อีเมลและเบอร์โทรของบริษัทใช้จากฟิลด์ระดับบนสุด ไม่ต้องตรวจซ้ำในที่อยู่แต่ละประเภท
         }
 
-        if (!address.addressNumber) {
-          errors.addresses[type].addressNumber = `กรุณากรอกเลขที่ (${label})`;
-          hasAddressErrors = true;
-        }
-
-        if (!address.subDistrict) {
-          errors.addresses[type].subDistrict = `กรุณากรอกตำบล/แขวง (${label})`;
-          hasAddressErrors = true;
-        }
-
-        if (!address.district) {
-          errors.addresses[type].district = `กรุณากรอกอำเภอ/เขต (${label})`;
-          hasAddressErrors = true;
-        }
-
-        if (!address.province) {
-          errors.addresses[type].province = `กรุณากรอกจังหวัด (${label})`;
-          hasAddressErrors = true;
-        }
-
-        if (!address.postalCode) {
-          errors.addresses[type].postalCode = `กรุณากรอกรหัสไปรษณีย์ (${label})`;
-          hasAddressErrors = true;
-        } else if (address.postalCode.length !== 5 || !/^\d+$/.test(address.postalCode)) {
-          errors.addresses[type].postalCode = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
-          hasAddressErrors = true;
-        }
-
-        // ตรวจสอบอีเมลบริษัทของที่อยู่นั้น (companyEmail) บังคับกรอก
-        if (!address.companyEmail) {
-          errors.addresses[type].companyEmail = `กรุณากรอกอีเมล (${label})`;
-          hasAddressErrors = true;
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.companyEmail)) {
-          errors.addresses[type].companyEmail = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
-          hasAddressErrors = true;
-        }
-
-        // ตรวจสอบเบอร์โทรศัพท์บริษัทของที่อยู่นั้น (companyPhone) บังคับกรอก
-        if (!address.companyPhone) {
-          errors.addresses[type].companyPhone = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-          hasAddressErrors = true;
-        } else if (!/^\d{9,10}$/.test(String(address.companyPhone).replace(/[-\s]/g, ''))) {
-          errors.addresses[type].companyPhone = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
-          hasAddressErrors = true;
+        if (Object.keys(typeErrors).length > 0) {
+          addressErrors[type] = typeErrors;
         }
       });
 
-      // เพิ่มข้อความสรุปเพื่อแสดงใน Alert ด้านบน (หลีกเลี่ยง [object Object])
+      // แนบเฉพาะเมื่อมีข้อผิดพลาดจริง เพื่อหลีกเลี่ยงการแสดง [object Object]
       if (hasAddressErrors) {
-        // ใช้คีย์ _error เพื่อให้ renderer แสดงข้อความสรุป
+        errors.addresses = addressErrors;
         errors.addresses._error = 'กรุณาตรวจสอบข้อมูลที่อยู่ทั้ง 3 ประเภทให้ครบถ้วน';
       }
     } else {
@@ -239,11 +238,9 @@ export const validateACForm = (formData, step) => {
           repError.lastNameEn = 'กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น';
         }
         
-        // ตรวจสอบอีเมล - ใช้ข้อความที่ตรงกับ component
-        if (!rep.email || rep.email.trim() === '') {
-          repError.email = 'กรุณากรอกอีเมล';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rep.email)) {
-          repError.email = 'รูปแบบอีเมลไม่ถูกต้อง'; // เปลี่ยนจาก 'กรุณากรอกอีเมลให้ถูกต้อง'
+        // ตรวจสอบอีเมล - ไม่บังคับ กรอกเมื่อมีแล้วตรวจรูปแบบเท่านั้น
+        if (rep.email && rep.email.trim() !== '' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rep.email)) {
+          repError.email = 'รูปแบบอีเมลไม่ถูกต้อง';
         }
         
         // ตรวจสอบเบอร์โทรศัพท์ - ใช้ regex ที่ตรงกับ component
@@ -317,6 +314,46 @@ export const validateACForm = (formData, step) => {
     
     if (!formData.authorizedSignature) {
       errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
+    }
+
+    // ตรวจสอบข้อมูลผู้มีอำนาจลงนาม (ชื่อ-นามสกุล และตำแหน่ง)
+    // ภาษาไทย: ต้องมีเฉพาะอักษรไทยและเว้นวรรค
+    if (!formData.authorizedSignatoryFirstNameTh || formData.authorizedSignatoryFirstNameTh.trim() === '') {
+      errors.authorizedSignatoryFirstNameTh = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)';
+    } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+      errors.authorizedSignatoryFirstNameTh = 'ชื่อผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น';
+    }
+
+    if (!formData.authorizedSignatoryLastNameTh || formData.authorizedSignatoryLastNameTh.trim() === '') {
+      errors.authorizedSignatoryLastNameTh = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)';
+    } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+      errors.authorizedSignatoryLastNameTh = 'นามสกุลผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น';
+    }
+
+    // ภาษาอังกฤษ: ต้องมีเฉพาะอักษรอังกฤษและเว้นวรรค
+    if (!formData.authorizedSignatoryFirstNameEn || formData.authorizedSignatoryFirstNameEn.trim() === '') {
+      errors.authorizedSignatoryFirstNameEn = 'Please enter authorized signatory first name (English)';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
+      errors.authorizedSignatoryFirstNameEn = 'First name (English) must contain only English letters';
+    }
+
+    if (!formData.authorizedSignatoryLastNameEn || formData.authorizedSignatoryLastNameEn.trim() === '') {
+      errors.authorizedSignatoryLastNameEn = 'Please enter authorized signatory last name (English)';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
+      errors.authorizedSignatoryLastNameEn = 'Last name (English) must contain only English letters';
+    }
+
+    // ตำแหน่ง (บังคับทั้งไทยและอังกฤษ)
+    if (!formData.authorizedSignatoryPositionTh || formData.authorizedSignatoryPositionTh.trim() === '') {
+      errors.authorizedSignatoryPositionTh = 'กรุณากรอกตำแหน่ง (ภาษาไทย) ของผู้มีอำนาจลงนาม';
+    } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryPositionTh)) {
+      errors.authorizedSignatoryPositionTh = 'ตำแหน่ง (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น';
+    }
+
+    if (!formData.authorizedSignatoryPositionEn || formData.authorizedSignatoryPositionEn.trim() === '') {
+      errors.authorizedSignatoryPositionEn = 'Please enter authorized signatory position (English)';
+    } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryPositionEn)) {
+      errors.authorizedSignatoryPositionEn = 'Position (English) must contain only English letters';
     }
   }
   

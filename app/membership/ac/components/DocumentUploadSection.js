@@ -353,6 +353,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
   // Helper function for single file upload with drag & drop UI
   const SingleFileUploadZone = ({ title, description, name, file, icon, iconColor, bgColor, error, isImageRequired = false }) => {
+    const fileInputRef = useRef(null);
+
     const handleSingleFileChange = (e) => {
       handleFileChange(e, name);
     };
@@ -360,6 +362,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     const removeSingleFile = () => {
       setSelectedFiles(prev => ({ ...prev, [name]: null }));
       setFormData(prev => ({ ...prev, [name]: null }));
+      // Reset file input value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    };
+
+    const triggerFileInput = () => {
+      if (fileInputRef.current) {
+        fileInputRef.current.click();
+      }
     };
 
     return (
@@ -379,30 +391,34 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             </p>
           </div>
 
+          {/* Hidden File Input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            name={name}
+            onChange={handleSingleFileChange}
+            accept={isImageRequired ? ".jpg,.jpeg,.png" : ".pdf,.jpg,.jpeg,.png"}
+            className="hidden"
+          />
+
           {/* Upload Area */}
           {!hasFile(file) && (
-            <div className="relative">
-              <input
-                type="file"
-                name={name}
-                onChange={handleSingleFileChange}
-                accept={isImageRequired ? ".jpg,.jpeg,.png" : ".pdf,.jpg,.jpeg,.png"}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                  </svg>
-                </div>
-                <p className="text-sm text-gray-600 mb-2">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวาง</p>
-                <p className="text-xs text-gray-500">
-                  {isImageRequired 
-                    ? 'รองรับไฟล์ JPG, JPEG, PNG ขนาดไม่เกิน 5MB' 
-                    : 'รองรับไฟล์: PDF, JPG, PNG (ขนาดไม่เกิน 5MB)'
-                  }
-                </p>
+            <div 
+              onClick={triggerFileInput}
+              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer"
+            >
+              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
               </div>
+              <p className="text-sm text-gray-600 mb-2">คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวาง</p>
+              <p className="text-xs text-gray-500">
+                {isImageRequired 
+                  ? 'รองรับไฟล์ JPG, JPEG, PNG ขนาดไม่เกิน 5MB' 
+                  : 'รองรับไฟล์: PDF, JPG, PNG (ขนาดไม่เกิน 5MB)'
+                }
+              </p>
             </div>
           )}
 
@@ -576,6 +592,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </label>
                     <input
                       type="text"
+                      id="authorizedSignatoryFirstNameTh"
+                      name="authorizedSignatoryFirstNameTh"
                       value={formData.authorizedSignatoryFirstNameTh || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -597,6 +615,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </label>
                     <input
                       type="text"
+                      id="authorizedSignatoryLastNameTh"
+                      name="authorizedSignatoryLastNameTh"
                       value={formData.authorizedSignatoryLastNameTh || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -623,6 +643,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </label>
                     <input
                       type="text"
+                      id="authorizedSignatoryFirstNameEn"
+                      name="authorizedSignatoryFirstNameEn"
                       value={formData.authorizedSignatoryFirstNameEn || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -644,6 +666,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </label>
                     <input
                       type="text"
+                      id="authorizedSignatoryLastNameEn"
+                      name="authorizedSignatoryLastNameEn"
                       value={formData.authorizedSignatoryLastNameEn || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -668,6 +692,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </label>
                     <input
                       type="text"
+                      id="authorizedSignatoryPositionTh"
+                      name="authorizedSignatoryPositionTh"
                       value={formData.authorizedSignatoryPositionTh || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,
@@ -689,6 +715,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </label>
                     <input
                       type="text"
+                      id="authorizedSignatoryPositionEn"
+                      name="authorizedSignatoryPositionEn"
                       value={formData.authorizedSignatoryPositionEn || ''}
                       onChange={(e) => setFormData(prev => ({
                         ...prev,

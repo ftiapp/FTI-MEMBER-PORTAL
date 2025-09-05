@@ -95,27 +95,30 @@ export default function CompanyAddressInfo({
   const handleContactInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Store contact fields in the current address object instead of globally
+    // For AC, company contact fields live at the top-level (validated in ACFormValidation)
+    // We also mirror into the current address object for UI consistency
     setFormData(prev => {
-      // Create a new object with the same properties
       const newFormData = { ...prev };
-      
+
+      // Update top-level when the field is one of the company contact fields
+      if (['companyPhone', 'companyPhoneExtension', 'companyEmail', 'companyWebsite'].includes(name)) {
+        newFormData[name] = value;
+      }
+
       // Ensure addresses object exists
       if (!newFormData.addresses) {
         newFormData.addresses = {};
       }
-      
       // Ensure the current tab's address object exists
       if (!newFormData.addresses[activeTab]) {
         newFormData.addresses[activeTab] = { addressType: activeTab };
       }
-      
-      // Update the contact field in the current address object
+      // Mirror into current address entry
       newFormData.addresses[activeTab] = {
         ...newFormData.addresses[activeTab],
         [name]: value
       };
-      
+
       return newFormData;
     });
   };
@@ -863,7 +866,7 @@ export default function CompanyAddressInfo({
                       type="tel"
                       id="companyPhone"
                       name="companyPhone"
-                      value={currentAddress?.companyPhone || ''}
+                      value={formData?.companyPhone || ''}
                       onChange={handleContactInputChange}
                       required
                       placeholder="02-123-4567"
@@ -886,19 +889,19 @@ export default function CompanyAddressInfo({
                       type="text"
                       id="companyPhoneExtension"
                       name="companyPhoneExtension"
-                      value={currentAddress?.companyPhoneExtension || ''}
+                      value={formData?.companyPhoneExtension || ''}
                       onChange={handleContactInputChange}
                       placeholder="ต่อ (ถ้ามี)"
                       className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
                     />
                   </div>
                 </div>
-                {errors?.addresses?.[activeTab]?.companyPhone && (
+                {errors?.companyPhone && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {errors.addresses[activeTab].companyPhone}
+                    {errors.companyPhone}
                   </p>
                 )}
               </div>
@@ -907,15 +910,13 @@ export default function CompanyAddressInfo({
               <div className="space-y-2">
                 <label htmlFor="companyEmail" className="block text-sm font-medium text-gray-900">
                   อีเมล
-                  <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
                   type="email"
                   id="companyEmail"
                   name="companyEmail"
-                  value={currentAddress?.companyEmail || ''}
+                  value={formData?.companyEmail || ''}
                   onChange={handleContactInputChange} 
-                  required
                   placeholder="company@example.com"
                   className={`
                     w-full px-4 py-3 text-sm
@@ -930,12 +931,12 @@ export default function CompanyAddressInfo({
                     }
                   `}
                 />
-                {errors?.addresses?.[activeTab]?.companyEmail && (
+                {errors?.companyEmail && (
                   <p className="text-sm text-red-600 flex items-center gap-2">
                     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {errors.addresses[activeTab].companyEmail}
+                    {errors.companyEmail}
                   </p>
                 )}
               </div>
@@ -949,7 +950,7 @@ export default function CompanyAddressInfo({
                   type="url"
                   id="companyWebsite"
                   name="companyWebsite"
-                  value={currentAddress?.companyWebsite || ''}
+                  value={formData?.companyWebsite || ''}
                   onChange={handleContactInputChange} 
                   placeholder="https://example.com"
                   className="
