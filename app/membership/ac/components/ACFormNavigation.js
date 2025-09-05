@@ -62,7 +62,9 @@ export const useACFormNavigation = (validateForm, externalCurrentStep, externalS
     setErrors(errors);
     
     if (Object.keys(errors).length > 0) {
-      toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+      const [firstKey, firstValue] = Object.entries(errors)[0] || [];
+      const firstMessage = typeof firstValue === 'string' ? firstValue : 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
+      toast.error(firstMessage);
       return;
     }
 

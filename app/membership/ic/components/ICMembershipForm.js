@@ -75,6 +75,60 @@ const INITIAL_FORM_DATA = {
   authorizedSignatoryLastNameEn: ''
 };
 
+// Helper: Determine first error field deterministically for IC form
+// Priority: Applicant core fields -> Address fields (type 1->2->3) -> Business -> Documents
+const getFirstFieldError = (errors = {}) => {
+  if (!errors || typeof errors !== 'object') return null;
+
+  // 1) Applicant core fields
+  const applicantPriority = [
+    'idCardNumber', 'prename_th', 'prename_en', 'prename_other',
+    'firstNameThai', 'lastNameThai', 'firstNameEng', 'lastNameEng',
+    'phone', 'phoneExtension', 'email'
+  ];
+  for (const key of applicantPriority) {
+    if (errors[key]) return key;
+  }
+
+  // 2) Address fields by type and field priority
+  const addressFieldPriority = [
+    'addressNumber', 'subDistrict', 'district', 'province', 'postalCode', 'email', 'phone', 'website'
+  ];
+  const addressTypes = ['1', '2', '3'];
+  for (const type of addressTypes) {
+    const missingKey = `address_${type}`;
+    if (errors[missingKey]) return missingKey;
+    for (const f of addressFieldPriority) {
+      const k = `address_${type}_${f}`;
+      if (errors[k]) return k;
+    }
+  }
+
+  // 3) Business info
+  const businessPriority = ['businessTypes', 'otherBusinessTypeDetail', 'products'];
+  for (const key of businessPriority) {
+    if (errors[key]) return key;
+  }
+  // nested product errors (productErrors[0].nameTh etc.) are shown in summary list; scrolling to products container is sufficient
+
+  // 4) Documents and authorized signatory fields
+  const documentPriority = [
+    'idCardDocument', 'authorizedSignature',
+    'authorizedSignatoryFirstNameTh', 'authorizedSignatoryLastNameTh',
+    'authorizedSignatoryFirstNameEn', 'authorizedSignatoryLastNameEn'
+  ];
+  for (const key of documentPriority) {
+    if (errors[key]) return key;
+  }
+
+  // 5) Representative errors are grouped under representativeErrors; use section scroll
+  if (errors.representative || errors.representativeErrors) return 'representativeErrors';
+
+  // 6) Fallback: stable alphabetical key
+  const keys = Object.keys(errors);
+  return keys.length ? keys.sort()[0] : null;
+};
+
 // Custom hook for API data with better error handling
 const useApiData = () => {
   const [data, setData] = useState({
@@ -446,12 +500,9 @@ const handleSubmit = useCallback(async (e) => {
   // Function to scroll to the first error field with improved targeting
   const scrollToFirstError = useCallback((errors) => {
     if (!errors || Object.keys(errors).length === 0) return;
-    
-    // Get the first error field key
-    const firstErrorKey = Object.keys(errors)[0];
+    const firstErrorKey = getFirstFieldError(errors);
     if (!firstErrorKey || typeof document === 'undefined') return;
-    
-    // Define multiple selectors to try for better targeting
+
     const selectors = [
       `[name="${firstErrorKey}"]`,
       `#${CSS.escape(firstErrorKey)}`,
@@ -459,47 +510,52 @@ const handleSubmit = useCallback(async (e) => {
       `[data-error-key="${firstErrorKey}"]`,
       `[data-field="${firstErrorKey}"]`
     ];
-    
-    // Try to find the element using different selectors
+
     let target = null;
     for (const sel of selectors) {
       const el = document.querySelector(sel);
       if (el) { target = el; break; }
     }
-    
+
     if (target) {
-      // Calculate position with offset for sticky header
-      const stickyOffset = 120; // Offset for sticky header
+      const stickyOffset = 120;
       const rect = target.getBoundingClientRect();
       const absoluteTop = rect.top + window.pageYOffset;
-      
-      // Scroll with offset
-      window.scrollTo({ 
-        top: absoluteTop - stickyOffset, 
-        behavior: 'smooth' 
-      });
-      
-      // Focus after scroll completes
+      window.scrollTo({ top: absoluteTop - stickyOffset, behavior: 'smooth' });
       if (typeof target.focus === 'function') {
         setTimeout(() => target.focus({ preventScroll: true }), 250);
       }
     } else {
-      // If no specific element found, scroll to top of form
-      const formElement = document.querySelector('form');
-      if (formElement) {
-        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Section-level fallbacks
+      if (firstErrorKey.startsWith('address_')) {
+        const section = document.querySelector('[data-section="addresses"], [data-section="address-section"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (
+        ['idCardNumber','prename_th','prename_en','prename_other','firstNameThai','lastNameThai','firstNameEng','lastNameEng','phone','phoneExtension','email'].includes(firstErrorKey)
+      ) {
+        const section = document.querySelector('[data-section="applicant"], [data-section="applicant-section"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (firstErrorKey === 'representativeErrors' || firstErrorKey.startsWith('representative')) {
+        const section = document.querySelector('[data-section="representatives"], [data-section="representative-section"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (['businessTypes','otherBusinessTypeDetail','products'].includes(firstErrorKey)) {
+        const section = document.querySelector('[data-section="business"], [data-section="business-section"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else if (
+        ['idCardDocument','authorizedSignature','authorizedSignatoryFirstNameTh','authorizedSignatoryLastNameTh','authorizedSignatoryFirstNameEn','authorizedSignatoryLastNameEn'].includes(firstErrorKey)
+      ) {
+        const section = document.querySelector('[data-section="documents"], [data-section="document-section"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        const formElement = document.querySelector('form');
+        if (formElement) formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }
-    
-    // Show specific error message in toast
+
     const errorMessage = typeof errors[firstErrorKey] === 'string'
       ? errors[firstErrorKey]
       : 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
-    
-    toast.error(errorMessage, {
-      position: 'top-right',
-      duration: 4000
-    });
+    toast.error(errorMessage, { position: 'top-right', duration: 4000 });
   }, []);
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ

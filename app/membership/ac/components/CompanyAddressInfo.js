@@ -38,38 +38,59 @@ export default function CompanyAddressInfo({
     }
   }, [formData.addresses, setFormData]);
 
-  // Auto-switch to tab with errors for better UX
+  // Auto-switch to tab with errors for better UX but let ACMembershipForm handle scrolling
   useEffect(() => {
     if (!errors || Object.keys(errors).length === 0) return;
-    // Find first address error and switch to that tab
-    const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
-    const sig = addressErrorKeys.sort().join('|');
-    if (sig === prevAddressErrorSig.current) {
-      return; // no change in address errors; avoid re-scrolling on tab toggle re-renders
-    }
-    prevAddressErrorSig.current = sig;
-    if (addressErrorKeys.length > 0) {
-      const firstErrorKey = addressErrorKeys[0];
-      const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
-      if (match && match[1]) {
-        const errorTab = match[1];
-        const doScroll = () => {
-          const addressSection = document.querySelector('[data-section="company-address"]') || 
-                                 document.querySelector('.company-address') ||
-                                 document.querySelector('h3')?.closest('.bg-white');
-          if (addressSection) {
-            addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Case A: flattened keys like 'addresses.2.addressNumber'
+    const flatAddressKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
+    if (flatAddressKeys.length > 0) {
+      const sig = flatAddressKeys.sort().join('|');
+      if (sig !== prevAddressErrorSig.current) {
+        prevAddressErrorSig.current = sig;
+        const firstErrorKey = flatAddressKeys[0];
+        const match = firstErrorKey.match(/addresses\.(\d+)\.(\w+)/);
+        if (match && match[1]) {
+          const errorTab = match[1];
+          if (errorTab !== activeTab) {
+            setActiveTab(errorTab);
+            // Scroll to the address section like OC does
+            setTimeout(() => {
+              const addressSection = document.querySelector('[data-section="company-address"]')
+                || document.querySelector('.company-address')
+                || document.querySelector('.bg-white');
+              if (addressSection) {
+                addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }, 100);
           }
-        };
-        if (errorTab !== activeTab) {
-          setActiveTab(errorTab);
-          setTimeout(doScroll, 100);
+        }
+      }
+      return;
+    }
+    
+    // Case B: nested structure errors.addresses = { '1': {...}, '2': {...}, '3': {...} }
+    if (errors.addresses && typeof errors.addresses === 'object') {
+      const typeKeys = Object.keys(errors.addresses).filter(k => ['1','2','3'].includes(k));
+      const firstTypeWithError = typeKeys.find(t => errors.addresses[t] && Object.keys(errors.addresses[t] || {}).length > 0);
+      const sig = `nested:${firstTypeWithError || ''}`;
+      if (sig !== prevAddressErrorSig.current) {
+        prevAddressErrorSig.current = sig;
+        if (firstTypeWithError && firstTypeWithError !== activeTab) {
+          setActiveTab(firstTypeWithError);
+          // Scroll to the address section like OC does
+          setTimeout(() => {
+            const addressSection = document.querySelector('[data-section="company-address"]')
+              || document.querySelector('.company-address')
+              || document.querySelector('.bg-white');
+            if (addressSection) {
+              addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
         }
       }
     }
-  }, [errors]);
+  }, [errors, activeTab]);
   
   const handleContactInputChange = (e) => {
     const { name, value } = e.target;
@@ -471,7 +492,7 @@ export default function CompanyAddressInfo({
   const currentAddress = getCurrentAddress();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-section="company-address">
       {/* Address Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">

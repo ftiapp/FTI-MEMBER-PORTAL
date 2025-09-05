@@ -134,15 +134,15 @@ export default function AssociationBasicInfo({
           associationNameEn: associationData['cd:OrganizationJuristicNameEN'] || '',
           addresses: {
             ...prev.addresses,
-            '2': {
-              ...prev.addresses?.['2'],
+            '1': {
+              ...prev.addresses?.['1'],
               addressNumber: address?.['cd:AddressNo'] || '',
               building: address?.['cd:Building'] || address?.['cd:Village'] || '',
-              street: address?.['cd:Road'] || '',
+              road: address?.['cd:Road'] || '',
               subDistrict: subDistrictName,
               district: address?.['cd:City']?.['cr:CityTextTH'] || '',
               province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || '',
-              addressType: '2'
+              addressType: '1'
             }
           }
         }));
@@ -155,7 +155,7 @@ export default function AssociationBasicInfo({
         
         toast.success('ดึงข้อมูลสำเร็จ');
         
-        // Fetch and set postal code for address type '2' like OC
+        // Fetch and set postal code for address type '1' (Office Address)
         if (subDistrictName && subDistrictName.length >= 2) {
           try {
             const postalResponse = await fetch(
@@ -170,8 +170,8 @@ export default function AssociationBasicInfo({
                   ...prev,
                   addresses: {
                     ...prev.addresses,
-                    '2': {
-                      ...prev.addresses?.['2'],
+                    '1': {
+                      ...prev.addresses?.['1'],
                       postalCode: selectedItem.postalCode
                     }
                   }

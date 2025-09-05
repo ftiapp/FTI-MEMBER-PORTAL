@@ -83,6 +83,60 @@ const INITIAL_FORM_DATA = {
   authorizedSignatoryLastNameEn: ''
 };
 
+// Helper: Determine first error field key deterministically with priority
+// Priority: Company info (association/tax/contact) -> Addresses -> Contact persons -> Fallback
+const getFirstFieldError = (errors = {}) => {
+  if (!errors || typeof errors !== 'object') return null;
+
+  // 1) Company/association info priority
+  const companyPriority = [
+    'associationName',
+    'associationNameEng',
+    'taxId',
+    'associationEmail',
+    'associationPhone'
+  ];
+  for (const key of companyPriority) {
+    if (errors[key]) return key;
+  }
+
+  // 2) Address fields: enforce order by type 1->2->3 and field priority
+  const addressFieldPriority = [
+    'addressNumber', 'subDistrict', 'district', 'province', 'postalCode', 'email', 'phone'
+  ];
+  const addressTypes = ['1', '2', '3'];
+  for (const type of addressTypes) {
+    // complete address missing
+    const missingKey = `address_${type}`;
+    if (errors[missingKey]) return missingKey;
+    for (const f of addressFieldPriority) {
+      const k = `address_${type}_${f}`;
+      if (errors[k]) return k;
+    }
+  }
+
+  // 3) Contact persons: prefer main contact (index 0) field order
+  const contactPersonPriority = [
+    'contactPersons',
+    'contactPerson0PrenameTh', 'contactPerson0PrenameEn', 'contactPerson0PrenameOther',
+    'contactPerson0FirstNameTh', 'contactPerson0LastNameTh',
+    'contactPerson0FirstNameEn', 'contactPerson0LastNameEn',
+    'contactPerson0Position', 'contactPerson0Email', 'contactPerson0Phone', 'contactPerson0TypeContactId',
+    'contactPerson0TypeContactOtherDetail'
+  ];
+  for (const key of contactPersonPriority) {
+    if (errors[key]) return key;
+  }
+
+  // 4) Skip representativeErrors here (handled separately for section-level scroll)
+  // 5) Fallback: return a stable key (alphabetical) if any exists
+  const keys = Object.keys(errors).filter(k => k !== 'representativeErrors');
+  if (keys.length > 0) {
+    return keys.sort()[0];
+  }
+  return null;
+};
+
 // Custom hook สำหรับ API data พร้อม error handling
 const useApiData = () => {
   const [data, setData] = useState({
@@ -204,6 +258,14 @@ export default function AMMembershipForm(props = {}) {
     // Fallbacks by section
     if (fieldKey.startsWith('contactPerson')) {
       const section = document.querySelector('[data-section="contact-person"]');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (fieldKey.startsWith('address_')) {
+      const section = document.querySelector('[data-section="addresses"], [data-section="address-section"]');
+      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (fieldKey === 'representativeErrors' || fieldKey?.startsWith('representative')) {
+      const section = document.querySelector('[data-section="representatives"], [data-section="representative-section"]');
       if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
@@ -379,8 +441,8 @@ export default function AMMembershipForm(props = {}) {
         setShowErrors(true);
       }
       
-      // Find first error key and step with errors
-      const firstErrorKey = Object.keys(formErrors)[0];
+      // Find first error key deterministically and step with errors
+      const firstErrorKey = getFirstFieldError(formErrors) || 'representativeErrors';
       const firstErrorStep = STEPS.find(step => 
         Object.keys(validateAMForm(formData, step.id)).length > 0
       );
@@ -391,7 +453,12 @@ export default function AMMembershipForm(props = {}) {
         
         // Wait for step change to complete before scrolling
         setTimeout(() => {
-          scrollToErrorField(firstErrorKey);
+          if (firstErrorKey === 'representativeErrors') {
+            // Section-level scroll for representatives when no specific field key
+            scrollToErrorField('representativeErrors');
+          } else {
+            scrollToErrorField(firstErrorKey);
+          }
         }, 100);
       }
       
@@ -452,11 +519,13 @@ export default function AMMembershipForm(props = {}) {
         setShowErrors(true);
       }
       
-      // Find first error key to scroll to
-      const firstErrorKey = Object.keys(formErrors)[0];
+      // Find first error key to scroll to deterministically
+      const firstErrorKey = getFirstFieldError(formErrors) || (formErrors.representativeErrors ? 'representativeErrors' : null);
       
       // Scroll to the error field
-      scrollToErrorField(firstErrorKey);
+      if (firstErrorKey) {
+        scrollToErrorField(firstErrorKey);
+      }
       
       // Show toast with more specific error message if available
       const errorMessage = typeof formErrors[firstErrorKey] === 'string'

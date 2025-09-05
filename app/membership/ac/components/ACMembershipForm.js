@@ -174,45 +174,243 @@ export default function ACMembershipForm({
   const abortControllerRef = useRef(null);
   const stickyOffsetRef = useRef(120); // Approx header/toolbar height to offset when scrolling
 
-  // Helper: Scroll to a field key with offset and focus
-  const scrollToErrorField = useCallback((fieldKey) => {
-    if (!fieldKey || typeof document === 'undefined') return;
-
-    const selectors = [
-      `[name="${fieldKey}"]`,
-      `#${CSS.escape(fieldKey)}`,
-      `.${CSS.escape(fieldKey)}`,
-      `[data-error-key="${fieldKey}"]`, // optional wrapper hook
-    ];
-
-    let target = null;
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      if (el) { target = el; break; }
-    }
-
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      const absoluteTop = rect.top + window.pageYOffset;
-      const offset = Math.max(0, stickyOffsetRef.current || 0);
-      window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
-
-      if (typeof target.focus === 'function') {
-        setTimeout(() => target.focus({ preventScroll: true }), 250);
-      }
-      return;
-    }
-    
-    // Fallbacks by section
-    if (fieldKey.startsWith('contactPerson')) {
-      const section = document.querySelector('[data-section="contact-person"]');
-      if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, []);
-  
   // Use external form data if provided, otherwise use internal state
   const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
+  
+  // Helper: Scroll to a field key with offset and focus
+  const scrollToErrorField = useCallback((errorKey) => {
+    if (!errorKey || typeof document === 'undefined') return;
+
+    // Company basic info fields - handle these first and specifically
+    const companyBasicFields = ['companyName', 'companyNameEn', 'taxId', 'registrationNumber', 'registrationDate'];
+    if (companyBasicFields.includes(errorKey)) {
+      setTimeout(() => {
+        // Try multiple selector strategies for company fields
+        const selectors = [
+          `#${errorKey}`,
+          `[name="${errorKey}"]`,
+          `[data-field="${errorKey}"]`,
+          `input[id="${errorKey}"]`,
+          `input[name="${errorKey}"]`
+        ];
+        
+        let el = null;
+        for (const selector of selectors) {
+          el = document.querySelector(selector);
+          if (el) break;
+        }
+        
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Focus after scrolling completes
+          setTimeout(() => {
+            try {
+              el.focus({ preventScroll: true });
+            } catch (e) {}
+          }, 100);
+        } else {
+          // Fallback: scroll to company info section
+          const section = document.querySelector('[data-section="company-info"]') || 
+                         document.querySelector('.company-info');
+          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return;
+    }
+
+    // Address fields: addresses.{type}.{field}
+    if (errorKey.startsWith('addresses.')) {
+      const match = errorKey.match(/addresses\.(\d+)\.(.+)$/);
+      if (match) {
+        const tab = match[1];
+        const field = match[2];
+
+        // Map validation field to actual input id in CompanyAddressInfo
+        let targetId = null;
+        if (field === 'email') targetId = `email-${tab}`;
+        else if (field === 'phone') targetId = `phone-${tab}`;
+        else if (['addressNumber', 'building', 'moo', 'soi', 'street'].includes(field)) targetId = field;
+        // subDistrict/district/province/postalCode are SearchableDropdowns; scrolling to section is sufficient
+
+        // Allow CompanyAddressInfo to auto-switch tab via its useEffect (based on errors), then focus
+        setTimeout(() => {
+          let el = null;
+          if (targetId) {
+            el = document.getElementById(targetId);
+            if (!el) el = document.querySelector(`[name="${targetId}"]`);
+          }
+
+          // Try more specific selector for address fields
+          if (!el) {
+            el = document.querySelector(`[name="addresses[${tab}][${field}]"]`);
+          }
+
+          // Fallback: scroll to the address section container
+          if (!el) {
+            const section = document.querySelector('[data-section="company-address"]')
+              || document.querySelector('.company-address')
+              || document.querySelector('.bg-white');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
+          }
+
+          try {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Focus without jumping again
+            setTimeout(() => el.focus({ preventScroll: true }), 300);
+          } catch {}
+        }, 250);
+        return;
+      }
+    }
+
+    // Representative fields: handle special rep-{index}-{field} format
+    if (errorKey.startsWith('rep-')) {
+      const match = errorKey.match(/rep-(\d+)-(.+)$/);
+      if (match) {
+        const repIndex = match[1];
+        const field = match[2];
+        
+        setTimeout(() => {
+          // Try various selectors to find the representative field
+          const selectors = [
+            `#rep-${repIndex}-${field}`,
+            `[name="representatives[${repIndex}][${field}]"]`,
+            `[data-rep="${repIndex}"][data-field="${field}"]`
+          ];
+          
+          let el = null;
+          for (const selector of selectors) {
+            el = document.querySelector(selector);
+            if (el) break;
+          }
+          
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => el.focus({ preventScroll: true }), 300);
+          } else {
+            // Fallback: scroll to representative section
+            const section = document.querySelector('[data-section="representatives"]');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
+        return;
+      }
+    }
+
+    // Non-address fields: try matching by id or name
+    setTimeout(() => {
+      // Try multiple selector strategies
+      const selectors = [
+        `#${errorKey}`,
+        `[name="${errorKey}"]`,
+        `[data-field="${errorKey}"]`,
+        `input[id="${errorKey}"]`,
+        `input[name="${errorKey}"]`,
+        `select[id="${errorKey}"]`,
+        `select[name="${errorKey}"]`,
+        `textarea[id="${errorKey}"]`,
+        `textarea[name="${errorKey}"]`
+      ];
+      
+      let el = null;
+      for (const selector of selectors) {
+        el = document.querySelector(selector);
+        if (el) break;
+      }
+      
+      if (el) {
+        try {
+          // Use scrollIntoView for consistent behavior with OC form
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          setTimeout(() => el.focus({ preventScroll: true }), 100);
+          return;
+        } catch {}
+      }
+
+      // Handle summary key for contact persons (plural)
+      if (errorKey === 'contactPersons') {
+        const section = document.querySelector('[data-section="contact-person"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      // Handle contact person fields: contactPerson{index}{field}
+      if (errorKey.startsWith('contactPerson')) {
+        const match = errorKey.match(/contactPerson(\d+)(.+)$/);
+        if (match) {
+          const contactIndex = match[1];
+          const field = match[2];
+          
+          setTimeout(() => {
+            // Try multiple selector strategies for contact person fields
+            const selectors = [
+              `#${errorKey}`,
+              `[name="${errorKey}"]`,
+              `#contactPerson${contactIndex}${field}`,
+              `[name="contactPerson${contactIndex}${field}"]`
+            ];
+            
+            let contactEl = null;
+            for (const selector of selectors) {
+              contactEl = document.querySelector(selector);
+              if (contactEl) break;
+            }
+            
+            if (contactEl) {
+              contactEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setTimeout(() => {
+                try {
+                  contactEl.focus({ preventScroll: true });
+                } catch (e) {}
+              }, 100);
+            } else {
+              // Fallback: scroll to contact person section
+              const section = document.querySelector('[data-section="contact-person"]');
+              if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 100);
+          return;
+        }
+        
+        // Fallback for general contact person errors
+        const section = document.querySelector('[data-section="contact-person"]');
+        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      } else if (errorKey === 'addresses' && errors.addresses) {
+        // Handle generic address errors
+        const addressTypes = ['1', '2', '3'];
+        for (const type of addressTypes) {
+          if (errors.addresses[type] && Object.keys(errors.addresses[type]).length > 0) {
+            const section = document.querySelector('[data-section="company-address"]');
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            break;
+          }
+        }
+      } else {
+        // Last resort: try to find a section based on the error key
+        const sectionMap = {
+          'companyName': 'company-info',
+          'businessTypes': 'business-types',
+          'products': 'products',
+          'documents': 'documents'
+        };
+        
+        // Check if the error key starts with any of the keys in sectionMap
+        for (const [key, sectionName] of Object.entries(sectionMap)) {
+          if (errorKey.startsWith(key)) {
+            const section = document.querySelector(`[data-section="${sectionName}"]`);
+            if (section) {
+              section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              return;
+            }
+          }
+        }
+      }
+    }, 100);
+  }, [errors]);
   const [taxIdValidating, setTaxIdValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
@@ -443,158 +641,152 @@ export default function ACMembershipForm({
     }
   }, []);
 
+  // Helper to extract the first specific field error in a deterministic priority
+  // Priority: Company basic info -> Addresses -> Contact persons -> Fallback
+  const getFirstFieldError = useCallback((errs) => {
+    if (!errs || typeof errs !== 'object') return { key: null, message: null };
+
+    // 1) Company basic info fields in explicit order
+    const companyPriority = [
+      'companyName',
+      'companyNameEn',
+      'taxId',
+      'registrationNumber',
+      'registrationDate',
+      'companyEmail',
+      'companyPhone',
+      'companyWebsite'
+    ];
+    for (const k of companyPriority) {
+      if (typeof errs[k] === 'string') {
+        return { key: k, message: errs[k] };
+      }
+    }
+
+    // 2) Address nested errors: errors.addresses[type][field] or summary
+    if (errs.addresses && typeof errs.addresses === 'object') {
+      const typeKeys = Object.keys(errs.addresses).filter(k => k !== '_error');
+      for (const t of typeKeys) {
+        const obj = errs.addresses[t];
+        if (obj && typeof obj === 'object') {
+          const fieldKeys = Object.keys(obj).filter(f => f !== 'base');
+          if (fieldKeys.length > 0) {
+            const f = fieldKeys[0];
+            const msg = obj[f];
+            if (typeof msg === 'string') return { key: `addresses.${t}.${f}`, message: msg };
+          }
+        }
+      }
+      if (typeof errs.addresses._error === 'string') {
+        return { key: 'addresses', message: errs.addresses._error };
+      }
+    }
+
+    // 3) Contact person flat field keys e.g. contactPerson0FirstNameTh
+    const contactKeys = Object.keys(errs).filter(k => k.startsWith('contactPerson'));
+    if (contactKeys.length > 0) {
+      const k = contactKeys[0];
+      const v = errs[k];
+      if (typeof v === 'string') return { key: k, message: v };
+    }
+
+    // Note: Representative errors are handled specially in submit handlers via representativeErrors
+
+    // 4) Fallback: first flat string error key or first leaf string in a nested object
+    for (const [k, v] of Object.entries(errs)) {
+      if (typeof v === 'string') return { key: k, message: v };
+      if (v && typeof v === 'object') {
+        const nestedFirstKey = Object.keys(v).find(x => typeof v[x] === 'string');
+        if (nestedFirstKey) return { key: `${k}.${nestedFirstKey}`, message: v[nestedFirstKey] };
+      }
+    }
+
+    return { key: null, message: null };
+  }, []);
+
   // Handle form submission and step navigation
   const handleSubmit = useCallback(async (e) => {
     if (e) e.preventDefault();
-    
-    console.log('🔄 handleSubmit called:', { 
-      currentStep, 
-      isSinglePageLayout, 
-      rejectionId,
-      formDataKeys: Object.keys(formData) 
-    });
-  
-    // --- สำหรับโหมดแก้ไข (Single Page Layout) ---
-    if (isSinglePageLayout || rejectionId) {
-      console.log('📝 Single page layout or edit mode - proceeding to final submission');
-      
-      // ข้าม step validation เพราะเป็น single page layout
-      const formErrors = validateACForm(formData, STEPS.length);
-      setErrors(formErrors);
-  
-      if (Object.keys(formErrors).length > 0) {
-        console.log('❌ Validation errors found:', formErrors);
-        toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน');
-        
-        // รองรับ error ที่ซ้อนใน representativeErrors
-        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
-          const repIndex = formErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
-          if (repIndex !== -1) {
-            const field = Object.keys(formErrors.representativeErrors[repIndex])[0];
-            const compositeKey = `rep-${repIndex}-${field}`;
-            scrollToErrorField(compositeKey);
+    setIsSubmitting(true);
+
+    try {
+      // ถ้าอยู่ในโหมดแบ่งขั้นตอน และไม่ใช่ขั้นตอนสุดท้าย ให้ไปขั้นตอนถัดไป
+      if (!isSinglePageLayout && currentStep < totalSteps) {
+        const formErrors = validateACForm(formData, currentStep);
+        setErrors(formErrors);
+
+        if (Object.keys(formErrors).length > 0) {
+          const { key: firstSpecificKey, message: firstSpecificMessage } = getFirstFieldError(formErrors);
+          const firstMessage = firstSpecificMessage || 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
+          toast.error(firstMessage);
+
+          // ถ้า error แรกเป็นฟิลด์ข้อมูลบริษัท ให้เลื่อนไปที่ฟิลด์นั้นก่อนเลย (มีความสำคัญสูงสุด)
+          const companyBasicFields = ['companyName', 'companyNameEn', 'taxId', 'registrationNumber', 'registrationDate', 'companyEmail', 'companyPhone', 'companyWebsite'];
+          if (firstSpecificKey && companyBasicFields.includes(firstSpecificKey)) {
+            scrollToErrorField(firstSpecificKey);
+            setIsSubmitting(false);
             return;
           }
+
+          // จัดการกรณีพิเศษสำหรับ representativeErrors
+          if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
+            const repIndex = formErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
+            if (repIndex !== -1) {
+              const field = Object.keys(formErrors.representativeErrors[repIndex])[0];
+              scrollToErrorField(`rep-${repIndex}-${field}`);
+              setIsSubmitting(false);
+              return;
+            }
+          }
+
+          // จัดการกรณีพิเศษสำหรับ addresses (errors.addresses[type].field)
+          if (formErrors.addresses && typeof formErrors.addresses === 'object') {
+            const typeKeys = Object.keys(formErrors.addresses).filter(k => k !== '_error');
+            const firstType = typeKeys.find(t => formErrors.addresses[t] && Object.keys(formErrors.addresses[t]).length > 0);
+            if (firstType) {
+              const fieldKeys = Object.keys(formErrors.addresses[firstType]).filter(k => k !== 'base');
+              const firstField = fieldKeys[0];
+              if (firstField) {
+                scrollToErrorField(`addresses.${firstType}.${firstField}`);
+                setIsSubmitting(false);
+                return;
+              }
+            }
+          }
+
+          // เลื่อนไปยัง field แรกที่มี error (ใช้ specific key ถ้ามี)
+          if (firstSpecificKey) {
+            scrollToErrorField(firstSpecificKey);
+          }
+          setIsSubmitting(false);
+          return;
         }
 
-        const firstErrorField = Object.keys(formErrors)[0];
-        scrollToErrorField(firstErrorField);
-        return;
-      }
-  
-      // ดำเนินการส่งข้อมูล
-      console.log('✅ Validation passed, proceeding with submission');
-      toast.loading('กำลังส่งข้อมูล...', { id: 'submitting' });
-      setIsSubmitting(true);
-  
-      try {
-        let result;
-        if (rejectionId) {
-          console.log('🔄 Resubmitting rejected application:', rejectionId);
-          const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-            },
-            body: JSON.stringify({
-              formData: formData,
-              memberType: 'ac',
-              userComment: userComment, // ส่ง comment ไปด้วย
-              apiData: {
-                industrialGroups,
-                provincialChapters
-              }
-            })
-          });
-          
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-          }
-          
-          result = await res.json();
-          console.log('📥 Resubmit response:', result);
-        } else {
-          console.log('🔄 New submission');
-          result = await submitACMembershipForm(formData);
-          console.log('📥 New submission response:', result);
-        }
-  
-        toast.dismiss('submitting');
-  
-        if (result.success) {
-          console.log('✅ Submission successful');
-          if (!rejectionId) {
-            await deleteDraft(formData.taxId);
-          }
-          // แสดง Success Modal แทนการ redirect ทันที
-          setSubmissionResult(result);
-          setShowSuccessModal(true);
-        } else {
-          console.log('❌ Submission failed:', result.message);
-          toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล');
-        }
-      } catch (error) {
-        console.error('💥 Submission error:', error);
-        toast.dismiss('submitting');
-        
-        // แสดง error message ที่ละเอียดขึ้น
-        let errorMessage = 'เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง';
-        if (error.message) {
-          errorMessage = `เกิดข้อผิดพลาด: ${error.message}`;
-        }
-        
-        toast.error(errorMessage, { duration: 5000 });
-      } finally {
-        setIsSubmitting(false);
-      }
-      
-      return; // หยุดการทำงานที่นี่สำหรับ single page layout
-    }
-  
-    // --- Step Navigation Logic สำหรับโหมดปกติ ---
-    if (currentStep < 5) {
-      console.log('🔄 Step navigation mode, current step:', currentStep);
-      
-      const formErrors = validateACForm(formData, currentStep);
-      setErrors(formErrors);
-  
-      if (Object.keys(formErrors).length > 0) {
-        console.log('❌ Step validation errors:', formErrors);
-        toast.error('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
-        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
-          const repIndex = formErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
-          if (repIndex !== -1) {
-            const field = Object.keys(formErrors.representativeErrors[repIndex])[0];
-            scrollToErrorField(`rep-${repIndex}-${field}`);
-            return;
-          }
-        }
-        const firstErrorField = Object.keys(formErrors)[0];
-        scrollToErrorField(firstErrorField);
-        return;
-      }
-  
-      // Special validation for step 1 (Tax ID)
-      if (currentStep === 1 && formData.taxId?.length === 13) {
-        // Only check uniqueness if not in edit mode
-        if (!rejectionId) {
-          console.log('🔄 Checking tax ID uniqueness...');
+        // ตรวจสอบ Tax ID ในขั้นตอนที่ 1
+        if (currentStep === 1 && formData.taxId && formData.taxId.length === 13) {
           const taxIdResult = await checkTaxIdUniqueness(formData.taxId);
           if (!taxIdResult.isUnique) {
-            setErrors(prev => ({ ...prev, taxId: taxIdResult.message }));
+            setIsSubmitting(false);
             toast.error(taxIdResult.message);
             return;
           }
         }
+
+        console.log('✅ Step validation passed, moving to next step');
+        // Increment step directly to avoid re-validating with possibly different internal step in navigation hook
+        if (setCurrentStep) {
+          setCurrentStep(prev => prev + 1);
+          window.scrollTo(0, 0);
+        }
+        setIsSubmitting(false);
+        return;
       }
-  
-      console.log('✅ Step validation passed, moving to next step');
-      // Increment step directly to avoid re-validating with possibly different internal step in navigation hook
-      if (setCurrentStep) {
-        setCurrentStep(prev => prev + 1);
-        window.scrollTo(0, 0);
-      }
+      
+      // Continue with the rest of the function for final submission
+    } catch (error) {
+      console.error('Error during form validation or navigation:', error);
+      toast.error('เกิดข้อผิดพลาดในการตรวจสอบข้อมูล');
+      setIsSubmitting(false);
       return;
     }
   
@@ -606,7 +798,11 @@ export default function ACMembershipForm({
   
     if (Object.keys(formErrors).length > 0) {
       console.log('❌ Final validation errors:', formErrors);
-      toast.error('กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน');
+      
+      // ดึงข้อผิดพลาดฟิลด์เฉพาะตัวแรกเพื่อแสดงใน toast
+      const { key: firstSpecificKey, message: firstSpecificMessage } = getFirstFieldError(formErrors);
+      const firstMessage = firstSpecificMessage || 'กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน';
+      toast.error(firstMessage);
       
       const firstErrorStep = STEPS.find(step => 
         Object.keys(validateACForm(formData, step.id)).length > 0
@@ -615,7 +811,17 @@ export default function ACMembershipForm({
         setCurrentStep(firstErrorStep.id);
         // หลังเปลี่ยนสเต็ป ให้เลื่อนและโฟกัสไปยังฟิลด์แรกของสเต็ปนั้น
         const stepErrors = validateACForm(formData, firstErrorStep.id);
-        // representativeErrors support
+        // ใช้คีย์ฟิลด์แรกตามลำดับความสำคัญที่กำหนด (บริษัท -> ที่อยู่ -> ผู้ติดต่อ)
+        const { key: stepFirstKey } = getFirstFieldError(stepErrors);
+        const companyBasicFields = ['companyName', 'companyNameEn', 'taxId', 'registrationNumber', 'registrationDate', 'companyEmail', 'companyPhone', 'companyWebsite'];
+
+        // ถ้าเป็นฟิลด์บริษัท ให้เลื่อนไปก่อน
+        if (stepFirstKey && companyBasicFields.includes(stepFirstKey)) {
+          setTimeout(() => scrollToErrorField(stepFirstKey), 350);
+          return;
+        }
+
+        // ถ้าเป็น representative ให้ใช้รูปแบบพิเศษ
         if (stepErrors.representativeErrors && Array.isArray(stepErrors.representativeErrors)) {
           const repIndex = stepErrors.representativeErrors.findIndex(e => e && Object.keys(e).length > 0);
           if (repIndex !== -1) {
@@ -624,11 +830,26 @@ export default function ACMembershipForm({
             return;
           }
         }
-        const firstField = Object.keys(stepErrors)[0];
-        if (firstField) {
-          // รอให้สเต็ป render เสร็จ
+
+        // ถ้าเป็นที่อยู่ ให้เลื่อนไปยังฟิลด์แรกของที่อยู่
+        if (stepErrors.addresses && typeof stepErrors.addresses === 'object') {
+          const typeKeys = Object.keys(stepErrors.addresses).filter(k => k !== '_error');
+          const firstType = typeKeys.find(t => stepErrors.addresses[t] && Object.keys(stepErrors.addresses[t]).length > 0);
+          if (firstType) {
+            const fieldKeys = Object.keys(stepErrors.addresses[firstType]).filter(k => k !== 'base');
+            const firstField = fieldKeys[0];
+            if (firstField) {
+              setTimeout(() => scrollToErrorField(`addresses.${firstType}.${firstField}`), 350);
+              return;
+            }
+          }
+        }
+
+        // อย่างอื่นให้ใช้คีย์ฟิลด์เฉพาะที่หาได้
+        const targetKey = stepFirstKey || Object.keys(stepErrors)[0];
+        if (targetKey) {
           setTimeout(() => {
-            scrollToErrorField(firstField);
+            scrollToErrorField(targetKey);
           }, 350);
         }
       }
