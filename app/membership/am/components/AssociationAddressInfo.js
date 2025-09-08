@@ -311,7 +311,7 @@ export default function AssociationAddressInfo({
   const currentAddress = getCurrentAddress();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" data-section="addresses">
       {/* Address Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">
@@ -351,6 +351,7 @@ export default function AssociationAddressInfo({
             return (
               <button
                 key={type}
+                data-address-tab={type}
                 onClick={() => setActiveTab(type)}
                 className={`
                   flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
@@ -431,6 +432,7 @@ export default function AssociationAddressInfo({
                 value={currentAddress?.addressNumber || ''}
                 onChange={(e) => handleInputChange('addressNumber', e.target.value)}
                 placeholder="เลขที่"
+                data-error-key={`address_${activeTab}_addressNumber`}
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
@@ -476,6 +478,7 @@ export default function AssociationAddressInfo({
                 value={currentAddress?.building || ''}
                 onChange={(e) => handleInputChange('building', e.target.value)}
                 placeholder="ชื่ออาคาร หรือ หมู่บ้าน"
+                data-error-key={`address_${activeTab}_building`}
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
@@ -510,6 +513,7 @@ export default function AssociationAddressInfo({
                 value={currentAddress?.moo || ''}
                 onChange={(e) => handleInputChange('moo', e.target.value)}
                 placeholder="หมู่ที่"
+                data-error-key={`address_${activeTab}_moo`}
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
@@ -544,6 +548,7 @@ export default function AssociationAddressInfo({
                 value={currentAddress?.soi || ''}
                 onChange={(e) => handleInputChange('soi', e.target.value)}
                 placeholder="ซอย"
+                data-error-key={`address_${activeTab}_soi`}
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
@@ -601,7 +606,7 @@ export default function AssociationAddressInfo({
             </div>
 
             {/* Sub District */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-error-key={`address_${activeTab}_subDistrict`}>
               <SearchableDropdown
                 label="ตำบล/แขวง"
                 placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง"
@@ -618,7 +623,7 @@ export default function AssociationAddressInfo({
             </div>
 
             {/* District */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-error-key={`address_${activeTab}_district`}>
               <SearchableDropdown
                 label="อำเภอ/เขต"
                 placeholder="พิมพ์เพื่อค้นหาอำเภอ/เขต"
@@ -634,7 +639,7 @@ export default function AssociationAddressInfo({
             </div>
 
             {/* Province */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-error-key={`address_${activeTab}_province`}>
               <SearchableDropdown
                 label="จังหวัด"
                 placeholder="พิมพ์เพื่อค้นหาจังหวัด"
@@ -649,7 +654,7 @@ export default function AssociationAddressInfo({
             </div>
 
             {/* Postal Code */}
-            <div className="space-y-2">
+            <div className="space-y-2" data-error-key={`address_${activeTab}_postalCode`}>
               <SearchableDropdown
                 label="รหัสไปรษณีย์"
                 placeholder="พิมพ์เพื่อค้นหารหัสไปรษณีย์"
@@ -683,6 +688,7 @@ export default function AssociationAddressInfo({
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     required
                     placeholder="02-123-4567"
+                    data-error-key={`address_${activeTab}_phone`}
                     className={`
                       w-full px-4 py-3 text-sm
                       border rounded-lg
@@ -733,6 +739,7 @@ export default function AssociationAddressInfo({
                 onChange={(e) => handleInputChange('email', e.target.value)}
                 required
                 placeholder="association@example.com"
+                data-error-key={`address_${activeTab}_email`}
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg

@@ -229,44 +229,73 @@ export default function AMMembershipForm(props = {}) {
   // Helper: Scroll to a field key with offset and focus
   const scrollToErrorField = useCallback((fieldKey) => {
     if (!fieldKey || typeof document === 'undefined') return;
-    
-    const selectors = [
-      `[name="${fieldKey}"]`,
-      `#${CSS.escape(fieldKey)}`,
-      `.${CSS.escape(fieldKey)}`,
-      `[data-error-key="${fieldKey}"]`,
-    ];
-    
-    let target = null;
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      if (el) { target = el; break; }
-    }
-    
-    if (target) {
-      const rect = target.getBoundingClientRect();
-      const absoluteTop = rect.top + window.pageYOffset;
-      const offset = Math.max(0, stickyOffsetRef.current || 0);
-      window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
-      
-      if (typeof target.focus === 'function') {
-        setTimeout(() => target.focus({ preventScroll: true }), 250);
+
+    const performScroll = () => {
+      const selectors = [
+        `[name="${fieldKey}"]`,
+        `#${CSS.escape(fieldKey)}`,
+        `.${CSS.escape(fieldKey)}`,
+        `[data-error-key="${fieldKey}"]`,
+      ];
+
+      let target = null;
+      for (const sel of selectors) {
+        const el = document.querySelector(sel);
+        if (el) { target = el; break; }
       }
-      return;
+
+      if (target) {
+        const rect = target.getBoundingClientRect();
+        const absoluteTop = rect.top + window.pageYOffset;
+        const offset = Math.max(0, stickyOffsetRef.current || 0);
+        window.scrollTo({ top: absoluteTop - offset, behavior: 'smooth' });
+
+        if (typeof target.focus === 'function') {
+          setTimeout(() => target.focus({ preventScroll: true }), 250);
+        }
+        return true;
+      }
+      return false;
+    };
+
+    // Special handling: address_{type}_{field} -> switch tab first
+    if (fieldKey.startsWith('address_')) {
+      const match = fieldKey.match(/^address_(\d)_/);
+      const tabType = match?.[1];
+      if (tabType) {
+        const tabBtn = document.querySelector(`[data-address-tab="${tabType}"]`);
+        if (tabBtn) {
+          // If the tab isn't active, clicking will activate it; then scroll after a short delay
+          tabBtn.click();
+          setTimeout(() => {
+            if (!performScroll()) {
+              const section = document.querySelector('[data-section="addresses"], [data-section="address-section"]');
+              if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }, 120);
+          return;
+        }
+      }
     }
-    
+
+    // Default attempt to scroll directly
+    if (performScroll()) return;
+
     // Fallbacks by section
     if (fieldKey.startsWith('contactPerson')) {
       const section = document.querySelector('[data-section="contact-person"]');
       if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
     }
     if (fieldKey.startsWith('address_')) {
       const section = document.querySelector('[data-section="addresses"], [data-section="address-section"]');
       if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
     }
     if (fieldKey === 'representativeErrors' || fieldKey?.startsWith('representative')) {
       const section = document.querySelector('[data-section="representatives"], [data-section="representative-section"]');
       if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
     }
   }, []);
   

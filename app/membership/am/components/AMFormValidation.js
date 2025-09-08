@@ -78,20 +78,20 @@ const validateAssociationInfo = (formData, errors) => {
         errors.contactPerson0LastNameTh = 'นามสกุลผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น';
       }
 
-      // ตรวจสอบคำนำหน้าชื่อ (prename)
-      if (!mainContact.prename_th) {
+      // ตรวจสอบคำนำหน้าชื่อ (prename) - ใช้คีย์ camelCase ให้ตรงกับ ContactPersonSection
+      if (!mainContact.prenameTh) {
         errors.contactPerson0PrenameTh = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
-      } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(mainContact.prename_th)) {
+      } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(mainContact.prenameTh)) {
         errors.contactPerson0PrenameTh = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
       }
 
-      if (!mainContact.prename_en) {
+      if (!mainContact.prenameEn) {
         errors.contactPerson0PrenameEn = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
-      } else if (!/^[A-Za-z\.\s]+$/.test(mainContact.prename_en)) {
+      } else if (!/^[A-Za-z\.\s]+$/.test(mainContact.prenameEn)) {
         errors.contactPerson0PrenameEn = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
       }
 
-      if ((mainContact.prename_th === 'อื่นๆ' || (mainContact.prename_en && mainContact.prename_en.toLowerCase() === 'other')) && !mainContact.prename_other) {
+      if ((mainContact.prenameTh === 'อื่นๆ' || (mainContact.prenameEn && mainContact.prenameEn.toLowerCase() === 'other')) && !mainContact.prenameOther) {
         errors.contactPerson0PrenameOther = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
       }
 
@@ -243,19 +243,23 @@ const validateRepresentatives = (formData, errors) => {
     if (!rep.phone) repError.phone = 'กรุณากรอกเบอร์โทรศัพท์';
 
     // ตรวจสอบคำนำหน้าชื่อ (prename)
-    if (!rep.prename_th) {
+    const prenameTh = rep.prenameTh ?? rep.prename_th;
+    const prenameEn = rep.prenameEn ?? rep.prename_en;
+    const prenameOther = rep.prenameOther ?? rep.prename_other;
+
+    if (!prenameTh) {
       repError.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
-    } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(rep.prename_th)) {
+    } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(prenameTh)) {
       repError.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
     }
 
-    if (!rep.prename_en) {
+    if (!prenameEn) {
       repError.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
-    } else if (!/^[A-Za-z\.\s]+$/.test(rep.prename_en)) {
+    } else if (!/^[A-Za-z\.\s]+$/.test(prenameEn)) {
       repError.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
     }
 
-    if ((rep.prename_th === 'อื่นๆ' || (rep.prename_en && rep.prename_en.toLowerCase() === 'other')) && !rep.prename_other) {
+    if ((prenameTh === 'อื่นๆ' || (prenameEn && prenameEn.toLowerCase() === 'other')) && !prenameOther) {
       repError.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
     }
 

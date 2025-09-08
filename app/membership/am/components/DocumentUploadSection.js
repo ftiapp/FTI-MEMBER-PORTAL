@@ -534,6 +534,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             </div>
 
             {/* Association Certificate Upload */}
+            <div data-error-key="associationCertificate">
             <SingleFileUploadZone
               title="สำเนาหนังสือรับรองการจดทะเบียนเป็นสมาคมการค้า"
               description="เอกสารรับรองการจดทะเบียนสมาคมการค้าที่ออกโดยหน่วยงานราชการ พร้อมลายเซ็นสำเนาถูกต้อง"
@@ -548,8 +549,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               bgColor="bg-blue-100"
               error={errors?.associationCertificate}
             />
+            </div>
 
             {/* Member List Upload */}
+            <div data-error-key="memberList">
             <SingleFileUploadZone
               title="รายชื่อสมาชิกสมาคม"
               description="เอกสารแสดงรายชื่อสมาชิกของสมาคมการค้า พร้อมลายเซ็นสำเนาถูกต้อง"
@@ -564,6 +567,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               bgColor="bg-blue-100"
               error={errors?.memberList}
             />
+            </div>
           </div>
 
           {/* เพิ่มช่องว่างระหว่างส่วน */}
@@ -595,7 +599,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             </div>
 
             {/* Company Stamp Upload - Required */}
-            <div className="space-y-3">
+            <div className="space-y-3" data-error-key="companyStamp">
               <SingleFileUploadZone
                 title="รูปตราประทับสมาคม *"
                 description="รูปถ่ายตราประทับของสมาคม หรือรูปลายเซ็นหากไม่มีตราประทับ (จำเป็น)"
@@ -700,10 +704,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryFirstNameTh: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryFirstNameTh ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                      placeholder="กรอกชื่อผู้มีอำนาจลงนาม"
+                      data-error-key="authorizedSignatoryFirstNameTh"
+                      placeholder="เช่น สมชาย"
+                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameTh ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
                     />
                     {errors?.authorizedSignatoryFirstNameTh && (
                       <p className="mt-1 text-sm text-red-600">{errors.authorizedSignatoryFirstNameTh}</p>
@@ -721,10 +724,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryLastNameTh: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryLastNameTh ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                      placeholder="กรอกนามสกุลผู้มีอำนาจลงนาม"
+                      data-error-key="authorizedSignatoryLastNameTh"
+                      placeholder="เช่น ใจดี"
+                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameTh ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
                     />
                     {errors?.authorizedSignatoryLastNameTh && (
                       <p className="mt-1 text-sm text-red-600">{errors.authorizedSignatoryLastNameTh}</p>
@@ -747,10 +749,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryFirstNameEn: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryFirstNameEn ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter first name in English"
+                      data-error-key="authorizedSignatoryFirstNameEn"
+                      placeholder="e.g., Somchai"
+                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameEn ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
                     />
                     {errors?.authorizedSignatoryFirstNameEn && (
                       <p className="mt-1 text-sm text-red-600">{errors.authorizedSignatoryFirstNameEn}</p>
@@ -768,10 +769,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         ...prev,
                         authorizedSignatoryLastNameEn: e.target.value
                       }))}
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryLastNameEn ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                      }`}
-                      placeholder="Enter last name in English"
+                      data-error-key="authorizedSignatoryLastNameEn"
+                      placeholder="e.g., Jaidee"
+                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameEn ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'}`}
                     />
                     {errors?.authorizedSignatoryLastNameEn && (
                       <p className="mt-1 text-sm text-red-600">{errors.authorizedSignatoryLastNameEn}</p>

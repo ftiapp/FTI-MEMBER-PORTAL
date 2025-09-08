@@ -388,7 +388,7 @@ export async function POST(request) {
         number_of_employees, registered_capital, production_capacity_value, production_capacity_unit,
         sales_domestic, sales_export, revenue_last_year, revenue_previous_year, shareholder_thai_percent, shareholder_foreign_percent,
         factory_type, status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
       [
         userId, associationName, associationNameEn, taxId, memberCount,
         numberOfEmployees, registeredCapital, productionCapacityValue, productionCapacityUnit,

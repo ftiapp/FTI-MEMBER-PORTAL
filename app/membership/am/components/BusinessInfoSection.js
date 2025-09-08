@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'react-toastify';
+import { toast } from 'react-hot-toast';
 
 export default function BusinessInfoSection({ formData, setFormData, errors, showErrors = false }) {
   // Refs for scrolling to error fields
@@ -32,15 +32,8 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
         // Scroll to the first error field
         firstErrorField.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         
-        // Show toast notification
-        toast.error('กรุณาตรวจสอบข้อมูลที่กรอกให้ถูกต้องครบถ้วน', {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true
-        });
+        // Show toast notification (standardized with react-hot-toast)
+        toast.error('กรุณาตรวจสอบข้อมูลที่กรอกให้ถูกต้องครบถ้วน', { id: 'am-business-errors' });
       }
     }
   }, [showErrors, errors]);
