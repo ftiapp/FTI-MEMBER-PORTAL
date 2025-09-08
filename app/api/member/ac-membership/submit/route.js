@@ -267,29 +267,44 @@ export async function POST(request) {
     // Step 5: Insert Contact Persons (with type support)
     console.log('👤 [AC] Inserting contact persons...');
     if (data.contactPersons) {
-      const contactPersons = JSON.parse(data.contactPersons);
+      let contactPersons = [];
+      try {
+        contactPersons = typeof data.contactPersons === 'string' ? JSON.parse(data.contactPersons) : data.contactPersons;
+        if (!Array.isArray(contactPersons)) contactPersons = [];
+      } catch (e) {
+        console.error('❌ [AC] Error parsing contactPersons JSON:', e, 'input was:', data.contactPersons);
+        contactPersons = [];
+      }
+      console.log(`📇 [AC] contactPersons count: ${contactPersons.length}`);
       for (let index = 0; index < contactPersons.length; index++) {
-        const contact = contactPersons[index];
+        const contact = contactPersons[index] || {};
+        // Normalize type_contact_id to numeric or null to avoid FK/type errors
+        const rawTypeId = contact.typeContactId;
+        const normalizedTypeId = rawTypeId !== undefined && rawTypeId !== null && `${rawTypeId}`.trim() !== ''
+          ? parseInt(rawTypeId, 10)
+          : (index === 0 ? null : null); // keep null; main contact is implied by position/order
+        const typeName = contact.typeContactName || (index === 0 ? 'ผู้ประสานงานหลัก' : null);
+
         await executeQuery(trx,
           `INSERT INTO MemberRegist_AC_ContactPerson (
             main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, 
             position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
-            mainId, 
+            mainId,
             contact.prenameTh || null,
             contact.prenameEn || null,
             contact.prenameOther || null,
-            contact.firstNameTh || '', 
-            contact.lastNameTh || '', 
-            contact.firstNameEn || '', 
-            contact.lastNameEn || '', 
-            contact.position || '', 
-            contact.email || '', 
+            contact.firstNameTh || '',
+            contact.lastNameTh || '',
+            contact.firstNameEn || '',
+            contact.lastNameEn || '',
+            contact.position || '',
+            contact.email || '',
             contact.phone || '',
             contact.phoneExtension || null,
-            contact.typeContactId || 'MAIN',
-            contact.typeContactName || 'ผู้ประสานงานหลัก',
+            Number.isFinite(normalizedTypeId) ? normalizedTypeId : null,
+            typeName,
             contact.typeContactOtherDetail || null
           ]
         );
@@ -324,10 +339,11 @@ export async function POST(request) {
 console.log('👥 [AC] Inserting representatives...');
 if (data.representatives) {
   try {
-    const representatives = JSON.parse(data.representatives);
+    let representatives = typeof data.representatives === 'string' ? JSON.parse(data.representatives) : data.representatives;
+    if (!Array.isArray(representatives)) representatives = [];
+    console.log(`🧾 [AC] representatives count: ${representatives.length}`);
     for (let index = 0; index < representatives.length; index++) {
-      const rep = representatives[index];
-      
+      const rep = representatives[index] || {};
       // ✅ เพิ่ม rep_order โดยใช้ index + 1 (เริ่มจาก 1)
       await executeQuery(trx,
         `INSERT INTO MemberRegist_AC_Representatives (
@@ -335,17 +351,17 @@ if (data.representatives) {
           last_name_en, position, email, phone, phone_extension, rep_order, is_primary
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
-          mainId, 
+          mainId,
           rep.prenameTh || null,
           rep.prenameEn || null,
           rep.prenameOther || null,
-          rep.firstNameTh || rep.firstNameThai || '', 
-          rep.lastNameTh || rep.lastNameThai || '', 
-          rep.firstNameEn || rep.firstNameEng || '',   
-          rep.lastNameEn || rep.lastNameEng || '',    
-          rep.position || '', 
-          rep.email || '', 
-          rep.phone || '', 
+          rep.firstNameTh || rep.firstNameThai || '',
+          rep.lastNameTh || rep.lastNameThai || '',
+          rep.firstNameEn || rep.firstNameEng || '',
+          rep.lastNameEn || rep.lastNameEng || '',
+          rep.position || '',
+          rep.email || '',
+          rep.phone || '',
           rep.phoneExtension || null,
           index + 1, // ✅ rep_order เริ่มจาก 1, 2, 3...
           rep.isPrimary || false
@@ -354,7 +370,7 @@ if (data.representatives) {
     }
     console.log(`✅ [AC] Inserted ${representatives.length} representatives with proper order`);
   } catch (repError) {
-    console.error('❌ [AC] Error parsing representatives:', repError);
+    console.error('❌ [AC] Error parsing representatives:', repError, 'input was:', data.representatives);
   }
 }
 
@@ -462,8 +478,24 @@ if (data.representatives) {
     console.log('🔍 [AC] Raw industrialGroups data:', data.industrialGroups);
     console.log('🔍 [AC] Raw industrialGroupNames data:', data.industrialGroupNames);
     
-    const industrialGroups = parseAndEnsureArray(data.industrialGroups, 'industrialGroups');
-    const industrialGroupNames = parseAndEnsureArray(data.industrialGroupNames, 'industrialGroupNames');
+    let industrialGroups = parseAndEnsureArray(data.industrialGroups, 'industrialGroups');
+    let industrialGroupNames = parseAndEnsureArray(data.industrialGroupNames, 'industrialGroupNames');
+
+    // If names are missing or length mismatch, try to resolve names from lookup API
+    if (industrialGroups.length > 0 && industrialGroupNames.length !== industrialGroups.length) {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/industrial-groups`, { method: 'GET' });
+        if (res.ok) {
+          const json = await res.json();
+          const list = Array.isArray(json?.data) ? json.data : [];
+          const nameMap = new Map(list.map(it => [String(it.MEMBER_GROUP_CODE), it.MEMBER_GROUP_NAME]));
+          industrialGroupNames = industrialGroups.map(id => nameMap.get(String(id)) || 'ไม่ระบุ');
+          console.log('🔄 [AC] Resolved industrial group names from API');
+        }
+      } catch (e) {
+        console.warn('⚠️ [AC] Failed to resolve industrial group names, will use fallbacks:', e.message);
+      }
+    }
 
     if (industrialGroups.length > 0) {
       for (let i = 0; i < industrialGroups.length; i++) {
@@ -496,8 +528,24 @@ if (data.representatives) {
     console.log('🔍 [AC] Raw provincial names data:', provincialNamesData);
     console.log('🔍 [AC] Final provincial data used:', provincialData);
     
-    const provincialChapters = parseAndEnsureArray(provincialData, 'provincialChapters');
-    const provincialChapterNames = parseAndEnsureArray(provincialNamesData, 'provincialChapterNames');
+    let provincialChapters = parseAndEnsureArray(provincialData, 'provincialChapters');
+    let provincialChapterNames = parseAndEnsureArray(provincialNamesData, 'provincialChapterNames');
+
+    // If names are missing or length mismatch, try to resolve names from lookup API
+    if (provincialChapters.length > 0 && provincialChapterNames.length !== provincialChapters.length) {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/provincial-chapters`, { method: 'GET' });
+        if (res.ok) {
+          const json = await res.json();
+          const list = Array.isArray(json?.data) ? json.data : [];
+          const nameMap = new Map(list.map(it => [String(it.MEMBER_GROUP_CODE), it.MEMBER_GROUP_NAME]));
+          provincialChapterNames = provincialChapters.map(id => nameMap.get(String(id)) || 'ไม่ระบุ');
+          console.log('🔄 [AC] Resolved provincial chapter names from API');
+        }
+      } catch (e) {
+        console.warn('⚠️ [AC] Failed to resolve provincial chapter names, will use fallbacks:', e.message);
+      }
+    }
     
     if (provincialChapters.length > 0) {
       for (let i = 0; i < provincialChapters.length; i++) {

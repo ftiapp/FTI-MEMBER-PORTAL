@@ -82,54 +82,78 @@ const ProductsCard = ({ products }) => (
   </div>
 );
 
-// Representative card - ✅ แก้ไข field names
-const RepresentativeCard = ({ representative, index }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-4">
-    <div className="mb-2">
-      <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
-      {representative?.isPrimary && (
-        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
-          ผู้แทนหลัก
-        </span>
-      )}
+// Representative card - ✅ รวมคำนำหน้าชื่อ (Prename) ทั้งไทย/อังกฤษ และรองรับ Other/อื่นๆ
+const RepresentativeCard = ({ representative, index }) => {
+  const getPrename = (rep, en = false) => {
+    if (!rep) return '';
+    if (en) {
+      const pre = rep.prenameEn || '';
+      if (pre && /^other$/i.test(pre)) return rep.prenameOther || '';
+      return pre;
+    }
+    const pre = rep.prenameTh || '';
+    if (pre && (pre === 'อื่นๆ' || pre === 'อื่น ๆ')) return rep.prenameOther || '';
+    return pre;
+  };
+
+  const fullNameTh = (() => {
+    const pre = getPrename(representative, false);
+    const first = representative.firstNameTh || representative.firstNameThai || '';
+    const last = representative.lastNameTh || representative.lastNameThai || '';
+    const parts = [pre, first, last].filter(Boolean);
+    return parts.length ? parts.join(' ') : '-';
+  })();
+
+  const fullNameEn = (() => {
+    const pre = getPrename(representative, true);
+    const first = representative.firstNameEn || representative.firstNameEng || representative.firstNameEnglish || '';
+    const last = representative.lastNameEn || representative.lastNameEng || representative.lastNameEnglish || '';
+    const parts = [pre, first, last].filter(Boolean);
+    return parts.length ? parts.join(' ') : '-';
+  })();
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="mb-2">
+        <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
+        {representative?.isPrimary && (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mt-1">
+            ผู้แทนหลัก
+          </span>
+        )}
+      </div>
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
+          <p className="text-sm">{fullNameTh}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
+          <p className="text-sm">{fullNameEn}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">ตำแหน่ง</p>
+          <p className="text-sm">{representative.position || '-'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">อีเมล</p>
+          <p className="text-sm">{representative.email || '-'}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
+          <p className="text-sm">
+            {(() => {
+              const phone = representative.phone || '-';
+              const extension = representative.phoneExtension || '';
+              if (phone === '-') return '-';
+              return extension ? `${phone} ต่อ ${extension}` : phone;
+            })()}
+          </p>
+        </div>
+      </div>
     </div>
-    <div className="space-y-3">
-      <div>
-        <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-        <p className="text-sm">
-          {/* ✅ รองรับ field names ทั้งเก่าและใหม่ */}
-          {(representative.firstNameTh || representative.firstNameThai || '-')} {(representative.lastNameTh || representative.lastNameThai || '-')}
-        </p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-        <p className="text-sm">
-          {/* ✅ รองรับ field names ทั้งเก่าและใหม่ */}
-          {(representative.firstNameEn || representative.firstNameEng || representative.firstNameEnglish || '-')} {(representative.lastNameEn || representative.lastNameEng || representative.lastNameEnglish || '-')}
-        </p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">ตำแหน่ง</p>
-        <p className="text-sm">{representative.position || '-'}</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">อีเมล</p>
-        <p className="text-sm">{representative.email || '-'}</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-        <p className="text-sm">
-          {(() => {
-            const phone = representative.phone || '-';
-            const extension = representative.phoneExtension || '';
-            if (phone === '-') return '-';
-            return extension ? `${phone} ต่อ ${extension}` : phone;
-          })()}
-        </p>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 // File display card
 const FileCard = ({ fileName, description, fileUrl }) => {
@@ -427,7 +451,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
         building: address.building || '-',
         moo: address.moo || '-',
         soi: address.soi || '-',
-        street: address.street || address.road || '-', // ✅ รองรับ road
+        street: address.STreet || address.street || address.road || '-', // ✅ รองรับ STreet และ road
         subDistrict: address.subDistrict || '-',
         district: address.district || '-',
         province: address.province || '-',
@@ -446,7 +470,7 @@ export default function SummarySectionComponent({ formData, businessTypes, indus
       building: address.building || '-',
       moo: address.moo || '-',
       soi: address.soi || '-',
-      street: address.street || address.road || '-',
+      street: address.STreet || address.street || address.road || '-',
       subDistrict: address.subDistrict || address.sub_district || '-',
       district: address.district || '-',
       province: address.province || '-',

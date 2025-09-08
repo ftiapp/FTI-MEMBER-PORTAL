@@ -157,9 +157,9 @@ export async function GET(request, { params }) {
         building: addr.building || '',
         moo: addr.moo || '',
         soi: addr.soi || '',
-        // Canonicalize to 'street' (DB uses 'road' in AC, map to street) and keep 'road' alias
-        street: addr.road || '',
-        road: addr.road || '',
+        // Canonicalize to 'street'. Support DB variants: 'STreet', 'street', or legacy 'road'.
+        street: addr.STreet || addr.street || addr.road || '',
+        road: addr.road || addr.STreet || addr.street || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
         province: addr.province || '',
@@ -210,9 +210,9 @@ export async function GET(request, { params }) {
       addressNumber: mainAddress?.address_number || '',
       moo: mainAddress?.moo || '',
       soi: mainAddress?.soi || '',
-      // Expose as 'street' canonically and keep 'road' alias
-      street: mainAddress?.road || '',
-      road: mainAddress?.road || '',
+      // Expose as 'street' canonically and keep 'road' alias, supporting 'STreet'
+      street: (mainAddress?.STreet || mainAddress?.street || mainAddress?.road || ''),
+      road: (mainAddress?.road || mainAddress?.STreet || mainAddress?.street || ''),
       subDistrict: mainAddress?.sub_district || '',
       district: mainAddress?.district || '',
       province: mainAddress?.province || '',
