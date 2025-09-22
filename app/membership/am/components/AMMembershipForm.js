@@ -580,6 +580,10 @@ export default function AMMembershipForm(props = {}) {
     } else {
       handleNextStep(formData, setErrors);
     }
+    // Scroll to top for better UX when advancing steps
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [formData, currentStep, checkTaxIdUniqueness, handleNextStep, props.currentStep, setCurrentStep]);
 
   const handlePrevious = useCallback((e) => {

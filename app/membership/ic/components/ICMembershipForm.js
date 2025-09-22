@@ -24,6 +24,10 @@ const STEPS = [
 const INITIAL_FORM_DATA = {
   // Applicant info
   idCardNumber: '',
+  // Prename fields (applicant)
+  prenameTh: '',
+  prenameEn: '',
+  prenameOther: '',
   firstNameThai: '',
   lastNameThai: '',
   firstNameEng: '',
@@ -109,7 +113,8 @@ const getFirstFieldError = (errors = {}) => {
   for (const key of businessPriority) {
     if (errors[key]) return key;
   }
-  // nested product errors (productErrors[0].nameTh etc.) are shown in summary list; scrolling to products container is sufficient
+  // If productErrors exist (nested errors), scroll to products container
+  if (errors.productErrors) return 'products';
 
   // 4) Documents and authorized signatory fields
   const documentPriority = [
@@ -122,7 +127,20 @@ const getFirstFieldError = (errors = {}) => {
   }
 
   // 5) Representative errors are grouped under representativeErrors; use section scroll
-  if (errors.representative || errors.representativeErrors) return 'representativeErrors';
+  if (errors.representative || errors.representativeErrors) {
+    const repPriority = [
+      'prename_th','prename_en','prename_other',
+      'firstNameThai','lastNameThai','firstNameEng','lastNameEng',
+      'phone','email'
+    ];
+    const repErrors = errors.representativeErrors || {};
+    for (const k of repPriority) {
+      if (repErrors && typeof repErrors === 'object' && repErrors[k]) {
+        return `representative.${k}`; // return specific representative field key
+      }
+    }
+    return 'representativeErrors';
+  }
 
   // 6) Fallback: stable alphabetical key
   const keys = Object.keys(errors);
@@ -497,19 +515,58 @@ const handleSubmit = useCallback(async (e) => {
   }
 }, [formData, totalSteps, currentStep, isSubmitting]);
 
-  // Function to scroll to the first error field with improved targeting
+  // Enhanced: scroll to the first error field (supports snake_case and camelCase)
   const scrollToFirstError = useCallback((errors) => {
     if (!errors || Object.keys(errors).length === 0) return;
     const firstErrorKey = getFirstFieldError(errors);
     if (!firstErrorKey || typeof document === 'undefined') return;
 
-    const selectors = [
-      `[name="${firstErrorKey}"]`,
-      `#${CSS.escape(firstErrorKey)}`,
-      `.${CSS.escape(firstErrorKey)}`,
-      `[data-error-key="${firstErrorKey}"]`,
-      `[data-field="${firstErrorKey}"]`
-    ];
+    // Key variant helpers
+    const toCamel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+    const toSnake = (s) => s.replace(/([A-Z])/g, '_$1').toLowerCase().replace(/^_/, '');
+
+    const variants = new Set([firstErrorKey]);
+    if (firstErrorKey.includes('_')) variants.add(toCamel(firstErrorKey));
+    if (/[A-Z]/.test(firstErrorKey)) variants.add(toSnake(firstErrorKey));
+    // explicit field mappings for applicant prenames
+    if (firstErrorKey === 'prename_th') variants.add('prenameTh');
+    if (firstErrorKey === 'prename_en') variants.add('prenameEn');
+    if (firstErrorKey === 'prename_other') variants.add('prenameOther');
+
+    // Representative: map representative.<field> to actual input IDs and data-fields
+    if (firstErrorKey.startsWith('representative.')) {
+      const field = firstErrorKey.split('.')[1];
+      const fieldSnake = field.includes('_') ? field : toSnake(field);
+      const fieldCamel = field.includes('_') ? toCamel(field) : field;
+      // raw field id/name used in RepresentativeInfoSection
+      variants.add(fieldCamel);
+      variants.add(`representative.${field}`);
+      variants.add(`representative.${fieldSnake}`);
+      // prenames mapping
+      if (fieldSnake === 'prename_th') variants.add('prenameTh');
+      if (fieldSnake === 'prename_en') variants.add('prenameEn');
+      if (fieldSnake === 'prename_other') variants.add('prenameOther');
+    }
+
+    // Try to locate the element by multiple selectors per variant
+    const selectors = [];
+
+    // Special-case explicit anchors for document uploads
+    if (firstErrorKey === 'idCardDocument') {
+      selectors.push('#idCardUpload');
+    }
+    if (firstErrorKey === 'authorizedSignature') {
+      selectors.push('#authorizedSignatureUpload');
+    }
+    for (const k of variants) {
+      selectors.push(
+        `[name="${k}"]`,
+        `#${CSS.escape(k)}`,
+        `.${CSS.escape(k)}`,
+        `[data-error-key="${k}"]`,
+        `[data-field="${k}"]`
+      );
+    }
 
     let target = null;
     for (const sel of selectors) {
@@ -536,7 +593,7 @@ const handleSubmit = useCallback(async (e) => {
         const section = document.querySelector('[data-section="applicant"], [data-section="applicant-section"]');
         if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else if (firstErrorKey === 'representativeErrors' || firstErrorKey.startsWith('representative')) {
-        const section = document.querySelector('[data-section="representatives"], [data-section="representative-section"]');
+        const section = document.querySelector('[data-section="representatives"], [data-section="representative-section"], [data-section="representative-info"]');
         if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
       } else if (['businessTypes','otherBusinessTypeDetail','products'].includes(firstErrorKey)) {
         const section = document.querySelector('[data-section="business"], [data-section="business-section"]');
@@ -552,10 +609,21 @@ const handleSubmit = useCallback(async (e) => {
       }
     }
 
-    const errorMessage = typeof errors[firstErrorKey] === 'string'
-      ? errors[firstErrorKey]
-      : 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
-    toast.error(errorMessage, { position: 'top-right', duration: 4000 });
+    // Resolve toast message (handle nested representative errors)
+    let errorMessage = null;
+    if (typeof errors[firstErrorKey] === 'string') {
+      errorMessage = errors[firstErrorKey];
+    } else if (firstErrorKey.startsWith('representative.')) {
+      const field = firstErrorKey.split('.')[1];
+      const repErr = (errors.representativeErrors && errors.representativeErrors[field])
+        || (errors.representative && errors.representative[field]);
+      if (typeof repErr === 'string') errorMessage = repErr;
+    } else if (firstErrorKey === 'products' && errors.productErrors) {
+      // Use a specific message for product errors
+      errorMessage = 'กรุณากรอกข้อมูลสินค้า/บริการให้ครบถ้วน (อย่างน้อยต้องระบุชื่อภาษาไทย)';
+    }
+    if (!errorMessage) errorMessage = 'กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง';
+    toast.error(errorMessage, { position: 'top-right', duration: 4000, style: { zIndex: 100000 } });
   }, []);
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
@@ -591,14 +659,16 @@ const handleNext = useCallback(async (e) => {
     
     if (idCardValidation?.isChecking) {
       toast.error('กรุณารอให้การตรวจสอบเลขบัตรประชาชนเสร็จสิ้น', {
-        position: 'top-right'
+        position: 'top-right',
+        style: { zIndex: 100000 }
       });
       return;
     }
     
     if (idCardValidation?.isValid === false) {
       toast.error(idCardValidation.message || 'เลขบัตรประชาชนไม่สามารถใช้ได้', {
-        position: 'top-right'
+        position: 'top-right',
+        style: { zIndex: 100000 }
       });
       return;
     }
@@ -607,7 +677,7 @@ const handleNext = useCallback(async (e) => {
     if (!idCardValidation || idCardValidation.isValid !== true) {
       const { valid, message } = await checkIdCard(formData.idCardNumber);
       if (!valid) {
-        toast.error(message, { position: 'top-right' });
+        toast.error(message, { position: 'top-right', style: { zIndex: 100000 } });
         return;
       }
     }
@@ -618,6 +688,10 @@ const handleNext = useCallback(async (e) => {
   if (currentStep < totalSteps) {
     console.log('Moving to next step:', currentStep + 1);
     setCurrentStep(currentStep + 1);
+    // Scroll to top for better UX when advancing steps
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 }, [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError]);
 
@@ -627,6 +701,9 @@ const handleNext = useCallback(async (e) => {
       const draftDataToSave = {
         // ข้อมูลผู้สมัคร - ใช้ชื่อฟิลด์ตาม IC form
         idCardNumber: formData.idCardNumber,
+        prenameTh: formData.prenameTh,
+        prenameEn: formData.prenameEn,
+        prenameOther: formData.prenameOther,
         firstNameThai: formData.firstNameThai,
         lastNameThai: formData.lastNameThai,
         firstNameEng: formData.firstNameEng,

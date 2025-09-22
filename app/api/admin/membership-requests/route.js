@@ -24,6 +24,8 @@ export async function GET(request) {
     const status = searchParams.get('status') || 'pending';
     const type = searchParams.get('type') || 'all';
     const search = searchParams.get('search') || '';
+    const sortOrderParam = (searchParams.get('sortOrder') || 'desc').toLowerCase();
+    const sortOrder = sortOrderParam === 'asc' ? 'ASC' : 'DESC';
     
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
@@ -52,7 +54,8 @@ export async function GET(request) {
       let queries = [];
       let countQueries = [];
       let params = [];
-      let countParams = [];
+      // Track params per count query to avoid mismatches between types
+      let countParamsList = [];
       
       // Helper function to add type-specific queries
       const addTypeQuery = (tableName, idField, nameThField, nameEnField, idTypeField, typeValue) => {
@@ -74,7 +77,7 @@ export async function GET(request) {
         LEFT JOIN users ON ${tableName}.user_id = users.id
         WHERE 1=1`;
         
-        let countQuery = `SELECT COUNT(*) as count FROM ${tableName} WHERE 1=1`;
+        let countQuery = `SELECT COUNT(*) as count FROM ${tableName} LEFT JOIN users ON ${tableName}.user_id = users.id WHERE 1=1`;
         
         let queryParams = [];
         let countQueryParams = [];
@@ -82,18 +85,18 @@ export async function GET(request) {
         // Add status filter if specified
         if (statusValue !== null) {
           query += ` AND ${tableName}.status = ?`;
-          countQuery += ` AND status = ?`;
+          countQuery += ` AND ${tableName}.status = ?`;
           queryParams.push(statusValue);
           countQueryParams.push(statusValue);
         }
         
-        // Add search filter if specified
+        // Add search filter if specified (also search by applicant email)
         if (search) {
-          query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ?)`;
-          countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ?)`;
+          query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ?)`;
+          countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ?)`;
           const searchPattern = `%${search}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern);
-          countQueryParams.push(searchPattern, searchPattern, searchPattern);
+          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern);
+          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern);
         }
         
         return {
@@ -124,7 +127,7 @@ export async function GET(request) {
         LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id
         WHERE 1=1`;
         
-        let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main WHERE 1=1`;
+        let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id WHERE 1=1`;
         
         let queryParams = [];
         let countQueryParams = [];
@@ -137,13 +140,13 @@ export async function GET(request) {
           countQueryParams.push(statusValue);
         }
         
-        // Add search filter if specified
+        // Add search filter if specified (also search by applicant email)
         if (search) {
-          query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ?)`;
-          countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ?)`;
+          query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ?)`;
+          countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ?)`;
           const searchPattern = `%${search}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
         
         return {
@@ -167,7 +170,7 @@ export async function GET(request) {
         queries.push(ocQuery.query);
         countQueries.push(ocQuery.countQuery);
         params = [...params, ...ocQuery.queryParams];
-        countParams = [...countParams, ...ocQuery.countQueryParams];
+        countParamsList.push(ocQuery.countQueryParams);
       }
       
       if (type === 'all' || type === 'am') {
@@ -182,7 +185,7 @@ export async function GET(request) {
         queries.push(amQuery.query);
         countQueries.push(amQuery.countQuery);
         params = [...params, ...amQuery.queryParams];
-        countParams = [...countParams, ...amQuery.countQueryParams];
+        countParamsList.push(amQuery.countQueryParams);
       }
       
       if (type === 'all' || type === 'ac') {
@@ -197,7 +200,7 @@ export async function GET(request) {
         queries.push(acQuery.query);
         countQueries.push(acQuery.countQuery);
         params = [...params, ...acQuery.queryParams];
-        countParams = [...countParams, ...acQuery.countQueryParams];
+        countParamsList.push(acQuery.countQueryParams);
       }
       
       if (type === 'all' || type === 'ic') {
@@ -205,24 +208,23 @@ export async function GET(request) {
         queries.push(icQuery.query);
         countQueries.push(icQuery.countQuery);
         params = [...params, ...icQuery.queryParams];
-        countParams = [...countParams, ...icQuery.countQueryParams];
+        countParamsList.push(icQuery.countQueryParams);
       }
       
       // Combine all queries with UNION
       let combinedQuery = queries.join(' UNION ');
-      combinedQuery += ` ORDER BY createdAt DESC LIMIT ? OFFSET ?`;
+      combinedQuery += ` ORDER BY createdAt ${sortOrder} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
       
       // Execute the combined query
       const [rows] = await connection.query(combinedQuery, params);
       
       // Execute count queries to get total count for pagination
+      // Use per-type parameter arrays to avoid placeholder mismatches
       let totalCount = 0;
       for (let i = 0; i < countQueries.length; i++) {
-        const [countResult] = await connection.query(countQueries[i], countParams.slice(
-          i * (search ? 3 : 1),
-          (i + 1) * (search ? 3 : 1)
-        ));
+        const queryParamsForThisType = countParamsList[i] || [];
+        const [countResult] = await connection.query(countQueries[i], queryParamsForThisType);
         totalCount += countResult[0].count;
       }
       

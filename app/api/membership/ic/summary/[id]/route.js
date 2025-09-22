@@ -157,9 +157,9 @@ export async function GET(request, { params }) {
         building: addr.building || '',
         moo: addr.moo || '',
         soi: addr.soi || '',
-        // Canonicalize to 'street' (DB uses 'road' in IC). Keep 'road' alias for compatibility.
-        street: addr.road || '',
-        road: addr.road || '',
+        // Canonicalize to 'street' (DB uses 'street'). Keep 'road' alias for compatibility.
+        street: addr.street || '',
+        road: addr.street || '',
         subDistrict: addr.sub_district || '',
         district: addr.district || '',
         province: addr.province || '',
@@ -212,8 +212,8 @@ export async function GET(request, { params }) {
         moo: mainAddress?.moo || '',
         soi: mainAddress?.soi || '',
         // Expose as 'street' canonically and keep 'road' alias
-        street: mainAddress?.road || '',
-        road: mainAddress?.road || '',
+        street: mainAddress?.street || '',
+        road: mainAddress?.street || '',
         subDistrict: mainAddress?.sub_district || '',
         district: mainAddress?.district || '',
         province: mainAddress?.province || '',

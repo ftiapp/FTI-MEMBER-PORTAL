@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'react-hot-toast';
 import PropTypes from 'prop-types';
 import SearchableDropdown from './SearchableDropdown';
@@ -76,33 +76,54 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
     toast.success(`คัดลอกที่อยู่ไปยัง${addressTypes[targetType].label}เรียบร้อยแล้ว`);
   };
 
-  // Auto-switch to tab with errors for better UX
+  // Prevent repeated auto-switching: track previous error signature and manual tab interactions
+  const prevAddressErrorSig = useRef('');
+  const manualTabOverrideRef = useRef(false);
+
+  // Auto-switch to the tab that has the first address error, but only when errors change
   useEffect(() => {
-    if (!errors || Object.keys(errors).length === 0) return;
+    if (!errors || Object.keys(errors).length === 0) {
+      prevAddressErrorSig.current = '';
+      manualTabOverrideRef.current = false;
+      return;
+    }
+
+    // Build a signature of address-related errors only
+    const keys = Object.keys(errors);
+    const addressKeys = keys.filter(k => k.startsWith('addresses.') || /^address_\d+_/.test(k));
+    const sig = addressKeys.sort().join('|');
+
+    // If no address-related errors or signature unchanged, do nothing
+    if (addressKeys.length === 0 || sig === prevAddressErrorSig.current) return;
+    prevAddressErrorSig.current = sig;
+
+    // Respect manual tab overrides: do not force tab switching after the user has interacted
+    if (manualTabOverrideRef.current) return;
+
     // Find first address error and switch to that tab
-    const addressErrorKeys = Object.keys(errors).filter(key => key.startsWith('addresses.'));
-    if (addressErrorKeys.length > 0) {
-      const firstErrorKey = addressErrorKeys[0];
-      const match = firstErrorKey.match(/addresses\.(\d+)\./); // Extract address type from error key
-      if (match && match[1]) {
-        const errorTab = match[1];
-        const doScroll = () => {
-          const addressSection = document.querySelector('[data-section="company-address"]') || 
-                               document.querySelector('.company-address') ||
-                               document.querySelector('h3')?.closest('.bg-white');
-          if (addressSection) {
-            addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          } else {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }
-        };
-        if (errorTab !== activeTab) {
-          setActiveTab(errorTab);
-          setTimeout(doScroll, 100);
+    let firstErrorKey = addressKeys.find(key => key.startsWith('addresses.')) || addressKeys[0];
+    let typeMatch = firstErrorKey ? firstErrorKey.match(/addresses\.(\d+)\./) : null;
+    if (!typeMatch) {
+      typeMatch = firstErrorKey.match(/^address_(\d+)_/);
+    }
+
+    if (typeMatch && typeMatch[1]) {
+      const errorTab = typeMatch[1];
+      const doScroll = () => {
+        const addressSection = document.querySelector('[data-section="addresses"]') ||
+                             document.querySelector('[data-section="company-address"]') || 
+                             document.querySelector('.company-address') ||
+                             document.querySelector('h3')?.closest('.bg-white');
+        if (addressSection) {
+          addressSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } else {
-          setTimeout(doScroll, 100);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+      };
+      if (errorTab !== activeTab) {
+        setActiveTab(errorTab);
       }
+      setTimeout(doScroll, 100);
     }
   }, [errors]);
 
@@ -299,7 +320,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
   }, [setFormData, activeTab]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div data-section="addresses" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Address Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">
@@ -341,7 +362,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
             return (
               <button
                 key={type}
-                onClick={() => setActiveTab(type)}
+                onClick={() => { manualTabOverrideRef.current = true; setActiveTab(type); }}
                 className={`
                   flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
                   ${isActive 
@@ -413,6 +434,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 type="text"
                 id="addressNumber"
                 name="addressNumber"
+                data-field={`address_${activeTab}_addressNumber`}
                 value={getCurrentAddress().addressNumber || ''}
                 onChange={(e) => handleAddressInputChange('addressNumber', e.target.value)}
                 placeholder="กรอกบ้านเลขที่"
@@ -541,6 +563,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 isReadOnly={false}
                 error={errors?.[`addresses.${activeTab}.subDistrict`]}
                 disabled={isLoading}
+                containerProps={{ 'data-field': `address_${activeTab}_subDistrict` }}
               />
             </div>
 
@@ -556,6 +579,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 isRequired={true}
                 isReadOnly={true}
                 error={errors?.[`addresses.${activeTab}.district`]}
+                containerProps={{ 'data-field': `address_${activeTab}_district` }}
               />
             </div>
 
@@ -570,6 +594,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 isRequired={true}
                 isReadOnly={true}
                 error={errors?.[`addresses.${activeTab}.province`]}
+                containerProps={{ 'data-field': `address_${activeTab}_province` }}
               />
             </div>
 
@@ -587,6 +612,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 error={errors?.[`addresses.${activeTab}.postalCode`]}
                 autoFillNote={getCurrentAddress().postalCode ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
                 disabled={isLoading}
+                containerProps={{ 'data-field': `address_${activeTab}_postalCode` }}
               />
             </div>
 
@@ -647,7 +673,6 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
             <div className="space-y-2">
               <label htmlFor={`email-${activeTab}`} className="block text-sm font-medium text-gray-900">
                 อีเมล
-                <span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="email"

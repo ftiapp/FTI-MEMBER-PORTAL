@@ -47,23 +47,27 @@ const validateApplicantInfo = (formData) => {
   } else if (!/^\d{13}$/.test(formData.idCardNumber)) {
     errors.idCardNumber = 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก';
   } else if (!validateThaiIDCard(formData.idCardNumber)) {
-    errors.idCardNumber = 'เลขบัตรประชาชนไม่ถูกต้อง';
+    errors.idCardNumber = 'รูปแบบเลขบัตรประชาชนไม่ถูกต้อง';
   }
 
-  // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้ยื่นสมัคร
-  if (!formData.prename_th) {
+  // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้ยื่นสมัคร - รองรับทั้ง snake_case และ camelCase
+  const prenameThVal = formData.prename_th ?? formData.prenameTh;
+  const prenameEnVal = formData.prename_en ?? formData.prenameEn;
+  const prenameOtherVal = formData.prename_other ?? formData.prenameOther;
+
+  if (!prenameThVal) {
     errors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
-  } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(formData.prename_th)) {
+  } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(prenameThVal)) {
     errors.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
   }
 
-  if (!formData.prename_en) {
+  if (!prenameEnVal) {
     errors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
-  } else if (!/^[A-Za-z\.\s]+$/.test(formData.prename_en)) {
+  } else if (!/^[A-Za-z\.\s]+$/.test(prenameEnVal)) {
     errors.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
   }
 
-  if ((formData.prename_th === 'อื่นๆ' || (formData.prename_en && formData.prename_en.toLowerCase() === 'other')) && !formData.prename_other) {
+  if ((prenameThVal === 'อื่นๆ' || (prenameEnVal && String(prenameEnVal).toLowerCase() === 'other')) && !prenameOtherVal) {
     errors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
   }
 
@@ -100,10 +104,8 @@ const validateApplicantInfo = (formData) => {
     errors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง';
   }
   
-  // Phone extension validation (optional but must be numeric if provided)
-  if (formData.phoneExtension && !/^\d+$/.test(formData.phoneExtension)) {
-    errors.phoneExtension = 'เบอร์ต่อต้องเป็นตัวเลขเท่านั้น';
-  }
+  // Phone extension validation: allow non-numeric characters (commas, parentheses, etc.)
+  // No strict validation needed; accept any string if provided
 
   if (!formData.email) {
     errors.email = 'กรุณากรอกอีเมล';
@@ -153,11 +155,11 @@ const validateApplicantInfo = (formData) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมล (บังคับกรอก)
-      if (!address.email) {
-        errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
-        errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+      // ตรวจสอบอีเมล (ไม่บังคับกรอก แต่ถ้ามีต้องเป็นรูปแบบที่ถูกต้อง)
+      if (address.email && address.email.trim() !== '') {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+          errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
+        }
       }
 
       // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก)
@@ -221,28 +223,30 @@ const validateApplicantInfo = (formData) => {
 const validateRepresentativeInfo = (formData) => {
   const errors = {};
   const representativeErrors = {};
-  const representative = formData.representative;
-
+  // Normalize representative object
+  const representative = formData.representative || {};
   // For IC form, representative is required and only one is allowed
-  if (!representative || Object.keys(representative).length === 0) {
-    errors.representative = 'กรุณากรอกข้อมูลผู้แทน';
-    return errors;
-  }
+  // Instead of returning a single generic error, create field-specific errors
+  // so the UI and toast can point to the exact missing field
 
-  // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้แทน
-  if (!representative.prename_th) {
+  // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้แทน - รองรับทั้ง snake_case และ camelCase
+  const repPrenameTh = representative.prename_th ?? representative.prenameTh;
+  const repPrenameEn = representative.prename_en ?? representative.prenameEn;
+  const repPrenameOther = representative.prename_other ?? representative.prenameOther;
+
+  if (!repPrenameTh) {
     representativeErrors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
-  } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(representative.prename_th)) {
+  } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(repPrenameTh)) {
     representativeErrors.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
   }
 
-  if (!representative.prename_en) {
+  if (!repPrenameEn) {
     representativeErrors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
-  } else if (!/^[A-Za-z\.\s]+$/.test(representative.prename_en)) {
+  } else if (!/^[A-Za-z\.\s]+$/.test(repPrenameEn)) {
     representativeErrors.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
   }
 
-  if ((representative.prename_th === 'อื่นๆ' || (representative.prename_en && representative.prename_en.toLowerCase() === 'other')) && !representative.prename_other) {
+  if ((repPrenameTh === 'อื่นๆ' || (repPrenameEn && String(repPrenameEn).toLowerCase() === 'other')) && !repPrenameOther) {
     representativeErrors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
   }
 
@@ -279,10 +283,8 @@ const validateRepresentativeInfo = (formData) => {
     representativeErrors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง';
   }
   
-  // Phone extension validation (optional but must be numeric if provided)
-  if (representative.phoneExtension && !/^\d+$/.test(representative.phoneExtension)) {
-    representativeErrors.phoneExtension = 'เบอร์ต่อต้องเป็นตัวเลขเท่านั้น';
-  }
+  // Phone extension validation: allow non-numeric characters for representative as well
+  // No strict validation; accept any string if provided
 
   if (!representative.email) {
     representativeErrors.email = 'กรุณากรอกอีเมล';

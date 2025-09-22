@@ -153,6 +153,10 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('representativePrenameTh', formData.representative.prenameTh || '');
       formDataToSubmit.append('representativePrenameEn', formData.representative.prenameEn || '');
       formDataToSubmit.append('representativePrenameOther', formData.representative.prenameOther || '');
+      // ✅ Also send snake_case duplicates for backend compatibility
+      formDataToSubmit.append('representative_prename_th', formData.representative.prenameTh || '');
+      formDataToSubmit.append('representative_prename_en', formData.representative.prenameEn || '');
+      formDataToSubmit.append('representative_prename_other', formData.representative.prenameOther || '');
       console.log('Representative data from object:', formData.representative);
     } else {
       // รูปแบบเก่า (แบบ flat)
@@ -167,6 +171,10 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('representativePrenameTh', formData.representativePrenameTh || '');
       formDataToSubmit.append('representativePrenameEn', formData.representativePrenameEn || '');
       formDataToSubmit.append('representativePrenameOther', formData.representativePrenameOther || '');
+      // ✅ Also send snake_case duplicates for backend compatibility
+      formDataToSubmit.append('representative_prename_th', formData.representativePrenameTh || '');
+      formDataToSubmit.append('representative_prename_en', formData.representativePrenameEn || '');
+      formDataToSubmit.append('representative_prename_other', formData.representativePrenameOther || '');
       console.log('Representative data from flat structure');
     }
     
@@ -286,6 +294,19 @@ export const submitICMembershipForm = async (formData) => {
     }
     if (typeof formData.authorizedSignatoryLastNameEn === 'string') {
       formDataToSubmit.append('authorizedSignatoryLastNameEn', formData.authorizedSignatoryLastNameEn);
+    }
+
+    // ✅ Authorized signatory position fields (Thai/English)
+    // Some backends require at least one of these; send both if present
+    if (typeof formData.authorizedSignatoryPositionTh === 'string') {
+      formDataToSubmit.append('authorizedSignatoryPositionTh', formData.authorizedSignatoryPositionTh);
+      // snake_case for compatibility
+      formDataToSubmit.append('authorized_signatory_position_th', formData.authorizedSignatoryPositionTh);
+    }
+    if (typeof formData.authorizedSignatoryPositionEn === 'string') {
+      formDataToSubmit.append('authorizedSignatoryPositionEn', formData.authorizedSignatoryPositionEn);
+      // snake_case for compatibility
+      formDataToSubmit.append('authorized_signatory_position_en', formData.authorizedSignatoryPositionEn);
     }
 
     // Append actual files to FormData for backend processing

@@ -21,10 +21,11 @@ export default function MembershipRequestsManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
 
   useEffect(() => {
     fetchApplications();
-  }, [currentPage, statusFilter, typeFilter, searchTerm]);
+  }, [currentPage, statusFilter, typeFilter, searchTerm, sortOrder]);
 
   const fetchApplications = async () => {
     setIsLoading(true);
@@ -34,12 +35,29 @@ export default function MembershipRequestsManagement() {
         limit: itemsPerPage,
         status: statusFilter,
         type: typeFilter,
-        search: searchTerm
+        search: searchTerm,
+        sortOrder
       });
       
-      const response = await fetch(`/api/admin/membership-requests?${params}`);
+      const response = await fetch(`/api/admin/membership-requests?${params}`,
+        {
+          method: 'GET',
+          credentials: 'include', // ensure admin cookies are sent
+          headers: {
+            'Accept': 'application/json'
+          },
+          cache: 'no-store'
+        }
+      );
       
-      if (!response.ok) throw new Error('Failed to fetch applications');
+      if (!response.ok) {
+        let message = 'Failed to fetch applications';
+        try {
+          const errData = await response.json();
+          if (errData?.message) message = errData.message;
+        } catch {}
+        throw new Error(`${message} (HTTP ${response.status})`);
+      }
       
       const data = await response.json();
       if (data.success) {
@@ -54,12 +72,17 @@ export default function MembershipRequestsManagement() {
       }
     } catch (error) {
       console.error('Error fetching applications:', error);
-      toast.error('ไม่สามารถดึงข้อมูลการสมัครสมาชิกได้');
+      toast.error(error?.message || 'ไม่สามารถดึงข้อมูลการสมัครสมาชิกได้');
       setApplications([]);
       setFilteredApplications([]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleToggleDateSort = () => {
+    setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    setCurrentPage(1);
   };
 
   const handleStatusFilterChange = (newFilter) => {
@@ -108,7 +131,11 @@ export default function MembershipRequestsManagement() {
           <EmptyState message="ไม่พบข้อมูลการสมัครสมาชิก" />
         ) : (
           <>
-            <ApplicationsTable applications={filteredApplications} />
+            <ApplicationsTable
+              applications={filteredApplications}
+              sortOrder={sortOrder}
+              onToggleDateSort={handleToggleDateSort}
+            />
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}

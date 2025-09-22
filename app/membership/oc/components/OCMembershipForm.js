@@ -531,6 +531,10 @@ export default function OCMembershipForm({
     }
 
     setCurrentStep(prev => prev + 1);
+    // Scroll to top for better UX when advancing steps
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, [formData, currentStep, checkTaxIdUniqueness, setCurrentStep]);
 
   const handlePrevious = useCallback((e) => {

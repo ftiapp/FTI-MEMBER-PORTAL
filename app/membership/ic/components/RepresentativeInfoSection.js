@@ -22,6 +22,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   const [phoneTouched, setPhoneTouched] = useState(false);
 
   const representativeErrors = errors?.representativeErrors || {};
+  // helpers to read both snake_case and camelCase
+  const getErr = (camelKey, snakeKey) => representativeErrors?.[camelKey] ?? representativeErrors?.[snakeKey];
 
   // Initialize representative from form data
   // ใช้ useEffect เพียงตัวเดียวเพื่อตั้งค่าเริ่มต้นของ representative จาก formData
@@ -122,15 +124,15 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   // Effect to check for prename errors and scroll to them
   useEffect(() => {
     if (representativeErrors) {
-      if (representativeErrors.prenameTh && prenameThRef.current) {
+      if (getErr('prenameTh', 'prename_th') && prenameThRef.current) {
         prenameThRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        toast.error('กรุณาเลือกคำนำหน้าชื่อภาษาไทย');
-      } else if (representativeErrors.prenameEn && prenameEnRef.current) {
+        toast.error(getErr('prenameTh', 'prename_th') || 'กรุณาเลือกคำนำหน้าชื่อภาษาไทย', { position: 'top-right', style: { zIndex: 100000 } });
+      } else if (getErr('prenameEn', 'prename_en') && prenameEnRef.current) {
         prenameEnRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        toast.error('กรุณาเลือกคำนำหน้าชื่อภาษาอังกฤษ');
-      } else if (representativeErrors.prenameOther && prenameOtherRef.current) {
+        toast.error(getErr('prenameEn', 'prename_en') || 'กรุณาเลือกคำนำหน้าชื่อภาษาอังกฤษ', { position: 'top-right', style: { zIndex: 100000 } });
+      } else if (getErr('prenameOther', 'prename_other') && prenameOtherRef.current) {
         prenameOtherRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        toast.error('กรุณาระบุคำนำหน้าชื่ออื่นๆ');
+        toast.error(getErr('prenameOther', 'prename_other') || 'กรุณาระบุคำนำหน้าชื่ออื่นๆ', { position: 'top-right', style: { zIndex: 100000 } });
       }
     }
   }, [representativeErrors]);
@@ -166,6 +168,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   <select
                     ref={prenameThRef}
                     id="prenameTh"
+                    name="prenameTh"
+                    data-field="representative.prename_th"
                     value={representative.prenameTh || ''}
                     onChange={(e) => handleRepresentativeChange('prenameTh', e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white"
@@ -176,8 +180,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <option value="นางสาว">นางสาว</option>
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
-                  {representativeErrors?.prenameTh && (
-                    <p className="mt-1 text-sm text-red-600">{representativeErrors.prenameTh}</p>
+                  {(getErr('prenameTh','prename_th')) && (
+                    <p className="mt-1 text-sm text-red-600">{getErr('prenameTh','prename_th')}</p>
                   )}
                 </div>
                 <div>
@@ -188,6 +192,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <input
                       type="text"
                       id="firstNameThai"
+                      name="firstNameThai"
+                      data-field="representative.firstNameThai"
                       value={representative.firstNameThai || ''}
                       onChange={(e) => handleRepresentativeChange('firstNameThai', e.target.value)}
                       placeholder="กรอกชื่อภาษาไทย"
@@ -214,6 +220,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <input
                       type="text"
                       id="lastNameThai"
+                      name="lastNameThai"
+                      data-field="representative.lastNameThai"
                       value={representative.lastNameThai || ''}
                       onChange={(e) => handleRepresentativeChange('lastNameThai', e.target.value)}
                       placeholder="กรอกนามสกุลภาษาไทย"
@@ -243,13 +251,15 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     ref={prenameOtherRef}
                     type="text"
                     id="prenameOther"
+                    name="prenameOther"
+                    data-field="representative.prename_other"
                     value={representative.prenameOther || ''}
                     onChange={(e) => handleRepresentativeChange('prenameOther', e.target.value)}
                     placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                   />
-                  {representativeErrors?.prenameOther && (
-                    <p className="mt-1 text-sm text-red-600">{representativeErrors.prenameOther}</p>
+                  {(getErr('prenameOther','prename_other')) && (
+                    <p className="mt-1 text-sm text-red-600">{getErr('prenameOther','prename_other')}</p>
                   )}
                   <p className="text-xs text-gray-500 mt-1">รองรับตัวอักษรไทย เว้นวรรค และจุด (.)</p>
                 </div>
@@ -272,6 +282,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   <select
                     ref={prenameEnRef}
                     id="prenameEn"
+                    name="prenameEn"
+                    data-field="representative.prename_en"
                     value={representative.prenameEn || ''}
                     onChange={(e) => handleRepresentativeChange('prenameEn', e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-white"
@@ -282,8 +294,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <option value="Ms">Ms</option>
                     <option value="Other">Other</option>
                   </select>
-                  {representativeErrors?.prenameEn && (
-                    <p className="mt-1 text-sm text-red-600">{representativeErrors.prenameEn}</p>
+                  {(getErr('prenameEn','prename_en')) && (
+                    <p className="mt-1 text-sm text-red-600">{getErr('prenameEn','prename_en')}</p>
                   )}
                 </div>
                 <div>
@@ -294,6 +306,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <input
                       type="text"
                       id="firstNameEng"
+                      name="firstNameEng"
+                      data-field="representative.first_name_eng"
                       value={representative.firstNameEng || ''}
                       onChange={(e) => handleRepresentativeChange('firstNameEng', e.target.value)}
                       placeholder="Enter first name"
@@ -320,6 +334,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <input
                       type="text"
                       id="lastNameEng"
+                      name="lastNameEng"
+                      data-field="representative.last_name_eng"
                       value={representative.lastNameEng || ''}
                       onChange={(e) => handleRepresentativeChange('lastNameEng', e.target.value)}
                       placeholder="Enter last name"
@@ -356,6 +372,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <input
                       type="email"
                       id="email"
+                      name="representative.email"
+                      data-field="representative.email"
                       value={representative.email || ''}
                       onChange={(e) => handleRepresentativeChange('email', e.target.value)}
                       placeholder="กรอกอีเมล"
@@ -384,6 +402,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                         <input
                           type="tel"
                           id="phone"
+                          name="representative.phone"
+                          data-field="representative.phone"
                           value={representative.phone || ''}
                           onChange={(e) => handleRepresentativeChange('phone', e.target.value)}
                           onBlur={() => setPhoneTouched(true)}
@@ -402,6 +422,8 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                     <div>
                       <input
                         type="text"
+                        name="representative.phoneExtension"
+                        data-field="representative.phoneExtension"
                         value={representative.phoneExtension || ''}
                         onChange={(e) => handleRepresentativeChange('phoneExtension', e.target.value)}
                         placeholder="ต่อ (ถ้ามี)"

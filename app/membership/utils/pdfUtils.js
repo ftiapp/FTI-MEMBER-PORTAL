@@ -756,7 +756,7 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
             <div class="col">
               ${displayProducts.length ? `
                 <div>
-                  <strong>สินค้าและบริการ (${data.products.length} รายการ):</strong>
+                  <strong>สินค้าและบริการ (${Array.isArray(data.products) ? data.products.length : 0} รายการ):</strong>
                   <div style="margin-top: 8px; padding: 8px; background: #f9f9f9; border-radius: 4px;">
                       ${displayProducts.map((p, i) => `
                         <div style="font-size: 11px;">
@@ -792,8 +792,8 @@ export const generateMembershipPDF = async (application, type, industrialGroups 
           if (!(igNames?.length || pcNames?.length)) return '';
           const dispIG = Array.isArray(igNames) ? igNames.slice(0, MAX_GROUPS_DISPLAY) : [];
           const dispPC = Array.isArray(pcNames) ? pcNames.slice(0, MAX_CHAPTERS_DISPLAY) : [];
-          const extraIG = igNames.length > MAX_GROUPS_DISPLAY ? igNames.length - MAX_GROUPS_DISPLAY : 0;
-          const extraPC = pcNames.length > MAX_CHAPTERS_DISPLAY ? pcNames.length - MAX_CHAPTERS_DISPLAY : 0;
+          const extraIG = Array.isArray(igNames) && igNames.length > MAX_GROUPS_DISPLAY ? igNames.length - MAX_GROUPS_DISPLAY : 0;
+          const extraPC = Array.isArray(pcNames) && pcNames.length > MAX_CHAPTERS_DISPLAY ? pcNames.length - MAX_CHAPTERS_DISPLAY : 0;
           return section('กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด', `
             <div class="row">
               <div class="col">

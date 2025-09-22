@@ -97,16 +97,27 @@ export async function POST(request) {
       }
     }
 
-    // ✅ FIX: เพิ่ม website ในตาราง Main
+    // Resolve prename fields from either camelCase or snake_case
+    const prenameTh = data.prenameTh || data.prename_th || null;
+    const prenameEn = data.prenameEn || data.prename_en || null;
+    const prenameOther = data.prenameOther || data.prename_other || null;
+
+    // ✅ FIX: เพิ่ม website และ prename ในตาราง Main
     const result = await executeQuery(
       trx,
       `INSERT INTO MemberRegist_IC_Main (
-        user_id, id_card_number, first_name_th, last_name_th, 
-        first_name_en, last_name_en, phone, phone_extension, email, website, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+        user_id, id_card_number,
+        prename_th, prename_en, prename_other,
+        first_name_th, last_name_th,
+        first_name_en, last_name_en,
+        phone, phone_extension, email, website, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         userId,
         data.idCardNumber,
+        prenameTh,
+        prenameEn,
+        prenameOther,
         data.firstNameTh,
         data.lastNameTh,
         data.firstNameEn,

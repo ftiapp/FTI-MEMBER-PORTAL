@@ -4,7 +4,7 @@ import StatusBadge from './common/StatusBadge';
 import { formatThaiDate } from '../ีutils/formatters';
 import { getMemberTypeInfo } from '../ีutils/dataTransformers';
 
-const ApplicationsTable = ({ applications }) => {
+const ApplicationsTable = ({ applications, sortOrder = 'desc', onToggleDateSort }) => {
   const router = useRouter();
   
   const handleViewDetails = (type, id) => {
@@ -29,8 +29,20 @@ const ApplicationsTable = ({ applications }) => {
               <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
                 ผู้สมัคร
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
-                วันที่สมัคร
+              <th
+                className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase select-none"
+              >
+                <button
+                  type="button"
+                  onClick={onToggleDateSort}
+                  className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-900"
+                  title="จัดเรียงตามวันที่สมัคร"
+                >
+                  วันที่สมัคร
+                  <span className="text-[10px]">
+                    {sortOrder === 'asc' ? '▲' : '▼'}
+                  </span>
+                </button>
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
                 สถานะ

@@ -319,6 +319,8 @@ export default function Dashboard() {
     const checkDocsUpdates = async () => {
       if (!user?.id) return;
       if (!isVisible()) return; // only when tab visible
+      // Avoid duplicate fetching when user is already on Documents tab; the tab component will fetch itself
+      if (activeTab === 'เอกสารสมัครสมาชิก') return;
       try {
         // Fetch drafts and submitted in parallel
         const params = new URLSearchParams({ page: '1', limit: '1' });

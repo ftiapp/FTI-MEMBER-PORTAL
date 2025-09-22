@@ -123,7 +123,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
   ), []);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10" data-section="business">
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ</h2>
@@ -132,7 +132,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 
       <div className="px-8 py-8 space-y-8">
         {/* Business Types */}
-        <div ref={businessTypesRef} className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={businessTypesRef} className="bg-white border border-gray-200 rounded-lg p-6" id="businessTypes" data-field="businessTypes">
           <div className="mb-6">
             <h3 className="text-base font-medium text-gray-900 mb-2">
               ประเภทธุรกิจ<span className="text-red-500 ml-1">*</span>
@@ -164,6 +164,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                 type="text"
                 id="otherBusinessTypeDetail"
                 name="otherBusinessTypeDetail"
+                data-field="otherBusinessTypeDetail"
                 value={formData.otherBusinessTypeDetail || ''}
                 onChange={handleInputChange}
                 placeholder="ระบุประเภทธุรกิจ..."
@@ -189,7 +190,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
         </div>
 
         {/* Products */}
-        <div ref={productsRef} className="bg-white border border-gray-200 rounded-lg p-6">
+        <div ref={productsRef} className="bg-white border border-gray-200 rounded-lg p-6" id="products" data-field="products">
           <div className="mb-6">
             <h4 className="text-base font-medium text-gray-900 mb-2">
               ผลิตภัณฑ์/บริการ<span className="text-red-500 ml-1">*</span>

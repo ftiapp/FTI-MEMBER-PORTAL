@@ -10,6 +10,7 @@ import { validateThaiIDCard } from './ICFormValidation';
 export default function ApplicantInfoSection({ formData, setFormData, errors, industrialGroups, provincialChapters, isLoading }) {
   const [subDistricts, setSubDistricts] = useState([]);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
+  
   // Debug: เพิ่ม useEffect เพื่อ debug formData
   useEffect(() => {
     console.log('=== DEBUG ApplicantInfoSection formData ===');
@@ -24,6 +25,14 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
     message: '',
     status: null
   });
+
+  // Mapping Thai prename to English prename
+  const prenameMapping = {
+    'นาย': 'Mr.',
+    'นาง': 'Mrs.',
+    'นางสาว': 'Miss',
+    'อื่นๆ': 'Other'
+  };
 
   // ฟังก์ชันตรวจสอบเลขบัตรประชาชน
   const checkIdCardNumber = async (idCardNumber) => {
@@ -132,8 +141,19 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
       return;
     }
     
+    // Handle prename Thai change and auto-update English prename
+    if (name === 'prenameTh') {
+      const englishPrename = prenameMapping[value] || '';
+      setFormData(prev => ({ 
+        ...prev, 
+        prenameTh: value,
+        prenameEn: englishPrename
+      }));
+      return;
+    }
+    
     // Thai language validation
-    if (name === 'firstNameThai' || name === 'lastNameThai' || name === 'prenameTh') {
+    if (name === 'firstNameThai' || name === 'lastNameThai' || name === 'prenameOther') {
       const thaiPattern = /^[ก-๙\s]*$/;
       if (!thaiPattern.test(value) && value !== '') {
         // Allow input but don't update state
@@ -143,7 +163,7 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
     
     // English language validation
     if (name === 'firstNameEng' || name === 'lastNameEng' || name === 'prenameEn') {
-      const engPattern = /^[a-zA-Z\s]*$/;
+      const engPattern = /^[a-zA-Z\s.]*$/;
       if (!engPattern.test(value) && value !== '') {
         // Allow input but don't update state
         return;
@@ -285,7 +305,7 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
   }, [idCardValidation, setFormData]);
   
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
+    <div data-section="applicant" className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลผู้สมัคร</h2>
@@ -334,300 +354,318 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
             </div>
           </div>
           
-          {/* Prename (Thai/English) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-2">
-            {/* Prename Thai */}
-            <div className="space-y-2">
-              <label htmlFor="prenameTh" className="block text-sm font-medium text-gray-900">
-                คำนำหน้า (ภาษาไทย)
-              </label>
-              <input
-                type="text"
-                id="prenameTh"
-                name="prenameTh"
-                value={formData.prenameTh || ''}
-                onChange={handleInputChange}
-                placeholder="เช่น นาย, นาง, นางสาว"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${(errors?.prenameTh || errors?.prename_th) 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {(errors?.prenameTh || errors?.prename_th) && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.prenameTh || errors.prename_th}
-                </p>
-              )}
-            </div>
-            {/* Prename English */}
-            <div className="space-y-2">
-              <label htmlFor="prenameEn" className="block text-sm font-medium text-gray-900">
-                คำนำหน้า (ภาษาอังกฤษ)
-              </label>
-              <input
-                type="text"
-                id="prenameEn"
-                name="prenameEn"
-                value={formData.prenameEn || ''}
-                onChange={handleInputChange}
-                placeholder="e.g., Mr., Mrs., Ms."
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${(errors?.prenameEn || errors?.prename_en) 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {(errors?.prenameEn || errors?.prename_en) && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.prenameEn || errors.prename_en}
-                </p>
-              )}
+          {/* ชื่อ (ภาษาไทย) - คำนำหน้า + ชื่อ + นามสกุล ในบรรทัดเดียว */}
+          <div className="space-y-4 mb-6">
+            <h5 className="text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ภาษาไทย)</h5>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Prename Thai - Select */}
+              <div className="lg:col-span-3 space-y-2">
+                <label htmlFor="prenameTh" className="block text-sm font-medium text-gray-900">
+                  คำนำหน้า
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <select
+                  id="prenameTh"
+                  name="prenameTh"
+                  value={formData.prenameTh || ''}
+                  onChange={handleInputChange}
+                  disabled={isLoading}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${(errors?.prenameTh || errors?.prename_th) 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    bg-white
+                  `}
+                >
+                  <option value="">-- เลือก --</option>
+                  <option value="นาย">นาย</option>
+                  <option value="นาง">นาง</option>
+                  <option value="นางสาว">นางสาว</option>
+                  <option value="อื่นๆ">อื่นๆ</option>
+                </select>
+                {(errors?.prenameTh || errors?.prename_th) && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.prenameTh || errors.prename_th}
+                  </p>
+                )}
+              </div>
+
+              {/* Thai First Name */}
+              <div className="lg:col-span-4 space-y-2">
+                <label htmlFor="firstNameThai" className="block text-sm font-medium text-gray-900">
+                  ชื่อ
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstNameThai"
+                  name="firstNameThai"
+                  value={formData.firstNameThai || ''}
+                  onChange={handleInputChange}
+                  placeholder="กรอกชื่อภาษาไทย"
+                  disabled={isLoading}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors?.firstNameThai 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    bg-white
+                  `}
+                />
+                {errors?.firstNameThai && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.firstNameThai}
+                  </p>
+                )}
+              </div>
+              
+              {/* Thai Last Name */}
+              <div className="lg:col-span-5 space-y-2">
+                <label htmlFor="lastNameThai" className="block text-sm font-medium text-gray-900">
+                  นามสกุล
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastNameThai"
+                  name="lastNameThai"
+                  value={formData.lastNameThai || ''}
+                  onChange={handleInputChange}
+                  placeholder="กรอกนามสกุลภาษาไทย"
+                  disabled={isLoading}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors?.lastNameThai 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    bg-white
+                  `}
+                />
+                {errors?.lastNameThai && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.lastNameThai}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-          {/* Prename Other */}
-          <div className="mb-2">
-            <div className="space-y-2">
-              <label htmlFor="prenameOther" className="block text-sm font-medium text-gray-900">
-                คำนำหน้า (อื่นๆ)
-              </label>
-              <input
-                type="text"
-                id="prenameOther"
-                name="prenameOther"
-                value={formData.prenameOther || ''}
-                onChange={handleInputChange}
-                placeholder="ระบุคำนำหน้าอื่นๆ (ถ้ามี)"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${(errors?.prenameOther || errors?.prename_other) 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {(errors?.prenameOther || errors?.prename_other) && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.prenameOther || errors.prename_other}
-                </p>
-              )}
+
+          {/* Prename Other - show only when selected */}
+          {formData.prenameTh === 'อื่นๆ' && (
+            <div className="mb-6">
+              <div className="space-y-2">
+                <label htmlFor="prenameOther" className="block text-sm font-medium text-gray-900">
+                  คำนำหน้า (อื่นๆ)
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="prenameOther"
+                  name="prenameOther"
+                  value={formData.prenameOther || ''}
+                  onChange={handleInputChange}
+                  placeholder="ระบุคำนำหน้าอื่นๆ"
+                  disabled={isLoading}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${(errors?.prenameOther || errors?.prename_other) 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    bg-white
+                  `}
+                />
+                {(errors?.prenameOther || errors?.prename_other) && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.prenameOther || errors.prename_other}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ชื่อ (ภาษาอังกฤษ) - คำนำหน้า + ชื่อ + นามสกุล ในบรรทัดเดียว */}
+          <div className="space-y-4 mb-6">
+            <h5 className="text-sm font-medium text-gray-700">ชื่อ-นามสกุล (ภาษาอังกฤษ)</h5>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Prename English - Auto-filled based on Thai selection */}
+              <div className="lg:col-span-3 space-y-2">
+                <label htmlFor="prenameEn" className="block text-sm font-medium text-gray-900">
+                  คำนำหน้า
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="prenameEn"
+                  name="prenameEn"
+                  value={formData.prenameEn || ''}
+                  onChange={handleInputChange}
+                  placeholder="Mr./Mrs./Miss"
+                  disabled={isLoading || (formData.prenameTh && formData.prenameTh !== 'อื่นๆ')}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${(errors?.prenameEn || errors?.prename_en) 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    ${(formData.prenameTh && formData.prenameTh !== 'อื่นๆ') ? 'bg-gray-50' : 'bg-white'}
+                  `}
+                />
+                {(errors?.prenameEn || errors?.prename_en) && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.prenameEn || errors.prename_en}
+                  </p>
+                )}
+              </div>
+
+              {/* English First Name */}
+              <div className="lg:col-span-4 space-y-2">
+                <label htmlFor="firstNameEng" className="block text-sm font-medium text-gray-900">
+                  ชื่อ
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="firstNameEng"
+                  name="firstNameEng"
+                  value={formData.firstNameEng || ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter first name"
+                  disabled={isLoading}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors?.firstNameEng 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    bg-white
+                  `}
+                />
+                {errors?.firstNameEng && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.firstNameEng}
+                  </p>
+                )}
+              </div>
+              
+              {/* English Last Name */}
+              <div className="lg:col-span-5 space-y-2">
+                <label htmlFor="lastNameEng" className="block text-sm font-medium text-gray-900">
+                  นามสกุล
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="lastNameEng"
+                  name="lastNameEng"
+                  value={formData.lastNameEng || ''}
+                  onChange={handleInputChange}
+                  placeholder="Enter last name"
+                  disabled={isLoading}
+                  className={`
+                    w-full px-4 py-3 text-sm
+                    border rounded-lg
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors?.lastNameEng 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                    bg-white
+                  `}
+                />
+                {errors?.lastNameEng && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    {errors.lastNameEng}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
-          
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Thai First Name */}
-            <div className="space-y-2">
-              <label htmlFor="firstNameThai" className="block text-sm font-medium text-gray-900">
-                ชื่อ (ภาษาไทย)
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="text"
-                id="firstNameThai"
-                name="firstNameThai"
-                value={formData.firstNameThai || ''}
-                onChange={handleInputChange}
-                placeholder="กรอกชื่อภาษาไทย"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.firstNameThai 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {errors?.firstNameThai && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.firstNameThai}
-                </p>
-              )}
-            </div>
-            
-            {/* Thai Last Name */}
-            <div className="space-y-2">
-              <label htmlFor="lastNameThai" className="block text-sm font-medium text-gray-900">
-                นามสกุล (ภาษาไทย)
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="text"
-                id="lastNameThai"
-                name="lastNameThai"
-                value={formData.lastNameThai || ''}
-                onChange={handleInputChange}
-                placeholder="กรอกนามสกุลภาษาไทย"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.lastNameThai 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {errors?.lastNameThai && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.lastNameThai}
-                </p>
-              )}
-            </div>
 
-            {/* English First Name */}
-            <div className="space-y-2">
-              <label htmlFor="firstNameEng" className="block text-sm font-medium text-gray-900">
-                ชื่อ (ภาษาอังกฤษ)
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="text"
-                id="firstNameEng"
-                name="firstNameEng"
-                value={formData.firstNameEng || ''}
-                onChange={handleInputChange}
-                placeholder="Enter first name"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.firstNameEng 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {errors?.firstNameEng && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.firstNameEng}
-                </p>
-              )}
-            </div>
-            
-            {/* English Last Name */}
-            <div className="space-y-2">
-              <label htmlFor="lastNameEng" className="block text-sm font-medium text-gray-900">
-                นามสกุล (ภาษาอังกฤษ)
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-              <input
-                type="text"
-                id="lastNameEng"
-                name="lastNameEng"
-                value={formData.lastNameEng || ''}
-                onChange={handleInputChange}
-                placeholder="Enter last name"
-                disabled={isLoading}
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  ${errors?.lastNameEng 
-                    ? 'border-red-300 bg-red-50' 
-                    : 'border-gray-300 hover:border-gray-400'
-                  }
-                  bg-white
-                `}
-              />
-              {errors?.lastNameEng && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                  {errors.lastNameEng}
-                </p>
-              )}
-            </div>
-
+         
+          {/* Contact Information */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             {/* Phone */}
-            <div className="space-y-2 lg:col-span-2">
+            <div className="space-y-2">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
                 เบอร์โทรศัพท์
                 <span className="text-red-500 ml-1">*</span>
               </label>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                <div className="lg:col-span-2">
-                  <input
-                    type="tel"
-                    id="phone"
-                    name="phone"
-                    value={formData.phone || ''}
-                    onChange={handleInputChange}
-                    placeholder="02-123-4567"
-                    disabled={isLoading}
-                    className={`
-                      w-full px-4 py-3 text-sm
-                      border rounded-lg
-                      bg-white
-                      placeholder-gray-400
-                      transition-all duration-200
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                      ${errors?.phone 
-                        ? 'border-red-300 bg-red-50' 
-                        : 'border-gray-300 hover:border-gray-400'
-                      }
-                    `}
-                  />
-                </div>
-                <div>
-                  <input
-                    type="text"
-                    name="phoneExtension"
-                    value={formData.phoneExtension || ''}
-                    onChange={handleInputChange}
-                    placeholder="ต่อ (ถ้ามี)"
-                    disabled={isLoading}
-                    className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
-                  />
-                </div>
+              <div className="flex gap-2">
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone || ''}
+                  onChange={handleInputChange}
+                  placeholder="02-123-4567"
+                  disabled={isLoading}
+                  className={`
+                    flex-1 px-4 py-3 text-sm
+                    border rounded-lg
+                    bg-white
+                    placeholder-gray-400
+                    transition-all duration-200
+                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+                    ${errors?.phone 
+                      ? 'border-red-300 bg-red-50' 
+                      : 'border-gray-300 hover:border-gray-400'
+                    }
+                  `}
+                />
+                <input
+                  type="text"
+                  name="phoneExtension"
+                  value={formData.phoneExtension || ''}
+                  onChange={handleInputChange}
+                  placeholder="ต่อ (ถ้ามี)"
+                  disabled={isLoading}
+                  className="w-24 px-3 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
+                />
               </div>
               {errors?.phone && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
