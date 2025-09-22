@@ -21,7 +21,7 @@
     "cloudinary": "^2.6.0",
     "date-fns": "^4.1.0",
     "file-type": "^20.5.0",
-    "framer-motion": "^12.11.3",
+    "framer-motion": "^12.23.16",
     "html2canvas": "^1.4.1",
     "html2pdf.js": "^0.10.3",
     "jose": "^6.0.10",

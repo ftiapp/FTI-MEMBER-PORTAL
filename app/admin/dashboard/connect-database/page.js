@@ -133,6 +133,13 @@ export default function ConnectDatabasePage() {
   const [selectedMember, setSelectedMember] = useState(null);
   const [loadingOverlayOpen, setLoadingOverlayOpen] = useState(false);
   const [successInfo, setSuccessInfo] = useState({ open: false, memberCode: '', companyName: '' });
+  // Connected tab states
+  const [activeTab, setActiveTab] = useState('pending'); // 'pending' | 'connected'
+  const [connected, setConnected] = useState([]);
+  const [connectedLoading, setConnectedLoading] = useState(false);
+  const [connectedError, setConnectedError] = useState(null);
+  const [search, setSearch] = useState('');
+  const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
 
   useEffect(() => {
     fetchApprovedMembers();
@@ -161,6 +168,26 @@ export default function ConnectDatabasePage() {
   const handleConnect = (member) => {
     setSelectedMember(member);
     setShowModal(true);
+  };
+
+  // Fetch connected members with search/pagination
+  const fetchConnectedMembers = async (opts = {}) => {
+    const { page = pagination.page, limit = pagination.limit, q = search } = opts;
+    try {
+      setConnectedLoading(true);
+      setConnectedError(null);
+      const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+      if ((q || '').trim() !== '') params.set('search', q.trim());
+      const res = await fetch(`/api/admin/connect-database/connected?${params.toString()}`, { credentials: 'include' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch connected members');
+      setConnected(Array.isArray(data.data) ? data.data : []);
+      setPagination(data.pagination || { page, limit, total: 0, totalPages: 0 });
+    } catch (e) {
+      setConnectedError(e.message);
+    } finally {
+      setConnectedLoading(false);
+    }
   };
 
   const handleConfirmConnect = async () => {
@@ -208,6 +235,9 @@ export default function ConnectDatabasePage() {
       
       // Refresh the list
       fetchApprovedMembers();
+      if (activeTab === 'connected') {
+        fetchConnectedMembers({ page: 1 });
+      }
       
     } catch (err) {
       toast.error(
@@ -233,7 +263,7 @@ export default function ConnectDatabasePage() {
     }
   };
 
-  if (loading) {
+  if (loading && activeTab === 'pending') {
     return (
       <AdminLayout>
         <div className="flex justify-center items-center h-64">
@@ -276,11 +306,26 @@ export default function ConnectDatabasePage() {
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-800">เชื่อมต่อฐานข้อมูล</h1>
-            <p className="text-gray-600 mt-2">
-              รายการสมาชิกที่ได้รับการอนุมัติแล้วแต่ยังไม่มีหมายเลขสมาชิก
-            </p>
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                onClick={() => setActiveTab('pending')}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'pending' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+              >
+                รอเชื่อมต่อ
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab('connected');
+                  if (connected.length === 0 && !connectedLoading) fetchConnectedMembers({ page: 1 });
+                }}
+                className={`px-4 py-2 rounded-md text-sm font-medium ${activeTab === 'connected' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'}`}
+              >
+                เชื่อมต่อแล้ว
+              </button>
+            </div>
           </div>
 
+          {activeTab === 'pending' && (
           <div className="p-6">
             {members.length === 0 ? (
               <div className="text-center py-8">
@@ -384,6 +429,103 @@ export default function ConnectDatabasePage() {
               </div>
             )}
           </div>
+          )}
+
+          {activeTab === 'connected' && (
+          <div className="p-6 space-y-4">
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') fetchConnectedMembers({ page: 1, q: e.currentTarget.value }); }}
+                placeholder="ค้นหา: หมายเลขสมาชิก / ชื่อบริษัท / ชื่อผู้ใช้งาน / Email"
+                className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => fetchConnectedMembers({ page: 1 })}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >ค้นหา</button>
+            </div>
+
+            {connectedError && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">{connectedError}</div>
+            )}
+
+            {connectedLoading ? (
+              <div className="flex justify-center items-center h-48">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">หมายเลขสมาชิก</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อบริษัท</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ประเภท</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เลขประจำตัวผู้เสียภาษี</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ผู้ใช้งาน</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">เชื่อมต่อเมื่อ</th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {connected.length === 0 ? (
+                      <tr>
+                        <td colSpan={6} className="px-6 py-8 text-center text-gray-500">ไม่พบข้อมูล</td>
+                      </tr>
+                    ) : connected.map((row) => (
+                      <tr key={row.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">{row.member_code}</td>
+                        <td className="px-6 py-4 text-sm text-gray-900">{row.company_name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            row.member_type === 'OC' ? 'bg-blue-100 text-blue-800' :
+                            row.member_type === 'AC' ? 'bg-green-100 text-green-800' :
+                            row.member_type === 'AM' ? 'bg-purple-100 text-purple-800' :
+                            row.member_type === 'IC' ? 'bg-indigo-100 text-indigo-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {row.member_type === 'OC' ? 'สน (โรงงาน)' :
+                             row.member_type === 'AC' ? 'ทน (นิติบุคคล)' :
+                             row.member_type === 'AM' ? 'สส (สมาคมการค้า)' :
+                             row.member_type === 'IC' ? 'ทบ (บุคคลธรรมดา)' :
+                             row.member_type || '-'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.tax_id}</td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          <div>{(row.firstname || row.lastname) ? `${row.firstname || ''} ${row.lastname || ''}`.trim() : (row.username || '-')}</div>
+                          {row.user_email && <div className="text-gray-500 text-xs">{row.user_email}</div>}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{row.connected_at ? new Date(row.connected_at).toLocaleString('th-TH', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4">
+                <div className="text-sm text-gray-600">หน้า {pagination.page} / {pagination.totalPages} • ทั้งหมด {pagination.total} รายการ</div>
+                <div className="space-x-2">
+                  <button
+                    disabled={pagination.page <= 1 || connectedLoading}
+                    onClick={() => fetchConnectedMembers({ page: Math.max(1, pagination.page - 1) })}
+                    className="px-3 py-1 border rounded disabled:opacity-50"
+                  >ย้อนกลับ</button>
+                  <button
+                    disabled={pagination.page >= pagination.totalPages || connectedLoading}
+                    onClick={() => fetchConnectedMembers({ page: Math.min(pagination.totalPages, pagination.page + 1) })}
+                    className="px-3 py-1 border rounded disabled:opacity-50"
+                  >ถัดไป</button>
+                </div>
+              </div>
+            )}
+          </div>
+          )}
+
         </div>
       </div>
     </AdminLayout>

@@ -188,6 +188,7 @@ function convertFieldNames(data, type) {
 
 export async function GET(request, { params }) {
   const startTime = Date.now();
+  let connection;
   
   try {
     // Get params first
@@ -216,7 +217,7 @@ export async function GET(request, { params }) {
 
     // Get database connection
     const dbStart = Date.now();
-    const connection = await getConnection();
+    connection = await getConnection();
     console.log(`[PERF] DB connection took: ${Date.now() - dbStart}ms`);
 
     // Fetch membership request details based on type
@@ -285,7 +286,7 @@ export async function GET(request, { params }) {
             a.address_number,
             a.moo,
             a.soi,
-            a.road,
+            a.street,
             a.sub_district,
             a.district,
             a.province,
@@ -312,7 +313,7 @@ export async function GET(request, { params }) {
             a.address_number,
             a.moo,
             a.soi,
-            a.road as street,
+            a.street as street,
             a.sub_district,
             a.district,
             a.province,

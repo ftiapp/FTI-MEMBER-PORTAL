@@ -3,254 +3,26 @@ import { getSession } from '@/app/lib/session';
 import { query, executeQuery, beginTransaction, commitTransaction, rollbackTransaction } from '@/app/lib/db';
 import { uploadToCloudinary } from '@/app/lib/cloudinary';
 
+// Helpers for numeric sanitization/validation
+function sanitizeDecimal(raw, { field = 'value', min = 0, max = Number.POSITIVE_INFINITY, scale = 2, allowNull = true } = {}) {
+  if (raw === undefined || raw === null || raw === '') return allowNull ? null : (() => { throw new Error(`${field} is required`); })();
+  const cleaned = String(raw).replace(/[\,\s฿]/g, '');
+  const num = Number(cleaned);
+  if (!Number.isFinite(num)) throw new Error(`${field} is not a valid number`);
+  const factor = Math.pow(10, scale);
+  const rounded = Math.round(num * factor) / factor;
+  if (rounded < min || rounded > max) throw new Error(`${field} out of allowed range`);
+  return rounded;
+}
+function sanitizePercent(raw, { field = 'percent', allowNull = true } = {}) {
+  return sanitizeDecimal(raw, { field, min: 0, max: 100, scale: 2, allowNull });
+}
+
 // Ensure Node.js runtime (required for Buffer and other Node APIs)
 export const runtime = 'nodejs';
 
 export async function GET(request, { params }) {
-  try {
-    console.log('🚀 [AM Summary API] Starting data fetch...');
-    
-    // ตรวจสอบ session
-    const session = await getSession();
-    if (!session || !session.user) {
-      console.log('❌ [AM Summary API] Unauthorized access attempt');
-      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
-    }
-
-
-    const { id } = params;
-    console.log('📋 [AM Summary API] Fetching data for ID:', id);
-
-    if (!id) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'ไม่พบรหัสเอกสารสมัครสมาชิก' 
-      }, { status: 400 });
-    }
-
-    // ดึงข้อมูลหลัก
-    const [mainData] = await query(
-      `SELECT 
-        m.*,
-        DATE_FORMAT(m.created_at, '%Y-%m-%d %H:%i:%s') as formatted_created_at
-      FROM MemberRegist_AM_Main m 
-      WHERE m.id = ? AND m.user_id = ?`,
-      [id, session.user.id]
-    );
-
-    if (!mainData) {
-      console.log('❌ [AM Summary API] No data found for ID:', id);
-      return NextResponse.json({ 
-        success: false, 
-        message: 'ไม่พบข้อมูลเอกสารสมัครสมาชิก' 
-      }, { status: 404 });
-    }
-
-    console.log('✅ [AM Summary API] Main data found for:', mainData.company_name_th);
-
-    // ดึงข้อมูลที่อยู่
-    const addresses = await query(
-      `SELECT * FROM MemberRegist_AM_Address WHERE main_id = ? ORDER BY address_type`,
-      [id]
-    );
-
-    // ดึงข้อมูลผู้ติดต่อ
-    const contactPersons = await query(
-      `SELECT * FROM MemberRegist_AM_ContactPerson WHERE main_id = ? ORDER BY id`,
-      [id]
-    );
-
-    // ดึงข้อมูลผู้แทน
-    const representatives = await query(
-      `SELECT * FROM MemberRegist_AM_Representatives WHERE main_id = ? ORDER BY rep_order`,
-      [id]
-    );
-
-    // ดึงข้อมูลประเภทธุรกิจ
-    const businessTypes = await query(
-      `SELECT * FROM MemberRegist_AM_BusinessTypes WHERE main_id = ?`,
-      [id]
-    );
-
-    // ดึงข้อมูลประเภทธุรกิจอื่นๆ
-    const [otherBusinessType] = await query(
-      `SELECT * FROM MemberRegist_AM_BusinessTypeOther WHERE main_id = ?`,
-      [id]
-    );
-
-    // ดึงข้อมูลผลิตภัณฑ์
-    const products = await query(
-      `SELECT * FROM MemberRegist_AM_Products WHERE main_id = ?`,
-      [id]
-    );
-
-    // ดึงข้อมูลกลุ่มอุตสาหกรรม
-    const industryGroups = await query(
-      `SELECT * FROM MemberRegist_AM_IndustryGroups WHERE main_id = ?`,
-      [id]
-    );
-
-    // ดึงข้อมูลสภาจังหวัด
-    const provinceChapters = await query(
-      `SELECT * FROM MemberRegist_AM_ProvinceChapters WHERE main_id = ?`,
-      [id]
-    );
-
-    // ดึงข้อมูลเอกสาร
-    const documents = await query(
-      `SELECT * FROM MemberRegist_AM_Documents WHERE main_id = ?`,
-      [id]
-    );
-
-    // ดึงข้อมูล lookup สำหรับ industrial groups
-    const allIndustrialGroups = await query(
-      'SELECT id, name_th, name_en FROM industrial_groups ORDER BY name_th'
-    );
-
-    // ดึงข้อมูล lookup สำหรับ provincial chapters
-    const allProvincialChapters = await query(
-      'SELECT id, name_th, name_en FROM provincial_chapters ORDER BY name_th'
-    );
-
-    console.log('📊 [AM Summary API] Data collection completed');
-    console.log('📊 [AM Summary API] Addresses:', addresses.length);
-    console.log('📊 [AM Summary API] Contact persons:', contactPersons.length);
-    console.log('📊 [AM Summary API] Representatives:', representatives.length);
-    console.log('📊 [AM Summary API] Documents:', documents.length);
-
-    // จัดรูปแบบข้อมูลที่อยู่
-    const formattedAddresses = {};
-    addresses.forEach(addr => {
-      formattedAddresses[addr.address_type] = {
-        addressNumber: addr.address_number,
-        building: addr.building,
-        moo: addr.moo,
-        soi: addr.soi,
-        street: addr.street || addr.road, // prefer street, fallback to road if exists
-        road: addr.road || addr.street, // prefer road, fallback to street
-        subDistrict: addr.sub_district,
-        district: addr.district,
-        province: addr.province,
-        postalCode: addr.postal_code,
-        phone: addr.phone,
-        phoneExtension: addr.phone_extension,
-        email: addr.email,
-        website: addr.website
-      };
-    });
-
-    // จัดรูปแบบประเภทธุรกิจ
-    const formattedBusinessTypes = {};
-    businessTypes.forEach(bt => {
-      formattedBusinessTypes[bt.business_type] = true;
-    });
-
-    // จัดรูปแบบเอกสาร
-    const formattedDocuments = {};
-    documents.forEach(doc => {
-      formattedDocuments[doc.document_type] = {
-        name: doc.file_name,
-        file_name: doc.file_name,
-        file_path: doc.file_path,
-        cloudinary_url: doc.cloudinary_url,
-        fileUrl: doc.cloudinary_url || doc.file_path
-      };
-    });
-
-    // รวมข้อมูลทั้งหมด
-    const responseData = {
-      // ข้อมูลหลักจากตาราง MemberRegist_AM_Main
-      ...mainData,
-      
-      // Mapping field names สำหรับความเข้ากันได้
-      associationName: mainData.company_name_th,
-      associationNameEn: mainData.company_name_en,
-      associationNameEng: mainData.company_name_en,
-      taxId: mainData.tax_id,
-      memberCount: mainData.number_of_member,
-      numberOfEmployees: mainData.number_of_employees,
-      registeredCapital: mainData.registered_capital,
-      productionCapacityValue: mainData.production_capacity_value,
-      productionCapacityUnit: mainData.production_capacity_unit,
-      salesDomestic: mainData.sales_domestic,
-      salesExport: mainData.sales_export,
-      revenueLastYear: mainData.revenue_last_year,
-      revenuePreviousYear: mainData.revenue_previous_year,
-      shareholderThaiPercent: mainData.shareholder_thai_percent,
-      shareholderForeignPercent: mainData.shareholder_foreign_percent,
-      factoryType: mainData.factory_type,
-      
-      // ข้อมูลที่อยู่
-      addresses: formattedAddresses,
-      
-      // ข้อมูลผู้ติดต่อ
-      contactPersons: contactPersons,
-      
-      // ข้อมูลผู้แทน
-      representatives: representatives,
-      
-      // ข้อมูลประเภทธุรกิจ
-      businessTypes: formattedBusinessTypes,
-      otherBusinessTypeDetail: otherBusinessType?.detail,
-      
-      // ข้อมูลผลิตภัณฑ์
-      products: products,
-      
-      // ข้อมูลกลุ่มอุตสาหกรรม (IDs สำหรับ lookup)
-      industrialGroups: industryGroups.map(ig => ig.industry_group_id),
-      industrialGroupIds: industryGroups.map(ig => ig.industry_group_id),
-      
-      // ข้อมูลสภาจังหวัด (IDs สำหรับ lookup)
-      provincialChapters: provinceChapters.map(pc => pc.province_chapter_id),
-      provincialChapterIds: provinceChapters.map(pc => pc.province_chapter_id),
-      
-      // เอกสารแนบ
-      ...formattedDocuments,
-      
-      // วันที่สร้าง
-      createdAt: mainData.formatted_created_at || mainData.created_at
-    };
-
-    // หากไม่มีที่อยู่แบบ multi-address ให้ใช้ข้อมูลจากที่อยู่แรก (fallback)
-    if (addresses.length > 0 && Object.keys(formattedAddresses).length > 0) {
-      const firstAddress = addresses[0];
-      responseData.addressNumber = firstAddress.address_number;
-      responseData.moo = firstAddress.moo;
-      responseData.soi = firstAddress.soi;
-      responseData.street = firstAddress.street;
-      responseData.road = firstAddress.road || firstAddress.street;
-      responseData.subDistrict = firstAddress.sub_district;
-      responseData.district = firstAddress.district;
-      responseData.province = firstAddress.province;
-      responseData.postalCode = firstAddress.postal_code;
-      responseData.associationEmail = firstAddress.email || mainData.company_email;
-      responseData.associationPhone = firstAddress.phone || mainData.company_phone;
-      responseData.associationPhoneExtension = firstAddress.phone_extension || mainData.company_phone_extension;
-      responseData.website = firstAddress.website;
-    }
-
-    console.log('🎉 [AM Summary API] Data processing completed successfully');
-
-    return NextResponse.json({
-      success: true,
-      data: responseData,
-      industrialGroups: allIndustrialGroups,
-      provincialChapters: allProvincialChapters
-    }, { 
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ [AM Summary API] Error:', error);
-    return NextResponse.json({ 
-      success: false,
-      message: 'เกิดข้อผิดพลาดในการดึงข้อมูล',
-      error: error.message 
-    }, { status: 500 });
-  }
+  // ... existing code ...
 }
 
 export async function POST(request) {
@@ -285,15 +57,17 @@ export async function POST(request) {
     const taxId = formData.get('taxId');
     const memberCount = formData.get('memberCount');
     const numberOfEmployees = formData.get('numberOfEmployees');
-    const registeredCapital = formData.get('registeredCapital');
-    const productionCapacityValue = formData.get('productionCapacityValue');
+    const registeredCapitalRaw = formData.get('registeredCapital');
+    const productionCapacityValueRaw = formData.get('productionCapacityValue');
+
     const productionCapacityUnit = formData.get('productionCapacityUnit');
-    const salesDomestic = formData.get('salesDomestic');
-    const salesExport = formData.get('salesExport');
-    const revenueLastYear = formData.get('revenueLastYear');
-    const revenuePreviousYear = formData.get('revenuePreviousYear');
-    const shareholderThaiPercent = formData.get('shareholderThaiPercent');
-    const shareholderForeignPercent = formData.get('shareholderForeignPercent');
+    const salesDomesticRaw = formData.get('salesDomestic');
+    const salesExportRaw = formData.get('salesExport');
+    const revenueLastYearRaw = formData.get('revenueLastYear');
+    const revenuePreviousYearRaw = formData.get('revenuePreviousYear');
+    const shareholderThaiPercentRaw = formData.get('shareholderThaiPercent');
+    const shareholderForeignPercentRaw = formData.get('shareholderForeignPercent');
+
     const factoryType = formData.get('factoryType');
 
     // Extract authorized signatory name fields
@@ -381,6 +155,29 @@ export async function POST(request) {
     console.log('🔄 [AM Membership Submit] Transaction started');
 
     // Insert main data (status ใช้ 0 = pending)
+    // Sanitize DECIMAL fields
+    let registeredCapital = null;
+    let productionCapacityValue = null;
+    let salesDomestic = null;
+    let salesExport = null;
+    let revenueLastYear = null;
+    let revenuePreviousYear = null;
+    let shareholderThaiPercent = null;
+    let shareholderForeignPercent = null;
+
+    try {
+      registeredCapital = sanitizeDecimal(registeredCapitalRaw, { field: 'registeredCapital', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      productionCapacityValue = sanitizeDecimal(productionCapacityValueRaw, { field: 'productionCapacityValue', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      salesDomestic = sanitizeDecimal(salesDomesticRaw, { field: 'salesDomestic', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      salesExport = sanitizeDecimal(salesExportRaw, { field: 'salesExport', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      revenueLastYear = sanitizeDecimal(revenueLastYearRaw, { field: 'revenueLastYear', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      revenuePreviousYear = sanitizeDecimal(revenuePreviousYearRaw, { field: 'revenuePreviousYear', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      shareholderThaiPercent = sanitizePercent(shareholderThaiPercentRaw, { field: 'shareholderThaiPercent', allowNull: true });
+      shareholderForeignPercent = sanitizePercent(shareholderForeignPercentRaw, { field: 'shareholderForeignPercent', allowNull: true });
+    } catch (numErr) {
+      return NextResponse.json({ success: false, error: 'ข้อมูลตัวเลขไม่ถูกต้อง', details: String(numErr.message) }, { status: 400 });
+    }
+
     const mainInsertResult = await executeQuery(
       trx,
       `INSERT INTO MemberRegist_AM_Main (
@@ -491,12 +288,16 @@ export async function POST(request) {
         const phone = rep.phone ?? null;
         const isPrimary = rep.isPrimary ? 1 : 0;
 
-        // Minimal validation for required fields in DB
+        // Require TH names and also EN names
         if (!firstNameTh || !lastNameTh) {
           console.warn(`⚠️ [AM Membership Submit] Skipping representative #${i} due to missing Thai name fields`, {
             keys: Object.keys(rep || {}),
           });
           continue;
+        }
+        if (!firstNameEn || !String(firstNameEn).trim() || !lastNameEn || !String(lastNameEn).trim()) {
+          await rollbackTransaction(trx);
+          return NextResponse.json({ success: false, error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้แทนคนที่ ${i + 1}` }, { status: 400 });
         }
 
         await executeQuery(
@@ -561,7 +362,7 @@ export async function POST(request) {
           }
         }
 
-        // Minimal validation for NOT NULL columns in DB (th names, email, phone)
+        // Minimal validation for NOT NULL columns in DB (th names, email, phone) and require EN names
         if (!firstNameTh || !lastNameTh || !email || !phone) {
           console.warn(`⚠️ [AM Membership Submit] Skipping contact person #${i} due to missing required fields`, {
             hasFirstNameTh: !!firstNameTh,
@@ -570,6 +371,10 @@ export async function POST(request) {
             hasPhone: !!phone,
           });
           continue;
+        }
+        if (!firstNameEn || !String(firstNameEn).trim() || !lastNameEn || !String(lastNameEn).trim()) {
+          await rollbackTransaction(trx);
+          return NextResponse.json({ success: false, error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้ติดต่อคนที่ ${i + 1}` }, { status: 400 });
         }
 
         await executeQuery(

@@ -3,6 +3,21 @@ import { getSession } from '@/app/lib/session';
 import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
 import { uploadToCloudinary } from '@/app/lib/cloudinary';
 
+// Helpers for numeric sanitization/validation (same as OC)
+function sanitizeDecimal(raw, { field = 'value', min = 0, max = Number.POSITIVE_INFINITY, scale = 2, allowNull = true } = {}) {
+  if (raw === undefined || raw === null || raw === '') return allowNull ? null : (() => { throw new Error(`${field} is required`); })();
+  const cleaned = String(raw).replace(/[\,\s฿]/g, '');
+  const num = Number(cleaned);
+  if (!Number.isFinite(num)) throw new Error(`${field} is not a valid number`);
+  const factor = Math.pow(10, scale);
+  const rounded = Math.round(num * factor) / factor;
+  if (rounded < min || rounded > max) throw new Error(`${field} out of allowed range`);
+  return rounded;
+}
+function sanitizePercent(raw, { field = 'percent', allowNull = true } = {}) {
+  return sanitizeDecimal(raw, { field, min: 0, max: 100, scale: 2, allowNull });
+}
+
 export async function POST(request) {
   let trx;
   
@@ -176,6 +191,30 @@ export async function POST(request) {
     
     // Step 4: Insert Main Data
     console.log('💾 [AC] Inserting main data...');
+    // Sanitize decimal inputs
+    let registeredCapital = null;
+    let productionCapacityValue = null;
+    let salesDomestic = null;
+    let salesExport = null;
+    let revenueLastYear = null;
+    let revenuePreviousYear = null;
+    let shareholderThaiPercent = null;
+    let shareholderForeignPercent = null;
+
+    try {
+      registeredCapital = sanitizeDecimal(data.registeredCapital, { field: 'registeredCapital', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      productionCapacityValue = sanitizeDecimal(data.productionCapacityValue, { field: 'productionCapacityValue', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      salesDomestic = sanitizeDecimal(data.salesDomestic, { field: 'salesDomestic', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      salesExport = sanitizeDecimal(data.salesExport, { field: 'salesExport', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      revenueLastYear = sanitizeDecimal(data.revenueLastYear, { field: 'revenueLastYear', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      revenuePreviousYear = sanitizeDecimal(data.revenuePreviousYear, { field: 'revenuePreviousYear', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      shareholderThaiPercent = sanitizePercent(data.shareholderThaiPercent, { field: 'shareholderThaiPercent', allowNull: true });
+      shareholderForeignPercent = sanitizePercent(data.shareholderForeignPercent, { field: 'shareholderForeignPercent', allowNull: true });
+    } catch (numErr) {
+      await rollbackTransaction(trx);
+      return NextResponse.json({ error: 'ข้อมูลตัวเลขไม่ถูกต้อง', details: String(numErr.message) }, { status: 400 });
+    }
+
     const mainResult = await executeQuery(trx, 
       `INSERT INTO MemberRegist_AC_Main (
         user_id, company_name_th, company_name_en, tax_id, 
@@ -193,15 +232,15 @@ export async function POST(request) {
         companyPhoneExtension,
         data.companyWebsite || '',
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
-        data.registeredCapital ? parseFloat(data.registeredCapital) : null,
-        data.productionCapacityValue ? parseFloat(data.productionCapacityValue) : null,
+        registeredCapital,
+        productionCapacityValue,
         data.productionCapacityUnit || null,
-        data.salesDomestic ? parseFloat(data.salesDomestic) : null,
-        data.salesExport ? parseFloat(data.salesExport) : null,
-        data.revenueLastYear ? parseFloat(data.revenueLastYear) : null,
-        data.revenuePreviousYear ? parseFloat(data.revenuePreviousYear) : null,
-        data.shareholderThaiPercent ? parseFloat(data.shareholderThaiPercent) : null,
-        data.shareholderForeignPercent ? parseFloat(data.shareholderForeignPercent) : null,
+        salesDomestic,
+        salesExport,
+        revenueLastYear,
+        revenuePreviousYear,
+        shareholderThaiPercent,
+        shareholderForeignPercent,
       ]
     );
     const mainId = mainResult.insertId;
@@ -276,6 +315,14 @@ export async function POST(request) {
         contactPersons = [];
       }
       console.log(`📇 [AC] contactPersons count: ${contactPersons.length}`);
+      // Enforce English names for all contact persons
+      for (let i = 0; i < contactPersons.length; i++) {
+        const c = contactPersons[i] || {};
+        if (!c.firstNameEn || !String(c.firstNameEn).trim() || !c.lastNameEn || !String(c.lastNameEn).trim()) {
+          await rollbackTransaction(trx);
+          return NextResponse.json({ error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้ติดต่อคนที่ ${i + 1}` }, { status: 400 });
+        }
+      }
       for (let index = 0; index < contactPersons.length; index++) {
         const contact = contactPersons[index] || {};
         // Normalize type_contact_id to numeric or null to avoid FK/type errors
@@ -337,42 +384,53 @@ export async function POST(request) {
 
 // Step 6: Insert Representatives
 console.log('👥 [AC] Inserting representatives...');
-if (data.representatives) {
-  try {
-    let representatives = typeof data.representatives === 'string' ? JSON.parse(data.representatives) : data.representatives;
-    if (!Array.isArray(representatives)) representatives = [];
-    console.log(`🧾 [AC] representatives count: ${representatives.length}`);
-    for (let index = 0; index < representatives.length; index++) {
-      const rep = representatives[index] || {};
-      // ✅ เพิ่ม rep_order โดยใช้ index + 1 (เริ่มจาก 1)
-      await executeQuery(trx,
-        `INSERT INTO MemberRegist_AC_Representatives (
-          main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, 
-          last_name_en, position, email, phone, phone_extension, rep_order, is_primary
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [
-          mainId,
-          rep.prenameTh || null,
-          rep.prenameEn || null,
-          rep.prenameOther || null,
-          rep.firstNameTh || rep.firstNameThai || '',
-          rep.lastNameTh || rep.lastNameThai || '',
-          rep.firstNameEn || rep.firstNameEng || '',
-          rep.lastNameEn || rep.lastNameEng || '',
-          rep.position || '',
-          rep.email || '',
-          rep.phone || '',
-          rep.phoneExtension || null,
-          index + 1, // ✅ rep_order เริ่มจาก 1, 2, 3...
-          rep.isPrimary || false
-        ]
-      );
+    if (data.representatives) {
+      try {
+        let representatives = typeof data.representatives === 'string' ? JSON.parse(data.representatives) : data.representatives;
+        if (!Array.isArray(representatives)) representatives = [];
+        console.log(`🧾 [AC] representatives count: ${representatives.length}`);
+        // Enforce English names for all reps
+        for (let i = 0; i < representatives.length; i++) {
+          const r = representatives[i] || {};
+          const firstEn = r.firstNameEn || r.firstNameEng || r.firstNameEnglish;
+          const lastEn = r.lastNameEn || r.lastNameEng || r.lastNameEnglish;
+          if (!firstEn || !String(firstEn).trim() || !lastEn || !String(lastEn).trim()) {
+            await rollbackTransaction(trx);
+            return NextResponse.json({ error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้แทนคนที่ ${i + 1}` }, { status: 400 });
+          }
+        }
+        for (let index = 0; index < representatives.length; index++) {
+          const rep = representatives[index] || {};
+          // ✅ เพิ่ม rep_order โดยใช้ index + 1 (เริ่มจาก 1)
+          await executeQuery(trx,
+            `INSERT INTO MemberRegist_AC_Representatives (
+              main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, 
+              last_name_en, position, email, phone, phone_extension, rep_order, is_primary
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            [
+              mainId,
+              rep.prenameTh || null,
+              rep.prenameEn || null,
+              rep.prenameOther || null,
+              rep.firstNameTh || rep.firstNameThai || '',
+              rep.lastNameTh || rep.lastNameThai || '',
+              rep.firstNameEn || rep.firstNameEng || '',
+              rep.lastNameEn || rep.lastNameEng || '',
+              rep.position || '',
+              rep.email || '',
+              rep.phone || '',
+              rep.phoneExtension || null,
+              index + 1, // ✅ rep_order เริ่มจาก 1, 2, 3...
+              rep.isPrimary || false
+            ]
+          );
+        }
+        console.log(`✅ [AC] Inserted ${representatives.length} representatives with proper order`);
+      } catch (repError) {
+        console.error('❌ [AC] Error parsing representatives:', repError, 'input was:', data.representatives);
+      }
+      // end representatives processing
     }
-    console.log(`✅ [AC] Inserted ${representatives.length} representatives with proper order`);
-  } catch (repError) {
-    console.error('❌ [AC] Error parsing representatives:', repError, 'input was:', data.representatives);
-  }
-}
 
     // Helper functions for parsing data
     const parseProducts = (input) => {

@@ -105,8 +105,8 @@ const useApiData = () => {
         
         const [businessTypesRes, industrialGroupsRes, provincialChaptersRes] = await Promise.all([
           fetch('/api/business-types', { signal: abortControllerRef.current.signal }),
-          fetch('/api/industrial-groups', { signal: abortControllerRef.current.signal }),
-          fetch('/api/provincial-chapters', { signal: abortControllerRef.current.signal })
+          fetch('/api/industrial-groups?limit=1000&page=1', { signal: abortControllerRef.current.signal }),
+          fetch('/api/provincial-chapters?limit=1000&page=1', { signal: abortControllerRef.current.signal })
         ]);
 
         const businessTypes = businessTypesRes.ok ? await businessTypesRes.json() : [];

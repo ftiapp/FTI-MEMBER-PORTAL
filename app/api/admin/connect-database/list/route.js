@@ -33,6 +33,12 @@ export async function GET() {
       `SELECT 
         id, 'AM' as member_type, company_name_th, company_name_en, tax_id, approved_at
        FROM MemberRegist_AM_Main 
+       WHERE status = 1 AND (member_code IS NULL OR member_code = '')`,
+
+      // IC Members
+      `SELECT 
+        id, 'IC' as member_type, company_name_th, company_name_en, tax_id, approved_at
+       FROM MemberRegist_IC_Main 
        WHERE status = 1 AND (member_code IS NULL OR member_code = '')`
     ];
 

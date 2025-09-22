@@ -3,6 +3,24 @@ import { getSession } from '@/app/lib/session';
 import { beginTransaction, executeQuery, commitTransaction, rollbackTransaction, executeQueryWithoutTransaction } from '@/app/lib/db';
 import { uploadToCloudinary } from '@/app/lib/cloudinary';
 
+// Helpers for numeric sanitization/validation
+function sanitizeDecimal(raw, { field = 'value', min = 0, max = Number.POSITIVE_INFINITY, scale = 2, allowNull = true } = {}) {
+  if (raw === undefined || raw === null || raw === '') return allowNull ? null : (() => { throw new Error(`${field} is required`); })();
+  // Strip commas, spaces, currency symbols
+  const cleaned = String(raw).replace(/[,\s฿]/g, '');
+  const num = Number(cleaned);
+  if (!Number.isFinite(num)) throw new Error(`${field} is not a valid number`);
+  // Round to scale
+  const factor = Math.pow(10, scale);
+  const rounded = Math.round(num * factor) / factor;
+  if (rounded < min || rounded > max) throw new Error(`${field} out of allowed range`);
+  return rounded;
+}
+
+function sanitizePercent(raw, { field = 'percent', allowNull = true } = {}) {
+  return sanitizeDecimal(raw, { field, min: 0, max: 100, scale: 2, allowNull });
+}
+
 export async function POST(request) {
   let trx;
   
@@ -122,7 +140,31 @@ export async function POST(request) {
       }
     }
     
-    // Step 4: Insert Main Data
+    // Step 4: Sanitize numerics and Insert Main Data
+    // Sanitize DECIMAL fields; map errors to 400 Bad Request
+    let registeredCapital = null;
+    let productionCapacityValue = null;
+    let salesDomestic = null;
+    let salesExport = null;
+    let revenueLastYear = null;
+    let revenuePreviousYear = null;
+    let shareholderThaiPercent = null;
+    let shareholderForeignPercent = null;
+
+    try {
+      registeredCapital = sanitizeDecimal(data.registeredCapital, { field: 'registeredCapital', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      productionCapacityValue = sanitizeDecimal(data.productionCapacityValue, { field: 'productionCapacityValue', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      salesDomestic = sanitizeDecimal(data.salesDomestic, { field: 'salesDomestic', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      salesExport = sanitizeDecimal(data.salesExport, { field: 'salesExport', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      revenueLastYear = sanitizeDecimal(data.revenueLastYear, { field: 'revenueLastYear', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      revenuePreviousYear = sanitizeDecimal(data.revenuePreviousYear, { field: 'revenuePreviousYear', min: 0, max: 9999999999999.99, scale: 2, allowNull: true });
+      shareholderThaiPercent = sanitizePercent(data.shareholderThaiPercent, { field: 'shareholderThaiPercent', allowNull: true });
+      shareholderForeignPercent = sanitizePercent(data.shareholderForeignPercent, { field: 'shareholderForeignPercent', allowNull: true });
+    } catch (numErr) {
+      await rollbackTransaction(trx);
+      return NextResponse.json({ error: 'ข้อมูลตัวเลขไม่ถูกต้อง', details: String(numErr.message) }, { status: 400 });
+    }
+
     const mainResult = await executeQuery(trx, 
       `INSERT INTO MemberRegist_OC_Main (
         user_id, company_name_th, company_name_en, tax_id, company_email, company_phone, company_phone_extension,
@@ -140,15 +182,15 @@ export async function POST(request) {
         companyPhoneExtension,
         data.factoryType,
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
-        data.registeredCapital ? parseFloat(data.registeredCapital) : null,
-        data.productionCapacityValue ? parseFloat(data.productionCapacityValue) : null,
+        registeredCapital,
+        productionCapacityValue,
         data.productionCapacityUnit || null,
-        data.salesDomestic ? parseFloat(data.salesDomestic) : null,
-        data.salesExport ? parseFloat(data.salesExport) : null,
-        data.revenueLastYear ? parseFloat(data.revenueLastYear) : null,
-        data.revenuePreviousYear ? parseFloat(data.revenuePreviousYear) : null,
-        data.shareholderThaiPercent ? parseFloat(data.shareholderThaiPercent) : null,
-        data.shareholderForeignPercent ? parseFloat(data.shareholderForeignPercent) : null,
+        salesDomestic,
+        salesExport,
+        revenueLastYear,
+        revenuePreviousYear,
+        shareholderThaiPercent,
+        shareholderForeignPercent,
       ]
     );
     const mainId = mainResult.insertId;
@@ -230,6 +272,14 @@ export async function POST(request) {
     // Step 5: Insert Contact Persons (with type support)
     if (data.contactPersons) {
       const contactPersons = JSON.parse(data.contactPersons);
+      // Enforce English names for all contact persons
+      for (let i = 0; i < contactPersons.length; i++) {
+        const c = contactPersons[i] || {};
+        if (!c.firstNameEn || !String(c.firstNameEn).trim() || !c.lastNameEn || !String(c.lastNameEn).trim()) {
+          await rollbackTransaction(trx);
+          return NextResponse.json({ error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้ติดต่อคนที่ ${i + 1}` }, { status: 400 });
+        }
+      }
       for (let index = 0; index < contactPersons.length; index++) {
         const contact = contactPersons[index];
         await executeQuery(trx,
@@ -286,6 +336,16 @@ export async function POST(request) {
     // Step 6: Insert Representatives
     if (data.representatives) {
       const representatives = JSON.parse(data.representatives);
+      // Enforce English names for all representatives
+      for (let i = 0; i < representatives.length; i++) {
+        const r = representatives[i] || {};
+        const firstEn = r.firstNameEnglish || r.firstNameEn;
+        const lastEn = r.lastNameEnglish || r.lastNameEn;
+        if (!firstEn || !String(firstEn).trim() || !lastEn || !String(lastEn).trim()) {
+          await rollbackTransaction(trx);
+          return NextResponse.json({ error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้แทนคนที่ ${i + 1}` }, { status: 400 });
+        }
+      }
       for (let index = 0; index < representatives.length; index++) {
         const rep = representatives[index];
         await executeQuery(trx,

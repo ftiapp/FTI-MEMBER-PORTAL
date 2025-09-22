@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
 import { toast } from 'react-hot-toast';
 import AdminLayout from '../../components/AdminLayout';
 import ApplicationStats from './components/ApplicationStats';
@@ -22,9 +23,11 @@ export default function MembershipRequestsManagement() {
   const [totalPages, setTotalPages] = useState(1);
   const [itemsPerPage] = useState(10);
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
+  const [stats, setStats] = useState(null);
 
   useEffect(() => {
     fetchApplications();
+    fetchStats();
   }, [currentPage, statusFilter, typeFilter, searchTerm, sortOrder]);
 
   const fetchApplications = async () => {
@@ -80,6 +83,22 @@ export default function MembershipRequestsManagement() {
     }
   };
 
+  const fetchStats = async () => {
+    try {
+      const res = await fetch('/api/admin/membership-requests/stats', {
+        credentials: 'include',
+        cache: 'no-store'
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Failed to fetch stats');
+      setStats(data.data);
+    } catch (err) {
+      console.error('Error fetching stats:', err);
+      // Keep showing per-page fallback in ApplicationStats if stats not available
+      setStats(null);
+    }
+  };
+
   const handleToggleDateSort = () => {
     setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
     setCurrentPage(1);
@@ -110,8 +129,8 @@ export default function MembershipRequestsManagement() {
           <p className="text-blue-700">ตรวจสอบและอนุมัติคำขอสมัครสมาชิกทุกประเภท</p>
         </div>
 
-        {/* Stats */}
-        <ApplicationStats applications={applications} />
+        {/* Stats (uses backend totals when available) */}
+        <ApplicationStats applications={applications} stats={stats} />
 
         {/* Filters */}
         <ApplicationFilters

@@ -13,6 +13,49 @@ import toast from 'react-hot-toast';
  * @returns {JSX.Element} BusinessInfoSection component
  */
 export default function BusinessInfoSection({ formData, setFormData, errors }) {
+  // Numeric helpers for auto-formatting
+  const sanitizeNumberInput = useCallback((val) => {
+    if (val === null || val === undefined) return '';
+    const s = String(val).replace(/,/g, '');
+    const cleaned = s.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length <= 1) return cleaned;
+    return parts[0] + '.' + parts.slice(1).join('');
+  }, []);
+
+  const formatWithCommas = useCallback((val) => {
+    if (val === null || val === undefined || val === '') return '';
+    const s = String(val).replace(/,/g, '');
+    if (s === '' || isNaN(Number(s))) return String(val);
+    const [intPart, decPart] = s.split('.');
+    const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decPart !== undefined ? `${intFmt}.${decPart}` : intFmt;
+  }, []);
+
+  const handleNumericChange = useCallback((e) => {
+    const { name, value } = e.target;
+    const raw = sanitizeNumberInput(value);
+    setFormData(prev => ({ ...prev, [name]: raw }));
+  }, [sanitizeNumberInput, setFormData]);
+
+  const handleNumericFocus = useCallback((e) => {
+    const { name } = e.target;
+    const current = formData?.[name];
+    if (current !== undefined && current !== null) {
+      const raw = String(current).replace(/,/g, '');
+      if (raw !== String(current)) {
+        setFormData(prev => ({ ...prev, [name]: raw }));
+      }
+    }
+  }, [formData, setFormData]);
+
+  const handleNumericBlur = useCallback((e) => {
+    const { name } = e.target;
+    const current = formData?.[name];
+    const formatted = formatWithCommas(current);
+    setFormData(prev => ({ ...prev, [name]: formatted }));
+  }, [formData, formatWithCommas, setFormData]);
+
   // Refs for scrolling to errors
   const businessTypesRef = useRef(null);
   const otherBusinessTypeDetailRef = useRef(null);
@@ -26,11 +69,11 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
     { id: 'service', nameTh: 'ผู้ให้บริการ' },
     { id: 'other', nameTh: 'อื่นๆ' }
   ], []);
-  
-  const [products, setProducts] = useState(() => 
+
+  const [products, setProducts] = useState(() =>
     formData.products?.length > 0 ? formData.products : [{ id: 1, nameTh: '', nameEn: '' }]
   );
-  const [nextProductId, setNextProductId] = useState(() => 
+  const [nextProductId, setNextProductId] = useState(() =>
     formData.products?.length > 0 ? Math.max(...formData.products.map(p => p.id)) + 1 : 2
   );
 
@@ -43,13 +86,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         toast.error('กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ข้อ');
         return;
       }
-      
+
       if (errors.otherBusinessTypeDetail && otherBusinessTypeDetailRef.current) {
         otherBusinessTypeDetailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         toast.error('กรุณาระบุรายละเอียดประเภทธุรกิจอื่นๆ');
         return;
       }
-      
+
       if (errors.products && productsRef.current) {
         productsRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         toast.error('กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยอย่างน้อย 1 รายการ');
@@ -59,26 +102,26 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   }, [errors]);
 
   const handleProductChange = useCallback((id, field, value) => {
-    const updatedProducts = products.map(product => 
+    const updatedProducts = products.map(product =>
       product.id === id ? { ...product, [field]: value } : product
     );
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
   }, [products, setFormData]);
-  
+
   const addProduct = useCallback(() => {
     if (products.length >= 10) return;
-    
+
     const newProduct = { id: nextProductId, nameTh: '', nameEn: '' };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
     setNextProductId(prev => prev + 1);
   }, [products, nextProductId, setFormData]);
-  
+
   const removeProduct = useCallback((id) => {
     if (products.length <= 1) return;
-    
+
     const updatedProducts = products.filter(product => product.id !== id);
     setProducts(updatedProducts);
     setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
@@ -94,13 +137,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
     const { name, checked } = e.target;
     setFormData(prev => {
       const updatedBusinessTypes = { ...prev.businessTypes };
-      
+
       if (checked) {
         updatedBusinessTypes[name] = true;
       } else {
         delete updatedBusinessTypes[name];
       }
-      
+
       return { ...prev, businessTypes: updatedBusinessTypes };
     });
   }, [setFormData]);
@@ -131,7 +174,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ</h2>
         <p className="text-blue-100 text-sm mt-1">ประเภทธุรกิจและข้อมูลผลิตภัณฑ์/บริการ</p>
       </div>
-      
+
       <div className="px-8 py-8 space-y-8">
         {/* Business Types */}
         <div ref={businessTypesRef} className="bg-white border border-gray-200 rounded-lg p-6">
@@ -141,7 +184,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
             </h3>
             <p className="text-sm text-gray-600">เลือกประเภทธุรกิจที่เกี่ยวข้อง (เลือกได้มากกว่า 1 ข้อ)</p>
           </div>
-          
+
           {/* Loading state */}
           {false ? (
             <div className="animate-pulse space-y-2">
@@ -191,7 +234,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
               )}
             </div>
           )}
-          
+
           {errors.businessTypes && (
             <p className="text-sm text-red-600 flex items-center gap-2 mt-4">
               {ErrorIcon}
@@ -231,23 +274,24 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
         {/* Financial Information */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></h4>
-          
+
           {/* Registered Capital */}
           <div className="space-y-2 mb-6">
             <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
               ทุนจดทะเบียน (บาท) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
             </label>
             <input
-              type="number"
+              type="text"
               id="registeredCapital"
               name="registeredCapital"
               value={formData.registeredCapital || ''}
-              onChange={handleInputChange}
-              min="0"
-              step="0.01"
+              onChange={handleNumericChange}
+              onFocus={handleNumericFocus}
+              onBlur={handleNumericBlur}
               placeholder="0.00"
               className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
             />
+
           </div>
 
           {/* Revenue (Optional) */}
@@ -261,32 +305,34 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   ปีล่าสุด (บาท)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="revenueLastYear"
                   name="revenueLastYear"
                   value={formData.revenueLastYear || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
               <div className="space-y-2">
                 <label htmlFor="revenuePreviousYear" className="block text-sm font-medium text-gray-700">
                   ปีก่อนหน้า (บาท)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="revenuePreviousYear"
                   name="revenuePreviousYear"
                   value={formData.revenuePreviousYear || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
             </div>
           </div>
@@ -302,16 +348,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   ปริมาณ
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="productionCapacityValue"
                   name="productionCapacityValue"
                   value={formData.productionCapacityValue || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
               <div className="space-y-2">
                 <label htmlFor="productionCapacityUnit" className="block text-sm font-medium text-gray-700">
@@ -341,34 +388,34 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   ในประเทศไทย
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="salesDomestic"
                   name="salesDomestic"
                   value={formData.salesDomestic || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
               <div className="space-y-2">
                 <label htmlFor="salesExport" className="block text-sm font-medium text-gray-700">
                   ส่งออก
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="salesExport"
                   name="salesExport"
                   value={formData.salesExport || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
             </div>
           </div>
@@ -384,34 +431,34 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
                   ผู้ถือหุ้นไทย
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="shareholderThaiPercent"
                   name="shareholderThaiPercent"
                   value={formData.shareholderThaiPercent || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
               <div className="space-y-2">
                 <label htmlFor="shareholderForeignPercent" className="block text-sm font-medium text-gray-700">
                   ผู้ถือหุ้นต่างประเทศ
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="shareholderForeignPercent"
                   name="shareholderForeignPercent"
                   value={formData.shareholderForeignPercent || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
+
               </div>
             </div>
             <p className="text-xs text-gray-500 mt-2">

@@ -6,6 +6,48 @@ import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'react-hot-toast';
 
 export default function BusinessInfoSection({ formData, setFormData, errors, showErrors = false }) {
+  // Numeric helpers for auto-formatting
+  const sanitizeNumberInput = useCallback((val) => {
+    if (val === null || val === undefined) return '';
+    const s = String(val).replace(/,/g, '');
+    const cleaned = s.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length <= 1) return cleaned;
+    return parts[0] + '.' + parts.slice(1).join('');
+  }, []);
+
+  const formatWithCommas = useCallback((val) => {
+    if (val === null || val === undefined || val === '') return '';
+    const s = String(val).replace(/,/g, '');
+    if (s === '' || isNaN(Number(s))) return String(val);
+    const [intPart, decPart] = s.split('.');
+    const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return decPart !== undefined ? `${intFmt}.${decPart}` : intFmt;
+  }, []);
+
+  const handleNumericChange = useCallback((e) => {
+    const { name, value } = e.target;
+    const raw = sanitizeNumberInput(value);
+    setFormData(prev => ({ ...prev, [name]: raw }));
+  }, [sanitizeNumberInput, setFormData]);
+
+  const handleNumericFocus = useCallback((e) => {
+    const { name } = e.target;
+    const current = formData?.[name];
+    if (current !== undefined && current !== null) {
+      const raw = String(current).replace(/,/g, '');
+      if (raw !== String(current)) {
+        setFormData(prev => ({ ...prev, [name]: raw }));
+      }
+    }
+  }, [formData, setFormData]);
+
+  const handleNumericBlur = useCallback((e) => {
+    const { name } = e.target;
+    const current = formData?.[name];
+    const formatted = formatWithCommas(current);
+    setFormData(prev => ({ ...prev, [name]: formatted }));
+  }, [formData, formatWithCommas, setFormData]);
   // Refs for scrolling to error fields
   const businessTypesRef = useRef(null);
   const otherBusinessTypeDetailRef = useRef(null);
@@ -198,12 +240,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               จำนวนสมาชิกสมาคม<span className="text-red-500 ml-1">*</span>
             </label>
             <input
-              type="number"
+              type="text"
               id="memberCount"
               name="memberCount"
               value={formData.memberCount || ''}
-              onChange={handleInputChange}
-              min="0"
+              onChange={handleNumericChange}
+              onFocus={handleNumericFocus}
+              onBlur={handleNumericBlur}
               placeholder="0"
               className={`w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.memberCount ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -226,12 +269,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               จำนวนพนักงาน<span className="text-red-500 ml-1">*</span>
             </label>
             <input
-              type="number"
+              type="text"
               id="numberOfEmployees"
               name="numberOfEmployees"
               value={formData.numberOfEmployees || ''}
-              onChange={handleInputChange}
-              min="0"
+              onChange={handleNumericChange}
+              onFocus={handleNumericFocus}
+              onBlur={handleNumericBlur}
               placeholder="0"
               className={`w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                 errors.numberOfEmployees ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
@@ -256,13 +300,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               ทุนจดทะเบียน (บาท) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
             </label>
             <input
-              type="number"
+              type="text"
               id="registeredCapital"
               name="registeredCapital"
               value={formData.registeredCapital || ''}
-              onChange={handleInputChange}
-              min="0"
-              step="0.01"
+              onChange={handleNumericChange}
+              onFocus={handleNumericFocus}
+              onBlur={handleNumericBlur}
               placeholder="0.00"
               className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
             />
@@ -279,13 +323,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ปีล่าสุด (บาท)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="revenueLastYear"
                   name="revenueLastYear"
                   value={formData.revenueLastYear || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
@@ -295,13 +339,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ปีก่อนหน้า (บาท)
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="revenuePreviousYear"
                   name="revenuePreviousYear"
                   value={formData.revenuePreviousYear || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
@@ -320,13 +364,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ปริมาณ
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="productionCapacityValue"
                   name="productionCapacityValue"
                   value={formData.productionCapacityValue || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
@@ -359,14 +403,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ในประเทศไทย
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="salesDomestic"
                   name="salesDomestic"
                   value={formData.salesDomestic || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
@@ -376,14 +419,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ส่งออก
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="salesExport"
                   name="salesExport"
                   value={formData.salesExport || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
@@ -402,14 +444,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ผู้ถือหุ้นไทย
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="shareholderThaiPercent"
                   name="shareholderThaiPercent"
                   value={formData.shareholderThaiPercent || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />
@@ -419,14 +460,13 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   ผู้ถือหุ้นต่างประเทศ
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   id="shareholderForeignPercent"
                   name="shareholderForeignPercent"
                   value={formData.shareholderForeignPercent || ''}
-                  onChange={handleInputChange}
-                  min="0"
-                  max="100"
-                  step="0.01"
+                  onChange={handleNumericChange}
+                  onFocus={handleNumericFocus}
+                  onBlur={handleNumericBlur}
                   placeholder="0.00"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                 />

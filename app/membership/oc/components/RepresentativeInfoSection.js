@@ -428,6 +428,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          required
                         />
                         {(representativeErrors[index]?.firstNameEnglish || duplicateErrors[index]?.firstNameEnglish) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
@@ -453,6 +454,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                               'border-red-300 bg-red-50 focus:ring-red-500' : 
                               'border-gray-300 bg-white hover:border-gray-400'
                           }`}
+                          required
                         />
                         {(representativeErrors[index]?.lastNameEnglish || duplicateErrors[index]?.lastNameEnglish) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">

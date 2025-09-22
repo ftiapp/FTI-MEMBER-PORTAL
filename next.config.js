@@ -6,7 +6,6 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ["*"]
     },
-    esmExternals: 'loose'
   },
   compiler: {
     // Remove console logs in production
