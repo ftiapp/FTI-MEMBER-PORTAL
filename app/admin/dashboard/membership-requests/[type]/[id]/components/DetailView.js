@@ -87,11 +87,6 @@ const DetailView = ({
       </div>
 
       {/* Sections */}
-      <ApplicantInfoSection 
-        application={application} 
-        type={type} 
-        onUpdate={handleSectionUpdate}
-      />
       <CompanyInfoSection 
         application={application} 
         type={type} 
@@ -127,6 +122,11 @@ const DetailView = ({
       <DocumentsSection 
         application={application} 
         onViewDocument={onViewDocument}
+      />
+      <ApplicantInfoSection 
+        application={application} 
+        type={type} 
+        onUpdate={handleSectionUpdate}
       />
       <AdminActionsSection
         application={application}

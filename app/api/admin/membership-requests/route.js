@@ -90,13 +90,13 @@ export async function GET(request) {
           countQueryParams.push(statusValue);
         }
         
-        // Add search filter if specified (also search by applicant email)
+        // Add search filter if specified (also search by applicant email/phone)
         if (search) {
-          query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ?)`;
-          countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ?)`;
+          query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ? OR users.phone LIKE ?)`;
+          countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ? OR users.phone LIKE ?)`;
           const searchPattern = `%${search}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern);
-          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern);
+          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
         
         return {
@@ -140,13 +140,13 @@ export async function GET(request) {
           countQueryParams.push(statusValue);
         }
         
-        // Add search filter if specified (also search by applicant email)
+        // Add search filter if specified (also search by applicant email/phone)
         if (search) {
-          query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ?)`;
-          countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ?)`;
+          query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ? OR users.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
+          countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ? OR users.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
           const searchPattern = `%${search}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
         }
         
         return {

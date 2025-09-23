@@ -140,9 +140,16 @@ export default function ConnectDatabasePage() {
   const [connectedError, setConnectedError] = useState(null);
   const [search, setSearch] = useState('');
   const [pagination, setPagination] = useState({ page: 1, limit: 50, total: 0, totalPages: 0 });
+  // Pending search and connected count
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [connectedCount, setConnectedCount] = useState(0);
 
   useEffect(() => {
     fetchApprovedMembers();
+    // prefetch connected count for cards
+    fetchConnectedMembers({ page: 1, limit: 1 }).then(() => {
+      setConnectedCount((prev) => pagination.total || prev);
+    });
   }, []);
 
   const fetchApprovedMembers = async () => {
@@ -183,6 +190,7 @@ export default function ConnectDatabasePage() {
       if (!res.ok) throw new Error(data.message || 'Failed to fetch connected members');
       setConnected(Array.isArray(data.data) ? data.data : []);
       setPagination(data.pagination || { page, limit, total: 0, totalPages: 0 });
+      if (data.pagination?.total != null) setConnectedCount(data.pagination.total);
     } catch (e) {
       setConnectedError(e.message);
     } finally {
@@ -306,6 +314,28 @@ export default function ConnectDatabasePage() {
         <div className="bg-white rounded-lg shadow-md">
           <div className="px-6 py-4 border-b border-gray-200">
             <h1 className="text-2xl font-bold text-gray-800">เชื่อมต่อฐานข้อมูล</h1>
+            {/* Status Cards */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div
+                className={`p-4 rounded-md border cursor-pointer transition-colors ${activeTab === 'pending' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-200 hover:border-gray-300'}`}
+                onClick={() => setActiveTab('pending')}
+              >
+                <div className="text-sm text-gray-500">รอเชื่อมต่อ</div>
+                <div className="text-2xl font-bold text-gray-900">{members.length}</div>
+              </div>
+              <div
+                className={`p-4 rounded-md border cursor-pointer transition-colors ${activeTab === 'connected' ? 'border-blue-400 ring-2 ring-blue-100' : 'border-gray-200 hover:border-gray-300'}`}
+                onClick={() => {
+                  setActiveTab('connected');
+                  if (connected.length === 0 && !connectedLoading) fetchConnectedMembers({ page: 1 });
+                }}
+              >
+                <div className="text-sm text-gray-500">เชื่อมต่อแล้ว</div>
+                <div className="text-2xl font-bold text-gray-900">{connectedCount}</div>
+              </div>
+            </div>
+
+            {/* Tab Switch */}
             <div className="mt-4 flex items-center gap-2">
               <button
                 onClick={() => setActiveTab('pending')}
@@ -327,6 +357,21 @@ export default function ConnectDatabasePage() {
 
           {activeTab === 'pending' && (
           <div className="p-6">
+            {/* Pending search */}
+            <div className="mb-4 flex items-center gap-2">
+              <input
+                type="text"
+                value={pendingSearch}
+                onChange={(e) => setPendingSearch(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur(); }}
+                placeholder="ค้นหา: ชื่อบริษัท / เลขภาษี / ผู้ใช้งาน / อีเมล"
+                className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={() => { /* client-side filter only */ }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >ค้นหา</button>
+            </div>
             {members.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-gray-500 text-lg">
@@ -351,6 +396,9 @@ export default function ConnectDatabasePage() {
                         เลขประจำตัวผู้เสียภาษี
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        ผู้ใช้งาน
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         วันที่อนุมัติ
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -359,7 +407,20 @@ export default function ConnectDatabasePage() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {members.map((member) => (
+                    {(members.filter(m => {
+                      const q = pendingSearch.trim().toLowerCase();
+                      if (!q) return true;
+                      const values = [
+                        m.company_name_th,
+                        m.company_name_en,
+                        m.tax_id,
+                        m.firstname,
+                        m.lastname,
+                        m.username,
+                        m.user_email,
+                      ].map(v => (v || '').toString().toLowerCase());
+                      return values.some(v => v.includes(q));
+                    })).map((member) => (
                       <tr key={member.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -386,6 +447,10 @@ export default function ConnectDatabasePage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           {member.tax_id}
+                        </td>
+                        <td className="px-6 py-4 text-sm text-gray-700">
+                          <div>{(member.firstname || member.lastname) ? `${member.firstname || ''} ${member.lastname || ''}`.trim() : (member.username || '-')}</div>
+                          {member.user_email && <div className="text-gray-500 text-xs">{member.user_email}</div>}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(member.approved_at).toLocaleDateString('th-TH', {

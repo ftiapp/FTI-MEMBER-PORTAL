@@ -49,7 +49,7 @@ const ApplicantInfoSection = ({ application, type }) => {
     // OC, AM, AC - นิติบุคคล
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลบริษัท</h3>
+        <h3 className="text-xl font-semibold mb-4 text-blue-600">ข้อมูลผู้สมัคร</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <p className="text-gray-600 text-sm">ชื่อบริษัท (ไทย)</p>

@@ -28,7 +28,7 @@ export default function MembershipRequestsManagement() {
   useEffect(() => {
     fetchApplications();
     fetchStats();
-  }, [currentPage, statusFilter, typeFilter, searchTerm, sortOrder]);
+  }, [currentPage, statusFilter, typeFilter, sortOrder]);
 
   const fetchApplications = async () => {
     setIsLoading(true);
@@ -120,6 +120,11 @@ export default function MembershipRequestsManagement() {
     fetchApplications();
   };
 
+  const handleClickStatusCard = (newStatus) => {
+    setStatusFilter(newStatus);
+    setCurrentPage(1);
+  };
+
   return (
     <AdminLayout>
       <div className="p-6 bg-blue-50 min-h-screen">
@@ -130,7 +135,12 @@ export default function MembershipRequestsManagement() {
         </div>
 
         {/* Stats (uses backend totals when available) */}
-        <ApplicationStats applications={applications} stats={stats} />
+        <ApplicationStats
+          applications={applications}
+          stats={stats}
+          currentStatus={statusFilter}
+          onClickStatus={handleClickStatusCard}
+        />
 
         {/* Filters */}
         <ApplicationFilters

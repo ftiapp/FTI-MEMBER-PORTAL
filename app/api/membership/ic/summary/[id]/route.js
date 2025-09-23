@@ -39,10 +39,28 @@ export async function GET(request, { params }) {
     let applicantUser = null;
     if (mainData?.user_id) {
       const userRows = await query(
-        'SELECT id, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1',
+        'SELECT id, name, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1',
         [mainData.user_id]
       );
-      applicantUser = userRows?.[0] || null;
+      const u = userRows?.[0] || null;
+      if (u) {
+        // Derive firstname/lastname from name if missing
+        let first = u.firstname;
+        let last = u.lastname;
+        if ((!first || !last) && u.name) {
+          const parts = String(u.name).trim().split(/\s+/);
+          if (!first) first = parts[0] || null;
+          if (!last)  last  = parts.slice(1).join(' ') || null;
+        }
+        applicantUser = {
+          id: u.id,
+          name: u.name || null,
+          firstname: first || null,
+          lastname: last || null,
+          email: u.email || null,
+          phone: u.phone || null,
+        };
+      }
     }
 
     // ดึงข้อมูลที่อยู่ทั้งหมด (multi-address support)
@@ -197,10 +215,11 @@ export async function GET(request, { params }) {
       // Applicant account (nested)
       user: applicantUser ? {
         id: applicantUser.id,
-        firstname: applicantUser.firstname,
-        lastname: applicantUser.lastname,
-        email: applicantUser.email,
-        phone: applicantUser.phone
+        name: applicantUser.name || null,
+        firstname: applicantUser.firstname || null,
+        lastname: applicantUser.lastname || null,
+        email: applicantUser.email || null,
+        phone: applicantUser.phone || null,
       } : null,
 
       // Multi-address data

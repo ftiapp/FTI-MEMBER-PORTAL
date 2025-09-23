@@ -3,9 +3,10 @@ import ApprovalModal from '../../../components/modals/ApprovalModal';
 import { normalizeAllAddresses } from '../../../ีutils/dataTransformers';
 
 const MEMBER_TYPES = {
-  ic: { code: 'IC', name: 'สมาชิกสามัญ' },
-  associate: { code: 'AS', name: 'สมาชิกสมทบ' },
-  honorary: { code: 'HN', name: 'สมาชิกกิตติมศักดิ์' }
+  oc: { code: 'สน', name: 'สมาชิกสามัญ - โรงงาน' },
+  am: { code: 'สส', name: 'สมาชิกสามัญ-สมาคมการค้า' },
+  ac: { code: 'ทน', name: 'สมทบ-นิติบุคคล' },
+  ic: { code: 'ทบ', name: 'สมทบ-บุคคลธรรมดา' },
 };
 
 const BUSINESS_TYPE_NAMES = {
@@ -625,7 +626,7 @@ const ICDetailView = ({
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 mb-8 print:bg-white print:text-black print:border print:border-gray-300">
         <div className="flex justify-between items-start">
           <div>
-            <h1 className="text-4xl font-bold mb-4">รายละเอียดใบสมัครสมาชิก IC</h1>
+            <h1 className="text-4xl font-bold mb-4">ทบ (สมทบ-บุคคลธรรมดา)</h1>
             <div className="flex items-center gap-6 text-lg flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="font-semibold">รหัสใบสมัคร:</span>
@@ -661,43 +662,7 @@ const ICDetailView = ({
         </div>
       </div>
 
-      {/* ข้อมูลผู้สมัคร */}
-      <div className="bg-white rounded-xl shadow-sm border border-green-200 p-8 mb-8">
-        <h3 className="text-2xl font-bold text-green-900 mb-6 border-b border-green-100 pb-4">
-          ข้อมูลผู้สมัคร
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">คำนำหน้า (ไทย)</p>
-            <p className="text-lg text-gray-900">{safeValue(application?.prename_th || application?.prenameTh || application?.prename_thai)}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">คำนำหน้า (อังกฤษ)</p>
-            <p className="text-lg text-gray-900">{safeValue(application?.prename_en || application?.prenameEn || application?.prename_english)}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">คำนำหน้า (อื่นๆ)</p>
-            <p className="text-lg text-gray-900">{safeValue(application?.prename_other || application?.prenameOther)}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">ชื่อ</p>
-            <p className="text-lg text-gray-900">{userInfo.firstname}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">นามสกุล</p>
-            <p className="text-lg text-gray-900">{userInfo.lastname}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">อีเมล</p>
-            <p className="text-lg text-gray-900">{userInfo.email}</p>
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-green-700 mb-1">เบอร์โทรศัพท์</p>
-            <p className="text-lg text-gray-900">{userInfo.phone}</p>
-          </div>
-        </div>
-      </div>
+      {/* ข้อมูลผู้สมัคร (moved to below documents) */}
 
       {/* ข้อมูลบริษัท */}
       <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
@@ -758,9 +723,6 @@ const ICDetailView = ({
 
       {/* ข้อมูลธุรกิจ */}
       {renderBusinessInfo()}
-
-      {/* ไฟล์แนบ */}
-      {renderDocuments()}
 
       {/* การอนุมัติ */}
       {renderApprovalSection()}

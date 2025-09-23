@@ -32,6 +32,7 @@ export default function VerifyMembers() {
   const [isDeleting, setIsDeleting] = useState(false);
   // เพิ่ม state สำหรับ search, filter, sort
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeTerm, setActiveTerm] = useState(''); // committed term used for fetching
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [sortField, setSortField] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
@@ -43,10 +44,16 @@ export default function VerifyMembers() {
     '2': 'ปฏิเสธแล้ว'
   };
 
-  // Fetch members when the page or status changes
+  const handleSearchSubmit = (val) => {
+    setSearchTerm(val || '');
+    setActiveTerm(val || '');
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  // Fetch members when relevant filters change
   useEffect(() => {
     fetchMembers();
-  }, [pagination.page, statusParam, searchTerm, dateRange.from, dateRange.to, sortField, sortOrder]);
+  }, [pagination.page, statusParam, dateRange.from, dateRange.to, sortField, sortOrder, activeTerm]);
 
   /**
    * Fetches members based on status filter
@@ -55,7 +62,8 @@ export default function VerifyMembers() {
     try {
       setIsLoading(true);
       let url = `/api/admin/members?page=${pagination.page}&limit=${pagination.limit}&status=${statusParam}`;
-      if (searchTerm.length >= 2) url += `&term=${encodeURIComponent(searchTerm)}`;
+      const term = activeTerm || '';
+      if (term.length >= 2) url += `&term=${encodeURIComponent(term)}`;
       if (dateRange.from) url += `&from=${dateRange.from}`;
       if (dateRange.to) url += `&to=${dateRange.to}`;
       if (sortField) url += `&sortField=${sortField}`;
@@ -300,9 +308,10 @@ export default function VerifyMembers() {
         <SearchBar 
           value={searchTerm} 
           onChange={setSearchTerm}
+          onSubmit={handleSearchSubmit}
           dateRange={dateRange}
           onDateChange={setDateRange}
-          placeholder="ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก"
+          placeholder="ค้นหา: หมายเลขสมาชิก / ชื่อบริษัท / ชื่อ-นามสกุล / อีเมล"
         />
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
@@ -389,43 +398,24 @@ export default function VerifyMembers() {
             
             {/* Pagination */}
             {pagination.totalPages > 1 && (
-              <div className="flex justify-center mt-6">
-                <nav className="relative z-0 inline-flex rounded-md shadow-md -space-x-px" aria-label="Pagination">
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-gray-600">หน้า {pagination.page} / {pagination.totalPages} • ทั้งหมด {pagination.total} รายการ</div>
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={pagination.page === 1}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${
-                      pagination.page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-[#1e3a8a] hover:bg-[#1e3a8a] hover:bg-opacity-5'
-                    }`}
+                    className={`px-3 py-2 text-sm border border-gray-300 rounded-md bg-white ${pagination.page === 1 ? 'text-gray-300 cursor-not-allowed' : 'text-[#1e3a8a] hover:bg-blue-50'}`}
                   >
-                    &laquo; ก่อนหน้า
+                    ย้อนกลับ
                   </button>
-                  
-                  {/* Page numbers */}
-                  {[...Array(pagination.totalPages)].map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handlePageChange(i + 1)}
-                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${
-                        pagination.page === i + 1
-                          ? 'z-10 bg-[#1e3a8a] border-[#1e3a8a] text-white'
-                          : 'text-gray-700 hover:bg-[#1e3a8a] hover:bg-opacity-5'
-                      }`}
-                    >
-                      {i + 1}
-                    </button>
-                  ))}
-                  
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={pagination.page === pagination.totalPages}
-                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${
-                      pagination.page === pagination.totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-[#1e3a8a] hover:bg-[#1e3a8a] hover:bg-opacity-5'
-                    }`}
+                    className={`px-3 py-2 text-sm border border-gray-300 rounded-md bg-white ${pagination.page === pagination.totalPages ? 'text-gray-300 cursor-not-allowed' : 'text-[#1e3a8a] hover:bg-blue-50'}`}
                   >
-                    ถัดไป &raquo;
+                    ถัดไป
                   </button>
-                </nav>
+                </div>
               </div>
             )}
           </>

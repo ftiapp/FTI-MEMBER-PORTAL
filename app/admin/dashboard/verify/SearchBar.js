@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FiSearch } from 'react-icons/fi';
 
-export default function SearchBar({ value, onChange, onDateChange, dateRange, placeholder }) {
+export default function SearchBar({ value, onChange, onDateChange, dateRange, placeholder, onSubmit }) {
   const [input, setInput] = useState(value || '');
+
+  useEffect(() => {
+    setInput(value || '');
+  }, [value]);
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -18,9 +22,17 @@ export default function SearchBar({ value, onChange, onDateChange, dateRange, pl
           placeholder={placeholder || 'ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก'}
           value={input}
           onChange={handleInputChange}
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onSubmit && onSubmit(input); }}}
         />
         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
       </div>
+      <button
+        type="button"
+        onClick={() => onSubmit && onSubmit(input)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+      >
+        ค้นหา
+      </button>
       <div>
         <input
           type="date"

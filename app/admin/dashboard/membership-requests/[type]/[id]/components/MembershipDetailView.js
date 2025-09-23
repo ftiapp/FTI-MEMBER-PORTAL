@@ -10,6 +10,7 @@ import ProductsSection from './ProductsSection';
 import DocumentsSection from './DocumentsSection';
 import AdminActionsSection from './AdminActionsSection';
 import PDFDownloadButton from './PDFDownloadButton';
+import { getMemberTypeInfo } from '../../../ีutils/dataTransformers';
 
 const MembershipDetailView = ({ 
   application, 
@@ -104,7 +105,7 @@ const MembershipDetailView = ({
           <div>
             <h2 className="text-3xl font-bold mb-2">รายละเอียดใบสมัครสมาชิก</h2>
             <p className="text-blue-100 text-lg">
-              ประเภท: {type === 'oc' ? 'สามัญ' : type === 'ic' ? 'บุคคล' : type === 'am' ? 'สมาคม' : 'สมทบ'}
+              {(() => { const t = getMemberTypeInfo(type); return `ประเภท: ${t.code} (${t.name})`; })()}
             </p>
             {application.member_code && (
               <p className="text-blue-100 mt-2">

@@ -17,29 +17,41 @@ export async function GET() {
 
     // ดึงข้อมูลสมาชิกที่ได้รับการอนุมัติแล้วแต่ยังไม่มี member_code
     const queries = [
-      // OC Members
+      // OC Members (join users)
       `SELECT 
-        id, 'OC' as member_type, company_name_th, company_name_en, tax_id, approved_at
-       FROM MemberRegist_OC_Main 
-       WHERE status = 1 AND (member_code IS NULL OR member_code = '')`,
+        m.id, 'OC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at,
+        u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
+       FROM MemberRegist_OC_Main m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
       
-      // AC Members  
+      // AC Members  (join users)
       `SELECT 
-        id, 'AC' as member_type, company_name_th, company_name_en, tax_id, approved_at
-       FROM MemberRegist_AC_Main 
-       WHERE status = 1 AND (member_code IS NULL OR member_code = '')`,
+        m.id, 'AC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at,
+        u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
+       FROM MemberRegist_AC_Main m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
        
-      // AM Members
+      // AM Members (join users)
       `SELECT 
-        id, 'AM' as member_type, company_name_th, company_name_en, tax_id, approved_at
-       FROM MemberRegist_AM_Main 
-       WHERE status = 1 AND (member_code IS NULL OR member_code = '')`,
+        m.id, 'AM' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at,
+        u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
+       FROM MemberRegist_AM_Main m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
 
-      // IC Members
+      // IC Members (join users). Alias full name as company_name_*; IC has no tax_id.
       `SELECT 
-        id, 'IC' as member_type, company_name_th, company_name_en, tax_id, approved_at
-       FROM MemberRegist_IC_Main 
-       WHERE status = 1 AND (member_code IS NULL OR member_code = '')`
+        m.id, 'IC' as member_type,
+        CONCAT(m.first_name_th, ' ', m.last_name_th) AS company_name_th,
+        CONCAT(m.first_name_en, ' ', m.last_name_en) AS company_name_en,
+        NULL AS tax_id,
+        m.approved_at,
+        u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
+       FROM MemberRegist_IC_Main m
+       LEFT JOIN users u ON m.user_id = u.id
+       WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`
     ];
 
     let allMembers = [];

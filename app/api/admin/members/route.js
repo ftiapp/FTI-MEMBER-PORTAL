@@ -25,14 +25,59 @@ export async function GET(request) {
     const page = parseInt(url.searchParams.get('page') || '1');
     const limit = parseInt(url.searchParams.get('limit') || '10');
     const status = url.searchParams.get('status') || '0';
+    const term = (url.searchParams.get('term') || '').trim();
+    const from = url.searchParams.get('from') || '';
+    const to = url.searchParams.get('to') || '';
+    const sortFieldParam = (url.searchParams.get('sortField') || '').trim();
+    const sortOrderParam = (url.searchParams.get('sortOrder') || 'desc').toLowerCase() === 'asc' ? 'ASC' : 'DESC';
     
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
     
+    // Build dynamic where conditions
+    const whereClauses = ['cm.Admin_Submit = ?'];
+    const whereParams = [status];
+
+    if (term) {
+      const like = `%${term}%`;
+      whereClauses.push(`(
+        cm.MEMBER_CODE LIKE ?
+        OR cm.company_name LIKE ?
+        OR u.email LIKE ?
+        OR CONCAT(COALESCE(u.firstname,''),' ',COALESCE(u.lastname,'')) LIKE ?
+      )`);
+      whereParams.push(like, like, like, like);
+    }
+
+    if (from) {
+      whereClauses.push('cm.created_at >= ?');
+      whereParams.push(from);
+    }
+    if (to) {
+      whereClauses.push('cm.created_at <= ?');
+      whereParams.push(to);
+    }
+
+    const whereSql = whereClauses.length ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+    // Validate sort field mapping
+    const sortFieldMap = {
+      company_name: 'cm.company_name',
+      created_at: 'cm.created_at',
+      Admin_Submit: 'cm.Admin_Submit',
+      name: "CONCAT(COALESCE(u.firstname,''),' ',COALESCE(u.lastname,''))",
+      email: 'u.email',
+      id: 'cm.id',
+    };
+    const sortFieldSql = sortFieldMap[sortFieldParam] || 'cm.id';
+
     // Get total count for pagination
     const countResult = await query(
-      `SELECT COUNT(*) as total FROM companies_Member WHERE Admin_Submit = ?`,
-      [status]
+      `SELECT COUNT(*) as total
+       FROM companies_Member cm
+       JOIN users u ON cm.user_id = u.id
+       ${whereSql}`,
+      whereParams
     );
     
     const total = countResult[0].total;
@@ -44,10 +89,10 @@ export async function GET(request) {
       `SELECT cm.*, u.email, u.name, u.firstname, u.lastname, u.phone
        FROM companies_Member cm
        JOIN users u ON cm.user_id = u.id
-       WHERE cm.Admin_Submit = ?
-       ORDER BY cm.id DESC
+       ${whereSql}
+       ORDER BY ${sortFieldSql} ${sortOrderParam}
        LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
-      [status]
+      whereParams
     );
     
     // Get documents for each member, grouped by MEMBER_CODE
