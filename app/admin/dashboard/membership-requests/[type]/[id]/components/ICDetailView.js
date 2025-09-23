@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import ApprovalModal from '../../../components/modals/ApprovalModal';
 import { normalizeAllAddresses } from '../../../ีutils/dataTransformers';
+import ApplicantInfoSection from '../../../components/sections/ApplicantInfoSection';
+import DocumentsSection from '../../../components/sections/DocumentsSection';
 
 const MEMBER_TYPES = {
   oc: { code: 'สน', name: 'สมาชิกสามัญ - โรงงาน' },
@@ -59,6 +61,13 @@ const ICDetailView = ({
     if (value === null || value === undefined || value === '') return '-';
     if (typeof value === 'object') return '-';
     return String(value);
+  };
+
+  // Use shared DocumentsSection for consistent preview and download behavior
+  const renderDocuments = () => {
+    return (
+      <DocumentsSection application={application} />
+    );
   };
 
   const getMemberTypeInfo = () => {
@@ -473,57 +482,6 @@ const ICDetailView = ({
     );
   };
 
-  const renderDocuments = () => {
-    const documents = application?.documents;
-    
-    if (!documents || !Array.isArray(documents) || documents.length === 0) {
-      return null;
-    }
-
-    return (
-      <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
-        <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
-          ไฟล์แนบ
-        </h3>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {documents.map((doc, index) => {
-            if (!doc || typeof doc !== 'object') return null;
-            
-            return (
-              <div key={`doc-${index}`} className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 mb-1">{getDocumentName(doc)}</p>
-                  <p className="text-sm text-gray-600 truncate" title={safeValue(doc.file_path || doc.filePath)}>
-                    {safeValue(doc.file_path || doc.filePath)}
-                  </p>
-                </div>
-                {(doc.file_path || doc.filePath) && viewDocument && (
-                  <button 
-                    onClick={() => viewDocument(doc.file_path || doc.filePath)}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex-shrink-0"
-                    title="ดูเอกสาร"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    ดู
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
   const renderApprovalSection = () => {
     const isPending = application?.status === 0 || application?.status === '0' || application?.status === 'pending' || application?.status === undefined || application?.status === null;
     return (
@@ -622,45 +580,7 @@ const ICDetailView = ({
 
   return (
     <div className="max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 mb-8 print:bg-white print:text-black print:border print:border-gray-300">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold mb-4">ทบ (สมทบ-บุคคลธรรมดา)</h1>
-            <div className="flex items-center gap-6 text-lg flex-wrap">
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">รหัสใบสมัคร:</span>
-                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg font-mono">
-                  {application?.id || 'N/A'}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">ประเภท:</span>
-                <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg">
-                  {memberTypeInfo.code} - {memberTypeInfo.name}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">สถานะ:</span>
-                <span className={`px-3 py-1 rounded-lg font-semibold ${statusInfo.className}`}>
-                  {statusInfo.text}
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <button
-            onClick={onDownload}
-            className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors print:hidden flex-shrink-0"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10l5 5m0 0l5-5m-5 5V4" />
-            </svg>
-            ดาวน์โหลด PDF
-          </button>
-        </div>
-      </div>
+      {/* Header is now provided by page.js (unified across member types) */}
 
       {/* ข้อมูลผู้สมัคร (moved to below documents) */}
 
@@ -723,6 +643,15 @@ const ICDetailView = ({
 
       {/* ข้อมูลธุรกิจ */}
       {renderBusinessInfo()}
+
+      {/* ไฟล์แนบ */}
+      {renderDocuments()}
+
+      {/* ข้อมูลบัญชีผู้สมัคร */}
+      <ApplicantInfoSection 
+        application={application} 
+        type={type} 
+      />
 
       {/* การอนุมัติ */}
       {renderApprovalSection()}

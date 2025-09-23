@@ -1,4 +1,4 @@
-'use client';
+  'use client';
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -17,7 +17,21 @@ export default function RequestDetail({
   const [activeTab, setActiveTab] = useState('old');
   const [isEditing, setIsEditing] = useState(false);
   const [editedAddress, setEditedAddress] = useState(null);
-  
+  const [preview, setPreview] = useState({ open: false, url: '', type: '' });
+
+  // Preview helpers
+  const isPDF = (u = '') => (u || '').toLowerCase().endsWith('.pdf');
+  const isImage = (u = '') => {
+    const exts = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+    const l = (u || '').toLowerCase();
+    return exts.some(ext => l.endsWith(ext));
+  };
+  const openPreview = (url) => {
+    const type = isImage(url) ? 'image' : (isPDF(url) ? 'pdf' : 'unknown');
+    setPreview({ open: true, url, type });
+  };
+  const closePreview = () => setPreview({ open: false, url: '', type: '' });
+
   // Reset editedAddress whenever selectedRequest changes
   useEffect(() => {
     if (selectedRequest) {
@@ -276,9 +290,8 @@ export default function RequestDetail({
               <p className="text-sm text-gray-600 mb-2">{getDocumentType(selectedRequest.addr_code)}</p>
               <div className="flex items-center space-x-3">
                 <a 
-                  href={selectedRequest.document_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
+                  href={selectedRequest.document_url}
+                  onClick={(e) => { e.preventDefault(); openPreview(selectedRequest.document_url); }}
                   className="px-4 py-2 bg-blue-50 text-blue-600 rounded-md hover:bg-blue-100 inline-flex items-center"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -475,6 +488,61 @@ export default function RequestDetail({
               <span className="font-medium">เหตุผลที่ปฏิเสธ:</span> {selectedRequest.admin_comment}
             </p>
           )}
+        </div>
+      )}
+
+      {/* Preview Modal */}
+      {preview.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
+          <div className="relative bg-white w-full h-[85vh] max-w-6xl rounded-lg shadow-lg overflow-hidden">
+            {/* Top bar */}
+            <div className="absolute top-0 left-0 right-0 flex items-center justify-between bg-gray-900 text-white px-4 py-2 z-10">
+              <div className="flex items-center gap-3">
+                <span className="text-sm opacity-80">ตัวอย่างเอกสาร</span>
+                <span className="text-xs px-2 py-0.5 rounded bg-gray-700">{preview.type.toUpperCase() || 'FILE'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={preview.url}
+                  download
+                  className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-md text-sm inline-flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10l5 5m0 0l5-5m-5 5V4" />
+                  </svg>
+                  ดาวน์โหลด
+                </a>
+                <button
+                  onClick={closePreview}
+                  className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 rounded-md text-sm"
+                >
+                  ปิด
+                </button>
+              </div>
+            </div>
+
+            {/* Content area */}
+            <div className="w-full h-full pt-10 bg-gray-50">
+              {preview.type === 'pdf' && (
+                <iframe
+                  src={preview.url}
+                  className="w-full h-full"
+                  title="PDF Preview"
+                />
+              )}
+              {preview.type === 'image' && (
+                <div className="w-full h-full flex items-center justify-center bg-black">
+                  <img src={preview.url} alt="preview" className="max-w-full max-h-full object-contain" />
+                </div>
+              )}
+              {preview.type === 'unknown' && (
+                <div className="w-full h-full flex items-center justify-center">
+                  <p className="text-gray-600">ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้ กรุณาดาวน์โหลดไฟล์</p>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </motion.div>

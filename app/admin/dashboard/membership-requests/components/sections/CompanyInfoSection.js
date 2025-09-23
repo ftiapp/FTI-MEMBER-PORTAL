@@ -190,9 +190,8 @@ const CompanyInfoSection = ({ application, type, onUpdate }) => {
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">เลือกประเภทโรงงาน</option>
-                <option value="1">โรงงานประเภท 1</option>
-                <option value="2">โรงงานประเภท 2</option>
-                <option value="3">โรงงานประเภท 3</option>
+                <option value="type1">ประเภทที่ 1: มีเครื่องจักร มากกว่า 50 แรงม้า</option>
+                <option value="type2">ประเภทที่ 2: ไม่มีเครื่องจักร/มีเครื่องจักร ต่ำกว่า 50 แรงม้า</option>
               </select>
             ) : (
               <p className="text-lg text-gray-900">{getFactoryTypeName(application.factoryType)}</p>

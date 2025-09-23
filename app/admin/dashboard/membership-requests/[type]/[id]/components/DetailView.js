@@ -72,19 +72,7 @@ const DetailView = ({
 
   return (
     <div className="space-y-6">
-      {/* Download PDF Button */}
-      <div className="flex justify-end print:hidden">
-        <button
-          onClick={onDownload}
-          className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10l5 5m0 0l5-5m-5 5V4" />
-          </svg>
-          ดาวน์โหลด PDF
-        </button>
-      </div>
+      
 
       {/* Sections */}
       <CompanyInfoSection 

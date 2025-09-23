@@ -4,10 +4,46 @@ const ApplicantInfoSection = ({ application, type }) => {
   if (!application) return null;
 
   const user = application.user || {};
+
   const firstName = user.firstname || application.firstNameTh || application.firstname || application.first_name || '';
   const lastName = user.lastname || application.lastNameTh || application.lastname || application.last_name || '';
-  const email = user.email || application.email || '-';
-  const phone = user.phone || application.phone || '-';
+
+  // Robust fallbacks for email and phone to support AM/OC/AC payload variations
+  const contactPerson = application.contactPerson || (Array.isArray(application.contactPersons) ? application.contactPersons[0] : null) || null;
+  const firstAddress = (Array.isArray(application.addresses) && application.addresses.length > 0)
+    ? application.addresses[0]
+    : (application.address || null);
+
+  const email = (
+    user.email ||
+    application.email || application.applicant_email ||
+    application.user_email ||
+    application.company_email || application.companyEmail ||
+    application.association_email || application.associationEmail ||
+    application.contact_email || application.contactEmail ||
+    (contactPerson && (contactPerson.email)) ||
+    (firstAddress && firstAddress.email) ||
+    '-' 
+  );
+
+  const phoneRaw = (
+    user.phone ||
+    application.phone || application.applicant_phone ||
+    application.user_phone ||
+    application.company_phone || application.companyPhone ||
+    application.association_phone || application.associationPhone ||
+    application.contact_phone || application.contactPhone ||
+    (contactPerson && (contactPerson.phone)) ||
+    (firstAddress && firstAddress.phone) ||
+    ''
+  );
+  const phoneExt = (
+    (contactPerson && (contactPerson.phoneExtension || contactPerson.phone_extension)) ||
+    (firstAddress && firstAddress.phoneExtension) ||
+    ''
+  );
+  const phone = phoneRaw ? (phoneExt ? `${phoneRaw} ต่อ ${phoneExt}` : phoneRaw) : '-';
+
   const idCard = type === 'ic' ? (application.idCard || application.id_card_number || '-') : null;
 
   return (

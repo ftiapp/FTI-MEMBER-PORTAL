@@ -25,10 +25,70 @@ export default function MembershipRequestsManagement() {
   const [sortOrder, setSortOrder] = useState('desc'); // 'asc' | 'desc'
   const [stats, setStats] = useState(null);
 
+  // Restore state from URL query or sessionStorage on first mount
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const q = url.searchParams;
+      const hasAnyQuery = ['page', 'status', 'type', 'search', 'sortOrder'].some(k => q.has(k));
+
+      // Always read session snapshot as fallback for any missing fields
+      let snapshot = null;
+      try {
+        const raw = sessionStorage.getItem('mr:listState');
+        snapshot = raw ? JSON.parse(raw) : null;
+      } catch {}
+
+      if (hasAnyQuery) {
+        // URL query has priority per-field; missing fields fall back to snapshot
+        const statusQ = q.get('status');
+        const typeQ = q.get('type');
+        const searchQ = q.get('search');
+        const sortQ = q.get('sortOrder');
+        const pageQ = q.get('page');
+
+        setStatusFilter(statusQ || snapshot?.statusFilter || 'pending');
+        setTypeFilter(typeQ || snapshot?.typeFilter || 'all');
+        if (typeof searchQ === 'string') setSearchTerm(searchQ);
+        else if (typeof snapshot?.searchTerm === 'string') setSearchTerm(snapshot.searchTerm);
+        setSortOrder(sortQ || snapshot?.sortOrder || 'desc');
+        const p = parseInt(pageQ || String(snapshot?.currentPage || '1'), 10);
+        if (!Number.isNaN(p) && p > 0) setCurrentPage(p);
+      } else {
+        // Otherwise, restore entirely from snapshot
+        if (snapshot) {
+          if (snapshot.statusFilter) setStatusFilter(snapshot.statusFilter);
+          if (snapshot.typeFilter) setTypeFilter(snapshot.typeFilter);
+          if (typeof snapshot.searchTerm === 'string') setSearchTerm(snapshot.searchTerm);
+          if (snapshot.sortOrder) setSortOrder(snapshot.sortOrder);
+          if (typeof snapshot.currentPage === 'number' && snapshot.currentPage > 0) setCurrentPage(snapshot.currentPage);
+        }
+      }
+    } catch (e) {
+      // noop on SSR or parse errors
+    }
+    // run only once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   useEffect(() => {
     fetchApplications();
     fetchStats();
   }, [currentPage, statusFilter, typeFilter, sortOrder]);
+
+  // Persist state to sessionStorage (so Back can restore)
+  useEffect(() => {
+    try {
+      const state = {
+        statusFilter,
+        typeFilter,
+        searchTerm,
+        currentPage,
+        sortOrder,
+      };
+      sessionStorage.setItem('mr:listState', JSON.stringify(state));
+    } catch {}
+  }, [statusFilter, typeFilter, searchTerm, currentPage, sortOrder]);
 
   const fetchApplications = async () => {
     setIsLoading(true);
@@ -119,6 +179,25 @@ export default function MembershipRequestsManagement() {
     setCurrentPage(1);
     fetchApplications();
   };
+
+  // Optional: reflect state into URL (without full reload), so deep-linking preserves filters
+  useEffect(() => {
+    try {
+      const url = new URL(window.location.href);
+      const q = url.searchParams;
+      q.set('status', statusFilter);
+      q.set('type', typeFilter);
+      q.set('sortOrder', sortOrder);
+      q.set('page', String(currentPage));
+      if (searchTerm) {
+        q.set('search', searchTerm);
+      } else {
+        q.delete('search');
+      }
+      const newUrl = `${url.pathname}?${q.toString()}`;
+      window.history.replaceState(null, '', newUrl);
+    } catch {}
+  }, [statusFilter, typeFilter, searchTerm, currentPage, sortOrder]);
 
   const handleClickStatusCard = (newStatus) => {
     setStatusFilter(newStatus);

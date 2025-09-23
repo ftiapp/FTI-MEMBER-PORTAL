@@ -14,20 +14,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
     revenueLastYear: application?.revenueLastYear || '',
     revenuePreviousYear: application?.revenuePreviousYear || ''
   });
-  
-  if (!application || type === 'ic') return null;
-  
-  const hasFinancialData = application.registeredCapital || 
-                          application.productionCapacityValue ||
-                          application.salesDomestic ||
-                          application.salesExport ||
-                          application.shareholderThaiPercent ||
-                          application.shareholderForeignPercent ||
-                          application.revenueLastYear ||
-                          application.revenuePreviousYear;
-  
-  if (!hasFinancialData && !isEditing) return null;
-  
+
+  if (type === 'ic') return null;
+
   const handleEdit = () => {
     setIsEditing(true);
     setEditData({
@@ -59,12 +48,11 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
   const updateField = (field, value) => {
     setEditData({ ...editData, [field]: value });
   };
-  
-  // Ensure Thai and Foreign percentages add up to 100%
+
   const handleShareholderPercentChange = (field, value) => {
     const numValue = parseFloat(value) || 0;
     const newValue = Math.min(100, Math.max(0, numValue)); // Clamp between 0 and 100
-    
+
     if (field === 'shareholderThaiPercent') {
       setEditData({
         ...editData,
@@ -79,7 +67,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
       });
     }
   };
-  
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
@@ -93,8 +81,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             title="แก้ไขข้อมูลทางการเงิน"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
             </svg>
             แก้ไข
           </button>
@@ -121,7 +108,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
           </div>
         )}
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมต่อปี - ปีล่าสุด</p>
@@ -139,9 +126,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">ล้านบาท</span>
             </div>
           ) : (
-            application.revenueLastYear && (
-              <p className="text-lg text-gray-900">{`${formatNumber(application.revenueLastYear)} ล้านบาท`}</p>
-            )
+            <p className="text-lg text-gray-900">{application.revenueLastYear ? `${formatNumber(application.revenueLastYear)} ล้านบาท` : '-'}</p>
           )}
         </div>
 
@@ -161,9 +146,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">ล้านบาท</span>
             </div>
           ) : (
-            application.revenuePreviousYear && (
-              <p className="text-lg text-gray-900">{`${formatNumber(application.revenuePreviousYear)} ล้านบาท`}</p>
-            )
+            <p className="text-lg text-gray-900">{application.revenuePreviousYear ? `${formatNumber(application.revenuePreviousYear)} ล้านบาท` : '-'}</p>
           )}
         </div>
 
@@ -182,12 +165,10 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
-            application.registeredCapital && (
-              <p className="text-lg text-gray-900">{formatCurrency(application.registeredCapital)}</p>
-            )
+            <p className="text-lg text-gray-900">{application.registeredCapital ? formatCurrency(application.registeredCapital) : '-'}</p>
           )}
         </div>
-        
+
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">กำลังการผลิต (ต่อปี)</p>
           {isEditing ? (
@@ -209,18 +190,16 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               />
             </div>
           ) : (
-            (application.productionCapacityValue || application.productionCapacityUnit) && (
-              <p className="text-lg text-gray-900">
-                {application.productionCapacityValue && application.productionCapacityUnit
-                  ? `${formatNumber(application.productionCapacityValue)} ${application.productionCapacityUnit}`
-                  : application.productionCapacityValue 
-                    ? formatNumber(application.productionCapacityValue)
-                    : application.productionCapacityUnit || '-'}
-              </p>
-            )
+            <p className="text-lg text-gray-900">
+              {application.productionCapacityValue && application.productionCapacityUnit
+                ? `${formatNumber(application.productionCapacityValue)} ${application.productionCapacityUnit}`
+                : application.productionCapacityValue
+                  ? formatNumber(application.productionCapacityValue)
+                  : application.productionCapacityUnit || '-'}
+            </p>
           )}
         </div>
-        
+
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">ยอดจำหน่ายในประเทศ (ต่อปี)</p>
           {isEditing ? (
@@ -236,12 +215,10 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
-            application.salesDomestic && (
-              <p className="text-lg text-gray-900">{formatCurrency(application.salesDomestic)}</p>
-            )
+            <p className="text-lg text-gray-900">{application.salesDomestic ? formatCurrency(application.salesDomestic) : '-'}</p>
           )}
         </div>
-        
+
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">ยอดจำหน่ายส่งออก (ต่อปี)</p>
           {isEditing ? (
@@ -257,12 +234,10 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
-            application.salesExport && (
-              <p className="text-lg text-gray-900">{formatCurrency(application.salesExport)}</p>
-            )
+            <p className="text-lg text-gray-900">{application.salesExport ? formatCurrency(application.salesExport) : '-'}</p>
           )}
         </div>
-        
+
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">สัดส่วนผู้ถือหุ้นไทย</p>
           {isEditing ? (
@@ -279,12 +254,10 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">%</span>
             </div>
           ) : (
-            application.shareholderThaiPercent && (
-              <p className="text-lg text-gray-900">{formatPercent(application.shareholderThaiPercent)}</p>
-            )
+            <p className="text-lg text-gray-900">{application.shareholderThaiPercent !== undefined && application.shareholderThaiPercent !== null && application.shareholderThaiPercent !== '' ? formatPercent(application.shareholderThaiPercent) : '-'}</p>
           )}
         </div>
-        
+
         <div>
           <p className="text-sm font-semibold text-blue-700 mb-1">สัดส่วนผู้ถือหุ้นต่างประเทศ</p>
           {isEditing ? (
@@ -301,9 +274,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">%</span>
             </div>
           ) : (
-            application.shareholderForeignPercent && (
-              <p className="text-lg text-gray-900">{formatPercent(application.shareholderForeignPercent)}</p>
-            )
+            <p className="text-lg text-gray-900">{application.shareholderForeignPercent !== undefined && application.shareholderForeignPercent !== null && application.shareholderForeignPercent !== '' ? formatPercent(application.shareholderForeignPercent) : '-'}</p>
           )}
         </div>
       </div>

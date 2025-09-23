@@ -52,31 +52,37 @@ export const MEMBER_TYPES = {
 
 // Business types
 export const BUSINESS_TYPES = {
-  manufacturing: 'การผลิต',
-  trading: 'การค้า',
-  service: 'บริการ',
-  agriculture: 'เกษตรกรรม',
-  construction: 'ก่อสร้าง',
-  technology: 'เทคโนโลยี',
-  finance: 'การเงิน',
-  healthcare: 'สุขภาพ',
-  education: 'การศึกษา',
-  transportation: 'การขนส่ง',
-  energy: 'พลังงาน',
-  mining: 'การขุดเจาะ',
-  textile: 'สิ่งทอ',
-  food: 'อาหาร',
-  chemical: 'เคมี',
-  automotive: 'ยานยนต์',
-  electronics: 'อิเล็กทรอนิกส์',
+  manufacturing: 'อุตสาหกรรมการผลิต',
+  manufacturer: 'อุตสาหกรรมการผลิต',
+  trading: 'การค้าขายและจำหน่าย',
+  service: 'ธุรกิจบริการ',
+  service_provider: 'ผู้ให้บริการ',
+  agriculture: 'เกษตรกรรมและประมง',
+  construction: 'ก่อสร้างและอสังหาริมทรัพย์',
+  technology: 'เทคโนโลยีสารสนเทศ',
+  finance: 'การเงินและธนาคาร',
+  healthcare: 'สาธารณสุขและการแพทย์',
+  education: 'การศึกษาและฝึกอบรม',
+  transportation: 'การขนส่งและโลจิสติกส์',
+  energy: 'พลังงานและสาธารณูปโภค',
+  mining: 'การขุดเจาะและเหมืองแร่',
+  textile: 'สิ่งทอและเครื่องนุ่งห่ม',
+  food: 'อาหารและเครื่องดื่ม',
+  chemical: 'เคมีภัณฑ์และปิโตรเคมี',
+  automotive: 'ยานยนต์และชิ้นส่วน',
+  electronics: 'อิเล็กทรอนิกส์และไฟฟ้า',
+  exporter: 'ผู้ส่งออก',
+  importer: 'ผู้นำเข้า',
+  distributor: 'ผู้จัดจำหน่าย',
   other: 'อื่นๆ'
 };
 
 // Factory types
 export const FACTORY_TYPES = {
-  1: 'โรงงานประเภท 1',
-  2: 'โรงงานประเภท 2',
-  3: 'โรงงานประเภท 3'
+  'type1': 'ประเภทที่ 1: มีเครื่องจักร มากกว่า 50 แรงม้า',
+  'type2': 'ประเภทที่ 2: ไม่มีเครื่องจักร/มีเครื่องจักร ต่ำกว่า 50 แรงม้า',
+  1: 'ประเภทที่ 1: มีเครื่องจักร มากกว่า 50 แรงม้า',
+  2: 'ประเภทที่ 2: ไม่มีเครื่องจักร/มีเครื่องจักร ต่ำกว่า 50 แรงม้า'
 };
 
 // Document types

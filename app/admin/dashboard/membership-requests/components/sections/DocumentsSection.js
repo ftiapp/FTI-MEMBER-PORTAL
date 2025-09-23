@@ -179,8 +179,7 @@ const DocumentsSection = ({ application, onViewDocument }) => {
                 )}
                 <a 
                   href={doc.filePath}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  download
                   className="flex items-center gap-2 px-3 py-2 bg-white border border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
                   title="ดาวน์โหลดไฟล์"
                 >

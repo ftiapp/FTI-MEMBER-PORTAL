@@ -342,33 +342,66 @@ export default function MembershipRequestDetail({ params }) {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-2">
-            <button
-              onClick={() => router.push('/admin/dashboard/membership-requests')}
-              className="text-blue-600 hover:text-blue-800 print:hidden"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <h1 className="text-2xl font-bold text-gray-800">
-              รายละเอียดการสมัครสมาชิก {memberType.code} ({memberType.name})
-            </h1>
-          </div>
-          
-          {application && (
-            <div className="flex items-center gap-4 text-sm text-gray-600">
-              <span>วันที่สมัคร: {formatThaiDate(application.createdAt)}</span>
-              <StatusBadge status={application.status} />
-              {application.memberCode && (
-                <span className="font-medium text-blue-600">
-                  รหัสสมาชิก: {application.memberCode}
-                </span>
+        {/* Unified Blue Gradient Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl p-8 mb-8 print:bg-white print:text-black print:border print:border-gray-300">
+          <div className="flex justify-between items-start">
+            <div>
+              <div className="flex items-center gap-2 mb-4 print:hidden">
+                <button
+                  onClick={() => router.push('/admin/dashboard/membership-requests')}
+                  className="text-white hover:text-gray-200"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                <span className="text-sm opacity-80">กลับ</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-bold mb-4">
+                {memberType.code} ({memberType.name})
+              </h1>
+              {application && (
+                <div className="flex items-center gap-6 text-sm md:text-base flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">รหัสใบสมัคร:</span>
+                    <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg font-mono">
+                      {application.id || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">วันที่สมัคร:</span>
+                    <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg">
+                      {formatThaiDate(application.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">สถานะ:</span>
+                    <span className="px-3 py-1 rounded-lg font-semibold bg-white bg-opacity-20">
+                      <StatusBadge status={application.status} />
+                    </span>
+                  </div>
+                  {application.memberCode && (
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold">รหัสสมาชิก:</span>
+                      <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg">
+                        {application.memberCode}
+                      </span>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
-          )}
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors print:hidden flex-shrink-0"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10l5 5m0 0l5-5m-5 5V4" />
+              </svg>
+              ดาวน์โหลด PDF
+            </button>
+          </div>
         </div>
 
         {/* Main Content */}
