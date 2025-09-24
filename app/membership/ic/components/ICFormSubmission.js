@@ -99,10 +99,14 @@ export const submitICMembershipForm = async (formData) => {
     formDataToSubmit.append('prenameTh', formData.prenameTh || '');
     formDataToSubmit.append('prenameEn', formData.prenameEn || '');
     formDataToSubmit.append('prenameOther', formData.prenameOther || '');
+    // NEW: English other prename
+    formDataToSubmit.append('prenameOtherEn', formData.prenameOtherEn || '');
     // Duplicate in snake_case for compatibility with some backends
     formDataToSubmit.append('prename_th', formData.prenameTh || '');
     formDataToSubmit.append('prename_en', formData.prenameEn || '');
     formDataToSubmit.append('prename_other', formData.prenameOther || '');
+    // NEW snake_case for English other
+    formDataToSubmit.append('prename_other_en', formData.prenameOtherEn || '');
     formDataToSubmit.append('phone', formData.phone || '');
     formDataToSubmit.append('phoneExtension', formData.phoneExtension || '');
     formDataToSubmit.append('email', formData.email || '');
@@ -153,10 +157,14 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('representativePrenameTh', formData.representative.prenameTh || '');
       formDataToSubmit.append('representativePrenameEn', formData.representative.prenameEn || '');
       formDataToSubmit.append('representativePrenameOther', formData.representative.prenameOther || '');
+      // NEW: English other prename for representative
+      formDataToSubmit.append('representativePrenameOtherEn', formData.representative.prenameOtherEn || '');
       // ✅ Also send snake_case duplicates for backend compatibility
       formDataToSubmit.append('representative_prename_th', formData.representative.prenameTh || '');
       formDataToSubmit.append('representative_prename_en', formData.representative.prenameEn || '');
       formDataToSubmit.append('representative_prename_other', formData.representative.prenameOther || '');
+      // NEW snake_case for English other prename
+      formDataToSubmit.append('representative_prename_other_en', formData.representative.prenameOtherEn || '');
       console.log('Representative data from object:', formData.representative);
     } else {
       // รูปแบบเก่า (แบบ flat)
@@ -171,10 +179,14 @@ export const submitICMembershipForm = async (formData) => {
       formDataToSubmit.append('representativePrenameTh', formData.representativePrenameTh || '');
       formDataToSubmit.append('representativePrenameEn', formData.representativePrenameEn || '');
       formDataToSubmit.append('representativePrenameOther', formData.representativePrenameOther || '');
+      // NEW: English other prename (flat)
+      formDataToSubmit.append('representativePrenameOtherEn', formData.representativePrenameOtherEn || '');
       // ✅ Also send snake_case duplicates for backend compatibility
       formDataToSubmit.append('representative_prename_th', formData.representativePrenameTh || '');
       formDataToSubmit.append('representative_prename_en', formData.representativePrenameEn || '');
       formDataToSubmit.append('representative_prename_other', formData.representativePrenameOther || '');
+      // NEW snake_case for English other prename
+      formDataToSubmit.append('representative_prename_other_en', formData.representativePrenameOtherEn || '');
       console.log('Representative data from flat structure');
     }
     

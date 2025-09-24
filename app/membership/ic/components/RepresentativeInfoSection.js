@@ -10,6 +10,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     prenameTh: '',
     prenameEn: '',
     prenameOther: '',
+    prenameOtherEn: '',
     firstNameThai: '',
     lastNameThai: '',
     firstNameEng: '',
@@ -34,6 +35,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
         prenameTh: formData.representative.prenameTh || '',
         prenameEn: formData.representative.prenameEn || '',
         prenameOther: formData.representative.prenameOther || '',
+        prenameOtherEn: formData.representative.prenameOtherEn || '',
         firstNameThai: formData.representative.firstNameThai || '',
         lastNameThai: formData.representative.lastNameThai || '',
         firstNameEng: formData.representative.firstNameEng || '',
@@ -57,7 +59,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     }
     
     // English language validation
-    if ((field === 'firstNameEng' || field === 'lastNameEng') && value) {
+    if ((field === 'firstNameEng' || field === 'lastNameEng' || field === 'prenameOtherEn') && value) {
       const engPattern = /^[a-zA-Z\s]*$/;
       if (!engPattern.test(value) && value !== '') {
         // Allow input but don't update state
@@ -120,6 +122,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   const prenameThRef = useRef(null);
   const prenameEnRef = useRef(null);
   const prenameOtherRef = useRef(null);
+  const prenameOtherEnRef = useRef(null);
 
   // Effect to check for prename errors and scroll to them
   useEffect(() => {
@@ -133,6 +136,9 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
       } else if (getErr('prenameOther', 'prename_other') && prenameOtherRef.current) {
         prenameOtherRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
         toast.error(getErr('prenameOther', 'prename_other') || 'กรุณาระบุคำนำหน้าชื่ออื่นๆ', { position: 'top-right', style: { zIndex: 100000 } });
+      } else if (getErr('prenameOtherEn', 'prename_other_en') && prenameOtherEnRef.current) {
+        prenameOtherEnRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        toast.error(getErr('prenameOtherEn', 'prename_other_en') || 'Please specify prename in English', { position: 'top-right', style: { zIndex: 100000 } });
       }
     }
   }, [representativeErrors]);
@@ -354,6 +360,29 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   )}
                 </div>
               </div>
+              {/* Other English prename detail */}
+              {String(representative.prenameEn || '').toLowerCase() === 'other' && (
+                <div className="mt-4">
+                  <label htmlFor="prenameOtherEn" className="block text-sm font-medium text-gray-700 mb-1">
+                    Specify Prename (English only)
+                  </label>
+                  <input
+                    ref={prenameOtherEnRef}
+                    type="text"
+                    id="prenameOtherEn"
+                    name="prenameOtherEn"
+                    data-field="representative.prename_other_en"
+                    value={representative.prenameOtherEn || ''}
+                    onChange={(e) => handleRepresentativeChange('prenameOtherEn', e.target.value)}
+                    placeholder="e.g., Assoc. Prof., Dr., Col."
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
+                  />
+                  {(getErr('prenameOtherEn','prename_other_en')) && (
+                    <p className="mt-1 text-sm text-red-600">{getErr('prenameOtherEn','prename_other_en')}</p>
+                  )}
+                  <p className="text-xs text-gray-500 mt-1">Allowed characters: English letters, spaces, and dot (.)</p>
+                </div>
+              )}
             </div>
 
             {/* Contact Information Section */}

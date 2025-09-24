@@ -63,34 +63,33 @@ export default function CompanyBasicInfo({
     }, throttleTime);
 
     try {
-      const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`);
+      const response = await fetch(`/api/dbd/company/${taxId}`);
       
       if (!response.ok) {
-        throw new Error('ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
       }
       
-      const data = await response.json();
+      const result = await response.json();
       
-      if (data && data.status?.code === '1000' && data.data && data.data.length > 0) {
-        const companyData = data.data[0]['cd:OrganizationJuristicPerson'];
-        const address = companyData['cd:OrganizationJuristicAddress']?.['cr:AddressType'];
-        
-        const subDistrictName = address?.['cd:CitySubDivision']?.['cr:CitySubDivisionTextTH'] || '';
+      if (result.success && result.data) {
+        const { data: companyData } = result;
+        const subDistrictName = companyData.address?.subDistrict || '';
         
         setFormData(prev => ({
           ...prev,
-          companyName: companyData['cd:OrganizationJuristicNameTH'] || '',
-          companyNameEn: companyData['cd:OrganizationJuristicNameEN'] || '',
+          companyName: companyData.companyName || '',
+          companyNameEn: companyData.companyNameEn || '',
           addresses: {
             ...prev.addresses,
             '1': {
               ...prev.addresses?.['1'],
-              addressNumber: address?.['cd:AddressNo'] || '',
-              building: address?.['cd:Building'] || address?.['cd:Village'] || '',
-              street: address?.['cd:Road'] || '',
+              addressNumber: companyData.address?.addressNumber || '',
+              building: companyData.address?.building || '',
+              street: companyData.address?.street || '',
               subDistrict: subDistrictName,
-              district: address?.['cd:City']?.['cr:CityTextTH'] || '',
-              province: address?.['cd:CountrySubDivision']?.['cr:CountrySubDivisionTextTH'] || '',
+              district: companyData.address?.district || '',
+              province: companyData.address?.province || '',
               addressType: '1'
             }
           }
@@ -158,11 +157,11 @@ export default function CompanyBasicInfo({
         }
         
       } else {
-        toast.error(data.status?.description || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
+        toast.error(result.message || 'ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง');
       }
     } catch (error) {
       console.error('Error fetching company info:', error);
-      toast.error('ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
+      toast.error(error.message || 'ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง');
     }
   };
 

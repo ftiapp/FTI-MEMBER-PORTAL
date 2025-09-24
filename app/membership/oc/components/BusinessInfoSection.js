@@ -5,6 +5,20 @@
  import PropTypes from 'prop-types';
 
 export default function BusinessInfoSection({ formData, setFormData, errors, businessTypes }) {
+  // Create refs for scrolling to error sections
+  const businessTypesRef = useRef(null);
+  const otherBusinessTypeRef = useRef(null);
+  const productsRef = useRef(null);
+
+  // Default business types - correct options for OC membership
+  const BUSINESS_TYPES = (businessTypes && businessTypes.length > 0) ? businessTypes : [
+    { id: 'manufacturer', nameTh: 'ผู้ผลิต' },
+    { id: 'distributor', nameTh: 'ผู้จัดจำหน่าย' },
+    { id: 'importer', nameTh: 'ผู้นำเข้า' },
+    { id: 'exporter', nameTh: 'ผู้ส่งออก' },
+    { id: 'service', nameTh: 'ผู้ให้บริการ' },
+    { id: 'other', nameTh: 'อื่นๆ' }
+  ];
   // Numeric helpers
   const sanitizeNumberInput = useCallback((val) => {
     if (val === null || val === undefined) return '';

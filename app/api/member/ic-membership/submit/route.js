@@ -101,23 +101,25 @@ export async function POST(request) {
     const prenameTh = data.prenameTh || data.prename_th || null;
     const prenameEn = data.prenameEn || data.prename_en || null;
     const prenameOther = data.prenameOther || data.prename_other || null;
+    const prenameOtherEn = data.prenameOtherEn || data.prename_other_en || null;
 
     // ✅ FIX: เพิ่ม website และ prename ในตาราง Main
     const result = await executeQuery(
       trx,
       `INSERT INTO MemberRegist_IC_Main (
         user_id, id_card_number,
-        prename_th, prename_en, prename_other,
+        prename_th, prename_en, prename_other, prename_other_en,
         first_name_th, last_name_th,
         first_name_en, last_name_en,
         phone, phone_extension, email, website, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         userId,
         data.idCardNumber,
         prenameTh,
         prenameEn,
         prenameOther,
+        prenameOtherEn,
         data.firstNameTh,
         data.lastNameTh,
         data.firstNameEn,
@@ -260,19 +262,24 @@ export async function POST(request) {
       }
     }
 
-    // Insert representative (now includes prename fields)
+    // Insert representative (now includes prename fields, including prename_other_en)
     if (data.representativeFirstNameTh) {
+      const repPrenameTh = data.representativePrenameTh || data.representative_prename_th || null;
+      const repPrenameEn = data.representativePrenameEn || data.representative_prename_en || null;
+      const repPrenameOther = data.representativePrenameOther || data.representative_prename_other || null;
+      const repPrenameOtherEn = data.representativePrenameOtherEn || data.representative_prename_other_en || null;
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_IC_Representatives (
-          main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en,
+          main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en,
           phone, phone_extension, email, position, rep_order
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           icMemberId,
-          data.representativePrenameTh || null,
-          data.representativePrenameEn || null,
-          data.representativePrenameOther || null,
+          repPrenameTh,
+          repPrenameEn,
+          repPrenameOther,
+          repPrenameOtherEn,
           data.representativeFirstNameTh || '',
           data.representativeLastNameTh || '',
           data.representativeFirstNameEn || '',
