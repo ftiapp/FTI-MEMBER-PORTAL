@@ -92,7 +92,17 @@ export default function UpdateMember() {
       const response = await fetch(`/api/user/profile-update-status?userId=${user.id}`);
       if (response.ok) {
         const data = await response.json();
-        setUpdateStatus(data.status || null);
+        // data.status can be null or an object like { id, status, reason, created_at }
+        const raw = data?.status?.status ?? null;
+        let normalized = null;
+        if (raw !== null && raw !== undefined) {
+          // Accept numeric or string forms
+          const val = typeof raw === 'string' ? raw.toLowerCase() : raw;
+          if (val === 0 || val === '0' || val === 'pending') normalized = 'pending';
+          else if (val === 1 || val === '1' || val === 'approved') normalized = 'approved';
+          else if (val === 2 || val === '2' || val === 'rejected') normalized = 'rejected';
+        }
+        setUpdateStatus(normalized);
       }
     } catch (error) {
       console.error('Error fetching update status:', error);
@@ -134,6 +144,11 @@ export default function UpdateMember() {
 
   // Toggle edit mode on/off
   const toggleEditMode = () => {
+    // Prevent editing if there is a pending request
+    if (!editMode && updateStatus === 'pending') {
+      toast.error('คุณมีคำขอรอการพิจารณาอยู่ ไม่สามารถแก้ไขข้อมูลได้ในขณะนี้');
+      return;
+    }
     if (editMode) {
       // If canceling edit, reset form data to original values
       setFormData({
@@ -149,6 +164,11 @@ export default function UpdateMember() {
   const handleSubmit = async (e) => {
     if (e && e.preventDefault) {
       e.preventDefault();
+    }
+    // Block submission when there is a pending request
+    if (updateStatus === 'pending') {
+      toast.error('มีคำขอรอการพิจารณาอยู่ ขณะนี้ไม่สามารถส่งคำขอใหม่ได้');
+      return;
     }
     
     if (!validateForm()) return;
@@ -265,6 +285,7 @@ export default function UpdateMember() {
           submitting={submitting}
           requestsToday={requestsToday}
           maxRequests={MAX_REQUESTS_PER_DAY}
+          updateStatus={updateStatus}
         />
       )}
       

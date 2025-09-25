@@ -11,9 +11,11 @@ const ProfileForm = ({
   handleSubmit, 
   submitting,
   requestsToday,
-  maxRequests
+  maxRequests,
+  updateStatus
 }) => {
   const isLimitReached = requestsToday >= maxRequests;
+  const hasPendingRequest = updateStatus === 'pending';
   
   useEffect(() => {
     console.log('ProfileForm received formData:', formData);
@@ -31,7 +33,7 @@ const ProfileForm = ({
         <h3 className="text-lg font-semibold text-gray-800">ข้อมูลส่วนตัว</h3>
         
         {/* Edit button */}
-        {!editMode && (
+        {!editMode && !hasPendingRequest && (
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -43,6 +45,15 @@ const ProfileForm = ({
           </motion.button>
         )}
       </div>
+      
+      {/* Pending request notice inside form (in addition to banner) */}
+      {hasPendingRequest && (
+        <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+          <p className="text-sm text-yellow-800">
+            คุณมีคำขอแก้ไขข้อมูลที่กำลังรอการพิจารณาอยู่ ขณะนี้ไม่สามารถส่งคำขอใหม่ได้
+          </p>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
@@ -105,7 +116,7 @@ const ProfileForm = ({
           </div>
           
           {/* Action buttons */}
-          {editMode && (
+          {editMode && !hasPendingRequest && (
             <div className="flex justify-end space-x-3 mt-6">
               <motion.button
                 whileHover={{ scale: 1.05 }}

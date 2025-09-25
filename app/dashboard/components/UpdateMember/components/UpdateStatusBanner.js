@@ -68,26 +68,8 @@ const UpdateStatusBanner = ({ status, requestsToday, maxRequests, limitLoading }
       </motion.div>
     );
   } else if (status === 'approved') {
-    return (
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6"
-      >
-        <div className="flex items-start">
-          <div className="flex-shrink-0">
-            <FaCheckCircle className="h-5 w-5 text-green-600" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-green-800">คำขอแก้ไขข้อมูลของคุณได้รับการอนุมัติแล้ว</h3>
-            <div className="mt-2 text-sm text-green-700">
-              <p>ข้อมูลของคุณได้รับการอัปเดตเรียบร้อยแล้ว</p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
+    // Do not display any banner when approved
+    return null;
   }
   
   return null;
