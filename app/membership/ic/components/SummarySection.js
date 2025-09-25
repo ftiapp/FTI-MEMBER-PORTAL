@@ -259,6 +259,29 @@ export default function SummarySection({
     }
     return 'ไฟล์ถูกอัปโหลดแล้ว';
   };
+  // Helper: ชื่อ-นามสกุล (ไทย) พร้อมคำนำหน้า เช่น "นายพลวัต ศรีชนะ"
+const getDisplayNameTh = () => {
+  const prefix = (viewMode
+    ? (formData.prename_th ?? formData.prenameTh ?? formData.prename_other ?? formData.prenameOther)
+    : (formData.prenameTh ?? formData.prenameOther)) || '';
+  const first = (viewMode ? (formData.firstNameTh ?? formData.firstNameThai) : formData.firstNameThai) || '';
+  const last = (viewMode ? (formData.lastNameTh ?? formData.lastNameThai) : formData.lastNameThai) || '';
+  const namePart = `${first} ${last}`.trim();
+  const full = `${prefix ? prefix : ''}${namePart ? namePart : ''}`.trim();
+  return full || '-';
+};
+
+// Helper: ชื่อ-นามสกุล (อังกฤษ) พร้อมคำนำหน้า (เว้นวรรคหลังคำนำหน้า)
+const getDisplayNameEn = () => {
+  const prefix = (viewMode
+    ? (formData.prename_en ?? formData.prenameEn ?? formData.prename_other ?? formData.prenameOther)
+    : (formData.prenameEn ?? formData.prenameOther)) || '';
+  const first = (viewMode ? formData.firstNameEn : formData.firstNameEng) || '';
+  const last = (viewMode ? formData.lastNameEn : formData.lastNameEng) || '';
+  const namePart = `${first} ${last}`.trim();
+  const full = `${prefix ? prefix + ' ' : ''}${namePart}`.trim();
+  return full || '-';
+};
 
   // Get industrial group names from database
   const getIndustrialGroupNames = () => {
@@ -334,22 +357,12 @@ export default function SummarySection({
   return (
     <div className="space-y-6">
       {/* ข้อมูลผู้สมัคร */}
+      {/* ข้อมูลผู้สมัคร */}
       <Section title="ข้อมูลผู้สมัคร">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard title="เลขบัตรประจำตัวประชาชน" value={formData.idCardNumber} />
-          <InfoCard title="คำนำหน้าชื่อ (ไทย)" value={viewMode ? (formData.prename_th || formData.prenameTh) : (formData.prenameTh)} />
-          <InfoCard title="คำนำหน้าชื่อ (อังกฤษ)" value={viewMode ? (formData.prename_en || formData.prenameEn) : (formData.prenameEn)} />
-          <InfoCard title="คำนำหน้าชื่อ (อื่นๆ)" value={viewMode ? (formData.prename_other || formData.prenameOther) : (formData.prenameOther)} />
-          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={
-            viewMode ? 
-              (formData.fullNameTh || `${formData.firstNameTh || ''} ${formData.lastNameTh || ''}`.trim()) :
-              `${formData.firstNameThai || ''} ${formData.lastNameThai || ''}`.trim()
-          } />
-          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={
-            viewMode ? 
-              (formData.fullNameEn || `${formData.firstNameEn || ''} ${formData.lastNameEn || ''}`.trim()) :
-              `${formData.firstNameEng || ''} ${formData.lastNameEng || ''}`.trim()
-          } />
+          <InfoCard title="ชื่อ-นามสกุล (ไทย)" value={getDisplayNameTh()} />
+          <InfoCard title="ชื่อ-นามสกุล (อังกฤษ)" value={getDisplayNameEn()} />
           <InfoCard title="อีเมล" value={formData.email} />
           <InfoCard title="เบอร์โทรศัพท์" value={formData.phone} />
           <InfoCard title="ต่อ" value={formData.phoneExtension} />

@@ -78,6 +78,10 @@ const INITIAL_FORM_DATA = {
   authorizedSignature: null,
 
   // Authorized signatory name fields
+  authorizedSignatoryPrenameTh: '',
+  authorizedSignatoryPrenameEn: '',
+  authorizedSignatoryPrenameOther: '',
+  authorizedSignatoryPrenameOtherEn: '',
   authorizedSignatoryFirstNameTh: '',
   authorizedSignatoryLastNameTh: '',
   authorizedSignatoryFirstNameEn: '',
@@ -329,8 +333,39 @@ export default function ICMembershipForm({
           if (data.success && data.drafts && data.drafts.length > 0) {
             const draft = data.drafts.find(d => d.id === parseInt(draftId));
             if (draft && draft.draftData) {
+              const draftData = draft.draftData || {};
+              const normalizedDraft = { ...draftData };
+
+              // Normalize applicant prename fields
+              if (normalizedDraft.prenameTh == null && draftData.prename_th != null) {
+                normalizedDraft.prenameTh = draftData.prename_th;
+              }
+              if (normalizedDraft.prenameEn == null && draftData.prename_en != null) {
+                normalizedDraft.prenameEn = draftData.prename_en;
+              }
+              if (normalizedDraft.prenameOther == null && draftData.prename_other != null) {
+                normalizedDraft.prenameOther = draftData.prename_other;
+              }
+              if (normalizedDraft.prenameOtherEn == null && draftData.prename_other_en != null) {
+                normalizedDraft.prenameOtherEn = draftData.prename_other_en;
+              }
+
+              // Normalize authorized signatory prename fields
+              if (normalizedDraft.authorizedSignatoryPrenameTh == null && draftData.authorized_signatory_prename_th != null) {
+                normalizedDraft.authorizedSignatoryPrenameTh = draftData.authorized_signatory_prename_th;
+              }
+              if (normalizedDraft.authorizedSignatoryPrenameEn == null && draftData.authorized_signatory_prename_en != null) {
+                normalizedDraft.authorizedSignatoryPrenameEn = draftData.authorized_signatory_prename_en;
+              }
+              if (normalizedDraft.authorizedSignatoryPrenameOther == null && draftData.authorized_signatory_prename_other != null) {
+                normalizedDraft.authorizedSignatoryPrenameOther = draftData.authorized_signatory_prename_other;
+              }
+              if (normalizedDraft.authorizedSignatoryPrenameOtherEn == null && draftData.authorized_signatory_prename_other_en != null) {
+                normalizedDraft.authorizedSignatoryPrenameOtherEn = draftData.authorized_signatory_prename_other_en;
+              }
+
               // Merge draft data with initial form data
-              setFormData(prev => ({ ...prev, ...draft.draftData }));
+              setFormData(prev => ({ ...prev, ...normalizedDraft }));
               // ตั้งค่า currentStep ถ้ามี
               if (setCurrentStep && draft.currentStep) {
                 setCurrentStep(draft.currentStep);
@@ -633,6 +668,9 @@ const handleNext = useCallback(async (e) => {
         prenameTh: formData.prenameTh,
         prenameEn: formData.prenameEn,
         prenameOther: formData.prenameOther,
+        prename_other: formData.prenameOther,
+        prenameOtherEn: formData.prenameOtherEn,
+        prename_other_en: formData.prenameOtherEn,
         firstNameThai: formData.firstNameThai,
         lastNameThai: formData.lastNameThai,
         firstNameEng: formData.firstNameEng,
@@ -673,15 +711,22 @@ const handleNext = useCallback(async (e) => {
         registeredCapital: formData.registeredCapital,
         
         // Authorized signatory name fields
-        authorizedSignatoryFirstNameTh: formData.authorizedSignatoryFirstNameTh,
-        authorizedSignatoryLastNameTh: formData.authorizedSignatoryLastNameTh,
-        authorizedSignatoryFirstNameEn: formData.authorizedSignatoryFirstNameEn,
-        authorizedSignatoryLastNameEn: formData.authorizedSignatoryLastNameEn,
+        authorizedSignatoryPrenameTh: formData.authorizedSignatoryPrenameTh || '',
+        authorizedSignatoryPrenameEn: formData.authorizedSignatoryPrenameEn || '',
+        authorizedSignatoryPrenameOther: formData.authorizedSignatoryPrenameOther || '',
+        authorizedSignatoryPrenameOtherEn: formData.authorizedSignatoryPrenameOtherEn || '',
+        authorized_signatory_prename_th: formData.authorizedSignatoryPrenameTh || '',
+        authorized_signatory_prename_en: formData.authorizedSignatoryPrenameEn || '',
+        authorized_signatory_prename_other: formData.authorizedSignatoryPrenameOther || '',
+        authorized_signatory_prename_other_en: formData.authorizedSignatoryPrenameOtherEn || '',
+        authorizedSignatoryFirstNameTh: formData.authorizedSignatoryFirstNameTh || '',
+        authorizedSignatoryLastNameTh: formData.authorizedSignatoryLastNameTh || '',
+        authorizedSignatoryFirstNameEn: formData.authorizedSignatoryFirstNameEn || '',
+        authorizedSignatoryLastNameEn: formData.authorizedSignatoryLastNameEn || '',
         
         // ข้อมูล validation
         _idCardValidation: formData._idCardValidation
       };
-
       // ตรวจสอบเลขบัตรประชาชนก่อนบันทึก
       if (!formData.idCardNumber || formData.idCardNumber.length !== 13) {
         toast.error('กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลักก่อนบันทึกร่าง');

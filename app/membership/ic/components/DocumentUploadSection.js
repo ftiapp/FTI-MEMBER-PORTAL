@@ -17,7 +17,6 @@ const SignatureEditor = ({ isOpen, onClose, onSave, initialImage, title = 'ป�
       const img = new Image();
       img.onload = () => {
         setImage(img);
-        // Reset position and scale
         setScale(1);
         setPosition({ x: 0, y: 0 });
       };
@@ -43,11 +42,9 @@ const SignatureEditor = ({ isOpen, onClose, onSave, initialImage, title = 'ป�
     canvas.width = 400;
     canvas.height = 200;
 
-    // Clear canvas
     ctx.fillStyle = '#f8f9fa';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid
     ctx.strokeStyle = '#e9ecef';
     ctx.lineWidth = 1;
     for (let i = 0; i < canvas.width; i += 20) {
@@ -63,14 +60,12 @@ const SignatureEditor = ({ isOpen, onClose, onSave, initialImage, title = 'ป�
       ctx.stroke();
     }
 
-    // Draw image
     ctx.save();
     ctx.translate(canvas.width / 2 + position.x, canvas.height / 2 + position.y);
     ctx.scale(scale, scale);
     ctx.drawImage(image, -image.width / 2, -image.height / 2);
     ctx.restore();
 
-    // Draw border
     ctx.strokeStyle = '#dee2e6';
     ctx.lineWidth = 2;
     ctx.strokeRect(0, 0, canvas.width, canvas.height);
@@ -169,15 +164,45 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
   const [showSignatureEditor, setShowSignatureEditor] = useState(false);
   const [editingSignature, setEditingSignature] = useState(null);
 
-  // Debug: เพิ่ม useEffect เพื่อ debug
-  useEffect(() => {
-    console.log('=== DEBUG DocumentUploadSection ===');
-    console.log('formData.idCardDocument:', formData.idCardDocument);
-    console.log('selectedFile:', selectedFile);
-    console.log('errors:', errors);
-  }, [formData.idCardDocument, selectedFile, errors]);
+  const THAI_TO_ENGLISH_PRENAME = {
+    'นาย': 'Mr.',
+    'นาง': 'Mrs.',
+    'นางสาว': 'Miss',
+    'อื่นๆ': 'Other'
+  };
+  const ENGLISH_TO_THAI_PRENAME = {
+    'Mr.': 'นาย',
+    'Mrs.': 'นาง',
+    'Miss': 'นางสาว',
+    'Other': 'อื่นๆ'
+  };
 
-  // Sync local state with formData when component mounts or formData changes
+  const handleAuthorizedPrenameChange = (field, value) => {
+    setFormData(prev => {
+      const next = { ...prev };
+
+      if (field === 'authorizedSignatoryPrenameTh') {
+        next.authorizedSignatoryPrenameTh = value;
+        next.authorizedSignatoryPrenameEn = THAI_TO_ENGLISH_PRENAME[value] || '';
+        if (value !== 'อื่นๆ') {
+          next.authorizedSignatoryPrenameOther = '';
+          next.authorizedSignatoryPrenameOtherEn = '';
+        }
+      } else if (field === 'authorizedSignatoryPrenameEn') {
+        next.authorizedSignatoryPrenameEn = value;
+        next.authorizedSignatoryPrenameTh = ENGLISH_TO_THAI_PRENAME[value] || '';
+        if (value !== 'Other') {
+          next.authorizedSignatoryPrenameOtherEn = '';
+        }
+        if ((ENGLISH_TO_THAI_PRENAME[value] || '') !== 'อื่นๆ') {
+          next.authorizedSignatoryPrenameOther = '';
+        }
+      }
+
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (formData.idCardDocument) {
       setSelectedFile(formData.idCardDocument);
@@ -197,21 +222,17 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         return;
       }
 
-      // Validation per document type
       const isImage = !!file.type && file.type.startsWith('image/');
       const isPdf = (file.type === 'application/pdf') || file.name?.toLowerCase().endsWith('.pdf');
 
       if (documentType === 'authorizedSignature') {
-        // Signature: images only
         if (!isImage) {
           alert('ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)');
           return;
         }
-        // Open editor for image signatures
         setEditingSignature(file);
         setShowSignatureEditor(true);
       } else if (documentType === 'idCardDocument') {
-        // ID card: allow image or PDF
         if (!(isImage || isPdf)) {
           alert('ประเภทไฟล์ไม่ถูกต้อง สำเนาบัตรประชาชนรองรับไฟล์ภาพ (JPG, JPEG, PNG) หรือ PDF');
           return;
@@ -271,21 +292,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     }
   };
 
-  // Error icon component
   const ErrorIcon = useMemo(() => (
     <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
     </svg>
   ), []);
 
-  // File icon component
   const FileIcon = useMemo(() => (
     <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
       <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd" />
     </svg>
   ), []);
 
-  // View icon component
   const ViewIcon = useMemo(() => (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -293,21 +311,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     </svg>
   ), []);
 
-  // Edit icon component
   const EditIcon = useMemo(() => (
     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
     </svg>
   ), []);
 
-  // Delete icon component
   const DeleteIcon = useMemo(() => (
     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
       <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
     </svg>
   ), []);
 
-  // Upload icon component
   const UploadIcon = useMemo(() => (
     <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
       <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -317,13 +332,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
   return (
     <>
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10" data-section="documents">
-        {/* Header */}
         <div className="bg-blue-600 px-8 py-6">
           <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารแนบ</h2>
           <p className="text-blue-100 text-sm mt-1">อัพโหลดสำเนาบัตรประชาชนและลายเซ็น</p>
         </div>
         
-        {/* Content */}
         <div className="px-8 py-8">
           <div className="bg-white border border-gray-200 rounded-xl p-8">
             <div className="text-center mb-6">
@@ -338,7 +351,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               <p className="text-sm text-gray-600">กรุณาอัพโหลดสำเนาบัตรประชาชนพร้อมลายเซ็นรับรองสำเนาถูกต้อง</p>
             </div>
 
-            {/* Document notification */}
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -355,7 +367,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             </div>
             
-            {/* File upload area */}
             <div id="idCardUpload" data-field="idCardDocument" className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
               errors?.idCardDocument ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-blue-400'
             }`}>
@@ -419,7 +430,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               )}
             </div>
             
-            {/* Error message */}
             {errors?.idCardDocument && (
               <p className="mt-2 text-sm text-red-600 flex items-center">
                 {ErrorIcon}
@@ -427,7 +437,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </p>
             )}
 
-            {/* File upload progress or success message */}
             {selectedFile && !errors?.idCardDocument && (
               <div className="mt-2 flex items-center text-sm text-green-600">
                 <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -437,7 +446,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             )}
             
-            {/* Additional file upload instructions */}
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <h4 className="text-md font-semibold text-blue-800 mb-2">คำแนะนำการอัพโหลดไฟล์</h4>
               <ul className="text-xs text-blue-700 space-y-1">
@@ -450,7 +458,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
           </div>
         </div>
 
-        {/* Authorized Signature Upload Section */}
         <div className="px-8 pb-8">
           <div className="bg-white border border-gray-200 rounded-xl p-8">
             <div className="text-center mb-6">
@@ -463,7 +470,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               <p className="text-sm text-gray-600">กรุณาอัพโหลดรูปลายเซ็นของผู้มีอำนาจลงนาม (จำเป็น)</p>
             </div>
 
-            {/* Required document notification (info style) */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -480,11 +486,90 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             </div>
             
-            {/* Authorized Signatory Name Inputs */}
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6">
               <h4 className="text-md font-semibold text-gray-800 mb-2">ข้อมูลผู้มีอำนาจลงนาม</h4>
               <p className="text-sm text-gray-600 mb-4">กรุณากรอกชื่อ-นามสกุลของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="authorizedSignatoryPrenameTh" className="block text-sm font-medium text-gray-700">คำนำหน้า (ภาษาไทย)</label>
+                  <select
+                    id="authorizedSignatoryPrenameTh"
+                    name="authorizedSignatoryPrenameTh"
+                    value={formData.authorizedSignatoryPrenameTh || ''}
+                    onChange={(e) => handleAuthorizedPrenameChange('authorizedSignatoryPrenameTh', e.target.value)}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameTh ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                  >
+                    <option value="" disabled>เลือกคำนำหน้า</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  {errors?.authorizedSignatoryPrenameTh && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>{errors.authorizedSignatoryPrenameTh}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label htmlFor="authorizedSignatoryPrenameEn" className="block text-sm font-medium text-gray-700">คำนำหน้า (ภาษาอังกฤษ)</label>
+                  <select
+                    id="authorizedSignatoryPrenameEn"
+                    name="authorizedSignatoryPrenameEn"
+                    value={formData.authorizedSignatoryPrenameEn || ''}
+                    onChange={(e) => handleAuthorizedPrenameChange('authorizedSignatoryPrenameEn', e.target.value)}
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameEn ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                  >
+                    <option value="" disabled>Select prename</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {errors?.authorizedSignatoryPrenameEn && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>{errors.authorizedSignatoryPrenameEn}
+                    </p>
+                  )}
+                </div>
+                {formData.authorizedSignatoryPrenameTh === 'อื่นๆ' && (
+                  <div>
+                    <label htmlFor="authorizedSignatoryPrenameOther" className="block text-sm font-medium text-gray-700">ระบุคำนำหน้า (ภาษาไทย)</label>
+                    <input
+                      id="authorizedSignatoryPrenameOther"
+                      name="authorizedSignatoryPrenameOther"
+                      type="text"
+                      value={formData.authorizedSignatoryPrenameOther || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPrenameOther: e.target.value }))}
+                      className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                      placeholder="กรอกคำนำหน้าอื่นๆ"
+                    />
+                    {errors?.authorizedSignatoryPrenameOther && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center">
+                        <span className="mr-1">*</span>{errors.authorizedSignatoryPrenameOther}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {formData.authorizedSignatoryPrenameEn === 'Other' && (
+                  <div>
+                    <label htmlFor="authorizedSignatoryPrenameOtherEn" className="block text-sm font-medium text-gray-700">Specify prename (English)</label>
+                    <input
+                      id="authorizedSignatoryPrenameOtherEn"
+                      name="authorizedSignatoryPrenameOtherEn"
+                      type="text"
+                      value={formData.authorizedSignatoryPrenameOtherEn || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, authorizedSignatoryPrenameOtherEn: e.target.value }))}
+                      className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOtherEn ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-blue-200'}`}
+                      placeholder="Enter other prename"
+                    />
+                    {errors?.authorizedSignatoryPrenameOtherEn && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center">
+                        <span className="mr-1">*</span>{errors.authorizedSignatoryPrenameOtherEn}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div>
                   <label htmlFor="authorizedSignatoryFirstNameTh" className="block text-sm font-medium text-gray-700">ชื่อ (ภาษาไทย)</label>
                   <input
@@ -594,7 +679,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             </div>
 
-            {/* Signature upload area */}
             <div id="authorizedSignatureUpload" data-field="authorizedSignature" className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
               errors?.authorizedSignature ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-blue-400'
             }`}>
@@ -670,7 +754,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               )}
             </div>
             
-            {/* Error message */}
             {errors?.authorizedSignature && (
               <p className="mt-2 text-sm text-red-600 flex items-center">
                 {ErrorIcon}
@@ -678,7 +761,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </p>
             )}
 
-            {/* Success message */}
             {selectedSignature && !errors?.authorizedSignature && (
               <div className="mt-2 flex items-center text-sm text-green-600">
                 <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -688,7 +770,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             )}
             
-            {/* Enhanced signature guidelines */}
             <div className="mt-6 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start gap-2">
                 <svg className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -753,7 +834,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         </div>
       </div>
 
-      {/* Signature Editor Modal */}
       <SignatureEditor
         isOpen={showSignatureEditor}
         onClose={() => {

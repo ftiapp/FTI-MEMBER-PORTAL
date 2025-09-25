@@ -18,6 +18,7 @@ export default function WasMember() {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showBlockingOverlay, setShowBlockingOverlay] = useState(false);
   const [showForm, setShowForm] = useState(true);
   const [verificationStatus, setVerificationStatus] = useState({
     isLoading: true,
@@ -97,6 +98,7 @@ export default function WasMember() {
             message: 'เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) กรุณาลองใหม่ภายหลัง' 
           })
         };
+
       }
       return res;
     } catch (error) {
@@ -120,6 +122,72 @@ export default function WasMember() {
       clearTimeout(timer);
     }
   };
+
+  // Helper: lightweight client-side image compression (JPEG/PNG to JPEG)
+  const compressImageFile = async (file, options = {}) => {
+    const { maxWidth = 2000, maxHeight = 2000, quality = 0.75, sizeThreshold = 300 * 1024 } = options;
+    try {
+      if (!(file instanceof File)) return file;
+      if (!/^image\/(jpeg|jpg|png)$/i.test(file.type)) return file;
+      if (file.size <= sizeThreshold) return file;
+
+      const img = document.createElement('img');
+      const reader = new FileReader();
+      const dataUrl = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      img.src = dataUrl;
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+
+      let { width, height } = img;
+      const ratio = Math.min(maxWidth / width, maxHeight / height, 1);
+      const targetW = Math.floor(width * ratio);
+      const targetH = Math.floor(height * ratio);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d', { alpha: false });
+      ctx.drawImage(img, 0, 0, targetW, targetH);
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+      if (!blob) return file;
+      if (blob.size >= file.size * 0.95) return file;
+
+      return new File([blob], (file.name || 'image').replace(/\.(png|jpeg|jpg)$/i, '.jpg'), { type: 'image/jpeg' });
+    } catch (error) {
+      console.warn('Image compression failed, using original file', error);
+      return file;
+    }
+  };
+
+  useEffect(() => {
+    if (!isSubmitting) {
+      return;
+    }
+
+    setShowBlockingOverlay(true);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.body.style.overflow = originalOverflow;
+      setShowBlockingOverlay(false);
+    };
+  }, [isSubmitting]);
   
   // For debugging
   useEffect(() => {
@@ -581,128 +649,75 @@ export default function WasMember() {
     
     try {
       setIsSubmitting(true);
-      
-      // Show loading toast
-      const loadingToast = toast.loading('กำลังส่งข้อมูล โปรดรอสักครู่...');
-      
-      // Sequential submission to reduce load on Production
+      const loadingToast = toast.loading('กำลังส่งข้อมูลทั้งหมด โปรดรอสักครู่...');
+
+      // Prepare payloads with client-side compression
+      const preparedCompanies = await Promise.all(
+        companies.map(async (company) => {
+          const compressed = await compressImageFile(company.documentFile);
+          const data = new FormData();
+          data.append('userId', user?.id || '');
+          const trimmedMemberNumber = (company.memberNumber || '').trim();
+          data.append('memberNumber', trimmedMemberNumber);
+          data.append('compPersonCode', company.compPersonCode);
+          data.append('registCode', company.registCode);
+          data.append('memberType', company.memberType);
+          data.append('companyName', company.companyName);
+          data.append('taxId', company.taxId);
+          data.append('documentFile', compressed || company.documentFile);
+          return { company, data };
+        })
+      );
+
+      // Concurrent upload with small pool (fast but controlled)
+      const maxConcurrent = Math.min(3, preparedCompanies.length);
+      let current = 0;
       const results = [];
-      let hasServerError = false;
-      
-      // Check if there are multiple companies - add delay between submissions
-      const hasMultipleCompanies = companies.length > 1;
-      
-      for (let i = 0; i < companies.length; i++) {
-        const company = companies[i];
-        const data = new FormData();
-        data.append('userId', user?.id || '');
-        const trimmedMemberNumber = (company.memberNumber || '').trim();
-        data.append('memberNumber', trimmedMemberNumber);
-        data.append('compPersonCode', company.compPersonCode);
-        data.append('registCode', company.registCode);
-        data.append('memberType', company.memberType);
-        data.append('companyName', company.companyName);
-        data.append('taxId', company.taxId);
-        data.append('documentFile', company.documentFile);
 
-        // Add progress indicator for multiple submissions
-        if (companies.length > 1) {
-          toast.loading(`กำลังส่งข้อมูลบริษัทที่ ${i+1} จาก ${companies.length}...`, 
-            { id: `company-${i}` });
-        }
-
-        try {
-          // Add retry logic for 503 errors
-          let retries = 0;
-          const maxRetries = 2;
-          let response;
-          
-          // Add delay between submissions if this is not the first company
-          if (i > 0 && hasMultipleCompanies) {
-            const delayBetweenSubmissions = 3000 + (Math.random() * 2000); // 3-5 seconds delay
-            console.log(`Adding delay of ${delayBetweenSubmissions}ms between submissions ${i} and ${i+1}`);
-            toast.loading(`กำลังเตรียมส่งข้อมูลบริษัทถัดไป...`, { id: `delay-${i}`, duration: delayBetweenSubmissions });
-            await new Promise(resolve => setTimeout(resolve, delayBetweenSubmissions));
-            toast.dismiss(`delay-${i}`);
-          }
-          
-          while (retries <= maxRetries) {
-            // Add a small random delay before each retry to prevent server overload
-            if (retries > 0) {
-              const retryDelay = 2000 * retries + (Math.random() * 1000);
-              console.log(`Waiting ${retryDelay}ms before retry ${retries}`);
-              await new Promise(resolve => setTimeout(resolve, retryDelay));
-            }
-            
-            try {
-              response = await fetchWithTimeout('/api/member/submit', {
-                method: 'POST',
-                body: data
-              }, 60000);
-              
-              // If not a 503 error or we've used all retries, break the loop
-              if (response.status !== 503 || retries === maxRetries) break;
-              
-              // Increment retry counter
-              retries++;
-              console.log(`Retrying submission ${i+1} (attempt ${retries} of ${maxRetries})`);
-            } catch (fetchError) {
-              console.error(`Fetch error during attempt ${retries}:`, fetchError);
-              retries++;
-              if (retries > maxRetries) break;
-            }
-          }
-
-          let result;
+      const runTask = async (index) => {
+        const { company, data } = preparedCompanies[index];
+        let retries = 0;
+        const maxRetries = 2;
+        let response;
+        while (retries <= maxRetries) {
           try {
-            result = await response.json();
+            response = await fetchWithTimeout('/api/member/submit', { method: 'POST', body: data }, 60000);
+            if (response.status !== 503 || retries === maxRetries) break;
           } catch (e) {
-            result = { 
-              success: false, 
-              message: 'ไม่สามารถอ่านผลลัพธ์จากเซิร์ฟเวอร์ได้',
-              status: response.status 
-            };
+            // Network failure, retry
+            if (retries === maxRetries) break;
           }
-          
-          // Clear company progress toast
-          if (companies.length > 1) {
-            toast.dismiss(`company-${i}`);
-          }
-          
-          // Handle 503 errors with clear user feedback
-          if (response.status === 503) {
-            hasServerError = true;
-            result.message = 'เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) กรุณาลองใหม่ภายหลัง';
-            toast.error(`เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) - บริษัท ${company.companyName}`, 
-              { duration: 5000 });
-          }
-          
-          results.push(result);
-        } catch (err) {
-          console.error('Submit request failed:', err);
-          const isAbort = typeof err?.name === 'string' && err.name === 'AbortError';
-          const errorMessage = isAbort
-            ? 'หมดเวลาเชื่อมต่อ (60 วินาที) โปรดลองอีกครั้ง'
-            : 'เชื่อมต่อเซิร์ฟเวอร์ล้มเหลว กรุณาตรวจสอบการเชื่อมต่อ';
-          
-          results.push({ success: false, message: errorMessage });
-          
-          // Clear company progress toast
-          if (companies.length > 1) {
-            toast.dismiss(`company-${i}`);
-          }
-          
-          // Show specific error for this company
-          toast.error(`${errorMessage} - บริษัท ${company.companyName}`, { duration: 5000 });
+          retries++;
+          // backoff
+          const retryDelay = 700 * retries;
+          await new Promise((r) => setTimeout(r, retryDelay));
         }
-      }
-      
-      // Dismiss loading toast
+        let result;
+        try {
+          result = await response.json();
+        } catch (e) {
+          result = { success: false, message: 'ไม่สามารถอ่านผลลัพธ์จากเซิร์ฟเวอร์ได้', status: response?.status };
+        }
+        if (response?.status === 503) {
+          result.message = 'เซิร์ฟเวอร์ไม่พร้อมให้บริการชั่วคราว (503) กรุณาลองใหม่ภายหลัง';
+        }
+        results[index] = result;
+      };
+
+      const pool = Array.from({ length: maxConcurrent }, async () => {
+        while (current < preparedCompanies.length) {
+          const idx = current++;
+          await runTask(idx);
+        }
+      });
+
+      await Promise.all(pool);
+
       toast.dismiss(loadingToast);
       
       // Check if all submissions were successful
-      const allSuccessful = results.every(result => result.success);
-      const serverErrorOnly = results.every(result => !result.success && result.status === 503);
+      const allSuccessful = results.every(result => result?.success);
+      const serverErrorOnly = results.every(result => !result?.success && result?.status === 503);
       
       if (allSuccessful) {
         toast.success('ส่งข้อมูลทั้งหมดเรียบร้อยแล้ว เจ้าหน้าที่จะตรวจสอบภายใน 1-2 วันทำการ');
@@ -835,7 +850,7 @@ export default function WasMember() {
               setSelectedResult={setSelectedResult}
               isSubmitting={isSubmitting}
               onSubmit={handleAddCompany}
-              showSubmitButton={!isSubmitting}
+              showSubmitButton={!isSubmitting && (editingCompanyIndex !== null || companies.length < MAX_COMPANIES)}
               submitButtonText={editingCompanyIndex !== null ? 'บันทึกการแก้ไข' : 'เพิ่มบริษัท'}
               verifiedCompanies={nonSelectableCompanies}
               selectedCompanies={companies.map(company => company.memberNumber)}
@@ -996,6 +1011,23 @@ export default function WasMember() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
+      {/* Full-screen blocking overlay during submission */}
+      {showBlockingOverlay && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
+          role="alertdialog"
+          aria-modal="true"
+        >
+          <div className="flex flex-col items-center gap-4 text-white">
+            <svg className="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <div className="text-lg font-semibold">กำลังส่งข้อมูลทั้งหมด โปรดรอ...</div>
+            <div className="text-sm opacity-80">ห้ามปิดหรือรีเฟรชหน้าต่างระหว่างดำเนินการ</div>
+          </div>
+        </div>
+      )}
       {/* Yellow Alert: Instruction for existing members */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}

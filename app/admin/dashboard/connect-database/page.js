@@ -16,6 +16,66 @@ const getMemberTypeAbbr = (type) => {
   }
 };
 
+// Utility to format dates in Thai locale with timezone handling
+const formatThaiDate = (value) => {
+  if (!value) return '-';
+
+  const parseDate = (raw) => {
+    if (raw instanceof Date) {
+      return Number.isNaN(raw.getTime()) ? null : raw;
+    }
+
+    if (typeof raw === 'number') {
+      const ts = raw > 1e12 ? raw : raw * 1000;
+      const date = new Date(ts);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    if (typeof raw !== 'string') {
+      return null;
+    }
+
+    let normalized = raw.trim();
+    if (!normalized) return null;
+
+    if (/^\d+$/.test(normalized)) {
+      const numeric = Number(normalized);
+      const date = new Date(normalized.length > 10 ? numeric : numeric * 1000);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}\s/.test(normalized)) {
+      normalized = normalized.replace(' ', 'T');
+    }
+
+    if (/\.\d{4,}$/.test(normalized)) {
+      normalized = normalized.replace(/\.(\d{3})\d+/, '.$1');
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{3})?$/.test(normalized)) {
+      normalized = `${normalized}+07:00`;
+    }
+
+    const parsed = new Date(normalized);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed;
+    }
+
+    const utcParsed = new Date(`${normalized.endsWith('Z') ? normalized : `${normalized}Z`}`);
+    return Number.isNaN(utcParsed.getTime()) ? null : utcParsed;
+  };
+
+  const date = parseDate(value);
+  if (!date) return '-';
+
+  return new Intl.DateTimeFormat('th-TH', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    timeZone: 'Asia/Bangkok'
+  }).format(date);
+};
+
 // Loading Overlay Component
 function LoadingOverlay({ isOpen, text = 'กำลังเชื่อมต่อฐานข้อมูล...' }) {
   if (!isOpen) return null;
@@ -399,7 +459,7 @@ export default function ConnectDatabasePage() {
                         ผู้ใช้งาน
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        วันที่อนุมัติ
+                        อัปเดตล่าสุด
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         การดำเนินการ
@@ -427,11 +487,13 @@ export default function ConnectDatabasePage() {
                             member.member_type === 'OC' ? 'bg-blue-100 text-blue-800' :
                             member.member_type === 'AC' ? 'bg-green-100 text-green-800' :
                             member.member_type === 'AM' ? 'bg-purple-100 text-purple-800' :
+                            member.member_type === 'IC' ? 'bg-indigo-100 text-indigo-800' :
                             'bg-gray-100 text-gray-800'
                           }`}>
                             {member.member_type === 'OC' ? 'สน (โรงงาน)' :
                              member.member_type === 'AC' ? 'ทน (นิติบุคคล)' :
                              member.member_type === 'AM' ? 'สส (สมาคมการค้า)' :
+                             member.member_type === 'IC' ? 'ทบ (บุคคลธรรมดา)' :
                              member.member_type}
                           </span>
                         </td>
@@ -453,11 +515,7 @@ export default function ConnectDatabasePage() {
                           {member.user_email && <div className="text-gray-500 text-xs">{member.user_email}</div>}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(member.approved_at).toLocaleDateString('th-TH', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
+                          {formatThaiDate(member.updated_at || member.approved_at)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <button

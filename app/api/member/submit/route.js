@@ -2,11 +2,52 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../lib/db';
 import { uploadToCloudinary } from '../../../lib/cloudinary';
 import { mssqlQuery } from '@/app/lib/mssql';
+import { PDFDocument } from 'pdf-lib';
 
 // Force Node.js runtime (sharp/Buffer/Cloudinary are not supported on Edge)
 export const runtime = 'nodejs';
 // Prevent caching/dedupe; this route handles uploads and external I/O
 export const dynamic = 'force-dynamic';
+
+async function compressPdfBuffer(buffer) {
+  try {
+    const inputPdf = await PDFDocument.load(buffer, { ignoreEncryption: true });
+    const outputPdf = await PDFDocument.create();
+
+    const pageIndices = inputPdf.getPageIndices();
+    const copiedPages = await outputPdf.copyPages(inputPdf, pageIndices);
+    copiedPages.forEach((page) => {
+      outputPdf.addPage(page);
+    });
+
+    const title = inputPdf.getTitle();
+    if (title) outputPdf.setTitle(title);
+    const author = inputPdf.getAuthor();
+    if (author) outputPdf.setAuthor(author);
+    const subject = inputPdf.getSubject();
+    if (subject) outputPdf.setSubject(subject);
+    const keywords = inputPdf.getKeywords();
+    if (keywords) outputPdf.setKeywords(keywords);
+    const creator = inputPdf.getCreator();
+    if (creator) outputPdf.setCreator(creator);
+    const producer = inputPdf.getProducer();
+    if (producer) outputPdf.setProducer(producer);
+    const creationDate = inputPdf.getCreationDate();
+    if (creationDate) outputPdf.setCreationDate(creationDate);
+    const modificationDate = inputPdf.getModificationDate();
+    if (modificationDate) outputPdf.setModificationDate(modificationDate);
+
+    const compressedBytes = await outputPdf.save({
+      useObjectStreams: true,
+      addDefaultPage: false,
+    });
+
+    return Buffer.from(compressedBytes);
+  } catch (error) {
+    console.warn('[member/submit] PDF compression failed, using original buffer', error);
+    return buffer;
+  }
+}
 
 export async function POST(request) {
   try {
@@ -87,17 +128,38 @@ export async function POST(request) {
     }
     
     // Upload document to Cloudinary
-    const fileBuffer = await documentFile.arrayBuffer();
-    const fileName = documentFile.name;
-    const fileSize = documentFile.size;
-    const fileSizeMB = fileSize / (1024 * 1024);
+    let fileBuffer = Buffer.from(await documentFile.arrayBuffer());
+    let fileName = documentFile.name || 'document.pdf';
+    const originalSizeBytes = fileBuffer.length;
+    const fileMimeType = (documentFile.type || '').toLowerCase();
+
+    if (fileMimeType === 'application/pdf' || fileName.toLowerCase().endsWith('.pdf')) {
+      log('pdf_compress_start', { fileName, originalSizeMB: (originalSizeBytes / (1024 * 1024)).toFixed(2) });
+      const compressedBuffer = await compressPdfBuffer(fileBuffer);
+      if (compressedBuffer.length < fileBuffer.length) {
+        log('pdf_compress_success', {
+          beforeBytes: fileBuffer.length,
+          afterBytes: compressedBuffer.length,
+          savedMB: ((fileBuffer.length - compressedBuffer.length) / (1024 * 1024)).toFixed(2),
+        });
+        fileBuffer = compressedBuffer;
+      } else {
+        log('pdf_compress_no_gain', {
+          beforeBytes: fileBuffer.length,
+          afterBytes: compressedBuffer.length,
+        });
+      }
+    }
+
+    const fileSizeBytes = fileBuffer.length;
+    const fileSizeMB = fileSizeBytes / (1024 * 1024);
     
     // Log detailed file information
     log('before_upload', { 
-      fileName, 
-      fileSize, 
+      fileName,
+      fileSize: fileSizeBytes,
       fileSizeMB: fileSizeMB.toFixed(2) + 'MB',
-      fileType: documentFile.type || 'unknown' 
+      fileType: documentFile.type || 'unknown'
     });
     
     // Validate file size early
@@ -108,14 +170,13 @@ export async function POST(request) {
         { status: 400 }
       );
     }
-
     // Enhanced retry for Cloudinary upload with better error handling
     const uploadWithRetry = async (buf, name, maxRetry = 3) => {
       let attempt = 0;
       let lastErr;
       
-      // Check file size before attempting upload (prevent large uploads)
-      const fileSizeInMB = buf.byteLength / (1024 * 1024);
+      const sizeBytes = Buffer.isBuffer(buf) ? buf.length : buf.byteLength;
+      const fileSizeInMB = sizeBytes / (1024 * 1024);
       log('file_size_check', { fileSizeInMB, name });
       
       if (fileSizeInMB > 5) {
@@ -130,7 +191,7 @@ export async function POST(request) {
           const attemptStartTime = Date.now();
           log('upload_attempt_start', { attempt, maxRetry, name });
           
-          const res = await uploadToCloudinary(Buffer.from(buf), name);
+          const res = await uploadToCloudinary(Buffer.isBuffer(buf) ? buf : Buffer.from(buf), name);
           
           // Log attempt duration
           const attemptDuration = Date.now() - attemptStartTime;

@@ -51,7 +51,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   const handleRepresentativeChange = (field, value) => {
     // Thai language validation
     if ((field === 'firstNameThai' || field === 'lastNameThai' || field === 'prenameOther') && value) {
-      const thaiPattern = /^[ก-๙\s]*$/;
+      const thaiPattern = /^[ก-๙\s\.]*$/;
       if (!thaiPattern.test(value) && value !== '') {
         // Allow input but don't update state
         return;
@@ -60,7 +60,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
     
     // English language validation
     if ((field === 'firstNameEng' || field === 'lastNameEng' || field === 'prenameOtherEn') && value) {
-      const engPattern = /^[a-zA-Z\s]*$/;
+      const engPattern = /^[a-zA-Z\s\.]*$/;
       if (!engPattern.test(value) && value !== '') {
         // Allow input but don't update state
         return;
@@ -123,6 +123,19 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
   const prenameEnRef = useRef(null);
   const prenameOtherRef = useRef(null);
   const prenameOtherEnRef = useRef(null);
+
+  // Auto-focus on custom prename fields when "Other" is selected
+  useEffect(() => {
+    if (representative.prenameTh === 'อื่นๆ' && prenameOtherRef.current) {
+      prenameOtherRef.current.focus();
+    }
+  }, [representative.prenameTh]);
+
+  useEffect(() => {
+    if (String(representative.prenameEn || '').toLowerCase() === 'other' && prenameOtherEnRef.current) {
+      prenameOtherEnRef.current.focus();
+    }
+  }, [representative.prenameEn]);
 
   // Effect to check for prename errors and scroll to them
   useEffect(() => {

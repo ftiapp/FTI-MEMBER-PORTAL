@@ -19,7 +19,7 @@ export async function GET() {
     const queries = [
       // OC Members (join users)
       `SELECT 
-        m.id, 'OC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at,
+        m.id, 'OC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_OC_Main m
        LEFT JOIN users u ON m.user_id = u.id
@@ -27,7 +27,7 @@ export async function GET() {
       
       // AC Members  (join users)
       `SELECT 
-        m.id, 'AC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at,
+        m.id, 'AC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_AC_Main m
        LEFT JOIN users u ON m.user_id = u.id
@@ -35,7 +35,7 @@ export async function GET() {
        
       // AM Members (join users)
       `SELECT 
-        m.id, 'AM' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at,
+        m.id, 'AM' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_AM_Main m
        LEFT JOIN users u ON m.user_id = u.id
@@ -46,8 +46,9 @@ export async function GET() {
         m.id, 'IC' as member_type,
         CONCAT(m.first_name_th, ' ', m.last_name_th) AS company_name_th,
         CONCAT(m.first_name_en, ' ', m.last_name_en) AS company_name_en,
-        NULL AS tax_id,
+        m.id_card_number AS tax_id,
         m.approved_at,
+        m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_IC_Main m
        LEFT JOIN users u ON m.user_id = u.id
@@ -70,7 +71,7 @@ export async function GET() {
       }
 
       // เรียงลำดับตามวันที่อนุมัติ (ใหม่สุดก่อน)
-      allMembers.sort((a, b) => new Date(b.approved_at) - new Date(a.approved_at));
+      allMembers.sort((a, b) => new Date(b.updated_at || b.approved_at) - new Date(a.updated_at || a.approved_at));
     } finally {
       // Release the connection back to the pool instead of ending it
       connection.release();
