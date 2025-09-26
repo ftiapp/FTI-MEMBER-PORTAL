@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import NotificationBell from '../components/NotificationBell';
@@ -130,7 +130,7 @@ export default function Dashboard() {
 
   // Tab to name mapping
   const tabMapping = {
-    //'userinfo': 'ข้อมูลผู้ใช้งาน',
+    'userinfo': 'ข้อมูลผู้ใช้งาน',
     'member': 'ข้อมูลสมาชิก',
     'wasmember': 'ยืนยันสมาชิกเดิม',
     'membership': 'สมัครสมาชิก',
@@ -170,24 +170,20 @@ export default function Dashboard() {
     setDocsLastSeenLoaded(true);
   }, []);
   
-  // Handle URL parameters and navigation
+  // Handle URL parameters (reactive to query changes)
+  const searchParams = useSearchParams();
   useEffect(() => {
-    const handleUrlChange = () => {
-      const searchParams = new URLSearchParams(window.location.search);
-      const tabParam = searchParams.get('tab');
-      
+    try {
+      const tabParam = searchParams?.get('tab');
       if (tabParam && tabMapping[tabParam]) {
         setActiveTab(tabMapping[tabParam]);
       } else {
         setActiveTab('ข้อมูลผู้ใช้งาน');
       }
-    };
-    
-    handleUrlChange();
-    window.addEventListener('popstate', handleUrlChange);
-    
-    return () => window.removeEventListener('popstate', handleUrlChange);
-  }, []);
+    } catch (e) {
+      // ignore
+    }
+  }, [searchParams, tabMapping]);
 
   // Extract messageId for Contact tab without computing it during render
   const [contactMessageId, setContactMessageId] = useState(null);

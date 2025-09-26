@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'next/navigation';
@@ -172,9 +173,23 @@ export default function WasMember() {
     }
 
     setShowBlockingOverlay(true);
+    
+    // บล็อกการเลื่อนหน้าเว็บ
     const originalOverflow = document.body.style.overflow;
+    const originalPosition = document.body.style.position;
+    const originalWidth = document.body.style.width;
+    const originalTop = document.body.style.top;
+    
+    // บันทึกตำแหน่งการเลื่อนปัจจุบัน
+    const scrollY = window.scrollY;
+    
+    // ตั้งค่า body ให้ fixed เพื่อป้องกันการเลื่อน
     document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.top = `-${scrollY}px`;
 
+    // ป้องกันการออกจากหน้าเว็บระหว่างการส่งข้อมูล
     const handleBeforeUnload = (event) => {
       event.preventDefault();
       event.returnValue = '';
@@ -184,7 +199,16 @@ export default function WasMember() {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      
+      // คืนค่าเดิมให้กับ body
       document.body.style.overflow = originalOverflow;
+      document.body.style.position = originalPosition;
+      document.body.style.width = originalWidth;
+      document.body.style.top = originalTop;
+      
+      // คืนตำแหน่งการเลื่อนเดิม
+      window.scrollTo(0, scrollY);
+      
       setShowBlockingOverlay(false);
     };
   }, [isSubmitting]);
@@ -649,6 +673,7 @@ export default function WasMember() {
     
     try {
       setIsSubmitting(true);
+      setShowBlockingOverlay(true);
       const loadingToast = toast.loading('กำลังส่งข้อมูลทั้งหมด โปรดรอสักครู่...');
 
       // Prepare payloads with client-side compression
@@ -727,7 +752,7 @@ export default function WasMember() {
         setShowSuccessMessage(true);
         setTimeout(() => {
           setShowSuccessMessage(false);
-        }, 6000);
+        }, 8000);
 
         // Add all submissions to the list
         const newSubmissions = companies.map(company => ({
@@ -925,22 +950,34 @@ export default function WasMember() {
       case 4: // Success step
         return (
           <motion.div 
-            className="bg-white shadow-md rounded-lg p-6 text-center"
+            className="bg-white shadow-lg rounded-xl p-8 text-center max-w-lg mx-auto border border-green-100"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
             <motion.div 
-              className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4"
+              className="w-24 h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <FaCheckCircle className="w-10 h-10 text-green-600" />
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
+              >
+                <FaCheckCircle className="w-12 h-12 text-green-600" />
+              </motion.div>
             </motion.div>
             
-            <h3 className="text-xl font-medium text-gray-900 mb-2">ส่งข้อมูลเรียบร้อยแล้ว</h3>
-            <p className="text-gray-600 mb-6">เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ</p>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <h3 className="text-2xl font-bold text-gray-900 mb-3">ส่งข้อมูลเรียบร้อยแล้ว</h3>
+              <p className="text-gray-600 mb-8 text-lg">เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ</p>
+            </motion.div>
             
             <motion.button
               type="button"
@@ -948,8 +985,8 @@ export default function WasMember() {
                 setCurrentStep(1);
                 setCompanies([]);
               }}
-              className="py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              whileHover={{ scale: 1.02 }}
+              className="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-lg shadow-md"
+              whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
             >
               ยืนยันสมาชิกเพิ่มเติม
@@ -1011,22 +1048,60 @@ export default function WasMember() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Full-screen blocking overlay during submission */}
-      {showBlockingOverlay && (
-        <div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60"
-          role="alertdialog"
-          aria-modal="true"
-        >
-          <div className="flex flex-col items-center gap-4 text-white">
-            <svg className="animate-spin h-10 w-10 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg>
-            <div className="text-lg font-semibold">กำลังส่งข้อมูลทั้งหมด โปรดรอ...</div>
-            <div className="text-sm opacity-80">ห้ามปิดหรือรีเฟรชหน้าต่างระหว่างดำเนินการ</div>
-          </div>
-        </div>
+      {/* Full-screen blocking overlay during submission - using React Portal */}
+      {showBlockingOverlay && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          <motion.div
+            className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/75"
+            role="alertdialog"
+            aria-modal="true"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              pointerEvents: 'all',
+              touchAction: 'none',
+              zIndex: 99999
+            }}
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <motion.div 
+              className="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.3, delay: 0.1 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex flex-col items-center gap-6 text-center">
+                <motion.div
+                  className="relative w-20 h-20"
+                  initial={{ rotate: 0 }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                >
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-100"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-600 border-t-transparent"></div>
+                </motion.div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">กำลังส่งข้อมูลทั้งหมด</h3>
+                  <p className="text-gray-600 mb-1">โปรดรอสักครู่...</p>
+                  <p className="text-sm text-red-600 font-medium">ห้ามปิดหรือรีเฟรชหน้าต่างระหว่างดำเนินการ</p>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>,
+        document.body
       )}
       {/* Yellow Alert: Instruction for existing members */}
       <motion.div 
@@ -1074,55 +1149,104 @@ export default function WasMember() {
       <AnimatePresence>
         {showSuccessMessage && (
           <motion.div 
-            className="bg-green-100 border border-green-400 text-green-800 px-4 py-3 rounded-lg mb-4 shadow flex items-center" 
+            className="bg-green-50 border border-green-200 rounded-xl p-5 mb-6 shadow-lg" 
             role="alert"
             initial={{ opacity: 0, y: -20, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -20, height: 0 }}
             transition={{ duration: 0.4 }}
           >
-            <motion.div
-              initial={{ scale: 0, rotate: -180 }}
-              animate={{ scale: 1, rotate: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-            >
-              <FaCheckCircle className="w-6 h-6 mr-2 text-green-600" />
-            </motion.div>
-            <motion.span 
-              className="font-medium"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3, delay: 0.3 }}
-            >
-              {successMessage}
-            </motion.span>
+            <div className="flex items-center">
+              <div className="flex-shrink-0 mr-4">
+                <motion.div 
+                  className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center"
+                  initial={{ scale: 0, rotate: -180 }}
+                  animate={{ scale: 1, rotate: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
+                >
+                  <FaCheckCircle className="w-7 h-7 text-green-600" />
+                </motion.div>
+              </div>
+              <div className="flex-1">
+                <motion.h3 
+                  className="text-lg font-bold text-green-800 mb-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                >
+                  ส่งข้อมูลสำเร็จ
+                </motion.h3>
+                <motion.p 
+                  className="font-medium text-green-700"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.4 }}
+                >
+                  {successMessage}
+                </motion.p>
+              </div>
+              <motion.button
+                className="ml-auto text-green-700 hover:text-green-900"
+                onClick={() => setShowSuccessMessage(false)}
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                aria-label="Close"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </motion.button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
-      {/* Show loading indicator when submitting */}
+      {/* Show loading indicator when submitting but not blocking */}
       <AnimatePresence>
-        {isSubmitting && (
+        {isSubmitting && !showBlockingOverlay && (
           <motion.div 
-            className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4"
+            className="bg-blue-50 border border-blue-200 rounded-xl p-5 mb-6 shadow-lg"
             initial={{ opacity: 0, y: -10, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -10, height: 0 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex items-center">
-              <motion.div 
-                className="rounded-full h-5 w-5 border-b-2 border-blue-700 mr-3"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              ></motion.div>
-              <motion.p 
-                className="text-blue-700"
-                initial={{ opacity: 0, x: -5 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
-              >
-                กำลังดำเนินการ โปรดรอสักครู่...
-              </motion.p>
+              <div className="flex-shrink-0 mr-4">
+                <motion.div 
+                  className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+                  initial={{ scale: 0.9 }}
+                  animate={{ scale: 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <motion.div 
+                    className="relative w-8 h-8"
+                    initial={{ rotate: 0 }}
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <div className="absolute inset-0 rounded-full border-3 border-blue-100"></div>
+                    <div className="absolute inset-0 rounded-full border-3 border-blue-600 border-t-transparent"></div>
+                  </motion.div>
+                </motion.div>
+              </div>
+              <div className="flex-1">
+                <motion.h3 
+                  className="text-lg font-bold text-blue-800 mb-1"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                >
+                  กำลังดำเนินการ
+                </motion.h3>
+                <motion.p 
+                  className="font-medium text-blue-700"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.3 }}
+                >
+                  โปรดรอสักครู่...
+                </motion.p>
+              </div>
             </div>
           </motion.div>
         )}

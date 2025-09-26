@@ -133,55 +133,25 @@ export default function CompanyAddressInfo({
     return formData.addresses?.[activeTab] || { addressType: activeTab };
   };
 
-  const fetchPostalCode = useCallback(async (subDistrict) => {
-    if (!subDistrict || subDistrict.trim() === '') return;
-    
-    try {
-      setIsLoading(true);
-      console.log(`Fetching postal code for subdistrict: ${subDistrict}`);
-      const response = await fetch(`/api/postal-code?subDistrict=${encodeURIComponent(subDistrict.trim())}`);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Error response: ${response.status} ${errorText}`);
-        throw new Error(`ไม่สามารถดึงข้อมูลรหัสไปรษณีย์ได้: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log('Postal code API response:', data);
-      
-      if (data.success && data.data && data.data.length > 0) {
-        const postalCode = data.data[0].postalCode;
-        console.log(`Found postal code: ${postalCode}`);
-        
-        setFormData(prev => ({
-          ...prev,
-          addresses: {
-            ...prev.addresses,
-            [activeTab]: {
-              ...prev.addresses?.[activeTab],
-              postalCode: postalCode
-            }
-          }
-        }));
-        // ลดการแจ้งเตือนซ้ำ ๆ: ไม่ต้องแสดง toast สำเร็จทุกครั้ง
-      } else {
-        console.log(`No postal code found for subdistrict: ${subDistrict}`);
-        toast.error('ไม่พบรหัสไปรษณีย์สำหรับตำบล/แขวงนี้');
-      }
-    } catch (error) {
-      console.error('Error fetching postal code:', error);
-      toast.error(error.message || 'เกิดข้อผิดพลาดในการดึงรหัสไปรษณีย์');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [setFormData, activeTab]);
-
+  // Enhanced fetch functions with cascading logic
   const fetchSubDistricts = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.trim().length < 2) return [];
     
     try {
-      const response = await fetch(`/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=subdistrict`);
+      const currentAddress = getCurrentAddress();
+      const province = currentAddress.province;
+      const district = currentAddress.district;
+      
+      // Build query with cascading filters
+      let url = `/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=subdistrict`;
+      if (province) {
+        url += `&province=${encodeURIComponent(province)}`;
+      }
+      if (district) {
+        url += `&district=${encodeURIComponent(district)}`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`ไม่สามารถค้นหาข้อมูลตำบลได้: ${response.status}`);
       }
@@ -191,13 +161,22 @@ export default function CompanyAddressInfo({
       console.error('Error fetching subdistricts:', error);
       return [];
     }
-  }, []);
+  }, [activeTab, formData.addresses]);
 
   const fetchDistricts = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.trim().length < 2) return [];
     
     try {
-      const response = await fetch(`/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=district`);
+      const currentAddress = getCurrentAddress();
+      const province = currentAddress.province;
+      
+      // Build query with province filter if available
+      let url = `/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=district`;
+      if (province) {
+        url += `&province=${encodeURIComponent(province)}`;
+      }
+      
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`ไม่สามารถค้นหาข้อมูลอำเภอได้: ${response.status}`);
       }
@@ -207,7 +186,7 @@ export default function CompanyAddressInfo({
       console.error('Error fetching districts:', error);
       return [];
     }
-  }, []);
+  }, [activeTab, formData.addresses]);
 
   const fetchProvinces = useCallback(async (searchTerm) => {
     if (!searchTerm || searchTerm.trim().length < 2) return [];
@@ -241,6 +220,7 @@ export default function CompanyAddressInfo({
     }
   }, []);
 
+  // Enhanced handlers with smart cascading logic - ปรับตามลำดับใหม่
   const handleSubDistrictChange = useCallback((value) => {
     setFormData(prev => ({
       ...prev,
@@ -252,28 +232,46 @@ export default function CompanyAddressInfo({
         }
       }
     }));
-    // หยุดเรียก API ระหว่างพิมพ์เพื่อลดการ fetch รัว ๆ
-    // จะทำการ autofill ผ่าน onSelect แทน (เมื่อผู้ใช้เลือกจาก dropdown)
-  }, [setFormData, fetchPostalCode, activeTab]);
+  }, [setFormData, activeTab]);
   
   const handleSubDistrictSelect = useCallback((option) => {
     if (!option) return;
     
     console.log('Selected subdistrict option:', option);
-    setFormData(prev => ({
-      ...prev,
-      addresses: {
-        ...prev.addresses,
-        [activeTab]: {
-          ...prev.addresses?.[activeTab],
-          subDistrict: option.text || option.name || '',
-          district: option.district || '',
-          province: option.province || '',
-          postalCode: option.postalCode || ''
+    
+    // Check if this is a complete subdistrict selection (with full address info)
+    const hasFullAddressInfo = option.district && option.province && option.postalCode;
+    
+    if (hasFullAddressInfo) {
+      // Complete autofill - original mechanic
+      setFormData(prev => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          [activeTab]: {
+            ...prev.addresses?.[activeTab],
+            subDistrict: option.text || option.name || '',
+            district: option.district || '',
+            province: option.province || '',
+            postalCode: option.postalCode || ''
+          }
         }
-      }
-    }));
-    // ลดการแจ้งเตือนเพื่อป้องกัน toast เด้งรัว ๆ ระหว่างใช้งาน
+      }));
+      toast.success('ข้อมูลที่อยู่ถูกเติมอัตโนมัติแล้ว');
+    } else {
+      // Partial selection - just update subdistrict and clear dependent fields
+      setFormData(prev => ({
+        ...prev,
+        addresses: {
+          ...prev.addresses,
+          [activeTab]: {
+            ...prev.addresses?.[activeTab],
+            subDistrict: option.text || option.name || '',
+            ...(option.postalCode && { postalCode: option.postalCode })
+          }
+        }
+      }));
+    }
   }, [setFormData, activeTab]);
   
   const handleDistrictChange = useCallback((value) => {
@@ -293,6 +291,8 @@ export default function CompanyAddressInfo({
     if (!option) return;
     
     console.log('Selected district option:', option);
+    
+    // When selecting district, auto-fill province if not set
     setFormData(prev => ({
       ...prev,
       addresses: {
@@ -300,12 +300,12 @@ export default function CompanyAddressInfo({
         [activeTab]: {
           ...prev.addresses?.[activeTab],
           district: option.text || option.name || '',
-          province: option.province || ''
+          province: option.province || prev.addresses?.[activeTab]?.province || ''
         }
       }
     }));
   }, [setFormData, activeTab]);
-  
+
   const handleProvinceChange = useCallback((value) => {
     setFormData(prev => ({
       ...prev,
@@ -314,6 +314,24 @@ export default function CompanyAddressInfo({
         [activeTab]: {
           ...prev.addresses?.[activeTab],
           province: value
+        }
+      }
+    }));
+  }, [setFormData, activeTab]);
+
+  const handleProvinceSelect = useCallback((option) => {
+    if (!option) return;
+    
+    console.log('Selected province option:', option);
+    
+    // Just update province - don't clear other fields since it's at the end of chain
+    setFormData(prev => ({
+      ...prev,
+      addresses: {
+        ...prev.addresses,
+        [activeTab]: {
+          ...prev.addresses?.[activeTab],
+          province: option.text || option.name || ''
         }
       }
     }));
@@ -336,6 +354,8 @@ export default function CompanyAddressInfo({
     if (!option) return;
     
     console.log('Selected postal code option:', option);
+    
+    // Auto-fill address from postal code selection
     setFormData(prev => ({
       ...prev,
       addresses: {
@@ -349,7 +369,7 @@ export default function CompanyAddressInfo({
         }
       }
     }));
-    // ไม่ต้องแสดง toast สำเร็จเพื่อลดการรบกวนผู้ใช้
+    toast.success('ข้อมูลที่อยู่ถูกเติมจากรหัสไปรษณีย์แล้ว');
   }, [setFormData, activeTab]);
 
   const currentAddress = getCurrentAddress();
@@ -361,7 +381,6 @@ export default function CompanyAddressInfo({
         <h3 className="text-xl font-semibold text-white tracking-tight">
           ที่อยู่บริษัท
         </h3>
-      
       </div>
       
       {/* ข้อความเตือนหลัก */}
@@ -380,7 +399,7 @@ export default function CompanyAddressInfo({
               <div className="mt-1 text-sm text-red-700">
                 <ul className="list-disc list-inside space-y-1">
                   <li>บังคับ: กรุณากรอกที่อยู่ให้ครบทั้ง <strong>ทั้ง 3 ประเภท</strong></li>
-                 
+                  <li className="text-blue-700"><strong>เคล็ดลับ:</strong> พิมพ์ตำบลตรงๆ เพื่อเติมข้อมูลอัตโนมัติ หรือ เลือกตาม ตำบล → อำเภอ → จังหวัด</li>
                 </ul>
               </div>
             </div>
@@ -406,7 +425,6 @@ export default function CompanyAddressInfo({
                   }
                 `}
               >
-                <span className="text-lg">{config.icon}</span>
                 <span>{config.label}</span>
                 {type === '1' && (
                   <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full ml-1">
@@ -450,12 +468,10 @@ export default function CompanyAddressInfo({
       <div className="px-8 py-6">
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-3 mb-6 pb-3 border-b border-gray-100">
-            <span className="text-2xl">{addressTypes[activeTab].icon}</span>
             <div>
               <h4 className="text-base font-medium text-gray-900">
                 {addressTypes[activeTab].label}
               </h4>
-            
             </div>
           </div>
           
@@ -496,14 +512,6 @@ export default function CompanyAddressInfo({
                   {errors[`addresses.${activeTab}.addressNumber`]}
                 </p>
               )}
-              {isAutofill && currentAddress.addressNumber && (
-                <p className="text-xs text-blue-600 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  ข้อมูลถูกดึงอัตโนมัติ
-                </p>
-              )}
             </div>
 
             {/* Building */}
@@ -518,26 +526,8 @@ export default function CompanyAddressInfo({
                 value={currentAddress.building || ''}
                 onChange={handleInputChange}
                 placeholder="ชื่ออาคาร หรือ หมู่บ้าน"
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  border-gray-300 hover:border-gray-400
-                  ${isAutofill && currentAddress.building
-                    ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
-                    : 'bg-white'
-                  }
-                `}
+                className="w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400 bg-white"
               />
-              {isAutofill && currentAddress.building && (
-                <p className="text-xs text-blue-600 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  ข้อมูลถูกดึงอัตโนมัติ
-                </p>
-              )}
             </div>
 
             {/* Moo */}
@@ -552,26 +542,8 @@ export default function CompanyAddressInfo({
                 value={currentAddress.moo || ''}
                 onChange={handleInputChange}
                 placeholder="หมู่ที่"
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  border-gray-300 hover:border-gray-400
-                  ${isAutofill && currentAddress.moo
-                    ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
-                    : 'bg-white'
-                  }
-                `}
+                className="w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400 bg-white"
               />
-              {isAutofill && currentAddress.moo && (
-                <p className="text-xs text-blue-600 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  ข้อมูลถูกดึงอัตโนมัติ
-                </p>
-              )}
             </div>
 
             {/* Soi */}
@@ -586,26 +558,8 @@ export default function CompanyAddressInfo({
                 value={currentAddress.soi || ''}
                 onChange={handleInputChange}
                 placeholder="ซอย"
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  border-gray-300 hover:border-gray-400
-                  ${isAutofill && currentAddress.soi
-                    ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
-                    : 'bg-white'
-                  }
-                `}
+                className="w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400 bg-white"
               />
-              {isAutofill && currentAddress.soi && (
-                <p className="text-xs text-blue-600 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  ข้อมูลถูกดึงอัตโนมัติ
-                </p>
-              )}
             </div>
 
             {/* Street */}
@@ -620,33 +574,15 @@ export default function CompanyAddressInfo({
                 value={currentAddress.street || ''}
                 onChange={handleInputChange}
                 placeholder="ถนน"
-                className={`
-                  w-full px-4 py-3 text-sm
-                  border rounded-lg
-                  transition-all duration-200
-                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-                  border-gray-300 hover:border-gray-400
-                  ${isAutofill && currentAddress.street
-                    ? 'bg-blue-50 text-gray-700 cursor-default border-blue-200'
-                    : 'bg-white'
-                  }
-                `}
+                className="w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400 bg-white"
               />
-              {isAutofill && currentAddress.street && (
-                <p className="text-xs text-blue-600 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  ข้อมูลถูกดึงอัตโนมัติ
-                </p>
-              )}
             </div>
 
-            {/* Sub District */}
+            {/* Sub District - Enhanced with district filtering */}
             <div className="space-y-2">
               <SearchableDropdown
                 label="ตำบล/แขวง"
-                placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง"
+                placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง หรือเติมข้อมูลอัตโนมัติ"
                 value={currentAddress.subDistrict || ''}
                 onChange={handleSubDistrictChange}
                 onSelect={handleSubDistrictSelect}
@@ -659,32 +595,33 @@ export default function CompanyAddressInfo({
               />
             </div>
 
-            {/* District */}
+            {/* District - Enhanced with province filtering */}
             <div className="space-y-2">
               <SearchableDropdown
                 label="อำเภอ/เขต"
-                placeholder="พิมพ์เพื่อค้นหาอำเภอ/เขต"
+                placeholder={currentAddress.province ? "พิมพ์เพื่อค้นหาอำเภอ/เขต" : "พิมพ์เพื่อค้นหาอำเภอ/เขต"}
                 value={currentAddress.district || ''}
                 onChange={handleDistrictChange}
                 onSelect={handleDistrictSelect}
                 fetchOptions={fetchDistricts}
                 isRequired={true}
-                isReadOnly={true}
+                isReadOnly={false}
                 error={errors?.[`addresses.${activeTab}.district`]}
                 autoFillNote={isAutofill && currentAddress.district ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
               />
             </div>
 
-            {/* Province */}
+            {/* Province - Enhanced with cascading logic */}
             <div className="space-y-2">
               <SearchableDropdown
                 label="จังหวัด"
                 placeholder="พิมพ์เพื่อค้นหาจังหวัด"
                 value={currentAddress.province || ''}
                 onChange={handleProvinceChange}
+                onSelect={handleProvinceSelect}
                 fetchOptions={fetchProvinces}
                 isRequired={true}
-                isReadOnly={true}
+                isReadOnly={false}
                 error={errors?.[`addresses.${activeTab}.province`]}
                 autoFillNote={isAutofill && currentAddress.province ? '* ข้อมูลถูกดึงอัตโนมัติ' : null}
               />
@@ -757,6 +694,8 @@ export default function CompanyAddressInfo({
                 </p>
               )}
             </div>
+            
+            {/* Company Email */}
             <div className="space-y-2">
               <label htmlFor={`email-${activeTab}`} className="block text-sm font-medium text-gray-900">
                 อีเมล (ถ้ามี)

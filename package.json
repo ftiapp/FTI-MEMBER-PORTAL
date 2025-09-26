@@ -17,6 +17,7 @@
     "@react-pdf/renderer": "^4.3.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^3.0.2",
+    "browser-image-compression": "^2.0.2",
     "chart.js": "^4.4.9",
     "cloudinary": "^2.6.0",
     "date-fns": "^4.1.0",
