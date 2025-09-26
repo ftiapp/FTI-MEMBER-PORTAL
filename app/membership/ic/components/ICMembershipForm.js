@@ -103,6 +103,7 @@ const getFirstFieldError = (errors = {}) => {
     if (errors[key]) return key;
   }
 
+
   // 2) Address fields by type and field priority
   const addressFieldPriority = [
     'addressNumber', 'subDistrict', 'district', 'province', 'postalCode', 'email', 'phone', 'website'
@@ -614,6 +615,34 @@ const handleNext = useCallback(async (e) => {
     // Use the enhanced scrollToFirstError function which handles toast notifications
     scrollToFirstError(formErrors);
     return;
+  }
+
+  // Additional defensive guard for Applicant step: enforce prename "Other" requirements
+  if (currentStep === 1) {
+    const prenameThVal = formData.prename_th ?? formData.prenameTh;
+    const prenameEnVal = formData.prename_en ?? formData.prenameEn;
+    const prenameOtherVal = formData.prename_other ?? formData.prenameOther;
+    const prenameOtherEnVal = formData.prename_other_en ?? formData.prenameOtherEn;
+
+    const extraErrors = {};
+    if (!prenameThVal || prenameThVal === '') {
+      extraErrors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
+    }
+    if (!prenameEnVal || prenameEnVal === '') {
+      extraErrors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+    }
+    if ((prenameThVal === 'อื่นๆ' || String(prenameEnVal || '').toLowerCase() === 'other') && !prenameOtherVal) {
+      extraErrors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
+    }
+    if (String(prenameEnVal || '').toLowerCase() === 'other' && !prenameOtherEnVal) {
+      extraErrors.prename_other_en = 'กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+    }
+    if (Object.keys(extraErrors).length > 0) {
+      const merged = { ...formErrors, ...extraErrors };
+      setErrors(merged);
+      scrollToFirstError(merged);
+      return;
+    }
   }
 
   // ✅ แก้ไขการตรวจสอบ ID Card สำหรับ step 1

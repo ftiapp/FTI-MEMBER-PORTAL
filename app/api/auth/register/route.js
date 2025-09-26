@@ -2,7 +2,7 @@ import { query } from '@/app/lib/db';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { createVerificationToken } from '@/app/lib/token';
-import { sendVerificationEmail } from '@/app/lib/mailersend';
+import { sendVerificationEmail } from '@/app/lib/gmail-sender';
 
 export async function POST(request) {
   try {

@@ -71,8 +71,8 @@ const validateApplicantInfo = (formData) => {
   if ((prenameThVal === 'อื่นๆ' || (prenameEnVal && String(prenameEnVal).toLowerCase() === 'other')) && !prenameOtherVal) {
     errors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
   }
-  if (prenameEnVal && String(prenameEnVal).toLowerCase() === 'other' && !prenameOtherEnVal) {
-    errors.prename_other_en = 'Please specify prename (English)';
+  if ((prenameEnVal && String(prenameEnVal).toLowerCase() === 'other') && !prenameOtherEnVal) {
+    errors.prename_other_en = 'กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)';
   }
 
   // Thai name validation
@@ -254,8 +254,8 @@ const validateRepresentativeInfo = (formData) => {
   if ((repPrenameTh === 'อื่นๆ' || (repPrenameEn && String(repPrenameEn).toLowerCase() === 'other')) && !repPrenameOther) {
     representativeErrors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
   }
-  if (repPrenameEn && String(repPrenameEn).toLowerCase() === 'other' && !repPrenameOtherEn) {
-    representativeErrors.prename_other_en = 'Please specify prename (English)';
+  if ((repPrenameEn && String(repPrenameEn).toLowerCase() === 'other') && !repPrenameOtherEn) {
+    representativeErrors.prename_other_en = 'กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)';
   }
 
   // Thai name validation

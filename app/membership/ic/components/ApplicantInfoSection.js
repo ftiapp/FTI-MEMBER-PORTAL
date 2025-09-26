@@ -173,7 +173,22 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
       setFormData(prev => ({ 
         ...prev, 
         prenameTh: value,
-        prenameEn: englishPrename
+        prenameEn: englishPrename,
+        // ล้างค่า prenameOther เมื่อเปลี่ยนค่า prenameTh ที่ไม่ใช่ 'อื่นๆ'
+        prenameOther: value === 'อื่นๆ' ? prev.prenameOther : '',
+        // ล้างค่า prenameOtherEn เมื่อเปลี่ยนค่า prenameTh ที่ไม่ใช่ 'อื่นๆ'
+        prenameOtherEn: value === 'อื่นๆ' ? prev.prenameOtherEn : ''
+      }));
+      return;
+    }
+    
+    // Handle prename English change
+    if (name === 'prenameEn') {
+      setFormData(prev => ({
+        ...prev,
+        prenameEn: value,
+        // ล้างค่า prenameOtherEn เมื่อเปลี่ยนค่า prenameEn ที่ไม่ใช่ 'Other'
+        prenameOtherEn: value === 'Other' ? prev.prenameOtherEn : ''
       }));
       return;
     }
@@ -488,16 +503,21 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
                 <label htmlFor="prenameEn" className="block text-sm font-medium text-gray-900">
                   คำนำหน้า <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="text"
+                <select
                   id="prenameEn"
                   name="prenameEn"
+                  data-field="prenameEn"
                   value={formData.prenameEn || ''}
                   onChange={handleInputChange}
-                  placeholder="Mr./Mrs./Miss"
                   disabled={isLoading || (formData.prenameTh && formData.prenameTh !== 'อื่นๆ')}
                   className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(errors?.prenameEn || errors?.prename_en) ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'} ${(formData.prenameTh && formData.prenameTh !== 'อื่นๆ') ? 'bg-gray-50' : 'bg-white'}`}
-                />
+                >
+                  <option value="">-- Select Title --</option>
+                  <option value="Mr.">Mr.</option>
+                  <option value="Mrs.">Mrs.</option>
+                  <option value="Miss">Miss</option>
+                  <option value="Other">Other</option>
+                </select>
                 {(errors?.prenameEn || errors?.prename_en) && (
                   <p className="text-sm text-red-600">{errors.prenameEn || errors.prename_en}</p>
                 )}
@@ -554,11 +574,19 @@ export default function ApplicantInfoSection({ formData, setFormData, errors, in
                   type="text"
                   id="prenameOtherEn"
                   name="prenameOtherEn"
+                  data-field="prename_other_en"
                   value={formData.prenameOtherEn || ''}
                   onChange={handleInputChange}
-                  placeholder="e.g., Assoc. Prof., Dr., Col., Prof., Lt. Col."
+                  placeholder="e.g., Dr., Prof."
                   disabled={isLoading}
                   className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${(errors?.prenameOtherEn || errors?.prename_other_en) ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'} bg-white`}
+                  ref={el => {
+                    // เลื่อนไปยังช่องกรอกข้อมูลถ้ามี error
+                    if ((errors?.prenameOtherEn || errors?.prename_other_en) && el) {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      el.focus();
+                    }
+                  }}
                 />
                 {(errors?.prenameOtherEn || errors?.prename_other_en) && (
                   <p className="text-sm text-red-600 mt-1">{errors.prenameOtherEn || errors.prename_other_en}</p>
