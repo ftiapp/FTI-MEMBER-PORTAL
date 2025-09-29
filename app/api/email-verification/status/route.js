@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getVerificationStatus } from "@/app/lib/mailersend-verification";
+import { getVerificationStatus } from "@/app/lib/mailersend-verification.postmark";
 
 export async function GET(req) {
   try {

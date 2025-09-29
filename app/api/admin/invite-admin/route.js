@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '../../../lib/db';
 import { getAdminFromSession, logAdminAction } from '../../../lib/adminAuth';
 import { generateToken } from '../../../lib/token';
-import { sendAdminInviteEmail } from '../../../lib/mailersend';
+import { sendAdminInviteEmail } from '@/app/lib/postmark';
 
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);

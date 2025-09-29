@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { generateToken } from '@/app/lib/token';
-import { sendNewEmailVerification } from '@/app/lib/mailersend';
+import { sendNewEmailVerification } from '@/app/lib/postmark';
 
 export async function POST(request) {
   try {

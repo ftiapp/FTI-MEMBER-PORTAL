@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getConnection } from '@/app/lib/db';
 import { checkAdminSession } from '@/app/lib/auth';
-import { sendRejectionEmail } from '@/app/lib/mailersend';
+import { sendRejectionEmail } from '@/app/lib/postmark';
 
 // Function to fetch complete application data for resubmission
 async function fetchCompleteApplicationData(connection, type, id) {

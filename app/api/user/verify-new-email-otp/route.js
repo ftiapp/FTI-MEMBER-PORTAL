@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
-import { sendEmailChangeNotificationToOld, sendEmailChangeNotificationToNew } from '@/app/lib/mailersend-email-change';
+import { sendEmailChangeNotificationToOld, sendEmailChangeNotificationToNew } from '@/app/lib/mailersend-email-change.postmark';
 
 export async function POST(request) {
   try {

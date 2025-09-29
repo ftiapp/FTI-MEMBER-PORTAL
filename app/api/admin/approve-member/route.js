@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '../../../lib/db';
 import { getAdminFromSession, logAdminAction } from '../../../lib/adminAuth';
-import { sendApprovalEmail, sendRejectionEmail } from '../../../lib/mailersend';
+import { sendApprovalEmail, sendRejectionEmail } from '../../../lib/postmark';
 import { createNotification } from '../../../lib/notifications';
 
 export async function POST(request) {

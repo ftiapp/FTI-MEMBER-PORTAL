@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { checkAdminSession } from '@/app/lib/auth';
 import { generateToken } from '@/app/lib/token';
-import { sendAdminEmailChangeVerification, sendAdminEmailChangeNotification } from '@/app/lib/mailersend-admin-email-change';
+import { sendAdminEmailChangeVerification, sendAdminEmailChangeNotification } from '@/app/lib/mailersend-admin-email-change.postmark';
 
 /**
  * POST /api/admin/change-user-email

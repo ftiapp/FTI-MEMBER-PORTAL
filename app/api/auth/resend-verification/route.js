@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { createVerificationToken } from '@/app/lib/token';
-import { sendVerificationEmail } from '@/app/lib/mailersend';
+import { sendVerificationEmail } from '@/app/lib/postmark';
 
 /**
  * POST handler for resending verification email

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
 import { createPasswordResetToken } from '@/app/lib/token';
-import { sendPasswordResetEmail } from '@/app/lib/mailersend';
+import { sendPasswordResetEmail } from '@/app/lib/postmark';
 
 // จำนวนครั้งสูงสุดที่อนุญาตให้ขอรีเซ็ตรหัสผ่านต่อวัน
 const MAX_RESET_REQUESTS_PER_DAY = 3;

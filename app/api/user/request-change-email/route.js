@@ -1,12 +1,23 @@
 import { NextResponse } from 'next/server';
 import { query } from '@/app/lib/db';
-import { sendEmailChangeOTP } from '@/app/lib/mailersend-email-change';
+import { sendNewEmailVerification } from '@/app/lib/postmark';
 import { generateToken } from '@/app/lib/token';
+
+// ฟังก์ชันสำหรับส่ง OTP ทางอีเมล
+async function sendEmailChangeOTP(email, firstName, lastName, otp) {
+  try {
+    // ใช้ฟังก์ชันจาก Postmark
+    await sendNewEmailVerification(email, `${firstName} ${lastName}`, otp);
+    return true;
+  } catch (error) {
+    console.error('Error sending email change OTP:', error);
+    throw error;
+  }
+}
 
 export async function POST(request) {
   try {
     const { email } = await request.json();
-    
     if (!email) {
       return NextResponse.json({ error: 'กรุณาระบุอีเมล' }, { status: 400 });
     }

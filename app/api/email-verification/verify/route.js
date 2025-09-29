@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { startEmailVerification, waitForVerification } from "@/app/lib/mailersend-verification";
+import { startEmailVerification, waitForVerification } from "@/app/lib/mailersend-verification.postmark";
 
 export async function POST(req) {
   try {

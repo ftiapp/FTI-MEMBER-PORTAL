@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '../../../../lib/adminAuth';
 import { query as dbQuery } from '../../../../lib/db';
-import { sendAddressRejectionEmail } from '../../../../lib/mailersend';
+import { sendAddressRejectionEmail } from '@/app/lib/postmark';
 import { createNotification } from '../../../../lib/notifications';
 
 export async function POST(request) {

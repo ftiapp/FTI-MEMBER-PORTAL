@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '../../../../lib/adminAuth';
 import { query } from '../../../../lib/db';
 import { mssqlQuery } from '../../../../lib/mssql';
-import { sendAddressApprovalEmail } from '../../../../lib/mailersend';
+import { sendAddressApprovalEmail } from '@/app/lib/postmark';
 import { createNotification } from '../../../../lib/notifications';
 
 export async function POST(request) {

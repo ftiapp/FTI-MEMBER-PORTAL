@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getAdminFromSession } from '../../../../lib/adminAuth';
 import { connectDB } from '../../../../lib/db';
 import { connectMSSQL } from '../../../../lib/mssql';
-import { sendMemberConnectionEmail } from '../../../../lib/mailersend';
+import { sendMemberConnectionEmail } from '../../../../lib/postmark';
 
 export async function POST(request) {
   try {
