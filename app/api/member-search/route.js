@@ -39,7 +39,6 @@ export async function GET(req) {
 
     pool = await sql.connect(config);
 
-    // ปรับปรุง query ให้เรียงลำดับตามการขึ้นต้นด้วยคำค้นหา
     const searchPattern = `%${searchTerm}%`;
     const startWithPattern = `${searchTerm}%`;
     
@@ -55,19 +54,26 @@ export async function GET(req) {
           [MEMBER_TYPE_CODE],
           [COMP_PERSON_CODE],
           [TAX_ID],
-          [COMPANY_NAME]
+          [COMPANY_NAME],         -- Includes prename
+          [COMPANY_NAME_TH],      -- Plain company name (Thai)
+          [COMP_PERSON_NAME_EN]   -- English name if needed
         FROM [FTI].[dbo].[BI_MEMBER]
-        WHERE MEMBER_STATUS_CODE = 'A'
-        AND ([MEMBER_CODE] LIKE @searchPattern
-        OR [COMPANY_NAME] LIKE @searchPattern)
-        ORDER BY 
-          CASE 
-            WHEN [MEMBER_CODE] LIKE @startWithPattern THEN 1
+        WHERE [MEMBER_STATUS_CODE] = 'A'
+          AND [MEMBER_MAIN_GROUP_CODE] = '000'
+          AND (
+            [MEMBER_CODE] LIKE @searchPattern OR
+            [COMPANY_NAME_TH] LIKE @searchPattern OR
+            [COMPANY_NAME] LIKE @searchPattern
+          )
+        ORDER BY
+          CASE
+            WHEN [COMPANY_NAME_TH] LIKE @startWithPattern THEN 1
             WHEN [COMPANY_NAME] LIKE @startWithPattern THEN 2
-            ELSE 3
+            WHEN [MEMBER_CODE] LIKE @startWithPattern THEN 3
+            ELSE 4
           END,
-          LEN([MEMBER_CODE]),
-          [MEMBER_CODE]
+          CHARINDEX(@searchPattern, [COMPANY_NAME_TH]),
+          [COMPANY_NAME_TH]
       `);
       
     console.log('Query executed successfully');

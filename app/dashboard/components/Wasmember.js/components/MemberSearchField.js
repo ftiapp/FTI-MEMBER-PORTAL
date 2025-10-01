@@ -39,6 +39,86 @@ export default function MemberSearchField({
     };
   }, []);
 
+  // Detect if a string contains Thai characters
+  const isThai = (s = '') => /[\u0E00-\u0E7F]/.test(s);
+
+  // Resolve a displayable company name from possible fields, preferring Thai when needle is Thai
+  const getCompanyName = (item, needle = '') => {
+    const thaiCandidates = [item.COMP_NAME_TH, item.COMPANY_NAME_TH, item.COMPANY_NAME].filter(Boolean);
+    const enCandidates = [item.COMP_NAME_EN, item.COMPANY].filter(Boolean);
+    const all = [...thaiCandidates, ...enCandidates];
+    const pool = isThai(needle) && thaiCandidates.length ? thaiCandidates : all;
+    const name = pool.find(v => typeof v === 'string' && v.trim().length > 0) || '';
+    // Normalize: trim and remove zero-width spaces
+    return name.trim().replace(/\u200B/g, '');
+  };
+
+  // Build display name for UI (include prename when available)
+  const getDisplayName = (item, needle = '') => {
+    // Prefer COMPANY_NAME (already includes prename in BI_MEMBER)
+    const fromView = (item.COMPANY_NAME || '').trim();
+    if (fromView) return fromView;
+    // Fallback to building from PRENAME_TH + core name
+    const core = getCompanyName(item, needle);
+    const pre = (item.PRENAME_TH || '').trim();
+    return (pre ? `${pre} ${core}` : core).trim();
+  };
+
+  // Function to sort results by search term position
+  // Priority: Company name > Member code, with Thai-aware collation
+  const sortResultsByRelevance = (results, term) => {
+    const needle = (term || '').trim().toLocaleLowerCase('th');
+    const collator = new Intl.Collator('th', { sensitivity: 'base', numeric: true });
+    
+    return results.slice().sort((a, b) => {
+      const nameAOrig = getCompanyName(a, needle);
+      const nameBOrig = getCompanyName(b, needle);
+      const nameA = nameAOrig.toLocaleLowerCase('th');
+      const nameB = nameBOrig.toLocaleLowerCase('th');
+      const codeA = (a.MEMBER_CODE || '').toString().toLocaleLowerCase('th');
+      const codeB = (b.MEMBER_CODE || '').toString().toLocaleLowerCase('th');
+      
+      // Get positions of search term in names
+      const aIdx = nameA.indexOf(needle);
+      const bIdx = nameB.indexOf(needle);
+      
+      // Priority 1: Names that START with the search term (position 0) come FIRST
+      const aNameStarts = aIdx === 0;
+      const bNameStarts = bIdx === 0;
+      
+      if (aNameStarts && !bNameStarts) return -1;  // A starts with term, B doesn't -> A first
+      if (!aNameStarts && bNameStarts) return 1;   // B starts with term, A doesn't -> B first
+      
+      // Priority 2: If both start with term OR neither starts, sort by position
+      if (aIdx !== -1 && bIdx !== -1) {
+        if (aIdx !== bIdx) return aIdx - bIdx;  // Earlier position wins
+      }
+      
+      // Priority 3: If only one contains the term in name, prioritize it
+      if (aIdx !== -1 && bIdx === -1) return -1;
+      if (aIdx === -1 && bIdx !== -1) return 1;
+      
+      // Priority 4: Check member code (lower priority than name)
+      const aCodeIdx = codeA.indexOf(needle);
+      const bCodeIdx = codeB.indexOf(needle);
+      const aCodeStarts = aCodeIdx === 0;
+      const bCodeStarts = bCodeIdx === 0;
+      
+      if (aCodeStarts && !bCodeStarts) return -1;
+      if (!aCodeStarts && bCodeStarts) return 1;
+      
+      if (aCodeIdx !== -1 && bCodeIdx !== -1) {
+        if (aCodeIdx !== bCodeIdx) return aCodeIdx - bCodeIdx;
+      }
+      
+      if (aCodeIdx !== -1 && bCodeIdx === -1) return -1;
+      if (aCodeIdx === -1 && bCodeIdx !== -1) return 1;
+      
+      // Final: Thai alphabetical by original display name
+      return collator.compare(nameAOrig, nameBOrig);
+    });
+  };
+
   // Function to perform search
   const performSearch = async (term) => {
     if (!term || term.length < 2) { // Match the original 2 character minimum
@@ -54,7 +134,9 @@ export default function MemberSearchField({
 
       if (data.success && data.data && data.data.companies) {
         console.log('Search results:', data.data.companies);
-        setSearchResults(data.data.companies);
+        // Sort results by relevance before setting state
+        const sortedResults = sortResultsByRelevance(data.data.companies, term);
+        setSearchResults(sortedResults);
       } else {
         setSearchResults([]);
       }
@@ -100,6 +182,24 @@ export default function MemberSearchField({
     setShowResults(false);
     onSelectResult(result);
     console.log('Selected result:', result);
+  };
+
+  // Function to highlight search term in text
+  const highlightText = (text, highlight) => {
+    if (!highlight || !text) return text;
+    
+    const parts = text.split(new RegExp(`(${highlight})`, 'gi'));
+    return (
+      <>
+        {parts.map((part, index) => 
+          part.toLowerCase() === highlight.toLowerCase() ? (
+            <mark key={index} className="bg-yellow-200 font-semibold">{part}</mark>
+          ) : (
+            <span key={index}>{part}</span>
+          )
+        )}
+      </>
+    );
   };
 
   return (
@@ -168,7 +268,9 @@ export default function MemberSearchField({
                     disabled={isDisabled}
                   >
                     <div className="flex justify-between">
-                      <div className="font-medium">{result.COMPANY_NAME || 'ไม่ระบุชื่อ'}</div>
+                      <div className="font-medium">
+                        {highlightText(getDisplayName(result, searchTerm) || 'ไม่ระบุชื่อ', searchTerm)}
+                      </div>
                       {isNonSelectable && (
                         <span className={`text-xs px-2 py-1 rounded-full ${status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800'}`}>
                           {status === 'pending' ? 'รอการอนุมัติ' : 'ยืนยันแล้ว'}
@@ -179,7 +281,7 @@ export default function MemberSearchField({
                       )}
                     </div>
                     <div className="text-xs text-gray-500 flex justify-between">
-                      <span>รหัสสมาชิก: {result.MEMBER_CODE || 'ไม่ระบุ'}</span>
+                      <span>รหัสสมาชิก: {highlightText(result.MEMBER_CODE || 'ไม่ระบุ', searchTerm)}</span>
                       <span>ประเภท: {result.MEMBER_TYPE || 'ไม่ระบุ'}</span>
                     </div>
                   </button>

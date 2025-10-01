@@ -102,6 +102,24 @@ export default function Register() {
 
       {/* Additional CSS for better toast positioning */}
       <style jsx global>{`
+        /* Style for when loading overlay is active */
+        body.loading-active {
+          overflow: hidden !important;
+          position: fixed;
+          width: 100%;
+          height: 100%;
+        }
+        
+        /* Ensure loading overlay is above everything */
+        .loading-overlay {
+          z-index: 9999 !important;
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+        }
+
         .toast-notification {
           z-index: 9999 !important;
           position: fixed !important;

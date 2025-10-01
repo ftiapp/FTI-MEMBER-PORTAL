@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import FormInput from './FormInput';
 import PasswordInput from './PasswordInput';
 import PasswordStrengthMeter from './PasswordStrengthMeter';
+import LoadingOverlay from './LoadingOverlay';
 
 function RegisterForm() {
   const router = useRouter();
@@ -213,9 +214,13 @@ function RegisterForm() {
       return;
     }
 
+    // แสดง loading overlay และป้องกันการกดซ้ำ
     setIsSubmitting(true);
     setError('');
     setSuccess('');
+    
+    // ป้องกันการเลื่อนหน้าจอขณะ loading
+    document.body.style.overflow = 'hidden';
     
     try {
       // 1) reCAPTCHA v2 verification
@@ -254,6 +259,8 @@ function RegisterForm() {
       
       if (response.ok) {
         setSuccess('สมัครสมาชิกสำเร็จ! กำลังนำท่านไปยังหน้าตรวจสอบอีเมล');
+        // คืนค่าการเลื่อนหน้าจอเมื่อสำเร็จ
+        document.body.style.overflow = '';
         setTimeout(() => {
           router.push(`/check-email?email=${encodeURIComponent(formData.email)}`);
         }, 2000);
@@ -262,6 +269,8 @@ function RegisterForm() {
         const errorMsg = data.error || data.message || 'เกิดข้อผิดพลาดในการลงทะเบียน';
         setError(errorMsg);
         setIsSubmitting(false);
+        // คืนค่าการเลื่อนหน้าจอ
+        document.body.style.overflow = '';
         // Reset reCAPTCHA
         if (window.grecaptcha) {
           window.grecaptcha.reset();
@@ -271,6 +280,8 @@ function RegisterForm() {
       console.error('Registration error:', error);
       setError(typeof error?.message === 'string' ? error.message : 'เกิดข้อผิดพลาดในการเชื่อมต่อกับเซิร์ฟเวอร์');
       setIsSubmitting(false);
+      // คืนค่าการเลื่อนหน้าจอ
+      document.body.style.overflow = '';
       // Reset reCAPTCHA
       if (window.grecaptcha) {
         window.grecaptcha.reset();
@@ -280,6 +291,8 @@ function RegisterForm() {
 
   return (
     <section className="py-12">
+      {/* Loading Overlay */}
+      <LoadingOverlay isVisible={isSubmitting} />
       <div className="container mx-auto px-4">
         <motion.div 
           className="max-w-xl mx-auto"

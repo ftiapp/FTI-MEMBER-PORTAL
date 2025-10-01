@@ -161,7 +161,6 @@ export default function MemberInfoForm({
           </div>
         </motion.div>
         
-        {/* File upload field based on member type */}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -173,7 +172,7 @@ export default function MemberInfoForm({
                 formData.memberType === 'สส' || formData.memberType === 'สน' ? 
                   'หนังสือรับรอง (ประทับตราบริษัท และ ลงนาม)' :
                 formData.memberType === 'ทน' ? 
-                  'บัตรอนุญาตสมาคมการค้า (ประทับตราสมาคม และ ลงนาม)' :
+                  'หนังสือรับรองบริษัทที่มีการประทับตราบริษัท และ ลงนาม' :
                 formData.memberType === 'ทบ' ? 
                   'สำเนาบัตรประชาชน' :
                   'เอกสารยืนยัน'
@@ -187,18 +186,19 @@ export default function MemberInfoForm({
                 formData.memberType === 'สส' || formData.memberType === 'สน' ? 
                   'อัพโหลดหนังสือรับรองที่มีการประทับตราบริษัทและลงนาม (PDF, JPG)' :
                 formData.memberType === 'ทน' ? 
-                  'อัพโหลดบัตรอนุญาตสมาคมการค้าที่มีการประทับตราสมาคมและลงนาม (PDF, JPG)' :
+                  'อัพโหลดหนังสือรับรองบริษัทที่มีการประทับตราบริษัทและลงนาม (PDF, JPG)' :
                 formData.memberType === 'ทบ' ? 
                   'อัพโหลดสำเนาบัตรประชาชนที่ลงนามรับรองสำเนาถูกต้อง (PDF, JPG)' :
                   'รองรับไฟล์ PDF, JPG, JPEG, PNG ขนาดไม่เกิน 5MB'
               }
             />
+
             <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mt-2">
               <h4 className="text-sm font-medium text-blue-800 mb-1">เอกสารที่ต้องใช้ในการยืนยันสมาชิก</h4>
               <ul className="text-xs text-blue-700 list-disc pl-4 space-y-1">
                 <li>สมาชิกประเภทสามัญ-โรงงาน (สน): หนังสือรับรองบริษัทที่มีการประทับตราและลงนาม</li>
                 <li>สมาชิกประเภทสามัญ-สมาคมการค้า (สส): หนังสือรับรองสมาคมที่มีการประทับตราและลงนาม</li>
-                <li>สมาชิกประเภทสมทบ-นิติบุคคล (ทน): หนังสือรับรองบริษัทที่มีการประทับตราและลงนาม</li>
+                <li>สมาชิกประเภทสมทบ-นิติบุคคล (ทน): หนังสือรับรองบริษัทที่มีการประทับตราบริษัทและลงนาม</li>
                 <li>สมาชิกประเภทสมทบ-บุคคลธรรมดา (ทบ): สำเนาบัตรประชาชนที่ลงนามรับรองสำเนาถูกต้อง</li>
               </ul>
               <p className="text-xs text-blue-700 mt-2">เอกสารจะถูกตรวจสอบโดยเจ้าหน้าที่ภายใน 2 วันทำการ</p>
