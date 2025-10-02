@@ -1,14 +1,14 @@
-import React from 'react';
+import React from "react";
 
-const AdminActionsSection = ({ 
-  application, 
-  handleApprove, 
-  handleReject, 
-  handleSaveNote, 
-  isSubmitting, 
-  adminNote, 
+const AdminActionsSection = ({
+  application,
+  handleApprove,
+  handleReject,
+  handleSaveNote,
+  isSubmitting,
+  adminNote,
   setAdminNote,
-  type
+  type,
 }) => {
   if (!application) return null;
 
@@ -21,29 +21,41 @@ const AdminActionsSection = ({
       <div className="mb-6 rounded-lg border border-gray-200 bg-gray-50 p-4 text-sm text-gray-700">
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           <div>
-            <span className="text-gray-500">ประเภทสมาชิก:</span>{' '}
-            <span className="font-medium">{(type || application?.member_type || '-').toString().toUpperCase()}</span>
-          </div>
-          <div className="truncate">
-            <span className="text-gray-500">ชื่อบริษัท/ผู้ยื่น:</span>{' '}
+            <span className="text-gray-500">ประเภทสมาชิก:</span>{" "}
             <span className="font-medium">
-              {application?.company_name_th || application?.companyNameTh || application?.associationNameTh || application?.name || '-'}
+              {(type || application?.member_type || "-").toString().toUpperCase()}
             </span>
           </div>
           <div className="truncate">
-            <span className="text-gray-500">เลขทะเบียนนิติบุคคล:</span>{' '}
-            <span className="font-medium">{application?.tax_id || application?.taxId || application?.id_card_number || application?.idCard || '-'}</span>
+            <span className="text-gray-500">ชื่อบริษัท/ผู้ยื่น:</span>{" "}
+            <span className="font-medium">
+              {application?.company_name_th ||
+                application?.companyNameTh ||
+                application?.associationNameTh ||
+                application?.name ||
+                "-"}
+            </span>
+          </div>
+          <div className="truncate">
+            <span className="text-gray-500">เลขทะเบียนนิติบุคคล:</span>{" "}
+            <span className="font-medium">
+              {application?.tax_id ||
+                application?.taxId ||
+                application?.id_card_number ||
+                application?.idCard ||
+                "-"}
+            </span>
           </div>
         </div>
       </div>
-      
+
       {/* Admin Note */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-3">
           <label className="text-lg font-semibold text-gray-800">หมายเหตุของผู้ดูแลระบบ</label>
           {application.adminNoteAt && (
             <span className="text-sm text-gray-500">
-              บันทึกเมื่อ: {new Date(application.adminNoteAt).toLocaleString('th-TH')}
+              บันทึกเมื่อ: {new Date(application.adminNoteAt).toLocaleString("th-TH")}
             </span>
           )}
         </div>
@@ -60,11 +72,11 @@ const AdminActionsSection = ({
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'กำลังบันทึก...' : 'บันทึกหมายเหตุ'}
+            {isSubmitting ? "กำลังบันทึก..." : "บันทึกหมายเหตุ"}
           </button>
         </div>
       </div>
-      
+
       {/* Action Buttons */}
       {application.status === 0 && (
         <div className="flex justify-end space-x-4">
@@ -74,9 +86,14 @@ const AdminActionsSection = ({
             disabled={isSubmitting}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
-            {isSubmitting ? 'กำลังดำเนินการ...' : 'ปฏิเสธ'}
+            {isSubmitting ? "กำลังดำเนินการ..." : "ปฏิเสธ"}
           </button>
           <button
             onClick={handleApprove}
@@ -84,13 +101,18 @@ const AdminActionsSection = ({
             disabled={isSubmitting}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
             </svg>
-            {isSubmitting ? 'กำลังดำเนินการ...' : 'อนุมัติ'}
+            {isSubmitting ? "กำลังดำเนินการ..." : "อนุมัติ"}
           </button>
         </div>
       )}
-      
+
       {/* Show Member Code if available */}
       {application.status === 1 && application.member_code && (
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">

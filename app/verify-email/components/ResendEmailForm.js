@@ -1,8 +1,8 @@
 // ResendEmailForm.js
-import { useState } from 'react';
+import { useState } from "react";
 
 export default function ResendEmailForm({ onSuccess }) {
-  const [resendEmail, setResendEmail] = useState('');
+  const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
 
   // ฟังก์ชันนี้ถูกปิดการใช้งานชั่วคราวเนื่องจากเหตุผลด้านความปลอดภัย
@@ -10,9 +10,9 @@ export default function ResendEmailForm({ onSuccess }) {
   // มีระบบส่งอีเมลยืนยันอยู่ในส่วนอื่นแล้ว (ในหน้าลงทะเบียน)
   const handleResendVerification = async () => {
     // แจ้งผู้ใช้ว่าฟังก์ชันนี้ถูกปิดการใช้งาน
-    alert('ฟังก์ชันนี้ถูกปิดการใช้งานชั่วคราว กรุณาใช้ฟังก์ชันส่งอีเมลยืนยันในหน้าลงทะเบียนแทน');
+    alert("ฟังก์ชันนี้ถูกปิดการใช้งานชั่วคราว กรุณาใช้ฟังก์ชันส่งอีเมลยืนยันในหน้าลงทะเบียนแทน");
     return;
-    
+
     /* 
     // โค้ดเดิมถูกคอมเมนต์ไว้
     if (!resendEmail) {
@@ -54,8 +54,10 @@ export default function ResendEmailForm({ onSuccess }) {
   return (
     <div className="mb-6 max-w-md mx-auto">
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-        <p className="text-yellow-800 font-medium mb-2">หากยังไม่ได้รับอีเมลยืนยัน กรุณาลงทะเบียนด้วยอีเมลเดิมอีกครั้ง</p>
-        
+        <p className="text-yellow-800 font-medium mb-2">
+          หากยังไม่ได้รับอีเมลยืนยัน กรุณาลงทะเบียนด้วยอีเมลเดิมอีกครั้ง
+        </p>
+
         <div className="mt-4 pt-4 border-t border-yellow-200">
           <h5 className="text-gray-700 font-medium mb-2">ติดต่อเรา</h5>
           <p className="text-gray-600 text-sm mb-1">1453 กด 2</p>

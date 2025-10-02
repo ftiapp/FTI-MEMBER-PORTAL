@@ -1,12 +1,12 @@
-import React from 'react';
+import React from "react";
 
-const RejectModal = ({ 
-  showRejectModal, 
-  setShowRejectModal, 
-  rejectionReason, 
-  setRejectionReason, 
-  handleReject, 
-  isSubmitting 
+const RejectModal = ({
+  showRejectModal,
+  setShowRejectModal,
+  rejectionReason,
+  setRejectionReason,
+  handleReject,
+  isSubmitting,
 }) => {
   if (!showRejectModal) return null;
 
@@ -15,7 +15,9 @@ const RejectModal = ({
       <div className="bg-white rounded-lg p-6 w-full max-w-md">
         <h3 className="text-xl font-semibold mb-4">ปฏิเสธการสมัครสมาชิก</h3>
         <div className="mb-4">
-          <label className="block text-gray-700 mb-2">เหตุผลในการปฏิเสธ <span className="text-red-500">*</span></label>
+          <label className="block text-gray-700 mb-2">
+            เหตุผลในการปฏิเสธ <span className="text-red-500">*</span>
+          </label>
           <textarea
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             rows="4"
@@ -37,7 +39,7 @@ const RejectModal = ({
             className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
+            {isSubmitting ? "กำลังดำเนินการ..." : "ยืนยันการปฏิเสธ"}
           </button>
         </div>
       </div>

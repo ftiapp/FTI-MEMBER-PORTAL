@@ -1,25 +1,20 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-export default function DraftSavePopup({ 
-  isOpen, 
-  onClose, 
-  taxId, 
-  associationName 
-}) {
+export default function DraftSavePopup({ isOpen, onClose, taxId, associationName }) {
   const router = useRouter();
 
   if (!isOpen) return null;
 
   const handleNavigateToDashboard = () => {
     onClose();
-    router.push('/dashboard');
+    router.push("/dashboard");
   };
 
   const handleNavigateToDocuments = () => {
     onClose();
-    router.push('/dashboard?tab=documents');
+    router.push("/dashboard?tab=documents");
   };
 
   return (
@@ -30,7 +25,11 @@ export default function DraftSavePopup({
           <div className="flex items-center">
             <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
               <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
             <h3 className="text-xl font-bold text-white">บันทึกร่างสำเร็จ</h3>
@@ -41,9 +40,10 @@ export default function DraftSavePopup({
         <div className="px-6 py-6">
           <div className="mb-6">
             <p className="text-gray-700 text-base leading-relaxed mb-4">
-              ท่านได้บันทึกร่างเอกสารสมัครสมาชิกของ{associationName ? ` ${associationName}` : ''} สำเร็จแล้ว
+              ท่านได้บันทึกร่างเอกสารสมัครสมาชิกของ{associationName ? ` ${associationName}` : ""}{" "}
+              สำเร็จแล้ว
             </p>
-            
+
             <div className="bg-gray-50 rounded-lg p-4 mb-4">
               <div className="space-y-2">
                 {associationName && (
@@ -62,14 +62,14 @@ export default function DraftSavePopup({
             </div>
 
             <p className="text-sm text-gray-700 leading-relaxed">
-              ท่านสามารถกลับมาแก้ไขข้อมูลได้ในภายหลัง โดยไปที่เมนู{' '}
+              ท่านสามารถกลับมาแก้ไขข้อมูลได้ในภายหลัง โดยไปที่เมนู{" "}
               <button
                 onClick={handleNavigateToDashboard}
                 className="text-blue-600 hover:text-blue-800 font-medium underline transition-colors"
               >
                 จัดการสมาชิก
-              </button>
-              {' '}ทางด้านบน และเลือกเมนู{' '}
+              </button>{" "}
+              ทางด้านบน และเลือกเมนู{" "}
               <button
                 onClick={handleNavigateToDocuments}
                 className="text-blue-600 hover:text-blue-800 font-medium underline transition-colors"
@@ -77,7 +77,6 @@ export default function DraftSavePopup({
                 เอกสารสมัครสมาชิก
               </button>
             </p>
-          
           </div>
 
           {/* Action Buttons */}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook to fetch social media update status from the user log
@@ -14,37 +14,42 @@ const useSocialMediaStatus = (userId) => {
     const fetchSocialMediaUpdates = async () => {
       // Don't fetch if no userId is provided
       if (!userId) {
-        console.log('useSocialMediaStatus: No userId provided, skipping fetch');
+        console.log("useSocialMediaStatus: No userId provided, skipping fetch");
         setIsLoading(false);
         return;
       }
-      
+
       try {
-        console.log('useSocialMediaStatus: Fetching social media updates for userId:', userId);
+        console.log("useSocialMediaStatus: Fetching social media updates for userId:", userId);
         setIsLoading(true);
         setError(null);
-        
-        const response = await fetch(`/api/dashboard/operation-status/social-media-status?userId=${userId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-        });
 
-        console.log('useSocialMediaStatus: Response status:', response.status);
-        
+        const response = await fetch(
+          `/api/dashboard/operation-status/social-media-status?userId=${userId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          },
+        );
+
+        console.log("useSocialMediaStatus: Response status:", response.status);
+
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('useSocialMediaStatus: Error response:', errorText);
-          throw new Error(`Failed to fetch social media updates: ${response.status} ${response.statusText}`);
+          console.error("useSocialMediaStatus: Error response:", errorText);
+          throw new Error(
+            `Failed to fetch social media updates: ${response.status} ${response.statusText}`,
+          );
         }
 
         const data = await response.json();
-        console.log('useSocialMediaStatus: Received data:', data);
+        console.log("useSocialMediaStatus: Received data:", data);
         setSocialMediaUpdates(data.updates || []);
       } catch (err) {
-        console.error('useSocialMediaStatus: Error fetching social media updates:', err);
+        console.error("useSocialMediaStatus: Error fetching social media updates:", err);
         setError(err.message);
         setSocialMediaUpdates([]);
       } finally {

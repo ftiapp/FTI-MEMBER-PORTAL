@@ -1,11 +1,11 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaSpinner, FaExclamationCircle, FaCheckCircle } from 'react-icons/fa';
+import React from "react";
+import { motion } from "framer-motion";
+import { FaSpinner, FaExclamationCircle, FaCheckCircle } from "react-icons/fa";
 
 const UpdateStatusBanner = ({ status, requestsToday, maxRequests, limitLoading }) => {
-  if (status === 'pending') {
+  if (status === "pending") {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -16,7 +16,9 @@ const UpdateStatusBanner = ({ status, requestsToday, maxRequests, limitLoading }
             <FaExclamationCircle className="h-5 w-5 text-yellow-600" />
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800">คำขอแก้ไขข้อมูลของคุณกำลังรอการอนุมัติ</h3>
+            <h3 className="text-sm font-medium text-yellow-800">
+              คำขอแก้ไขข้อมูลของคุณกำลังรอการอนุมัติ
+            </h3>
             <div className="mt-2 text-sm text-yellow-700">
               <p>ผู้ดูแลระบบกำลังตรวจสอบคำขอแก้ไขข้อมูลของคุณ กรุณารอการตรวจสอบ</p>
             </div>
@@ -35,9 +37,9 @@ const UpdateStatusBanner = ({ status, requestsToday, maxRequests, limitLoading }
         </div>
       </motion.div>
     );
-  } else if (status === 'rejected') {
+  } else if (status === "rejected") {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -67,11 +69,11 @@ const UpdateStatusBanner = ({ status, requestsToday, maxRequests, limitLoading }
         </div>
       </motion.div>
     );
-  } else if (status === 'approved') {
+  } else if (status === "approved") {
     // Do not display any banner when approved
     return null;
   }
-  
+
   return null;
 };
 

@@ -1,19 +1,16 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { mssqlQuery } from '@/app/lib/mssql';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
-import { logAdminAction } from '@/app/lib/adminAuth';
-import { getClientIp } from '@/app/lib/utils';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { mssqlQuery } from "@/app/lib/mssql";
+import { getAdminFromSession } from "@/app/lib/adminAuth";
+import { logAdminAction } from "@/app/lib/adminAuth";
+import { getClientIp } from "@/app/lib/utils";
 
 export async function POST(request) {
   try {
     // ตรวจสอบ session ของ admin
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่ได้รับอนุญาต' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     // รับข้อมูลจาก request
@@ -21,27 +18,25 @@ export async function POST(request) {
     const { userId, memberCode, companyId } = data;
 
     if (!userId || !memberCode || !companyId) {
-      return NextResponse.json(
-        { success: false, message: 'ข้อมูลไม่ครบถ้วน' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
     }
 
     // ตรวจสอบว่า company มีอยู่จริงและยังไม่ได้รับการยืนยัน
     const companyResult = await query(
-      'SELECT * FROM companies_Member WHERE id = ? AND user_id = ? AND MEMBER_CODE = ? AND Admin_Submit = 0',
-      [companyId, userId, memberCode]
+      "SELECT * FROM companies_Member WHERE id = ? AND user_id = ? AND MEMBER_CODE = ? AND Admin_Submit = 0",
+      [companyId, userId, memberCode],
     );
 
     if (companyResult.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'ไม่พบข้อมูลบริษัทหรือได้รับการยืนยันไปแล้ว' },
-        { status: 404 }
+        { success: false, message: "ไม่พบข้อมูลบริษัทหรือได้รับการยืนยันไปแล้ว" },
+        { status: 404 },
       );
     }
 
     // ตรวจสอบข้อมูลจาก MSSQL
-    const mssqlResult = await mssqlQuery(`
+    const mssqlResult = await mssqlQuery(
+      `
       SELECT 
         [REGIST_CODE],
         [MEMBER_CODE],
@@ -55,12 +50,14 @@ export async function POST(request) {
         [ProductDesc_EN]
       FROM [FTI].[dbo].[BI_MEMBER]
       WHERE [MEMBER_CODE] = @param0
-    `, [memberCode]);
+    `,
+      [memberCode],
+    );
 
     if (!mssqlResult || mssqlResult.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'ไม่พบข้อมูลสมาชิกในระบบ MSSQL' },
-        { status: 404 }
+        { success: false, message: "ไม่พบข้อมูลสมาชิกในระบบ MSSQL" },
+        { status: 404 },
       );
     }
 
@@ -68,31 +65,28 @@ export async function POST(request) {
 
     // ดึงข้อมูลผู้ใช้
     const userResult = await query(
-      'SELECT name, firstname, lastname, email FROM users WHERE id = ?',
-      [userId]
+      "SELECT name, firstname, lastname, email FROM users WHERE id = ?",
+      [userId],
     );
 
     if (userResult.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่พบข้อมูลผู้ใช้' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบข้อมูลผู้ใช้" }, { status: 404 });
     }
 
     const user = userResult[0];
 
     // เริ่ม transaction
-    await query('START TRANSACTION');
+    await query("START TRANSACTION");
 
     try {
       // อัปเดตสถานะใน companies_Member
-      await query(
-        'UPDATE companies_Member SET Admin_Submit = 1, updated_at = NOW() WHERE id = ?',
-        [companyId]
-      );
+      await query("UPDATE companies_Member SET Admin_Submit = 1, updated_at = NOW() WHERE id = ?", [
+        companyId,
+      ]);
 
       // บันทึกข้อมูลลงในตาราง member_INFO_existing
-      await query(`
+      await query(
+        `
         INSERT INTO member_INFO_existing (
           user_id,
           MEMBER_CODE,
@@ -108,47 +102,49 @@ export async function POST(request) {
           admin_id,
           admin_username
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [
-        userId,
-        memberInfo.MEMBER_CODE,
-        memberInfo.REGIST_CODE,
-        memberInfo.MEMBER_TYPE_CODE,
-        memberInfo.MEMBER_STATUS_CODE,
-        memberInfo.COMP_PERSON_CODE,
-        memberInfo.TAX_ID,
-        memberInfo.COMPANY_NAME,
-        memberInfo.COMP_PERSON_NAME_EN,
-        memberInfo.ProductDesc_TH,
-        memberInfo.ProductDesc_EN,
-        admin.id,
-        admin.username
-      ]);
+      `,
+        [
+          userId,
+          memberInfo.MEMBER_CODE,
+          memberInfo.REGIST_CODE,
+          memberInfo.MEMBER_TYPE_CODE,
+          memberInfo.MEMBER_STATUS_CODE,
+          memberInfo.COMP_PERSON_CODE,
+          memberInfo.TAX_ID,
+          memberInfo.COMPANY_NAME,
+          memberInfo.COMP_PERSON_NAME_EN,
+          memberInfo.ProductDesc_TH,
+          memberInfo.ProductDesc_EN,
+          admin.id,
+          admin.username,
+        ],
+      );
 
       // Commit transaction
-      await query('COMMIT');
+      await query("COMMIT");
 
       // บันทึก log
       const ip = getClientIp(request);
-      const userAgent = request.headers.get('user-agent') || '';
+      const userAgent = request.headers.get("user-agent") || "";
 
       await logAdminAction(
         admin.id,
-        'verify_existing_member',
+        "verify_existing_member",
         userId,
         {
           userId,
           memberCode,
           companyId,
           userName: user.name,
-          companyName: memberInfo.COMPANY_NAME
+          companyName: memberInfo.COMPANY_NAME,
         },
         request,
-        userId
+        userId,
       );
 
       return NextResponse.json({
         success: true,
-        message: 'ยืนยันสมาชิกเดิมสำเร็จ',
+        message: "ยืนยันสมาชิกเดิมสำเร็จ",
         memberInfo: {
           ...memberInfo,
           user: {
@@ -156,20 +152,20 @@ export async function POST(request) {
             name: user.name,
             firstname: user.firstname,
             lastname: user.lastname,
-            email: user.email
-          }
-        }
+            email: user.email,
+          },
+        },
       });
     } catch (error) {
       // Rollback transaction ในกรณีที่เกิดข้อผิดพลาด
-      await query('ROLLBACK');
+      await query("ROLLBACK");
       throw error;
     }
   } catch (error) {
-    console.error('Error verifying existing member:', error);
+    console.error("Error verifying existing member:", error);
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการยืนยันสมาชิกเดิม' },
-      { status: 500 }
+      { success: false, message: "เกิดข้อผิดพลาดในการยืนยันสมาชิกเดิม" },
+      { status: 500 },
     );
   }
 }

@@ -1,4 +1,4 @@
-import { FaImage } from 'react-icons/fa';
+import { FaImage } from "react-icons/fa";
 
 /**
  * Get the appropriate icon for a logo status
@@ -16,18 +16,18 @@ export const getLogoStatusIcon = (status) => {
  */
 export const getLogoStatusText = (status) => {
   switch (status) {
-    case 'approved':
-      return 'อนุมัติแล้ว';
-    case 'pending':
-      return 'รอการอนุมัติ';
-    case 'rejected':
-      return 'ถูกปฏิเสธ';
-    case 'error':
-      return 'เกิดข้อผิดพลาด';
-    case 'none':
-      return 'ไม่มีข้อมูล';
+    case "approved":
+      return "อนุมัติแล้ว";
+    case "pending":
+      return "รอการอนุมัติ";
+    case "rejected":
+      return "ถูกปฏิเสธ";
+    case "error":
+      return "เกิดข้อผิดพลาด";
+    case "none":
+      return "ไม่มีข้อมูล";
     default:
-      return 'อนุมัติแล้ว';
+      return "อนุมัติแล้ว";
   }
 };
 
@@ -38,17 +38,17 @@ export const getLogoStatusText = (status) => {
  */
 export const getLogoStatusClass = (status) => {
   switch (status) {
-    case 'approved':
-      return 'bg-green-100 text-green-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'rejected':
-      return 'bg-red-100 text-red-800';
-    case 'error':
-      return 'bg-red-100 text-red-800';
-    case 'none':
-      return 'bg-gray-100 text-gray-800';
+    case "approved":
+      return "bg-green-100 text-green-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "rejected":
+      return "bg-red-100 text-red-800";
+    case "error":
+      return "bg-red-100 text-red-800";
+    case "none":
+      return "bg-gray-100 text-gray-800";
     default:
-      return 'bg-green-100 text-green-800';
+      return "bg-green-100 text-green-800";
   }
 };

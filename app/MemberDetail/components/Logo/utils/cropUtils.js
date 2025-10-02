@@ -1,8 +1,8 @@
 export const createImage = (url) =>
   new Promise((resolve, reject) => {
     const image = new Image();
-    image.addEventListener('load', () => resolve(image));
-    image.addEventListener('error', (error) => reject(error));
+    image.addEventListener("load", () => resolve(image));
+    image.addEventListener("error", (error) => reject(error));
     image.src = url;
   });
 
@@ -16,8 +16,8 @@ export function getRadianAngle(degreeValue) {
  */
 export async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
   const image = await createImage(imageSrc);
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
 
   const maxSize = Math.max(image.width, image.height);
   const safeArea = 2 * ((maxSize / 2) * Math.sqrt(2));
@@ -33,11 +33,7 @@ export async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
   ctx.translate(-safeArea / 2, -safeArea / 2);
 
   // draw rotated image and store data.
-  ctx.drawImage(
-    image,
-    safeArea / 2 - image.width * 0.5,
-    safeArea / 2 - image.height * 0.5
-  );
+  ctx.drawImage(image, safeArea / 2 - image.width * 0.5, safeArea / 2 - image.height * 0.5);
   const data = ctx.getImageData(0, 0, safeArea, safeArea);
 
   // set canvas width to final desired crop size - this will clear existing context
@@ -48,11 +44,11 @@ export async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
   ctx.putImageData(
     data,
     0 - safeArea / 2 + image.width * 0.5 - pixelCrop.x,
-    0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y
+    0 - safeArea / 2 + image.height * 0.5 - pixelCrop.y,
   );
 
   // As Base64 string
-  return canvas.toDataURL('image/jpeg');
+  return canvas.toDataURL("image/jpeg");
 
   // As a blob
   // return new Promise((resolve) => {
@@ -66,7 +62,7 @@ export async function getCroppedImg(imageSrc, pixelCrop, rotation = 0) {
  * Convert base64 to file object
  */
 export function dataURLtoFile(dataurl, filename) {
-  const arr = dataurl.split(',');
+  const arr = dataurl.split(",");
   const mime = arr[0].match(/:(.*?);/)[1];
   const bstr = atob(arr[1]);
   let n = bstr.length;

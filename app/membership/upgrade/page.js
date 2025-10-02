@@ -1,40 +1,40 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/app/contexts/AuthContext';
-import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
-import HeroSection from '@/app/components/HeroSection';
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@/app/contexts/AuthContext";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
+import HeroSection from "@/app/components/HeroSection";
 
 export default function UpgradeMembership() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { user } = useAuth();
-  
+
   // รับค่า type จาก URL parameters
-  const membershipType = searchParams.get('type');
+  const membershipType = searchParams.get("type");
 
   const [formData, setFormData] = useState({
-    companyName: '',
-    registrationNumber: '',
-    taxId: '',
-    address: '',
-    province: '',
-    postalCode: '',
-    phone: '',
-    website: '',
+    companyName: "",
+    registrationNumber: "",
+    taxId: "",
+    address: "",
+    province: "",
+    postalCode: "",
+    phone: "",
+    website: "",
     documents: {
       companyRegistration: null,
-      taxRegistration: null
-    }
+      taxRegistration: null,
+    },
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!user) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [user, router]);
 
@@ -44,56 +44,56 @@ export default function UpgradeMembership() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleFileChange = (e) => {
     const { name, files } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       documents: {
         ...prev.documents,
-        [name]: files[0]
-      }
+        [name]: files[0],
+      },
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setError('');
+    setError("");
 
     try {
       // TODO: Implement API call to handle upgrade
       const formDataToSend = new FormData();
-      Object.keys(formData).forEach(key => {
-        if (key !== 'documents') {
+      Object.keys(formData).forEach((key) => {
+        if (key !== "documents") {
           formDataToSend.append(key, formData[key]);
         }
       });
-      
+
       // Append documents
-      Object.keys(formData.documents).forEach(key => {
+      Object.keys(formData.documents).forEach((key) => {
         if (formData.documents[key]) {
           formDataToSend.append(key, formData.documents[key]);
         }
       });
 
       // Call API endpoint
-      const response = await fetch('/api/membership/upgrade', {
-        method: 'POST',
-        body: formDataToSend
+      const response = await fetch("/api/membership/upgrade", {
+        method: "POST",
+        body: formDataToSend,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit upgrade request');
+        throw new Error("Failed to submit upgrade request");
       }
 
       // Redirect to success page or dashboard
-      router.push('/dashboard?status=upgrade-submitted');
+      router.push("/dashboard?status=upgrade-submitted");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -104,7 +104,7 @@ export default function UpgradeMembership() {
   return (
     <main className="min-h-screen bg-gray-50">
       <Navbar />
-      
+
       <HeroSection
         title="อัพเกรดการเป็นสมาชิก"
         description="กรุณากรอกข้อมูลเพิ่มเติมเพื่ออัพเกรดการเป็นสมาชิก"
@@ -126,9 +126,7 @@ export default function UpgradeMembership() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ชื่อบริษัท
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อบริษัท</label>
                 <input
                   type="text"
                   name="companyName"
@@ -168,9 +166,7 @@ export default function UpgradeMembership() {
               </div>
 
               <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ที่อยู่
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
                 <textarea
                   name="address"
                   value={formData.address}
@@ -182,9 +178,7 @@ export default function UpgradeMembership() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  จังหวัด
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">จังหวัด</label>
                 <input
                   type="text"
                   name="province"
@@ -196,9 +190,7 @@ export default function UpgradeMembership() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  รหัสไปรษณีย์
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">รหัสไปรษณีย์</label>
                 <input
                   type="text"
                   name="postalCode"
@@ -289,7 +281,7 @@ export default function UpgradeMembership() {
                 disabled={isSubmitting}
                 className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {isSubmitting ? 'กำลังส่งข้อมูล...' : 'ส่งข้อมูล'}
+                {isSubmitting ? "กำลังส่งข้อมูล..." : "ส่งข้อมูล"}
               </button>
             </div>
           </form>

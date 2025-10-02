@@ -1,14 +1,14 @@
 // app/admin/dashboard/guest-messages/components/MessageSearchFilter.js
 
-import { useState } from 'react';
+import { useState } from "react";
 
-const MessageSearchFilter = ({ 
-  searchTerm, 
-  setSearchTerm, 
-  filterStatus, 
-  setFilterStatus, 
-  setCurrentPage, 
-  onSearch 
+const MessageSearchFilter = ({
+  searchTerm,
+  setSearchTerm,
+  filterStatus,
+  setFilterStatus,
+  setCurrentPage,
+  onSearch,
 }) => {
   const [localSearchTerm, setLocalSearchTerm] = useState(searchTerm);
 
@@ -34,14 +34,14 @@ const MessageSearchFilter = ({
           value={localSearchTerm}
           onChange={(e) => setLocalSearchTerm(e.target.value)}
         />
-        <button 
+        <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded-r-md hover:bg-blue-700"
         >
           ค้นหา
         </button>
       </form>
-      
+
       <select
         className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         value={filterStatus}

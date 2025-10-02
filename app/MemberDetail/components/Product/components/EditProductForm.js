@@ -1,67 +1,70 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { XMarkIcon, PlusIcon } from '@heroicons/react/24/solid';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import { XMarkIcon, PlusIcon } from "@heroicons/react/24/solid";
+import { motion } from "framer-motion";
 
-const EditProductForm = ({ 
-  companyInfo, 
-  onCancel, 
+const EditProductForm = ({
+  companyInfo,
+  onCancel,
   onSuccess,
   memberType,
   memberGroupCode,
-  typeCode
+  typeCode,
 }) => {
   const [productsTH, setProductsTH] = useState([]);
   const [productsEN, setProductsEN] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const memberCode = companyInfo.MEMBER_CODE || companyInfo.member_code;
-  const companyName = companyInfo.COMPANY_NAME_TH || companyInfo.company_name_th || companyInfo.COMPANY_NAME || companyInfo.company_name || '';
-  
+  const companyName =
+    companyInfo.COMPANY_NAME_TH ||
+    companyInfo.company_name_th ||
+    companyInfo.COMPANY_NAME ||
+    companyInfo.company_name ||
+    "";
+
   // Load existing products
   useEffect(() => {
     // Load Thai products
     if (companyInfo.PRODUCT_DESC_TH) {
-      const formattedProductsTH = companyInfo.PRODUCT_DESC_TH
-        .split(',')
-        .map(item => item.trim())
-        .filter(item => item)
-        .map(item => ({ value: item }));
-      
+      const formattedProductsTH = companyInfo.PRODUCT_DESC_TH.split(",")
+        .map((item) => item.trim())
+        .filter((item) => item)
+        .map((item) => ({ value: item }));
+
       setProductsTH(formattedProductsTH);
     }
 
     // Load English products
     if (companyInfo.PRODUCT_DESC_EN) {
-      const formattedProductsEN = companyInfo.PRODUCT_DESC_EN
-        .split(',')
-        .map(item => item.trim())
-        .filter(item => item)
-        .map(item => ({ value: item }));
-      
+      const formattedProductsEN = companyInfo.PRODUCT_DESC_EN.split(",")
+        .map((item) => item.trim())
+        .filter((item) => item)
+        .map((item) => ({ value: item }));
+
       setProductsEN(formattedProductsEN);
     }
   }, [companyInfo]);
 
   const handleAddProductTH = () => {
     if (productsTH.length >= 10) {
-      toast.warning('สามารถเพิ่มสินค้าได้สูงสุด 10 รายการเท่านั้น');
+      toast.warning("สามารถเพิ่มสินค้าได้สูงสุด 10 รายการเท่านั้น");
       return;
     }
-    
-    setProductsTH([...productsTH, { value: '' }]);
+
+    setProductsTH([...productsTH, { value: "" }]);
   };
 
   const handleAddProductEN = () => {
     if (productsEN.length >= 10) {
-      toast.warning('Can add up to 10 products only');
+      toast.warning("Can add up to 10 products only");
       return;
     }
-    
-    setProductsEN([...productsEN, { value: '' }]);
+
+    setProductsEN([...productsEN, { value: "" }]);
   };
 
   const handleRemoveProductTH = (index) => {
@@ -90,20 +93,22 @@ const EditProductForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setErrorMessage('');
-    setSuccessMessage('');
-    
+    setErrorMessage("");
+    setSuccessMessage("");
+
     // Validate products
-    const validProductsTH = productsTH.filter(p => p.value.trim() !== '');
+    const validProductsTH = productsTH.filter((p) => p.value.trim() !== "");
     if (validProductsTH.length === 0) {
-      setErrorMessage('กรุณาระบุข้อมูลสินค้าภาษาไทยอย่างน้อย 1 รายการ');
+      setErrorMessage("กรุณาระบุข้อมูลสินค้าภาษาไทยอย่างน้อย 1 รายการ");
       return;
     }
-    
+
     // Format products for submission
-    const productValuesTH = validProductsTH.map(p => p.value.trim());
-    const productValuesEN = productsEN.filter(p => p.value.trim() !== '').map(p => p.value.trim());
-    
+    const productValuesTH = validProductsTH.map((p) => p.value.trim());
+    const productValuesEN = productsEN
+      .filter((p) => p.value.trim() !== "")
+      .map((p) => p.value.trim());
+
     // Prepare request data
     const requestData = {
       member_code: memberCode,
@@ -111,41 +116,40 @@ const EditProductForm = ({
       member_type: memberType,
       member_group_code: memberGroupCode,
       type_code: typeCode,
-      old_products_th: companyInfo.PRODUCT_DESC_TH || '',
-      old_products_en: companyInfo.PRODUCT_DESC_EN || '',
-      new_products_th: productValuesTH.join(', '),
-      new_products_en: productValuesEN.join(', ')
+      old_products_th: companyInfo.PRODUCT_DESC_TH || "",
+      old_products_en: companyInfo.PRODUCT_DESC_EN || "",
+      new_products_th: productValuesTH.join(", "),
+      new_products_en: productValuesEN.join(", "),
     };
-    
+
     setIsSubmitting(true);
-    
+
     try {
-      const response = await fetch('/api/member/request-product-update', {
-        method: 'POST',
+      const response = await fetch("/api/member/request-product-update", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(requestData),
       });
-      
+
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.message || 'เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า');
+        throw new Error(data.message || "เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า");
       }
-      
-      setSuccessMessage('ส่งคำขอแก้ไขข้อมูลสินค้าสำเร็จ กรุณารอการอนุมัติจากผู้ดูแลระบบ');
-      toast.success('ส่งคำขอแก้ไขข้อมูลสินค้าสำเร็จ');
-      
+
+      setSuccessMessage("ส่งคำขอแก้ไขข้อมูลสินค้าสำเร็จ กรุณารอการอนุมัติจากผู้ดูแลระบบ");
+      toast.success("ส่งคำขอแก้ไขข้อมูลสินค้าสำเร็จ");
+
       // Call success callback after a delay
       setTimeout(() => {
         if (onSuccess) onSuccess();
       }, 2000);
-      
     } catch (error) {
-      console.error('Error submitting product update request:', error);
-      setErrorMessage(error.message || 'เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า');
-      toast.error(error.message || 'เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า');
+      console.error("Error submitting product update request:", error);
+      setErrorMessage(error.message || "เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า");
+      toast.error(error.message || "เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า");
     } finally {
       setIsSubmitting(false);
     }
@@ -158,28 +162,28 @@ const EditProductForm = ({
       transition={{ duration: 0.3 }}
       className="bg-white rounded-lg shadow-md p-6"
     >
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">แก้ไขข้อมูลสินค้า/ผลิตภัณฑ์ (Edit Products/Services)</h3>
-      
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        แก้ไขข้อมูลสินค้า/ผลิตภัณฑ์ (Edit Products/Services)
+      </h3>
+
       {errorMessage && (
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
           {errorMessage}
         </div>
       )}
-      
+
       {successMessage && (
         <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded-md">
           {successMessage}
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="space-y-4 mb-6">
           <div className="mb-6">
             <h4 className="font-medium text-gray-700 mb-2">สินค้า/ผลิตภัณฑ์ (ภาษาไทย)</h4>
-            <p className="text-sm text-gray-500 mb-2">
-              สามารถเพิ่มสินค้าได้สูงสุด 10 รายการ
-            </p>
-            
+            <p className="text-sm text-gray-500 mb-2">สามารถเพิ่มสินค้าได้สูงสุด 10 รายการ</p>
+
             {productsTH.map((product, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
                 <input
@@ -200,7 +204,7 @@ const EditProductForm = ({
                 </button>
               </div>
             ))}
-            
+
             <button
               type="button"
               onClick={handleAddProductTH}
@@ -214,10 +218,8 @@ const EditProductForm = ({
 
           <div>
             <h4 className="font-medium text-gray-700 mb-2">Products/Services (English)</h4>
-            <p className="text-sm text-gray-500 mb-2">
-              You can add up to 10 products
-            </p>
-            
+            <p className="text-sm text-gray-500 mb-2">You can add up to 10 products</p>
+
             {productsEN.map((product, index) => (
               <div key={index} className="flex items-center space-x-2 mb-2">
                 <input
@@ -238,7 +240,7 @@ const EditProductForm = ({
                 </button>
               </div>
             ))}
-            
+
             <button
               type="button"
               onClick={handleAddProductEN}
@@ -250,7 +252,7 @@ const EditProductForm = ({
             </button>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-3 border-t pt-4">
           <button
             type="button"
@@ -265,7 +267,7 @@ const EditProductForm = ({
             className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'กำลังส่งคำขอ...' : 'ส่งคำขอแก้ไข'}
+            {isSubmitting ? "กำลังส่งคำขอ..." : "ส่งคำขอแก้ไข"}
           </button>
         </div>
       </form>

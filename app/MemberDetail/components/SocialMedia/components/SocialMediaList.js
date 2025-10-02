@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { FaExternalLinkAlt } from 'react-icons/fa';
-import SocialMediaIcon, { formatSocialMediaUrl, getPlatformName } from './SocialMediaIcon';
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { FaExternalLinkAlt } from "react-icons/fa";
+import SocialMediaIcon, { formatSocialMediaUrl, getPlatformName } from "./SocialMediaIcon";
 
 // Animation variants for list items
 const containerVariants = {
@@ -11,9 +11,9 @@ const containerVariants = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const itemVariants = {
@@ -21,12 +21,11 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.3 }
-  }
+    transition: { duration: 0.3 },
+  },
 };
 
 export default function SocialMediaList({ socialMediaList }) {
-
   return (
     <motion.div
       variants={containerVariants}
@@ -36,7 +35,7 @@ export default function SocialMediaList({ socialMediaList }) {
     >
       {socialMediaList.map((item, index) => {
         const formattedUrl = formatSocialMediaUrl(item.platform, item.url);
-        
+
         return (
           <motion.div
             key={item.id || index}
@@ -44,16 +43,14 @@ export default function SocialMediaList({ socialMediaList }) {
             className="bg-white rounded-lg shadow hover:shadow-md transition-shadow p-4 flex items-center"
           >
             <SocialMediaIcon platform={item.platform} size="md" showBackground={true} />
-            
+
             <div className="flex-1 min-w-0 ml-4">
               <h3 className="text-sm font-medium text-gray-900 truncate">
                 {getPlatformName(item.platform)}
               </h3>
-              <p className="text-sm text-gray-500 truncate">
-                {item.display_name || item.url}
-              </p>
+              <p className="text-sm text-gray-500 truncate">{item.display_name || item.url}</p>
             </div>
-            
+
             <a
               href={formattedUrl}
               target="_blank"

@@ -1,12 +1,24 @@
 // แสดงรายละเอียดของสมาชิกที่เลือก
-'use client';
+"use client";
 
-export default function UpdateDetail({ member, onApprove, onReject, isProcessing, comment, setComment, memberData, handleInputChange, handleSubmit }) {
+export default function UpdateDetail({
+  member,
+  onApprove,
+  onReject,
+  isProcessing,
+  comment,
+  setComment,
+  memberData,
+  handleInputChange,
+  handleSubmit,
+}) {
   if (!member) {
     return (
       <div className="bg-white rounded-lg shadow-md p-6 flex flex-col justify-center items-center h-64">
         <p className="text-lg text-black font-bold">เลือกสมาชิกเพื่อดูรายละเอียด</p>
-        <p className="text-sm text-black font-semibold mt-2">คลิกที่รายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม</p>
+        <p className="text-sm text-black font-semibold mt-2">
+          คลิกที่รายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม
+        </p>
       </div>
     );
   }
@@ -15,44 +27,76 @@ export default function UpdateDetail({ member, onApprove, onReject, isProcessing
     <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
       <div className="border-b border-black pb-4">
         <h2 className="text-xl font-bold text-black">รายละเอียดสมาชิก</h2>
-        <p className="text-sm text-black font-medium mt-1">แก้ไขล่าสุด: {member.updated_at ? new Date(member.updated_at).toLocaleString('th-TH') : '-'}</p>
-        {(member.admin_name) && (
+        <p className="text-sm text-black font-medium mt-1">
+          แก้ไขล่าสุด:{" "}
+          {member.updated_at ? new Date(member.updated_at).toLocaleString("th-TH") : "-"}
+        </p>
+        {member.admin_name && (
           <p className="text-sm text-black font-medium mt-1">
             <span className="font-bold">ผู้ดำเนินการ:</span> {member.admin_name}
           </p>
         )}
         <p className="text-sm text-black font-medium mt-1">
-          <span className="font-bold">สถานะ:</span> 
-          <span className={`ml-2 px-2 py-1 text-xs rounded-full font-medium ${member.Admin_Submit === 1 ? 'bg-green-100 text-green-800' : member.Admin_Submit === 0 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-            {member.Admin_Submit === 1 ? 'อนุมัติแล้ว' : member.Admin_Submit === 0 ? 'ปฏิเสธแล้ว' : 'รออนุมัติ'}
+          <span className="font-bold">สถานะ:</span>
+          <span
+            className={`ml-2 px-2 py-1 text-xs rounded-full font-medium ${member.Admin_Submit === 1 ? "bg-green-100 text-green-800" : member.Admin_Submit === 0 ? "bg-red-100 text-red-800" : "bg-yellow-100 text-yellow-800"}`}
+          >
+            {member.Admin_Submit === 1
+              ? "อนุมัติแล้ว"
+              : member.Admin_Submit === 0
+                ? "ปฏิเสธแล้ว"
+                : "รออนุมัติ"}
           </span>
         </p>
       </div>
       <div className="space-y-2">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <p className="text-black font-semibold"><span className="font-bold text-black">ชื่อบริษัท:</span> {member.company_name}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">รหัสสมาชิก:</span> {member.MEMBER_CODE}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">ประเภท:</span> {member.company_type}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">เลขทะเบียนนิติบุคคล:</span> {member.registration_number}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">เลขประจำตัวผู้เสียภาษี:</span> {member.tax_id}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">ที่อยู่:</span> {member.address}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">จังหวัด:</span> {member.province}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">รหัสไปรษณีย์:</span> {member.postal_code}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">โทรศัพท์:</span> {member.phone}</p>
-            <p className="text-black font-semibold"><span className="font-bold text-black">เว็บไซต์:</span> {member.website}</p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">ชื่อบริษัท:</span> {member.company_name}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">รหัสสมาชิก:</span> {member.MEMBER_CODE}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">ประเภท:</span> {member.company_type}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">เลขทะเบียนนิติบุคคล:</span>{" "}
+              {member.registration_number}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">เลขประจำตัวผู้เสียภาษี:</span> {member.tax_id}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">ที่อยู่:</span> {member.address}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">จังหวัด:</span> {member.province}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">รหัสไปรษณีย์:</span> {member.postal_code}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">โทรศัพท์:</span> {member.phone}
+            </p>
+            <p className="text-black font-semibold">
+              <span className="font-bold text-black">เว็บไซต์:</span> {member.website}
+            </p>
           </div>
         </div>
 
         {/* Editable: MEMBER_DATE */}
         {memberData && (
           <form onSubmit={handleSubmit} className="mt-4">
-            <label className="block text-black font-bold mb-1">วันที่เริ่มเป็นสมาชิก (MEMBER_DATE)</label>
+            <label className="block text-black font-bold mb-1">
+              วันที่เริ่มเป็นสมาชิก (MEMBER_DATE)
+            </label>
             <input
               type="date"
               name="MEMBER_DATE"
               className="w-full border rounded p-2 text-black"
-              value={memberData.MEMBER_DATE || ''}
+              value={memberData.MEMBER_DATE || ""}
               onChange={handleInputChange}
               disabled={isProcessing}
             />
@@ -61,7 +105,9 @@ export default function UpdateDetail({ member, onApprove, onReject, isProcessing
                 type="submit"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-bold disabled:opacity-50"
                 disabled={isProcessing}
-              >บันทึกการแก้ไข</button>
+              >
+                บันทึกการแก้ไข
+              </button>
             </div>
           </form>
         )}
@@ -71,7 +117,7 @@ export default function UpdateDetail({ member, onApprove, onReject, isProcessing
             className="w-full border rounded p-2 text-black"
             rows={2}
             value={comment}
-            onChange={e => setComment(e.target.value)}
+            onChange={(e) => setComment(e.target.value)}
             disabled={isProcessing}
           />
         </div>
@@ -80,12 +126,16 @@ export default function UpdateDetail({ member, onApprove, onReject, isProcessing
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded font-bold disabled:opacity-50"
             onClick={onApprove}
             disabled={isProcessing}
-          >อนุมัติ</button>
+          >
+            อนุมัติ
+          </button>
           <button
             className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded font-bold disabled:opacity-50"
             onClick={onReject}
             disabled={isProcessing}
-          >ปฏิเสธ</button>
+          >
+            ปฏิเสธ
+          </button>
         </div>
       </div>
     </div>

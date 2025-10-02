@@ -1,16 +1,13 @@
-import { query } from '@/app/lib/db';
-import { NextResponse } from 'next/server';
+import { query } from "@/app/lib/db";
+import { NextResponse } from "next/server";
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'ไม่พบ ID ผู้ใช้' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ไม่พบ ID ผู้ใช้" }, { status: 400 });
     }
 
     // Check for pending profile update requests
@@ -20,7 +17,7 @@ export async function GET(request) {
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 1`,
-      [userId]
+      [userId],
     );
 
     if (pendingRequests.length === 0) {
@@ -28,20 +25,20 @@ export async function GET(request) {
     }
 
     const updateRequest = pendingRequests[0];
-    
+
     return NextResponse.json({
       status: {
         id: updateRequest.id,
         status: updateRequest.status,
         reason: updateRequest.reject_reason,
-        created_at: updateRequest.created_at
-      }
+        created_at: updateRequest.created_at,
+      },
     });
   } catch (error) {
-    console.error('Error fetching profile update status:', error);
+    console.error("Error fetching profile update status:", error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการดึงสถานะการอัพเดตโปรไฟล์' },
-      { status: 500 }
+      { error: "เกิดข้อผิดพลาดในการดึงสถานะการอัพเดตโปรไฟล์" },
+      { status: 500 },
     );
   }
 }

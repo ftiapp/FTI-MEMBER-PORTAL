@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { createContext, useContext, useState, useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
 
 const NavigationContext = createContext();
 
@@ -9,7 +9,7 @@ export function NavigationProvider({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isLoading, setIsLoading] = useState(false);
-  const [previousPath, setPreviousPath] = useState('');
+  const [previousPath, setPreviousPath] = useState("");
 
   // Listen for route changes
   useEffect(() => {
@@ -24,7 +24,7 @@ export function NavigationProvider({ children }) {
 
     // This is a workaround since Next.js App Router doesn't have built-in events yet
     const originalPush = router.push;
-    router.push = function() {
+    router.push = function () {
       handleRouteChangeStart();
       return originalPush.apply(router, arguments);
     };
@@ -66,7 +66,7 @@ export function NavigationProvider({ children }) {
 export function useNavigation() {
   const context = useContext(NavigationContext);
   if (context === undefined) {
-    throw new Error('useNavigation must be used within a NavigationProvider');
+    throw new Error("useNavigation must be used within a NavigationProvider");
   }
   return context;
 }

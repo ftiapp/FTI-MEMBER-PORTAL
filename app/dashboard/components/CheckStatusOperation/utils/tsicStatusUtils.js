@@ -1,10 +1,10 @@
-import { 
-  FaCheckCircle, 
-  FaTimesCircle, 
-  FaHourglassHalf, 
+import {
+  FaCheckCircle,
+  FaTimesCircle,
+  FaHourglassHalf,
   FaExclamationTriangle,
-  FaQuestionCircle
-} from 'react-icons/fa';
+  FaQuestionCircle,
+} from "react-icons/fa";
 
 /**
  * Get the icon component for a TSIC code update status
@@ -13,15 +13,15 @@ import {
  */
 export const getTsicStatusIcon = (status) => {
   switch (status) {
-    case 'approved':
+    case "approved":
       return FaCheckCircle;
-    case 'rejected':
+    case "rejected":
       return FaTimesCircle;
-    case 'pending':
+    case "pending":
       return FaHourglassHalf;
-    case 'error':
+    case "error":
       return FaExclamationTriangle;
-    case 'none':
+    case "none":
     default:
       return FaQuestionCircle;
   }
@@ -34,17 +34,17 @@ export const getTsicStatusIcon = (status) => {
  */
 export const getTsicStatusText = (status) => {
   switch (status) {
-    case 'approved':
-      return 'อนุมัติแล้ว';
-    case 'rejected':
-      return 'ปฏิเสธแล้ว';
-    case 'pending':
-      return 'รอการอนุมัติ';
-    case 'error':
-      return 'เกิดข้อผิดพลาด';
-    case 'none':
+    case "approved":
+      return "อนุมัติแล้ว";
+    case "rejected":
+      return "ปฏิเสธแล้ว";
+    case "pending":
+      return "รอการอนุมัติ";
+    case "error":
+      return "เกิดข้อผิดพลาด";
+    case "none":
     default:
-      return 'ไม่มีข้อมูล';
+      return "ไม่มีข้อมูล";
   }
 };
 
@@ -55,16 +55,16 @@ export const getTsicStatusText = (status) => {
  */
 export const getTsicStatusClass = (status) => {
   switch (status) {
-    case 'approved':
-      return 'bg-green-100 text-green-800';
-    case 'rejected':
-      return 'bg-red-100 text-red-800';
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'error':
-      return 'bg-red-100 text-red-800';
-    case 'none':
+    case "approved":
+      return "bg-green-100 text-green-800";
+    case "rejected":
+      return "bg-red-100 text-red-800";
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "error":
+      return "bg-red-100 text-red-800";
+    case "none":
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };

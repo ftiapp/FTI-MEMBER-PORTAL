@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { checkAdminSession } from '../../../lib/auth';
-import { pool } from '../../../lib/db';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { checkAdminSession } from "../../../lib/auth";
+import { pool } from "../../../lib/db";
 
 /**
  * API endpoint to count pending product update requests
@@ -15,10 +15,13 @@ export async function GET(request) {
     const admin = await checkAdminSession(cookieStore);
 
     if (!admin) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'ไม่พบข้อมูลผู้ดูแลระบบ กรุณาเข้าสู่ระบบใหม่' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ไม่พบข้อมูลผู้ดูแลระบบ กรุณาเข้าสู่ระบบใหม่",
+        },
+        { status: 401 },
+      );
     }
 
     // Check if the table exists
@@ -31,9 +34,9 @@ export async function GET(request) {
 
     if (tableExists[0].count === 0) {
       // Table doesn't exist yet, so there are no pending requests
-      return NextResponse.json({ 
-        success: true, 
-        count: 0
+      return NextResponse.json({
+        success: true,
+        count: 0,
       });
     }
 
@@ -46,13 +49,16 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      count: result[0].count
+      count: result[0].count,
     });
   } catch (error) {
-    console.error('Error counting pending product updates:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'เกิดข้อผิดพลาดในการนับจำนวนคำขอแก้ไขข้อมูลสินค้าที่รออนุมัติ' 
-    }, { status: 500 });
+    console.error("Error counting pending product updates:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "เกิดข้อผิดพลาดในการนับจำนวนคำขอแก้ไขข้อมูลสินค้าที่รออนุมัติ",
+      },
+      { status: 500 },
+    );
   }
 }

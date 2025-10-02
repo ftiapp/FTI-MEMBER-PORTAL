@@ -1,11 +1,11 @@
-import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
+import { FiChevronUp, FiChevronDown } from "react-icons/fi";
 
 export default function SortableHeader({ field, label, sortField, sortOrder, onSort }) {
   const isActive = sortField === field;
   const handleSort = () => {
     if (!onSort) return;
-    if (!isActive) onSort(field, 'asc');
-    else onSort(field, sortOrder === 'asc' ? 'desc' : 'asc');
+    if (!isActive) onSort(field, "asc");
+    else onSort(field, sortOrder === "asc" ? "desc" : "asc");
   };
   return (
     <th
@@ -15,9 +15,12 @@ export default function SortableHeader({ field, label, sortField, sortOrder, onS
     >
       <span className="flex items-center gap-1">
         {label}
-        {isActive && (
-          sortOrder === 'asc' ? <FiChevronUp className="inline" /> : <FiChevronDown className="inline" />
-        )}
+        {isActive &&
+          (sortOrder === "asc" ? (
+            <FiChevronUp className="inline" />
+          ) : (
+            <FiChevronDown className="inline" />
+          ))}
       </span>
     </th>
   );

@@ -1,16 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '../../../../lib/adminAuth';
-import { connectDB } from '../../../../lib/db';
+import { NextResponse } from "next/server";
+import { getAdminFromSession } from "../../../../lib/adminAuth";
+import { connectDB } from "../../../../lib/db";
 
 export async function GET() {
   try {
     // ตรวจสอบสิทธิ์แอดมิน
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json(
-        { message: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const connection = await connectDB();
@@ -24,7 +21,7 @@ export async function GET() {
        FROM MemberRegist_OC_Main m
        LEFT JOIN users u ON m.user_id = u.id
        WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
-      
+
       // AC Members  (join users)
       `SELECT 
         m.id, 'AC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
@@ -32,7 +29,7 @@ export async function GET() {
        FROM MemberRegist_AC_Main m
        LEFT JOIN users u ON m.user_id = u.id
        WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
-       
+
       // AM Members (join users)
       `SELECT 
         m.id, 'AM' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
@@ -52,7 +49,7 @@ export async function GET() {
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_IC_Main m
        LEFT JOIN users u ON m.user_id = u.id
-       WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`
+       WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
     ];
 
     let allMembers = [];
@@ -64,14 +61,16 @@ export async function GET() {
           const [rows] = await connection.query(query);
           allMembers = allMembers.concat(rows);
         } catch (error) {
-          console.error('Error executing query:', query, error);
+          console.error("Error executing query:", query, error);
           // ถ้าตารางไม่มีอยู่ ให้ข้ามไป
           continue;
         }
       }
 
       // เรียงลำดับตามวันที่อนุมัติ (ใหม่สุดก่อน)
-      allMembers.sort((a, b) => new Date(b.updated_at || b.approved_at) - new Date(a.updated_at || a.approved_at));
+      allMembers.sort(
+        (a, b) => new Date(b.updated_at || b.approved_at) - new Date(a.updated_at || a.approved_at),
+      );
     } finally {
       // Release the connection back to the pool instead of ending it
       connection.release();
@@ -79,18 +78,17 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      members: allMembers
+      members: allMembers,
     });
-
   } catch (error) {
-    console.error('Error fetching approved members:', error);
+    console.error("Error fetching approved members:", error);
     return NextResponse.json(
-      { 
+      {
         success: false,
-        message: 'Internal server error',
-        error: error.message 
+        message: "Internal server error",
+        error: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

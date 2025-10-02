@@ -1,8 +1,8 @@
-import { query } from './db';
+import { query } from "./db";
 
 /**
  * Logs an admin action to the admin_actions_log table
- * 
+ *
  * @param {Object} params - Log parameters
  * @param {number} params.adminId - ID of the admin performing the action
  * @param {string} params.actionType - Type of action performed
@@ -18,7 +18,7 @@ export async function logAdminAction({
   targetId,
   description,
   ipAddress,
-  userAgent
+  userAgent,
 }) {
   try {
     const insertQuery = `
@@ -32,16 +32,16 @@ export async function logAdminAction({
         created_at
       ) VALUES (?, ?, ?, ?, ?, ?, NOW())
     `;
-    
+
     const result = await query(insertQuery, [
       adminId,
       actionType,
       targetId,
       description,
       ipAddress,
-      userAgent
+      userAgent,
     ]);
-    
+
     return {
       id: result.insertId,
       adminId,
@@ -50,10 +50,10 @@ export async function logAdminAction({
       description,
       ipAddress,
       userAgent,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
   } catch (error) {
-    console.error('Error logging admin action:', error);
+    console.error("Error logging admin action:", error);
     throw error;
   }
 }

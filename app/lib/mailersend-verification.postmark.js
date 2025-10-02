@@ -1,4 +1,4 @@
-import * as postmark from 'postmark';
+import * as postmark from "postmark";
 
 // Initialize Postmark client with API key
 const client = new postmark.ServerClient(process.env.POSTMARK_API_KEY);
@@ -13,21 +13,21 @@ export async function startEmailVerification(email) {
     // Simulate the verification process
     // In a real implementation, you would use Postmark's email validation API
     // or another service like ZeroBounce, Mailgun, etc.
-    
+
     // For now, we'll simulate a successful verification
     const result = {
       status: "completed",
       result: {
         result: {
           verdict: "deliverable",
-          email: email
-        }
-      }
+          email: email,
+        },
+      },
     };
-    
+
     return {
       jobId: `postmark-${Date.now()}`,
-      poll: result
+      poll: result,
     };
   } catch (error) {
     console.error("Error starting email verification:", error);
@@ -44,15 +44,15 @@ export async function waitForVerification(jobId) {
   try {
     // Simulate waiting for verification
     // In a real implementation, you would poll the verification service
-    
+
     // For now, we'll simulate a successful verification
     return {
       status: "completed",
       result: {
         result: {
-          verdict: "deliverable"
-        }
-      }
+          verdict: "deliverable",
+        },
+      },
     };
   } catch (error) {
     console.error("Error waiting for verification:", error);
@@ -69,15 +69,15 @@ export async function getVerificationStatus(jobId) {
   try {
     // Simulate getting verification status
     // In a real implementation, you would check the status with the verification service
-    
+
     // For now, we'll simulate a successful verification
     return {
       status: "completed",
       result: {
         result: {
-          verdict: "deliverable"
-        }
-      }
+          verdict: "deliverable",
+        },
+      },
     };
   } catch (error) {
     console.error("Error getting verification status:", error);

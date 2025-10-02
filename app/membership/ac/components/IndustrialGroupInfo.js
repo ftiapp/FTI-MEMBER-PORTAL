@@ -1,16 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import MultiSelectDropdown from './MultiSelectDropdown';
+import { useState, useEffect } from "react";
+import MultiSelectDropdown from "./MultiSelectDropdown";
 
 /**
  * คอมโพเนนต์สำหรับเลือกกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัดในฟอร์มสมัครสมาชิกประเภท AC (สมทบ-นิติบุคคล)
  */
-export default function IndustrialGroupInfo({ 
-  formData, 
-  setFormData, 
-  errors 
-}) {
+export default function IndustrialGroupInfo({ formData, setFormData, errors }) {
   const [industrialGroups, setIndustrialGroups] = useState([]);
   const [provincialCouncils, setProvincialCouncils] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -20,30 +16,30 @@ export default function IndustrialGroupInfo({
       setIsLoading(true);
       try {
         // ดึงข้อมูลกลุ่มอุตสาหกรรม
-        const industrialGroupsResponse = await fetch('/api/industrial-groups');
+        const industrialGroupsResponse = await fetch("/api/industrial-groups");
         if (industrialGroupsResponse.ok) {
           const industrialGroupsData = await industrialGroupsResponse.json();
-          const formattedData = industrialGroupsData.data.map(item => ({
+          const formattedData = industrialGroupsData.data.map((item) => ({
             id: item.MEMBER_GROUP_CODE,
             name_th: item.MEMBER_GROUP_NAME,
-            name_en: item.MEMBER_GROUP_NAME
+            name_en: item.MEMBER_GROUP_NAME,
           }));
           setIndustrialGroups(formattedData);
         }
 
         // ดึงข้อมูลสภาอุตสาหกรรมจังหวัด
-        const provincialCouncilsResponse = await fetch('/api/province-groups');
+        const provincialCouncilsResponse = await fetch("/api/province-groups");
         if (provincialCouncilsResponse.ok) {
           const provincialCouncilsData = await provincialCouncilsResponse.json();
-          const formattedData = provincialCouncilsData.data.map(item => ({
+          const formattedData = provincialCouncilsData.data.map((item) => ({
             id: item.MEMBER_GROUP_CODE,
             name_th: item.MEMBER_GROUP_NAME,
-            name_en: item.MEMBER_GROUP_NAME
+            name_en: item.MEMBER_GROUP_NAME,
           }));
           setProvincialCouncils(formattedData);
         }
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
@@ -54,36 +50,38 @@ export default function IndustrialGroupInfo({
 
   const handleIndustrialGroupChange = (selectedIds) => {
     // ส่งทั้ง IDs และ Names
-    const selectedGroups = industrialGroups.filter(group => selectedIds.includes(group.id));
-    const selectedNames = selectedGroups.map(group => group.name_th);
-    
-    setFormData(prev => ({ 
-      ...prev, 
+    const selectedGroups = industrialGroups.filter((group) => selectedIds.includes(group.id));
+    const selectedNames = selectedGroups.map((group) => group.name_th);
+
+    setFormData((prev) => ({
+      ...prev,
       industrialGroups: selectedIds,
-      industrialGroupNames: selectedNames
+      industrialGroupNames: selectedNames,
     }));
   };
-  
+
   const getSafeSelectedIds = (items) => {
     if (!Array.isArray(items) || items.length === 0) {
       return [];
     }
     // If the first item is an object with an 'id', map to IDs. Otherwise, assume it's already an array of IDs.
-    if (typeof items[0] === 'object' && items[0] !== null && 'id' in items[0]) {
-      return items.map(item => item.id);
+    if (typeof items[0] === "object" && items[0] !== null && "id" in items[0]) {
+      return items.map((item) => item.id);
     }
     return items;
   };
 
   const handleProvincialCouncilChange = (selectedIds) => {
     // ส่งทั้ง IDs และ Names
-    const selectedCouncils = provincialCouncils.filter(council => selectedIds.includes(council.id));
-    const selectedNames = selectedCouncils.map(council => council.name_th);
-    
-    setFormData(prev => ({ 
-      ...prev, 
+    const selectedCouncils = provincialCouncils.filter((council) =>
+      selectedIds.includes(council.id),
+    );
+    const selectedNames = selectedCouncils.map((council) => council.name_th);
+
+    setFormData((prev) => ({
+      ...prev,
       provincialChapters: selectedIds,
-      provincialChapterNames: selectedNames
+      provincialChapterNames: selectedNames,
     }));
   };
 
@@ -94,25 +92,30 @@ export default function IndustrialGroupInfo({
         <h3 className="text-xl font-semibold text-white tracking-tight">
           กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด
         </h3>
-        <p className="text-blue-100 text-sm mt-1">
-          เลือกกลุ่มอุตสาหกรรมและสภาจังหวัดที่เกี่ยวข้อง
-        </p>
+        <p className="text-blue-100 text-sm mt-1">เลือกกลุ่มอุตสาหกรรมและสภาจังหวัดที่เกี่ยวข้อง</p>
       </div>
-      
+
       {/* Content Section */}
       <div className="px-8 py-8 overflow-visible relative">
         {/* Information Note */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div className="flex items-start gap-3">
-            <svg className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            <svg
+              className="w-5 h-5 text-blue-600 mt-0.5 shrink-0"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                clipRule="evenodd"
+              />
             </svg>
             <div>
-              <p className="text-sm font-medium text-blue-900">
-                การเลือกกลุ่มอุตสาหกรรม
-              </p>
+              <p className="text-sm font-medium text-blue-900">การเลือกกลุ่มอุตสาหกรรม</p>
               <p className="text-sm text-blue-700 mt-1">
-                สามารถเลือกได้มากกว่า 1 รายการ เพื่อระบุกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัดที่บริษัทมีส่วนเกี่ยวข้อง
+                สามารถเลือกได้มากกว่า 1 รายการ
+                เพื่อระบุกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัดที่บริษัทมีส่วนเกี่ยวข้อง
               </p>
             </div>
           </div>
@@ -123,7 +126,7 @@ export default function IndustrialGroupInfo({
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
             เลือกกลุ่มที่เกี่ยวข้อง
           </h4>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 relative">
             {/* Industrial Groups */}
             <div className="space-y-2">
@@ -143,7 +146,11 @@ export default function IndustrialGroupInfo({
               {errors.industrialGroups && (
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   {errors.industrialGroups}
                 </p>
@@ -168,7 +175,11 @@ export default function IndustrialGroupInfo({
               {errors.provincialChapters && ( // ✅ เปลี่ยนจาก provincialCouncils
                 <p className="mt-1 text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                   {errors.provincialChapters} {/* ✅ เปลี่ยนจาก provincialCouncils */}
                 </p>
@@ -183,18 +194,22 @@ export default function IndustrialGroupInfo({
                 <div className="flex items-center gap-3 mb-5">
                   <div className="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg">
                     <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
-                  <h5 className="text-lg font-semibold text-gray-900">
-                    รายการที่เลือก
-                  </h5>
+                  <h5 className="text-lg font-semibold text-gray-900">รายการที่เลือก</h5>
                   <div className="flex-1"></div>
                   <div className="text-sm text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
-                    {(formData.industrialGroups?.length || 0) + (formData.provincialChapters?.length || 0)} รายการ
+                    {(formData.industrialGroups?.length || 0) +
+                      (formData.provincialChapters?.length || 0)}{" "}
+                    รายการ
                   </div>
                 </div>
-                
+
                 <div className="space-y-6">
                   {/* Industrial Groups Selected */}
                   {formData.industrialGroups?.length > 0 && (
@@ -207,8 +222,8 @@ export default function IndustrialGroupInfo({
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2.5">
-                        {formData.industrialGroups.map(id => {
-                          const group = industrialGroups.find(g => g.id === id);
+                        {formData.industrialGroups.map((id) => {
+                          const group = industrialGroups.find((g) => g.id === id);
                           return group ? (
                             <div
                               key={id}
@@ -235,8 +250,8 @@ export default function IndustrialGroupInfo({
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-2.5">
-                        {formData.provincialChapters.map(id => {
-                          const council = provincialCouncils.find(c => c.id === id);
+                        {formData.provincialChapters.map((id) => {
+                          const council = provincialCouncils.find((c) => c.id === id);
                           return council ? (
                             <div
                               key={id}
@@ -262,8 +277,19 @@ export default function IndustrialGroupInfo({
           <div className="mt-6 bg-gray-50 border border-gray-200 rounded-lg p-6">
             <div className="flex items-center justify-center gap-3">
               <svg className="animate-spin w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               <p className="text-sm text-gray-600">กำลังโหลดข้อมูล...</p>
             </div>

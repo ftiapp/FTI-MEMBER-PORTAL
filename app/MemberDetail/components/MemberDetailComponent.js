@@ -1,64 +1,68 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Import components
-import LoadingState from './Loadingstate';
-import ErrorState from './ErrorState';
-import EmptyState from './Emptystate';
-import MemberDetailHeader from './MemberDetailHeader';
-import MemberDetailTabs from './MemberDetailTabs';
-import InfoTabContent from './InfoTabContent';
-import AddressTabContent from './AddressTabContent/page';
-import RepresentativeTabContent from './RepresentativeTabContent';
-import ProductsPage from './Product/page';
-import SocialMediaTabContent from './SocialMedia/page';
-import LogoTabContent from './Logo/page';
-import MembershipTabContent from './MembershipTabContent';
-import MemberTypeFilter from './MemberTypeFilter';
+import LoadingState from "./Loadingstate";
+import ErrorState from "./ErrorState";
+import EmptyState from "./Emptystate";
+import MemberDetailHeader from "./MemberDetailHeader";
+import MemberDetailTabs from "./MemberDetailTabs";
+import InfoTabContent from "./InfoTabContent";
+import AddressTabContent from "./AddressTabContent/page";
+import RepresentativeTabContent from "./RepresentativeTabContent";
+import ProductsPage from "./Product/page";
+import SocialMediaTabContent from "./SocialMedia/page";
+import LogoTabContent from "./Logo/page";
+import MembershipTabContent from "./MembershipTabContent";
+import MemberTypeFilter from "./MemberTypeFilter";
 
 // Import constants
-import { 
-  statusCodeMap, 
-  memberTypeCodeMap, 
+import {
+  statusCodeMap,
+  memberTypeCodeMap,
   getOrganizationType,
   containerVariants,
-  itemVariants
-} from './constants';
+  itemVariants,
+} from "./constants";
 
 /**
  * MemberDetailComponent displays detailed information about a member based on their member code
  * It handles different types of members based on MEMBER_MAIN_GROUP_CODE (000, 100, 200)
  * and displays specific information based on the selected member type
- * 
+ *
  * @param {Object} props Component properties
  * @param {string} props.memberCode The member code to fetch details for
  * @param {string} props.selectedMemberType The selected member type (000, 100, 200)
  * @param {string} props.memberTypeCode The specific group code within the member type (optional)
  */
 export default function MemberDetailComponent({ memberCode, selectedMemberType, memberTypeCode }) {
-  console.log('MemberDetailComponent - Parameters from URL:', { memberCode, selectedMemberType, memberTypeCode });
+  console.log("MemberDetailComponent - Parameters from URL:", {
+    memberCode,
+    selectedMemberType,
+    memberTypeCode,
+  });
   const [memberData, setMemberData] = useState(null);
   const [filteredData, setFilteredData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [activeTab, setActiveTab] = useState('info');
+  const [activeTab, setActiveTab] = useState("info");
   const [activeAddress, setActiveAddress] = useState(null);
   const [membershipTypes, setMembershipTypes] = useState({});
-  const [memberTypeTitle, setMemberTypeTitle] = useState('');
+  const [memberTypeTitle, setMemberTypeTitle] = useState("");
   const [selectedFilterCode, setSelectedFilterCode] = useState(null);
 
   // Parse URL parameters for tab and address selection
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
-    const addressParam = params.get('address');
-    
+    const tabParam = params.get("tab");
+    const addressParam = params.get("address");
+
     if (tabParam) {
       setActiveTab(tabParam);
     }
-    
+
     if (addressParam) {
       setActiveAddress(addressParam);
     }
@@ -68,169 +72,176 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
     const fetchMemberData = async () => {
       if (!memberCode) {
         setLoading(false);
-        setError('ไม่ได้ระบุรหัสสมาชิก');
+        setError("ไม่ได้ระบุรหัสสมาชิก");
         return;
       }
 
       try {
         setLoading(true);
-        console.log('Fetching data for memberCode:', memberCode);
-        
-        const response = await fetch(`/api/member-detail?memberCode=${encodeURIComponent(memberCode)}`, {
-          headers: {
-            'Content-Type': 'application/json',
+        console.log("Fetching data for memberCode:", memberCode);
+
+        const response = await fetch(
+          `/api/member-detail?memberCode=${encodeURIComponent(memberCode)}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
           },
-          credentials: 'include',
-        });
+        );
 
         if (!response.ok) {
           throw new Error(`ไม่สามารถดึงข้อมูลสมาชิกได้ (${response.status})`);
         }
 
         const data = await response.json();
-        console.log('Member data received:', data);
-        
+        console.log("Member data received:", data);
+
         if (data.success && data.data) {
           setMemberData(data.data);
-          
+
           // Process membership types
           const memberships = {};
-          
+
           // Loop through all companies
-          Object.values(data.data).forEach(company => {
+          Object.values(data.data).forEach((company) => {
             const companyInfo = company.companyInfo;
             const mainGroupCode = companyInfo.MEMBER_MAIN_GROUP_CODE;
             const groupCode = companyInfo.MEMBER_GROUP_CODE;
-            
+
             // Initialize the main group if it doesn't exist
             if (!memberships[mainGroupCode]) {
               memberships[mainGroupCode] = {};
             }
-            
+
             // Add the group to the main group
             if (!memberships[mainGroupCode][groupCode]) {
               memberships[mainGroupCode][groupCode] = {
-                name: '',
-                nameEn: ''
+                name: "",
+                nameEn: "",
               };
-              
+
               // Set the appropriate name based on the main group code
-              if (mainGroupCode === '000') {
-                memberships[mainGroupCode][groupCode].name = 'สภาอุตสาหกรรมแห่งประเทศไทย';
-                memberships[mainGroupCode][groupCode].nameEn = 'The Federation of Thai Industries';
-              } else if (mainGroupCode === '100') {
-                memberships[mainGroupCode][groupCode].name = companyInfo.Industry_GROUP_NAME || 'กลุ่มอุตสาหกรรม';
-                memberships[mainGroupCode][groupCode].nameEn = companyInfo.Industry_GROUP_NAME_EN || 'Industry Group';
-              } else if (mainGroupCode === '200') {
-                memberships[mainGroupCode][groupCode].name = companyInfo.Province_GROUP_NAME || 'สภาอุตสาหกรรมจังหวัด';
-                memberships[mainGroupCode][groupCode].nameEn = companyInfo.Province_GROUP_NAME_EN || 'Provincial Industry';
+              if (mainGroupCode === "000") {
+                memberships[mainGroupCode][groupCode].name = "สภาอุตสาหกรรมแห่งประเทศไทย";
+                memberships[mainGroupCode][groupCode].nameEn = "The Federation of Thai Industries";
+              } else if (mainGroupCode === "100") {
+                memberships[mainGroupCode][groupCode].name =
+                  companyInfo.Industry_GROUP_NAME || "กลุ่มอุตสาหกรรม";
+                memberships[mainGroupCode][groupCode].nameEn =
+                  companyInfo.Industry_GROUP_NAME_EN || "Industry Group";
+              } else if (mainGroupCode === "200") {
+                memberships[mainGroupCode][groupCode].name =
+                  companyInfo.Province_GROUP_NAME || "สภาอุตสาหกรรมจังหวัด";
+                memberships[mainGroupCode][groupCode].nameEn =
+                  companyInfo.Province_GROUP_NAME_EN || "Provincial Industry";
               }
             }
           });
-          
+
           setMembershipTypes(memberships);
-          
+
           // Filter data based on selected member type if provided
           if (selectedMemberType) {
             filterDataByMemberType(data.data, selectedMemberType, memberTypeCode);
           }
         } else {
-          setError(data.error || 'ไม่พบข้อมูลสมาชิก');
+          setError(data.error || "ไม่พบข้อมูลสมาชิก");
         }
-        
+
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching member data:', err);
-        setError(err.message || 'ไม่สามารถดึงข้อมูลได้');
+        console.error("Error fetching member data:", err);
+        setError(err.message || "ไม่สามารถดึงข้อมูลได้");
         setLoading(false);
       }
     };
 
     fetchMemberData();
   }, [memberCode, selectedMemberType, memberTypeCode]);
-  
+
   // Filter data based on selected member type and filter code
   const filterDataByMemberType = (data, type, typeCode) => {
     if (!data || !type) return;
-    
+
     const filteredResults = {};
-    let title = '';
+    let title = "";
     const filterCode = typeCode || selectedFilterCode;
-    
+
     // Loop through all companies
     Object.entries(data).forEach(([registCode, company]) => {
       const companyInfo = company.companyInfo;
       const mainGroupCode = companyInfo.MEMBER_MAIN_GROUP_CODE;
       const groupCode = companyInfo.MEMBER_GROUP_CODE;
-      
+
       // Check if this company matches the selected type
       if (mainGroupCode === type) {
         // If a specific filter code is provided, check if it matches
         if (!filterCode || groupCode === filterCode) {
           filteredResults[registCode] = company;
-          
+
           // Set the title based on the type
-          if (type === '000') {
-            title = 'สภาอุตสาหกรรมแห่งประเทศไทย';
-          } else if (type === '100') {
-            title = companyInfo.Industry_GROUP_NAME || 'กลุ่มอุตสาหกรรม';
-          } else if (type === '200') {
-            title = companyInfo.Province_GROUP_NAME || 'สภาอุตสาหกรรมจังหวัด';
+          if (type === "000") {
+            title = "สภาอุตสาหกรรมแห่งประเทศไทย";
+          } else if (type === "100") {
+            title = companyInfo.Industry_GROUP_NAME || "กลุ่มอุตสาหกรรม";
+          } else if (type === "200") {
+            title = companyInfo.Province_GROUP_NAME || "สภาอุตสาหกรรมจังหวัด";
           }
         }
       }
     });
-    
+
     setFilteredData(filteredResults);
     setMemberTypeTitle(title);
   };
-  
+
   // Handle filter selection
   const handleFilterSelect = (filterCode) => {
     setSelectedFilterCode(filterCode);
     filterDataByMemberType(memberData, selectedMemberType, filterCode);
-    
+
     // Update URL with the selected filter code without reloading the page
     const params = new URLSearchParams(window.location.search);
-    params.set('typeCode', filterCode);
-    
+    params.set("typeCode", filterCode);
+
     // Preserve other parameters
-    if (activeTab) params.set('tab', activeTab);
-    if (activeAddress && activeTab === 'addresses') params.set('address', activeAddress);
-    
+    if (activeTab) params.set("tab", activeTab);
+    if (activeAddress && activeTab === "addresses") params.set("address", activeAddress);
+
     const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newUrl);
+    window.history.pushState({}, "", newUrl);
   };
-  
+
   // Handle tab change with URL update
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    
+
     // Update URL with the selected tab without reloading the page
     const params = new URLSearchParams(window.location.search);
-    params.set('tab', tab);
-    
+    params.set("tab", tab);
+
     // Add address parameter only if we're on the addresses tab and have an active address
-    if (tab === 'addresses' && activeAddress) {
-      params.set('address', activeAddress);
+    if (tab === "addresses" && activeAddress) {
+      params.set("address", activeAddress);
     } else {
-      params.delete('address'); // Remove address parameter if not on addresses tab
+      params.delete("address"); // Remove address parameter if not on addresses tab
     }
-    
+
     const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newUrl);
+    window.history.pushState({}, "", newUrl);
   };
-  
+
   // Handle address change with URL update
   const handleAddressChange = (address) => {
     setActiveAddress(address);
-    
+
     // Update URL with the selected address without reloading the page
     const params = new URLSearchParams(window.location.search);
-    params.set('address', address);
-    
+    params.set("address", address);
+
     const newUrl = `${window.location.pathname}?${params.toString()}`;
-    window.history.pushState({}, '', newUrl);
+    window.history.pushState({}, "", newUrl);
   };
 
   // Loading state
@@ -247,10 +258,10 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
   if (!memberData || Object.keys(memberData).length === 0) {
     return <EmptyState />;
   }
-  
+
   // Use filtered data if available, otherwise use all data
   const displayData = filteredData || memberData;
-  
+
   // No data for selected type
   if (Object.keys(displayData).length === 0) {
     return (
@@ -259,8 +270,6 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
       </div>
     );
   }
-  
-
 
   // Get the appropriate membership data for the filter
   const getMembershipDataForFilter = () => {
@@ -279,15 +288,21 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
 
   // Check if multiple companies with the same REGIST_CODE exist
   const multipleCompanies = Object.keys(displayData).length > 1;
-  
+
   // Get status information
-  const statusInfo = statusCodeMap[companyInfo.MEMBER_STATUS_CODE] || { name: 'ไม่ระบุสถานะ', color: 'gray' };
-  
+  const statusInfo = statusCodeMap[companyInfo.MEMBER_STATUS_CODE] || {
+    name: "ไม่ระบุสถานะ",
+    color: "gray",
+  };
+
   // Get member type information
-  const memberTypeInfo = memberTypeCodeMap[companyInfo.MEMBER_TYPE_CODE] || { name: 'ไม่ระบุประเภท', color: 'gray' };
+  const memberTypeInfo = memberTypeCodeMap[companyInfo.MEMBER_TYPE_CODE] || {
+    name: "ไม่ระบุประเภท",
+    color: "gray",
+  };
 
   return (
-    <motion.div 
+    <motion.div
       className="bg-white shadow-lg rounded-lg overflow-hidden"
       variants={containerVariants}
       initial="hidden"
@@ -303,7 +318,7 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
       )}
 
       {/* Header with company name and type */}
-      <MemberDetailHeader 
+      <MemberDetailHeader
         companyInfo={companyInfo}
         memberTypeInfo={memberTypeInfo}
         statusInfo={statusInfo}
@@ -314,30 +329,25 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
       />
 
       {/* Tabs */}
-      <MemberDetailTabs 
+      <MemberDetailTabs
         activeTab={activeTab}
         setActiveTab={handleTabChange}
         itemVariants={itemVariants}
         showMembershipTab={!selectedMemberType && Object.keys(membershipTypes).length > 0}
       />
-      
-  
 
       {/* Content based on active tab */}
-      <motion.div 
-        className="p-6 relative z-10 overflow-visible"
-        variants={itemVariants}
-      >
+      <motion.div className="p-6 relative z-10 overflow-visible" variants={itemVariants}>
         <AnimatePresence mode="wait">
           {/* General Information Tab */}
-          {activeTab === 'info' && (
+          {activeTab === "info" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <InfoTabContent 
+              <InfoTabContent
                 companyInfo={companyInfo}
                 memberTypeInfo={memberTypeInfo}
                 statusInfo={statusInfo}
@@ -350,15 +360,15 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
           )}
 
           {/* Address Tab */}
-          {activeTab === 'addresses' && (
+          {activeTab === "addresses" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <AddressTabContent 
-                addresses={addresses} 
+              <AddressTabContent
+                addresses={addresses}
                 memberCode={companyInfo.MEMBER_CODE}
                 memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
                 memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
@@ -370,14 +380,14 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
           )}
 
           {/* Representatives Tab */}
-          {activeTab === 'representatives' && (
+          {activeTab === "representatives" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <RepresentativeTabContent 
+              <RepresentativeTabContent
                 companyInfo={companyInfo}
                 representatives={representatives}
               />
@@ -385,66 +395,66 @@ export default function MemberDetailComponent({ memberCode, selectedMemberType, 
           )}
 
           {/* Products Tab */}
-          {activeTab === 'products' && (
+          {activeTab === "products" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <ProductsPage 
-                companyInfo={companyInfo} 
+              <ProductsPage
+                companyInfo={companyInfo}
                 memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
                 memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
-                typeCode={'000'}
+                typeCode={"000"}
               />
             </motion.div>
           )}
-          
+
           {/* Social Media Tab */}
-          {activeTab === 'social-media' && (
+          {activeTab === "social-media" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <SocialMediaTabContent 
-                companyInfo={companyInfo} 
+              <SocialMediaTabContent
+                companyInfo={companyInfo}
                 memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
                 memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
                 typeCode={companyInfo.MEMBER_TYPE_CODE}
               />
             </motion.div>
           )}
-          
+
           {/* Logo Tab */}
-          {activeTab === 'logo' && (
+          {activeTab === "logo" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <LogoTabContent 
-                companyInfo={companyInfo} 
+              <LogoTabContent
+                companyInfo={companyInfo}
                 memberType={companyInfo.MEMBER_MAIN_GROUP_CODE}
                 memberGroupCode={companyInfo.MEMBER_GROUP_CODE}
                 typeCode={companyInfo.MEMBER_TYPE_CODE}
               />
             </motion.div>
           )}
-          
+
           {/* Memberships Tab */}
-          {activeTab === 'memberships' && (
+          {activeTab === "memberships" && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <MembershipTabContent 
-                membershipTypes={membershipTypes} 
+              <MembershipTabContent
+                membershipTypes={membershipTypes}
                 companyInfo={companyInfo}
                 containerVariants={containerVariants}
                 itemVariants={itemVariants}

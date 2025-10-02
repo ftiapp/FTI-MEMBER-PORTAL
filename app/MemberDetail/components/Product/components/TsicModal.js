@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
-import TsicSelection from './TsicSelection';
+import { Fragment } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { XMarkIcon } from "@heroicons/react/24/outline";
+import TsicSelection from "./TsicSelection";
 
 export default function TsicModal({ isOpen, onClose, onSuccess, memberCode }) {
   // Always set isEditMode to true since we want to load existing TSIC codes when editing
@@ -45,19 +45,16 @@ export default function TsicModal({ isOpen, onClose, onSuccess, memberCode }) {
                   </button>
                 </div>
                 <div className="sm:flex sm:items-start">
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
-                   
-                   
-                  </div>
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full"></div>
                 </div>
                 <div className="mt-6">
-                  <TsicSelection 
+                  <TsicSelection
                     memberCode={memberCode}
                     isEditMode={true}
                     onSuccess={() => {
                       onSuccess?.();
                       onClose();
-                    }} 
+                    }}
                   />
                 </div>
                 <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">

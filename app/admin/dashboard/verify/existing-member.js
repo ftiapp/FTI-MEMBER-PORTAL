@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { toast } from "react-hot-toast";
+import { motion } from "framer-motion";
 
 export default function ExistingMember({ member, onSuccess, onClose }) {
-  const [memberCode, setMemberCode] = useState('');
+  const [memberCode, setMemberCode] = useState("");
   const [mssqlData, setMssqlData] = useState(null);
   const [isChecking, setIsChecking] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -13,25 +13,27 @@ export default function ExistingMember({ member, onSuccess, onClose }) {
   // ตรวจสอบ MEMBER_CODE จากฐานข้อมูล MSSQL
   const checkMemberCode = async () => {
     if (!memberCode.trim()) {
-      toast.error('กรุณาระบุรหัสสมาชิก');
+      toast.error("กรุณาระบุรหัสสมาชิก");
       return;
     }
 
     try {
       setIsChecking(true);
-      const response = await fetch(`/api/admin/check-member-code?code=${encodeURIComponent(memberCode.trim())}`);
+      const response = await fetch(
+        `/api/admin/check-member-code?code=${encodeURIComponent(memberCode.trim())}`,
+      );
       const result = await response.json();
 
       if (result.success) {
         setMssqlData(result.data);
-        toast.success('พบข้อมูลสมาชิกในระบบ');
+        toast.success("พบข้อมูลสมาชิกในระบบ");
       } else {
-        toast.error(result.message || 'ไม่พบข้อมูลสมาชิกในระบบ');
+        toast.error(result.message || "ไม่พบข้อมูลสมาชิกในระบบ");
         setMssqlData(null);
       }
     } catch (error) {
-      console.error('Error checking member code:', error);
-      toast.error('เกิดข้อผิดพลาดในการตรวจสอบรหัสสมาชิก');
+      console.error("Error checking member code:", error);
+      toast.error("เกิดข้อผิดพลาดในการตรวจสอบรหัสสมาชิก");
     } finally {
       setIsChecking(false);
     }
@@ -40,35 +42,35 @@ export default function ExistingMember({ member, onSuccess, onClose }) {
   // ยืนยันสมาชิกเดิม
   const verifyExistingMember = async () => {
     if (!mssqlData) {
-      toast.error('กรุณาตรวจสอบรหัสสมาชิกก่อน');
+      toast.error("กรุณาตรวจสอบรหัสสมาชิกก่อน");
       return;
     }
 
     try {
       setIsVerifying(true);
-      const response = await fetch('/api/admin/verify-existing-member', {
-        method: 'POST',
+      const response = await fetch("/api/admin/verify-existing-member", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           userId: member.id,
           memberCode: memberCode.trim(),
-          companyId: member.company ? member.company.id : null
-        })
+          companyId: member.company ? member.company.id : null,
+        }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success('ยืนยันสมาชิกเดิมสำเร็จ');
+        toast.success("ยืนยันสมาชิกเดิมสำเร็จ");
         if (onSuccess) onSuccess();
       } else {
-        toast.error(result.message || 'ไม่สามารถยืนยันสมาชิกเดิมได้');
+        toast.error(result.message || "ไม่สามารถยืนยันสมาชิกเดิมได้");
       }
     } catch (error) {
-      console.error('Error verifying existing member:', error);
-      toast.error('เกิดข้อผิดพลาดในการยืนยันสมาชิกเดิม');
+      console.error("Error verifying existing member:", error);
+      toast.error("เกิดข้อผิดพลาดในการยืนยันสมาชิกเดิม");
     } finally {
       setIsVerifying(false);
     }
@@ -79,17 +81,19 @@ export default function ExistingMember({ member, onSuccess, onClose }) {
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-gray-800">ยืนยันสมาชิกเดิม</h3>
         {onClose && (
-          <button 
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         )}
       </div>
-      
+
       <div className="mb-4">
         <label htmlFor="memberCode" className="block text-sm font-medium text-gray-700 mb-1">
           รหัสสมาชิก (MEMBER_CODE)
@@ -108,7 +112,7 @@ export default function ExistingMember({ member, onSuccess, onClose }) {
             onClick={checkMemberCode}
             disabled={isChecking || !memberCode.trim()}
           >
-            {isChecking ? 'กำลังตรวจสอบ...' : 'ตรวจสอบ'}
+            {isChecking ? "กำลังตรวจสอบ..." : "ตรวจสอบ"}
           </button>
         </div>
       </div>
@@ -145,7 +149,7 @@ export default function ExistingMember({ member, onSuccess, onClose }) {
               onClick={verifyExistingMember}
               disabled={isVerifying}
             >
-              {isVerifying ? 'กำลังยืนยัน...' : 'ยืนยันสมาชิกเดิม'}
+              {isVerifying ? "กำลังยืนยัน..." : "ยืนยันสมาชิกเดิม"}
             </button>
             {onClose && (
               <button

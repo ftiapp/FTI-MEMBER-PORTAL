@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import CompanyBasicInfo from './CompanyBasicInfo';
-import CompanyAddressInfo from './CompanyAddressInfo';
-import ContactPersonInfo from './ContactPersonInfo';
-import IndustrialGroupInfo from './IndustrialGroupInfo';
+import { useState } from "react";
+import CompanyBasicInfo from "./CompanyBasicInfo";
+import CompanyAddressInfo from "./CompanyAddressInfo";
+import ContactPersonInfo from "./ContactPersonInfo";
+import IndustrialGroupInfo from "./IndustrialGroupInfo";
 
 /**
  * คอมโพเนนต์สำหรับกรอกข้อมูลบริษัทในฟอร์มสมัครสมาชิกประเภท AC (สมทบ-นิติบุคคล)
@@ -21,21 +21,21 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // ลบข้อผิดพลาดเมื่อมีการแก้ไขข้อมูล
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
   const handleSelectChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // ลบข้อผิดพลาดเมื่อมีการแก้ไขข้อมูล
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setErrors((prev) => ({ ...prev, [name]: null }));
     }
   };
 
@@ -52,7 +52,7 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
         isLoading={isLoading}
         isCheckingTaxId={isCheckingTaxId}
       />
-      
+
       {/* ที่อยู่บริษัทและข้อมูลติดต่อ */}
       <CompanyAddressInfo
         formData={formData}
@@ -61,7 +61,7 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
         setErrors={setErrors}
         isAutofill={isAutofill}
       />
-      
+
       {/* ข้อมูลผู้ให้ข้อมูล */}
       <ContactPersonInfo
         formData={formData}
@@ -69,7 +69,7 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
         errors={errors}
         setErrors={setErrors}
       />
-      
+
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
       <IndustrialGroupInfo
         formData={formData}

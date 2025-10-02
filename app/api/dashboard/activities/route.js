@@ -1,14 +1,14 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
 
 export async function GET(request) {
   try {
     // Get query parameters
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
     // Fetch activities from all three tables
@@ -16,8 +16,8 @@ export async function GET(request) {
 
     return NextResponse.json({ activities });
   } catch (error) {
-    console.error('Error fetching activities:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    console.error("Error fetching activities:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
 
@@ -30,7 +30,7 @@ async function fetchUserActivities(userId) {
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 10`,
-      [userId]
+      [userId],
     );
 
     // Fetch company member information
@@ -40,7 +40,7 @@ async function fetchUserActivities(userId) {
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 5`,
-      [userId]
+      [userId],
     );
 
     // Fetch user logs
@@ -50,9 +50,9 @@ async function fetchUserActivities(userId) {
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 15`,
-      [userId]
+      [userId],
     );
-    
+
     // Fetch profile update requests
     const profileUpdates = await query(
       `SELECT id, user_id, new_firstname, new_lastname, new_email, new_phone, 
@@ -61,31 +61,31 @@ async function fetchUserActivities(userId) {
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 5`,
-      [userId]
+      [userId],
     );
 
     // Transform and combine the results
-    const contactActivities = contactMessages.map(message => ({
+    const contactActivities = contactMessages.map((message) => ({
       ...message,
-      type: 'contact',
-      action: 'contact_message'
+      type: "contact",
+      action: "contact_message",
     }));
 
-    const memberActivities = companyMembers.map(member => ({
+    const memberActivities = companyMembers.map((member) => ({
       ...member,
-      type: 'member',
-      action: 'member_verification'
+      type: "member",
+      action: "member_verification",
     }));
 
-    const profileActivities = profileUpdates.map(update => ({
+    const profileActivities = profileUpdates.map((update) => ({
       ...update,
-      type: 'profile',
-      action: 'profile_update_request'
+      type: "profile",
+      action: "profile_update_request",
     }));
 
-    const logActivities = userLogs.map(log => ({
+    const logActivities = userLogs.map((log) => ({
       ...log,
-      type: 'log'
+      type: "log",
     }));
 
     // Combine all activities and sort by creation date (newest first)
@@ -93,13 +93,13 @@ async function fetchUserActivities(userId) {
       ...contactActivities,
       ...memberActivities,
       ...profileActivities,
-      ...logActivities
+      ...logActivities,
     ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     // Return the 20 most recent activities
     return allActivities.slice(0, 20);
   } catch (error) {
-    console.error('Error in fetchUserActivities:', error);
+    console.error("Error in fetchUserActivities:", error);
     throw error;
   }
 }

@@ -1,24 +1,20 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaExclamationCircle } from 'react-icons/fa';
+import React from "react";
+import { motion } from "framer-motion";
+import { FaExclamationCircle } from "react-icons/fa";
 
 const ErrorState = ({ onRetry }) => {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="bg-white shadow rounded-lg p-6 mb-6"
     >
       <div className="py-16 flex flex-col items-center justify-center text-gray-700 border-2 border-dashed border-red-200 rounded-lg">
-        <motion.div
-          initial={{ scale: 0.8 }}
-          animate={{ scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
+        <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} transition={{ duration: 0.3 }}>
           <FaExclamationCircle className="text-red-500 mb-3" size={28} />
         </motion.div>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -26,7 +22,7 @@ const ErrorState = ({ onRetry }) => {
         >
           เกิดข้อผิดพลาดในการโหลดข้อมูล
         </motion.p>
-        <motion.button 
+        <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onRetry}

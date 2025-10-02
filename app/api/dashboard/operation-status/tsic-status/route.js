@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
 
 /**
  * API route to get TSIC code update status for a user
@@ -11,10 +11,10 @@ export async function GET(request) {
   try {
     // Get the user ID from the request URL
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
+    const userId = searchParams.get("userId");
 
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
     // First, get all member codes associated with this user
@@ -23,20 +23,20 @@ export async function GET(request) {
       FROM companies_Member 
       WHERE USER_ID = ?
     `;
-    
+
     const memberCodes = await query(memberCodesQuery, [userId]);
-    
+
     if (!memberCodes || memberCodes.length === 0) {
-      return NextResponse.json({ 
-        message: 'No member codes found for this user',
-        tsicUpdates: []
+      return NextResponse.json({
+        message: "No member codes found for this user",
+        tsicUpdates: [],
       });
     }
-    
+
     // Create a parameter placeholder for the IN clause
-    const placeholders = memberCodes.map(() => '?').join(',');
-    const memberCodeValues = memberCodes.map(m => m.MEMBER_CODE);
-    
+    const placeholders = memberCodes.map(() => "?").join(",");
+    const memberCodeValues = memberCodes.map((m) => m.MEMBER_CODE);
+
     // Query TSIC code updates for these member codes
     const tsicQuery = `
       SELECT 
@@ -58,26 +58,26 @@ export async function GET(request) {
       ORDER BY 
         t.created_at DESC
     `;
-    
+
     const tsicUpdates = await query(tsicQuery, memberCodeValues);
-    
+
     // Map status codes to readable status
-    const mappedTsicUpdates = tsicUpdates.map(update => {
+    const mappedTsicUpdates = tsicUpdates.map((update) => {
       let status;
       switch (update.status) {
         case 0:
-          status = 'pending';
+          status = "pending";
           break;
         case 1:
-          status = 'approved';
+          status = "approved";
           break;
         case 2:
-          status = 'rejected';
+          status = "rejected";
           break;
         default:
-          status = 'pending';
+          status = "pending";
       }
-      
+
       return {
         id: update.id,
         user_id: update.user_id,
@@ -88,36 +88,42 @@ export async function GET(request) {
         created_at: update.created_at,
         updated_at: update.updated_at,
         company_name: update.company_name,
-        description: `รหัส TSIC: ${update.tsic_code} (${update.category_code})`
+        description: `รหัส TSIC: ${update.tsic_code} (${update.category_code})`,
       };
     });
-    
+
     // If no TSIC updates found, return a placeholder
     if (mappedTsicUpdates.length === 0) {
       return NextResponse.json({
         success: true,
-        tsicUpdates: [{
-          id: 'no-tsic-updates',
-          status: 'none',
-          description: 'คุณยังไม่มีการอัปเดตรหัส TSIC',
-          created_at: new Date().toISOString()
-        }]
+        tsicUpdates: [
+          {
+            id: "no-tsic-updates",
+            status: "none",
+            description: "คุณยังไม่มีการอัปเดตรหัส TSIC",
+            created_at: new Date().toISOString(),
+          },
+        ],
       });
     }
-    
+
     return NextResponse.json({ success: true, tsicUpdates: mappedTsicUpdates });
-    
   } catch (error) {
-    console.error('Error fetching TSIC code update status:', error);
-    
-    return NextResponse.json({
-      error: 'Failed to fetch TSIC code update status',
-      tsicUpdates: [{
-        id: 'error-tsic-updates',
-        status: 'error',
-        description: 'เกิดข้อผิดพลาดในการโหลดข้อมูลการอัปเดตรหัส TSIC',
-        created_at: new Date().toISOString()
-      }]
-    }, { status: 500 });
+    console.error("Error fetching TSIC code update status:", error);
+
+    return NextResponse.json(
+      {
+        error: "Failed to fetch TSIC code update status",
+        tsicUpdates: [
+          {
+            id: "error-tsic-updates",
+            status: "error",
+            description: "เกิดข้อผิดพลาดในการโหลดข้อมูลการอัปเดตรหัส TSIC",
+            created_at: new Date().toISOString(),
+          },
+        ],
+      },
+      { status: 500 },
+    );
   }
 }

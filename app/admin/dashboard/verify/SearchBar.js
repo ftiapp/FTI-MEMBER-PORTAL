@@ -1,11 +1,18 @@
-import { useEffect, useState } from 'react';
-import { FiSearch } from 'react-icons/fi';
+import { useEffect, useState } from "react";
+import { FiSearch } from "react-icons/fi";
 
-export default function SearchBar({ value, onChange, onDateChange, dateRange, placeholder, onSubmit }) {
-  const [input, setInput] = useState(value || '');
+export default function SearchBar({
+  value,
+  onChange,
+  onDateChange,
+  dateRange,
+  placeholder,
+  onSubmit,
+}) {
+  const [input, setInput] = useState(value || "");
 
   useEffect(() => {
-    setInput(value || '');
+    setInput(value || "");
   }, [value]);
 
   const handleInputChange = (e) => {
@@ -19,10 +26,15 @@ export default function SearchBar({ value, onChange, onDateChange, dateRange, pl
         <input
           type="text"
           className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 focus:outline-none focus:border-blue-500 text-sm"
-          placeholder={placeholder || 'ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก'}
+          placeholder={placeholder || "ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก"}
           value={input}
           onChange={handleInputChange}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); onSubmit && onSubmit(input); }}}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onSubmit && onSubmit(input);
+            }
+          }}
         />
         <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
       </div>
@@ -37,15 +49,15 @@ export default function SearchBar({ value, onChange, onDateChange, dateRange, pl
         <input
           type="date"
           className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 text-sm mr-2"
-          value={dateRange?.from || ''}
-          onChange={e => onDateChange && onDateChange({ ...dateRange, from: e.target.value })}
+          value={dateRange?.from || ""}
+          onChange={(e) => onDateChange && onDateChange({ ...dateRange, from: e.target.value })}
         />
         <span className="mx-1 text-gray-500">-</span>
         <input
           type="date"
           className="border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:border-blue-500 text-sm"
-          value={dateRange?.to || ''}
-          onChange={e => onDateChange && onDateChange({ ...dateRange, to: e.target.value })}
+          value={dateRange?.to || ""}
+          onChange={(e) => onDateChange && onDateChange({ ...dateRange, to: e.target.value })}
         />
       </div>
     </div>

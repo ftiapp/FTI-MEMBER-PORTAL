@@ -1,8 +1,14 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getSession } from '../../../lib/session';
-import { query as dbQuery, beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '../../../lib/db';
-import { createNotification } from '../../../lib/notifications';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { getSession } from "../../../lib/session";
+import {
+  query as dbQuery,
+  beginTransaction,
+  executeQuery,
+  commitTransaction,
+  rollbackTransaction,
+} from "../../../lib/db";
+import { createNotification } from "../../../lib/notifications";
 
 /**
  * API endpoint to submit a product update request
@@ -15,45 +21,57 @@ export async function POST(request) {
     const user = session?.user;
 
     if (!user) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ไม่พบข้อมูลผู้ใช้งาน กรุณาเข้าสู่ระบบใหม่",
+        },
+        { status: 401 },
+      );
     }
 
     const userId = user.id;
     const body = await request.json();
-    const { 
-      member_code, 
+    const {
+      member_code,
       company_name,
       member_type,
       member_group_code,
       type_code,
-      old_products_th, 
+      old_products_th,
       new_products_th,
       old_products_en,
-      new_products_en
+      new_products_en,
     } = body;
 
     if (!member_code || !new_products_th) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'ข้อมูลไม่ครบถ้วน กรุณาระบุข้อมูลให้ครบถ้วน' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ข้อมูลไม่ครบถ้วน กรุณาระบุข้อมูลให้ครบถ้วน",
+        },
+        { status: 400 },
+      );
     }
 
     // Check if there's already a pending request for this member
-    const existingRequests = await dbQuery(`
+    const existingRequests = await dbQuery(
+      `
       SELECT COUNT(*) as count
       FROM pending_product_updates
       WHERE member_code = ? AND status = 'pending'
-    `, [member_code]);
+    `,
+      [member_code],
+    );
 
     if (existingRequests[0].count > 0) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'มีคำขอแก้ไขข้อมูลสินค้ารอการอนุมัติอยู่แล้ว กรุณารอการอนุมัติจากผู้ดูแลระบบ' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "มีคำขอแก้ไขข้อมูลสินค้ารอการอนุมัติอยู่แล้ว กรุณารอการอนุมัติจากผู้ดูแลระบบ",
+        },
+        { status: 400 },
+      );
     }
 
     // Create the pending_product_updates table if it doesn't exist
@@ -86,50 +104,70 @@ export async function POST(request) {
 
     try {
       // Insert the product update request
-      const insertResult = await executeQuery(conn, `
+      const insertResult = await executeQuery(
+        conn,
+        `
         INSERT INTO pending_product_updates
         (user_id, member_code, company_name, member_type, member_group_code, type_code, old_products_th, new_products_th, old_products_en, new_products_en)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `, [userId, member_code, company_name, member_type, member_group_code, type_code, old_products_th, new_products_th, old_products_en, new_products_en]);
+      `,
+        [
+          userId,
+          member_code,
+          company_name,
+          member_type,
+          member_group_code,
+          type_code,
+          old_products_th,
+          new_products_th,
+          old_products_en,
+          new_products_en,
+        ],
+      );
 
       const requestId = insertResult.insertId;
 
       // Log the action
-      const userIP = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown';
-      const userAgent = request.headers.get('user-agent') || 'unknown';
-      
+      const userIP =
+        request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
+      const userAgent = request.headers.get("user-agent") || "unknown";
+
       // Format the details for logging
       const logDetails = JSON.stringify({
         member_code,
         company_name,
         products_th: {
           old: old_products_th,
-          new: new_products_th
+          new: new_products_th,
         },
         products_en: {
           old: old_products_en,
-          new: new_products_en
-        }
+          new: new_products_en,
+        },
       });
 
-      await executeQuery(conn, `
+      await executeQuery(
+        conn,
+        `
         INSERT INTO Member_portal_User_log
         (user_id, action, details, ip_address, user_agent)
         VALUES (?, 'other', ?, ?, ?)
-      `, [userId, logDetails, userIP, userAgent]);
+      `,
+        [userId, logDetails, userIP, userAgent],
+      );
 
       // Create notification for admin
       const notificationMessage = `มีคำขอแก้ไขข้อมูลสินค้าจาก ${company_name} (${member_code})`;
       await createNotification({
         user_id: null, // null means it's for all admins
         message: notificationMessage,
-        type: 'admin',
+        type: "admin",
         link: `/admin/product-updates?id=${requestId}`,
-        status: 'pending',
+        status: "pending",
         member_code: member_code,
         member_type: member_type,
         member_group_code: member_group_code,
-        type_code: type_code
+        type_code: type_code,
       });
 
       // Commit the transaction
@@ -137,7 +175,7 @@ export async function POST(request) {
 
       return NextResponse.json({
         success: true,
-        message: 'ส่งคำขอแก้ไขข้อมูลสินค้าสำเร็จ กรุณารอการอนุมัติจากผู้ดูแลระบบ'
+        message: "ส่งคำขอแก้ไขข้อมูลสินค้าสำเร็จ กรุณารอการอนุมัติจากผู้ดูแลระบบ",
       });
     } catch (error) {
       // Rollback the transaction if there's an error
@@ -145,10 +183,13 @@ export async function POST(request) {
       throw error;
     }
   } catch (error) {
-    console.error('Error submitting product update request:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า' 
-    }, { status: 500 });
+    console.error("Error submitting product update request:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "เกิดข้อผิดพลาดในการส่งคำขอแก้ไขข้อมูลสินค้า",
+      },
+      { status: 500 },
+    );
   }
 }

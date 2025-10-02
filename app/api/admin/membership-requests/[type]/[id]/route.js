@@ -1,13 +1,13 @@
-import { NextResponse } from 'next/server';
-import { getConnection } from '@/app/lib/db';
-import { checkAdminSession } from '@/app/lib/auth';
+import { NextResponse } from "next/server";
+import { getConnection } from "@/app/lib/db";
+import { checkAdminSession } from "@/app/lib/auth";
 
 // Helper function to convert snake_case fields to camelCase for frontend compatibility
 function convertFieldNames(data, type) {
   if (!data) return data;
-  
+
   const converted = { ...data };
-  
+
   // Common conversions for all types
   if (converted.tax_id !== undefined) {
     converted.taxId = converted.tax_id;
@@ -42,7 +42,7 @@ function convertFieldNames(data, type) {
     converted.adminNoteAt = converted.admin_note_at;
     delete converted.admin_note_at;
   }
-  
+
   // User information fields (applicant data)
   if (converted.user_email !== undefined) {
     converted.email = converted.user_email;
@@ -53,10 +53,10 @@ function convertFieldNames(data, type) {
     delete converted.user_phone;
   }
   // Keep firstname and lastname as is since they're already in the correct format
-  
+
   // Type-specific conversions based on actual database schema
   switch (type) {
-    case 'oc':
+    case "oc":
       // OC (สามัญ-โรงงาน) field conversions - MemberRegist_OC_Main
       if (converted.company_name_th !== undefined) {
         converted.companyNameTh = converted.company_name_th;
@@ -83,8 +83,8 @@ function convertFieldNames(data, type) {
         delete converted.number_of_employees;
       }
       break;
-      
-    case 'am':
+
+    case "am":
       // AM (สามัญ-สมาคมการค้า) field conversions - MemberRegist_AM_Main
       if (converted.company_name_th !== undefined) {
         converted.associationNameTh = converted.company_name_th; // Map to what frontend expects
@@ -115,8 +115,8 @@ function convertFieldNames(data, type) {
         delete converted.number_of_member;
       }
       break;
-      
-    case 'ac':
+
+    case "ac":
       // AC (สมทบ-นิติบุคคล) field conversions - MemberRegist_AC_Main
       if (converted.company_name_th !== undefined) {
         converted.companyNameTh = converted.company_name_th;
@@ -147,8 +147,8 @@ function convertFieldNames(data, type) {
         delete converted.company_website;
       }
       break;
-      
-    case 'ic':
+
+    case "ic":
       // IC (สมทบ-บุคคลธรรมดา) field conversions - MemberRegist_IC_Main
       if (converted.first_name_th !== undefined) {
         converted.firstNameTh = converted.first_name_th;
@@ -182,37 +182,40 @@ function convertFieldNames(data, type) {
       }
       break;
   }
-  
+
   return converted;
 }
 
 export async function GET(request, { params }) {
   const startTime = Date.now();
   let connection;
-  
+
   try {
     // Get params first
     const { type, id } = await params;
     console.log(`[PERF] Starting membership request detail fetch for type: ${type}, id: ${id}`);
-    
+
     // Verify admin token
     const authStart = Date.now();
     const adminData = await checkAdminSession();
     console.log(`[PERF] Auth check took: ${Date.now() - authStart}ms`);
-    
+
     if (!adminData) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
-    
+
     // Validate type parameter
-    const validTypes = ['oc', 'am', 'ac', 'ic'];
+    const validTypes = ["oc", "am", "ac", "ic"];
     if (!validTypes.includes(type)) {
-      return NextResponse.json({ success: false, message: 'Invalid membership type' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Invalid membership type" },
+        { status: 400 },
+      );
     }
 
     // Validate id parameter
     if (!id || isNaN(parseInt(id))) {
-      return NextResponse.json({ success: false, message: 'Invalid ID' }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Invalid ID" }, { status: 400 });
     }
 
     // Get database connection
@@ -223,9 +226,9 @@ export async function GET(request, { params }) {
     // Fetch membership request details based on type
     let query, result;
     const mainQueryStart = Date.now();
-    
+
     switch (type) {
-      case 'oc':
+      case "oc":
         query = `
           SELECT 
             m.*,
@@ -251,8 +254,8 @@ export async function GET(request, { params }) {
         `;
         [result] = await connection.execute(query, [id]);
         break;
-        
-      case 'am':
+
+      case "am":
         query = `
           SELECT 
             m.*,
@@ -278,8 +281,8 @@ export async function GET(request, { params }) {
         `;
         [result] = await connection.execute(query, [id]);
         break;
-        
-      case 'ac':
+
+      case "ac":
         query = `
           SELECT 
             m.*,
@@ -305,8 +308,8 @@ export async function GET(request, { params }) {
         `;
         [result] = await connection.execute(query, [id]);
         break;
-        
-      case 'ic':
+
+      case "ic":
         query = `
           SELECT 
             i.*,
@@ -335,18 +338,21 @@ export async function GET(request, { params }) {
     }
 
     console.log(`[PERF] Main query took: ${Date.now() - mainQueryStart}ms`);
-    
+
     // Check if membership request exists
     if (!result || result.length === 0) {
       connection.release();
       console.log(`[PERF] Request not found after: ${Date.now() - startTime}ms`);
-      return NextResponse.json({ success: false, message: 'Membership request not found' }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Membership request not found" },
+        { status: 404 },
+      );
     }
 
     // Get additional data based on type
     let additionalData = {};
     const additionalDataStart = Date.now();
-    
+
     // For OC, AC, AM, and IC: Get all addresses (3 types)
     if (["oc", "ac", "am", "ic"].includes(type)) {
       try {
@@ -354,254 +360,295 @@ export async function GET(request, { params }) {
         const addressTableName = `MemberRegist_${type.toUpperCase()}_Address`;
         const [addresses] = await connection.execute(
           `SELECT * FROM ${addressTableName} WHERE main_id = ? ORDER BY address_type`,
-          [id]
+          [id],
         );
         console.log(`[PERF] Addresses query took: ${Date.now() - addressStart}ms`);
         additionalData.addresses = addresses || [];
       } catch (addressError) {
-        console.error('Error fetching addresses:', addressError);
+        console.error("Error fetching addresses:", addressError);
         additionalData.addresses = [];
       }
     }
 
     // For OC, AC, and AM: Get contact person
-    if (['oc', 'ac', 'am'].includes(type)) {
+    if (["oc", "ac", "am"].includes(type)) {
       try {
         const contactStart = Date.now();
         const contactTableName = `MemberRegist_${type.toUpperCase()}_ContactPerson`;
         const [contactPerson] = await connection.execute(
           `SELECT * FROM ${contactTableName} WHERE main_id = ?`,
-          [id]
+          [id],
         );
         console.log(`[PERF] Contact person query took: ${Date.now() - contactStart}ms`);
         additionalData.contactPerson = contactPerson || [];
       } catch (contactError) {
-        console.error('Error fetching contact person:', contactError);
+        console.error("Error fetching contact person:", contactError);
         additionalData.contactPerson = [];
       }
     }
-    
+
     // For OC, AM, AC: Get representatives
-    if (['oc', 'am', 'ac'].includes(type)) {
+    if (["oc", "am", "ac"].includes(type)) {
       try {
         const repStart = Date.now();
         const tableName = `MemberRegist_${type.toUpperCase()}_Representatives`;
         const [representatives] = await connection.execute(
           `SELECT * FROM ${tableName} WHERE main_id = ?`,
-          [id]
+          [id],
         );
         console.log(`[PERF] Representatives query took: ${Date.now() - repStart}ms`);
         additionalData.representatives = representatives || [];
       } catch (repError) {
-        console.error('Error fetching representatives:', repError);
+        console.error("Error fetching representatives:", repError);
         additionalData.representatives = [];
       }
     }
-    
+
     // For OC, AC, AM: Get business types and products in parallel
-    if (['oc', 'ac', 'am'].includes(type)) {
+    if (["oc", "ac", "am"].includes(type)) {
       try {
         const businessStart = Date.now();
         const businessTablePrefix = `MemberRegist_${type.toUpperCase()}`;
-        
+
         // Execute business types and products queries in parallel
         const [businessTypesResult, productsResult] = await Promise.all([
           connection.execute(
             `SELECT * FROM ${businessTablePrefix}_BusinessTypes WHERE main_id = ?`,
-            [id]
+            [id],
           ),
-          connection.execute(
-            `SELECT * FROM ${businessTablePrefix}_Products WHERE main_id = ?`,
-            [id]
-          )
+          connection.execute(`SELECT * FROM ${businessTablePrefix}_Products WHERE main_id = ?`, [
+            id,
+          ]),
         ]);
-        
-        console.log(`[PERF] Business types and products queries took: ${Date.now() - businessStart}ms`);
+
+        console.log(
+          `[PERF] Business types and products queries took: ${Date.now() - businessStart}ms`,
+        );
         // Map to array of strings like ["manufacturer", "exporter", ...]
-        additionalData.businessTypes = (businessTypesResult[0] || []).map(row => row.business_type || row.type || row.businessType).filter(Boolean);
+        additionalData.businessTypes = (businessTypesResult[0] || [])
+          .map((row) => row.business_type || row.type || row.businessType)
+          .filter(Boolean);
         additionalData.products = productsResult[0] || [];
       } catch (businessError) {
-        console.error('Error fetching business types/products:', businessError);
+        console.error("Error fetching business types/products:", businessError);
         additionalData.businessTypes = [];
         additionalData.products = [];
       }
     }
-    
+
     // For IC: Get business types and products using IC-specific tables
-    if (type === 'ic') {
+    if (type === "ic") {
       try {
         const businessStart = Date.now();
-        
+
         // Execute business types and products queries in parallel
         const [businessTypesResult, businessTypeOtherResult, productsResult] = await Promise.all([
-          connection.execute(
-            `SELECT business_type FROM MemberRegist_IC_BusinessTypes WHERE main_id = ?`,
-            [id]
-          ).catch(err => {
-            console.error('Error fetching IC business types:', err);
-            return [[]]; // Return empty result
-          }),
-          connection.execute(
-            `SELECT other_type as detail FROM MemberRegist_IC_BusinessTypeOther WHERE main_id = ?`,
-            [id]
-          ).catch(err => {
-            console.error('Error fetching IC business type other:', err);
-            return [[]]; // Return empty result
-          }),
-          connection.execute(
-            `SELECT name_th as nameTh, name_en as nameEn FROM MemberRegist_IC_Products WHERE main_id = ?`,
-            [id]
-          ).catch(err => {
-            console.error('Error fetching IC products:', err);
-            return [[]]; // Return empty result
-          })
+          connection
+            .execute(`SELECT business_type FROM MemberRegist_IC_BusinessTypes WHERE main_id = ?`, [
+              id,
+            ])
+            .catch((err) => {
+              console.error("Error fetching IC business types:", err);
+              return [[]]; // Return empty result
+            }),
+          connection
+            .execute(
+              `SELECT other_type as detail FROM MemberRegist_IC_BusinessTypeOther WHERE main_id = ?`,
+              [id],
+            )
+            .catch((err) => {
+              console.error("Error fetching IC business type other:", err);
+              return [[]]; // Return empty result
+            }),
+          connection
+            .execute(
+              `SELECT name_th as nameTh, name_en as nameEn FROM MemberRegist_IC_Products WHERE main_id = ?`,
+              [id],
+            )
+            .catch((err) => {
+              console.error("Error fetching IC products:", err);
+              return [[]]; // Return empty result
+            }),
         ]);
-        
-        console.log(`[PERF] IC business types and products queries took: ${Date.now() - businessStart}ms`);
+
+        console.log(
+          `[PERF] IC business types and products queries took: ${Date.now() - businessStart}ms`,
+        );
         additionalData.businessTypes = businessTypesResult[0] || [];
         // Return businessTypeOther as a plain string for frontend rendering
-        additionalData.businessTypeOther = (businessTypeOtherResult[0] && businessTypeOtherResult[0][0]
-          ? (businessTypeOtherResult[0][0].detail || businessTypeOtherResult[0][0].other_type || null)
-          : null);
+        additionalData.businessTypeOther =
+          businessTypeOtherResult[0] && businessTypeOtherResult[0][0]
+            ? businessTypeOtherResult[0][0].detail ||
+              businessTypeOtherResult[0][0].other_type ||
+              null
+            : null;
         additionalData.products = productsResult[0] || [];
       } catch (businessError) {
-        console.error('Error fetching IC business types/products:', businessError);
+        console.error("Error fetching IC business types/products:", businessError);
         additionalData.businessTypes = [];
         additionalData.businessTypeOther = null;
         additionalData.products = [];
       }
     }
-    
+
     // For OC, AC, and AM: Get other business type data
-    if (['oc', 'ac', 'am'].includes(type)) {
+    if (["oc", "ac", "am"].includes(type)) {
       try {
         const otherBusinessStart = Date.now();
         const otherBusinessTableName = `MemberRegist_${type.toUpperCase()}_BusinessTypeOther`;
         const [businessTypeOtherResult] = await connection.execute(
           `SELECT * FROM ${otherBusinessTableName} WHERE main_id = ?`,
-          [id]
+          [id],
         );
         console.log(`[PERF] Other business type query took: ${Date.now() - otherBusinessStart}ms`);
         additionalData.businessTypeOther = businessTypeOtherResult || [];
       } catch (otherBusinessError) {
-        console.error('Error fetching other business type:', otherBusinessError);
+        console.error("Error fetching other business type:", otherBusinessError);
         additionalData.businessTypeOther = [];
       }
     }
-    
+
     // For OC, AM, AC: Get industrial groups and provincial chapters in parallel
-    if (['oc', 'am', 'ac'].includes(type)) {
+    if (["oc", "am", "ac"].includes(type)) {
       try {
         const groupsStart = Date.now();
         const tablePrefix = `MemberRegist_${type.toUpperCase()}`;
-        
+
         // Execute industrial groups and provincial chapters queries in parallel
         const [industrialGroupsResult, provincialChaptersResult] = await Promise.all([
-          connection.execute(`
+          connection
+            .execute(
+              `
             SELECT industry_group_id, industry_group_name
             FROM ${tablePrefix}_IndustryGroups
             WHERE main_id = ?
-          `, [id]).catch(err => {
-            console.error('Error fetching industrial groups:', err);
-            return [[]]; // Return empty result
-          }),
-          connection.execute(`
+          `,
+              [id],
+            )
+            .catch((err) => {
+              console.error("Error fetching industrial groups:", err);
+              return [[]]; // Return empty result
+            }),
+          connection
+            .execute(
+              `
             SELECT province_chapter_id, province_chapter_name
             FROM ${tablePrefix}_ProvinceChapters
             WHERE main_id = ?
-          `, [id]).catch(err => {
-            console.error('Error fetching provincial chapters:', err);
-            return [[]]; // Return empty result
-          })
+          `,
+              [id],
+            )
+            .catch((err) => {
+              console.error("Error fetching provincial chapters:", err);
+              return [[]]; // Return empty result
+            }),
         ]);
-        
-        console.log(`[PERF] Industrial groups and provincial chapters queries took: ${Date.now() - groupsStart}ms`);
+
+        console.log(
+          `[PERF] Industrial groups and provincial chapters queries took: ${Date.now() - groupsStart}ms`,
+        );
         additionalData.industrialGroups = industrialGroupsResult[0] || [];
         additionalData.provincialChapters = provincialChaptersResult[0] || [];
       } catch (groupsError) {
-        console.error('Error fetching groups:', groupsError);
+        console.error("Error fetching groups:", groupsError);
         additionalData.industrialGroups = [];
         additionalData.provincialChapters = [];
       }
     }
-    
+
     // For IC: Get representatives, industrial groups, and provincial chapters
-    if (type === 'ic') {
+    if (type === "ic") {
       try {
         const icDataStart = Date.now();
-        
+
         // Execute all IC-specific queries in parallel
-        const [representativesResult, industrialGroupsResult, provincialChaptersResult] = await Promise.all([
-          // Get representatives
-          connection.execute(`
+        const [representativesResult, industrialGroupsResult, provincialChaptersResult] =
+          await Promise.all([
+            // Get representatives
+            connection
+              .execute(
+                `
             SELECT first_name_th as firstNameTh, last_name_th as lastNameTh, 
                    first_name_en as firstNameEn, last_name_en as lastNameEn,
                    position, email, phone
             FROM MemberRegist_IC_Representatives WHERE main_id = ?
-          `, [id]).catch(err => {
-            console.error('Error fetching IC representatives:', err);
-            return [[]]; // Return empty result
-          }),
-          // Get industrial groups
-          connection.execute(`
+          `,
+                [id],
+              )
+              .catch((err) => {
+                console.error("Error fetching IC representatives:", err);
+                return [[]]; // Return empty result
+              }),
+            // Get industrial groups
+            connection
+              .execute(
+                `
             SELECT industry_group_id, industry_group_name FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?
-          `, [id]).catch(err => {
-            console.error('Error fetching IC industrial groups:', err);
-            return [[]]; // Return empty result
-          }),
-          // Get provincial chapters
-          connection.execute(`
+          `,
+                [id],
+              )
+              .catch((err) => {
+                console.error("Error fetching IC industrial groups:", err);
+                return [[]]; // Return empty result
+              }),
+            // Get provincial chapters
+            connection
+              .execute(
+                `
             SELECT province_chapter_id, province_chapter_name FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?
-          `, [id]).catch(err => {
-            console.error('Error fetching IC provincial chapters:', err);
-            return [[]]; // Return empty result
-          })
-        ]);
-        
+          `,
+                [id],
+              )
+              .catch((err) => {
+                console.error("Error fetching IC provincial chapters:", err);
+                return [[]]; // Return empty result
+              }),
+          ]);
+
         console.log(`[PERF] IC-specific data queries took: ${Date.now() - icDataStart}ms`);
         additionalData.representatives = representativesResult[0] || [];
         additionalData.industrialGroups = industrialGroupsResult[0] || [];
         additionalData.provincialChapters = provincialChaptersResult[0] || [];
       } catch (icError) {
-        console.error('Error fetching IC-specific data:', icError);
+        console.error("Error fetching IC-specific data:", icError);
         additionalData.representatives = [];
         additionalData.industrialGroups = [];
         additionalData.provincialChapters = [];
       }
     }
-    
+
     // For all types: Get documents
     try {
       const documentsStart = Date.now();
       let documentsTableName, documentIdField;
-      
-      if (type === 'ic') {
+
+      if (type === "ic") {
         // IC uses standard structure like other types
-        documentsTableName = 'MemberRegist_IC_Documents';
-        documentIdField = 'main_id';
+        documentsTableName = "MemberRegist_IC_Documents";
+        documentIdField = "main_id";
       } else {
         // OC, AM, AC use standard structure
         documentsTableName = `MemberRegist_${type.toUpperCase()}_Documents`;
-        documentIdField = 'main_id';
+        documentIdField = "main_id";
       }
-      
+
       const [documents] = await connection.execute(
         `SELECT * FROM ${documentsTableName} WHERE ${documentIdField} = ?`,
-        [id]
+        [id],
       );
       console.log(`[PERF] Documents query took: ${Date.now() - documentsStart}ms`);
       additionalData.documents = documents || [];
     } catch (docsError) {
-      console.error('Error fetching documents:', docsError);
+      console.error("Error fetching documents:", docsError);
       additionalData.documents = [];
     }
-    
+
     console.log(`[PERF] Additional data queries took: ${Date.now() - additionalDataStart}ms`);
 
     // Convert snake_case to camelCase for frontend compatibility
     const mainData = result[0];
     const convertedMainData = convertFieldNames(mainData, type);
-    
+
     // Normalize field names for frontend expectations
     // Ensure contactPersons (plural) is always present for UI components
     if (Array.isArray(additionalData.contactPerson)) {
@@ -610,34 +657,34 @@ export async function GET(request, { params }) {
     } else if (!Array.isArray(additionalData.contactPersons)) {
       additionalData.contactPersons = [];
     }
-    
+
     // Combine main data with additional data
     const membershipData = {
       ...convertedMainData,
-      ...additionalData
+      ...additionalData,
     };
 
     // Release connection back to pool
     connection.release();
-    
+
     console.log(`[PERF] Total request took: ${Date.now() - startTime}ms`);
     return NextResponse.json({ success: true, data: membershipData });
   } catch (error) {
-    console.error('Error fetching membership request details:', error);
+    console.error("Error fetching membership request details:", error);
     console.log(`[PERF] Request failed after: ${Date.now() - startTime}ms`);
-    
+
     // Make sure to release connection in error case
     try {
       if (connection) {
         connection.release();
       }
     } catch (releaseError) {
-      console.error('Error releasing connection:', releaseError);
+      console.error("Error releasing connection:", releaseError);
     }
-    
+
     return NextResponse.json(
-      { success: false, message: 'Failed to fetch membership request details' },
-      { status: 500 }
+      { success: false, message: "Failed to fetch membership request details" },
+      { status: 500 },
     );
   }
 }

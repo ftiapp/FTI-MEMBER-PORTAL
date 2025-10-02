@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronDown, ChevronRight, Plus, Trash2, User } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { ChevronDown, ChevronRight, Plus, Trash2, User } from "lucide-react";
 
-const ContactPersonSection = ({ 
-  contactPersons = [], 
-  onContactPersonsChange, 
+const ContactPersonSection = ({
+  contactPersons = [],
+  onContactPersonsChange,
   errors = {},
-  membershipType = 'OC' 
+  membershipType = "OC",
 }) => {
   const [contactTypes, setContactTypes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,20 +17,20 @@ const ContactPersonSection = ({
     if (contactPersons.length === 0) {
       const mainContact = {
         id: Date.now(),
-        prenameTh: '',
-        prenameEn: '',
-        prenameOther: '',
-        firstNameTh: '',
-        lastNameTh: '',
-        firstNameEn: '',
-        lastNameEn: '',
-        position: '',
-        email: '',
-        phone: '',
+        prenameTh: "",
+        prenameEn: "",
+        prenameOther: "",
+        firstNameTh: "",
+        lastNameTh: "",
+        firstNameEn: "",
+        lastNameEn: "",
+        position: "",
+        email: "",
+        phone: "",
         typeContactId: null,
-        typeContactName: 'ผู้ประสานงานหลัก',
-        typeContactOtherDetail: '',
-        isMain: true
+        typeContactName: "ผู้ประสานงานหลัก",
+        typeContactOtherDetail: "",
+        isMain: true,
       };
       onContactPersonsChange([mainContact]);
     }
@@ -43,34 +43,36 @@ const ContactPersonSection = ({
       setLoading(true);
       setLoadError(null);
       try {
-        const res = await fetch('/api/member/contact-person-types', { method: 'GET' });
+        const res = await fetch("/api/member/contact-person-types", { method: "GET" });
         const json = await res.json();
         if (!res.ok || json.success === false) {
-          throw new Error(json.error || 'โหลดประเภทผู้ติดต่อไม่สำเร็จ');
+          throw new Error(json.error || "โหลดประเภทผู้ติดต่อไม่สำเร็จ");
         }
         if (active) {
           setContactTypes(Array.isArray(json.data) ? json.data : []);
         }
       } catch (e) {
-        if (active) setLoadError(e.message || 'เกิดข้อผิดพลาดในการโหลดข้อมูล');
+        if (active) setLoadError(e.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
       } finally {
         if (active) setLoading(false);
       }
     }
     loadTypes();
-    return () => { active = false; };
+    return () => {
+      active = false;
+    };
   }, []);
 
   // Set main contact type when contact types are loaded
   useEffect(() => {
     if (contactTypes.length > 0 && contactPersons.length > 0 && !contactPersons[0].typeContactId) {
-      const mainType = contactTypes.find(type => type.type_code === 'MAIN');
+      const mainType = contactTypes.find((type) => type.type_code === "MAIN");
       if (mainType) {
         const updatedContacts = [...contactPersons];
         updatedContacts[0] = {
           ...updatedContacts[0],
           typeContactId: mainType.id,
-          typeContactName: mainType.type_name_th
+          typeContactName: mainType.type_name_th,
         };
         onContactPersonsChange(updatedContacts);
       }
@@ -78,10 +80,8 @@ const ContactPersonSection = ({
   }, [contactTypes, contactPersons, onContactPersonsChange]);
 
   const toggleContactExpansion = (index) => {
-    setExpandedContacts(prev => 
-      prev.includes(index) 
-        ? prev.filter(i => i !== index)
-        : [...prev, index]
+    setExpandedContacts((prev) =>
+      prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index],
     );
   };
 
@@ -89,47 +89,53 @@ const ContactPersonSection = ({
     const updatedContacts = [...contactPersons];
     updatedContacts[index] = {
       ...updatedContacts[index],
-      [field]: value
+      [field]: value,
     };
 
     // Handle contact type selection
-    if (field === 'typeContactId') {
-      const selectedType = contactTypes.find(type => type.id === parseInt(value));
+    if (field === "typeContactId") {
+      const selectedType = contactTypes.find((type) => type.id === parseInt(value));
       if (selectedType) {
         updatedContacts[index].typeContactName = selectedType.type_name_th;
         // Clear other detail if not "Other" type
-        if (selectedType.type_code !== 'OTHER') {
-          updatedContacts[index].typeContactOtherDetail = '';
+        if (selectedType.type_code !== "OTHER") {
+          updatedContacts[index].typeContactOtherDetail = "";
         }
       }
     }
-    
+
     // Auto-select matching prename in the other language
-    if (field === 'prenameTh') {
+    if (field === "prenameTh") {
       // Map Thai prenames to English equivalents
       const thaiToEnglishMap = {
-        'นาย': 'Mr',
-        'นาง': 'Mrs',
-        'นางสาว': 'Ms',
-        'อื่นๆ': 'Other'
+        นาย: "Mr",
+        นาง: "Mrs",
+        นางสาว: "Ms",
+        อื่นๆ: "Other",
       };
-      
+
       // If English prename is empty or doesn't match the Thai selection, update it
-      if (!updatedContacts[index].prenameEn || thaiToEnglishMap[value] !== updatedContacts[index].prenameEn) {
-        updatedContacts[index].prenameEn = thaiToEnglishMap[value] || '';
+      if (
+        !updatedContacts[index].prenameEn ||
+        thaiToEnglishMap[value] !== updatedContacts[index].prenameEn
+      ) {
+        updatedContacts[index].prenameEn = thaiToEnglishMap[value] || "";
       }
-    } else if (field === 'prenameEn') {
+    } else if (field === "prenameEn") {
       // Map English prenames to Thai equivalents
       const englishToThaiMap = {
-        'Mr': 'นาย',
-        'Mrs': 'นาง',
-        'Ms': 'นางสาว',
-        'Other': 'อื่นๆ'
+        Mr: "นาย",
+        Mrs: "นาง",
+        Ms: "นางสาว",
+        Other: "อื่นๆ",
       };
-      
+
       // If Thai prename is empty or doesn't match the English selection, update it
-      if (!updatedContacts[index].prenameTh || englishToThaiMap[value] !== updatedContacts[index].prenameTh) {
-        updatedContacts[index].prenameTh = englishToThaiMap[value] || '';
+      if (
+        !updatedContacts[index].prenameTh ||
+        englishToThaiMap[value] !== updatedContacts[index].prenameTh
+      ) {
+        updatedContacts[index].prenameTh = englishToThaiMap[value] || "";
       }
     }
 
@@ -137,57 +143,61 @@ const ContactPersonSection = ({
   };
 
   const addContactPerson = () => {
-    if (contactPersons.length < 4) { // 1 main + 3 additional
+    if (contactPersons.length < 4) {
+      // 1 main + 3 additional
       const newContact = {
         id: Date.now(),
-        prenameTh: '',
-        prenameEn: '',
-        prenameOther: '',
-        firstNameTh: '',
-        lastNameTh: '',
-        firstNameEn: '',
-        lastNameEn: '',
-        position: '',
-        email: '',
-        phone: '',
+        prenameTh: "",
+        prenameEn: "",
+        prenameOther: "",
+        firstNameTh: "",
+        lastNameTh: "",
+        firstNameEn: "",
+        lastNameEn: "",
+        position: "",
+        email: "",
+        phone: "",
         typeContactId: null,
-        typeContactName: '',
-        typeContactOtherDetail: '',
-        isMain: false
+        typeContactName: "",
+        typeContactOtherDetail: "",
+        isMain: false,
       };
       const newIndex = contactPersons.length;
       onContactPersonsChange([...contactPersons, newContact]);
       // Auto expand new contact
-      setExpandedContacts(prev => [...prev, newIndex]);
+      setExpandedContacts((prev) => [...prev, newIndex]);
     }
   };
 
   const removeContactPerson = (index) => {
-    if (index > 0) { // Can't remove main contact
+    if (index > 0) {
+      // Can't remove main contact
       const updatedContacts = contactPersons.filter((_, i) => i !== index);
       onContactPersonsChange(updatedContacts);
       // Remove from expanded list and adjust indices
-      setExpandedContacts(prev => 
-        prev.filter(i => i !== index).map(i => i > index ? i - 1 : i)
+      setExpandedContacts((prev) =>
+        prev.filter((i) => i !== index).map((i) => (i > index ? i - 1 : i)),
       );
     }
   };
 
   const validateThaiName = (value) => {
     const thaiRegex = /^[ก-๙\s]+$/;
-    return thaiRegex.test(value) || value === '';
+    return thaiRegex.test(value) || value === "";
   };
 
   const validateEnglishName = (value) => {
     const englishRegex = /^[a-zA-Z\s]+$/;
-    return englishRegex.test(value) || value === '';
+    return englishRegex.test(value) || value === "";
   };
 
   const getContactSummary = (contact, index) => {
-    const namePrefix = contact.prenameTh || contact.prenameEn || contact.prenameOther || '';
-    const name = (namePrefix ? namePrefix + ' ' : '') + (contact.firstNameTh || contact.firstNameEn || 'ยังไม่ระบุชื่อ');
-    const lastName = contact.lastNameTh || contact.lastNameEn || '';
-    const position = contact.position || 'ยังไม่ระบุตำแหน่ง';
+    const namePrefix = contact.prenameTh || contact.prenameEn || contact.prenameOther || "";
+    const name =
+      (namePrefix ? namePrefix + " " : "") +
+      (contact.firstNameTh || contact.firstNameEn || "ยังไม่ระบุชื่อ");
+    const lastName = contact.lastNameTh || contact.lastNameEn || "";
+    const position = contact.position || "ยังไม่ระบุตำแหน่ง";
     return `${name} ${lastName} - ${position}`;
   };
 
@@ -209,7 +219,10 @@ const ContactPersonSection = ({
   }
 
   return (
-    <div data-section="contact-person" className="bg-white rounded-lg shadow-sm border border-gray-200">
+    <div
+      data-section="contact-person"
+      className="bg-white rounded-lg shadow-sm border border-gray-200"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center">
@@ -236,11 +249,11 @@ const ContactPersonSection = ({
         {contactPersons.map((contact, index) => {
           const isExpanded = expandedContacts.includes(index);
           const isMain = index === 0;
-          
+
           return (
             <div key={contact.id} className="bg-white">
               {/* Contact Header */}
-              <div 
+              <div
                 className="flex items-center justify-between p-4 hover:bg-gray-50 cursor-pointer transition-colors duration-150"
                 onClick={() => toggleContactExpansion(index)}
               >
@@ -252,18 +265,20 @@ const ContactPersonSection = ({
                       <ChevronRight className="h-5 w-5 text-gray-400" />
                     )}
                   </div>
-                  
+
                   <div className="flex items-center">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
-                      isMain ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                    }`}>
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mr-3 ${
+                        isMain ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
                       {index + 1}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-center">
                         <h4 className="text-sm font-medium text-gray-900">
-                          {isMain ? 'ผู้ประสานงานหลัก' : `ผู้ติดต่อคนที่ ${index + 1}`}
+                          {isMain ? "ผู้ประสานงานหลัก" : `ผู้ติดต่อคนที่ ${index + 1}`}
                         </h4>
                         {/* removed required asterisk */}
                       </div>
@@ -276,12 +291,14 @@ const ContactPersonSection = ({
 
                 <div className="flex items-center space-x-2">
                   {/* Status indicator */}
-                  <div className={`w-2 h-2 rounded-full ${
-                    contact.firstNameTh && contact.email && contact.phone 
-                      ? 'bg-green-400' 
-                      : 'bg-yellow-400'
-                  }`}></div>
-                  
+                  <div
+                    className={`w-2 h-2 rounded-full ${
+                      contact.firstNameTh && contact.email && contact.phone
+                        ? "bg-green-400"
+                        : "bg-yellow-400"
+                    }`}
+                  ></div>
+
                   {!isMain && (
                     <button
                       type="button"
@@ -310,59 +327,71 @@ const ContactPersonSection = ({
                         <select
                           id={`contactPerson${index}TypeContactId`}
                           name={`contactPerson${index}TypeContactId`}
-                          value={isMain ? (contactTypes.find(t => t.type_code === 'MAIN')?.id || '') : (contact.typeContactId || '')}
+                          value={
+                            isMain
+                              ? contactTypes.find((t) => t.type_code === "MAIN")?.id || ""
+                              : contact.typeContactId || ""
+                          }
                           onChange={(e) => {
                             if (!isMain) {
-                              handleContactChange(index, 'typeContactId', e.target.value);
+                              handleContactChange(index, "typeContactId", e.target.value);
                             }
                           }}
                           className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                            isMain ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'
+                            isMain ? "bg-gray-100 cursor-not-allowed" : "bg-white"
                           }`}
                           required={isMain}
                           disabled={isMain}
                         >
                           {isMain ? (
-                            <option value={contactTypes.find(t => t.type_code === 'MAIN')?.id || ''}>
-                              {contactTypes.find(t => t.type_code === 'MAIN')?.type_name_th || 'ผู้ประสานงานหลัก'}
+                            <option
+                              value={contactTypes.find((t) => t.type_code === "MAIN")?.id || ""}
+                            >
+                              {contactTypes.find((t) => t.type_code === "MAIN")?.type_name_th ||
+                                "ผู้ประสานงานหลัก"}
                             </option>
                           ) : (
                             <>
                               <option value="">เลือกประเภทผู้ติดต่อ</option>
                               {contactTypes
-                                .filter(type => type.type_code !== 'MAIN') // กรองไม่ให้เลือก "ผู้ประสานงานหลัก"
+                                .filter((type) => type.type_code !== "MAIN") // กรองไม่ให้เลือก "ผู้ประสานงานหลัก"
                                 .map((type) => (
                                   <option key={type.id} value={type.id}>
                                     {type.type_name_th}
                                   </option>
-                                ))
-                              }
+                                ))}
                             </>
                           )}
                         </select>
                         {errors[`contactPerson${index}TypeContactId`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}TypeContactId`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}TypeContactId`]}
+                          </p>
                         )}
                       </div>
 
                       {/* Other Detail */}
-                      {contact.typeContactId && contactTypes.find(t => t.id === parseInt(contact.typeContactId))?.type_code === 'OTHER' && (
-                        <div className="lg:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            รายละเอียดประเภทอื่นๆ
-                          </label>
-                          <input
-                            type="text"
-                            id={`contactPerson${index}TypeContactOtherDetail`}
-                            name={`contactPerson${index}TypeContactOtherDetail`}
-                            value={contact.typeContactOtherDetail || ''}
-                            onChange={(e) => handleContactChange(index, 'typeContactOtherDetail', e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="ระบุรายละเอียดประเภทผู้ติดต่อ"
-                            required
-                          />
-                        </div>
-                      )}
+                      {contact.typeContactId &&
+                        contactTypes.find((t) => t.id === parseInt(contact.typeContactId))
+                          ?.type_code === "OTHER" && (
+                          <div className="lg:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              รายละเอียดประเภทอื่นๆ
+                            </label>
+                            <input
+                              type="text"
+                              id={`contactPerson${index}TypeContactOtherDetail`}
+                              name={`contactPerson${index}TypeContactOtherDetail`}
+                              value={contact.typeContactOtherDetail || ""}
+                              onChange={(e) =>
+                                handleContactChange(index, "typeContactOtherDetail", e.target.value)
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="ระบุรายละเอียดประเภทผู้ติดต่อ"
+                              required
+                            />
+                          </div>
+                        )}
 
                       {/* Thai Names with Prename */}
                       <div className="lg:col-span-2">
@@ -373,8 +402,10 @@ const ContactPersonSection = ({
                           {/* Prename Thai */}
                           <div>
                             <select
-                              value={contact.prenameTh || ''}
-                              onChange={(e) => handleContactChange(index, 'prenameTh', e.target.value)}
+                              value={contact.prenameTh || ""}
+                              onChange={(e) =>
+                                handleContactChange(index, "prenameTh", e.target.value)
+                              }
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               required={isMain}
                             >
@@ -394,7 +425,7 @@ const ContactPersonSection = ({
                               value={contact.firstNameTh}
                               onChange={(e) => {
                                 if (validateThaiName(e.target.value)) {
-                                  handleContactChange(index, 'firstNameTh', e.target.value);
+                                  handleContactChange(index, "firstNameTh", e.target.value);
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -411,7 +442,7 @@ const ContactPersonSection = ({
                               value={contact.lastNameTh}
                               onChange={(e) => {
                                 if (validateThaiName(e.target.value)) {
-                                  handleContactChange(index, 'lastNameTh', e.target.value);
+                                  handleContactChange(index, "lastNameTh", e.target.value);
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -421,10 +452,14 @@ const ContactPersonSection = ({
                           </div>
                         </div>
                         {errors[`contactPerson${index}FirstNameTh`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}FirstNameTh`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}FirstNameTh`]}
+                          </p>
                         )}
                         {errors[`contactPerson${index}LastNameTh`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}LastNameTh`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}LastNameTh`]}
+                          </p>
                         )}
                       </div>
 
@@ -437,8 +472,10 @@ const ContactPersonSection = ({
                           {/* Prename English */}
                           <div>
                             <select
-                              value={contact.prenameEn || ''}
-                              onChange={(e) => handleContactChange(index, 'prenameEn', e.target.value)}
+                              value={contact.prenameEn || ""}
+                              onChange={(e) =>
+                                handleContactChange(index, "prenameEn", e.target.value)
+                              }
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               required
                             >
@@ -456,7 +493,7 @@ const ContactPersonSection = ({
                               value={contact.firstNameEn}
                               onChange={(e) => {
                                 if (validateEnglishName(e.target.value)) {
-                                  handleContactChange(index, 'firstNameEn', e.target.value);
+                                  handleContactChange(index, "firstNameEn", e.target.value);
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -471,7 +508,7 @@ const ContactPersonSection = ({
                               value={contact.lastNameEn}
                               onChange={(e) => {
                                 if (validateEnglishName(e.target.value)) {
-                                  handleContactChange(index, 'lastNameEn', e.target.value);
+                                  handleContactChange(index, "lastNameEn", e.target.value);
                                 }
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -481,15 +518,19 @@ const ContactPersonSection = ({
                           </div>
                         </div>
                         {errors[`contactPerson${index}FirstNameEn`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}FirstNameEn`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}FirstNameEn`]}
+                          </p>
                         )}
                         {errors[`contactPerson${index}LastNameEn`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}LastNameEn`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}LastNameEn`]}
+                          </p>
                         )}
                       </div>
 
                       {/* Other Prename Detail (Thai-only, required when TH/EN selects Other) */}
-                      {(contact.prenameTh === 'อื่นๆ' || contact.prenameEn === 'Other') && (
+                      {(contact.prenameTh === "อื่นๆ" || contact.prenameEn === "Other") && (
                         <div className="lg:col-span-2">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
                             ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
@@ -498,16 +539,18 @@ const ContactPersonSection = ({
                             type="text"
                             id={`contactPerson${index}PrenameOther`}
                             name={`contactPerson${index}PrenameOther`}
-                            value={contact.prenameOther || ''}
+                            value={contact.prenameOther || ""}
                             onChange={(e) => {
-                              const thaiOnly = e.target.value.replace(/[^ก-๙\.\s]/g, '');
-                              handleContactChange(index, 'prenameOther', thaiOnly);
+                              const thaiOnly = e.target.value.replace(/[^ก-๙\.\s]/g, "");
+                              handleContactChange(index, "prenameOther", thaiOnly);
                             }}
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
                             required
                           />
-                          <p className="mt-1 text-xs text-gray-500">รองรับตัวอักษรไทย เว้นวรรค และจุด (.)</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            รองรับตัวอักษรไทย เว้นวรรค และจุด (.)
+                          </p>
                         </div>
                       )}
 
@@ -521,13 +564,15 @@ const ContactPersonSection = ({
                           id={`contactPerson${index}Position`}
                           name={`contactPerson${index}Position`}
                           value={contact.position}
-                          onChange={(e) => handleContactChange(index, 'position', e.target.value)}
+                          onChange={(e) => handleContactChange(index, "position", e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="ตำแหน่งงาน"
                           required={isMain}
                         />
                         {errors[`contactPerson${index}Position`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Position`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}Position`]}
+                          </p>
                         )}
                       </div>
 
@@ -540,13 +585,15 @@ const ContactPersonSection = ({
                           id={`contactPerson${index}Email`}
                           name={`contactPerson${index}Email`}
                           value={contact.email}
-                          onChange={(e) => handleContactChange(index, 'email', e.target.value)}
+                          onChange={(e) => handleContactChange(index, "email", e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="อีเมล"
                           required={isMain}
                         />
                         {errors[`contactPerson${index}Email`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Email`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}Email`]}
+                          </p>
                         )}
                       </div>
 
@@ -562,7 +609,7 @@ const ContactPersonSection = ({
                               id={`contactPerson${index}Phone`}
                               name={`contactPerson${index}Phone`}
                               value={contact.phone}
-                              onChange={(e) => handleContactChange(index, 'phone', e.target.value)}
+                              onChange={(e) => handleContactChange(index, "phone", e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="02-123-4567"
                               required={isMain}
@@ -571,18 +618,21 @@ const ContactPersonSection = ({
                           <div>
                             <input
                               type="text"
-                              value={contact.phoneExtension || ''}
-                              onChange={(e) => handleContactChange(index, 'phoneExtension', e.target.value)}
+                              value={contact.phoneExtension || ""}
+                              onChange={(e) =>
+                                handleContactChange(index, "phoneExtension", e.target.value)
+                              }
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="ต่อ (ถ้ามี)"
                             />
                           </div>
                         </div>
                         {errors[`contactPerson${index}Phone`] && (
-                          <p className="mt-1 text-sm text-red-600">{errors[`contactPerson${index}Phone`]}</p>
+                          <p className="mt-1 text-sm text-red-600">
+                            {errors[`contactPerson${index}Phone`]}
+                          </p>
                         )}
                       </div>
-
                     </div>
                   </div>
                 </div>

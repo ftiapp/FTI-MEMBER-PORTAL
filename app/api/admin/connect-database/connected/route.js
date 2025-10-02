@@ -1,18 +1,18 @@
-import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '../../../../lib/adminAuth';
-import { connectDB } from '../../../../lib/db';
+import { NextResponse } from "next/server";
+import { getAdminFromSession } from "../../../../lib/adminAuth";
+import { connectDB } from "../../../../lib/db";
 
 export async function GET(request) {
   try {
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const search = (searchParams.get('search') || '').trim();
-    const limit = Math.min(parseInt(searchParams.get('limit') || '50', 10), 200);
-    const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
+    const search = (searchParams.get("search") || "").trim();
+    const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 200);
+    const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
     const offset = (page - 1) * limit;
 
     const connection = await connectDB();
@@ -57,12 +57,12 @@ export async function GET(request) {
       )`);
       params.push(like, like, like, like, like, like);
     }
-    const whereSql = whereParts.length ? `WHERE ${whereParts.join(' AND ')}` : '';
+    const whereSql = whereParts.length ? `WHERE ${whereParts.join(" AND ")}` : "";
 
     // Count total
     const [countRows] = await connection.query(
       `SELECT COUNT(*) AS total FROM ${unionSubquery} LEFT JOIN users u ON u.id = m.user_id ${whereSql}`,
-      params
+      params,
     );
     const total = countRows?.[0]?.total || 0;
 
@@ -85,7 +85,7 @@ export async function GET(request) {
        ${whereSql}
        ORDER BY m.connected_at DESC
        LIMIT ? OFFSET ?`,
-      [...params, limit, offset]
+      [...params, limit, offset],
     );
 
     connection.release();
@@ -97,11 +97,14 @@ export async function GET(request) {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     });
   } catch (error) {
-    console.error('Error fetching connected members:', error);
-    return NextResponse.json({ success: false, message: 'Internal server error', error: error.message }, { status: 500 });
+    console.error("Error fetching connected members:", error);
+    return NextResponse.json(
+      { success: false, message: "Internal server error", error: error.message },
+      { status: 500 },
+    );
   }
 }

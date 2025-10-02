@@ -1,24 +1,27 @@
-import { NextResponse } from 'next/server';
-import { getSession } from '@/app/lib/session';
-import { query } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { getSession } from "@/app/lib/session";
+import { query } from "@/app/lib/db";
 
 export async function GET(request) {
   try {
     const session = await getSession();
-    
+
     if (!session || !session.user) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'กรุณาเข้าสู่ระบบ' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "กรุณาเข้าสู่ระบบ",
+        },
+        { status: 401 },
+      );
     }
 
     const userId = session.user.id;
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 5;
+    const page = parseInt(searchParams.get("page")) || 1;
+    const limit = parseInt(searchParams.get("limit")) || 5;
     const offset = (page - 1) * limit;
-    
+
     const allApplications = [];
 
     // IC Applications - Individual Contributor
@@ -42,9 +45,9 @@ export async function GET(request) {
         WHERE m.user_id = ? AND m.status IN (0, 1)
         ORDER BY m.created_at DESC
       `;
-      
+
       const icResults = await query(icQuery, [userId]);
-      
+
       // Fetch additional data for IC applications
       for (const app of icResults) {
         // Get address
@@ -90,7 +93,7 @@ export async function GET(request) {
             FROM ICmember_Business_TYPE WHERE ic_member_id = ?
           `;
           const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map(b => b.business_type);
+          app.businessTypes = businessResults.map((b) => b.business_type);
         } catch (err) {
           app.businessTypes = [];
         }
@@ -107,10 +110,10 @@ export async function GET(request) {
           app.documents = [];
         }
       }
-      
+
       allApplications.push(...icResults);
     } catch (error) {
-      console.error('Error fetching IC applications:', error);
+      console.error("Error fetching IC applications:", error);
     }
 
     // OC Applications - Ordinary Company
@@ -129,9 +132,9 @@ export async function GET(request) {
         WHERE m.user_id = ? AND m.status IN (0, 1)
         ORDER BY m.created_at DESC
       `;
-      
+
       const ocResults = await query(ocQuery, [userId]);
-      
+
       // Fetch additional data for OC applications
       for (const app of ocResults) {
         // Get address
@@ -189,7 +192,7 @@ export async function GET(request) {
             FROM MemberRegist_OC_BusinessTypes WHERE main_id = ?
           `;
           const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map(b => b.business_type);
+          app.businessTypes = businessResults.map((b) => b.business_type);
         } catch (err) {
           app.businessTypes = [];
         }
@@ -206,10 +209,10 @@ export async function GET(request) {
           app.documents = [];
         }
       }
-      
+
       allApplications.push(...ocResults);
     } catch (error) {
-      console.error('Error fetching OC applications:', error);
+      console.error("Error fetching OC applications:", error);
     }
 
     // AC Applications - Associate Company
@@ -232,9 +235,9 @@ export async function GET(request) {
         WHERE m.user_id = ? AND m.status IN (0, 1)
         ORDER BY m.created_at DESC
       `;
-      
+
       const acResults = await query(acQuery, [userId]);
-      
+
       // Fetch additional data for AC applications
       for (const app of acResults) {
         // Get address
@@ -292,7 +295,7 @@ export async function GET(request) {
             FROM MemberRegist_AC_BusinessTypes WHERE main_id = ?
           `;
           const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map(b => b.business_type);
+          app.businessTypes = businessResults.map((b) => b.business_type);
         } catch (err) {
           app.businessTypes = [];
         }
@@ -304,7 +307,7 @@ export async function GET(request) {
             FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?
           `;
           const industryResults = await query(industryQuery, [app.id]);
-          app.industrialGroups = industryResults.map(i => i.industry_group_id);
+          app.industrialGroups = industryResults.map((i) => i.industry_group_id);
         } catch (err) {
           app.industrialGroups = [];
         }
@@ -316,7 +319,7 @@ export async function GET(request) {
             FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?
           `;
           const provinceResults = await query(provinceQuery, [app.id]);
-          app.provincialChapters = provinceResults.map(p => p.province_chapter_id);
+          app.provincialChapters = provinceResults.map((p) => p.province_chapter_id);
         } catch (err) {
           app.provincialChapters = [];
         }
@@ -333,10 +336,10 @@ export async function GET(request) {
           app.documents = [];
         }
       }
-      
+
       allApplications.push(...acResults);
     } catch (error) {
-      console.error('Error fetching AC applications:', error);
+      console.error("Error fetching AC applications:", error);
     }
 
     // AM Applications - Association Member
@@ -360,9 +363,9 @@ export async function GET(request) {
         WHERE m.user_id = ? AND m.status IN (0, 1)
         ORDER BY m.created_at DESC
       `;
-      
+
       const amResults = await query(amQuery, [userId]);
-      
+
       // Fetch additional data for AM applications
       for (const app of amResults) {
         // Get address
@@ -408,7 +411,7 @@ export async function GET(request) {
             FROM MemberRegist_AM_BusinessTypes WHERE main_id = ?
           `;
           const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map(b => b.business_type);
+          app.businessTypes = businessResults.map((b) => b.business_type);
         } catch (err) {
           app.businessTypes = [];
         }
@@ -420,7 +423,7 @@ export async function GET(request) {
             FROM MemberRegist_AM_IndustryGroups WHERE main_id = ?
           `;
           const industryResults = await query(industryQuery, [app.id]);
-          app.industrialGroups = industryResults.map(i => i.industry_group_id);
+          app.industrialGroups = industryResults.map((i) => i.industry_group_id);
         } catch (err) {
           app.industrialGroups = [];
         }
@@ -432,7 +435,7 @@ export async function GET(request) {
             FROM MemberRegist_AM_ProvinceChapters WHERE main_id = ?
           `;
           const provinceResults = await query(provinceQuery, [app.id]);
-          app.provincialChapters = provinceResults.map(p => p.province_chapter_id);
+          app.provincialChapters = provinceResults.map((p) => p.province_chapter_id);
         } catch (err) {
           app.provincialChapters = [];
         }
@@ -449,15 +452,15 @@ export async function GET(request) {
           app.documents = [];
         }
       }
-      
+
       allApplications.push(...amResults);
     } catch (error) {
-      console.error('Error fetching AM applications:', error);
+      console.error("Error fetching AM applications:", error);
     }
 
     // Sort by createdAt descending
     allApplications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    
+
     // Apply pagination
     const totalItems = allApplications.length;
     const paginatedApplications = allApplications.slice(offset, offset + limit);
@@ -469,15 +472,17 @@ export async function GET(request) {
         currentPage: page,
         totalItems: totalItems,
         totalPages: Math.ceil(totalItems / limit),
-        itemsPerPage: limit
-      }
+        itemsPerPage: limit,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching submitted applications:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลใบสมัคร'
-    }, { status: 500 });
+    console.error("Error fetching submitted applications:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "เกิดข้อผิดพลาดในการดึงข้อมูลใบสมัคร",
+      },
+      { status: 500 },
+    );
   }
 }

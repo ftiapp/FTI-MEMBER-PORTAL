@@ -1,10 +1,12 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
-import { query } from './db';
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
+import { query } from "./db";
 
 // สร้าง secret key สำหรับ JWT
-const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-admin-auth');
-const userSecretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key');
+const secretKey = new TextEncoder().encode(
+  process.env.JWT_SECRET || "your-secret-key-for-admin-auth",
+);
+const userSecretKey = new TextEncoder().encode(process.env.JWT_SECRET || "your-secret-key");
 
 /**
  * ตรวจสอบ session ของ admin จาก cookie
@@ -13,19 +15,19 @@ const userSecretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-s
 export async function checkAdminSession() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('admin_token')?.value;
-    
+    const token = cookieStore.get("admin_token")?.value;
+
     if (!token) {
       return null;
     }
 
     const verified = await jwtVerify(token, secretKey);
     const payload = verified.payload;
-    
+
     // ตรวจสอบว่า admin ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
     const admins = await query(
-      'SELECT * FROM admin_users WHERE id = ? AND is_active = TRUE LIMIT 1',
-      [payload.id]
+      "SELECT * FROM admin_users WHERE id = ? AND is_active = TRUE LIMIT 1",
+      [payload.id],
     );
 
     if (admins.length === 0) {
@@ -37,10 +39,10 @@ export async function checkAdminSession() {
       username: payload.username,
       adminLevel: payload.adminLevel,
       canCreate: payload.canCreate,
-      canUpdate: payload.canUpdate
+      canUpdate: payload.canUpdate,
     };
   } catch (error) {
-    console.error('Error checking admin session:', error);
+    console.error("Error checking admin session:", error);
     return null;
   }
 }
@@ -83,20 +85,19 @@ export async function canUpdate(admin) {
  */
 export async function checkUserSession(cookieStore) {
   try {
-    const token = cookieStore.get('token')?.value;
-    
+    const token = cookieStore.get("token")?.value;
+
     if (!token) {
       return null;
     }
 
     const verified = await jwtVerify(token, userSecretKey);
     const payload = verified.payload;
-    
+
     // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
-    const users = await query(
-      'SELECT * FROM users WHERE id = ? AND is_active = TRUE LIMIT 1',
-      [payload.userId]
-    );
+    const users = await query("SELECT * FROM users WHERE id = ? AND is_active = TRUE LIMIT 1", [
+      payload.userId,
+    ]);
 
     if (users.length === 0) {
       return null;
@@ -108,10 +109,10 @@ export async function checkUserSession(cookieStore) {
       id: user.id,
       username: user.username,
       email: user.email,
-      role: user.role
+      role: user.role,
     };
   } catch (error) {
-    console.error('Error checking user session:', error);
+    console.error("Error checking user session:", error);
     return null;
   }
 }

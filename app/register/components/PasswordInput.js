@@ -1,17 +1,20 @@
-import { useState, forwardRef } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
+import { useState, forwardRef } from "react";
+import { Eye, EyeOff } from "lucide-react";
 
-const PasswordInput = forwardRef(function PasswordInput({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  placeholder = "••••••••", 
-  autoComplete = "new-password",
-  required = false,
-  className = "",
-  ...props 
-}, ref) {
+const PasswordInput = forwardRef(function PasswordInput(
+  {
+    label,
+    name,
+    value,
+    onChange,
+    placeholder = "••••••••",
+    autoComplete = "new-password",
+    required = false,
+    className = "",
+    ...props
+  },
+  ref,
+) {
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePasswordVisibility = () => {
@@ -41,11 +44,7 @@ const PasswordInput = forwardRef(function PasswordInput({
           onClick={togglePasswordVisibility}
           className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none"
         >
-          {showPassword ? (
-            <EyeOff className="h-5 w-5" />
-          ) : (
-            <Eye className="h-5 w-5" />
-          )}
+          {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
         </button>
       </div>
     </div>

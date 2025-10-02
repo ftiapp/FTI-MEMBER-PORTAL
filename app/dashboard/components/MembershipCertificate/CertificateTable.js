@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { FaInfoCircle, FaDesktop, FaDownload } from 'react-icons/fa';
-import { handleDownloadCertificate } from './utils';
+import React from "react";
+import { FaInfoCircle, FaDesktop, FaDownload } from "react-icons/fa";
+import { handleDownloadCertificate } from "./utils";
 
-const CertificateTable = ({ 
-  currentItems, 
+const CertificateTable = ({
+  currentItems,
   memberData,
   searchTerm,
   setSearchTerm,
@@ -14,7 +14,7 @@ const CertificateTable = ({
   memberTypes,
   currentPage,
   totalPages,
-  paginate
+  paginate,
 }) => {
   return (
     <div className="space-y-6">
@@ -22,9 +22,7 @@ const CertificateTable = ({
       <div className="bg-white rounded-lg shadow-md border border-gray-300 p-6">
         <div className="flex flex-col lg:flex-row gap-4 items-center">
           <div className="flex-1 w-full">
-            <label className="block text-base font-semibold text-gray-800 mb-2">
-              ค้นหาข้อมูล
-            </label>
+            <label className="block text-base font-semibold text-gray-800 mb-2">ค้นหาข้อมูล</label>
             <input
               type="text"
               placeholder="ค้นหาด้วยชื่อบริษัท หรือ รหัสสมาชิก..."
@@ -33,7 +31,7 @@ const CertificateTable = ({
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          
+
           <div className="w-full lg:w-80">
             <label className="block text-base font-semibold text-gray-800 mb-2">
               กรองตามประเภท
@@ -45,7 +43,9 @@ const CertificateTable = ({
             >
               <option value="">ทุกประเภทสมาชิก</option>
               {memberTypes.map((type, index) => (
-                <option key={index} value={type}>{type}</option>
+                <option key={index} value={type}>
+                  {type}
+                </option>
               ))}
             </select>
           </div>
@@ -59,7 +59,8 @@ const CertificateTable = ({
           <div>
             <h3 className="font-semibold text-sm">หมายเหตุการใช้งาน</h3>
             <p className="text-blue-100 text-sm mt-1">
-              คลิกปุ่ม <FaDownload className="inline mx-1" /> เพื่อดาวน์โหลดเอกสารเท่านั้น (ปิดการพิมพ์)
+              คลิกปุ่ม <FaDownload className="inline mx-1" /> เพื่อดาวน์โหลดเอกสารเท่านั้น
+              (ปิดการพิมพ์)
             </p>
           </div>
         </div>
@@ -84,32 +85,29 @@ const CertificateTable = ({
                   เอกสารยืนยันสมาชิก(TH)
                 </th>
                 <th className="py-4 px-6 text-center font-medium text-blue-100 text-sm uppercase tracking-wider">
-                เอกสารยืนยันสมาชิก(EN)
+                  เอกสารยืนยันสมาชิก(EN)
                 </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {currentItems.length > 0 ? (
                 currentItems.map((member, index) => (
-                  <tr 
-                    key={index} 
-                    className="hover:bg-gray-50 transition-colors duration-150"
-                  >
+                  <tr key={index} className="hover:bg-gray-50 transition-colors duration-150">
                     <td className="py-4 px-6 text-sm font-medium text-gray-900">
-                      {member.MEMBER_CODE || '-'}
+                      {member.MEMBER_CODE || "-"}
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-600">
                       <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                        {member.company_type || '-'}
+                        {member.company_type || "-"}
                       </span>
                     </td>
                     <td className="py-4 px-6 text-sm text-gray-900 font-medium">
-                      {member.company_name || '-'}
+                      {member.company_name || "-"}
                     </td>
                     <td className="py-4 px-6 text-center">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleDownloadCertificate('thai', member, memberData)}
+                          onClick={() => handleDownloadCertificate("thai", member, memberData)}
                           className="flex items-center justify-center p-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                           title="ดาวน์โหลด"
                         >
@@ -120,7 +118,7 @@ const CertificateTable = ({
                     <td className="py-4 px-6 text-center">
                       <div className="flex space-x-2">
                         <button
-                          onClick={() => handleDownloadCertificate('english', member, memberData)}
+                          onClick={() => handleDownloadCertificate("english", member, memberData)}
                           className="flex items-center justify-center p-2 bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
                           title="ดาวน์โหลด"
                         >
@@ -157,37 +155,37 @@ const CertificateTable = ({
             onClick={() => paginate(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-              currentPage === 1 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+              currentPage === 1
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
             }`}
           >
             ก่อนหน้า
           </button>
-          
+
           <div className="flex space-x-1">
-            {[...Array(totalPages).keys()].map(number => (
+            {[...Array(totalPages).keys()].map((number) => (
               <button
                 key={number + 1}
                 onClick={() => paginate(number + 1)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  currentPage === number + 1 
-                    ? 'bg-blue-600 text-white shadow-lg' 
-                    : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                  currentPage === number + 1
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
                 }`}
               >
                 {number + 1}
               </button>
             ))}
           </div>
-          
+
           <button
             onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-              currentPage === totalPages 
-                ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+              currentPage === totalPages
+                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400"
             }`}
           >
             ถัดไป

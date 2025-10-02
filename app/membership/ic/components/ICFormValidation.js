@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
 // Function to validate Thai ID Card number
 export const validateThaiIDCard = (id) => {
   if (id.length !== 13 || !/^\d{13}$/.test(id)) return false;
-  
+
   let sum = 0;
   for (let i = 0; i < 12; i++) {
     sum += parseInt(id.charAt(i)) * (13 - i);
   }
-  
+
   const checkDigit = (11 - (sum % 11)) % 10;
   return parseInt(id.charAt(12)) === checkDigit;
 };
@@ -43,11 +43,11 @@ const validateApplicantInfo = (formData) => {
 
   // ID Card validation
   if (!formData.idCardNumber) {
-    errors.idCardNumber = 'กรุณากรอกเลขบัตรประชาชน';
+    errors.idCardNumber = "กรุณากรอกเลขบัตรประชาชน";
   } else if (!/^\d{13}$/.test(formData.idCardNumber)) {
-    errors.idCardNumber = 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก';
+    errors.idCardNumber = "เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก";
   } else if (!validateThaiIDCard(formData.idCardNumber)) {
-    errors.idCardNumber = 'รูปแบบเลขบัตรประชาชนไม่ถูกต้อง';
+    errors.idCardNumber = "รูปแบบเลขบัตรประชาชนไม่ถูกต้อง";
   }
 
   // ตรวจสอบคำนำหน้าชื่อ (prename) ผู้ยื่นสมัคร - รองรับทั้ง snake_case และ camelCase
@@ -57,81 +57,85 @@ const validateApplicantInfo = (formData) => {
   const prenameOtherEnVal = formData.prename_other_en ?? formData.prenameOtherEn;
 
   if (!prenameThVal) {
-    errors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
+    errors.prename_th = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
   } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(prenameThVal)) {
-    errors.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
+    errors.prename_th = "คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น";
   }
 
   if (!prenameEnVal) {
-    errors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+    errors.prename_en = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)";
   } else if (!/^[A-Za-z\.\s]+$/.test(prenameEnVal)) {
-    errors.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
+    errors.prename_en = "คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  if ((prenameThVal === 'อื่นๆ' || (prenameEnVal && String(prenameEnVal).toLowerCase() === 'other')) && !prenameOtherVal) {
-    errors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
+  if (
+    (prenameThVal === "อื่นๆ" ||
+      (prenameEnVal && String(prenameEnVal).toLowerCase() === "other")) &&
+    !prenameOtherVal
+  ) {
+    errors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
   }
-  if ((prenameEnVal && String(prenameEnVal).toLowerCase() === 'other') && !prenameOtherEnVal) {
-    errors.prename_other_en = 'กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+  if (prenameEnVal && String(prenameEnVal).toLowerCase() === "other" && !prenameOtherEnVal) {
+    errors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)";
   }
 
   // Thai name validation
   if (!formData.firstNameThai) {
-    errors.firstNameThai = 'กรุณากรอกชื่อภาษาไทย';
+    errors.firstNameThai = "กรุณากรอกชื่อภาษาไทย";
   } else if (!/^[ก-๙\s]+$/.test(formData.firstNameThai)) {
-    errors.firstNameThai = 'กรุณากรอกชื่อเป็นภาษาไทยเท่านั้น';
+    errors.firstNameThai = "กรุณากรอกชื่อเป็นภาษาไทยเท่านั้น";
   }
 
   if (!formData.lastNameThai) {
-    errors.lastNameThai = 'กรุณากรอกนามสกุลภาษาไทย';
+    errors.lastNameThai = "กรุณากรอกนามสกุลภาษาไทย";
   } else if (!/^[ก-๙\s]+$/.test(formData.lastNameThai)) {
-    errors.lastNameThai = 'กรุณากรอกนามสกุลเป็นภาษาไทยเท่านั้น';
+    errors.lastNameThai = "กรุณากรอกนามสกุลเป็นภาษาไทยเท่านั้น";
   }
 
   // English name validation
   if (!formData.firstNameEng) {
-    errors.firstNameEng = 'กรุณากรอกชื่อภาษาอังกฤษ';
+    errors.firstNameEng = "กรุณากรอกชื่อภาษาอังกฤษ";
   } else if (!/^[a-zA-Z\s]+$/.test(formData.firstNameEng)) {
-    errors.firstNameEng = 'กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น';
+    errors.firstNameEng = "กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น";
   }
 
   if (!formData.lastNameEng) {
-    errors.lastNameEng = 'กรุณากรอกนามสกุลภาษาอังกฤษ';
+    errors.lastNameEng = "กรุณากรอกนามสกุลภาษาอังกฤษ";
   } else if (!/^[a-zA-Z\s]+$/.test(formData.lastNameEng)) {
-    errors.lastNameEng = 'กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น';
+    errors.lastNameEng = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
   }
 
   // Contact information validation
   if (!formData.phone) {
-    errors.phone = 'กรุณากรอกเบอร์โทรศัพท์';
-  } else if (!/^\d{9,10}$/.test(formData.phone.replace(/\s/g, ''))) {
-    errors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง';
+    errors.phone = "กรุณากรอกเบอร์โทรศัพท์";
+  } else if (!/^\d{9,10}$/.test(formData.phone.replace(/\s/g, ""))) {
+    errors.phone = "เบอร์โทรศัพท์ไม่ถูกต้อง";
   }
-  
+
   // Phone extension validation: allow non-numeric characters (commas, parentheses, etc.)
   // No strict validation needed; accept any string if provided
 
   if (!formData.email) {
-    errors.email = 'กรุณากรอกอีเมล';
+    errors.email = "กรุณากรอกอีเมล";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-    errors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+    errors.email = "รูปแบบอีเมลไม่ถูกต้อง";
   }
 
   // Address validation - รองรับ multi-address
-  const addressTypes = ['1', '2', '3'];
+  const addressTypes = ["1", "2", "3"];
   const addressLabels = {
-    '1': 'ที่อยู่สำนักงาน',
-    '2': 'ที่อยู่จัดส่งเอกสาร', 
-    '3': 'ที่อยู่ใบกำกับภาษี'
+    1: "ที่อยู่สำนักงาน",
+    2: "ที่อยู่จัดส่งเอกสาร",
+    3: "ที่อยู่ใบกำกับภาษี",
   };
 
   // ตรวจสอบว่ามี addresses object หรือไม่
-  if (formData.addresses && typeof formData.addresses === 'object') {
+  if (formData.addresses && typeof formData.addresses === "object") {
     // ตรวจสอบ multi-address format
-    addressTypes.forEach(type => {
+    addressTypes.forEach((type) => {
       const address = formData.addresses[type];
       const label = addressLabels[type];
-      
+
       if (!address) {
         errors[`address_${type}`] = `กรุณากรอก${label}`;
         return;
@@ -160,7 +164,7 @@ const validateApplicantInfo = (formData) => {
       }
 
       // ตรวจสอบอีเมล (ไม่บังคับกรอก แต่ถ้ามีต้องเป็นรูปแบบที่ถูกต้อง)
-      if (address.email && address.email.trim() !== '') {
+      if (address.email && address.email.trim() !== "") {
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
           errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
         }
@@ -169,12 +173,12 @@ const validateApplicantInfo = (formData) => {
       // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก)
       if (!address.phone) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-      } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ''))) {
+      } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ""))) {
         errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
       }
 
       // ตรวจสอบเว็บไซต์ถ้ามี
-      if (address.website && address.website.trim() !== '') {
+      if (address.website && address.website.trim() !== "") {
         try {
           new URL(address.website);
         } catch (e) {
@@ -185,41 +189,41 @@ const validateApplicantInfo = (formData) => {
   } else {
     // Fallback สำหรับ single address format เก่า
     if (!formData.addressNumber) {
-      errors.addressNumber = 'กรุณากรอกบ้านเลขที่';
+      errors.addressNumber = "กรุณากรอกบ้านเลขที่";
     }
 
     if (!formData.subDistrict) {
-      errors.subDistrict = 'กรุณากรอกตำบล/แขวง';
+      errors.subDistrict = "กรุณากรอกตำบล/แขวง";
     }
 
     if (!formData.district) {
-      errors.district = 'กรุณากรอกอำเภอ/เขต';
+      errors.district = "กรุณากรอกอำเภอ/เขต";
     }
 
     if (!formData.province) {
-      errors.province = 'กรุณากรอกจังหวัด';
+      errors.province = "กรุณากรอกจังหวัด";
     }
 
     if (!formData.postalCode) {
-      errors.postalCode = 'กรุณากรอกรหัสไปรษณีย์';
+      errors.postalCode = "กรุณากรอกรหัสไปรษณีย์";
     } else if (!/^\d{5}$/.test(formData.postalCode)) {
-      errors.postalCode = 'รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก';
+      errors.postalCode = "รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก";
     }
   }
 
   // Note: moo, soi, street are optional fields - no validation required
   // Note: Industrial group and provincial chapter are not required fields for IC
-  
+
   // Website validation (optional field but must be valid if provided)
-  if (formData.website && formData.website.trim() !== '') {
+  if (formData.website && formData.website.trim() !== "") {
     // Simple URL validation
     try {
       new URL(formData.website);
     } catch (e) {
-      errors.website = 'รูปแบบเว็บไซต์ไม่ถูกต้อง กรุณาระบุ URL ที่สมบูรณ์ เช่น https://example.com';
+      errors.website = "รูปแบบเว็บไซต์ไม่ถูกต้อง กรุณาระบุ URL ที่สมบูรณ์ เช่น https://example.com";
     }
   }
-  
+
   return errors;
 };
 
@@ -240,64 +244,68 @@ const validateRepresentativeInfo = (formData) => {
   const repPrenameOtherEn = representative.prename_other_en ?? representative.prenameOtherEn;
 
   if (!repPrenameTh) {
-    representativeErrors.prename_th = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)';
+    representativeErrors.prename_th = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
   } else if (!/^[\u0E00-\u0E7F\.\s]+$/.test(repPrenameTh)) {
-    representativeErrors.prename_th = 'คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น';
+    representativeErrors.prename_th = "คำนำหน้าชื่อต้องเป็นภาษาไทยเท่านั้น";
   }
 
   if (!repPrenameEn) {
-    representativeErrors.prename_en = 'กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+    representativeErrors.prename_en = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)";
   } else if (!/^[A-Za-z\.\s]+$/.test(repPrenameEn)) {
-    representativeErrors.prename_en = 'คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น';
+    representativeErrors.prename_en = "คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  if ((repPrenameTh === 'อื่นๆ' || (repPrenameEn && String(repPrenameEn).toLowerCase() === 'other')) && !repPrenameOther) {
-    representativeErrors.prename_other = 'กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)';
+  if (
+    (repPrenameTh === "อื่นๆ" ||
+      (repPrenameEn && String(repPrenameEn).toLowerCase() === "other")) &&
+    !repPrenameOther
+  ) {
+    representativeErrors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
   }
-  if ((repPrenameEn && String(repPrenameEn).toLowerCase() === 'other') && !repPrenameOtherEn) {
-    representativeErrors.prename_other_en = 'กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)';
+  if (repPrenameEn && String(repPrenameEn).toLowerCase() === "other" && !repPrenameOtherEn) {
+    representativeErrors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)";
   }
 
   // Thai name validation
   if (!representative.firstNameThai) {
-    representativeErrors.firstNameThai = 'กรุณากรอกชื่อภาษาไทย';
+    representativeErrors.firstNameThai = "กรุณากรอกชื่อภาษาไทย";
   } else if (!/^[ก-๙\s]+$/.test(representative.firstNameThai)) {
-    representativeErrors.firstNameThai = 'กรุณากรอกชื่อเป็นภาษาไทยเท่านั้น';
+    representativeErrors.firstNameThai = "กรุณากรอกชื่อเป็นภาษาไทยเท่านั้น";
   }
 
   if (!representative.lastNameThai) {
-    representativeErrors.lastNameThai = 'กรุณากรอกนามสกุลภาษาไทย';
+    representativeErrors.lastNameThai = "กรุณากรอกนามสกุลภาษาไทย";
   } else if (!/^[ก-๙\s]+$/.test(representative.lastNameThai)) {
-    representativeErrors.lastNameThai = 'กรุณากรอกนามสกุลเป็นภาษาไทยเท่านั้น';
+    representativeErrors.lastNameThai = "กรุณากรอกนามสกุลเป็นภาษาไทยเท่านั้น";
   }
 
   // English name validation
   if (!representative.firstNameEng) {
-    representativeErrors.firstNameEng = 'กรุณากรอกชื่อภาษาอังกฤษ';
+    representativeErrors.firstNameEng = "กรุณากรอกชื่อภาษาอังกฤษ";
   } else if (!/^[a-zA-Z\s]+$/.test(representative.firstNameEng)) {
-    representativeErrors.firstNameEng = 'กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น';
+    representativeErrors.firstNameEng = "กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น";
   }
 
   if (!representative.lastNameEng) {
-    representativeErrors.lastNameEng = 'กรุณากรอกนามสกุลภาษาอังกฤษ';
+    representativeErrors.lastNameEng = "กรุณากรอกนามสกุลภาษาอังกฤษ";
   } else if (!/^[a-zA-Z\s]+$/.test(representative.lastNameEng)) {
-    representativeErrors.lastNameEng = 'กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น';
+    representativeErrors.lastNameEng = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
   }
 
   // Contact information validation
   if (!representative.phone) {
-    representativeErrors.phone = 'กรุณากรอกเบอร์โทรศัพท์';
-  } else if (!/^\d{9,10}$/.test(representative.phone.replace(/\s/g, ''))) {
-    representativeErrors.phone = 'เบอร์โทรศัพท์ไม่ถูกต้อง';
+    representativeErrors.phone = "กรุณากรอกเบอร์โทรศัพท์";
+  } else if (!/^\d{9,10}$/.test(representative.phone.replace(/\s/g, ""))) {
+    representativeErrors.phone = "เบอร์โทรศัพท์ไม่ถูกต้อง";
   }
-  
+
   // Phone extension validation: allow non-numeric characters for representative as well
   // No strict validation; accept any string if provided
 
   if (!representative.email) {
-    representativeErrors.email = 'กรุณากรอกอีเมล';
+    representativeErrors.email = "กรุณากรอกอีเมล";
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(representative.email)) {
-    representativeErrors.email = 'รูปแบบอีเมลไม่ถูกต้อง';
+    representativeErrors.email = "รูปแบบอีเมลไม่ถูกต้อง";
   }
 
   if (Object.keys(representativeErrors).length > 0) {
@@ -314,24 +322,24 @@ const validateBusinessInfo = (formData) => {
 
   // Business type validation
   if (!formData.businessTypes || Object.keys(formData.businessTypes).length === 0) {
-    errors.businessTypes = 'กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ประเภท';
+    errors.businessTypes = "กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ประเภท";
   } else if (formData.businessTypes.other && !formData.otherBusinessTypeDetail) {
-    errors.otherBusinessTypeDetail = 'กรุณาระบุประเภทธุรกิจอื่นๆ';
+    errors.otherBusinessTypeDetail = "กรุณาระบุประเภทธุรกิจอื่นๆ";
   }
 
   // Product validation
   if (!formData.products || formData.products.length === 0) {
-    errors.products = 'กรุณากรอกข้อมูลสินค้า/บริการอย่างน้อย 1 รายการ';
+    errors.products = "กรุณากรอกข้อมูลสินค้า/บริการอย่างน้อย 1 รายการ";
   } else {
     formData.products.forEach((product, index) => {
       const productError = {};
-      
+
       if (!product.nameTh) {
-        productError.nameTh = 'กรุณากรอกชื่อสินค้า/บริการภาษาไทย';
+        productError.nameTh = "กรุณากรอกชื่อสินค้า/บริการภาษาไทย";
       }
-      
+
       // ชื่อสินค้า/บริการภาษาอังกฤษ: ไม่บังคับกรอก (optional)
-      
+
       if (Object.keys(productError).length > 0) {
         productErrors[index] = productError;
       }
@@ -351,38 +359,50 @@ const validateDocuments = (formData) => {
 
   // For IC form, ID card document and authorized signature are required
   if (!formData.idCardDocument) {
-    errors.idCardDocument = 'กรุณาอัพโหลดสำเนาบัตรประชาชน';
+    errors.idCardDocument = "กรุณาอัพโหลดสำเนาบัตรประชาชน";
   }
-  
+
   if (!formData.authorizedSignature) {
-    errors.authorizedSignature = 'กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม';
+    errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
   }
 
   // Authorized signatory name validations (required)
   // Thai names must be Thai letters/spaces
-  if (!formData.authorizedSignatoryFirstNameTh || formData.authorizedSignatoryFirstNameTh.trim() === '') {
-    errors.authorizedSignatoryFirstNameTh = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)';
+  if (
+    !formData.authorizedSignatoryFirstNameTh ||
+    formData.authorizedSignatoryFirstNameTh.trim() === ""
+  ) {
+    errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
   } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
-    errors.authorizedSignatoryFirstNameTh = 'กรุณากรอกชื่อภาษาไทยเท่านั้น';
+    errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อภาษาไทยเท่านั้น";
   }
 
-  if (!formData.authorizedSignatoryLastNameTh || formData.authorizedSignatoryLastNameTh.trim() === '') {
-    errors.authorizedSignatoryLastNameTh = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)';
+  if (
+    !formData.authorizedSignatoryLastNameTh ||
+    formData.authorizedSignatoryLastNameTh.trim() === ""
+  ) {
+    errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)";
   } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
-    errors.authorizedSignatoryLastNameTh = 'กรุณากรอกนามสกุลภาษาไทยเท่านั้น';
+    errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลภาษาไทยเท่านั้น";
   }
 
   // English names must be English letters/spaces
-  if (!formData.authorizedSignatoryFirstNameEn || formData.authorizedSignatoryFirstNameEn.trim() === '') {
-    errors.authorizedSignatoryFirstNameEn = 'กรุณากรอกชื่อผู้มีอำนาจลงนาม (อังกฤษ)';
+  if (
+    !formData.authorizedSignatoryFirstNameEn ||
+    formData.authorizedSignatoryFirstNameEn.trim() === ""
+  ) {
+    errors.authorizedSignatoryFirstNameEn = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (อังกฤษ)";
   } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
-    errors.authorizedSignatoryFirstNameEn = 'กรุณากรอกชื่อภาษาอังกฤษเท่านั้น';
+    errors.authorizedSignatoryFirstNameEn = "กรุณากรอกชื่อภาษาอังกฤษเท่านั้น";
   }
 
-  if (!formData.authorizedSignatoryLastNameEn || formData.authorizedSignatoryLastNameEn.trim() === '') {
-    errors.authorizedSignatoryLastNameEn = 'กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (อังกฤษ)';
+  if (
+    !formData.authorizedSignatoryLastNameEn ||
+    formData.authorizedSignatoryLastNameEn.trim() === ""
+  ) {
+    errors.authorizedSignatoryLastNameEn = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (อังกฤษ)";
   } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-    errors.authorizedSignatoryLastNameEn = 'กรุณากรอกนามสกุลภาษาอังกฤษเท่านั้น';
+    errors.authorizedSignatoryLastNameEn = "กรุณากรอกนามสกุลภาษาอังกฤษเท่านั้น";
   }
 
   return errors;

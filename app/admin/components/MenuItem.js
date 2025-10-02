@@ -1,37 +1,29 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import './styles/animations.css';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import "./styles/animations.css";
 
-function MenuItem({ 
-  item, 
-  pathname, 
-  collapsed, 
-  loading, 
-  activePath, 
-  onNavigation 
-}) {
-  const isActive = pathname === item.path || (item.path !== '/admin/dashboard' && pathname.startsWith(item.path));
+function MenuItem({ item, pathname, collapsed, loading, activePath, onNavigation }) {
+  const isActive =
+    pathname === item.path || (item.path !== "/admin/dashboard" && pathname.startsWith(item.path));
   const isLoading = loading && activePath === item.path;
 
   // Animation state for menu item entrance
   const [mounted, setMounted] = useState(false);
-  
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
   return (
-    <div className={`mb-2 relative ${mounted ? 'menu-item-enter' : ''}`}>
+    <div className={`mb-2 relative ${mounted ? "menu-item-enter" : ""}`}>
       <Link
         href={item.path}
         className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-          isActive 
-            ? 'bg-gray-900 text-white' 
-            : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-        } ${isLoading ? 'menu-item-loading cursor-not-allowed' : ''}`}
+          isActive ? "bg-gray-900 text-white" : "text-gray-300 hover:bg-gray-700 hover:text-white"
+        } ${isLoading ? "menu-item-loading cursor-not-allowed" : ""}`}
         onClick={(e) => onNavigation(e, item.path)}
       >
         <div className="mr-3">
@@ -50,7 +42,7 @@ function MenuItem({
             <span>{item.name}</span>
             {item.badge && (
               <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500 text-white">
-                {item.badge > 99 ? '99+' : item.badge}
+                {item.badge > 99 ? "99+" : item.badge}
               </span>
             )}
           </div>

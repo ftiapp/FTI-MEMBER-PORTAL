@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LogoutConfirmModal({ isOpen, onClose, onConfirm }) {
   const modalRef = useRef(null);
@@ -15,28 +15,28 @@ export default function LogoutConfirmModal({ isOpen, onClose, onConfirm }) {
     };
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isOpen, onClose]);
 
   // Close modal when pressing Escape key
   useEffect(() => {
     const handleEscapeKey = (event) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose();
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscapeKey);
+      document.addEventListener("keydown", handleEscapeKey);
     }
 
     return () => {
-      document.removeEventListener('keydown', handleEscapeKey);
+      document.removeEventListener("keydown", handleEscapeKey);
     };
   }, [isOpen, onClose]);
 
@@ -54,18 +54,16 @@ export default function LogoutConfirmModal({ isOpen, onClose, onConfirm }) {
             initial={{ scale: 0.9, y: 20, opacity: 0 }}
             animate={{ scale: 1, y: 0, opacity: 1 }}
             exit={{ scale: 0.9, y: 20, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden"
           >
             <div className="p-6 bg-blue-600 text-white">
               <h3 className="text-xl font-semibold">ยืนยันการออกจากระบบ</h3>
             </div>
-            
+
             <div className="p-6">
-              <p className="text-gray-700 mb-6">
-                คุณต้องการออกจากระบบใช่หรือไม่?
-              </p>
-              
+              <p className="text-gray-700 mb-6">คุณต้องการออกจากระบบใช่หรือไม่?</p>
+
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={onClose}

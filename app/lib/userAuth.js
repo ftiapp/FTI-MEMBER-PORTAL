@@ -1,6 +1,6 @@
-import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
-import { query } from './db';
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
+import { query } from "./db";
 
 /**
  * ตรวจสอบ session ของผู้ใช้จาก cookie
@@ -9,21 +9,21 @@ import { query } from './db';
 export async function getUserFromSession() {
   try {
     const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-    
+    const token = cookieStore.get("token")?.value;
+
     if (!token) {
       return null;
     }
 
     // สร้าง secret key สำหรับ JWT
-    const secretKey = process.env.JWT_SECRET || 'your-secret-key';
-    
+    const secretKey = process.env.JWT_SECRET || "your-secret-key";
+
     const payload = jwt.verify(token, secretKey);
-    
+
     // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูล
     const users = await query(
-      'SELECT id, email, firstname, lastname FROM users WHERE id = ? LIMIT 1',
-      [payload.userId]
+      "SELECT id, email, firstname, lastname FROM users WHERE id = ? LIMIT 1",
+      [payload.userId],
     );
 
     if (users.length === 0) {
@@ -32,7 +32,7 @@ export async function getUserFromSession() {
 
     return users[0];
   } catch (error) {
-    console.error('Error checking user session:', error);
+    console.error("Error checking user session:", error);
     return null;
   }
 }
@@ -44,14 +44,14 @@ export async function getUserFromSession() {
  */
 export async function createUserToken(user) {
   // สร้าง secret key สำหรับ JWT
-  const secretKey = process.env.JWT_SECRET || 'your-secret-key';
-  
+  const secretKey = process.env.JWT_SECRET || "your-secret-key";
+
   return jwt.sign(
-    { 
+    {
       userId: user.id,
-      email: user.email
-    }, 
+      email: user.email,
+    },
     secretKey,
-    { expiresIn: '7d' }
+    { expiresIn: "7d" },
   );
 }

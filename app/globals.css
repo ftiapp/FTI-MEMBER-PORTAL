@@ -4,9 +4,9 @@
 
 /* Base Styles */
 :root {
-  --font-thai: 'Noto Sans Thai', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-noto-sans-thai: 'Noto Sans Thai', sans-serif;
-  --font-plex-sans-thai: 'Plex Sans Thai', sans-serif;
+  --font-thai: "Noto Sans Thai", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-noto-sans-thai: "Noto Sans Thai", sans-serif;
+  --font-plex-sans-thai: "Plex Sans Thai", sans-serif;
   --primary-color: #1e40af;
   --secondary-color: #3b82f6;
   --accent-color: #60a5fa;
@@ -51,7 +51,12 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-thai);
   letter-spacing: -0.02em;
   line-height: 1.3;
@@ -73,7 +78,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-gradient::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -131,7 +136,8 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Animation */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -164,33 +170,67 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Global contrast bump for readability across the entire app (both light and dark) */
 /* Gray */
-.text-gray-400 { color: rgb(75 85 99) !important; }   /* -> gray-600 */
-.text-gray-500 { color: rgb(55 65 81) !important; }   /* -> gray-700 */
-.text-gray-600 { color: rgb(31 41 55) !important; }   /* -> gray-800 */
+.text-gray-400 {
+  color: rgb(75 85 99) !important;
+} /* -> gray-600 */
+.text-gray-500 {
+  color: rgb(55 65 81) !important;
+} /* -> gray-700 */
+.text-gray-600 {
+  color: rgb(31 41 55) !important;
+} /* -> gray-800 */
 
 /* Slate */
-.text-slate-400 { color: rgb(107 114 128) !important; } /* -> slate-600 */
-.text-slate-500 { color: rgb(100 116 139) !important; } /* -> slate-600/700 hybrid */
-.text-slate-600 { color: rgb(71 85 105) !important; }   /* -> slate-700 */
+.text-slate-400 {
+  color: rgb(107 114 128) !important;
+} /* -> slate-600 */
+.text-slate-500 {
+  color: rgb(100 116 139) !important;
+} /* -> slate-600/700 hybrid */
+.text-slate-600 {
+  color: rgb(71 85 105) !important;
+} /* -> slate-700 */
 
 /* Neutral */
-.text-neutral-400 { color: rgb(115 115 115) !important; } /* -> neutral-600 */
-.text-neutral-500 { color: rgb(82 82 82) !important; }    /* -> neutral-700 */
-.text-neutral-600 { color: rgb(64 64 64) !important; }    /* -> neutral-800 */
+.text-neutral-400 {
+  color: rgb(115 115 115) !important;
+} /* -> neutral-600 */
+.text-neutral-500 {
+  color: rgb(82 82 82) !important;
+} /* -> neutral-700 */
+.text-neutral-600 {
+  color: rgb(64 64 64) !important;
+} /* -> neutral-800 */
 
 /* Broad overrides to also catch slash-opacity variants like text-gray-500/70 */
-[class*="text-gray-4"] { color: rgb(75 85 99) !important; }  /* >= gray-600 */
-[class*="text-gray-5"] { color: rgb(55 65 81) !important; }  /* >= gray-700 */
-[class*="text-slate-4"] { color: rgb(71 85 105) !important; } /* >= slate-700 */
-[class*="text-slate-5"] { color: rgb(51 65 85) !important; }  /* slate-800-ish */
-[class*="text-neutral-4"] { color: rgb(115 115 115) !important; } /* >= neutral-600 */
-[class*="text-neutral-5"] { color: rgb(82 82 82) !important; }    /* >= neutral-700 */
+[class*="text-gray-4"] {
+  color: rgb(75 85 99) !important;
+} /* >= gray-600 */
+[class*="text-gray-5"] {
+  color: rgb(55 65 81) !important;
+} /* >= gray-700 */
+[class*="text-slate-4"] {
+  color: rgb(71 85 105) !important;
+} /* >= slate-700 */
+[class*="text-slate-5"] {
+  color: rgb(51 65 85) !important;
+} /* slate-800-ish */
+[class*="text-neutral-4"] {
+  color: rgb(115 115 115) !important;
+} /* >= neutral-600 */
+[class*="text-neutral-5"] {
+  color: rgb(82 82 82) !important;
+} /* >= neutral-700 */
 
 /* Neutralize Tailwind text opacity utilities so text doesn't look faded */
-[class*="text-opacity-"] { --tw-text-opacity: 1 !important; }
+[class*="text-opacity-"] {
+  --tw-text-opacity: 1 !important;
+}
 
 /* Form controls: ensure high-contrast text & placeholders in inputs */
-input, textarea, select {
+input,
+textarea,
+select {
   color: var(--foreground) !important;
   caret-color: var(--foreground);
   opacity: 1 !important; /* avoid accidental fading on inputs */

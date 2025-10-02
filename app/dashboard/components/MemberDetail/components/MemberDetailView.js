@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { FaIdCard, FaBuilding, FaRegAddressCard, FaTable } from 'react-icons/fa';
-import Link from 'next/link';
+import { FaIdCard, FaBuilding, FaRegAddressCard, FaTable } from "react-icons/fa";
+import Link from "next/link";
 
 /**
  * MemberDetailView component displays detailed information about a member
@@ -24,7 +24,7 @@ const MemberDetailView = ({ memberData, onToggleView }) => (
         </button>
       </div>
     </div>
-    
+
     {/* Member Code and Status */}
     <div className="flex justify-between items-center mb-6">
       <div className="flex items-center">
@@ -33,7 +33,7 @@ const MemberDetailView = ({ memberData, onToggleView }) => (
             <FaIdCard className="h-5 w-5 text-blue-500 mr-2" />
             <div>
               <p className="text-xs text-blue-700">หมายเลขสมาชิก</p>
-              <Link 
+              <Link
                 href={`/MemberDetail?memberCode=${memberData.MEMBER_CODE}`}
                 className="text-blue-600 hover:underline cursor-pointer text-sm font-medium"
               >
@@ -49,7 +49,7 @@ const MemberDetailView = ({ memberData, onToggleView }) => (
         </span>
       </div>
     </div>
-    
+
     {/* Company Information */}
     <div className="mb-6">
       <h3 className="text-md font-semibold mb-3 text-gray-700 border-b pb-2">ข้อมูลบริษัท</h3>
@@ -60,27 +60,27 @@ const MemberDetailView = ({ memberData, onToggleView }) => (
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-700">ชื่อบริษัท</p>
-            <p className="text-sm text-gray-900">{memberData.company_name || '-'}</p>
+            <p className="text-sm text-gray-900">{memberData.company_name || "-"}</p>
           </div>
         </div>
-        
+
         <div className="flex items-start">
           <div className="flex-shrink-0 mt-1">
             <FaBuilding className="h-5 w-5 text-blue-500" />
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-700">ประเภทบริษัท</p>
-            <p className="text-sm text-gray-900">{memberData.company_type || '-'}</p>
+            <p className="text-sm text-gray-900">{memberData.company_type || "-"}</p>
           </div>
         </div>
-        
+
         <div className="flex items-start">
           <div className="flex-shrink-0 mt-1">
             <FaRegAddressCard className="h-5 w-5 text-blue-500" />
           </div>
           <div className="ml-3">
             <p className="text-sm font-medium text-gray-700">เลขประจำตัวผู้เสียภาษี</p>
-            <p className="text-sm text-gray-900">{memberData.tax_id || '-'}</p>
+            <p className="text-sm text-gray-900">{memberData.tax_id || "-"}</p>
           </div>
         </div>
       </div>

@@ -1,12 +1,11 @@
-
-'use client';
+"use client";
 
 // Member type mapping
 export const memberTypeMap = {
-  'สน': 'สามัญ-โรงงาน',
-  'สส': 'สามัญ-สมาคมการค้า',
-  'ทน': 'สมทบ-นิติบุคคล',
-  'ทบ': 'สมทบ-บุคคลธรรมดา'
+  สน: "สามัญ-โรงงาน",
+  สส: "สามัญ-สมาคมการค้า",
+  ทน: "สมทบ-นิติบุคคล",
+  ทบ: "สมทบ-บุคคลธรรมดา",
 };
 
 // Get full member type name
@@ -20,15 +19,25 @@ export const getFullMemberType = (typeCode) => {
  * @returns {string} Formatted date string in Thai format
  */
 export const formatThaiDate = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString) return "";
 
   const date = new Date(dateString);
   const thaiYear = date.getFullYear() + 543;
   const day = date.getDate();
 
   const thaiMonths = [
-    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม",
   ];
 
   const month = thaiMonths[date.getMonth()];
@@ -41,12 +50,12 @@ export const formatThaiDate = (dateString) => {
  * @returns {string} Formatted date string in Thai short format (dd/MM/yyyy)
  */
 export const formatThaiShortDate = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString) return "";
 
   const date = new Date(dateString);
   const thaiYear = date.getFullYear() + 543;
-  const day = date.getDate().toString().padStart(2, '0');
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const day = date.getDate().toString().padStart(2, "0");
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
 
   return `${day}/${month}/${thaiYear}`;
 };
@@ -57,14 +66,24 @@ export const formatThaiShortDate = (dateString) => {
  * @returns {string} Formatted date string in English format
  */
 export const formatEnglishDate = (dateString) => {
-  if (!dateString) return '';
+  if (!dateString) return "";
 
   const date = new Date(dateString);
   const day = date.getDate();
 
   const months = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
 
   const month = months[date.getMonth()];
@@ -78,16 +97,17 @@ export const formatEnglishDate = (dateString) => {
  * @returns {string} HTML content for the certificate
  */
 export const generateThaiCertificateHTML = (selectedMember, refInfo) => {
-  if (!selectedMember) return '';
+  if (!selectedMember) return "";
 
   const currentDate = formatThaiDate(new Date().toISOString());
-  const rawMemberSince = selectedMember?.MEMBER_DATE || selectedMember?.member_date || selectedMember?.JOIN_DATE;
-  const joinDate = rawMemberSince ? formatThaiDate(rawMemberSince) : '...........................';
+  const rawMemberSince =
+    selectedMember?.MEMBER_DATE || selectedMember?.member_date || selectedMember?.JOIN_DATE;
+  const joinDate = rawMemberSince ? formatThaiDate(rawMemberSince) : "...........................";
   const currentYear = new Date().getFullYear() + 543;
-  const memberType = getFullMemberType(selectedMember?.company_type) || '........';
+  const memberType = getFullMemberType(selectedMember?.company_type) || "........";
   const refText = refInfo?.thaiYear
     ? `ที่ ${refInfo.orderNo || 1}/${refInfo.totalCount || 0}/${refInfo.thaiYear}`
-    : 'ที่...... /....... .......';
+    : "ที่...... /....... .......";
 
   return `
     <!DOCTYPE html>
@@ -231,11 +251,11 @@ export const generateThaiCertificateHTML = (selectedMember, refInfo) => {
             
           <p style="text-align: center;">โดยหนังสือฉบับนี้ สภาอุตสาหกรรมแห่งประเทศไทย ขอรับรองว่า</p>
             
-          <p class="company-name" style="text-align: center;">${selectedMember?.company_name || '...........................'}</p>
+          <p class="company-name" style="text-align: center;">${selectedMember?.company_name || "..........................."}</p>
             
           <p style="text-align: center;">เป็นสมาชิกสภาอุตสาหกรรมแห่งประเทศไทย</p>
             
-          <p style="text-align: center;">ประเภท ${memberType} เลขที่สมาชิก ${selectedMember?.MEMBER_CODE || '...............'} ตั้งแต่วันที่ ${joinDate}</p>
+          <p style="text-align: center;">ประเภท ${memberType} เลขที่สมาชิก ${selectedMember?.MEMBER_CODE || "..............."} ตั้งแต่วันที่ ${joinDate}</p>
             
           <p style="text-align: center;">ขณะนี้ยังคงเป็นสมาชิกของสภาอุตสาหกรรมแห่งประเทศไทย ตลอดปี ${currentYear}</p>
             
@@ -265,13 +285,16 @@ export const generateThaiCertificateHTML = (selectedMember, refInfo) => {
  * @returns {string} HTML content for the certificate
  */
 export const generateEnglishCertificateHTML = (selectedMember, refInfo) => {
-  if (!selectedMember) return '';
+  if (!selectedMember) return "";
 
   const currentDate = formatEnglishDate(new Date().toISOString());
-  const rawMemberSince = selectedMember?.MEMBER_DATE || selectedMember?.member_date || selectedMember?.JOIN_DATE;
-  const joinDate = rawMemberSince ? formatEnglishDate(rawMemberSince) : '...........................';
+  const rawMemberSince =
+    selectedMember?.MEMBER_DATE || selectedMember?.member_date || selectedMember?.JOIN_DATE;
+  const joinDate = rawMemberSince
+    ? formatEnglishDate(rawMemberSince)
+    : "...........................";
   const currentYear = new Date().getFullYear();
-  const memberType = getFullMemberType(selectedMember?.company_type) || '........';
+  const memberType = getFullMemberType(selectedMember?.company_type) || "........";
   const refText = refInfo?.year
     ? `Ref: ${refInfo.orderNo || 1}/${refInfo.totalCount || 0}/${refInfo.year}`
     : `Ref: ...... /....... .......`;
@@ -382,11 +405,11 @@ export const generateEnglishCertificateHTML = (selectedMember, refInfo) => {
             
           <p style="text-align: left;">This is to certify that</p>
             
-          <p class="company-name" style="text-align: center;">${selectedMember?.company_name || '...........................'} CO., LTD.</p>
+          <p class="company-name" style="text-align: center;">${selectedMember?.company_name || "..........................."} CO., LTD.</p>
             
           <p style="text-align: center;">is a member of The Federation of Thai Industries</p>
             
-          <p style="text-align: center;">Type: ${memberType} Membership No. ${selectedMember?.MEMBER_CODE || '...............'} since ${joinDate}</p>
+          <p style="text-align: center;">Type: ${memberType} Membership No. ${selectedMember?.MEMBER_CODE || "..............."} since ${joinDate}</p>
             
           <p style="text-align: center;">The company is currently a member of The Federation of Thai Industries for the year ${currentYear}.</p>
             
@@ -439,37 +462,40 @@ export const handleDownloadCertificate = async (language, member, memberData) =>
   // Get numbering from backend and persist request
   let refInfo = null;
   try {
-    const res = await fetch('/api/member/certificate-request', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ memberCode: selectedMember.MEMBER_CODE })
+    const res = await fetch("/api/member/certificate-request", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ memberCode: selectedMember.MEMBER_CODE }),
     });
     if (res.ok) {
       const data = await res.json();
       refInfo = data;
     }
   } catch (e) {
-    console.error('Failed to get certificate numbering:', e);
+    console.error("Failed to get certificate numbering:", e);
   }
-  
+
   // Create a filename based on member information
-  const companyName = selectedMember.COMPANY_NAME || selectedMember.company_name || 'certificate';
-  const memberCode = selectedMember.MEMBER_CODE || '';
-  const fileName = `${companyName}_${memberCode}_${language}_certificate.pdf`.replace(/\s+/g, '_');
-  
+  const companyName = selectedMember.COMPANY_NAME || selectedMember.company_name || "certificate";
+  const memberCode = selectedMember.MEMBER_CODE || "";
+  const fileName = `${companyName}_${memberCode}_${language}_certificate.pdf`.replace(/\s+/g, "_");
+
   // Create a new window for the certificate
-  const downloadWindow = window.open('', '_blank');
+  const downloadWindow = window.open("", "_blank");
   if (!downloadWindow) {
-    alert('โปรดอนุญาตให้เปิดหน้าต่างป๊อปอัพเพื่อดาวน์โหลดเอกสาร');
+    alert("โปรดอนุญาตให้เปิดหน้าต่างป๊อปอัพเพื่อดาวน์โหลดเอกสาร");
     return;
   }
-  
-  const html = language === 'thai' 
-    ? generateThaiCertificateHTML(selectedMember, refInfo) 
-    : generateEnglishCertificateHTML(selectedMember, refInfo);
-  
+
+  const html =
+    language === "thai"
+      ? generateThaiCertificateHTML(selectedMember, refInfo)
+      : generateEnglishCertificateHTML(selectedMember, refInfo);
+
   // Add html2pdf script to the new window
-  const modifiedHtml = html.replace('</head>', `
+  const modifiedHtml = html.replace(
+    "</head>",
+    `
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
       window.onload = function() {
@@ -502,8 +528,9 @@ export const handleDownloadCertificate = async (language, member, memberData) =>
         });
       };
     </script>
-  </head>`);
-  
+  </head>`,
+  );
+
   downloadWindow.document.write(modifiedHtml);
   downloadWindow.document.close();
-}
+};

@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { query } from '../../lib/db';
+import { NextResponse } from "next/server";
+import { query } from "../../lib/db";
 
 export async function GET() {
   try {
@@ -23,16 +23,16 @@ export async function GET() {
 
     return NextResponse.json({
       success: true,
-      data: contactTypes
+      data: contactTypes,
     });
   } catch (error) {
-    console.error('Error fetching contact person types:', error);
+    console.error("Error fetching contact person types:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: 'เกิดข้อผิดพลาดในการดึงข้อมูลประเภทผู้ติดต่อ' 
+      {
+        success: false,
+        message: "เกิดข้อผิดพลาดในการดึงข้อมูลประเภทผู้ติดต่อ",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

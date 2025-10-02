@@ -1,16 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '../contexts/AuthContext';
-import Footer from '../components/Footer';
-import Navbar from '../components/Navbar';
-import { motion, AnimatePresence } from 'framer-motion';
-import Script from 'next/script';
-import { FaSpinner } from 'react-icons/fa';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useAuth } from "../contexts/AuthContext";
+import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
+import { motion, AnimatePresence } from "framer-motion";
+import Script from "next/script";
+import { FaSpinner } from "react-icons/fa";
+import { useSearchParams } from "next/navigation";
+import LoginLoadingOverlay from "./components/LoginLoadingOverlay";
 
 export default function Login() {
   // Load reCAPTCHA script
@@ -20,26 +21,26 @@ export default function Login() {
   const { login } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
 
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [rateLimitInfo, setRateLimitInfo] = useState(null);
   const [captchaRequired, setCaptchaRequired] = useState(false);
-  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaToken, setCaptchaToken] = useState("");
   const recaptchaRef = useRef(null);
   const timerRef = useRef(null);
-  
+
   // Function to get cookie value
   const getCookie = (name) => {
-    if (typeof document === 'undefined') return null;
+    if (typeof document === "undefined") return null;
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
+    if (parts.length === 2) return parts.pop().split(";").shift();
     return null;
   };
 
@@ -47,31 +48,31 @@ export default function Login() {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    
+    window.addEventListener("resize", checkMobile);
+
     // Check for saved email and remember me preference
-    const savedEmail = getCookie('userEmail');
-    const rememberedPref = getCookie('rememberMe');
-    
+    const savedEmail = getCookie("userEmail");
+    const rememberedPref = getCookie("rememberMe");
+
     if (savedEmail) {
-      setFormData(prev => ({ ...prev, email: savedEmail }));
+      setFormData((prev) => ({ ...prev, email: savedEmail }));
     }
-    
-    if (rememberedPref === '1') {
+
+    if (rememberedPref === "1") {
       setRememberMe(true);
     }
-    
-    return () => window.removeEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
-  
+
   // Load reCAPTCHA script
   useEffect(() => {
     if (!recaptchaLoaded.current) {
       // Add reCAPTCHA script dynamically
-      const script = document.createElement('script');
-      script.src = 'https://www.google.com/recaptcha/api.js?render=explicit';
+      const script = document.createElement("script");
+      script.src = "https://www.google.com/recaptcha/api.js?render=explicit";
       script.async = true;
       script.defer = true;
       script.onload = () => {
@@ -82,45 +83,57 @@ export default function Login() {
         }
       };
       document.head.appendChild(script);
-      
+
       return () => {
         // Clean up script when component unmounts
         document.head.removeChild(script);
       };
     }
   }, [captchaRequired]);
-  
+
+  // Lock scroll when submitting to freeze the page
+  useEffect(() => {
+    if (isSubmitting) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isSubmitting]);
+
   // Function to render reCAPTCHA
   const renderReCaptcha = () => {
     if (window.grecaptcha && recaptchaRef.current && !recaptchaRef.current.innerHTML) {
       window.grecaptcha.render(recaptchaRef.current, {
-        sitekey: '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI', // Replace with your actual site key in production
+        sitekey: "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI", // Replace with your actual site key in production
         callback: (token) => {
           setCaptchaToken(token);
-          setError('');
+          setError("");
         },
-        'expired-callback': () => {
-          setCaptchaToken('');
-        }
+        "expired-callback": () => {
+          setCaptchaToken("");
+        },
       });
     }
   };
-  
+
   // Reset CAPTCHA
   const resetCaptcha = () => {
     if (window.grecaptcha && recaptchaRef.current) {
       window.grecaptcha.reset();
-      setCaptchaToken('');
+      setCaptchaToken("");
     }
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-    setError('');
+    setError("");
   };
 
   const togglePasswordVisibility = () => {
@@ -130,10 +143,10 @@ export default function Login() {
   // Rate limit error popup component
   const RateLimitErrorPopup = ({ seconds, onClose }) => {
     const [timeLeft, setTimeLeft] = useState(seconds);
-    
+
     useEffect(() => {
       const timer = setInterval(() => {
-        setTimeLeft(prev => {
+        setTimeLeft((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
             return 0;
@@ -141,20 +154,20 @@ export default function Login() {
           return prev - 1;
         });
       }, 1000);
-      
+
       return () => clearInterval(timer);
     }, []);
-    
+
     // Format time as mm:ss
     const formatTime = (seconds) => {
       const minutes = Math.floor(seconds / 60);
       const remainingSeconds = seconds % 60;
-      return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+      return `${minutes.toString().padStart(2, "0")}:${remainingSeconds.toString().padStart(2, "0")}`;
     };
-    
+
     return (
       <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-40">
-        <motion.div 
+        <motion.div
           className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4"
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -163,19 +176,32 @@ export default function Login() {
         >
           <div className="flex items-center mb-4">
             <div className="bg-red-100 p-2 rounded-full mr-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-red-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                />
               </svg>
             </div>
             <h3 className="text-xl font-bold text-gray-800">เข้าสู่ระบบล้มเหลวหลายครั้งเกินไป</h3>
           </div>
-          
-          <p className="text-gray-600 mb-4">คุณได้พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณาลองใหม่ในอีก:</p>
-          
+
+          <p className="text-gray-600 mb-4">
+            คุณได้พยายามเข้าสู่ระบบหลายครั้งเกินไป กรุณาลองใหม่ในอีก:
+          </p>
+
           <div className="bg-gray-100 rounded-lg p-4 mb-5 text-center">
             <span className="text-2xl font-bold text-red-600">{formatTime(timeLeft)}</span>
           </div>
-          
+
           <div className="flex justify-end">
             <button
               onClick={onClose}
@@ -199,13 +225,13 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
-      setError('กรุณากรอกอีเมลและรหัสผ่าน');
+      setError("กรุณากรอกอีเมลและรหัสผ่าน");
       return;
     }
 
     // Check if CAPTCHA is required but not provided
     if (captchaRequired && !captchaToken) {
-      setError('กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ');
+      setError("กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ");
       return;
     }
 
@@ -215,38 +241,38 @@ export default function Login() {
     try {
       // Store email in localStorage if rememberMe is checked (as a backup)
       if (rememberMe) {
-        localStorage.setItem('rememberedEmail', formData.email);
+        localStorage.setItem("rememberedEmail", formData.email);
       } else {
-        localStorage.removeItem('rememberedEmail');
+        localStorage.removeItem("rememberedEmail");
       }
-      
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
           rememberMe: true, // Always set to true regardless of user choice
-          captchaToken: captchaToken // Include CAPTCHA token if available
+          captchaToken: captchaToken, // Include CAPTCHA token if available
         }),
       });
 
       const data = await response.json();
-      console.log('Login response:', { status: response.status, data });
+      console.log("Login response:", { status: response.status, data });
 
       if (!response.ok) {
         // Handle rate limit exceeded
         if (response.status === 429) {
-          console.log('Rate limit exceeded:', data);
+          console.log("Rate limit exceeded:", data);
           setIsSubmitting(false);
           setRateLimitInfo({
             seconds: data.retryAfter || 900, // Use retryAfter or default to 15 minutes
             retryAfter: data.retryAfter,
-            timeRemaining: data.timeRemaining
+            timeRemaining: data.timeRemaining,
           });
-          
+
           // If CAPTCHA is required after rate limit
           if (data.captchaRequired) {
             setCaptchaRequired(true);
@@ -257,56 +283,62 @@ export default function Login() {
           }
           return;
         }
-        
+
         // Handle CAPTCHA requirement
         if (response.status === 400 && data.captchaRequired) {
-          console.log('CAPTCHA required');
+          console.log("CAPTCHA required");
           setIsSubmitting(false);
           setCaptchaRequired(true);
-          setError(data.error || 'กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ');
-          
+          setError(data.error || "กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ");
+
           // Initialize CAPTCHA if script is already loaded
           if (recaptchaLoaded.current && window.grecaptcha) {
             setTimeout(renderReCaptcha, 100); // Small delay to ensure DOM is ready
           }
           return;
         }
-        
+
         // Handle email verification requirement
         if (response.status === 403 && data.requiresVerification) {
-          console.log('Email verification required, redirecting...');
+          console.log("Email verification required, redirecting...");
           setIsSubmitting(false);
           router.push(`/verification-required?email=${encodeURIComponent(formData.email)}`);
           return;
         }
-        
-        throw new Error(data.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+
+        throw new Error(data.error || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
       }
 
       login(data.user, rememberMe);
-      
+
       // Save email in localStorage as a backup in case cookies don't work
       if (rememberMe) {
-        localStorage.setItem('rememberedEmail', formData.email);
+        localStorage.setItem("rememberedEmail", formData.email);
       }
       try {
-        const sessionId = data.sessionId || (window.crypto?.randomUUID ? window.crypto.randomUUID() : `${Date.now()}_${data.user.id}`);
-        fetch('/api/auth/log-login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const sessionId =
+          data.sessionId ||
+          (window.crypto?.randomUUID
+            ? window.crypto.randomUUID()
+            : `${Date.now()}_${data.user.id}`);
+        fetch("/api/auth/log-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             user_id: data.user.id,
-            event_type: 'login',
+            event_type: "login",
             session_id: sessionId,
-            user_agent: window.navigator.userAgent
-          })
+            user_agent: window.navigator.userAgent,
+          }),
         });
-      } catch (e) { /* ignore log errors */ }
-      const redirectTarget = searchParams?.get('redirect');
-      if (redirectTarget && redirectTarget.startsWith('/')) {
+      } catch (e) {
+        /* ignore log errors */
+      }
+      const redirectTarget = searchParams?.get("redirect");
+      if (redirectTarget && redirectTarget.startsWith("/")) {
         router.push(redirectTarget);
       } else {
-        router.push('/dashboard');
+        router.push("/dashboard");
       }
     } catch (err) {
       setError(err.message);
@@ -318,46 +350,35 @@ export default function Login() {
   // Simple animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: "easeOut" }
-    }
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
   };
 
   const staggerContainer = {
     visible: {
       transition: {
-        staggerChildren: isMobile ? 0.05 : 0.1
-      }
-    }
+        staggerChildren: isMobile ? 0.05 : 0.1,
+      },
+    },
   };
 
   return (
     <>
       {/* Loading overlay */}
-      {isSubmitting && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="flex flex-col items-center">
-            <svg className="animate-spin h-12 w-12 text-blue-600 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-            </svg>
-            <div className="text-white text-lg font-semibold">กำลังเข้าสู่ระบบ...</div>
-          </div>
-        </div>
-      )}
-      
+      <LoginLoadingOverlay isVisible={isSubmitting} />
       {/* Rate limit error popup */}
       <AnimatePresence>
         {rateLimitInfo && (
-          <RateLimitErrorPopup 
-            seconds={rateLimitInfo.seconds} 
-            onClose={() => setRateLimitInfo(null)} 
+          <RateLimitErrorPopup
+            seconds={rateLimitInfo.seconds}
+            onClose={() => setRateLimitInfo(null)}
           />
         )}
       </AnimatePresence>
-      
+
       <main className="min-h-screen bg-gray-50">
         <Navbar />
 
@@ -370,23 +391,45 @@ export default function Login() {
               <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
             </>
           )}
-          
+
           {/* Login icon - ซ่อนในมือถือ */}
           {!isMobile && (
             <div className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block opacity-15">
-              <svg width="200" height="200" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M10 17L15 12L10 7" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M15 12H3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg
+                width="200"
+                height="200"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M15 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H15"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M10 17L15 12L10 7"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M15 12H3"
+                  stroke="white"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
           )}
 
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
-            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-              เข้าสู่ระบบ
-            </h1>
-            <motion.div 
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">เข้าสู่ระบบ</h1>
+            <motion.div
               className="w-24 h-1 bg-white mx-auto mb-6"
               initial={{ width: 0 }}
               animate={{ width: 96 }}
@@ -401,7 +444,7 @@ export default function Login() {
         <div className="container mx-auto px-4 py-12">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Left Side - Login Form */}
-            <motion.div 
+            <motion.div
               className="w-full lg:w-2/5"
               variants={fadeInUp}
               initial="hidden"
@@ -412,11 +455,11 @@ export default function Login() {
                   <h2 className="text-2xl font-bold">ยินดีต้อนรับ</h2>
                   <p className="text-blue-100 mt-1">จัดการข้อมูลสมาชิกและบริการต่างๆ ของท่าน</p>
                 </div>
-                
+
                 <div className="p-6">
                   <form onSubmit={handleSubmit} className="space-y-6">
                     {error && (
-                      <motion.div 
+                      <motion.div
                         className="p-4 bg-red-50 border border-red-100 rounded-lg text-red-600 text-sm"
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -426,9 +469,7 @@ export default function Login() {
                     )}
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        อีเมล
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">อีเมล</label>
                       <input
                         type="email"
                         name="email"
@@ -461,14 +502,34 @@ export default function Login() {
                         >
                           {showPassword ? (
                             <span className="flex items-center justify-center h-5 w-5">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
                                 <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
                                 <line x1="1" y1="1" x2="23" y2="23"></line>
                               </svg>
                             </span>
                           ) : (
                             <span className="flex items-center justify-center h-5 w-5">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                                 <circle cx="12" cy="12" r="3"></circle>
                               </svg>
@@ -492,25 +553,38 @@ export default function Login() {
                         </label>
                       </div>
                       <div className="text-sm">
-                        <Link href="/forgot-password" className="font-medium text-blue-600 hover:text-blue-500">
+                        <Link
+                          href="/forgot-password"
+                          className="font-medium text-blue-600 hover:text-blue-500"
+                        >
                           ลืมรหัสผ่าน?
                         </Link>
                       </div>
                     </div>
-                    
+
                     {/* CAPTCHA Component */}
                     {captchaRequired && (
                       <div className="mb-6">
                         <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
                           <div className="flex">
                             <div className="flex-shrink-0">
-                              <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                              <svg
+                                className="h-5 w-5 text-yellow-400"
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                  clipRule="evenodd"
+                                />
                               </svg>
                             </div>
                             <div className="ml-3">
                               <p className="text-sm text-yellow-700">
-                                เนื่องจากมีการพยายามเข้าสู่ระบบหลายครั้ง กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ
+                                เนื่องจากมีการพยายามเข้าสู่ระบบหลายครั้ง
+                                กรุณายืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ
                               </p>
                             </div>
                           </div>
@@ -527,17 +601,33 @@ export default function Login() {
                       disabled={isSubmitting}
                     >
                       {isSubmitting && (
-                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        <svg
+                          className="animate-spin h-5 w-5 mr-2 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                          ></path>
                         </svg>
                       )}
-                      {isSubmitting ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
+                      {isSubmitting ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ"}
                     </button>
 
                     <div className="text-center mt-4">
                       <p className="text-gray-600">
-                        ยังไม่มีบัญชี?{' '}
+                        ยังไม่มีบัญชี?{" "}
                         <Link
                           href="/register"
                           className="text-blue-700 hover:text-blue-600 font-semibold"
@@ -552,7 +642,7 @@ export default function Login() {
             </motion.div>
 
             {/* Right Side - Features */}
-            <motion.div 
+            <motion.div
               className="w-full lg:w-3/5"
               variants={fadeInUp}
               initial="hidden"
@@ -562,28 +652,36 @@ export default function Login() {
               <div className="bg-white rounded-xl shadow-md p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">
                   บริการสำหรับสมาชิก
-                  <motion.div 
+                  <motion.div
                     className="w-16 h-1 bg-blue-600 mt-3"
                     initial={{ width: 0 }}
                     animate={{ width: 64 }}
                     transition={{ delay: 0.5, duration: 0.8 }}
                   />
                 </h2>
-                
-                <motion.div 
+
+                <motion.div
                   className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
                   variants={staggerContainer}
                   initial="hidden"
                   animate="visible"
                 >
                   {/* Feature 1 */}
-                  <motion.div 
-                    className="bg-blue-50 p-5 rounded-lg"
-                    variants={fadeInUp}
-                  >
+                  <motion.div className="bg-blue-50 p-5 rounded-lg" variants={fadeInUp}>
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">อัพเดตสมาชิก</h3>
@@ -591,13 +689,21 @@ export default function Login() {
                   </motion.div>
 
                   {/* Feature 2 */}
-                  <motion.div 
-                    className="bg-blue-50 p-5 rounded-lg"
-                    variants={fadeInUp}
-                  >
+                  <motion.div className="bg-blue-50 p-5 rounded-lg" variants={fadeInUp}>
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">จัดการเอกสาร</h3>
@@ -605,27 +711,45 @@ export default function Login() {
                   </motion.div>
 
                   {/* Feature 3 */}
-                  <motion.div 
-                    className="bg-blue-50 p-5 rounded-lg"
-                    variants={fadeInUp}
-                  >
+                  <motion.div className="bg-blue-50 p-5 rounded-lg" variants={fadeInUp}>
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">สมัครสมาชิก</h3>
-                    <p className="text-gray-600">สมัครสมาชิกและเข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรม</p>
+                    <p className="text-gray-600">
+                      สมัครสมาชิกและเข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรม
+                    </p>
                   </motion.div>
 
                   {/* Feature 4 */}
-                  <motion.div 
-                    className="bg-blue-50 p-5 rounded-lg"
-                    variants={fadeInUp}
-                  >
+                  <motion.div className="bg-blue-50 p-5 rounded-lg" variants={fadeInUp}>
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">กิจกรรมล่าสุด</h3>
@@ -633,13 +757,21 @@ export default function Login() {
                   </motion.div>
 
                   {/* Feature 5 */}
-                  <motion.div 
-                    className="bg-blue-50 p-5 rounded-lg"
-                    variants={fadeInUp}
-                  >
+                  <motion.div className="bg-blue-50 p-5 rounded-lg" variants={fadeInUp}>
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">ข้อมูลสมาชิก</h3>
@@ -647,13 +779,21 @@ export default function Login() {
                   </motion.div>
 
                   {/* Feature 6 */}
-                  <motion.div 
-                    className="bg-blue-50 p-5 rounded-lg"
-                    variants={fadeInUp}
-                  >
+                  <motion.div className="bg-blue-50 p-5 rounded-lg" variants={fadeInUp}>
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6 text-blue-700"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                        />
                       </svg>
                     </div>
                     <h3 className="text-lg font-semibold text-gray-800 mb-2">ติดต่อเรา</h3>

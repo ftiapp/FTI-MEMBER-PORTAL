@@ -1,5 +1,5 @@
 // components/AMStepIndicator.js
-'use client';
+"use client";
 
 export default function AMStepIndicator({ steps, currentStep }) {
   return (
@@ -10,26 +10,28 @@ export default function AMStepIndicator({ steps, currentStep }) {
             {steps.map((step) => {
               const isActive = step.id === currentStep;
               const isCompleted = step.id < currentStep;
-              
+
               return (
                 <div
                   key={step.id}
                   className={`w-1/5 py-4 px-1 text-center border-b-2 font-medium text-sm ${
                     isActive
-                      ? 'border-blue-500 text-blue-600'
+                      ? "border-blue-500 text-blue-600"
                       : isCompleted
-                      ? 'border-green-500 text-green-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        ? "border-green-500 text-green-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
                   <div className="flex flex-col items-center">
-                    <div className={`flex items-center justify-center w-8 h-8 rounded-full mb-1 ${
-                      isActive
-                        ? 'bg-blue-100 text-blue-600'
-                        : isCompleted
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
+                    <div
+                      className={`flex items-center justify-center w-8 h-8 rounded-full mb-1 ${
+                        isActive
+                          ? "bg-blue-100 text-blue-600"
+                          : isCompleted
+                            ? "bg-green-100 text-green-600"
+                            : "bg-gray-100 text-gray-500"
+                      }`}
+                    >
                       {isCompleted ? (
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path
@@ -55,7 +57,7 @@ export default function AMStepIndicator({ steps, currentStep }) {
       <div className="sm:hidden">
         <div className="flex items-center justify-between">
           <p className="text-sm text-gray-700">
-            ขั้นตอนที่ <span className="font-medium">{currentStep}</span> จาก{' '}
+            ขั้นตอนที่ <span className="font-medium">{currentStep}</span> จาก{" "}
             <span className="font-medium">{steps.length}</span>
           </p>
           <p className="text-sm font-medium text-blue-600">{steps[currentStep - 1].name}</p>

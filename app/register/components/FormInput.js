@@ -1,20 +1,23 @@
-import { forwardRef } from 'react';
+import { forwardRef } from "react";
 
-const FormInput = forwardRef(function FormInput({ 
-  label, 
-  name, 
-  type = "text", 
-  value, 
-  onChange, 
-  placeholder, 
-  autoComplete,
-  inputMode,
-  pattern,
-  required = false,
-  note,
-  className = "",
-  ...props 
-}, ref) {
+const FormInput = forwardRef(function FormInput(
+  {
+    label,
+    name,
+    type = "text",
+    value,
+    onChange,
+    placeholder,
+    autoComplete,
+    inputMode,
+    pattern,
+    required = false,
+    note,
+    className = "",
+    ...props
+  },
+  ref,
+) {
   return (
     <div className={className}>
       <label className="block text-sm font-medium text-gray-700 mb-2">

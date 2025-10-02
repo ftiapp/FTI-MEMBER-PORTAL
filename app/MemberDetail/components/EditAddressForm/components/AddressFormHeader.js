@@ -1,26 +1,26 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaSave, FaTimes } from "react-icons/fa";
 
 /**
  * Header component for the EditAddressForm
  */
-export default function AddressFormHeader({ 
+export default function AddressFormHeader({
   addrCode,
-  activeLanguage, 
+  activeLanguage,
   handleLanguageChange,
   onCancel,
   isSubmitting,
-  onSubmit
+  onSubmit,
 }) {
   return (
     <div className="mb-6 pb-3 border-b">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold text-blue-700">
-          แก้ไขที่อยู่ {addrCode === '001' ? 'สำหรับติดต่อ (ทะเบียน)' : 'สำหรับจัดส่งเอกสาร'}
+          แก้ไขที่อยู่ {addrCode === "001" ? "สำหรับติดต่อ (ทะเบียน)" : "สำหรับจัดส่งเอกสาร"}
         </h3>
-        
+
         <div className="flex space-x-2">
           <motion.button
             type="button"
@@ -33,7 +33,7 @@ export default function AddressFormHeader({
             <FaTimes className="mr-2" />
             ยกเลิก
           </motion.button>
-          
+
           {/*<motion.button
             type="submit"
             onClick={onSubmit}
@@ -47,20 +47,20 @@ export default function AddressFormHeader({
           </motion.button> */}
         </div>
       </div>
-      
+
       {/* Language tabs */}
       <div className="flex border-b mb-4">
         <button
           type="button"
-          className={`px-4 py-2 font-medium text-sm ${activeLanguage === 'th' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleLanguageChange('th')}
+          className={`px-4 py-2 font-medium text-sm ${activeLanguage === "th" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          onClick={() => handleLanguageChange("th")}
         >
           ภาษาไทย
         </button>
         <button
           type="button"
-          className={`px-4 py-2 font-medium text-sm ${activeLanguage === 'en' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => handleLanguageChange('en')}
+          className={`px-4 py-2 font-medium text-sm ${activeLanguage === "en" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
+          onClick={() => handleLanguageChange("en")}
         >
           English
         </button>

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import PropTypes from 'prop-types';
+import { useState, useEffect, useRef, useCallback } from "react";
+import PropTypes from "prop-types";
 
 /**
  * คอมโพเนนต์ dropdown สำหรับค้นหาที่อยู่ (ตำบล) และ auto-fill ข้อมูลที่เกี่ยวข้อง
@@ -17,9 +17,9 @@ export default function SearchableAddressDropdown({
   value,
   onChange,
   onAddressSelect,
-  placeholder = 'ค้นหาตำบล/แขวง',
+  placeholder = "ค้นหาตำบล/แขวง",
   isLoading = false,
-  error
+  error,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -35,9 +35,9 @@ export default function SearchableAddressDropdown({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -47,7 +47,7 @@ export default function SearchableAddressDropdown({
       setSearchResults([]);
       return;
     }
-    
+
     setIsSearching(true);
     try {
       const response = await fetch(`/api/address?subDistrict=${encodeURIComponent(searchValue)}`);
@@ -56,11 +56,11 @@ export default function SearchableAddressDropdown({
         setSearchResults(data || []);
         setIsOpen(data && data.length > 0);
       } else {
-        console.error('Error fetching address data');
+        console.error("Error fetching address data");
         setSearchResults([]);
       }
     } catch (error) {
-      console.error('Error fetching address data:', error);
+      console.error("Error fetching address data:", error);
       setSearchResults([]);
     } finally {
       setIsSearching(false);
@@ -93,21 +93,37 @@ export default function SearchableAddressDropdown({
   // Lazy load results only when dropdown is open
   const renderResults = () => {
     if (!isOpen) return null;
-    
+
     if (isSearching) {
       return (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center">
           <div className="flex justify-center items-center space-x-2">
-            <svg className="animate-spin h-4 w-4 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              className="animate-spin h-4 w-4 text-blue-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
             <span>กำลังค้นหา...</span>
           </div>
         </div>
       );
     }
-    
+
     if (value && value.length >= 2 && searchResults.length === 0) {
       return (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg p-4 text-center text-gray-500">
@@ -115,7 +131,7 @@ export default function SearchableAddressDropdown({
         </div>
       );
     }
-    
+
     if (searchResults.length > 0) {
       return (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
@@ -134,7 +150,7 @@ export default function SearchableAddressDropdown({
         </div>
       );
     }
-    
+
     return null;
   };
 
@@ -143,27 +159,47 @@ export default function SearchableAddressDropdown({
       <div className="relative">
         <input
           type="text"
-          value={value || ''}
+          value={value || ""}
           onChange={handleInputChange}
           onFocus={() => value && value.length >= 2 && setIsOpen(true)}
           placeholder={placeholder}
           className={`w-full px-4 py-2 border ${
-            error ? 'border-red-300' : 'border-gray-300'
+            error ? "border-red-300" : "border-gray-300"
           } rounded-lg focus:ring-blue-500 focus:border-blue-500`}
           disabled={isLoading}
         />
         {isSearching && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <svg className="animate-spin h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              className="animate-spin h-4 w-4 text-gray-500"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
           </div>
         )}
         {error && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-red-500">
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
             </svg>
           </div>
         )}
@@ -172,9 +208,7 @@ export default function SearchableAddressDropdown({
       {/* Lazy loaded dropdown results */}
       {renderResults()}
 
-      {error && (
-        <p className="mt-1 text-sm text-red-600">{error}</p>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   );
 }
@@ -185,5 +219,5 @@ SearchableAddressDropdown.propTypes = {
   onAddressSelect: PropTypes.func.isRequired,
   placeholder: PropTypes.string,
   isLoading: PropTypes.bool,
-  error: PropTypes.string
+  error: PropTypes.string,
 };

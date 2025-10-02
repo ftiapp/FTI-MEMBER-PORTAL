@@ -1,64 +1,70 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 /**
  * Component for displaying and editing business information
  */
-export default function BusinessInfoSection({ businessInfo, businessCategories, products, onUpdate, readOnly }) {
+export default function BusinessInfoSection({
+  businessInfo,
+  businessCategories,
+  products,
+  onUpdate,
+  readOnly,
+}) {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({
     businessInfo: businessInfo || {},
     businessCategories: businessCategories || [],
-    products: products || []
+    products: products || [],
   });
-  
+
   // Handle input change for business info
   const handleBusinessInfoChange = (field, value) => {
     setFormData({
       ...formData,
       businessInfo: {
         ...formData.businessInfo,
-        [field]: value
-      }
+        [field]: value,
+      },
     });
   };
-  
+
   // Handle input change for products
   const handleProductChange = (index, field, value) => {
     const updatedProducts = [...formData.products];
     updatedProducts[index] = {
       ...updatedProducts[index],
-      [field]: value
+      [field]: value,
     };
-    
+
     setFormData({
       ...formData,
-      products: updatedProducts
+      products: updatedProducts,
     });
   };
-  
+
   // Handle save changes
   const handleSave = () => {
     onUpdate(formData);
     setEditMode(false);
   };
-  
+
   // Handle cancel edit
   const handleCancel = () => {
     setFormData({
       businessInfo: businessInfo || {},
       businessCategories: businessCategories || [],
-      products: products || []
+      products: products || [],
     });
     setEditMode(false);
   };
-  
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6 print:shadow-none">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">ข้อมูลธุรกิจและผลิตภัณฑ์</h2>
-        
+
         {!readOnly && (
           <div className="print:hidden">
             {editMode ? (
@@ -87,11 +93,11 @@ export default function BusinessInfoSection({ businessInfo, businessCategories, 
           </div>
         )}
       </div>
-      
+
       {/* Business Categories */}
       <div className="mb-6">
         <h3 className="font-medium mb-2">ประเภทกิจการ</h3>
-        
+
         {businessCategories && businessCategories.length > 0 ? (
           <div className="bg-gray-50 p-4 rounded-md">
             <ul className="list-disc list-inside">
@@ -108,15 +114,15 @@ export default function BusinessInfoSection({ businessInfo, businessCategories, 
           </div>
         )}
       </div>
-      
+
       {/* Other Business Category */}
       <div className="mb-6">
         <h3 className="font-medium mb-2">ประเภทกิจการอื่นๆ</h3>
-        
+
         {editMode ? (
           <textarea
-            value={formData.businessInfo.business_category_other || ''}
-            onChange={(e) => handleBusinessInfoChange('business_category_other', e.target.value)}
+            value={formData.businessInfo.business_category_other || ""}
+            onChange={(e) => handleBusinessInfoChange("business_category_other", e.target.value)}
             className="w-full p-2 border border-gray-300 rounded-md"
             rows="3"
           />
@@ -130,18 +136,18 @@ export default function BusinessInfoSection({ businessInfo, businessCategories, 
           </div>
         )}
       </div>
-      
+
       {/* Products */}
       <div>
         <h3 className="font-medium mb-2">ผลิตภัณฑ์/บริการ</h3>
-        
+
         {products && products.length > 0 ? (
           <div className="space-y-4">
             {editMode ? (
               products.map((product, index) => (
                 <div key={index} className="border border-gray-200 rounded-md p-4">
                   <h4 className="font-medium mb-2">ผลิตภัณฑ์/บริการ {index + 1}</h4>
-                  
+
                   <div className="grid grid-cols-1 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -149,20 +155,20 @@ export default function BusinessInfoSection({ businessInfo, businessCategories, 
                       </label>
                       <input
                         type="text"
-                        value={product.thai || ''}
-                        onChange={(e) => handleProductChange(index, 'thai', e.target.value)}
+                        value={product.thai || ""}
+                        onChange={(e) => handleProductChange(index, "thai", e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         ชื่อผลิตภัณฑ์/บริการ (อังกฤษ)
                       </label>
                       <input
                         type="text"
-                        value={product.english || ''}
-                        onChange={(e) => handleProductChange(index, 'english', e.target.value)}
+                        value={product.english || ""}
+                        onChange={(e) => handleProductChange(index, "english", e.target.value)}
                         className="w-full p-2 border border-gray-300 rounded-md"
                       />
                     </div>

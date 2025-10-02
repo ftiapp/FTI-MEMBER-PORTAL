@@ -1,60 +1,60 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { toast } from 'react-hot-toast';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { toast } from "react-hot-toast";
+import { motion } from "framer-motion";
 
 export default function ResendVerification() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email) {
-      toast.error('กรุณากรอกอีเมล');
+      toast.error("กรุณากรอกอีเมล");
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
+
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       });
-      
+
       const result = await response.json();
-      
+
       if (response.ok) {
         toast.success(result.message);
         // Clear the form
-        setEmail('');
+        setEmail("");
       } else {
-        toast.error(result.message || 'เกิดข้อผิดพลาดในการส่งอีเมลยืนยัน');
+        toast.error(result.message || "เกิดข้อผิดพลาดในการส่งอีเมลยืนยัน");
       }
     } catch (error) {
-      console.error('Error resending verification email:', error);
-      toast.error('เกิดข้อผิดพลาดในการส่งอีเมลยืนยัน');
+      console.error("Error resending verification email:", error);
+      toast.error("เกิดข้อผิดพลาดในการส่งอีเมลยืนยัน");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-white flex flex-col justify-center py-12 sm:px-6 lg:px-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <motion.div 
+      <motion.div
         className="sm:mx-auto sm:w-full sm:max-w-md"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -68,21 +68,23 @@ export default function ResendVerification() {
         </p>
       </motion.div>
 
-      <motion.div 
+      <motion.div
         className="mt-8 sm:mx-auto sm:w-full sm:max-w-md"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3, duration: 0.5 }}
       >
-        <motion.div 
+        <motion.div
           className="bg-white py-8 px-4 shadow-md sm:rounded-lg sm:px-10 border border-[#1e3a8a] border-opacity-20"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 0.4, duration: 0.5 }}
-          whileHover={{ boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }}
+          whileHover={{
+            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+          }}
         >
-          <motion.form 
-            className="space-y-6" 
+          <motion.form
+            className="space-y-6"
             onSubmit={handleSubmit}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -111,15 +113,15 @@ export default function ResendVerification() {
                 type="submit"
                 disabled={isLoading}
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#1e3a8a] hover:bg-[#1e3a8a] hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1e3a8a] ${
-                  isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                  isLoading ? "opacity-70 cursor-not-allowed" : ""
                 }`}
               >
-                {isLoading ? 'กำลังส่ง...' : 'ส่งอีเมลยืนยันใหม่'}
+                {isLoading ? "กำลังส่ง..." : "ส่งอีเมลยืนยันใหม่"}
               </button>
             </div>
           </motion.form>
 
-          <motion.div 
+          <motion.div
             className="mt-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

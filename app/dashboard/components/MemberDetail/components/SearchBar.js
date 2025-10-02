@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaSearch } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaSearch } from "react-icons/fa";
 
 /**
  * SearchBar component for filtering companies by name
@@ -11,7 +11,7 @@ import { FaSearch } from 'react-icons/fa';
  * @returns {JSX.Element} The search bar UI
  */
 const SearchBar = ({ searchTerm, onSearchChange }) => (
-  <motion.div 
+  <motion.div
     className="mb-4"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaFilter, FaCalendarAlt } from 'react-icons/fa';
+import { motion, AnimatePresence } from "framer-motion";
+import { FaFilter, FaCalendarAlt } from "react-icons/fa";
 
 /**
  * FilterSection component for filtering companies by date range
@@ -15,16 +15,16 @@ import { FaFilter, FaCalendarAlt } from 'react-icons/fa';
  * @param {Function} props.resetFilters Callback to reset all filters
  * @returns {JSX.Element} The filter section UI
  */
-const FilterSection = ({ 
-  showFilters, 
-  toggleFilters, 
-  startDate, 
-  onStartDateChange, 
-  endDate, 
-  onEndDateChange, 
-  resetFilters 
+const FilterSection = ({
+  showFilters,
+  toggleFilters,
+  startDate,
+  onStartDateChange,
+  endDate,
+  onEndDateChange,
+  resetFilters,
 }) => (
-  <motion.div 
+  <motion.div
     className="mb-4"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
@@ -32,7 +32,7 @@ const FilterSection = ({
   >
     <div className="flex justify-between items-center mb-4">
       <div>
-        <motion.h2 
+        <motion.h2
           className="text-xl font-semibold text-blue-900"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -46,7 +46,8 @@ const FilterSection = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          แสดงรายการสาชิกที่ได้รับการยืนยันตัวตนแล้วจากสภาอุตสาหกรรมแห่งประเทศไทย คุณสามารถค้นหาและแก้ข้อมูลได้ตามต้องการ
+          แสดงรายการสาชิกที่ได้รับการยืนยันตัวตนแล้วจากสภาอุตสาหกรรมแห่งประเทศไทย
+          คุณสามารถค้นหาและแก้ข้อมูลได้ตามต้องการ
         </motion.p>
       </div>
       <motion.button
@@ -59,20 +60,20 @@ const FilterSection = ({
         transition={{ duration: 0.5 }}
       >
         <FaFilter className="mr-1" size={14} />
-        <span>{showFilters ? 'ซ่อนตัวกรอง' : 'ตัวกรอง'}</span>
+        <span>{showFilters ? "ซ่อนตัวกรอง" : "ตัวกรอง"}</span>
       </motion.button>
     </div>
 
     <AnimatePresence>
       {showFilters && (
-        <motion.div 
+        <motion.div
           className="mb-4 p-4 bg-gray-50 rounded-lg"
           initial={{ opacity: 0, height: 0, overflow: "hidden" }}
           animate={{ opacity: 1, height: "auto", overflow: "visible" }}
           exit={{ opacity: 0, height: 0, overflow: "hidden" }}
           transition={{ duration: 0.3 }}
         >
-          <motion.div 
+          <motion.div
             className="grid grid-cols-1 md:grid-cols-2 gap-4"
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -101,7 +102,7 @@ const FilterSection = ({
                 />
               </div>
             </motion.div>
-            
+
             {/* End Date Filter */}
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -126,9 +127,9 @@ const FilterSection = ({
               </div>
             </motion.div>
           </motion.div>
-          
+
           {/* Reset Filters Button */}
-          <motion.div 
+          <motion.div
             className="mt-4 flex justify-end"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}

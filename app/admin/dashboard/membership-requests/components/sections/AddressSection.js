@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 const AddressSection = ({ application, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState(application?.addresses || []);
-  
+
   // Check if we have multiple addresses or just one
   const hasMultipleAddresses = application?.addresses && application.addresses.length > 0;
   const hasSingleAddress = application?.address && !hasMultipleAddresses;
-  
+
   if (!hasMultipleAddresses && !hasSingleAddress) return null;
 
   const handleEdit = () => {
@@ -17,10 +17,10 @@ const AddressSection = ({ application, onUpdate }) => {
 
   const handleSave = async () => {
     try {
-      await onUpdate('addresses', editData);
+      await onUpdate("addresses", editData);
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating addresses:', error);
+      console.error("Error updating addresses:", error);
     }
   };
 
@@ -36,57 +36,57 @@ const AddressSection = ({ application, onUpdate }) => {
   };
 
   const getAddressTitle = (addressType) => {
-    switch(addressType) {
-      case '1':
-        return 'ที่อยู่สำนักงาน';
-      case '2':
-        return 'ที่อยู่จัดส่งเอกสาร';
-      case '3':
-        return 'ที่อยู่ใบกำกับภาษี';
+    switch (addressType) {
+      case "1":
+        return "ที่อยู่สำนักงาน";
+      case "2":
+        return "ที่อยู่จัดส่งเอกสาร";
+      case "3":
+        return "ที่อยู่ใบกำกับภาษี";
       default:
         return `ที่อยู่ประเภท ${addressType}`;
     }
   };
 
   const getAddressStyles = (addressType) => {
-    switch(addressType) {
-      case '1':
+    switch (addressType) {
+      case "1":
         return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-900'
+          bg: "bg-blue-50",
+          border: "border-blue-200",
+          text: "text-blue-900",
         };
-      case '2':
+      case "2":
         return {
-          bg: 'bg-green-50',
-          border: 'border-green-200',
-          text: 'text-green-900'
+          bg: "bg-green-50",
+          border: "border-green-200",
+          text: "text-green-900",
         };
-      case '3':
+      case "3":
         return {
-          bg: 'bg-purple-50',
-          border: 'border-purple-200',
-          text: 'text-purple-900'
+          bg: "bg-purple-50",
+          border: "border-purple-200",
+          text: "text-purple-900",
         };
       default:
         return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          text: 'text-blue-900'
+          bg: "bg-blue-50",
+          border: "border-blue-200",
+          text: "text-blue-900",
         };
     }
   };
 
   const renderAddressCard = (addr, title, index = 0) => {
-    const addressType = addr.addressType || '1';
+    const addressType = addr.addressType || "1";
     const styles = getAddressStyles(addressType);
-    
+
     return (
       <div key={index} className={`${styles.bg} border ${styles.border} rounded-lg p-6 mb-6`}>
         <h4 className={`text-xl font-semibold ${styles.text} mb-4 border-b ${styles.border} pb-2`}>
           {title}
         </h4>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {(addr.building || isEditing) && (
             <div>
@@ -94,8 +94,8 @@ const AddressSection = ({ application, onUpdate }) => {
               {isEditing ? (
                 <input
                   type="text"
-                  value={addr.building || ''}
-                  onChange={(e) => updateAddress(index, 'building', e.target.value)}
+                  value={addr.building || ""}
+                  onChange={(e) => updateAddress(index, "building", e.target.value)}
                   className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="ชื่ออาคาร"
                 />
@@ -109,13 +109,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.addressNumber || ''}
-                onChange={(e) => updateAddress(index, 'addressNumber', e.target.value)}
+                value={addr.addressNumber || ""}
+                onChange={(e) => updateAddress(index, "addressNumber", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="บ้านเลขที่"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.addressNumber || '-'}</p>
+              <p className="text-base text-gray-900">{addr.addressNumber || "-"}</p>
             )}
           </div>
           <div>
@@ -123,13 +123,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.moo || ''}
-                onChange={(e) => updateAddress(index, 'moo', e.target.value)}
+                value={addr.moo || ""}
+                onChange={(e) => updateAddress(index, "moo", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="หมู่"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.moo || '-'}</p>
+              <p className="text-base text-gray-900">{addr.moo || "-"}</p>
             )}
           </div>
           <div>
@@ -137,13 +137,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.soi || ''}
-                onChange={(e) => updateAddress(index, 'soi', e.target.value)}
+                value={addr.soi || ""}
+                onChange={(e) => updateAddress(index, "soi", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ซอย"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.soi || '-'}</p>
+              <p className="text-base text-gray-900">{addr.soi || "-"}</p>
             )}
           </div>
           <div>
@@ -151,13 +151,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.street || ''}
-                onChange={(e) => updateAddress(index, 'street', e.target.value)}
+                value={addr.street || ""}
+                onChange={(e) => updateAddress(index, "street", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ถนน"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.street || '-'}</p>
+              <p className="text-base text-gray-900">{addr.street || "-"}</p>
             )}
           </div>
           <div>
@@ -165,13 +165,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.subDistrict || ''}
-                onChange={(e) => updateAddress(index, 'subDistrict', e.target.value)}
+                value={addr.subDistrict || ""}
+                onChange={(e) => updateAddress(index, "subDistrict", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ตำบล/แขวง"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.subDistrict || '-'}</p>
+              <p className="text-base text-gray-900">{addr.subDistrict || "-"}</p>
             )}
           </div>
           <div>
@@ -179,13 +179,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.district || ''}
-                onChange={(e) => updateAddress(index, 'district', e.target.value)}
+                value={addr.district || ""}
+                onChange={(e) => updateAddress(index, "district", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="อำเภอ/เขต"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.district || '-'}</p>
+              <p className="text-base text-gray-900">{addr.district || "-"}</p>
             )}
           </div>
           <div>
@@ -193,13 +193,13 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.province || ''}
-                onChange={(e) => updateAddress(index, 'province', e.target.value)}
+                value={addr.province || ""}
+                onChange={(e) => updateAddress(index, "province", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="จังหวัด"
               />
             ) : (
-              <p className="text-base text-gray-900">{addr.province || '-'}</p>
+              <p className="text-base text-gray-900">{addr.province || "-"}</p>
             )}
           </div>
           <div>
@@ -207,16 +207,16 @@ const AddressSection = ({ application, onUpdate }) => {
             {isEditing ? (
               <input
                 type="text"
-                value={addr.postalCode || ''}
-                onChange={(e) => updateAddress(index, 'postalCode', e.target.value)}
+                value={addr.postalCode || ""}
+                onChange={(e) => updateAddress(index, "postalCode", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="รหัสไปรษณีย์"
               />
             ) : (
-              <p className="text-base text-gray-900 font-mono">{addr.postalCode || '-'}</p>
+              <p className="text-base text-gray-900 font-mono">{addr.postalCode || "-"}</p>
             )}
           </div>
-          
+
           {/* Additional contact info for addresses */}
           {(addr.phone || addr.email || addr.website) && (
             <>
@@ -251,9 +251,7 @@ const AddressSection = ({ application, onUpdate }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
-        <h3 className="text-2xl font-bold text-blue-900">
-          ข้อมูลที่อยู่
-        </h3>
+        <h3 className="text-2xl font-bold text-blue-900">ข้อมูลที่อยู่</h3>
         {!isEditing ? (
           <button
             onClick={handleEdit}
@@ -261,8 +259,12 @@ const AddressSection = ({ application, onUpdate }) => {
             title="แก้ไขข้อมูลที่อยู่"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" 
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
             แก้ไข
           </button>
@@ -273,7 +275,12 @@ const AddressSection = ({ application, onUpdate }) => {
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               บันทึก
             </button>
@@ -282,30 +289,33 @@ const AddressSection = ({ application, onUpdate }) => {
               className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white hover:bg-gray-600 rounded-lg transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
               ยกเลิก
             </button>
           </div>
         )}
       </div>
-      
-      {hasMultipleAddresses ? (
-        // Display all addresses with their types in the correct order
-        (isEditing ? editData : application.addresses)
-          .sort((a, b) => {
-            // Sort by address type: 2 first, then 1, then 3
-            const typeOrder = { '2': 1, '1': 2, '3': 3 };
-            return (typeOrder[a.addressType] || 99) - (typeOrder[b.addressType] || 99);
-          })
-          .map((addr, index) => {
-            const title = getAddressTitle(addr.addressType);
-            return renderAddressCard(addr, title, index);
-          })
-      ) : (
-        // Display single address (fallback)
-        renderAddressCard(isEditing ? editData[0] : application.address, 'ที่อยู่จัดส่งเอกสาร')
-      )}
+
+      {hasMultipleAddresses
+        ? // Display all addresses with their types in the correct order
+          (isEditing ? editData : application.addresses)
+            .sort((a, b) => {
+              // Sort by address type: 2 first, then 1, then 3
+              const typeOrder = { 2: 1, 1: 2, 3: 3 };
+              return (typeOrder[a.addressType] || 99) - (typeOrder[b.addressType] || 99);
+            })
+            .map((addr, index) => {
+              const title = getAddressTitle(addr.addressType);
+              return renderAddressCard(addr, title, index);
+            })
+        : // Display single address (fallback)
+          renderAddressCard(isEditing ? editData[0] : application.address, "ที่อยู่จัดส่งเอกสาร")}
     </div>
   );
 };

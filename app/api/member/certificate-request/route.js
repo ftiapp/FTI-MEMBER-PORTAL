@@ -1,15 +1,25 @@
-import { NextResponse } from 'next/server';
-import { query, beginTransaction, executeQuery, commitTransaction, rollbackTransaction } from '@/app/lib/db';
-import { getUserFromSession } from '@/app/lib/userAuth';
+import { NextResponse } from "next/server";
+import {
+  query,
+  beginTransaction,
+  executeQuery,
+  commitTransaction,
+  rollbackTransaction,
+} from "@/app/lib/db";
+import { getUserFromSession } from "@/app/lib/userAuth";
 
 export async function POST(request) {
   try {
     // Optional auth (keep loose to allow download even if session lookup fails)
-    try { await getUserFromSession(); } catch (e) { /* noop */ }
+    try {
+      await getUserFromSession();
+    } catch (e) {
+      /* noop */
+    }
 
     const { memberCode } = await request.json();
     if (!memberCode) {
-      return NextResponse.json({ error: 'Missing memberCode' }, { status: 400 });
+      return NextResponse.json({ error: "Missing memberCode" }, { status: 400 });
     }
 
     // Ensure table exists (idempotent safeguard in case migration not yet applied)
@@ -30,8 +40,8 @@ export async function POST(request) {
     let orderNo = 1;
     let requestCount = 1;
     const existing = await query(
-      'SELECT id, order_no, request_count FROM MEMBER_PORTAL_Certificate_Request WHERE member_code = ? LIMIT 1',
-      [memberCode]
+      "SELECT id, order_no, request_count FROM MEMBER_PORTAL_Certificate_Request WHERE member_code = ? LIMIT 1",
+      [memberCode],
     );
 
     if (existing.length > 0) {
@@ -39,20 +49,24 @@ export async function POST(request) {
       orderNo = existing[0].order_no;
       requestCount = existing[0].request_count + 1;
       await query(
-        'UPDATE MEMBER_PORTAL_Certificate_Request SET request_count = ?, last_requested_at = NOW() WHERE id = ? LIMIT 1',
-        [requestCount, existing[0].id]
+        "UPDATE MEMBER_PORTAL_Certificate_Request SET request_count = ?, last_requested_at = NOW() WHERE id = ? LIMIT 1",
+        [requestCount, existing[0].id],
       );
     } else {
       // First time: allocate next global order_no using transaction
       const conn = await beginTransaction();
       try {
-        const rows = await executeQuery(conn, 'SELECT COALESCE(MAX(order_no), 0) AS max_order FROM MEMBER_PORTAL_Certificate_Request FOR UPDATE', []);
+        const rows = await executeQuery(
+          conn,
+          "SELECT COALESCE(MAX(order_no), 0) AS max_order FROM MEMBER_PORTAL_Certificate_Request FOR UPDATE",
+          [],
+        );
         orderNo = (rows?.[0]?.max_order || 0) + 1;
         requestCount = 1;
         await executeQuery(
           conn,
-          'INSERT INTO MEMBER_PORTAL_Certificate_Request (member_code, order_no, request_count) VALUES (?, ?, 1)',
-          [memberCode, orderNo]
+          "INSERT INTO MEMBER_PORTAL_Certificate_Request (member_code, order_no, request_count) VALUES (?, ?, 1)",
+          [memberCode, orderNo],
         );
         await commitTransaction(conn);
       } catch (e) {
@@ -63,8 +77,8 @@ export async function POST(request) {
 
     // Total requests across all member codes (after this update)
     const totals = await query(
-      'SELECT COALESCE(SUM(request_count), 0) AS total_count FROM MEMBER_PORTAL_Certificate_Request',
-      []
+      "SELECT COALESCE(SUM(request_count), 0) AS total_count FROM MEMBER_PORTAL_Certificate_Request",
+      [],
     );
     const totalCount = totals?.[0]?.total_count || 0;
 
@@ -81,7 +95,7 @@ export async function POST(request) {
       thaiYear,
     });
   } catch (error) {
-    console.error('Error handling certificate request:', error);
+    console.error("Error handling certificate request:", error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

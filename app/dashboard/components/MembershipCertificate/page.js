@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { motion } from 'framer-motion';
-import CertificateTable from './CertificateTable';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { motion } from "framer-motion";
+import CertificateTable from "./CertificateTable";
 
 export default function MembershipCertificate() {
   const { user } = useAuth();
   const [memberData, setMemberData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterType, setFilterType] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
@@ -29,62 +29,67 @@ export default function MembershipCertificate() {
       const response = await fetch(`/api/member/submissions?userId=${user.id}`);
 
       if (!response.ok) {
-        throw new Error('Failed to fetch member data');
+        throw new Error("Failed to fetch member data");
       }
 
       const data = await response.json();
-      console.log('Fetched all submissions:', data);
-      
+      console.log("Fetched all submissions:", data);
+
       // กรองเฉพาะข้อมูลที่ได้รับการอนุมัติ (Admin_Submit = 1)
       let approvedMembers = [];
-      
+
       if (Array.isArray(data)) {
-        approvedMembers = data.filter(item => item.Admin_Submit === 1);
+        approvedMembers = data.filter((item) => item.Admin_Submit === 1);
       } else if (data && data.submissions) {
-        approvedMembers = data.submissions.filter(item => item.Admin_Submit === 1);
+        approvedMembers = data.submissions.filter((item) => item.Admin_Submit === 1);
       }
-      
-      console.log('Approved members:', approvedMembers);
-      
+
+      console.log("Approved members:", approvedMembers);
+
       // กรองข้อมูลซ้ำ - แสดงเพียงรายการเดียวต่อ Member_code (เก็บข้อมูลล่าสุด)
       const memberMap = new Map();
-      approvedMembers.forEach(member => {
+      approvedMembers.forEach((member) => {
         if (member.MEMBER_CODE) {
           // เก็บข้อมูลล่าสุดหรือข้อมูลที่มี ID มากที่สุด
           const existingMember = memberMap.get(member.MEMBER_CODE);
-          if (!existingMember || (member.id && existingMember.id && member.id > existingMember.id)) {
+          if (
+            !existingMember ||
+            (member.id && existingMember.id && member.id > existingMember.id)
+          ) {
             memberMap.set(member.MEMBER_CODE, member);
           } else if (!existingMember) {
             memberMap.set(member.MEMBER_CODE, member);
           }
         }
       });
-      
+
       const uniqueMembers = Array.from(memberMap.values());
-      console.log('Unique members after deduplication:', uniqueMembers);
+      console.log("Unique members after deduplication:", uniqueMembers);
       setMemberData(uniqueMembers);
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching member data:', err);
-      setError('ไม่สามารถดึงข้อมูลสมาชิกได้ กรุณาลองใหม่ภายหลัง');
+      console.error("Error fetching member data:", err);
+      setError("ไม่สามารถดึงข้อมูลสมาชิกได้ กรุณาลองใหม่ภายหลัง");
       setLoading(false);
     }
   };
 
   // Make sure memberData is an array before filtering
   const memberDataArray = Array.isArray(memberData) ? memberData : [memberData].filter(Boolean);
-  
+
   // Filter and search functionality
-  const filteredMembers = memberDataArray.filter(member => {
+  const filteredMembers = memberDataArray.filter((member) => {
     if (!member) return false;
-    
-    const matchesSearch = searchTerm === '' ||
-      (member.company_name && member.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+
+    const matchesSearch =
+      searchTerm === "" ||
+      (member.company_name &&
+        member.company_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (member.MEMBER_CODE && member.MEMBER_CODE.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesFilter = filterType === '' ||
-      (member.company_type && member.company_type === filterType);
-    
+
+    const matchesFilter =
+      filterType === "" || (member.company_type && member.company_type === filterType);
+
     return matchesSearch && matchesFilter;
   });
 
@@ -95,7 +100,9 @@ export default function MembershipCertificate() {
   const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
 
   // Get unique member types for filter dropdown
-  const memberTypes = [...new Set(memberDataArray.map(member => member && member.company_type).filter(Boolean))];
+  const memberTypes = [
+    ...new Set(memberDataArray.map((member) => member && member.company_type).filter(Boolean)),
+  ];
 
   // Handle page change
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
@@ -125,13 +132,13 @@ export default function MembershipCertificate() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <CertificateTable 
+      <CertificateTable
         currentItems={currentItems}
         memberData={memberData}
         searchTerm={searchTerm}

@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
-import { getConnection } from '@/app/lib/db';
-import { checkAdminSession } from '@/app/lib/auth';
+import { NextResponse } from "next/server";
+import { getConnection } from "@/app/lib/db";
+import { checkAdminSession } from "@/app/lib/auth";
 
 export async function GET() {
   try {
     const admin = await checkAdminSession();
     if (!admin) {
-      return NextResponse.json({ success: false, message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     const conn = await getConnection();
@@ -23,17 +23,17 @@ export async function GET() {
         };
       };
 
-      const oc = await countByStatus('MemberRegist_OC_Main');
-      const ac = await countByStatus('MemberRegist_AC_Main');
-      const am = await countByStatus('MemberRegist_AM_Main');
-      const ic = await countByStatus('MemberRegist_IC_Main', true);
+      const oc = await countByStatus("MemberRegist_OC_Main");
+      const ac = await countByStatus("MemberRegist_AC_Main");
+      const am = await countByStatus("MemberRegist_AM_Main");
+      const ic = await countByStatus("MemberRegist_IC_Main", true);
 
-      const sum = (k) => (oc[k] + ac[k] + am[k] + ic[k]);
+      const sum = (k) => oc[k] + ac[k] + am[k] + ic[k];
 
       const overall = {
-        pending: sum('pending'),
-        approved: sum('approved'),
-        rejected: sum('rejected'),
+        pending: sum("pending"),
+        approved: sum("approved"),
+        rejected: sum("rejected"),
       };
       const total = overall.pending + overall.approved + overall.rejected;
 
@@ -46,14 +46,17 @@ export async function GET() {
             ac: { ...ac, total: ac.pending + ac.approved + ac.rejected },
             am: { ...am, total: am.pending + am.approved + am.rejected },
             ic: { ...ic, total: ic.pending + ic.approved + ic.rejected },
-          }
-        }
+          },
+        },
       });
     } finally {
       conn.release();
     }
   } catch (err) {
-    console.error('Error fetching membership stats:', err);
-    return NextResponse.json({ success: false, message: 'เกิดข้อผิดพลาดในการดึงสถิติ' }, { status: 500 });
+    console.error("Error fetching membership stats:", err);
+    return NextResponse.json(
+      { success: false, message: "เกิดข้อผิดพลาดในการดึงสถิติ" },
+      { status: 500 },
+    );
   }
 }

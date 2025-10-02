@@ -1,23 +1,23 @@
-import { motion } from 'framer-motion';
-import NotificationItem from './NotificationItem';
-import PaginationControls from './PaginationControls';
+import { motion } from "framer-motion";
+import NotificationItem from "./NotificationItem";
+import PaginationControls from "./PaginationControls";
 
 const staggerContainer = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.1
-    }
-  }
+      staggerChildren: 0.1,
+    },
+  },
 };
 
-const NotificationList = ({ 
-  notifications, 
-  currentPage, 
-  totalPages, 
-  handlePageChange, 
-  markAsRead 
+const NotificationList = ({
+  notifications,
+  currentPage,
+  totalPages,
+  handlePageChange,
+  markAsRead,
 }) => {
   return (
     <>
@@ -37,7 +37,7 @@ const NotificationList = ({
       </motion.div>
 
       {/* Pagination Controls */}
-      <PaginationControls 
+      <PaginationControls
         currentPage={currentPage}
         totalPages={totalPages}
         handlePageChange={handlePageChange}

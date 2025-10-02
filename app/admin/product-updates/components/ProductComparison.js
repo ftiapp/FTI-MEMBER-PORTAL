@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { AlertTriangle, PlusCircle, MinusCircle, List } from 'lucide-react';
+import React from "react";
+import { AlertTriangle, PlusCircle, MinusCircle, List } from "lucide-react";
 
 // Utility functions for product comparison
 const compareProducts = (oldProducts, newProducts) => {
   const oldSet = new Set(formatProductsToArray(oldProducts));
   const newSet = new Set(formatProductsToArray(newProducts));
-  
-  const added = formatProductsToArray(newProducts).filter(product => !oldSet.has(product));
-  const removed = formatProductsToArray(oldProducts).filter(product => !newSet.has(product));
-  
+
+  const added = formatProductsToArray(newProducts).filter((product) => !oldSet.has(product));
+  const removed = formatProductsToArray(oldProducts).filter((product) => !newSet.has(product));
+
   return { added, removed };
 };
 
 const formatProductsToArray = (products) => {
   if (!products) return [];
   if (Array.isArray(products)) return products;
-  if (typeof products === 'string') return products.split(',').map(p => p.trim());
+  if (typeof products === "string") return products.split(",").map((p) => p.trim());
   return [];
 };
 
@@ -30,21 +30,21 @@ const formatProductsToArray = (products) => {
  * @param {Array} props.newProductsEN - Array of new English products
  * @returns {JSX.Element}
  */
-export default function ProductComparison({ 
-  oldProductsTH = [], 
+export default function ProductComparison({
+  oldProductsTH = [],
   newProductsTH = [],
   oldProductsEN = [],
-  newProductsEN = []
+  newProductsEN = [],
 }) {
   const comparisonTH = compareProducts(oldProductsTH, newProductsTH);
   const comparisonEN = compareProducts(oldProductsEN, newProductsEN);
-  
+
   return (
     <div className="mt-8">
       <h3 className="font-medium mb-5 text-lg text-gray-800 flex items-center gap-2">
         <List className="text-blue-600 h-5 w-5" /> รายการสินค้าที่มีการเปลี่ยนแปลง (Product Changes)
       </h3>
-      
+
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-5 mb-6 rounded-r-lg shadow-sm">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -57,7 +57,7 @@ export default function ProductComparison({
           </div>
         </div>
       </div>
-      
+
       <div className="space-y-8">
         {/* Thai Products */}
         <div>
@@ -69,21 +69,25 @@ export default function ProductComparison({
               {oldProductsTH && oldProductsTH.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-1">
                   {formatProductsToArray(oldProductsTH).map((product, index) => (
-                    <li key={index} className="text-gray-600">{product}</li>
+                    <li key={index} className="text-gray-600">
+                      {product}
+                    </li>
                   ))}
                 </ul>
               ) : (
                 <p className="text-gray-500 italic">ไม่มีข้อมูลสินค้าเดิม</p>
               )}
             </div>
-            
+
             {/* New Thai Products */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
               <h5 className="font-medium mb-3 text-gray-700">สินค้าใหม่</h5>
               {newProductsTH && newProductsTH.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-1">
                   {formatProductsToArray(newProductsTH).map((product, index) => (
-                    <li key={index} className="text-gray-600">{product}</li>
+                    <li key={index} className="text-gray-600">
+                      {product}
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -95,7 +99,9 @@ export default function ProductComparison({
 
         {/* English Products */}
         <div>
-          <h4 className="font-medium mb-3 text-gray-800 border-b pb-2">Products/Services (English)</h4>
+          <h4 className="font-medium mb-3 text-gray-800 border-b pb-2">
+            Products/Services (English)
+          </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             {/* Old English Products */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
@@ -103,21 +109,25 @@ export default function ProductComparison({
               {oldProductsEN && oldProductsEN.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-1">
                   {formatProductsToArray(oldProductsEN).map((product, index) => (
-                    <li key={index} className="text-gray-600">{product}</li>
+                    <li key={index} className="text-gray-600">
+                      {product}
+                    </li>
                   ))}
                 </ul>
               ) : (
                 <p className="text-gray-500 italic">No previous product data</p>
               )}
             </div>
-            
+
             {/* New English Products */}
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-5">
               <h5 className="font-medium mb-3 text-gray-700">New Products</h5>
               {newProductsEN && newProductsEN.length > 0 ? (
                 <ul className="list-disc pl-5 space-y-1">
                   {formatProductsToArray(newProductsEN).map((product, index) => (
-                    <li key={index} className="text-gray-600">{product}</li>
+                    <li key={index} className="text-gray-600">
+                      {product}
+                    </li>
                   ))}
                 </ul>
               ) : (
@@ -130,7 +140,7 @@ export default function ProductComparison({
         {/* Thai Changes */}
         <div>
           <h4 className="font-medium mb-3 text-gray-700 border-b pb-2">การเปลี่ยนแปลง (ภาษาไทย)</h4>
-          
+
           {/* Added Thai Products */}
           {comparisonTH.added.length > 0 && (
             <div className="mb-4">
@@ -139,12 +149,14 @@ export default function ProductComparison({
               </h5>
               <ul className="list-disc pl-8 space-y-1">
                 {comparisonTH.added.map((product, index) => (
-                  <li key={index} className="text-green-600">{product}</li>
+                  <li key={index} className="text-green-600">
+                    {product}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
-          
+
           {/* Removed Thai Products */}
           {comparisonTH.removed.length > 0 && (
             <div>
@@ -153,12 +165,14 @@ export default function ProductComparison({
               </h5>
               <ul className="list-disc pl-8 space-y-1">
                 {comparisonTH.removed.map((product, index) => (
-                  <li key={index} className="text-red-600">{product}</li>
+                  <li key={index} className="text-red-600">
+                    {product}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
-          
+
           {comparisonTH.added.length === 0 && comparisonTH.removed.length === 0 && (
             <p className="text-gray-500 italic">ไม่มีการเปลี่ยนแปลงรายการสินค้าภาษาไทย</p>
           )}
@@ -167,7 +181,7 @@ export default function ProductComparison({
         {/* English Changes */}
         <div>
           <h4 className="font-medium mb-3 text-gray-700 border-b pb-2">Changes (English)</h4>
-          
+
           {/* Added English Products */}
           {comparisonEN.added.length > 0 && (
             <div className="mb-4">
@@ -176,12 +190,14 @@ export default function ProductComparison({
               </h5>
               <ul className="list-disc pl-8 space-y-1">
                 {comparisonEN.added.map((product, index) => (
-                  <li key={index} className="text-green-600">{product}</li>
+                  <li key={index} className="text-green-600">
+                    {product}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
-          
+
           {/* Removed English Products */}
           {comparisonEN.removed.length > 0 && (
             <div>
@@ -190,12 +206,14 @@ export default function ProductComparison({
               </h5>
               <ul className="list-disc pl-8 space-y-1">
                 {comparisonEN.removed.map((product, index) => (
-                  <li key={index} className="text-red-600">{product}</li>
+                  <li key={index} className="text-red-600">
+                    {product}
+                  </li>
                 ))}
               </ul>
             </div>
           )}
-          
+
           {comparisonEN.added.length === 0 && comparisonEN.removed.length === 0 && (
             <p className="text-gray-500 italic">No changes in English product listings</p>
           )}

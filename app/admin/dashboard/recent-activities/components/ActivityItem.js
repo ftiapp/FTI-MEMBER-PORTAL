@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { formatDate, getActionBadgeColor, formatActionType } from '../utils/activityHelpers';
+import { motion } from "framer-motion";
+import { formatDate, getActionBadgeColor, formatActionType } from "../utils/activityHelpers";
 
 export default function ActivityItem({ activity, index }) {
   return (
-    <motion.li 
+    <motion.li
       className="px-6 py-4 transition duration-150 ease-in-out hover:bg-gray-50"
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
@@ -16,69 +16,70 @@ export default function ActivityItem({ activity, index }) {
         <div className="flex items-center">
           <div className="flex-shrink-0">
             <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold shadow-md">
-              {activity.adminName ? activity.adminName.charAt(0).toUpperCase() : 'A'}
+              {activity.adminName ? activity.adminName.charAt(0).toUpperCase() : "A"}
             </div>
           </div>
           <div className="ml-4">
             <div className="text-sm font-medium text-gray-900">
-              {activity.adminName || 'ผู้ดูแลระบบ'}
+              {activity.adminName || "ผู้ดูแลระบบ"}
             </div>
-            <div className="text-sm text-gray-500">
-              {formatDate(activity.timestamp)}
-            </div>
+            <div className="text-sm text-gray-500">{formatDate(activity.timestamp)}</div>
           </div>
         </div>
         <div className="sm:ml-0 ml-14 mt-2 sm:mt-0">
-          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionBadgeColor(activity.actionType)}`}>
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getActionBadgeColor(activity.actionType)}`}
+          >
             {formatActionType(activity.actionType)}
           </span>
         </div>
       </div>
       <div className="mt-3 ml-14">
-        <p className="text-sm text-gray-700 leading-relaxed">
-          {activity.readableAction}
-        </p>
+        <p className="text-sm text-gray-700 leading-relaxed">{activity.readableAction}</p>
         {activity.details && Object.keys(activity.details).length > 0 && (
           <div className="mt-2">
             <div className="flex flex-wrap gap-2">
               {Object.entries(activity.details).map(([key, value]) => {
                 // แปลชื่อฟิลด์เป็นภาษาไทย
                 let thaiKey = key;
-                switch(key) {
-                  case 'member_code':
-                    thaiKey = 'หมายเลขสมาชิก';
+                switch (key) {
+                  case "member_code":
+                    thaiKey = "หมายเลขสมาชิก";
                     break;
-                  case 'company_name':
-                    thaiKey = 'ชื่อบริษัท';
+                  case "company_name":
+                    thaiKey = "ชื่อบริษัท";
                     break;
-                  case 'admin_notes':
-                  case 'admin_note':
-                    thaiKey = 'บันทึกช่วยจำ';
+                  case "admin_notes":
+                  case "admin_note":
+                    thaiKey = "บันทึกช่วยจำ";
                     break;
-                  case 'request_id':
-                    thaiKey = 'รหัสคำขอ';
+                  case "request_id":
+                    thaiKey = "รหัสคำขอ";
                     break;
-                  case 'target_id':
-                    thaiKey = 'รหัสเป้าหมาย';
+                  case "target_id":
+                    thaiKey = "รหัสเป้าหมาย";
                     break;
-                  case 'user_id':
-                    thaiKey = 'รหัสผู้ใช้';
+                  case "user_id":
+                    thaiKey = "รหัสผู้ใช้";
                     break;
-                  case 'description':
-                    thaiKey = 'คำอธิบาย';
+                  case "description":
+                    thaiKey = "คำอธิบาย";
                     break;
-                  case 'status':
-                    thaiKey = 'สถานะ';
+                  case "status":
+                    thaiKey = "สถานะ";
                     break;
-                  case 'reason':
-                    thaiKey = 'เหตุผล';
+                  case "reason":
+                    thaiKey = "เหตุผล";
                     break;
                   default:
                     // คงค่าเดิมถ้าไม่มีการแปล
                     break;
                 }
                 return (
-                  <span key={key} className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-xs border border-gray-200">
+                  <span
+                    key={key}
+                    className="inline-flex items-center px-2 py-1 rounded-md bg-gray-100 text-gray-700 text-xs border border-gray-200"
+                  >
                     <span className="font-medium">{thaiKey}:</span>
                     <span className="ml-1">{value}</span>
                   </span>

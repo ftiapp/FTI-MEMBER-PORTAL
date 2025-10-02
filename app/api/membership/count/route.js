@@ -1,23 +1,26 @@
-import { NextResponse } from 'next/server';
-import { getSession } from '@/app/lib/session';
-import { query } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { getSession } from "@/app/lib/session";
+import { query } from "@/app/lib/db";
 
 export async function GET(request) {
   try {
     const session = await getSession();
-    
+
     if (!session || !session.user) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'กรุณาเข้าสู่ระบบ' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "กรุณาเข้าสู่ระบบ",
+        },
+        { status: 401 },
+      );
     }
 
     const userId = session.user.id;
     const { searchParams } = new URL(request.url);
-    const type = searchParams.get('type');
+    const type = searchParams.get("type");
 
-    if (type === 'completed') {
+    if (type === "completed") {
       // Count submitted applications
       let totalCount = 0;
 
@@ -31,7 +34,7 @@ export async function GET(request) {
         const icResult = await query(icCountQuery, [userId]);
         totalCount += icResult[0]?.count || 0;
       } catch (error) {
-        console.error('Error counting IC applications:', error);
+        console.error("Error counting IC applications:", error);
       }
 
       // Count OC Applications
@@ -44,7 +47,7 @@ export async function GET(request) {
         const ocResult = await query(ocCountQuery, [userId]);
         totalCount += ocResult[0]?.count || 0;
       } catch (error) {
-        console.error('Error counting OC applications:', error);
+        console.error("Error counting OC applications:", error);
       }
 
       // Count AC Applications
@@ -57,7 +60,7 @@ export async function GET(request) {
         const acResult = await query(acCountQuery, [userId]);
         totalCount += acResult[0]?.count || 0;
       } catch (error) {
-        console.error('Error counting AC applications:', error);
+        console.error("Error counting AC applications:", error);
       }
 
       // Count AM Applications
@@ -70,32 +73,36 @@ export async function GET(request) {
         const amResult = await query(amCountQuery, [userId]);
         totalCount += amResult[0]?.count || 0;
       } catch (error) {
-        console.error('Error counting AM applications:', error);
+        console.error("Error counting AM applications:", error);
       }
 
       return NextResponse.json({
         success: true,
-        count: totalCount
+        count: totalCount,
       });
-
-    } else if (type === 'drafts') {
+    } else if (type === "drafts") {
       // Count draft applications (this would need to be implemented based on your draft storage logic)
       return NextResponse.json({
         success: true,
-        count: 0 // Placeholder - implement based on your draft storage
+        count: 0, // Placeholder - implement based on your draft storage
       });
     }
 
-    return NextResponse.json({
-      success: false,
-      message: 'Invalid type parameter'
-    }, { status: 400 });
-
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Invalid type parameter",
+      },
+      { status: 400 },
+    );
   } catch (error) {
-    console.error('Error counting applications:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'เกิดข้อผิดพลาดในการดึงข้อมูล'
-    }, { status: 500 });
+    console.error("Error counting applications:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "เกิดข้อผิดพลาดในการดึงข้อมูล",
+      },
+      { status: 500 },
+    );
   }
 }

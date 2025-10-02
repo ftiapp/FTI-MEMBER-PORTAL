@@ -1,17 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { FaUpload, FaImage, FaCircle, FaSquare, FaSave, FaTimes, FaSpinner, FaCrop } from 'react-icons/fa';
-import ImageCropper from './ImageCropper';
+import { useState, useRef, useEffect } from "react";
+import {
+  FaUpload,
+  FaImage,
+  FaCircle,
+  FaSquare,
+  FaSave,
+  FaTimes,
+  FaSpinner,
+  FaCrop,
+} from "react-icons/fa";
+import ImageCropper from "./ImageCropper";
+import LoadingOverlay from "../../LoadingOverlay";
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 
 export default function LogoUploader({ memberCode, existingLogo = null, onUpdate, onCancel }) {
   const [file, setFile] = useState(null);
   const [preview, setPreview] = useState(existingLogo?.logo_url || null);
-  const [displayMode, setDisplayMode] = useState(existingLogo?.display_mode || 'square');
+  const [displayMode, setDisplayMode] = useState(existingLogo?.display_mode || "square");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showLoadingOverlay, setShowLoadingOverlay] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [showCropper, setShowCropper] = useState(false);
@@ -23,22 +34,22 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
-    
+
     // Validate file type
     if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
-      setError('กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPEG, PNG, GIF, WebP)');
+      setError("กรุณาอัปโหลดไฟล์รูปภาพเท่านั้น (JPEG, PNG, GIF, WebP)");
       return;
     }
-    
+
     // Validate file size
     if (selectedFile.size > MAX_FILE_SIZE) {
       setError(`ขนาดไฟล์ต้องไม่เกิน ${MAX_FILE_SIZE / (1024 * 1024)}MB`);
       return;
     }
-    
+
     setFile(selectedFile);
     setError(null);
-    
+
     // Create preview and open cropper
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -53,108 +64,131 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
     setPreview(croppedImageData);
     setCroppedImage(croppedImageData);
     setShowCropper(false);
-    
+
     // Convert base64 to file
-    const byteString = atob(croppedImageData.split(',')[1]);
-    const mimeString = croppedImageData.split(',')[0].split(':')[1].split(';')[0];
+    const byteString = atob(croppedImageData.split(",")[1]);
+    const mimeString = croppedImageData.split(",")[0].split(":")[1].split(";")[0];
     const ab = new ArrayBuffer(byteString.length);
     const ia = new Uint8Array(ab);
     for (let i = 0; i < byteString.length; i++) {
       ia[i] = byteString.charCodeAt(i);
     }
     const blob = new Blob([ab], { type: mimeString });
-    const croppedFile = new File([blob], `cropped_${file?.name || 'logo.jpg'}`, { type: mimeString });
+    const croppedFile = new File([blob], `cropped_${file?.name || "logo.jpg"}`, {
+      type: mimeString,
+    });
     setFile(croppedFile);
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!file && !existingLogo) {
-      setError('กรุณาเลือกไฟล์รูปภาพ');
+      setError("กรุณาเลือกไฟล์รูปภาพ");
       return;
     }
-    
+
+    setShowLoadingOverlay(true);
     setIsSubmitting(true);
     setError(null);
     setSuccess(false);
-    
+
     try {
       // If there's an existing logo and no new file, just update the display mode
       if (existingLogo && !file) {
-        const response = await fetch('/api/member/logo/update-display', {
-          method: 'POST',
+        const response = await fetch("/api/member/logo/update-display", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-          credentials: 'include',
+          credentials: "include",
           body: JSON.stringify({
             id: existingLogo.id,
-            displayMode: displayMode
+            displayMode: displayMode,
           }),
         });
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
           setSuccess(true);
           onUpdate({
             ...existingLogo,
-            display_mode: displayMode
+            display_mode: displayMode,
           });
         } else {
-          setError(data.error || 'เกิดข้อผิดพลาดในการอัปเดตรูปแบบการแสดงผล');
+          setShowLoadingOverlay(false);
+          setError(data.error || "เกิดข้อผิดพลาดในการอัปเดตรูปแบบการแสดงผล");
         }
-        
+
         setIsSubmitting(false);
         return;
       }
-      
+
       // Create form data for file upload
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('memberCode', memberCode);
-      formData.append('displayMode', displayMode);
-      
+      formData.append("file", file);
+      formData.append("memberCode", memberCode);
+      formData.append("displayMode", displayMode);
+
       // If updating existing logo, include the ID
       if (existingLogo) {
-        formData.append('existingId', existingLogo.id);
+        formData.append("existingId", existingLogo.id);
       }
-      
+
       // Upload the file
-      const response = await fetch('/api/member/logo/upload', {
-        method: 'POST',
-        credentials: 'include',
+      const response = await fetch("/api/member/logo/upload", {
+        method: "POST",
+        credentials: "include",
         body: formData,
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setSuccess(true);
         onUpdate(data.data);
       } else {
-        setError(data.error || 'เกิดข้อผิดพลาดในการอัปโหลดโลโก้');
+        setShowLoadingOverlay(false);
+        setError(data.error || "เกิดข้อผิดพลาดในการอัปโหลดโลโก้");
       }
     } catch (err) {
-      console.error('Error uploading logo:', err);
-      setError(err.message || 'ไม่สามารถอัปโหลดโลโก้ได้');
+      console.error("Error uploading logo:", err);
+      setShowLoadingOverlay(false);
+      setError(err.message || "ไม่สามารถอัปโหลดโลโก้ได้");
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  // Lock scroll when loading overlay is shown
+  useEffect(() => {
+    if (showLoadingOverlay) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showLoadingOverlay]);
+
   return (
+    <>
+      <LoadingOverlay
+        isVisible={showLoadingOverlay}
+        message="กำลังอัปโหลดโลโก้"
+      />
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">อัปโหลดโลโก้บริษัท</h3>
-      
+
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
           <p className="text-red-700">{error}</p>
         </div>
       )}
-      
+
       {success && (
         <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
           <p className="text-green-700">บันทึกข้อมูลเรียบร้อยแล้ว</p>
@@ -164,36 +198,34 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Logo preview */}
         <div className="flex flex-col items-center">
-          <div className={`
+          <div
+            className={`
             w-48 h-48 
-            ${displayMode === 'circle' ? 'rounded-full' : 'rounded-lg'} 
+            ${displayMode === "circle" ? "rounded-full" : "rounded-lg"} 
             border-2 border-dashed border-gray-300 
             flex items-center justify-center 
             overflow-hidden
             bg-gray-50
-            ${preview ? 'border-solid border-blue-300' : ''}
-          `}>
+            ${preview ? "border-solid border-blue-300" : ""}
+          `}
+          >
             {preview ? (
-              <img 
-                src={preview} 
-                alt="Logo preview" 
-                className="w-full h-full object-cover" 
-              />
+              <img src={preview} alt="Logo preview" className="w-full h-full object-cover" />
             ) : (
               <FaImage className="text-gray-400 text-5xl" />
             )}
           </div>
-          
+
           <div className="flex gap-2 mt-4">
             <button
               type="button"
               onClick={() => fileInputRef.current.click()}
               className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center"
             >
-              <FaUpload className="mr-2" /> 
-              {existingLogo ? 'เปลี่ยนโลโก้' : 'เลือกไฟล์'}
+              <FaUpload className="mr-2" />
+              {existingLogo ? "เปลี่ยนโลโก้" : "เลือกไฟล์"}
             </button>
-            
+
             {croppedImage && (
               <button
                 type="button"
@@ -205,7 +237,7 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
               </button>
             )}
           </div>
-          
+
           <input
             type="file"
             ref={fileInputRef}
@@ -213,7 +245,7 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
             accept="image/jpeg,image/png,image/gif,image/webp"
             className="hidden"
           />
-          
+
           <p className="text-sm text-gray-500 mt-2">
             รองรับไฟล์ JPEG, PNG, GIF, WebP ขนาดไม่เกิน 5MB
           </p>
@@ -228,8 +260,8 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
                 type="radio"
                 name="displayMode"
                 value="square"
-                checked={displayMode === 'square'}
-                onChange={() => setDisplayMode('square')}
+                checked={displayMode === "square"}
+                onChange={() => setDisplayMode("square")}
                 className="text-blue-600 focus:ring-blue-500"
               />
               <span className="flex items-center">
@@ -238,7 +270,7 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
             </label>
           </div>
         </div>
-        
+
         {/* Action buttons */}
         <div className="flex justify-end space-x-2">
           <button
@@ -249,7 +281,7 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
           >
             <FaTimes className="mr-1" /> ยกเลิก
           </button>
-          
+
           <button
             type="submit"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
@@ -281,7 +313,7 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
                 <FaTimes />
               </button>
             </div>
-            
+
             <ImageCropper
               image={imageToCrop}
               onCropComplete={handleCropComplete}
@@ -291,5 +323,6 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
         </div>
       )}
     </div>
+    </>
   );
 }

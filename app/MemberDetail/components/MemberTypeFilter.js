@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * MemberTypeFilter component for filtering membership data by member type
@@ -11,20 +11,20 @@ import { useState, useEffect } from 'react';
  */
 export default function MemberTypeFilter({ memberType, membershipData, onSelectFilter }) {
   const [filters, setFilters] = useState([]);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState("all");
 
   // Generate filters based on membership data
   useEffect(() => {
     if (membershipData && membershipData.length > 0) {
       // Get unique filter values
-      const uniqueFilters = [...new Set(membershipData.map(item => item.category || 'ไม่ระบุ'))];
-      setFilters(['ทั้งหมด', ...uniqueFilters]);
+      const uniqueFilters = [...new Set(membershipData.map((item) => item.category || "ไม่ระบุ"))];
+      setFilters(["ทั้งหมด", ...uniqueFilters]);
     }
   }, [membershipData]);
 
   // Handle filter selection
   const handleFilterClick = (filter) => {
-    const filterValue = filter === 'ทั้งหมด' ? 'all' : filter;
+    const filterValue = filter === "ทั้งหมด" ? "all" : filter;
     setSelectedFilter(filterValue);
     onSelectFilter(filterValue);
   };
@@ -45,9 +45,11 @@ export default function MemberTypeFilter({ memberType, membershipData, onSelectF
               text-sm font-medium 
               rounded-full 
               transition-all duration-200 
-              ${selectedFilter === (filter === 'ทั้งหมด' ? 'all' : filter) 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}
+              ${
+                selectedFilter === (filter === "ทั้งหมด" ? "all" : filter)
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }
             `}
           >
             {filter}

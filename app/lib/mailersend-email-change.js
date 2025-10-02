@@ -27,9 +27,10 @@ export async function sendEmailChangeOTP(email, firstname, lastname, otp) {
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("รหัสยืนยันสำหรับการเปลี่ยนอีเมล - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(getFTIEmailHtmlTemplate({
-  title: "รหัสยืนยันสำหรับการเปลี่ยนอีเมล",
-  bodyContent: `
+    .setHtml(
+      getFTIEmailHtmlTemplate({
+        title: "รหัสยืนยันสำหรับการเปลี่ยนอีเมล",
+        bodyContent: `
     <p>เรียน ท่าน ${firstname} ${lastname}</p>
     <p>ทางสภาอุตสาหกรรมแห่งประเทศไทยได้รับคำขอเปลี่ยนอีเมลในระบบสมาชิก</p>
     <p>กรุณาใช้รหัสยืนยันด้านล่างนี้เพื่อดำเนินการต่อ:</p>
@@ -38,8 +39,9 @@ export async function sendEmailChangeOTP(email, firstname, lastname, otp) {
     </div>
     <p>รหัสยืนยันนี้จะหมดอายุภายใน 15 นาที</p>
     <p>หากท่านไม่ได้ทำรายการนี้ โปรดแจ้งเจ้าหน้าที่ผู้ดูแลระบบทันที</p>
-  `
-}));
+  `,
+      }),
+    );
 
   try {
     const response = await mailerSend.email.send(emailParams);
@@ -67,14 +69,16 @@ export async function sendEmailChangeNotificationToOld(email, firstname, lastnam
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("แจ้งการเปลี่ยนอีเมลสำเร็จ - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(getFTIEmailHtmlTemplate({
-      title: "แจ้งการเปลี่ยนอีเมลสำเร็จ",
-      bodyContent: `
+    .setHtml(
+      getFTIEmailHtmlTemplate({
+        title: "แจ้งการเปลี่ยนอีเมลสำเร็จ",
+        bodyContent: `
         <p>เรียน ท่าน ${firstname} ${lastname}</p>
         <p>อีเมลของท่านในระบบสมาชิกสภาอุตสาหกรรมแห่งประเทศไทยได้ถูกเปลี่ยนจาก <strong>${email}</strong> เป็น <strong>${newEmail}</strong> เรียบร้อยแล้ว</p>
         <p>หากท่านไม่ได้ทำรายการนี้ โปรดติดต่อเจ้าหน้าที่ผู้ดูแลระบบทันที</p>
-      `
-    }));
+      `,
+      }),
+    );
 
   try {
     const response = await mailerSend.email.send(emailParams);
@@ -101,14 +105,16 @@ export async function sendEmailChangeNotificationToNew(email, firstname, lastnam
     .setFrom(defaultSender)
     .setTo(recipients)
     .setSubject("ยินดีต้อนรับ - สภาอุตสาหกรรมแห่งประเทศไทย")
-    .setHtml(getFTIEmailHtmlTemplate({
-      title: "ยินดีต้อนรับ",
-      bodyContent: `
+    .setHtml(
+      getFTIEmailHtmlTemplate({
+        title: "ยินดีต้อนรับ",
+        bodyContent: `
         <p>เรียน ท่าน ${firstname} ${lastname}</p>
         <p>อีเมลของท่านในระบบสมาชิกสภาอุตสาหกรรมแห่งประเทศไทยได้ถูกเปลี่ยนเป็น <strong>${email}</strong> เรียบร้อยแล้ว</p>
         <p>ท่านสามารถใช้อีเมลนี้ในการเข้าสู่ระบบได้ทันที</p>
-      `
-    }));
+      `,
+      }),
+    );
 
   try {
     const response = await mailerSend.email.send(emailParams);

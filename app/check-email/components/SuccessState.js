@@ -1,9 +1,9 @@
-import { motion } from 'framer-motion';
-import Link from 'next/link';
+import { motion } from "framer-motion";
+import Link from "next/link";
 
 export default function SuccessState() {
   return (
-    <motion.div 
+    <motion.div
       className="text-center"
       key="success"
       initial={{ opacity: 0, y: 20 }}
@@ -30,19 +30,10 @@ export default function SuccessState() {
           ></path>
         </motion.svg>
       </div>
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        ตั้งรหัสผ่านใหม่สำเร็จ!
-      </h3>
-      <p className="text-gray-600 mb-4">
-        คุณสามารถเข้าสู่ระบบด้วยอีเมลใหม่และรหัสผ่านใหม่ได้ทันที
-      </p>
-      <p className="text-gray-500 mb-4">
-        กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...
-      </p>
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">ตั้งรหัสผ่านใหม่สำเร็จ!</h3>
+      <p className="text-gray-600 mb-4">คุณสามารถเข้าสู่ระบบด้วยอีเมลใหม่และรหัสผ่านใหม่ได้ทันที</p>
+      <p className="text-gray-500 mb-4">กำลังนำคุณไปยังหน้าเข้าสู่ระบบ...</p>
+      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
         <Link
           href="/login"
           className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-md transition duration-300"

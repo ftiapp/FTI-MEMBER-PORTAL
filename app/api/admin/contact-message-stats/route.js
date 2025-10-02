@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 /**
  * API endpoint to get statistics for contact messages by status
- * 
+ *
  * @returns {Object} Counts of contact messages grouped by status
  */
 export async function GET() {
@@ -12,7 +12,7 @@ export async function GET() {
     // Verify admin authentication
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
     // Get counts for each status type
@@ -25,39 +25,42 @@ export async function GET() {
       GROUP BY 
         status
     `;
-    
+
     const results = await query(sql);
-    
+
     // Format the response with all possible statuses
     const statusCounts = {
       unread: 0,
       read: 0,
-      replied: 0
+      replied: 0,
     };
-    
+
     // Fill in the actual counts
-    results.forEach(row => {
+    results.forEach((row) => {
       if (statusCounts.hasOwnProperty(row.status)) {
         statusCounts[row.status] = row.count;
       }
     });
-    
+
     // Get total count
     const totalCount = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
-    
-    return NextResponse.json({ 
-      success: true, 
+
+    return NextResponse.json({
+      success: true,
       data: {
         statusCounts,
-        totalCount
-      }
+        totalCount,
+      },
     });
   } catch (error) {
-    console.error('Error fetching contact message stats:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Failed to fetch contact message statistics', 
-      error: error.message 
-    }, { status: 500 });
+    console.error("Error fetching contact message stats:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to fetch contact message statistics",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   }
 }

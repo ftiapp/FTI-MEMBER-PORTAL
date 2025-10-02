@@ -1,7 +1,7 @@
 // app/admin/dashboard/guest-messages/components/MessageList.js
 
-import MessageSearchFilter from './MessageSearchFilter';
-import MessageListItem from './MessageListItem';
+import MessageSearchFilter from "./MessageSearchFilter";
+import MessageListItem from "./MessageListItem";
 
 const MessageList = ({
   messages,
@@ -17,7 +17,7 @@ const MessageList = ({
   setCurrentPage,
   onMessageClick,
   onSearch,
-  onAddSampleData
+  onAddSampleData,
 }) => {
   if (loading) {
     return (
@@ -34,7 +34,7 @@ const MessageList = ({
     <div className="lg:col-span-1 bg-white rounded-lg shadow-md p-4">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">รายการข้อความ</h2>
-        
+
         <MessageSearchFilter
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -43,7 +43,7 @@ const MessageList = ({
           setCurrentPage={setCurrentPage}
           onSearch={onSearch}
         />
-        
+
         {error ? (
           <div className="bg-red-50 p-4 rounded-lg text-red-600">
             <p>เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}</p>
@@ -70,13 +70,13 @@ const MessageList = ({
             ))}
           </div>
         )}
-        
+
         {/* Pagination */}
         {!loading && !error && totalPages > 1 && (
           <div className="flex justify-center mt-4">
             <nav className="flex items-center">
               <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
                 className="px-3 py-1 rounded-md mr-2 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -86,7 +86,7 @@ const MessageList = ({
                 หน้า {currentPage} จาก {totalPages}
               </span>
               <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 rounded-md ml-2 bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >

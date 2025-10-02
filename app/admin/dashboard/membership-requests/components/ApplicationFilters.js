@@ -1,15 +1,15 @@
-import React from 'react';
-import SearchBar from './common/SearchBar';
-import { MEMBER_TYPES } from '../ีutils/constants';
+import React from "react";
+import SearchBar from "./common/SearchBar";
+import { MEMBER_TYPES } from "../ีutils/constants";
 
-const ApplicationFilters = ({ 
+const ApplicationFilters = ({
   searchTerm,
   onSearchChange,
   onSearchSubmit,
   statusFilter,
   onStatusFilterChange,
   typeFilter,
-  onTypeFilterChange 
+  onTypeFilterChange,
 }) => {
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100 mb-6">
@@ -20,7 +20,7 @@ const ApplicationFilters = ({
           onSubmit={onSearchSubmit}
           placeholder="ค้นหาด้วยชื่อ, อีเมล, เลขบัตรประชาชน..."
         />
-        
+
         <div className="flex flex-wrap gap-2">
           <select
             value={statusFilter}
@@ -32,7 +32,7 @@ const ApplicationFilters = ({
             <option value="approved">อนุมัติแล้ว</option>
             <option value="rejected">ปฏิเสธแล้ว</option>
           </select>
-          
+
           <select
             value={typeFilter}
             onChange={(e) => onTypeFilterChange(e.target.value)}

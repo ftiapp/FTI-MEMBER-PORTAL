@@ -1,14 +1,18 @@
 // app/admin/dashboard/guest-messages/components/MessageListItem.js
 
-import { STATUS_COLORS, STATUS_LABELS, PRIORITY_COLORS, PRIORITY_LABELS, formatDate } from '../constants';
+import {
+  STATUS_COLORS,
+  STATUS_LABELS,
+  PRIORITY_COLORS,
+  PRIORITY_LABELS,
+  formatDate,
+} from "../constants";
 
 const MessageListItem = ({ message, isSelected, onClick }) => {
   return (
     <div
       className={`p-3 border rounded-md cursor-pointer transition-colors ${
-        isSelected
-          ? 'bg-blue-50 border-blue-300'
-          : 'hover:bg-gray-50'
+        isSelected ? "bg-blue-50 border-blue-300" : "hover:bg-gray-50"
       }`}
       onClick={() => onClick(message)}
     >

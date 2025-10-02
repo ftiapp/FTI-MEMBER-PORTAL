@@ -1,62 +1,62 @@
-import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '../../../../lib/adminAuth';
-import { query } from '../../../../lib/db';
-import { mssqlQuery } from '../../../../lib/mssql';
-import { sendAddressApprovalEmail } from '@/app/lib/postmark';
-import { createNotification } from '../../../../lib/notifications';
+import { NextResponse } from "next/server";
+import { getAdminFromSession } from "../../../../lib/adminAuth";
+import { query } from "../../../../lib/db";
+import { mssqlQuery } from "../../../../lib/mssql";
+import { sendAddressApprovalEmail } from "@/app/lib/postmark";
+import { createNotification } from "../../../../lib/notifications";
 
 export async function POST(request) {
   try {
     // ตรวจสอบสิทธิ์ admin
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json({ success: false, message: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
     // รับข้อมูลจาก request body
     const { id, admin_notes, edited_address } = await request.json();
     if (!id) {
       return NextResponse.json(
-        { success: false, message: 'Missing required field: id' },
-        { status: 400 }
+        { success: false, message: "Missing required field: id" },
+        { status: 400 },
       );
     }
 
     // ดึงข้อมูลคำขอแก้ไขที่อยู่
     const addressUpdates = await query(
       'SELECT * FROM pending_address_updates WHERE id = ? AND status = "pending"',
-      [id]
+      [id],
     );
 
-    console.log('Address update query result:', JSON.stringify(addressUpdates));
+    console.log("Address update query result:", JSON.stringify(addressUpdates));
 
     if (!addressUpdates || addressUpdates.length === 0) {
       return NextResponse.json(
-        { success: false, message: 'Address update request not found or already processed' },
-        { status: 404 }
+        { success: false, message: "Address update request not found or already processed" },
+        { status: 404 },
       );
     }
 
     const addressUpdate = addressUpdates[0];
-    console.log('Address update object:', JSON.stringify(addressUpdate));
+    console.log("Address update object:", JSON.stringify(addressUpdate));
 
     // Safely extract properties with defaults
     const user_id = addressUpdate.user_id || null;
-    const member_code = addressUpdate.member_code || '';
-    const comp_person_code = addressUpdate.comp_person_code || '';
-    const member_type = addressUpdate.member_type || '';
-    const member_group_code = addressUpdate.member_group_code || '';
-    const type_code = addressUpdate.type_code || '';
-    const addr_code = addressUpdate.addr_code || '';
-    const addr_lang = addressUpdate.addr_lang || 'th';
-    const new_address = addressUpdate.new_address || '{}';
+    const member_code = addressUpdate.member_code || "";
+    const comp_person_code = addressUpdate.comp_person_code || "";
+    const member_type = addressUpdate.member_type || "";
+    const member_group_code = addressUpdate.member_group_code || "";
+    const type_code = addressUpdate.type_code || "";
+    const addr_code = addressUpdate.addr_code || "";
+    const addr_lang = addressUpdate.addr_lang || "th";
+    const new_address = addressUpdate.new_address || "{}";
 
     // Validate required fields
     if (!member_code || !comp_person_code || !member_type || !member_group_code || !addr_code) {
-      console.error('Missing required fields in address update:', addressUpdate);
+      console.error("Missing required fields in address update:", addressUpdate);
       return NextResponse.json(
-        { success: false, message: 'Missing required fields in address update request' },
-        { status: 400 }
+        { success: false, message: "Missing required fields in address update request" },
+        { status: 400 },
       );
     }
 
@@ -65,32 +65,36 @@ export async function POST(request) {
     try {
       // If admin has edited the address, use that instead of the original new_address
       if (edited_address) {
-        console.log('Using admin-edited address data');
+        console.log("Using admin-edited address data");
         newAddressObj = edited_address;
       } else {
-        newAddressObj = typeof new_address === 'string' ? JSON.parse(new_address) : new_address;
+        newAddressObj = typeof new_address === "string" ? JSON.parse(new_address) : new_address;
       }
     } catch (error) {
-      console.error('Error parsing new_address JSON:', error);
+      console.error("Error parsing new_address JSON:", error);
       return NextResponse.json(
-        { success: false, message: 'Invalid address format in update request', error: error.message },
-        { status: 400 }
+        {
+          success: false,
+          message: "Invalid address format in update request",
+          error: error.message,
+        },
+        { status: 400 },
       );
     }
-    
-    console.log('Parsed new address object:', JSON.stringify(newAddressObj));
+
+    console.log("Parsed new address object:", JSON.stringify(newAddressObj));
 
     // เริ่ม transaction ใน MySQL
-    await query('START TRANSACTION');
+    await query("START TRANSACTION");
 
     let mssqlUpdateSuccess = false;
-    
+
     try {
-      console.log('Using direct update with comp_person_code and ADDR_CODE:', {
+      console.log("Using direct update with comp_person_code and ADDR_CODE:", {
         comp_person_code,
-        addr_code
+        addr_code,
       });
-      
+
       // ตรวจสอบว่ามีที่อยู่นี้ใน MSSQL หรือไม่
       const addressCheckQuery = `
         SELECT [COMP_PERSON_CODE], [ADDR_CODE]
@@ -98,16 +102,15 @@ export async function POST(request) {
         WHERE [COMP_PERSON_CODE] = ?
           AND [ADDR_CODE] = ?
       `;
-      
-      const addressCheckResult = await mssqlQuery(addressCheckQuery, [
-        comp_person_code,
-        addr_code
-      ]);
-      
-      console.log('Address check result:', JSON.stringify(addressCheckResult));
-      
+
+      const addressCheckResult = await mssqlQuery(addressCheckQuery, [comp_person_code, addr_code]);
+
+      console.log("Address check result:", JSON.stringify(addressCheckResult));
+
       if (!addressCheckResult || addressCheckResult.length === 0) {
-        throw new Error(`Address not found in MSSQL database for comp_person_code: ${comp_person_code} and addr_code: ${addr_code}`);
+        throw new Error(
+          `Address not found in MSSQL database for comp_person_code: ${comp_person_code} and addr_code: ${addr_code}`,
+        );
       }
 
       // ดึงข้อมูลที่อยู่ปัจจุบันเพื่อตรวจสอบข้อมูล
@@ -116,122 +119,128 @@ export async function POST(request) {
         WHERE [COMP_PERSON_CODE] = ?
           AND [ADDR_CODE] = ?
       `;
-      
-      const currentAddressResult = await mssqlQuery(currentAddressQuery, [comp_person_code, addr_code]);
-      console.log('Current address data:', JSON.stringify(currentAddressResult));
-      
+
+      const currentAddressResult = await mssqlQuery(currentAddressQuery, [
+        comp_person_code,
+        addr_code,
+      ]);
+      console.log("Current address data:", JSON.stringify(currentAddressResult));
+
       if (!currentAddressResult || currentAddressResult.length === 0) {
-        throw new Error(`Could not find address data for comp_person_code: ${comp_person_code} and addr_code: ${addr_code}`);
+        throw new Error(
+          `Could not find address data for comp_person_code: ${comp_person_code} and addr_code: ${addr_code}`,
+        );
       }
-      
+
       // 3. อัปเดตที่อยู่ใน MSSQL
       // สร้าง SET clause สำหรับการอัปเดต
       const updateFields = [];
       const updateValues = [];
-      const suffix = addr_lang === 'en' ? '_EN' : '';
-      
+      const suffix = addr_lang === "en" ? "_EN" : "";
+
       // ตรวจสอบและเพิ่มฟิลด์ที่จะอัปเดต
       if (newAddressObj.ADDR_NO !== undefined) {
         updateFields.push(`[ADDR_NO${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_NO);
       }
-      
+
       if (newAddressObj.ADDR_MOO !== undefined) {
         updateFields.push(`[ADDR_MOO${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_MOO || null);
       }
-      
+
       if (newAddressObj.ADDR_SOI !== undefined) {
         updateFields.push(`[ADDR_SOI${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_SOI || null);
       }
-      
+
       if (newAddressObj.ADDR_ROAD !== undefined) {
         updateFields.push(`[ADDR_ROAD${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_ROAD);
       }
-      
+
       if (newAddressObj.ADDR_SUB_DISTRICT !== undefined) {
         updateFields.push(`[ADDR_SUB_DISTRICT${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_SUB_DISTRICT);
       }
-      
+
       if (newAddressObj.ADDR_DISTRICT !== undefined) {
         updateFields.push(`[ADDR_DISTRICT${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_DISTRICT);
       }
-      
+
       if (newAddressObj.ADDR_PROVINCE_NAME !== undefined) {
         updateFields.push(`[ADDR_PROVINCE_NAME${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_PROVINCE_NAME);
       }
-      
+
       if (newAddressObj.ADDR_POSTCODE !== undefined) {
         updateFields.push(`[ADDR_POSTCODE${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_POSTCODE);
       }
-      
+
       if (newAddressObj.ADDR_TELEPHONE !== undefined) {
         updateFields.push(`[ADDR_TELEPHONE${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_TELEPHONE);
       }
-      
+
       if (newAddressObj.ADDR_FAX !== undefined) {
         updateFields.push(`[ADDR_FAX${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_FAX);
       }
-      
+
       if (newAddressObj.ADDR_EMAIL !== undefined) {
         updateFields.push(`[ADDR_EMAIL${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_EMAIL);
       }
-      
+
       if (newAddressObj.ADDR_WEBSITE !== undefined) {
         updateFields.push(`[ADDR_WEBSITE${suffix}] = ?`);
         updateValues.push(newAddressObj.ADDR_WEBSITE);
       }
-      
+
       // เพิ่มฟิลด์ UPD_BY และ UPD_DATE
-      updateFields.push('[UPD_BY] = ?');
-      updateValues.push('FTI_PORTAL');
-      
+      updateFields.push("[UPD_BY] = ?");
+      updateValues.push("FTI_PORTAL");
+
       // ใช้ GETDATE() แทนการใช้พารามิเตอร์
-      updateFields.push('[UPD_DATE] = GETDATE()');
-      
+      updateFields.push("[UPD_DATE] = GETDATE()");
+
       // ตรวจสอบว่ามีฟิลด์ที่จะอัปเดตหรือไม่
       if (updateFields.length === 0) {
-        throw new Error('No fields to update');
+        throw new Error("No fields to update");
       }
-      
+
       // ลองใช้ stored procedure แทนการใช้ UPDATE โดยตรง
       try {
         // สร้าง query สำหรับการอัปเดต
         const mssqlUpdateQuery = `
           UPDATE [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
-          SET ${updateFields.join(', ')}
+          SET ${updateFields.join(", ")}
           WHERE [COMP_PERSON_CODE] = ?
             AND [ADDR_CODE] = ?
         `;
-        
+
         // เพิ่ม parameters สำหรับ WHERE clause
         updateValues.push(comp_person_code, addr_code);
-        
+
         // ทำการอัปเดตใน MSSQL
         const updateResult = await mssqlQuery(mssqlUpdateQuery, updateValues);
-        console.log('MSSQL update result:', JSON.stringify(updateResult));
-        
+        console.log("MSSQL update result:", JSON.stringify(updateResult));
+
         // ตรวจสอบว่ามีแถวถูกอัปเดตหรือไม่
         if (!updateResult.rowsAffected || updateResult.rowsAffected[0] === 0) {
-          throw new Error('No rows affected with direct UPDATE');
+          throw new Error("No rows affected with direct UPDATE");
         }
       } catch (updateError) {
-        console.error('Error with direct UPDATE:', updateError.message);
-        
+        console.error("Error with direct UPDATE:", updateError.message);
+
         // ถ้าไม่สำเร็จ ให้ลองใช้การอัปเดตแบบแยกทีละฟิลด์
-        console.log('Trying to update fields one by one...');
+        console.log("Trying to update fields one by one...");
         let successCount = 0;
-        
-        for (let i = 0; i < updateFields.length - 1; i++) { // -1 เพื่อไม่รวม UPD_DATE
+
+        for (let i = 0; i < updateFields.length - 1; i++) {
+          // -1 เพื่อไม่รวม UPD_DATE
           try {
             const singleFieldQuery = `
               UPDATE [FTI].[dbo].[MB_COMP_PERSON_ADDRESS]
@@ -239,9 +248,13 @@ export async function POST(request) {
               WHERE [COMP_PERSON_CODE] = ?
                 AND [ADDR_CODE] = ?
             `;
-            
-            const singleFieldResult = await mssqlQuery(singleFieldQuery, [updateValues[i], comp_person_code, addr_code]);
-            
+
+            const singleFieldResult = await mssqlQuery(singleFieldQuery, [
+              updateValues[i],
+              comp_person_code,
+              addr_code,
+            ]);
+
             if (singleFieldResult.rowsAffected && singleFieldResult.rowsAffected[0] > 0) {
               successCount++;
               console.log(`Successfully updated field ${updateFields[i]}`);
@@ -250,7 +263,7 @@ export async function POST(request) {
             console.error(`Error updating field ${updateFields[i]}:`, singleFieldError.message);
           }
         }
-        
+
         // อัปเดต UPD_BY และ UPD_DATE เป็นอันสุดท้าย
         try {
           const updByDateQuery = `
@@ -259,162 +272,168 @@ export async function POST(request) {
             WHERE [COMP_PERSON_CODE] = ?
               AND [ADDR_CODE] = ?
           `;
-          
-          const updByDateResult = await mssqlQuery(updByDateQuery, ['FTI_PORTAL', comp_person_code, addr_code]);
-          
+
+          const updByDateResult = await mssqlQuery(updByDateQuery, [
+            "FTI_PORTAL",
+            comp_person_code,
+            addr_code,
+          ]);
+
           if (updByDateResult.rowsAffected && updByDateResult.rowsAffected[0] > 0) {
             successCount++;
-            console.log('Successfully updated UPD_BY and UPD_DATE');
+            console.log("Successfully updated UPD_BY and UPD_DATE");
           }
         } catch (updByDateError) {
-          console.error('Error updating UPD_BY and UPD_DATE:', updByDateError.message);
+          console.error("Error updating UPD_BY and UPD_DATE:", updByDateError.message);
         }
-        
+
         // ถึงแม้ไม่สามารถอัปเดตได้ครบทุกฟิลด์ ก็ถือว่าการอัปเดตสำเร็จ
-        console.log(`Updated ${successCount} fields in MSSQL database. Some fields may not have been updated due to database structure differences.`);
+        console.log(
+          `Updated ${successCount} fields in MSSQL database. Some fields may not have been updated due to database structure differences.`,
+        );
         mssqlUpdateSuccess = true;
       }
-      
+
       // ทำการอัปเดตใน MSSQL เรียบร้อยแล้วจากข้างบน
 
       // 3. อัปเดตสถานะคำขอเป็น 'approved' ใน MySQL
       await query(
         'UPDATE pending_address_updates SET status = "approved", processed_date = NOW(), admin_notes = ? WHERE id = ?',
-        [admin_notes || "", id]
+        [admin_notes || "", id],
       );
 
       // 4. ตรวจสอบโครงสร้างตาราง companies_Member ก่อนที่จะพยายามอัปเดตข้อมูล
       try {
         // ตรวจสอบว่ามีคอลัมน์ที่ต้องการอัปเดตหรือไม่
-        const tableInfo = await query('DESCRIBE companies_Member');
-        console.log('Table structure:', JSON.stringify(tableInfo));
-        
+        const tableInfo = await query("DESCRIBE companies_Member");
+        console.log("Table structure:", JSON.stringify(tableInfo));
+
         // สร้างชุดคอลัมน์ที่มีอยู่ในตาราง
-        const columns = Array.isArray(tableInfo) ? tableInfo.map(col => col.Field) : [];
-        console.log('Available columns:', columns);
-        
+        const columns = Array.isArray(tableInfo) ? tableInfo.map((col) => col.Field) : [];
+        console.log("Available columns:", columns);
+
         // กำหนดชื่อฟิลด์ที่จะใช้ในการอัปเดต
-        let fieldName = '';
-        
-        if (addr_code === '001') {
-          if (addr_lang === 'en') {
+        let fieldName = "";
+
+        if (addr_code === "001") {
+          if (addr_lang === "en") {
             // ตรวจสอบว่ามีคอลัมน์ ADDRESS_EN หรือไม่
-            if (columns.includes('ADDRESS_EN')) {
-              fieldName = 'ADDRESS_EN';
-            } else if (columns.includes('ADDR_EN')) {
-              fieldName = 'ADDR_EN';
+            if (columns.includes("ADDRESS_EN")) {
+              fieldName = "ADDRESS_EN";
+            } else if (columns.includes("ADDR_EN")) {
+              fieldName = "ADDR_EN";
             } else {
-              console.log('No suitable English address field found in companies_Member table');
-              throw new Error('No suitable English address field found');
+              console.log("No suitable English address field found in companies_Member table");
+              throw new Error("No suitable English address field found");
             }
           } else {
             // ตรวจสอบว่ามีคอลัมน์ ADDRESS หรือไม่
-            if (columns.includes('ADDRESS')) {
-              fieldName = 'ADDRESS';
-            } else if (columns.includes('ADDR')) {
-              fieldName = 'ADDR';
+            if (columns.includes("ADDRESS")) {
+              fieldName = "ADDRESS";
+            } else if (columns.includes("ADDR")) {
+              fieldName = "ADDR";
             } else {
-              console.log('No suitable Thai address field found in companies_Member table');
-              throw new Error('No suitable Thai address field found');
+              console.log("No suitable Thai address field found in companies_Member table");
+              throw new Error("No suitable Thai address field found");
             }
           }
-        } else if (addr_code === '002') {
-          if (addr_lang === 'en') {
+        } else if (addr_code === "002") {
+          if (addr_lang === "en") {
             // ตรวจสอบว่ามีคอลัมน์ FACTORY_ADDRESS_EN หรือไม่
-            if (columns.includes('FACTORY_ADDRESS_EN')) {
-              fieldName = 'FACTORY_ADDRESS_EN';
-            } else if (columns.includes('FACTORY_ADDR_EN')) {
-              fieldName = 'FACTORY_ADDR_EN';
+            if (columns.includes("FACTORY_ADDRESS_EN")) {
+              fieldName = "FACTORY_ADDRESS_EN";
+            } else if (columns.includes("FACTORY_ADDR_EN")) {
+              fieldName = "FACTORY_ADDR_EN";
             } else {
-              console.log('No suitable English factory address field found in companies_Member table');
-              throw new Error('No suitable English factory address field found');
+              console.log(
+                "No suitable English factory address field found in companies_Member table",
+              );
+              throw new Error("No suitable English factory address field found");
             }
           } else {
             // ตรวจสอบว่ามีคอลัมน์ FACTORY_ADDRESS หรือไม่
-            if (columns.includes('FACTORY_ADDRESS')) {
-              fieldName = 'FACTORY_ADDRESS';
-            } else if (columns.includes('FACTORY_ADDR')) {
-              fieldName = 'FACTORY_ADDR';
+            if (columns.includes("FACTORY_ADDRESS")) {
+              fieldName = "FACTORY_ADDRESS";
+            } else if (columns.includes("FACTORY_ADDR")) {
+              fieldName = "FACTORY_ADDR";
             } else {
-              console.log('No suitable Thai factory address field found in companies_Member table');
-              throw new Error('No suitable Thai factory address field found');
+              console.log("No suitable Thai factory address field found in companies_Member table");
+              throw new Error("No suitable Thai factory address field found");
             }
           }
         } else {
           console.log(`Unsupported address type: ${addr_code}`);
           throw new Error(`Unsupported address type: ${addr_code}`);
         }
-        
+
         // อัปเดตข้อมูลในตาราง companies_Member
         const mysqlUpdateQuery = `UPDATE companies_Member SET ${fieldName} = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?`;
         const mysqlUpdateParams = [JSON.stringify(newAddressObj), member_code, comp_person_code];
-        
+
         await query(mysqlUpdateQuery, mysqlUpdateParams);
         console.log(`Successfully updated ${fieldName} in companies_Member table`);
       } catch (mysqlError) {
         // ถ้าไม่สามารถอัปเดตข้อมูลในตาราง companies_Member ได้ ให้บันทึกข้อผิดพลาดและดำเนินการต่อ
-        console.error('Error updating companies_Member table:', mysqlError.message);
-        console.log('Continuing with approval process despite MySQL update error');
+        console.error("Error updating companies_Member table:", mysqlError.message);
+        console.log("Continuing with approval process despite MySQL update error");
       }
 
       // 5. บันทึกการกระทำของ admin
       try {
         // Get company name for logging
         const companyResult = await query(
-          'SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1',
-          [member_code]
+          "SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1",
+          [member_code],
         );
-        const company_name = companyResult.length > 0 ? companyResult[0].company_name : 'Unknown Company';
-        
+        const company_name =
+          companyResult.length > 0 ? companyResult[0].company_name : "Unknown Company";
+
         await query(
-          'INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, created_at) VALUES (?, ?, ?, ?, NOW())',
+          "INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, created_at) VALUES (?, ?, ?, ?, NOW())",
           [
             admin.id,
-            'approve_address_update',
+            "approve_address_update",
             id,
-            `Address update approved - Member Code: ${member_code}, Company: ${company_name}, Address Type: ${addr_code === '001' ? 'Main' : 'Factory'}, Language: ${addr_lang === 'en' ? 'English' : 'Thai'}`
-          ]
+            `Address update approved - Member Code: ${member_code}, Company: ${company_name}, Address Type: ${addr_code === "001" ? "Main" : "Factory"}, Language: ${addr_lang === "en" ? "English" : "Thai"}`,
+          ],
         );
       } catch (logError) {
-        console.error('Error logging admin action:', logError.message);
-        console.log('Continuing with approval process despite logging error');
+        console.error("Error logging admin action:", logError.message);
+        console.log("Continuing with approval process despite logging error");
       }
 
       // 6. บันทึกใน Member_portal_User_log (ถ้ามี user_id)
       if (user_id) {
         try {
           // กำหนดข้อความสั้นๆ สำหรับการอนุมัติ
-          const addrTypeText = addr_code === '001' ? 'หลัก' : 'โรงงาน';
-          const langText = addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
-          
+          const addrTypeText = addr_code === "001" ? "หลัก" : "โรงงาน";
+          const langText = addr_lang === "en" ? "ภาษาอังกฤษ" : "ภาษาไทย";
+
           // Get company name for logging
           const companyResult = await query(
-            'SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1',
-            [member_code]
+            "SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1",
+            [member_code],
           );
-          const company_name = companyResult.length > 0 ? companyResult[0].company_name : 'Unknown Company';
-          
+          const company_name =
+            companyResult.length > 0 ? companyResult[0].company_name : "Unknown Company";
+
           const detailsText = `อนุมัติคำขอแก้ไขที่อยู่${addrTypeText}${langText} - รหัสสมาชิก: ${member_code}, บริษัท: ${company_name}`;
-          
+
           await query(
-            'INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())',
-            [
-              user_id,
-              'approve_address_update',
-              detailsText
-            ]
+            "INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
+            [user_id, "approve_address_update", detailsText],
           );
         } catch (userLogError) {
-          console.error('Error logging user action:', userLogError.message);
-          console.log('Continuing with approval process despite user logging error');
+          console.error("Error logging user action:", userLogError.message);
+          console.log("Continuing with approval process despite user logging error");
         }
       } else {
-        console.log('Skipping user log entry because user_id is null');
+        console.log("Skipping user log entry because user_id is null");
       }
 
       // Commit transaction ใน MySQL
-      await query('COMMIT');
-      
+      await query("COMMIT");
+
       // ส่งอีเมลแจ้งเตือนการอนุมัติ
       try {
         // ดึงข้อมูลผู้ใช้และข้อมูลบริษัทเพื่อส่งอีเมล
@@ -423,78 +442,81 @@ export async function POST(request) {
            FROM users u 
            LEFT JOIN companies_Member c ON c.MEMBER_CODE = ? 
            WHERE u.id = ?`,
-          [member_code, user_id]
+          [member_code, user_id],
         );
-        
+
         if (user && user.email) {
           await sendAddressApprovalEmail(
             user.email,
-            user.firstname || '',
-            user.lastname || '',
+            user.firstname || "",
+            user.lastname || "",
             addressUpdate.member_code,
-            user.company_name || addressUpdate.company_name || 'บริษัทของคุณ',
-            addressUpdate.admin_comment || 'ไม่มีคำอธิบายเพิ่มเติม'
+            user.company_name || addressUpdate.company_name || "บริษัทของคุณ",
+            addressUpdate.admin_comment || "ไม่มีคำอธิบายเพิ่มเติม",
           );
-          console.log('Approval email sent to', user.email);
-          
+          console.log("Approval email sent to", user.email);
+
           // สร้างการแจ้งเตือนในระบบเมื่ออนุมัติการแก้ไขที่อยู่
           try {
-            const addrTypeText = addr_code === '001' ? 'หลัก' : 'โรงงาน';
-            const langText = addr_lang === 'en' ? 'ภาษาอังกฤษ' : 'ภาษาไทย';
-            
+            const addrTypeText = addr_code === "001" ? "หลัก" : "โรงงาน";
+            const langText = addr_lang === "en" ? "ภาษาอังกฤษ" : "ภาษาไทย";
+
             await createNotification(
               user_id,
-              'address_update',
-              `คำขอแก้ไขที่อยู่${addrTypeText}${langText}ของท่าน [รหัสสมาชิก: ${addressUpdate.member_code}] [บริษัท: ${user.company_name || addressUpdate.company_name || 'บริษัทของท่าน'}] ได้รับการอนุมัติแล้ว`,
-              '/dashboard?tab=address',
+              "address_update",
+              `คำขอแก้ไขที่อยู่${addrTypeText}${langText}ของท่าน [รหัสสมาชิก: ${addressUpdate.member_code}] [บริษัท: ${user.company_name || addressUpdate.company_name || "บริษัทของท่าน"}] ได้รับการอนุมัติแล้ว`,
+              "/dashboard?tab=address",
               addressUpdate.member_code,
               user.company_name || addressUpdate.company_name,
               addressUpdate.member_type,
               addressUpdate.member_group_code,
-              '000', // ใช้ค่า '000' เสมอแทนที่จะใช้ addressUpdate.type_code ที่มีค่าเป็น 11
+              "000", // ใช้ค่า '000' เสมอแทนที่จะใช้ addressUpdate.type_code ที่มีค่าเป็น 11
               addressUpdate.addr_code,
-              addressUpdate.addr_lang
+              addressUpdate.addr_lang,
             );
-            console.log('Address update approval notification created for user:', user_id);
+            console.log("Address update approval notification created for user:", user_id);
           } catch (notificationError) {
-            console.error('Error creating address update approval notification:', notificationError);
+            console.error(
+              "Error creating address update approval notification:",
+              notificationError,
+            );
             // Continue with the process even if notification creation fails
           }
         }
       } catch (emailError) {
-        console.error('Error sending approval email:', emailError);
+        console.error("Error sending approval email:", emailError);
         // ไม่ต้อง throw error เพื่อไม่ให้กระทบการทำงานหลัก
       }
 
-      return NextResponse.json({ 
-        success: true, 
-        message: 'Address update approved successfully and updated in MSSQL database' 
+      return NextResponse.json({
+        success: true,
+        message: "Address update approved successfully and updated in MSSQL database",
       });
     } catch (error) {
       // Rollback transaction ในกรณีที่เกิดข้อผิดพลาด
-      await query('ROLLBACK');
-      
+      await query("ROLLBACK");
+
       // ถ้าเป็นข้อผิดพลาดจากการอัปเดต MSSQL ให้บันทึกข้อผิดพลาดและดำเนินการต่อ
       if (registCode) {
-        console.error('Error updating MSSQL database:', error.message);
-        console.log('Proceeding with MySQL updates despite MSSQL error');
-        
+        console.error("Error updating MSSQL database:", error.message);
+        console.log("Proceeding with MySQL updates despite MSSQL error");
+
         // เริ่ม transaction ใหม่สำหรับ MySQL
-        await query('START TRANSACTION');
+        await query("START TRANSACTION");
       } else {
         // ถ้าไม่มี registCode แสดงว่าเป็นข้อผิดพลาดที่ร้ายแรงกว่า
         throw error;
       }
     }
   } catch (error) {
-    console.error('Error approving address update:', error);
+    console.error("Error approving address update:", error);
     return NextResponse.json(
-      { 
-        success: false, 
-        message: 'Failed to approve address update', 
-        error: error.message 
+      {
+        success: false,
+        message: "Failed to approve address update",
+        error: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

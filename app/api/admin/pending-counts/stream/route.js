@@ -1,11 +1,11 @@
-import { getAdminFromSession } from '../../../../lib/adminAuth';
-import { query } from '../../../../lib/db';
+import { getAdminFromSession } from "../../../../lib/adminAuth";
+import { query } from "../../../../lib/db";
 
 export async function GET(request) {
   try {
     const admin = await getAdminFromSession();
     if (!admin) {
-      return new Response('Unauthorized', { status: 401 });
+      return new Response("Unauthorized", { status: 401 });
     }
 
     const { signal } = request;
@@ -52,7 +52,7 @@ export async function GET(request) {
             };
             send(payload);
           } catch (err) {
-            send({ success: false, error: 'stream_query_error' });
+            send({ success: false, error: "stream_query_error" });
           }
         };
 
@@ -62,7 +62,7 @@ export async function GET(request) {
         intervalId = setInterval(tick, 15000);
 
         if (signal) {
-          signal.addEventListener('abort', () => {
+          signal.addEventListener("abort", () => {
             clearInterval(intervalId);
             controller.close();
           });
@@ -73,12 +73,12 @@ export async function GET(request) {
 
     return new Response(stream, {
       headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        Connection: 'keep-alive',
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
       },
     });
   } catch (error) {
-    return new Response('Internal Server Error', { status: 500 });
+    return new Response("Internal Server Error", { status: 500 });
   }
 }

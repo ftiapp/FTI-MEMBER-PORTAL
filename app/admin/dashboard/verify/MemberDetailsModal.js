@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 
-export default function MemberDetailsModal({ 
-  member, 
-  onClose, 
-  onApprove, 
+export default function MemberDetailsModal({
+  member,
+  onClose,
+  onApprove,
   onOpenReject,
-  showActions = true
+  showActions = true,
 }) {
-  const [approveComment, setApproveComment] = useState('');
+  const [approveComment, setApproveComment] = useState("");
   const [isApproving, setIsApproving] = useState(false);
   const [isRejecting, setIsRejecting] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
@@ -23,13 +23,13 @@ export default function MemberDetailsModal({
 
   // Check if file is an image
   const isImageFile = (fileName) => {
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
-    return imageExtensions.some(ext => fileName.toLowerCase().endsWith(ext));
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".svg"];
+    return imageExtensions.some((ext) => fileName.toLowerCase().endsWith(ext));
   };
 
   // Check if file is a PDF
   const isPDFFile = (fileName) => {
-    return fileName.toLowerCase().endsWith('.pdf');
+    return fileName.toLowerCase().endsWith(".pdf");
   };
 
   // Check if file can be previewed
@@ -40,7 +40,11 @@ export default function MemberDetailsModal({
   // Handle image preview
   const handlePreviewImage = (filePath, fileName) => {
     if (canPreview(fileName)) {
-      setPreviewImage({ path: filePath, name: fileName, type: isImageFile(fileName) ? 'image' : 'pdf' });
+      setPreviewImage({
+        path: filePath,
+        name: fileName,
+        type: isImageFile(fileName) ? "image" : "pdf",
+      });
       setZoomLevel(1);
       setPosition({ x: 0, y: 0 });
     }
@@ -56,21 +60,21 @@ export default function MemberDetailsModal({
   // Handle zoom
   const handleZoom = (delta, clientX, clientY) => {
     const newZoom = Math.max(0.5, Math.min(5, zoomLevel + delta));
-    
+
     if (imageRef.current && clientX !== undefined && clientY !== undefined) {
       const rect = imageRef.current.getBoundingClientRect();
       const centerX = rect.left + rect.width / 2;
       const centerY = rect.top + rect.height / 2;
-      
-      const offsetX = (clientX - centerX) * (newZoom - zoomLevel) / zoomLevel;
-      const offsetY = (clientY - centerY) * (newZoom - zoomLevel) / zoomLevel;
-      
-      setPosition(prev => ({
+
+      const offsetX = ((clientX - centerX) * (newZoom - zoomLevel)) / zoomLevel;
+      const offsetY = ((clientY - centerY) * (newZoom - zoomLevel)) / zoomLevel;
+
+      setPosition((prev) => ({
         x: prev.x - offsetX,
-        y: prev.y - offsetY
+        y: prev.y - offsetY,
       }));
     }
-    
+
     setZoomLevel(newZoom);
   };
 
@@ -87,7 +91,7 @@ export default function MemberDetailsModal({
       setIsDragging(true);
       setDragStart({
         x: e.clientX - position.x,
-        y: e.clientY - position.y
+        y: e.clientY - position.y,
       });
     }
   };
@@ -96,7 +100,7 @@ export default function MemberDetailsModal({
     if (isDragging && zoomLevel > 1) {
       setPosition({
         x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y
+        y: e.clientY - dragStart.y,
       });
     }
   };
@@ -118,11 +122,11 @@ export default function MemberDetailsModal({
   // Add event listeners for mouse events
   useEffect(() => {
     if (previewImage) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
       };
     }
   }, [isDragging, dragStart, zoomLevel]);
@@ -132,19 +136,19 @@ export default function MemberDetailsModal({
     const handleKeyDown = (e) => {
       if (previewImage) {
         switch (e.key) {
-          case 'Escape':
+          case "Escape":
             closeImagePreview();
             break;
-          case '+':
-          case '=':
+          case "+":
+          case "=":
             e.preventDefault();
             zoomIn();
             break;
-          case '-':
+          case "-":
             e.preventDefault();
             zoomOut();
             break;
-          case '0':
+          case "0":
             e.preventDefault();
             resetZoom();
             break;
@@ -152,8 +156,8 @@ export default function MemberDetailsModal({
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [previewImage, zoomLevel]);
 
   // Handle approve action
@@ -163,7 +167,7 @@ export default function MemberDetailsModal({
       try {
         await onApprove(member, approveComment);
       } catch (error) {
-        console.error('Error approving member:', error);
+        console.error("Error approving member:", error);
       } finally {
         setIsApproving(false);
       }
@@ -177,7 +181,7 @@ export default function MemberDetailsModal({
       try {
         await onOpenReject(member);
       } catch (error) {
-        console.error('Error rejecting member:', error);
+        console.error("Error rejecting member:", error);
       } finally {
         setIsRejecting(false);
       }
@@ -189,109 +193,201 @@ export default function MemberDetailsModal({
       <div className="fixed inset-0 bg-[#1e3a8a] bg-opacity-40 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-200">
           <div className="px-6 py-4 border-b border-[#1e3a8a] border-opacity-20 flex justify-between items-center bg-[#1e3a8a] text-white">
-            <h3 className="text-lg font-semibold">
-              รายละเอียดสมาชิก
-            </h3>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-200"
-            >
+            <h3 className="text-lg font-semibold">รายละเอียดสมาชิก</h3>
+            <button onClick={onClose} className="text-white hover:text-gray-200">
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
-          
+
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">ข้อมูลบริษัท</h4>
+                <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">
+                  ข้อมูลบริษัท
+                </h4>
                 <div className="space-y-2">
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">รหัสสมาชิก:</span> {member.MEMBER_CODE || 'ยังไม่มีรหัสสมาชิก'}</p>
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ชื่อบริษัท:</span> {member.company_name}</p>
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ประเภทธุรกิจ:</span> {member.company_type}</p>
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">เลขประจำตัวผู้เสียภาษี:</span> {member.tax_id}</p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">รหัสสมาชิก:</span>{" "}
+                    {member.MEMBER_CODE || "ยังไม่มีรหัสสมาชิก"}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">ชื่อบริษัท:</span>{" "}
+                    {member.company_name}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">ประเภทธุรกิจ:</span>{" "}
+                    {member.company_type}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">เลขประจำตัวผู้เสียภาษี:</span>{" "}
+                    {member.tax_id}
+                  </p>
                 </div>
               </div>
-              
+
               <div>
-                <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">ข้อมูลผู้ส่งคำขอ</h4>
+                <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">
+                  ข้อมูลผู้ส่งคำขอ
+                </h4>
                 <div className="space-y-2">
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">ชื่อ-นามสกุล:</span> {member.firstname} {member.lastname}</p>
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">โทรศัพท์:</span> {member.phone || '-'}</p>
-                  <p className="text-gray-800"><span className="font-medium text-[#1e3a8a]">อีเมล:</span> {member.email ? <a href={`mailto:${member.email}`} className="text-blue-600 hover:underline">{member.email}</a> : '-'}</p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">ชื่อ-นามสกุล:</span>{" "}
+                    {member.firstname} {member.lastname}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">โทรศัพท์:</span>{" "}
+                    {member.phone || "-"}
+                  </p>
+                  <p className="text-gray-800">
+                    <span className="font-medium text-[#1e3a8a]">อีเมล:</span>{" "}
+                    {member.email ? (
+                      <a href={`mailto:${member.email}`} className="text-blue-600 hover:underline">
+                        {member.email}
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             {/* Documents Section */}
             <div className="mt-6">
-              <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">เอกสาร</h4>
+              <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">
+                เอกสาร
+              </h4>
               {member.documents && member.documents.length > 0 ? (
                 <div className="overflow-x-auto">
                   <div className="bg-blue-50 p-3 mb-3 rounded-md border border-blue-200">
                     <div className="flex items-center">
-                      <svg className="w-5 h-5 text-blue-500 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+                      <svg
+                        className="w-5 h-5 text-blue-500 mr-2"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        ></path>
                       </svg>
                       <p className="text-blue-700 font-medium">
-                        เอกสารทั้งหมดสำหรับรหัสสมาชิก: <span className="font-bold">{member.MEMBER_CODE || 'ยังไม่มีรหัสสมาชิก'}</span>
+                        เอกสารทั้งหมดสำหรับรหัสสมาชิก:{" "}
+                        <span className="font-bold">
+                          {member.MEMBER_CODE || "ยังไม่มีรหัสสมาชิก"}
+                        </span>
                       </p>
                     </div>
                   </div>
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-[#1e3a8a] text-white">
                       <tr>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        >
                           ชื่อเอกสาร
                         </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        >
                           รหัสสมาชิก
                         </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        >
                           สถานะ
                         </th>
-                        <th scope="col" className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        >
                           วันที่อัปโหลด
                         </th>
-                        <th scope="col" className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider">
+                        <th
+                          scope="col"
+                          className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider"
+                        >
                           จัดการ
                         </th>
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {member.documents.map((doc, index) => (
-                        <tr key={index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                        <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                           <td className="px-4 py-3 text-sm text-gray-900">
                             <div className="flex items-center">
                               {isImageFile(doc.file_name) && (
-                                <svg className="w-4 h-4 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                <svg
+                                  className="w-4 h-4 text-green-500 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
                                 </svg>
                               )}
                               {isPDFFile(doc.file_name) && (
-                                <svg className="w-4 h-4 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <svg
+                                  className="w-4 h-4 text-red-500 mr-2"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                  />
                                 </svg>
                               )}
                               {doc.file_name}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-900">
-                            <span className="font-medium">{doc.MEMBER_CODE || member.MEMBER_CODE || '-'}</span>
+                            <span className="font-medium">
+                              {doc.MEMBER_CODE || member.MEMBER_CODE || "-"}
+                            </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                              ${doc.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
-                                doc.status === 'approved' ? 'bg-green-100 text-green-800' : 
-                                'bg-red-100 text-red-800'}`}>
-                              {doc.status === 'pending' ? 'รอการอนุมัติ' : 
-                               doc.status === 'approved' ? 'อนุมัติแล้ว' : 
-                               'ปฏิเสธแล้ว'}
+                            <span
+                              className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                              ${
+                                doc.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : doc.status === "approved"
+                                    ? "bg-green-100 text-green-800"
+                                    : "bg-red-100 text-red-800"
+                              }`}
+                            >
+                              {doc.status === "pending"
+                                ? "รอการอนุมัติ"
+                                : doc.status === "approved"
+                                  ? "อนุมัติแล้ว"
+                                  : "ปฏิเสธแล้ว"}
                             </span>
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                            {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString('th-TH') : '-'}
+                            {doc.uploaded_at
+                              ? new Date(doc.uploaded_at).toLocaleDateString("th-TH")
+                              : "-"}
                           </td>
                           <td className="px-4 py-3 whitespace-nowrap text-right text-sm font-medium">
                             <div className="flex justify-end space-x-2">
@@ -300,25 +396,54 @@ export default function MemberDetailsModal({
                                 <button
                                   onClick={() => handlePreviewImage(doc.file_path, doc.file_name)}
                                   className="text-indigo-600 hover:text-white font-medium px-2 py-1 bg-indigo-100 hover:bg-indigo-600 rounded-md transition-colors flex items-center"
-                                  title={isImageFile(doc.file_name) ? "ดูตัวอย่างรูปภาพ" : "ดูตัวอย่าง PDF"}
+                                  title={
+                                    isImageFile(doc.file_name)
+                                      ? "ดูตัวอย่างรูปภาพ"
+                                      : "ดูตัวอย่าง PDF"
+                                  }
                                 >
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                  <svg
+                                    className="w-4 h-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
                                   </svg>
                                 </button>
                               )}
-                              
+
                               {/* Download Button */}
-                              <a 
-                                href={doc.file_path} 
-                                target="_blank" 
+                              <a
+                                href={doc.file_path}
+                                target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-[#1e3a8a] hover:text-white font-medium px-2 py-1 bg-[#1e3a8a] bg-opacity-10 rounded-md hover:bg-[#1e3a8a] transition-colors flex items-center"
                                 title="ดาวน์โหลด"
                               >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                  />
                                 </svg>
                               </a>
                             </div>
@@ -329,10 +454,12 @@ export default function MemberDetailsModal({
                   </table>
                 </div>
               ) : (
-                <p className="text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">ไม่พบเอกสาร</p>
+                <p className="text-gray-700 bg-gray-50 p-3 rounded-md border border-gray-200">
+                  ไม่พบเอกสาร
+                </p>
               )}
             </div>
-            
+
             {/* Admin Comments */}
             {member.admin_comment && (
               <div className="mt-6 p-4 bg-gray-50 rounded-md">
@@ -340,7 +467,7 @@ export default function MemberDetailsModal({
                 <p className="text-gray-700">{member.admin_comment}</p>
               </div>
             )}
-            
+
             {/* Rejection Reason */}
             {member.reject_reason && (
               <div className="mt-4 p-4 bg-red-50 rounded-md">
@@ -348,12 +475,15 @@ export default function MemberDetailsModal({
                 <p className="text-red-700">{member.reject_reason}</p>
               </div>
             )}
-            
+
             {/* Action Buttons for Pending Members */}
             {showActions && member.Admin_Submit === 0 && (
               <div className="mt-6 flex justify-end space-x-3">
                 <div className="flex-1">
-                  <label htmlFor="approveComment" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label
+                    htmlFor="approveComment"
+                    className="block text-sm font-medium text-gray-700 mb-1"
+                  >
                     ความคิดเห็น (ไม่บังคับ)
                   </label>
                   <textarea
@@ -373,14 +503,30 @@ export default function MemberDetailsModal({
                   >
                     {isApproving ? (
                       <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         กำลังอนุมัติ...
                       </>
                     ) : (
-                      'อนุมัติ'
+                      "อนุมัติ"
                     )}
                   </button>
                   <button
@@ -390,14 +536,30 @@ export default function MemberDetailsModal({
                   >
                     {isRejecting ? (
                       <>
-                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         กำลังปฏิเสธ...
                       </>
                     ) : (
-                      'ปฏิเสธ'
+                      "ปฏิเสธ"
                     )}
                   </button>
                 </div>
@@ -412,12 +574,10 @@ export default function MemberDetailsModal({
         <div className="fixed inset-0 bg-black bg-opacity-95 flex items-center justify-center z-[60] p-4">
           <div className="relative max-w-screen-lg max-h-screen w-full h-full flex items-center justify-center">
             {/* Top Control Bar - Only show zoom controls for images */}
-            {previewImage.type === 'image' && (
+            {previewImage.type === "image" && (
               <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 rounded-lg px-4 py-2 z-10 flex items-center space-x-4">
-                <div className="text-white text-sm">
-                  ซูม: {Math.round(zoomLevel * 100)}%
-                </div>
-                
+                <div className="text-white text-sm">ซูม: {Math.round(zoomLevel * 100)}%</div>
+
                 {/* Zoom Controls */}
                 <div className="flex items-center space-x-2">
                   <button
@@ -427,10 +587,15 @@ export default function MemberDetailsModal({
                     title="ซูมออก (-)"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM13 10H7"
+                      />
                     </svg>
                   </button>
-                  
+
                   <button
                     onClick={resetZoom}
                     className="text-white hover:text-gray-300 text-xs px-2 py-1 bg-gray-600 rounded"
@@ -438,7 +603,7 @@ export default function MemberDetailsModal({
                   >
                     รีเซ็ต
                   </button>
-                  
+
                   <button
                     onClick={zoomIn}
                     disabled={zoomLevel >= 5}
@@ -446,7 +611,12 @@ export default function MemberDetailsModal({
                     title="ซูมเข้า (+)"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -460,18 +630,30 @@ export default function MemberDetailsModal({
               title="ปิด (Esc)"
             >
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
-            
+
             {/* Content Container */}
-            <div 
+            <div
               className="flex flex-col items-center justify-center w-full h-full overflow-hidden"
-              onWheel={previewImage.type === 'image' ? handleWheel : undefined}
-              onMouseDown={previewImage.type === 'image' ? handleMouseDown : undefined}
-              style={{ cursor: previewImage.type === 'image' && zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+              onWheel={previewImage.type === "image" ? handleWheel : undefined}
+              onMouseDown={previewImage.type === "image" ? handleMouseDown : undefined}
+              style={{
+                cursor:
+                  previewImage.type === "image" && zoomLevel > 1
+                    ? isDragging
+                      ? "grabbing"
+                      : "grab"
+                    : "default",
+              }}
             >
-              {previewImage.type === 'image' ? (
+              {previewImage.type === "image" ? (
                 <img
                   ref={imageRef}
                   src={previewImage.path}
@@ -479,13 +661,13 @@ export default function MemberDetailsModal({
                   className="max-w-none transition-transform duration-200 ease-out select-none"
                   style={{
                     transform: `translate(${position.x}px, ${position.y}px) scale(${zoomLevel})`,
-                    transformOrigin: 'center center'
+                    transformOrigin: "center center",
                   }}
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "block";
                   }}
-                  onDoubleClick={() => zoomLevel === 1 ? handleZoom(1) : resetZoom()}
+                  onDoubleClick={() => (zoomLevel === 1 ? handleZoom(1) : resetZoom())}
                   draggable={false}
                 />
               ) : (
@@ -494,33 +676,53 @@ export default function MemberDetailsModal({
                   className="w-full h-full border-0 rounded-lg"
                   title={previewImage.name}
                   onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'block';
+                    e.target.style.display = "none";
+                    e.target.nextSibling.style.display = "block";
                   }}
                 />
               )}
-              
+
               {/* Error fallback */}
               <div className="hidden text-white text-center">
-                <svg className="w-16 h-16 mx-auto mb-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg
+                  className="w-16 h-16 mx-auto mb-4 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
                 </svg>
                 <p className="text-lg">ไม่สามารถโหลดไฟล์ได้</p>
                 <p className="text-sm text-gray-400 mt-2">{previewImage.name}</p>
               </div>
             </div>
-            
+
             {/* File name and instructions */}
             <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black bg-opacity-70 text-white px-4 py-2 rounded-md text-center">
               <p className="text-sm font-medium flex items-center justify-center">
-                {previewImage.type === 'pdf' && (
-                  <svg className="w-4 h-4 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                {previewImage.type === "pdf" && (
+                  <svg
+                    className="w-4 h-4 text-red-400 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
                   </svg>
                 )}
                 {previewImage.name}
               </p>
-              {previewImage.type === 'image' ? (
+              {previewImage.type === "image" ? (
                 <p className="text-xs text-gray-300 mt-1">
                   Mouse Wheel: ซูม | Double Click: ซูม/รีเซ็ต | Drag: เลื่อนภาพ | Esc: ปิด
                 </p>

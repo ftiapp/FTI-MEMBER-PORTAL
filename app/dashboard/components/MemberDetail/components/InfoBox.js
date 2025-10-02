@@ -1,7 +1,17 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaDesktop, FaEdit, FaMapMarkerAlt, FaCode, FaShoppingCart, FaShareAlt, FaImage, FaFileAlt, FaMousePointer } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import {
+  FaDesktop,
+  FaEdit,
+  FaMapMarkerAlt,
+  FaCode,
+  FaShoppingCart,
+  FaShareAlt,
+  FaImage,
+  FaFileAlt,
+  FaMousePointer,
+} from "react-icons/fa";
 
 /**
  * InfoBox component displays information about editable content
@@ -9,7 +19,7 @@ import { FaDesktop, FaEdit, FaMapMarkerAlt, FaCode, FaShoppingCart, FaShareAlt, 
  */
 const InfoBox = () => {
   return (
-    <motion.div 
+    <motion.div
       className="mb-4 p-3 sm:p-4 bg-blue-50 border-l-4 border-blue-500 rounded-md shadow-sm"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -20,11 +30,16 @@ const InfoBox = () => {
           <FaDesktop className="h-4 w-4 sm:h-5 sm:w-5 text-blue-500" />
         </div>
         <div className="ml-2 sm:ml-3 w-full">
-          <h3 className="text-xs sm:text-sm font-medium text-blue-800 mb-1 sm:mb-0">การใช้งานระบบ</h3>
+          <h3 className="text-xs sm:text-sm font-medium text-blue-800 mb-1 sm:mb-0">
+            การใช้งานระบบ
+          </h3>
           <div className="mt-1 sm:mt-2 text-xs sm:text-sm text-blue-700 space-y-2">
             <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-0">
               <div className="flex items-center mb-1 sm:mb-0">
-                <FaMousePointer className="inline mr-1 sm:mr-2 text-blue-600 flex-shrink-0" size={10} />
+                <FaMousePointer
+                  className="inline mr-1 sm:mr-2 text-blue-600 flex-shrink-0"
+                  size={10}
+                />
                 <span className="text-xs sm:text-sm">เลือกแถวข้อมูลเพื่อตรวจสอบรายละเอียด</span>
               </div>
               <span className="hidden sm:inline mx-2">|</span>
@@ -38,7 +53,7 @@ const InfoBox = () => {
                 <span className="text-xs sm:text-sm">กด "แก้ไขข้อมูล" เพื่อปรับปรุงข้อมูล</span>
               </div>
             </div>
-            
+
             <div className="pt-1 sm:pt-0">
               <div className="text-xs leading-relaxed">
                 <span className="font-medium">หมวดที่แก้ไขได้:</span>

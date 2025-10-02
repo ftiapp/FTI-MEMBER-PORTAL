@@ -1,25 +1,26 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { FaFileAlt, FaCircle, FaPencilAlt } from 'react-icons/fa';
-import { motion } from 'framer-motion';
-import { formatProductsList } from './utils';
-import EditProductForm from './EditProductForm';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from "react";
+import { FaFileAlt, FaCircle, FaPencilAlt } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { formatProductsList } from "./utils";
+import EditProductForm from "./EditProductForm";
+import { toast } from "react-toastify";
 
 /**
  * Component for displaying products and services list
  */
-const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, language = 'th' }) => {
+const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, language = "th" }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
-  
+
   // เลือกรายการสินค้าตามภาษาที่เลือก
-  const productsList = language === 'th' 
-    ? formatProductsList(companyInfo.PRODUCT_DESC_TH || '')
-    : formatProductsList(companyInfo.PRODUCT_DESC_EN || '');
-    
+  const productsList =
+    language === "th"
+      ? formatProductsList(companyInfo.PRODUCT_DESC_TH || "")
+      : formatProductsList(companyInfo.PRODUCT_DESC_EN || "");
+
   const memberCode = companyInfo.MEMBER_CODE || companyInfo.member_code;
 
   // Check if there's a pending product update request
@@ -32,17 +33,20 @@ const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, lang
   const checkPendingProductUpdate = async () => {
     try {
       setIsCheckingStatus(true);
-      const response = await fetch(`/api/member/check-pending-product-update?member_code=${memberCode}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `/api/member/check-pending-product-update?member_code=${memberCode}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       const data = await response.json();
       setHasPendingRequest(data.hasPendingRequest || false);
     } catch (error) {
-      console.error('Error checking pending product update:', error);
+      console.error("Error checking pending product update:", error);
     } finally {
       setIsCheckingStatus(false);
     }
@@ -63,7 +67,7 @@ const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, lang
 
   if (isEditing) {
     return (
-      <EditProductForm 
+      <EditProductForm
         companyInfo={companyInfo}
         onCancel={handleCancelEdit}
         onSuccess={handleEditSuccess}
@@ -83,9 +87,9 @@ const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, lang
     >
       <div className="flex justify-between items-center border-b pb-2">
         <h3 className="text-lg font-medium text-blue-600">
-          {language === 'th' ? 'สินค้าและบริการ' : 'Products and Services'}
+          {language === "th" ? "สินค้าและบริการ" : "Products and Services"}
         </h3>
-        
+
         <div>
           {hasPendingRequest ? (
             <div className="text-sm text-amber-600 bg-amber-50 px-3 py-1 rounded-md border border-amber-200">
@@ -103,17 +107,19 @@ const ProductsList = ({ companyInfo, memberType, memberGroupCode, typeCode, lang
           )}
         </div>
       </div>
-      
+
       {productsList.length === 0 ? (
         <div className="py-8 text-center text-gray-500 bg-gray-50 rounded-lg border border-gray-200 mt-4">
-          {language === 'th' ? 'ยังไม่มีข้อมูลสินค้าและบริการ' : 'No product and service information'}
+          {language === "th"
+            ? "ยังไม่มีข้อมูลสินค้าและบริการ"
+            : "No product and service information"}
         </div>
       ) : (
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-100 mt-4">
           <div className="flex items-start mb-3">
             <FaFileAlt className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
             <p className="font-medium text-gray-800">
-              {language === 'th' ? 'รายละเอียดสินค้า/บริการ' : 'Product/Service Details'}
+              {language === "th" ? "รายละเอียดสินค้า/บริการ" : "Product/Service Details"}
             </p>
           </div>
           <ul className="pl-8 space-y-2">

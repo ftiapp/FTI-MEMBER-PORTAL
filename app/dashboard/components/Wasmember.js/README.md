@@ -1,6 +1,7 @@
 # การปรับปรุงประสิทธิภาพการอัปโหลดไฟล์ PDF
 
 ระบบนี้ช่วยเพิ่มประสิทธิภาพการอัปโหลดไฟล์ PDF และรูปภาพสำหรับ FTI Portal โดยใช้เทคนิค:
+
 1. บีบอัดไฟล์ PDF และรูปภาพก่อนอัปโหลด
 2. อัปโหลดตรงจากเบราว์เซอร์ไป Cloudinary (ไม่ผ่านเซิร์ฟเวอร์)
 3. จำกัดการอัปโหลดพร้อมกันเพื่อความเสถียร
@@ -50,8 +51,8 @@
 
 ```javascript
 // ค่า config สำหรับ Cloudinary
-const CLOUDINARY_CLOUD_NAME = 'your-cloud-name'; // เปลี่ยนเป็น cloud name ของคุณ
-const CLOUDINARY_UPLOAD_PRESET = 'fti_direct_upload'; // เปลี่ยนเป็น upload preset ที่คุณสร้าง
+const CLOUDINARY_CLOUD_NAME = "your-cloud-name"; // เปลี่ยนเป็น cloud name ของคุณ
+const CLOUDINARY_UPLOAD_PRESET = "fti_direct_upload"; // เปลี่ยนเป็น upload preset ที่คุณสร้าง
 ```
 
 ## วิธีการใช้งาน
@@ -59,7 +60,7 @@ const CLOUDINARY_UPLOAD_PRESET = 'fti_direct_upload'; // เปลี่ยน�
 ### 1. ใช้ OptimizedFileUploader Component
 
 ```jsx
-import OptimizedFileUploader from '@/app/components/OptimizedFileUploader';
+import OptimizedFileUploader from "@/app/components/OptimizedFileUploader";
 
 // ภายในคอมโพเนนต์ของคุณ
 <OptimizedFileUploader
@@ -67,37 +68,38 @@ import OptimizedFileUploader from '@/app/components/OptimizedFileUploader';
   documentType="member_verification"
   folder="member_verification"
   maxConcurrent={2}
-  acceptedFileTypes={['.pdf', '.jpg', '.jpeg', '.png']}
+  acceptedFileTypes={[".pdf", ".jpg", ".jpeg", ".png"]}
   maxFileSize={5}
   onUploadComplete={handleUploadComplete}
-/>
+/>;
 ```
 
 ### 2. ใช้ฟังก์ชัน uploadFilesWithConcurrencyLimit โดยตรง
 
 ```jsx
-import { uploadFilesWithConcurrencyLimit } from '@/app/utils/optimizedUpload';
+import { uploadFilesWithConcurrencyLimit } from "@/app/utils/optimizedUpload";
 
 // ภายในฟังก์ชันของคุณ
 const handleFileUpload = async (files) => {
   const results = await uploadFilesWithConcurrencyLimit(
     files,
-    'member_verification',
+    "member_verification",
     2, // maxConcurrent
     (progress) => {
       // แสดงความคืบหน้า
       console.log(`${progress.percentage}% - ${progress.currentFile}`);
-    }
+    },
   );
-  
+
   // จัดการผลลัพธ์
-  console.log('Upload results:', results);
+  console.log("Upload results:", results);
 };
 ```
 
 ### 3. ตัวอย่างการใช้งานในหน้า Wasmember
 
 ดูตัวอย่างการใช้งานได้ที่:
+
 - `app/dashboard/components/Wasmember.js/components/OptimizedUploadExample.jsx`
 - `app/dashboard/components/Wasmember.js/components/OptimizedMemberInfoForm.jsx`
 

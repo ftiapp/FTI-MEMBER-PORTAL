@@ -1,21 +1,21 @@
-import { NextResponse } from 'next/server';
-import { getSession } from '@/app/lib/session';
-import { executeQueryWithoutTransaction } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { getSession } from "@/app/lib/session";
+import { executeQueryWithoutTransaction } from "@/app/lib/db";
 
 export async function GET(request) {
   try {
     const session = await getSession();
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     const userId = session.user.id;
     const { searchParams } = new URL(request.url);
-    const id = searchParams.get('id');
-    const type = searchParams.get('type'); // OC, IC, AM, AC
+    const id = searchParams.get("id");
+    const type = searchParams.get("type"); // OC, IC, AM, AC
 
     if (!id || !type) {
-      return NextResponse.json({ error: 'กรุณาระบุ ID และประเภทสมาชิก' }, { status: 400 });
+      return NextResponse.json({ error: "กรุณาระบุ ID และประเภทสมาชิก" }, { status: 400 });
     }
 
     let application = null;
@@ -28,12 +28,12 @@ export async function GET(request) {
 
     // Get main application data
     const memberTypeMap = {
-      'OC': 'สน',
-      'IC': 'ทบ',
-      'AM': 'สส',
-      'AC': 'ทน'
+      OC: "สน",
+      IC: "ทบ",
+      AM: "สส",
+      AC: "ทน",
     };
-    
+
     const mainQuery = `
       SELECT 
         m.id,
@@ -55,12 +55,12 @@ export async function GET(request) {
       FROM MemberRegist_${type}_Main m
       WHERE m.id = ?
     `;
-    
+
     const mainResult = await executeQueryWithoutTransaction(mainQuery, [id]);
     if (mainResult.length === 0) {
-      return NextResponse.json({ error: 'ไม่พบข้อมูลการสมัคร' }, { status: 404 });
+      return NextResponse.json({ error: "ไม่พบข้อมูลการสมัคร" }, { status: 404 });
     }
-    
+
     application = mainResult[0];
 
     // Get related data based on member type
@@ -116,7 +116,6 @@ export async function GET(request) {
         description
       FROM MemberRegist_${type}_Documents WHERE application_id = ?`;
       documents = await executeQueryWithoutTransaction(docsQuery, [id]);
-
     } catch (error) {
       console.warn(`Could not fetch related data for ${type}:`, error.message);
     }
@@ -128,14 +127,16 @@ export async function GET(request) {
       representatives,
       businessTypes,
       products,
-      documents
+      documents,
     });
-
   } catch (error) {
-    console.error('Error fetching application detail:', error);
-    return NextResponse.json({ 
-      error: 'เกิดข้อผิดพลาดในการดึงข้อมูล',
-      details: error.message
-    }, { status: 500 });
+    console.error("Error fetching application detail:", error);
+    return NextResponse.json(
+      {
+        error: "เกิดข้อผิดพลาดในการดึงข้อมูล",
+        details: error.message,
+      },
+      { status: 500 },
+    );
   }
 }

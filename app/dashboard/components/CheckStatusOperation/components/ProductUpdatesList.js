@@ -1,13 +1,17 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import StatusCard from './StatusCard';
-import EmptyState from './EmptyState';
-import { getProductStatusIcon, getProductStatusText, getProductStatusClass } from './productStatusUtils';
+import React from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import StatusCard from "./StatusCard";
+import EmptyState from "./EmptyState";
+import {
+  getProductStatusIcon,
+  getProductStatusText,
+  getProductStatusClass,
+} from "./productStatusUtils";
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-  exit: { opacity: 0, y: -20, transition: { duration: 0.2 } }
+  exit: { opacity: 0, y: -20, transition: { duration: 0.2 } },
 };
 
 const ProductUpdatesList = ({ productUpdates }) => {
@@ -17,7 +21,7 @@ const ProductUpdatesList = ({ productUpdates }) => {
 
   return (
     <div className="mb-8">
-      <motion.div 
+      <motion.div
         className="mb-4"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -27,7 +31,7 @@ const ProductUpdatesList = ({ productUpdates }) => {
           การอัปเดตรหัส TSIC
         </h4>
       </motion.div>
-      
+
       <AnimatePresence mode="wait">
         {productUpdates.map((operation, index) => (
           <motion.div
@@ -38,10 +42,10 @@ const ProductUpdatesList = ({ productUpdates }) => {
             exit="exit"
             layout
             className="mb-4"
-            whileHover={{ 
-              scale: 1.02, 
+            whileHover={{
+              scale: 1.02,
               boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-              transition: { type: "spring", stiffness: 400, damping: 17 }
+              transition: { type: "spring", stiffness: 400, damping: 17 },
             }}
           >
             <StatusCard
@@ -50,12 +54,12 @@ const ProductUpdatesList = ({ productUpdates }) => {
               description={operation.description}
               statusText={getProductStatusText(operation.status)}
               statusClass={getProductStatusClass(operation.status)}
-              date={new Date(operation.created_at).toLocaleDateString('th-TH', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+              date={new Date(operation.created_at).toLocaleDateString("th-TH", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
               })}
               details={operation}
             />

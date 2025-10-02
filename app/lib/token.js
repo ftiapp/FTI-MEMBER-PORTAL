@@ -1,13 +1,13 @@
-import crypto from 'crypto';
-import { query } from './db';
-import bcrypt from 'bcryptjs';
+import crypto from "crypto";
+import { query } from "./db";
+import bcrypt from "bcryptjs";
 
 /**
  * Generate a random token for email verification or password reset
  * @returns {string} - Random token
  */
 export function generateToken() {
-  return crypto.randomBytes(32).toString('hex');
+  return crypto.randomBytes(32).toString("hex");
 }
 
 /**
@@ -19,13 +19,14 @@ export async function createVerificationToken(userId) {
   const token = generateToken();
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
-  
+
   // Store token in database
-  await query(
-    'INSERT INTO verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-    [userId, token, expiresAt]
-  );
-  
+  await query("INSERT INTO verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
+    userId,
+    token,
+    expiresAt,
+  ]);
+
   return token;
 }
 
@@ -38,13 +39,14 @@ export async function createPasswordResetToken(userId) {
   const token = generateToken();
   const expiresAt = new Date();
   expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
-  
+
   // Store token in database
-  await query(
-    'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
-    [userId, token, expiresAt]
-  );
-  
+  await query("INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
+    userId,
+    token,
+    expiresAt,
+  ]);
+
   return token;
 }
 
@@ -57,31 +59,25 @@ export async function verifyToken(token) {
   try {
     // Find the token in the database
     const tokens = await query(
-      'SELECT * FROM verification_tokens WHERE token = ? AND expires_at > NOW() AND used = 0',
-      [token]
+      "SELECT * FROM verification_tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
+      [token],
     );
-    
+
     if (tokens.length === 0) {
       return false;
     }
-    
+
     const verificationToken = tokens[0];
-    
+
     // Mark the token as used
-    await query(
-      'UPDATE verification_tokens SET used = 1 WHERE id = ?',
-      [verificationToken.id]
-    );
-    
+    await query("UPDATE verification_tokens SET used = 1 WHERE id = ?", [verificationToken.id]);
+
     // Update user status to verified
-    await query(
-      'UPDATE users SET email_verified = 1 WHERE id = ?',
-      [verificationToken.user_id]
-    );
-    
+    await query("UPDATE users SET email_verified = 1 WHERE id = ?", [verificationToken.user_id]);
+
     return true;
   } catch (error) {
-    console.error('Error verifying token:', error);
+    console.error("Error verifying token:", error);
     return false;
   }
 }
@@ -95,20 +91,20 @@ export async function verifyPasswordResetToken(token) {
   try {
     // Find the token in the database
     const tokens = await query(
-      'SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > NOW() AND used = 0',
-      [token]
+      "SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
+      [token],
     );
-    
+
     if (tokens.length === 0) {
       return null;
     }
-    
+
     return {
       userId: tokens[0].user_id,
-      tokenId: tokens[0].id
+      tokenId: tokens[0].id,
     };
   } catch (error) {
-    console.error('Error verifying password reset token:', error);
+    console.error("Error verifying password reset token:", error);
     return null;
   }
 }
@@ -125,22 +121,16 @@ export async function resetPassword(tokenId, userId, newPassword) {
     // Hash the new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
-    
+
     // Update user password
-    await query(
-      'UPDATE users SET password = ? WHERE id = ?',
-      [hashedPassword, userId]
-    );
-    
+    await query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
+
     // Mark the token as used
-    await query(
-      'UPDATE password_reset_tokens SET used = 1 WHERE id = ?',
-      [tokenId]
-    );
-    
+    await query("UPDATE password_reset_tokens SET used = 1 WHERE id = ?", [tokenId]);
+
     return true;
   } catch (error) {
-    console.error('Error resetting password:', error);
+    console.error("Error resetting password:", error);
     return false;
   }
 }

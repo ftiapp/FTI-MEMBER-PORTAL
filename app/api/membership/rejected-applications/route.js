@@ -1,15 +1,15 @@
-import { NextResponse } from 'next/server';
-import { getConnection } from '@/app/lib/db';
-import { getUserFromSession } from '@/app/lib/userAuth';
+import { NextResponse } from "next/server";
+import { getConnection } from "@/app/lib/db";
+import { getUserFromSession } from "@/app/lib/userAuth";
 
 export async function GET(request) {
   let connection;
-  
+
   try {
     // Get user from session
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json({ success: false, message: 'กรุณาเข้าสู่ระบบ' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const userId = user.id;
@@ -17,8 +17,8 @@ export async function GET(request) {
 
     // Get pagination parameters
     const url = new URL(request.url);
-    const page = parseInt(url.searchParams.get('page')) || 1;
-    const limit = parseInt(url.searchParams.get('limit')) || 10;
+    const page = parseInt(url.searchParams.get("page")) || 1;
+    const limit = parseInt(url.searchParams.get("limit")) || 10;
     const offset = (page - 1) * limit;
 
     // Ensure limit/offset are safe integers
@@ -65,11 +65,14 @@ export async function GET(request) {
     const [rejectedApps] = await connection.execute(listQuery, [userId]);
 
     // Get total count
-    const [countResult] = await connection.execute(`
+    const [countResult] = await connection.execute(
+      `
       SELECT COUNT(*) as total 
       FROM MemberRegist_Reject_DATA 
       WHERE user_id = ? AND is_active = 1
-    `, [userId]);
+    `,
+      [userId],
+    );
 
     const total = countResult[0].total;
     const totalPages = Math.ceil(total / limit);
@@ -81,19 +84,23 @@ export async function GET(request) {
         currentPage: page,
         totalPages,
         totalItems: total,
-        itemsPerPage: limit
-      }
+        itemsPerPage: limit,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching rejected applications:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Failed to fetch rejected applications' 
-    }, { status: 500 });
+    console.error("Error fetching rejected applications:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to fetch rejected applications",
+      },
+      { status: 500 },
+    );
   } finally {
     if (connection) {
-      try { connection.release(); } catch {}
+      try {
+        connection.release();
+      } catch {}
     }
   }
 }

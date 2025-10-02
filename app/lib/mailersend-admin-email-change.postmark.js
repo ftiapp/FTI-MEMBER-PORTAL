@@ -1,4 +1,4 @@
-import * as postmark from 'postmark';
+import * as postmark from "postmark";
 import { getFTIEmailHtmlTemplate } from "./fti-email-template";
 
 // Initialize Postmark client with API key
@@ -17,7 +17,7 @@ const defaultSender = "noreply@fti.or.th";
  */
 export async function sendAdminEmailChangeVerification(newEmail, token) {
   // Create base URL for verification link
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
   const verificationLink = `${baseUrl}/admin/verify-email-change?token=${token}`;
 
   try {
@@ -36,7 +36,7 @@ export async function sendAdminEmailChangeVerification(newEmail, token) {
           <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
           <p style="color: #d97706; margin-top: 32px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-        `
+        `,
       }),
       TextBody: `
         ยืนยันการเปลี่ยนอีเมลผู้ดูแลระบบ - FTI Portal
@@ -49,7 +49,7 @@ export async function sendAdminEmailChangeVerification(newEmail, token) {
         
         หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {
@@ -81,7 +81,7 @@ export async function sendAdminEmailChangeNotification(oldEmail, newEmail) {
             <p style="margin-top: 8px; color: #9a3412;">นี่เป็นอีเมลแจ้งเตือนที่ส่งไปยังอีเมลเก่าของคุณ คุณจะไม่สามารถใช้อีเมลนี้ในการเข้าสู่ระบบได้อีกต่อไป</p>
           </div>
           <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาติดต่อผู้ดูแลระบบระดับสูงโดยด่วน</p>
-        `
+        `,
       }),
       TextBody: `
         การเปลี่ยนแปลงอีเมลผู้ดูแลระบบสำเร็จ - FTI Portal
@@ -96,7 +96,7 @@ export async function sendAdminEmailChangeNotification(oldEmail, newEmail) {
         
         หากคุณไม่ได้ดำเนินการนี้ กรุณาติดต่อผู้ดูแลระบบระดับสูงโดยด่วน
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {

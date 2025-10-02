@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { FaEnvelope } from 'react-icons/fa';
+import React from "react";
+import { FaEnvelope } from "react-icons/fa";
 
 const ContactHeader = () => {
   return (
@@ -12,7 +12,9 @@ const ContactHeader = () => {
         </div>
         <h2 className="text-2xl font-bold text-blue-900">ติดต่อสอบถาม</h2>
       </div>
-      <p className="text-gray-600 ml-12">หากท่านมีข้อสงสัยหรือต้องการสอบถามข้อมูลเพิ่มเติม สามารถติดต่อเราได้ที่นี่</p>
+      <p className="text-gray-600 ml-12">
+        หากท่านมีข้อสงสัยหรือต้องการสอบถามข้อมูลเพิ่มเติม สามารถติดต่อเราได้ที่นี่
+      </p>
     </div>
   );
 };

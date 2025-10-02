@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { LoadingOverlay } from "./shared";
 
-export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5, onPageChange, onTotalItemsChange }) {
+export default function RejectedApplications({
+  currentPage = 1,
+  itemsPerPage = 5,
+  onPageChange,
+  onTotalItemsChange,
+}) {
   const [rejectedApps, setRejectedApps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -24,20 +30,22 @@ export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5
   const fetchRejectedApplications = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/membership/rejected-applications?page=${currentPage}&limit=${itemsPerPage}`);
+      const response = await fetch(
+        `/api/membership/rejected-applications?page=${currentPage}&limit=${itemsPerPage}`,
+      );
       const result = await response.json();
 
       if (result.success) {
         setRejectedApps(result.data || []);
         setTotalItems(result.pagination?.totalItems || result.totalItems || 0);
       } else {
-        setError(result.message || 'Failed to fetch rejected applications');
+        setError(result.message || "Failed to fetch rejected applications");
         setRejectedApps([]);
         setTotalItems(0);
       }
     } catch (error) {
-      console.error('Error fetching rejected applications:', error);
-      setError('Failed to fetch rejected applications');
+      console.error("Error fetching rejected applications:", error);
+      setError("Failed to fetch rejected applications");
       setRejectedApps([]);
       setTotalItems(0);
     } finally {
@@ -51,65 +59,70 @@ export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5
   };
 
   const handleCancelApplication = async (app) => {
-    if (!confirm('คุณแน่ใจหรือไม่ที่จะยกเลิกใบสมัครนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้')) {
+    if (!confirm("คุณแน่ใจหรือไม่ที่จะยกเลิกใบสมัครนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/membership/rejected-applications/${app.id}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
 
       const result = await response.json();
 
       if (result.success) {
-        alert('ยกเลิกใบสมัครเรียบร้อยแล้ว');
+        alert("ยกเลิกใบสมัครเรียบร้อยแล้ว");
         fetchRejectedApplications(); // Refresh the list
       } else {
-        alert('เกิดข้อผิดพลาด: ' + result.message);
+        alert("เกิดข้อผิดพลาด: " + result.message);
       }
     } catch (error) {
-      console.error('Error cancelling application:', error);
-      alert('เกิดข้อผิดพลาดในการยกเลิกใบสมัคร');
+      console.error("Error cancelling application:", error);
+      alert("เกิดข้อผิดพลาดในการยกเลิกใบสมัคร");
     }
   };
 
   const getMembershipTypeLabel = (type) => {
     const labels = {
-      'oc': 'สามัญ-โรงงาน (OC)',
-      'ac': 'สมทบ-นิติบุคคล (AC)', 
-      'am': 'สามัญ-สมาคมการค้า (AM)',
-      'ic': 'สมทบ-บุคคลธรรมดา (IC)'
+      oc: "สามัญ-โรงงาน (OC)",
+      ac: "สมทบ-นิติบุคคล (AC)",
+      am: "สามัญ-สมาคมการค้า (AM)",
+      ic: "สมทบ-บุคคลธรรมดา (IC)",
     };
     return labels[type] || type.toUpperCase();
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('th-TH', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("th-TH", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
-      </div>
-    );
+    return <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูล..." inline={true} />;
   }
 
   if (error) {
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">
-          <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-12 h-12 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p className="text-lg font-medium">เกิดข้อผิดพลาด</p>
           <p className="text-sm text-gray-600 mt-1">{error}</p>
@@ -128,8 +141,18 @@ export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5
     return (
       <div className="text-center py-12">
         <div className="text-gray-400 mb-4">
-          <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          <svg
+            className="w-16 h-16 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+            />
           </svg>
           <p className="text-lg font-medium text-gray-600">ไม่มีเอกสารที่รอการแก้ไข</p>
           <p className="text-sm text-gray-500 mt-1">เมื่อมีใบสมัครที่ถูกปฏิเสธ จะแสดงที่นี่</p>
@@ -144,27 +167,43 @@ export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5
       {totalItems > 0 && (
         <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
           <span>
-            แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-{Math.min(currentPage * itemsPerPage, totalItems)} จาก {totalItems} รายการ
+            แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-
+            {Math.min(currentPage * itemsPerPage, totalItems)} จาก {totalItems} รายการ
           </span>
-          <span>หน้า {currentPage} จาก {Math.ceil(totalItems / itemsPerPage)}</span>
+          <span>
+            หน้า {currentPage} จาก {Math.ceil(totalItems / itemsPerPage)}
+          </span>
         </div>
       )}
 
       {/* รายการใบสมัครที่ถูกปฏิเสธ */}
       {rejectedApps.map((app) => (
-        <div key={app.id} className="bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+        <div
+          key={app.id}
+          className="bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+        >
           <div className="p-6">
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
-                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5 text-red-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                   </div>
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {app.application_name || 'ใบสมัครสมาชิก'}
+                      {app.application_name || "ใบสมัครสมาชิก"}
                     </h3>
                     <p className="text-sm text-gray-600">
                       {getMembershipTypeLabel(app.membership_type)}
@@ -175,7 +214,7 @@ export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p className="text-sm font-medium text-gray-700">เลขประจำตัว:</p>
-                    <p className="text-sm text-gray-600">{app.identifier || '-'}</p>
+                    <p className="text-sm text-gray-600">{app.identifier || "-"}</p>
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-700">วันที่ปฏิเสธ:</p>
@@ -201,7 +240,6 @@ export default function RejectedApplications({ currentPage = 1, itemsPerPage = 5
                     </div>
                   </div>
                 )}
-
               </div>
             </div>
 

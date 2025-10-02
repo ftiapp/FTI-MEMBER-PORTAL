@@ -1,30 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/contexts/AuthContext';
-import Navbar from '@/app/components/Navbar';
-import Footer from '@/app/components/Footer';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/app/contexts/AuthContext";
+import Navbar from "@/app/components/Navbar";
+import Footer from "@/app/components/Footer";
 
 // Import components
-import HeroSection from './components/HeroSection';
-import NotificationsHeader from './components/NotificationsHeader';
-import LoadingState from './components/LoadingState';
-import ErrorState from './components/ErrorState';
-import EmptyState from './components/EmptyState';
-import NotificationList from './components/NotificationList';
+import HeroSection from "./components/HeroSection";
+import NotificationsHeader from "./components/NotificationsHeader";
+import LoadingState from "./components/LoadingState";
+import ErrorState from "./components/ErrorState";
+import EmptyState from "./components/EmptyState";
+import NotificationList from "./components/NotificationList";
 
 // Import custom hook
-import { useNotifications } from './hooks/useNotifications';
+import { useNotifications } from "./hooks/useNotifications";
 
 const NotificationsPage = () => {
   const { user } = useAuth();
-  const { 
-    notifications, 
-    loading, 
-    error, 
-    markAsRead, 
-    markAllAsRead 
-  } = useNotifications(user);
+  const { notifications, loading, error, markAsRead, markAllAsRead } = useNotifications(user);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,7 +38,7 @@ const NotificationsPage = () => {
   const handlePageChange = (page) => {
     setCurrentPage(page);
     // Scroll to top of notifications list
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
@@ -53,16 +47,16 @@ const NotificationsPage = () => {
       <main className="bg-gray-50 min-h-screen flex-grow">
         {/* Hero Section */}
         <HeroSection />
-        
+
         <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
           {/* Dashboard Header */}
-          <NotificationsHeader 
+          <NotificationsHeader
             notifications={notifications}
             markAllAsRead={markAllAsRead}
             startIndex={startIndex}
             endIndex={endIndex}
           />
-          
+
           <div className="bg-white rounded-lg shadow-sm p-6">
             {loading ? (
               <LoadingState />
@@ -71,7 +65,7 @@ const NotificationsPage = () => {
             ) : notifications.length === 0 ? (
               <EmptyState />
             ) : (
-              <NotificationList 
+              <NotificationList
                 notifications={currentNotifications}
                 currentPage={currentPage}
                 totalPages={totalPages}

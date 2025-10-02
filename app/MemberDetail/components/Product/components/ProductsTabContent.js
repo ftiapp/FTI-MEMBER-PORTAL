@@ -1,39 +1,39 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import React, { useState, useEffect } from 'react';
-import { InformationCircleIcon } from '@heroicons/react/24/solid';
-import { toast } from 'react-toastify';
+import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { InformationCircleIcon } from "@heroicons/react/24/solid";
+import { toast } from "react-toastify";
 
-import ProductsList from './ProductsList';
-import { formatProductsList } from './utils';
-import { fetchMainCategories } from './api';
-import LanguageToggle from './tsic/LanguageToggle';
-import TsicCodeManager from './TsicCodeManager';
+import ProductsList from "./ProductsList";
+import { formatProductsList } from "./utils";
+import { fetchMainCategories } from "./api";
+import LanguageToggle from "./tsic/LanguageToggle";
+import TsicCodeManager from "./TsicCodeManager";
 
 /**
  * Products tab content for the member detail page
  */
 export default function ProductsTabContent({ companyInfo, memberType, memberGroupCode, typeCode }) {
   const [showCategoryInfo, setShowCategoryInfo] = useState(false);
-  const [language, setLanguage] = useState('th'); // 'th' หรือ 'en'
+  const [language, setLanguage] = useState("th"); // 'th' หรือ 'en'
   const [mainCategories, setMainCategories] = useState([]);
   const productsList = formatProductsList(companyInfo.PRODUCT_DESC_TH);
   const memberCode = companyInfo.MEMBER_CODE || companyInfo.member_code;
-  
+
   // โหลดข้อมูลหมวดหมู่ใหญ่เมื่อ component ถูกโหลด
   useEffect(() => {
     if (memberCode) {
       loadMainCategories();
     }
   }, [memberCode]);
-  
+
   // รีเรนเดอร์เมื่อมีการเปลี่ยนภาษา
   useEffect(() => {
     // เมื่อมีการเปลี่ยนภาษา ให้บังคับให้ component รีเรนเดอร์
-    console.log('Language changed to:', language);
+    console.log("Language changed to:", language);
   }, [language]);
-  
+
   // ฟังก์ชันสำหรับโหลดข้อมูลหมวดหมู่ใหญ่
   const loadMainCategories = async () => {
     try {
@@ -41,20 +41,20 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
       if (result.success) {
         setMainCategories(result.data || []);
       } else {
-        console.error('Error fetching main categories:', result.message);
+        console.error("Error fetching main categories:", result.message);
       }
     } catch (error) {
-      console.error('Error loading main categories:', error);
+      console.error("Error loading main categories:", error);
     }
   };
-  
+
   // Toggle language
   const toggleLanguage = () => {
-    setLanguage(prev => prev === 'th' ? 'en' : 'th');
+    setLanguage((prev) => (prev === "th" ? "en" : "th"));
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -76,23 +76,22 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
           </div>
           <div className="flex items-center space-x-2">
             <span className="text-sm text-gray-500">ภาษา:</span>
-            <LanguageToggle 
-              language={language} 
-              onToggle={toggleLanguage} 
-            />
+            <LanguageToggle language={language} onToggle={toggleLanguage} />
           </div>
         </div>
-        
+
         {/* ข้อมูลหมวดหมู่ใหญ่ */}
         {showCategoryInfo && (
           <div className="mb-4 p-4 bg-gray-50 rounded-md">
             <h3 className="text-lg font-medium text-gray-900 mb-2">หมวดหมู่ TSIC</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {mainCategories.map(category => (
+              {mainCategories.map((category) => (
                 <div key={category.id} className="p-3 bg-white rounded border border-gray-200">
                   <p className="font-medium text-gray-900">{category.category_code}</p>
                   <p className="text-sm text-gray-600">
-                    {language === 'th' ? category.category_name : (category.category_name_EN || category.category_name)}
+                    {language === "th"
+                      ? category.category_name
+                      : category.category_name_EN || category.category_name}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
                     จำนวนรายการ: {category.item_count || 0}
@@ -105,11 +104,11 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
             </p>
           </div>
         )}
-        
+
         <div className="border-t border-gray-200 pt-4">
-          <TsicCodeManager 
-            memberCode={memberCode} 
-            language={language} 
+          <TsicCodeManager
+            memberCode={memberCode}
+            language={language}
             memberType={memberType}
             memberGroupCode={memberGroupCode}
             typeCode={typeCode}
@@ -120,11 +119,11 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
       {/* Products List Section */}
       <section className="bg-white p-6 rounded-lg shadow-md mt-8">
         <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          {language === 'th' ? 'สินค้าและบริการ' : 'Products and Services'}
+          {language === "th" ? "สินค้าและบริการ" : "Products and Services"}
         </h2>
         <div className="border-t border-gray-200 pt-4">
-          <ProductsList 
-            companyInfo={companyInfo} 
+          <ProductsList
+            companyInfo={companyInfo}
             memberType={memberType}
             memberGroupCode={memberGroupCode}
             typeCode={typeCode}
@@ -132,7 +131,6 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
           />
         </div>
       </section>
-
     </motion.div>
   );
 }
@@ -140,9 +138,9 @@ export default function ProductsTabContent({ companyInfo, memberType, memberGrou
 // Set default props
 ProductsTabContent.defaultProps = {
   companyInfo: {
-    tsic_codes: []
+    tsic_codes: [],
   },
-  memberType: '',
-  memberGroupCode: '',
-  typeCode: ''
+  memberType: "",
+  memberGroupCode: "",
+  typeCode: "",
 };

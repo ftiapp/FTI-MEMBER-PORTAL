@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { mssqlQuery } from '@/app/lib/mssql';
+import { NextResponse } from "next/server";
+import { mssqlQuery } from "@/app/lib/mssql";
 
 /**
  * API endpoint to fetch member details by member code using the stored procedure
@@ -11,32 +11,29 @@ export async function GET(request, { params }) {
   try {
     // ต้อง await params ก่อนใช้งานใน Next.js App Router
     const { memberCode } = await params;
-    
+
     if (!memberCode) {
-      return NextResponse.json(
-        { error: 'ไม่ได้ระบุรหัสสมาชิก' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ไม่ได้ระบุรหัสสมาชิก" }, { status: 400 });
     }
-    
-    console.log('Fetching member details for member code:', memberCode);
-    
+
+    console.log("Fetching member details for member code:", memberCode);
+
     // Execute the stored procedure
-    const result = await mssqlQuery(`EXEC [dbo].[sp_GetMemberDetailByMemberCode_FTI_PORTAL] @member_code = @param0`, [memberCode]);
-    
+    const result = await mssqlQuery(
+      `EXEC [dbo].[sp_GetMemberDetailByMemberCode_FTI_PORTAL] @member_code = @param0`,
+      [memberCode],
+    );
+
     if (!result || !result.recordset || result.recordset.length === 0) {
-      return NextResponse.json(
-        { error: 'ไม่พบข้อมูลสมาชิก' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "ไม่พบข้อมูลสมาชิก" }, { status: 404 });
     }
-    
+
     // Group the results by REGIST_CODE to handle multiple addresses for the same company
     const groupedResults = {};
-    
-    result.recordset.forEach(record => {
+
+    result.recordset.forEach((record) => {
       const registCode = record.REGIST_CODE;
-      
+
       if (!groupedResults[registCode]) {
         groupedResults[registCode] = {
           companyInfo: {
@@ -57,29 +54,29 @@ export async function GET(request, { params }) {
             Province_GROUP_NAME: record.Province_GROUP_NAME,
             Province_GROUP_NAME_EN: record.Province_GROUP_NAME_EN,
             PRODUCT_DESC_TH: record.PRODUCT_DESC_TH,
-            PRODUCT_DESC_EN: record.PRODUCT_DESC_EN
+            PRODUCT_DESC_EN: record.PRODUCT_DESC_EN,
           },
           addresses: {},
           representatives: {
             right: [
               { th: record.Right_REPRESENT_1, en: record.Right_REPRESENT_1_EN },
               { th: record.Right_REPRESENT_2, en: record.Right_REPRESENT_2_EN },
-              { th: record.Right_REPRESENT_3, en: record.Right_REPRESENT_3_EN }
+              { th: record.Right_REPRESENT_3, en: record.Right_REPRESENT_3_EN },
             ],
             industry: [
               { th: record.Industry_REPRESENT_1, en: record.Industry_REPRESENT_1_EN },
               { th: record.Industry_REPRESENT_2, en: record.Industry_REPRESENT_2_EN },
-              { th: record.Industry_REPRESENT_3, en: record.Industry_REPRESENT_3_EN }
+              { th: record.Industry_REPRESENT_3, en: record.Industry_REPRESENT_3_EN },
             ],
             province: [
               { th: record.Province_REPRESENT_1, en: record.Province_REPRESENT_1_EN },
               { th: record.Province_REPRESENT_2, en: record.Province_REPRESENT_2_EN },
-              { th: record.Province_REPRESENT_3, en: record.Province_REPRESENT_3_EN }
-            ]
-          }
+              { th: record.Province_REPRESENT_3, en: record.Province_REPRESENT_3_EN },
+            ],
+          },
         };
       }
-      
+
       // Add address information based on ADDR_CODE
       groupedResults[registCode].addresses[record.ADDR_CODE] = {
         ADDR_CODE: record.ADDR_CODE,
@@ -105,20 +102,19 @@ export async function GET(request, { params }) {
         ADDR_POSTCODE_EN: record.ADDR_POSTCODE_EN,
         ADDR_TELEPHONE_EN: record.ADDR_TELEPHONE_EN,
         ADDR_EMAIL_EN: record.ADDR_EMAIL_EN,
-        ADDR_WEBSITE: record.ADDR_WEBSITE
+        ADDR_WEBSITE: record.ADDR_WEBSITE,
       };
     });
-    
+
     return NextResponse.json({
       success: true,
-      data: groupedResults
+      data: groupedResults,
     });
-    
   } catch (error) {
-    console.error('Error fetching member details:', error);
+    console.error("Error fetching member details:", error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก', details: error.message },
-      { status: 500 }
+      { error: "เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก", details: error.message },
+      { status: 500 },
     );
   }
 }

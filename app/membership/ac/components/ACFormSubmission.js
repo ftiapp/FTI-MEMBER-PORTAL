@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { toast } from 'react-hot-toast';
+import { toast } from "react-hot-toast";
 
 /**
  * ตรวจสอบ Tax ID ว่าซ้ำในระบบหรือไม่
@@ -9,34 +9,34 @@ import { toast } from 'react-hot-toast';
  */
 export const checkTaxIdUniqueness = async (taxId) => {
   try {
-    const response = await fetch('/api/membership/check-tax-id', {
-      method: 'POST',
+    const response = await fetch("/api/membership/check-tax-id", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ taxId, memberType: 'AC' }),
+      body: JSON.stringify({ taxId, memberType: "AC" }),
     });
 
     const data = await response.json();
 
     // ตรวจสอบสถานะจาก API โดยดูจาก status ที่ส่งกลับมา
-    if (response.status !== 200 || data.status === 'pending' || data.status === 'approved') {
+    if (response.status !== 200 || data.status === "pending" || data.status === "approved") {
       return {
         isUnique: false,
-        message: data.message || 'เลขประจำตัวผู้เสียภาษีนี้มีในระบบแล้ว'
+        message: data.message || "เลขประจำตัวผู้เสียภาษีนี้มีในระบบแล้ว",
       };
     }
-    
+
     // ถ้า status เป็น available แสดงว่าสามารถใช้งานได้
     return {
-      isUnique: data.status === 'available',
-      message: data.message || 'เลขประจำตัวผู้เสียภาษีสามารถใช้งานได้'
+      isUnique: data.status === "available",
+      message: data.message || "เลขประจำตัวผู้เสียภาษีสามารถใช้งานได้",
     };
   } catch (error) {
-    console.error('Error checking tax ID:', error);
+    console.error("Error checking tax ID:", error);
     return {
       isUnique: false,
-      message: 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูล กรุณาลองใหม่อีกครั้ง'
+      message: "เกิดข้อผิดพลาดในการตรวจสอบข้อมูล กรุณาลองใหม่อีกครั้ง",
     };
   }
 };
@@ -56,7 +56,7 @@ export const submitACMembershipForm = async (data) => {
     // Keep representatives as-is using camelCase keys expected by the API route
     // API will parse and accept: prenameTh, prenameEn, prenameOther, firstNameTh, lastNameTh, firstNameEn, lastNameEn, position, email, phone, phoneExtension, isPrimary
     // Do NOT remap to snake_case here; the API does its own mapping/fallbacks.
-    
+
     if (data.contactPerson) {
       mappedData.contactPersonPosition = data.contactPerson.position;
       mappedData.contactPersonFirstName = data.contactPerson.firstNameThai;
@@ -65,7 +65,7 @@ export const submitACMembershipForm = async (data) => {
       mappedData.contactPersonLastNameEng = data.contactPerson.lastNameEng;
       mappedData.contactPersonEmail = data.contactPerson.email;
       mappedData.contactPersonPhone = data.contactPerson.phone;
-      
+
       delete mappedData.contactPerson;
     }
 
@@ -75,11 +75,11 @@ export const submitACMembershipForm = async (data) => {
         formDataToSend.append(key, value, value.name);
       }
       // 2) If value is an object containing a File under the 'file' property (common for other uploads)
-      else if (value && typeof value === 'object' && value.file instanceof File) {
+      else if (value && typeof value === "object" && value.file instanceof File) {
         formDataToSend.append(key, value.file, value.name || value.file.name);
       }
       // 3) Special handling for multiple production images
-      else if (key === 'productionImages' && Array.isArray(value)) {
+      else if (key === "productionImages" && Array.isArray(value)) {
         value.forEach((fileObj, index) => {
           if (fileObj && fileObj.file instanceof File) {
             formDataToSend.append(`${key}[${index}]`, fileObj.file, fileObj.name);
@@ -87,7 +87,7 @@ export const submitACMembershipForm = async (data) => {
         });
       }
       // 4) Objects/arrays are stringified (non-file payloads)
-      else if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+      else if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
         formDataToSend.append(key, JSON.stringify(value));
       }
       // 5) Primitives
@@ -95,33 +95,41 @@ export const submitACMembershipForm = async (data) => {
         formDataToSend.append(key, value);
       }
     };
-    
+
     // ✅ ตรวจสอบและเตรียมข้อมูลกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด
-    console.log('=== Processing Industry Groups and Provincial Chapters ===');
-    
+    console.log("=== Processing Industry Groups and Provincial Chapters ===");
+
     // ตรวจสอบว่ามีข้อมูลชื่อกลุ่มอุตสาหกรรมหรือไม่
-    if (mappedData.industrialGroups && Array.isArray(mappedData.industrialGroups) && 
-        (!mappedData.industrialGroupNames || !Array.isArray(mappedData.industrialGroupNames) || 
-         mappedData.industrialGroupNames.length !== mappedData.industrialGroups.length)) {
-      console.log('Setting industrialGroupNames as fallback from IDs');
-      mappedData.industrialGroupNames = mappedData.industrialGroups.map(id => id.toString());
+    if (
+      mappedData.industrialGroups &&
+      Array.isArray(mappedData.industrialGroups) &&
+      (!mappedData.industrialGroupNames ||
+        !Array.isArray(mappedData.industrialGroupNames) ||
+        mappedData.industrialGroupNames.length !== mappedData.industrialGroups.length)
+    ) {
+      console.log("Setting industrialGroupNames as fallback from IDs");
+      mappedData.industrialGroupNames = mappedData.industrialGroups.map((id) => id.toString());
     }
-    
+
     // ตรวจสอบว่ามีข้อมูลชื่อสภาอุตสาหกรรมจังหวัดหรือไม่
-    if (mappedData.provincialChapters && Array.isArray(mappedData.provincialChapters) && 
-        (!mappedData.provincialChapterNames || !Array.isArray(mappedData.provincialChapterNames) || 
-         mappedData.provincialChapterNames.length !== mappedData.provincialChapters.length)) {
-      console.log('Setting provincialChapterNames as fallback from IDs');
-      mappedData.provincialChapterNames = mappedData.provincialChapters.map(id => id.toString());
+    if (
+      mappedData.provincialChapters &&
+      Array.isArray(mappedData.provincialChapters) &&
+      (!mappedData.provincialChapterNames ||
+        !Array.isArray(mappedData.provincialChapterNames) ||
+        mappedData.provincialChapterNames.length !== mappedData.provincialChapters.length)
+    ) {
+      console.log("Setting provincialChapterNames as fallback from IDs");
+      mappedData.provincialChapterNames = mappedData.provincialChapters.map((id) => id.toString());
     }
     // ✅ Normalize address fields to use 'street' (keep 'road' for backward compatibility)
-    const streetValue = mappedData.street || mappedData.road || '';
+    const streetValue = mappedData.street || mappedData.road || "";
     if (streetValue) {
       mappedData.street = streetValue;
       mappedData.road = streetValue;
     }
     // Normalize nested addresses object if provided
-    if (mappedData.addresses && typeof mappedData.addresses === 'object') {
+    if (mappedData.addresses && typeof mappedData.addresses === "object") {
       mappedData.addresses = Object.entries(mappedData.addresses).reduce((acc, [type, addr]) => {
         const a = { ...(addr || {}) };
         if (!a.street && a.road) a.street = a.road;
@@ -136,73 +144,77 @@ export const submitACMembershipForm = async (data) => {
     }
 
     // Ensure authorized signatory name fields are included
-    if (data.authorizedSignatoryFirstNameTh) formDataToSend.append('authorizedSignatoryFirstNameTh', data.authorizedSignatoryFirstNameTh);
-    if (data.authorizedSignatoryLastNameTh) formDataToSend.append('authorizedSignatoryLastNameTh', data.authorizedSignatoryLastNameTh);
-    if (data.authorizedSignatoryFirstNameEn) formDataToSend.append('authorizedSignatoryFirstNameEn', data.authorizedSignatoryFirstNameEn);
-    if (data.authorizedSignatoryLastNameEn) formDataToSend.append('authorizedSignatoryLastNameEn', data.authorizedSignatoryLastNameEn);
+    if (data.authorizedSignatoryFirstNameTh)
+      formDataToSend.append("authorizedSignatoryFirstNameTh", data.authorizedSignatoryFirstNameTh);
+    if (data.authorizedSignatoryLastNameTh)
+      formDataToSend.append("authorizedSignatoryLastNameTh", data.authorizedSignatoryLastNameTh);
+    if (data.authorizedSignatoryFirstNameEn)
+      formDataToSend.append("authorizedSignatoryFirstNameEn", data.authorizedSignatoryFirstNameEn);
+    if (data.authorizedSignatoryLastNameEn)
+      formDataToSend.append("authorizedSignatoryLastNameEn", data.authorizedSignatoryLastNameEn);
 
-    formDataToSend.append('memberType', 'AC');
+    formDataToSend.append("memberType", "AC");
 
     if (mappedData.rejectionId) {
-      formDataToSend.append('rejectionId', mappedData.rejectionId);
+      formDataToSend.append("rejectionId", mappedData.rejectionId);
     }
 
-    const response = await fetch('/api/member/ac-membership/submit', {
-      method: 'POST',
+    const response = await fetch("/api/member/ac-membership/submit", {
+      method: "POST",
       body: formDataToSend,
     });
-    
+
     const result = await response.json();
-    
+
     if (!response.ok) {
       return {
         success: false,
-        message: result.message || 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง'
+        message: result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง",
       };
     }
-    
-    console.log('=== AC Form Submission Complete ===');
-    
+
+    console.log("=== AC Form Submission Complete ===");
+
     // Create notification
     try {
       const memberData = {
         taxId: data.taxId,
         companyNameTh: data.companyNameTh,
         companyNameEn: data.companyNameEn,
-        applicantName: `${data.firstNameTh || ''} ${data.lastNameTh || ''}`.trim()
+        applicantName: `${data.firstNameTh || ""} ${data.lastNameTh || ""}`.trim(),
       };
 
-      await fetch('/api/notifications/membership', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      await fetch("/api/notifications/membership", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          membershipType: 'ac',
+          membershipType: "ac",
           memberData,
-          memberId: result.memberId
-        })
+          memberId: result.memberId,
+        }),
       });
     } catch (notificationError) {
-      console.error('Error creating notification:', notificationError);
+      console.error("Error creating notification:", notificationError);
       // Don't fail the submission if notification fails
     }
-    
+
     return {
       success: true,
-      message: 'ส่งข้อมูลสมัครสมาชิก AC สำเร็จ',
+      message: "ส่งข้อมูลสมัครสมาชิก AC สำเร็จ",
       memberId: result.memberId,
       memberData: {
         taxId: data.taxId,
         companyNameTh: data.companyNameTh,
         companyNameEn: data.companyNameEn,
-        applicantName: `${data.firstNameTh || ''} ${data.lastNameTh || ''}`.trim()
+        applicantName: `${data.firstNameTh || ""} ${data.lastNameTh || ""}`.trim(),
       },
-      redirectUrl: '/dashboard?tab=documents'
+      redirectUrl: "/dashboard?tab=documents",
     };
   } catch (error) {
-    console.error('Error submitting form:', error);
+    console.error("Error submitting form:", error);
     return {
       success: false,
-      message: 'เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง'
+      message: "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง",
     };
   }
 };

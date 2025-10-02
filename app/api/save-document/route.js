@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { query } from '../../lib/db';
-import { cookies } from 'next/headers';
-import { verifyToken } from '../../lib/token';
+import { NextResponse } from "next/server";
+import { query } from "../../lib/db";
+import { cookies } from "next/headers";
+import { verifyToken } from "../../lib/token";
 
 /**
  * API endpoint สำหรับบันทึกข้อมูลเอกสารที่อัปโหลดตรงไปยัง Cloudinary
@@ -11,51 +11,47 @@ import { verifyToken } from '../../lib/token';
 export async function POST(request) {
   try {
     // ดึงข้อมูลจาก request body
-    const { 
-      url, 
-      public_id, 
-      fileName, 
-      fileSize, 
-      fileType, 
-      userId, 
-      documentType 
-    } = await request.json();
-    
+    const { url, public_id, fileName, fileSize, fileType, userId, documentType } =
+      await request.json();
+
     // ตรวจสอบข้อมูลที่จำเป็น
     if (!url || !public_id || !fileName || !documentType) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'ข้อมูลไม่ครบถ้วน กรุณาระบุ url, public_id, fileName และ documentType' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "ข้อมูลไม่ครบถ้วน กรุณาระบุ url, public_id, fileName และ documentType",
+        },
+        { status: 400 },
+      );
     }
-    
+
     // ตรวจสอบ userId จาก request หรือ token
     let userIdToUse = userId;
-    
+
     if (!userIdToUse) {
       // ถ้าไม่มี userId ในคำขอ ให้ดึงจาก token
       const cookieStore = cookies();
-      const token = cookieStore.get('token')?.value;
-      
+      const token = cookieStore.get("token")?.value;
+
       if (token) {
         try {
           const decoded = await verifyToken(token);
           userIdToUse = decoded.userId;
         } catch (error) {
-          console.error('Token verification failed:', error);
+          console.error("Token verification failed:", error);
         }
       }
     }
-    
+
     // ตรวจสอบว่า user มีอยู่จริงหรือไม่
     if (userIdToUse) {
-      const userResult = await query('SELECT id FROM users WHERE id = ? LIMIT 1', [userIdToUse]);
+      const userResult = await query("SELECT id FROM users WHERE id = ? LIMIT 1", [userIdToUse]);
       if (userResult.length === 0) {
         // ถ้าไม่พบ user ให้ใช้ fallback เป็น admin หรือ user คนแรก
         const fallbackUserResult = await query(
-          'SELECT id FROM users WHERE role = "admin" OR id = 1 LIMIT 1'
+          'SELECT id FROM users WHERE role = "admin" OR id = 1 LIMIT 1',
         );
-        
+
         if (fallbackUserResult.length > 0) {
           userIdToUse = fallbackUserResult[0].id;
         } else {
@@ -64,7 +60,7 @@ export async function POST(request) {
         }
       }
     }
-    
+
     // บันทึกข้อมูลเอกสารลงในตาราง documents
     const insertResult = await query(
       `INSERT INTO documents (
@@ -76,17 +72,9 @@ export async function POST(request) {
         mime_type, 
         document_type
       ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [
-        userIdToUse, 
-        url, 
-        public_id, 
-        fileName, 
-        fileSize || null, 
-        fileType || null, 
-        documentType
-      ]
+      [userIdToUse, url, public_id, fileName, fileSize || null, fileType || null, documentType],
     );
-    
+
     // บันทึก log การอัปโหลดเอกสาร
     if (userIdToUse) {
       await query(
@@ -98,28 +86,30 @@ export async function POST(request) {
         ) VALUES (?, ?, ?, ?)`,
         [
           userIdToUse,
-          'upload_document',
+          "upload_document",
           JSON.stringify({
             document_type: documentType,
             file_name: fileName,
-            cloudinary_id: public_id
+            cloudinary_id: public_id,
           }),
-          'success'
-        ]
+          "success",
+        ],
       );
     }
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'บันทึกข้อมูลเอกสารสำเร็จ', 
-      documentId: insertResult.insertId 
+
+    return NextResponse.json({
+      success: true,
+      message: "บันทึกข้อมูลเอกสารสำเร็จ",
+      documentId: insertResult.insertId,
     });
-    
   } catch (error) {
-    console.error('Error in save-document API:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: `เกิดข้อผิดพลาดในการบันทึกข้อมูลเอกสาร: ${error.message || 'ไม่ทราบสาเหตุ'}` 
-    }, { status: 500 });
+    console.error("Error in save-document API:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: `เกิดข้อผิดพลาดในการบันทึกข้อมูลเอกสาร: ${error.message || "ไม่ทราบสาเหตุ"}`,
+      },
+      { status: 500 },
+    );
   }
 }

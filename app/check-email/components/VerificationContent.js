@@ -1,47 +1,47 @@
-import { motion } from 'framer-motion';
-import Image from 'next/image';
-import VerificationStates from './VerificationStates';
+import { motion } from "framer-motion";
+import Image from "next/image";
+import VerificationStates from "./VerificationStates";
 
-export default function VerificationContent({ 
-  verificationStatus, 
+export default function VerificationContent({
+  verificationStatus,
   setVerificationStatus,
-  errorMessage, 
-  newEmail, 
-  email, 
-  userId, 
-  token, 
-  router 
+  errorMessage,
+  newEmail,
+  email,
+  userId,
+  token,
+  router,
 }) {
   // Animation variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: "easeOut" }
-    }
+      transition: { duration: 0.4, ease: "easeOut" },
+    },
   };
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.9 },
-    visible: { 
-      opacity: 1, 
+    visible: {
+      opacity: 1,
       scale: 1,
-      transition: { duration: 0.3, ease: "easeOut" }
-    }
+      transition: { duration: 0.3, ease: "easeOut" },
+    },
   };
 
   return (
     <section className="py-12">
       <div className="container mx-auto px-4 max-w-5xl">
-        <motion.h2 
+        <motion.h2
           className="text-2xl md:text-3xl font-bold text-gray-800 mb-8 text-center"
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
         >
           สถานะการยืนยัน
-          <motion.div 
+          <motion.div
             className="w-16 h-1 bg-blue-600 mx-auto mt-3"
             initial={{ width: 0 }}
             animate={{ width: 64 }}
@@ -50,7 +50,7 @@ export default function VerificationContent({
         </motion.h2>
 
         <div className="max-w-md mx-auto">
-          <motion.div 
+          <motion.div
             className="bg-white rounded-xl shadow-lg overflow-hidden"
             variants={scaleIn}
             initial="hidden"
@@ -68,7 +68,7 @@ export default function VerificationContent({
                 />
               </div>
 
-              <VerificationStates 
+              <VerificationStates
                 verificationStatus={verificationStatus}
                 setVerificationStatus={setVerificationStatus}
                 errorMessage={errorMessage}

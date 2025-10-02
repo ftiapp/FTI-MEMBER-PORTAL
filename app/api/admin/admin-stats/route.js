@@ -1,18 +1,21 @@
-import { getAdminFromSession } from '../../../lib/adminAuth';
-import { query } from '../../../lib/db';
+import { getAdminFromSession } from "../../../lib/adminAuth";
+import { query } from "../../../lib/db";
 
 export async function GET(request) {
   try {
     // Verify admin session
     const admin = await getAdminFromSession();
     if (!admin) {
-      return new Response(JSON.stringify({ 
-        success: false, 
-        message: 'Unauthorized' 
-      }), { 
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Unauthorized",
+        }),
+        {
+          status: 401,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
     }
 
     // Get admin statistics
@@ -40,33 +43,39 @@ export async function GET(request) {
         ORDER BY created_at DESC
         LIMIT 5
       `;
-      
+
       adminList = await query(adminListQuery);
     }
 
-    return new Response(JSON.stringify({
-      success: true,
-      stats: {
-        totalAdmins: adminStats.total_admins || 0,
-        activeAdmins: adminStats.active_admins || 0,
-        superAdmins: adminStats.super_admins || 0,
-        createAdmins: adminStats.create_admins || 0,
-        updateAdmins: adminStats.update_admins || 0,
-        latestAdminCreated: adminStats.latest_admin_created || null
+    return new Response(
+      JSON.stringify({
+        success: true,
+        stats: {
+          totalAdmins: adminStats.total_admins || 0,
+          activeAdmins: adminStats.active_admins || 0,
+          superAdmins: adminStats.super_admins || 0,
+          createAdmins: adminStats.create_admins || 0,
+          updateAdmins: adminStats.update_admins || 0,
+          latestAdminCreated: adminStats.latest_admin_created || null,
+        },
+        recentAdmins: adminList,
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
       },
-      recentAdmins: adminList
-    }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    );
   } catch (error) {
-    console.error('Error fetching admin statistics:', error);
-    return new Response(JSON.stringify({ 
-      success: false, 
-      message: 'Internal server error' 
-    }), { 
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    console.error("Error fetching admin statistics:", error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: "Internal server error",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   }
 }

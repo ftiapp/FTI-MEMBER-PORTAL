@@ -1,10 +1,10 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { FaSpinner } from 'react-icons/fa';
+import React from "react";
+import { motion } from "framer-motion";
+import { FaSpinner } from "react-icons/fa";
 
 const LoadingState = () => {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -17,7 +17,7 @@ const LoadingState = () => {
         >
           <FaSpinner className="text-blue-600 mb-3" size={28} />
         </motion.div>
-        <motion.p 
+        <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}

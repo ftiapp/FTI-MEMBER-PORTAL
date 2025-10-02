@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook to fetch logo status data from the API
@@ -19,22 +19,24 @@ export default function useLogoStatus(userId) {
 
       try {
         setLoading(true);
-        const response = await fetch(`/api/dashboard/operation-status/logo-status?userId=${userId}`);
-        
+        const response = await fetch(
+          `/api/dashboard/operation-status/logo-status?userId=${userId}`,
+        );
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(`Error response: ${JSON.stringify(errorData)}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (data.success) {
           setLogoUpdates(data.updates || []);
         } else {
-          throw new Error(data.message || 'Failed to fetch logo status');
+          throw new Error(data.message || "Failed to fetch logo status");
         }
       } catch (err) {
-        console.error('useLogoStatus:', err);
+        console.error("useLogoStatus:", err);
         setError(err.message);
         setLogoUpdates([]);
       } finally {

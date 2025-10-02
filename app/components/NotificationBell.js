@@ -1,11 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { FaBell } from 'react-icons/fa';
-import { useAuth } from '@/app/contexts/AuthContext';
-import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/link';
-import { handleNotificationClick, formatNotificationMessage } from '@/app/dashboard/notifications/utils/notificationHelpers';
+import { useState, useEffect, useRef } from "react";
+import { FaBell } from "react-icons/fa";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+import {
+  handleNotificationClick,
+  formatNotificationMessage,
+} from "@/app/dashboard/notifications/utils/notificationHelpers";
 
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -29,40 +32,40 @@ export default function NotificationBell() {
         setIsOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
   // ดึงข้อมูลการแจ้งเตือนจาก API
   const fetchNotifications = async () => {
     if (!user?.id) return;
-    
+
     try {
       setLoading(true);
       // เพิ่ม credentials: 'include' เพื่อให้ส่ง cookies ไปด้วย
       const response = await fetch(`/api/notifications/membership?limit=10`, {
-        method: 'GET',
-        credentials: 'include',
+        method: "GET",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
-        }
+          "Content-Type": "application/json",
+        },
       });
-      
+
       if (!response.ok) {
-        console.error('Notification response not OK:', response.status, response.statusText);
-        throw new Error('Failed to fetch notifications');
+        console.error("Notification response not OK:", response.status, response.statusText);
+        throw new Error("Failed to fetch notifications");
       }
-      
+
       const data = await response.json();
-      console.log('Notifications data:', data); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
+      console.log("Notifications data:", data); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
       setNotifications(data.notifications || []);
-      
+
       // ใช้ unreadCount จาก API response
       setUnreadCount(data.unreadCount || 0);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error("Error fetching notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -71,91 +74,91 @@ export default function NotificationBell() {
   // ทำเครื่องหมายว่าอ่านแล้ว
   const markAsRead = async (notificationId) => {
     if (!user?.id) return;
-    
+
     try {
-      const response = await fetch('/api/notifications/membership', {
-        method: 'PATCH',
-        credentials: 'include',
+      const response = await fetch("/api/notifications/membership", {
+        method: "PATCH",
+        credentials: "include",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           notificationId,
-          markAsRead: true
+          markAsRead: true,
         }),
       });
-      
+
       if (!response.ok) {
-        console.error('Mark as read response not OK:', response.status, response.statusText);
-        throw new Error('Failed to mark notification as read');
+        console.error("Mark as read response not OK:", response.status, response.statusText);
+        throw new Error("Failed to mark notification as read");
       }
-      
+
       // อัพเดทสถานะการอ่านในข้อมูลท้องถิ่น
-      setNotifications(prev => 
-        prev.map(notification => 
-          notification.id === notificationId 
-            ? { ...notification, read_at: new Date().toISOString(), status: 'read' } 
-            : notification
-        )
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.id === notificationId
+            ? { ...notification, read_at: new Date().toISOString(), status: "read" }
+            : notification,
+        ),
       );
-      
+
       // อัพเดทจำนวนที่ยังไม่ได้อ่าน
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      console.error("Error marking notification as read:", error);
     }
   };
 
   // ทำเครื่องหมายว่าอ่านทั้งหมด
   const markAllAsRead = async () => {
     if (!user?.id || unreadCount === 0) return;
-    
+
     try {
-      const response = await fetch('/api/notifications/mark-all-read', {
-        method: 'POST',
-        credentials: 'include', // เพิ่ม credentials เพื่อให้ส่ง cookies ไปด้วย
+      const response = await fetch("/api/notifications/mark-all-read", {
+        method: "POST",
+        credentials: "include", // เพิ่ม credentials เพื่อให้ส่ง cookies ไปด้วย
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          userId: user.id
+          userId: user.id,
         }),
       });
-      
+
       if (!response.ok) {
-        console.error('Mark all as read response not OK:', response.status, response.statusText);
-        throw new Error('Failed to mark all notifications as read');
+        console.error("Mark all as read response not OK:", response.status, response.statusText);
+        throw new Error("Failed to mark all notifications as read");
       }
-      
+
       // อัพเดทสถานะการอ่านในข้อมูลท้องถิ่น
       const now = new Date().toISOString();
-      setNotifications(prev => 
-        prev.map(notification => 
-          notification.read_at ? notification : { ...notification, read_at: now }
-        )
+      setNotifications((prev) =>
+        prev.map((notification) =>
+          notification.read_at ? notification : { ...notification, read_at: now },
+        ),
       );
-      
+
       // รีเซ็ตจำนวนที่ยังไม่ได้อ่านเป็น 0
       setUnreadCount(0);
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      console.error("Error marking all notifications as read:", error);
     }
   };
 
   // แสดงไอคอนตามประเภทการแจ้งเตือน
   const getNotificationIcon = (type) => {
     switch (type) {
-      case 'membership_submission':
+      case "membership_submission":
         return <span className="text-green-500">📋</span>;
-      case 'member_verification':
+      case "member_verification":
         return <span className="text-blue-500">✓</span>;
-      case 'contact_reply':
+      case "contact_reply":
         return <span className="text-green-500">✉</span>;
-      case 'address_update':
+      case "address_update":
         return <span className="text-purple-500">🏠</span>;
-      case 'profile_update':
+      case "profile_update":
         return <span className="text-orange-500">👤</span>;
-      case 'draft_saved':
+      case "draft_saved":
         return <span className="text-indigo-500">💾</span>;
       default:
         return <span className="text-gray-500">•</span>;
@@ -171,7 +174,7 @@ export default function NotificationBell() {
     const diffMin = Math.floor(diffSec / 60);
     const diffHour = Math.floor(diffMin / 60);
     const diffDay = Math.floor(diffHour / 24);
-    
+
     if (diffDay > 0) {
       return `${diffDay} วันที่แล้ว`;
     } else if (diffHour > 0) {
@@ -179,10 +182,10 @@ export default function NotificationBell() {
     } else if (diffMin > 0) {
       return `${diffMin} นาทีที่แล้ว`;
     } else {
-      return 'เมื่อสักครู่';
+      return "เมื่อสักครู่";
     }
   };
-  
+
   // หมายเหตุ: ตัด local formatter ออก และใช้ formatNotificationMessage จาก utils แทน เพื่อความสอดคล้อง
 
   return (
@@ -194,15 +197,15 @@ export default function NotificationBell() {
         aria-label="การแจ้งเตือน"
       >
         <FaBell className="w-5 h-5" />
-        
+
         {/* แสดงจำนวนการแจ้งเตือนที่ยังไม่ได้อ่าน */}
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-xs font-bold text-white bg-red-500 rounded-full">
-            {unreadCount > 9 ? '9+' : unreadCount}
+            {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
-      
+
       {/* เมนูแสดงการแจ้งเตือน */}
       <AnimatePresence>
         {isOpen && (
@@ -224,7 +227,7 @@ export default function NotificationBell() {
                 </button>
               )}
             </div>
-            
+
             <div className="max-h-96 overflow-y-auto">
               {loading ? (
                 <div className="p-4 text-center text-gray-500">
@@ -232,21 +235,19 @@ export default function NotificationBell() {
                   <p>กำลังโหลด...</p>
                 </div>
               ) : notifications.length === 0 ? (
-                <div className="p-4 text-center text-gray-500">
-                  ไม่มีการแจ้งเตือน
-                </div>
+                <div className="p-4 text-center text-gray-500">ไม่มีการแจ้งเตือน</div>
               ) : (
                 <ul>
-                  {notifications.slice(0, 5).map(notification => (
-                    <li 
+                  {notifications.slice(0, 5).map((notification) => (
+                    <li
                       key={notification.id}
-                      className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${notification.status === 'unread' ? 'bg-blue-50' : ''}`}
+                      className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${notification.status === "unread" ? "bg-blue-50" : ""}`}
                     >
                       <button
                         onClick={() => {
                           // ทำเครื่องหมายว่าอ่านแล้ว
                           markAsRead(notification.id);
-                          
+
                           // ถ้ามีลิงก์ให้นำทางไปยังลิงก์นั้น
                           if (notification.link) {
                             // ใช้ฟังก์ชัน handleNotificationClick เหมือนกับในหน้าการแจ้งเตือนหลัก
@@ -262,16 +263,16 @@ export default function NotificationBell() {
                           {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${notification.status === 'unread' ? 'font-semibold text-gray-900' : 'text-gray-700'}`}>
+                          <p
+                            className={`text-sm ${notification.status === "unread" ? "font-semibold text-gray-900" : "text-gray-700"}`}
+                          >
                             {formatNotificationMessage(notification.message)}
                           </p>
                           <p className="text-xs text-gray-500 mt-1">
                             {formatTime(notification.created_at)}
                           </p>
                           {notification.link && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              คลิกเพื่อดูรายละเอียด
-                            </p>
+                            <p className="text-xs text-blue-600 mt-1">คลิกเพื่อดูรายละเอียด</p>
                           )}
                         </div>
                       </button>
@@ -280,10 +281,10 @@ export default function NotificationBell() {
                 </ul>
               )}
             </div>
-            
+
             <div className="p-2 border-t border-gray-200 text-center">
-              <Link 
-                href="/dashboard/notifications" 
+              <Link
+                href="/dashboard/notifications"
                 className="text-xs text-blue-600 hover:text-blue-800"
                 onClick={() => setIsOpen(false)}
               >

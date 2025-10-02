@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { checkAdminSession } from '@/app/lib/auth';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { checkAdminSession } from "@/app/lib/auth";
 
 /**
  * GET /api/admin/users/email-history/[id]
- * 
+ *
  * Get the email change history for a specific user
  * Requires admin authentication
  */
@@ -13,17 +13,18 @@ export async function GET(request, { params }) {
     // Check admin session
     const admin = await checkAdminSession();
     if (!admin) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const userId = params.id;
-    
+
     if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
     // Get email change history from pending_email_changes table
-    const emailChanges = await query(`
+    const emailChanges = await query(
+      `
       SELECT 
         pec.id, 
         pec.user_id, 
@@ -42,16 +43,21 @@ export async function GET(request, { params }) {
         pec.user_id = ?
       ORDER BY 
         pec.created_at DESC
-    `, [userId]);
+    `,
+      [userId],
+    );
 
     return NextResponse.json({
       success: true,
-      emailChanges
+      emailChanges,
     });
   } catch (error) {
-    console.error('Error fetching email history:', error);
-    return NextResponse.json({ 
-      error: 'เกิดข้อผิดพลาดในการดึงข้อมูลประวัติการเปลี่ยนอีเมล' 
-    }, { status: 500 });
+    console.error("Error fetching email history:", error);
+    return NextResponse.json(
+      {
+        error: "เกิดข้อผิดพลาดในการดึงข้อมูลประวัติการเปลี่ยนอีเมล",
+      },
+      { status: 500 },
+    );
   }
 }

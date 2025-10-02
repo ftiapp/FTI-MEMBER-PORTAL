@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Format comma-separated products into an array
@@ -7,7 +7,10 @@ import { useState, useEffect } from 'react';
  */
 export const formatProductsList = (productsString) => {
   if (!productsString) return [];
-  return productsString.split(',').map(item => item.trim()).filter(item => item);
+  return productsString
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item) => item);
 };
 
 /**
@@ -17,14 +20,14 @@ export const formatProductsList = (productsString) => {
  */
 export const tsicStatusLabel = (status) => {
   switch (status) {
-    case 'pending':
-      return 'รอการอนุมัติ';
-    case 'approved':
-      return 'อนุมัติแล้ว';
-    case 'rejected':
-      return 'ไม่อนุมัติ';
+    case "pending":
+      return "รอการอนุมัติ";
+    case "approved":
+      return "อนุมัติแล้ว";
+    case "rejected":
+      return "ไม่อนุมัติ";
     default:
-      return 'ไม่ระบุสถานะ';
+      return "ไม่ระบุสถานะ";
   }
 };
 

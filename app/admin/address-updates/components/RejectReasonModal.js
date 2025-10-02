@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function RejectReasonModal({
   isVisible,
@@ -10,10 +10,10 @@ export default function RejectReasonModal({
   setAdminNotes,
   onCancel,
   onConfirm,
-  isProcessing
+  isProcessing,
 }) {
   if (!isVisible) return null;
-  
+
   return (
     <AnimatePresence>
       {isVisible && (
@@ -25,7 +25,7 @@ export default function RejectReasonModal({
             className="absolute inset-0 bg-black"
             onClick={onCancel}
           />
-          
+
           <motion.div
             className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md z-10"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
@@ -34,9 +34,12 @@ export default function RejectReasonModal({
             transition={{ type: "spring", bounce: 0.3 }}
           >
             <h3 className="text-lg font-bold text-gray-900 mb-4">ระบุเหตุผลในการปฏิเสธ</h3>
-            
+
             <div className="mb-4">
-              <label htmlFor="rejectReason" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="rejectReason"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 เหตุผลในการปฏิเสธ <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -47,11 +50,11 @@ export default function RejectReasonModal({
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="กรุณาระบุเหตุผลในการปฏิเสธคำขอแก้ไขที่อยู่"
               />
-              {rejectReason.trim() === '' && (
+              {rejectReason.trim() === "" && (
                 <p className="mt-1 text-sm text-red-600">กรุณาระบุเหตุผลในการปฏิเสธ</p>
               )}
             </div>
-            
+
             <div className="mb-4">
               <label htmlFor="adminNotes" className="block text-sm font-medium text-gray-700 mb-1">
                 บันทึกช่วยจำ (เฉพาะเจ้าหน้าที่)
@@ -65,7 +68,7 @@ export default function RejectReasonModal({
                 placeholder="บันทึกช่วยจำสำหรับเจ้าหน้าที่ (เฉพาะแอดมินเท่านั้นที่จะเห็นข้อความนี้)"
               />
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <button
                 className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md font-medium"
@@ -74,22 +77,38 @@ export default function RejectReasonModal({
               >
                 ยกเลิก
               </button>
-              
+
               <button
                 className="px-4 py-2 bg-red-600 text-white rounded-md font-medium flex items-center justify-center disabled:opacity-50"
                 onClick={onConfirm}
-                disabled={isProcessing || rejectReason.trim() === ''}
+                disabled={isProcessing || rejectReason.trim() === ""}
               >
                 {isProcessing ? (
                   <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
                     </svg>
                     กำลังดำเนินการ...
                   </>
                 ) : (
-                  'ยืนยันการปฏิเสธ'
+                  "ยืนยันการปฏิเสธ"
                 )}
               </button>
             </div>

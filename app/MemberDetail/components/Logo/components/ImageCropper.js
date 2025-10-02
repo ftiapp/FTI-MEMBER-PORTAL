@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import Cropper from 'react-easy-crop';
-import { getCroppedImg } from '../utils/cropUtils';
+import { useState, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import { getCroppedImg } from "../utils/cropUtils";
 
 export default function ImageCropper({ image, onCropComplete, onCancel }) {
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -29,14 +29,10 @@ export default function ImageCropper({ image, onCropComplete, onCancel }) {
 
   const handleCrop = async () => {
     try {
-      const croppedImage = await getCroppedImg(
-        image,
-        croppedAreaPixels,
-        rotation
-      );
+      const croppedImage = await getCroppedImg(image, croppedAreaPixels, rotation);
       onCropComplete(croppedImage);
     } catch (e) {
-      console.error('Crop failed:', e);
+      console.error("Crop failed:", e);
     }
   };
 

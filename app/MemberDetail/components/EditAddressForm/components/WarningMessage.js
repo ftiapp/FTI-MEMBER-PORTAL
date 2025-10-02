@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaExclamationTriangle } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaExclamationTriangle } from "react-icons/fa";
 
 /**
  * Warning message component to inform users about the approval process

@@ -73,8 +73,12 @@
 }
 
 @keyframes bounce {
-  from { transform: scale(1); }
-  to { transform: scale(1.1); }
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.1);
+  }
 }
 
 .closeIcon {
@@ -180,7 +184,8 @@
   justify-content: flex-start;
 }
 
-.messageBotAvatar, .messageUserAvatar {
+.messageBotAvatar,
+.messageUserAvatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -287,8 +292,14 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .userMessage {
@@ -316,7 +327,8 @@
   margin: 0 0 10px 0;
 }
 
-.botMessage ul, .botMessage ol {
+.botMessage ul,
+.botMessage ol {
   margin: 10px 0;
   padding-left: 20px;
 }
@@ -325,11 +337,13 @@
   margin-bottom: 5px;
 }
 
-.botMessage strong, .botMessage b {
+.botMessage strong,
+.botMessage b {
   font-weight: 600;
 }
 
-.botMessage h3, .botMessage h4 {
+.botMessage h3,
+.botMessage h4 {
   margin: 15px 0 10px 0;
   font-weight: 600;
 }
@@ -341,7 +355,8 @@
   width: 100%;
 }
 
-.botMessage th, .botMessage td {
+.botMessage th,
+.botMessage td {
   border: 1px solid #ddd;
   padding: 8px;
   text-align: left;

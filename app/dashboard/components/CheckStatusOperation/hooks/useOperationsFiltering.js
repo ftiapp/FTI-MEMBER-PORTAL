@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 /**
  * Custom hook to handle filtering and pagination of operations
@@ -12,12 +12,10 @@ import { useSearchParams } from 'next/navigation';
  */
 const useOperationsFiltering = (operations, search, statusFilter, typeFilter, dateRange) => {
   const searchParams = useSearchParams();
-  
+
   // Initialize current page from URL query parameter if available
-  const initialPage = searchParams.has('page') 
-    ? parseInt(searchParams.get('page'), 10) 
-    : 1;
-    
+  const initialPage = searchParams.has("page") ? parseInt(searchParams.get("page"), 10) : 1;
+
   const [currentPage, setCurrentPage] = useState(initialPage);
   const [filteredOperations, setFilteredOperations] = useState([]);
   const itemsPerPage = 3;
@@ -29,39 +27,42 @@ const useOperationsFiltering = (operations, search, statusFilter, typeFilter, da
 
   // Apply filters
   useEffect(() => {
-    const filtered = operations.filter(op => {
+    const filtered = operations.filter((op) => {
       // Search by subject, company_name, MEMBER_CODE, description
       const searchLower = search.toLowerCase();
       const matchesSearch =
-        (!searchLower ||
-          (op.subject && op.subject.toLowerCase().includes(searchLower)) ||
-          (op.company_name && op.company_name.toLowerCase().includes(searchLower)) ||
-          (op.MEMBER_CODE && op.MEMBER_CODE.toLowerCase().includes(searchLower)) ||
-          (op.description && op.description.toLowerCase().includes(searchLower))
-        );
-        
+        !searchLower ||
+        (op.subject && op.subject.toLowerCase().includes(searchLower)) ||
+        (op.company_name && op.company_name.toLowerCase().includes(searchLower)) ||
+        (op.MEMBER_CODE && op.MEMBER_CODE.toLowerCase().includes(searchLower)) ||
+        (op.description && op.description.toLowerCase().includes(searchLower));
+
       // Get operation type
-      const opType = op.type || 
-        (op.title?.includes('ยืนยันสมาชิกเดิม') ? 'ยืนยันสมาชิกเดิม' : 
-         op.title === 'ติดต่อเจ้าหน้าที่' ? 'ติดต่อเจ้าหน้าที่' : 'แก้ไขข้อมูลส่วนตัว');
-        
+      const opType =
+        op.type ||
+        (op.title?.includes("ยืนยันสมาชิกเดิม")
+          ? "ยืนยันสมาชิกเดิม"
+          : op.title === "ติดต่อเจ้าหน้าที่"
+            ? "ติดต่อเจ้าหน้าที่"
+            : "แก้ไขข้อมูลส่วนตัว");
+
       // Filter by type
       const matchesType = !typeFilter || opType === typeFilter;
-      
+
       // Filter by status - only apply status filters that are relevant to the current type
       let matchesStatus = true;
       if (statusFilter) {
         // For contact messages, only allow unread, read, replied statuses
-        if (opType === 'ติดต่อเจ้าหน้าที่') {
-          if (!['unread', 'read', 'replied', 'none', 'error'].includes(statusFilter)) {
+        if (opType === "ติดต่อเจ้าหน้าที่") {
+          if (!["unread", "read", "replied", "none", "error"].includes(statusFilter)) {
             matchesStatus = false;
           } else {
             matchesStatus = op.status === statusFilter;
           }
-        } 
+        }
         // For verifications, only allow pending, approved, rejected statuses
-        else if (opType === 'ยืนยันสมาชิกเดิม') {
-          if (!['pending', 'approved', 'rejected'].includes(statusFilter)) {
+        else if (opType === "ยืนยันสมาชิกเดิม") {
+          if (!["pending", "approved", "rejected"].includes(statusFilter)) {
             matchesStatus = false;
           } else {
             matchesStatus = op.status === statusFilter;
@@ -72,16 +73,17 @@ const useOperationsFiltering = (operations, search, statusFilter, typeFilter, da
           matchesStatus = op.status === statusFilter;
         }
       }
-      
+
       // Filter by date
       let matchesDate = true;
       if (dateRange[0]) {
         matchesDate = matchesDate && new Date(op.created_at) >= new Date(dateRange[0]);
       }
       if (dateRange[1]) {
-        matchesDate = matchesDate && new Date(op.created_at) <= new Date(dateRange[1] + 'T23:59:59');
+        matchesDate =
+          matchesDate && new Date(op.created_at) <= new Date(dateRange[1] + "T23:59:59");
       }
-      
+
       return matchesSearch && matchesStatus && matchesType && matchesDate;
     });
 
@@ -98,7 +100,7 @@ const useOperationsFiltering = (operations, search, statusFilter, typeFilter, da
     currentOperations,
     totalPages,
     currentPage,
-    setCurrentPage
+    setCurrentPage,
   };
 };
 

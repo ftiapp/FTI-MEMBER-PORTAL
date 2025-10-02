@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
-import AdminLayout from '../../components/AdminLayout';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import AdminLayout from "../../components/AdminLayout";
 
 /**
  * Admin Permissions Management Page
- * 
+ *
  * This component provides functionality for managing admin user permissions including:
  * - Viewing all admin accounts with their current permissions
  * - Updating permissions for existing admin accounts
- * 
+ *
  * Only accessible to admin users with level 5 (SuperAdmin) permissions.
  */
 
@@ -26,7 +26,7 @@ export default function AdminPermissionsPage() {
     canUpdate: false,
     canApprove: false,
     canReject: false,
-    canViewLogs: false
+    canViewLogs: false,
   });
 
   // Fetch admin users when component mounts
@@ -41,27 +41,27 @@ export default function AdminPermissionsPage() {
   const fetchAdmins = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/admin/list-admins');
-      
+      const response = await fetch("/api/admin/list-admins");
+
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('กรุณาเข้าสู่ระบบ');
-          router.push('/admin');
+          toast.error("กรุณาเข้าสู่ระบบ");
+          router.push("/admin");
           return;
         }
-        throw new Error('Failed to fetch data');
+        throw new Error("Failed to fetch data");
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setAdmins(result.data);
       } else {
-        toast.error(result.message || 'ไม่สามารถดึงข้อมูลได้');
+        toast.error(result.message || "ไม่สามารถดึงข้อมูลได้");
       }
     } catch (error) {
-      console.error('Error fetching admins:', error);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูล');
+      console.error("Error fetching admins:", error);
+      toast.error("เกิดข้อผิดพลาดในการดึงข้อมูล");
     } finally {
       setIsLoading(false);
     }
@@ -78,7 +78,7 @@ export default function AdminPermissionsPage() {
       canUpdate: admin.can_update || false,
       canApprove: admin.can_approve || false,
       canReject: admin.can_reject || false,
-      canViewLogs: admin.can_view_logs || false
+      canViewLogs: admin.can_view_logs || false,
     });
     setShowPermissionModal(true);
   };
@@ -94,7 +94,7 @@ export default function AdminPermissionsPage() {
       canUpdate: false,
       canApprove: false,
       canReject: false,
-      canViewLogs: false
+      canViewLogs: false,
     });
   };
 
@@ -104,9 +104,9 @@ export default function AdminPermissionsPage() {
    */
   const handlePermissionChange = (e) => {
     const { name, checked } = e.target;
-    setPermissions(prev => ({
+    setPermissions((prev) => ({
       ...prev,
-      [name]: checked
+      [name]: checked,
     }));
   };
 
@@ -117,38 +117,38 @@ export default function AdminPermissionsPage() {
    */
   const handleSubmitPermissions = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedAdmin) {
-      toast.error('ไม่พบข้อมูลผู้ดูแลระบบ');
+      toast.error("ไม่พบข้อมูลผู้ดูแลระบบ");
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
-      const response = await fetch('/api/admin/update-admin-permissions', {
-        method: 'POST',
+
+      const response = await fetch("/api/admin/update-admin-permissions", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           adminId: selectedAdmin.id,
-          permissions
-        })
+          permissions,
+        }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success('อัปเดตสิทธิ์ผู้ดูแลระบบเรียบร้อยแล้ว');
+        toast.success("อัปเดตสิทธิ์ผู้ดูแลระบบเรียบร้อยแล้ว");
         setShowPermissionModal(false);
         fetchAdmins();
       } else {
-        toast.error(result.message || 'ไม่สามารถอัปเดตสิทธิ์ผู้ดูแลระบบได้');
+        toast.error(result.message || "ไม่สามารถอัปเดตสิทธิ์ผู้ดูแลระบบได้");
       }
     } catch (error) {
-      console.error('Error updating admin permissions:', error);
-      toast.error('เกิดข้อผิดพลาดในการอัปเดตสิทธิ์ผู้ดูแลระบบ');
+      console.error("Error updating admin permissions:", error);
+      toast.error("เกิดข้อผิดพลาดในการอัปเดตสิทธิ์ผู้ดูแลระบบ");
     } finally {
       setIsLoading(false);
     }
@@ -178,33 +178,46 @@ export default function AdminPermissionsPage() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">จัดการสิทธิ์แอดมิน</h2>
         </div>
-        
+
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
         ) : admins.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            ไม่มีข้อมูลผู้ดูแลระบบ
-          </div>
+          <div className="text-center py-12 text-gray-500">ไม่มีข้อมูลผู้ดูแลระบบ</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     ชื่อผู้ใช้
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     ระดับ
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     สิทธิ์การใช้งาน
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     สถานะ
                   </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th
+                    scope="col"
+                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  >
                     การดำเนินการ
                   </th>
                 </tr>
@@ -220,11 +233,11 @@ export default function AdminPermissionsPage() {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap gap-1">
-                        {renderPermissionBadge(admin.can_create, 'สร้าง')}
-                        {renderPermissionBadge(admin.can_update, 'แก้ไข')}
-                        {renderPermissionBadge(admin.can_approve, 'อนุมัติ')}
-                        {renderPermissionBadge(admin.can_reject, 'ปฏิเสธ')}
-                        {renderPermissionBadge(admin.can_view_logs, 'ดูบันทึก')}
+                        {renderPermissionBadge(admin.can_create, "สร้าง")}
+                        {renderPermissionBadge(admin.can_update, "แก้ไข")}
+                        {renderPermissionBadge(admin.can_approve, "อนุมัติ")}
+                        {renderPermissionBadge(admin.can_reject, "ปฏิเสธ")}
+                        {renderPermissionBadge(admin.can_view_logs, "ดูบันทึก")}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -267,7 +280,7 @@ export default function AdminPermissionsPage() {
                 แก้ไขสิทธิ์ผู้ดูแลระบบ: {selectedAdmin.username}
               </h3>
             </div>
-            
+
             <form onSubmit={handleSubmitPermissions}>
               <div className="px-6 py-4 space-y-4">
                 <div className="flex items-center">
@@ -283,7 +296,7 @@ export default function AdminPermissionsPage() {
                     สามารถสร้างข้อมูลได้
                   </label>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -297,7 +310,7 @@ export default function AdminPermissionsPage() {
                     สามารถแก้ไขข้อมูลได้
                   </label>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -311,7 +324,7 @@ export default function AdminPermissionsPage() {
                     สามารถอนุมัติคำขอได้
                   </label>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -325,7 +338,7 @@ export default function AdminPermissionsPage() {
                     สามารถปฏิเสธคำขอได้
                   </label>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -340,7 +353,7 @@ export default function AdminPermissionsPage() {
                   </label>
                 </div>
               </div>
-              
+
               <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
                 <button
                   type="button"
@@ -354,7 +367,7 @@ export default function AdminPermissionsPage() {
                   disabled={isLoading}
                   className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
-                  {isLoading ? 'กำลังดำเนินการ...' : 'บันทึก'}
+                  {isLoading ? "กำลังดำเนินการ..." : "บันทึก"}
                 </button>
               </div>
             </form>

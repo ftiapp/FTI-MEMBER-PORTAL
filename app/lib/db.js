@@ -4,35 +4,36 @@ let mysql;
 // Initialize mysql connection dynamically
 const initMysql = async () => {
   if (!mysql) {
-    mysql = await import('mysql2/promise');
+    mysql = await import("mysql2/promise");
     mysql = mysql.default || mysql;
   }
   return mysql;
 };
 
 // Log environment variables (mask sensitive data)
-console.log('Database connection attempt:', {
+console.log("Database connection attempt:", {
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
   port: process.env.DB_PORT,
-  hasPassword: !!process.env.DB_PASSWORD
+  hasPassword: !!process.env.DB_PASSWORD,
 });
 
 // ตรวจสอบสภาพแวดล้อม (development หรือ production)
-const isProd = process.env.NODE_ENV === 'production';
+const isProd = process.env.NODE_ENV === "production";
 
 // กำหนดค่า connection ตามสภาพแวดล้อม
 let dbConfig;
 if (isProd) {
   // ค่าสำหรับ production environment (Kubernetes)
   dbConfig = {
-    host: process.env.DB_HOST || 'ftimemberportal-rofxa-mysql.ftimemberportal-rofxa.svc.cluster.local',
-    user: process.env.DB_USER || 'ermine',
-    password: process.env.DB_PASSWORD || 'qZ5[oG2:wK5*zC2[',
-    database: process.env.DB_NAME || 'ftimemberportal',
-    port: process.env.DB_PORT || '3306',
-    ssl: false
+    host:
+      process.env.DB_HOST || "ftimemberportal-rofxa-mysql.ftimemberportal-rofxa.svc.cluster.local",
+    user: process.env.DB_USER || "ermine",
+    password: process.env.DB_PASSWORD || "qZ5[oG2:wK5*zC2[",
+    database: process.env.DB_NAME || "ftimemberportal",
+    port: process.env.DB_PORT || "3306",
+    ssl: false,
   };
 } else {
   // ค่าสำหรับ development environment
@@ -42,7 +43,7 @@ if (isProd) {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     port: process.env.DB_PORT,
-    ssl: false
+    ssl: false,
   };
 }
 
@@ -75,12 +76,12 @@ const initPool = async () => {
 async function testConnection() {
   const maxRetries = 5;
   let retryCount = 0;
-  
+
   while (retryCount < maxRetries) {
     try {
       const connectionPool = await initPool();
       const connection = await connectionPool.getConnection();
-      console.log('Database connection successful');
+      console.log("Database connection successful");
       connection.release();
       return true;
     } catch (err) {
@@ -90,20 +91,20 @@ async function testConnection() {
         code: err.code,
         errno: err.errno,
         sqlState: err.sqlState,
-        sqlMessage: err.sqlMessage
+        sqlMessage: err.sqlMessage,
       });
-      
+
       if (retryCount < maxRetries) {
         // Wait before retrying (exponential backoff)
         const delay = Math.pow(2, retryCount) * 1000;
         console.log(`Retrying connection in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
-        console.error('All connection attempts failed');
+        console.error("All connection attempts failed");
       }
     }
   }
-  
+
   return false;
 }
 
@@ -116,21 +117,21 @@ export async function query(sql, params) {
   const maxRetries = 3;
   let retryCount = 0;
   let lastError = null;
-  
+
   while (retryCount < maxRetries) {
     let connection;
     try {
       const connectionPool = await initPool();
       connection = await connectionPool.getConnection();
-      // ตรวจสอบว่า sql เป็น object หรือไม่ (กรณีที่เรียกใช้แบบ {query: '...', values: [...]})  
+      // ตรวจสอบว่า sql เป็น object หรือไม่ (กรณีที่เรียกใช้แบบ {query: '...', values: [...]})
       const queryString = sql.query || sql;
       const queryParams = sql.values || params;
-      
+
       console.log(`Executing query (attempt ${retryCount + 1}/${maxRetries}):`, {
         sql: queryString,
-        params: queryParams
+        params: queryParams,
       });
-      
+
       try {
         // ใช้ query แทน execute เพื่อรองรับ LIMIT และ OFFSET ใน prepared statements
         const [results] = await connection.query(queryString, queryParams);
@@ -141,7 +142,7 @@ export async function query(sql, params) {
       }
     } catch (error) {
       lastError = error;
-      
+
       // Log the error
       console.error(`Query error (attempt ${retryCount + 1}/${maxRetries}):`, {
         message: error.message,
@@ -150,16 +151,20 @@ export async function query(sql, params) {
         sqlState: error.sqlState,
         sqlMessage: error.sqlMessage,
         sql: sql,
-        params: params
+        params: params,
       });
-      
+
       // Only retry on specific connection errors
-      if (error.code === 'ECONNRESET' || error.code === 'PROTOCOL_CONNECTION_LOST' || error.code === 'PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR') {
+      if (
+        error.code === "ECONNRESET" ||
+        error.code === "PROTOCOL_CONNECTION_LOST" ||
+        error.code === "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR"
+      ) {
         retryCount++;
 
         // Destroy the faulty connection
         if (connection) {
-          console.log('Destroying faulty database connection.');
+          console.log("Destroying faulty database connection.");
           connection.destroy();
         }
 
@@ -167,7 +172,7 @@ export async function query(sql, params) {
           // Wait before retrying (exponential backoff)
           const delay = Math.pow(2, retryCount) * 1000;
           console.log(`Retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue; // Continue to the next iteration of the while loop
         }
       } else {
@@ -176,7 +181,7 @@ export async function query(sql, params) {
       }
     }
   }
-  
+
   // If we got here, all retries failed or it wasn't a retryable error
   throw lastError;
 }
@@ -209,11 +214,11 @@ export async function executeQuery(connection, sql, params) {
     const [results] = await connection.execute(sql, params);
     return results;
   } catch (error) {
-    console.error('Error executing query:', {
+    console.error("Error executing query:", {
       message: error.message,
       code: error.code,
       sql: sql,
-      params: params
+      params: params,
     });
     throw error;
   }
@@ -267,7 +272,7 @@ export async function executeQueryWithoutTransaction(sql, params) {
     const [results] = await connection.query(sql, params);
     return results;
   } catch (error) {
-    console.error('Error executing query:', { sql, params, error });
+    console.error("Error executing query:", { sql, params, error });
     throw error;
   } finally {
     if (connection) connection.release();
@@ -280,7 +285,7 @@ export async function connectDB() {
   try {
     return await getConnection();
   } catch (error) {
-    console.error('Error connecting to database:', error);
+    console.error("Error connecting to database:", error);
     throw error;
   }
 }

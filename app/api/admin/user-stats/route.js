@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { checkAdminSession } from '@/app/lib/auth';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { checkAdminSession } from "@/app/lib/auth";
 
 /**
  * GET /api/admin/user-stats
- * 
+ *
  * Fetches user statistics for the admin dashboard.
  * Includes counts of active, inactive, and pending users,
  * average login count, and the most active user.
@@ -15,7 +15,7 @@ export async function GET() {
     // Check admin session
     const admin = await checkAdminSession();
     if (!admin) {
-      return NextResponse.json({ success: false, message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     // Query to get user status counts
@@ -55,24 +55,27 @@ export async function GET() {
       totalInactiveUsers: parseInt(statusCounts[0].totalInactiveUsers || 0),
       totalPendingUsers: parseInt(statusCounts[0].totalPendingUsers || 0),
       averageLoginCount: parseFloat(avgLoginResult[0].averageLoginCount || 0),
-      mostActiveUser: mostActiveUserResult.length > 0 
-        ? {
-            id: mostActiveUserResult[0].id,
-            firstname: mostActiveUserResult[0].firstname || '',
-            lastname: mostActiveUserResult[0].lastname || '',
-            name: mostActiveUserResult[0].name || `${mostActiveUserResult[0].firstname} ${mostActiveUserResult[0].lastname}`,
-            email: mostActiveUserResult[0].email,
-            login_count: mostActiveUserResult[0].login_count
-          }
-        : null
+      mostActiveUser:
+        mostActiveUserResult.length > 0
+          ? {
+              id: mostActiveUserResult[0].id,
+              firstname: mostActiveUserResult[0].firstname || "",
+              lastname: mostActiveUserResult[0].lastname || "",
+              name:
+                mostActiveUserResult[0].name ||
+                `${mostActiveUserResult[0].firstname} ${mostActiveUserResult[0].lastname}`,
+              email: mostActiveUserResult[0].email,
+              login_count: mostActiveUserResult[0].login_count,
+            }
+          : null,
     };
 
     return NextResponse.json(stats);
   } catch (error) {
-    console.error('Error fetching user statistics:', error);
+    console.error("Error fetching user statistics:", error);
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลสถิติผู้ใช้' },
-      { status: 500 }
+      { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลสถิติผู้ใช้" },
+      { status: 500 },
     );
   }
 }

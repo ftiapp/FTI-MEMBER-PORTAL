@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import AssociationBasicInfo from './AssociationBasicInfo';
-import AssociationAddressInfo from './AssociationAddressInfo';
-import ContactPersonInfo from './ContactPersonInfo';
-import IndustrialGroupInfo from './IndustrialGroupInfo';
+import { useState } from "react";
+import AssociationBasicInfo from "./AssociationBasicInfo";
+import AssociationAddressInfo from "./AssociationAddressInfo";
+import ContactPersonInfo from "./ContactPersonInfo";
+import IndustrialGroupInfo from "./IndustrialGroupInfo";
 
 export default function AssociationInfoSection({ formData, setFormData, errors, setErrors }) {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,12 +13,12 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSelectChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
@@ -35,7 +35,7 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
         isCheckingTaxId={isCheckingTaxId}
         setIsCheckingTaxId={setIsCheckingTaxId}
       />
-      
+
       {/* ที่อยู่สมาคมและข้อมูลติดต่อ */}
       <AssociationAddressInfo
         formData={formData}
@@ -43,20 +43,12 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
         errors={errors}
         isAutofill={isAutofill}
       />
-      
+
       {/* ข้อมูลผู้ให้ข้อมูล */}
-      <ContactPersonInfo
-        formData={formData}
-        setFormData={setFormData}
-        errors={errors}
-      />
-      
+      <ContactPersonInfo formData={formData} setFormData={setFormData} errors={errors} />
+
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
-      <IndustrialGroupInfo
-        formData={formData}
-        setFormData={setFormData}
-        errors={errors}
-      />
+      <IndustrialGroupInfo formData={formData} setFormData={setFormData} errors={errors} />
     </div>
   );
 }

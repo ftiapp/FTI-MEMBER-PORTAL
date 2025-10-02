@@ -1,29 +1,29 @@
-import React, { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { FaEdit, FaSave, FaTimes, FaSpinner } from 'react-icons/fa';
+import React, { useEffect } from "react";
+import { motion } from "framer-motion";
+import { FaEdit, FaSave, FaTimes, FaSpinner } from "react-icons/fa";
 
-const ProfileForm = ({ 
-  formData, 
-  originalData, 
-  editMode, 
-  toggleEditMode, 
-  handleInputChange, 
-  handleSubmit, 
+const ProfileForm = ({
+  formData,
+  originalData,
+  editMode,
+  toggleEditMode,
+  handleInputChange,
+  handleSubmit,
   submitting,
   requestsToday,
   maxRequests,
-  updateStatus
+  updateStatus,
 }) => {
   const isLimitReached = requestsToday >= maxRequests;
-  const hasPendingRequest = updateStatus === 'pending';
-  
+  const hasPendingRequest = updateStatus === "pending";
+
   useEffect(() => {
-    console.log('ProfileForm received formData:', formData);
-    console.log('ProfileForm received originalData:', originalData);
+    console.log("ProfileForm received formData:", formData);
+    console.log("ProfileForm received originalData:", originalData);
   }, [formData, originalData]);
-  
+
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -31,7 +31,7 @@ const ProfileForm = ({
     >
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold text-gray-800">ข้อมูลส่วนตัว</h3>
-        
+
         {/* Edit button */}
         {!editMode && !hasPendingRequest && (
           <motion.button
@@ -45,7 +45,7 @@ const ProfileForm = ({
           </motion.button>
         )}
       </div>
-      
+
       {/* Pending request notice inside form (in addition to banner) */}
       {hasPendingRequest && (
         <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
@@ -54,7 +54,7 @@ const ProfileForm = ({
           </p>
         </div>
       )}
-      
+
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
           {/* ชื่อและนามสกุลอยู่บรรทัดเดียวกัน */}
@@ -68,10 +68,10 @@ const ProfileForm = ({
                 value={formData.firstName}
                 onChange={handleInputChange}
                 readOnly={!editMode}
-                className={`w-full px-3 py-2 border ${editMode ? 'border-blue-300' : 'border-gray-300'} rounded-md ${!editMode && 'bg-gray-100'} text-gray-900 font-medium`}
+                className={`w-full px-3 py-2 border ${editMode ? "border-blue-300" : "border-gray-300"} rounded-md ${!editMode && "bg-gray-100"} text-gray-900 font-medium`}
               />
             </div>
-            
+
             {/* Last name field */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">นามสกุล</label>
@@ -81,11 +81,11 @@ const ProfileForm = ({
                 value={formData.lastName}
                 onChange={handleInputChange}
                 readOnly={!editMode}
-                className={`w-full px-3 py-2 border ${editMode ? 'border-blue-300' : 'border-gray-300'} rounded-md ${!editMode && 'bg-gray-100'} text-gray-900 font-medium`}
+                className={`w-full px-3 py-2 border ${editMode ? "border-blue-300" : "border-gray-300"} rounded-md ${!editMode && "bg-gray-100"} text-gray-900 font-medium`}
               />
             </div>
           </div>
-          
+
           {/* อีเมลและเบอร์โทรศัพท์อยู่บรรทัดเดียวกัน */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Email field (read-only) */}
@@ -100,7 +100,7 @@ const ProfileForm = ({
               />
               <p className="mt-1 text-xs text-gray-500">ไม่สามารถแก้ไขอีเมลได้</p>
             </div>
-            
+
             {/* Phone field (read-only) */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">เบอร์โทรศัพท์</label>
@@ -114,7 +114,7 @@ const ProfileForm = ({
               <p className="mt-1 text-xs text-gray-500">ไม่สามารถแก้ไขเบอร์โทรศัพท์ได้</p>
             </div>
           </div>
-          
+
           {/* Action buttons */}
           {editMode && !hasPendingRequest && (
             <div className="flex justify-end space-x-3 mt-6">
@@ -127,12 +127,12 @@ const ProfileForm = ({
               >
                 <FaTimes className="mr-2" /> ยกเลิก
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${isLimitReached ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${isLimitReached ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={submitting || isLimitReached}
               >
                 {submitting ? (
@@ -156,7 +156,7 @@ const ProfileForm = ({
           )}
         </div>
       </form>
-      
+
       {/* Request limit warning */}
       {isLimitReached && (
         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">

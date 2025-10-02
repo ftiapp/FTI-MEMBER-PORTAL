@@ -1,42 +1,36 @@
-'use client';
+"use client";
 
-import { useState, useEffect, use } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
-import AdminLayout from '../../../../components/AdminLayout';
-import DetailView from './components/DetailView';
-import ICDetailView from './components/ICDetailView';
-import RejectModal from '../../components/modals/RejectModal';
-import SuccessModal from '../../components/modals/SuccessModal';
-import LoadingSpinner from '../../components/common/LoadingSpinner';
-import StatusBadge from '../../components/common/StatusBadge';
-import { useApplicationData } from '../../hooks/useApplicationData';
-import { getMemberTypeInfo } from '../../ีutils/dataTransformers';
-import { formatThaiDate } from '../../ีutils/formatters';
-import { STATUS } from '../../ีutils/constants';
-import ApplicationComments from '../../../../components/ApplicationComments';
-import { generateMembershipPDF } from './components/PDFGenerator';
+import { useState, useEffect, use } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
+import AdminLayout from "../../../../components/AdminLayout";
+import DetailView from "./components/DetailView";
+import ICDetailView from "./components/ICDetailView";
+import RejectModal from "../../components/modals/RejectModal";
+import SuccessModal from "../../components/modals/SuccessModal";
+import LoadingSpinner from "../../components/common/LoadingSpinner";
+import StatusBadge from "../../components/common/StatusBadge";
+import { useApplicationData } from "../../hooks/useApplicationData";
+import { getMemberTypeInfo } from "../../ีutils/dataTransformers";
+import { formatThaiDate } from "../../ีutils/formatters";
+import { STATUS } from "../../ีutils/constants";
+import ApplicationComments from "../../../../components/ApplicationComments";
+import { generateMembershipPDF } from "./components/PDFGenerator";
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
   const { type, id } = use(params);
-  
-  const { 
-    application, 
-    isLoading, 
-    error,
-    industrialGroups,
-    provincialChapters,
-    updateApplication 
-  } = useApplicationData(type, id);
-  
-  const [adminNote, setAdminNote] = useState('');
+
+  const { application, isLoading, error, industrialGroups, provincialChapters, updateApplication } =
+    useApplicationData(type, id);
+
+  const [adminNote, setAdminNote] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
+  const [rejectionReason, setRejectionReason] = useState("");
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successTitle, setSuccessTitle] = useState('สำเร็จ');
-  const [successMessage, setSuccessMessage] = useState('ดำเนินการสำเร็จ');
+  const [successTitle, setSuccessTitle] = useState("สำเร็จ");
+  const [successMessage, setSuccessMessage] = useState("ดำเนินการสำเร็จ");
   const [recipientEmail, setRecipientEmail] = useState(null);
   const [recipientName, setRecipientName] = useState(null);
   const [recipientLoading, setRecipientLoading] = useState(false);
@@ -45,7 +39,7 @@ export default function MembershipRequestDetail({ params }) {
 
   const handleGoToList = () => {
     setShowSuccessModal(false);
-    router.push('/admin/dashboard/membership-requests');
+    router.push("/admin/dashboard/membership-requests");
   };
 
   // Initialize admin note when application loads
@@ -57,41 +51,41 @@ export default function MembershipRequestDetail({ params }) {
 
   const handleSaveNote = async () => {
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch(`/api/admin/membership-requests/${type}/${id}/save-note`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminNote }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const text = await response.text();
       if (!text) {
-        throw new Error('Empty response from server');
+        throw new Error("Empty response from server");
       }
-      
+
       const data = JSON.parse(text);
-      console.log('Save Note Response:', data);
-      
+      console.log("Save Note Response:", data);
+
       if (data.success) {
-        toast.success('บันทึกหมายเหตุเรียบร้อยแล้ว');
+        toast.success("บันทึกหมายเหตุเรียบร้อยแล้ว");
         updateApplication({
           adminNote: adminNote,
-          adminNoteAt: new Date().toISOString()
+          adminNoteAt: new Date().toISOString(),
         });
       } else {
-        console.log('Save Note Error:', data.message);
-        toast.error(data.message || 'ไม่สามารถบันทึกหมายเหตุได้');
+        console.log("Save Note Error:", data.message);
+        toast.error(data.message || "ไม่สามารถบันทึกหมายเหตุได้");
       }
     } catch (error) {
-      console.error('Error saving admin note:', error);
-      toast.error('ไม่สามารถบันทึกหมายเหตุได้');
+      console.error("Error saving admin note:", error);
+      toast.error("ไม่สามารถบันทึกหมายเหตุได้");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,52 +93,52 @@ export default function MembershipRequestDetail({ params }) {
 
   const handleApprove = async () => {
     if (isSubmitting) return;
-    
+
     setIsSubmitting(true);
-    
-    const loadingToastId = toast.loading('กำลังอนุมัติการสมัครสมาชิก... กรุณารอสักครู่');
-    
+
+    const loadingToastId = toast.loading("กำลังอนุมัติการสมัครสมาชิก... กรุณารอสักครู่");
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
-      
+
       const response = await fetch(`/api/admin/membership-requests/${type}/${id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminNote }),
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const text = await response.text();
       if (!text) {
-        throw new Error('Empty response from server');
+        throw new Error("Empty response from server");
       }
-      
+
       const data = JSON.parse(text);
-      console.log('Approve Response:', data);
-      
+      console.log("Approve Response:", data);
+
       if (data.success) {
-        toast.success('อนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
-        updateApplication({ ...application, status: 'approved' });
-        setSuccessTitle('อนุมัติสำเร็จ');
-        setSuccessMessage('ได้ทำการอนุมัติการสมัครสมาชิกเรียบร้อยแล้ว');
+        toast.success("อนุมัติการสมัครสมาชิกเรียบร้อยแล้ว");
+        updateApplication({ ...application, status: "approved" });
+        setSuccessTitle("อนุมัติสำเร็จ");
+        setSuccessMessage("ได้ทำการอนุมัติการสมัครสมาชิกเรียบร้อยแล้ว");
         setShowSuccessModal(true);
       } else {
-        console.log('Approve Error:', data.message);
-        toast.error(data.message || 'ไม่สามารถอนุมัติการสมัครสมาชิกได้');
+        console.log("Approve Error:", data.message);
+        toast.error(data.message || "ไม่สามารถอนุมัติการสมัครสมาชิกได้");
       }
     } catch (error) {
-      console.error('Error approving application:', error);
-      if (error.name === 'AbortError') {
-        toast.error('การร้องขอใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง');
+      console.error("Error approving application:", error);
+      if (error.name === "AbortError") {
+        toast.error("การร้องขอใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง");
       } else {
-        toast.error('ไม่สามารถอนุมัติการสมัครสมาชิกได้');
+        toast.error("ไม่สามารถอนุมัติการสมัครสมาชิกได้");
       }
     } finally {
       toast.dismiss(loadingToastId);
@@ -157,18 +151,18 @@ export default function MembershipRequestDetail({ params }) {
     setRecipientLoading(true);
     setRecipientEmail(null);
     setRecipientName(null);
-    
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 20000);
-      
+
       const res = await fetch(`/api/admin/membership-requests/${type}/${id}/reject`, {
-        method: 'GET',
+        method: "GET",
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (res.ok) {
         const text = await res.text();
         if (text) {
@@ -182,7 +176,7 @@ export default function MembershipRequestDetail({ params }) {
         }
       }
     } catch (e) {
-      console.error('Failed to fetch recipient preview:', e);
+      console.error("Failed to fetch recipient preview:", e);
     } finally {
       setRecipientLoading(false);
     }
@@ -190,7 +184,7 @@ export default function MembershipRequestDetail({ params }) {
 
   const handleCloseRejectModal = () => {
     setShowRejectModal(false);
-    setRejectionReason('');
+    setRejectionReason("");
     setRecipientEmail(null);
     setRecipientName(null);
     setRecipientLoading(false);
@@ -200,60 +194,64 @@ export default function MembershipRequestDetail({ params }) {
 
   const handleReject = async () => {
     if (isSubmitting || !rejectionReason.trim()) return;
-    
+
     setIsSubmitting(true);
-    
-    const loadingToastId = toast.loading('กำลังปฏิเสธการสมัครสมาชิกและส่งอีเมลแจ้ง... กรุณารอสักครู่');
-    
+
+    const loadingToastId = toast.loading(
+      "กำลังปฏิเสธการสมัครสมาชิกและส่งอีเมลแจ้ง... กรุณารอสักครู่",
+    );
+
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
-      
+
       const response = await fetch(`/api/admin/membership-requests/${type}/${id}/reject`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminNote, rejectionReason }),
         signal: controller.signal,
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const text = await response.text();
       if (!text) {
-        throw new Error('Empty response from server');
+        throw new Error("Empty response from server");
       }
-      
+
       const data = JSON.parse(text);
-      console.log('Reject Response:', data);
-      
+      console.log("Reject Response:", data);
+
       if (data.success) {
-        toast.success('ปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว');
-        updateApplication({ ...application, status: 'rejected', rejectionReason });
+        toast.success("ปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว");
+        updateApplication({ ...application, status: "rejected", rejectionReason });
         setShowRejectModal(false);
-        setRejectionReason('');
-        setSuccessTitle('ปฏิเสธสำเร็จ');
+        setRejectionReason("");
+        setSuccessTitle("ปฏิเสธสำเร็จ");
         const recipientLine = data.emailSent
-          ? `ได้ส่งอีเมลแจ้งไปที่ ${data.recipientEmail || '-'}${data.recipientName ? ` (${data.recipientName})` : ''}`
-          : 'ไม่สามารถส่งอีเมลแจ้งได้ในขณะนี้';
-        const companyLine = `ชื่อบริษัท/ผู้ยื่น: ${data.companyName || '-'}`;
-        const taxLine = `TAX ID/เลขบัตร: ${data.taxId || '-'}`;
-        setSuccessMessage(`ได้ทำการปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว\n${companyLine}\n${taxLine}\n${recipientLine}`);
+          ? `ได้ส่งอีเมลแจ้งไปที่ ${data.recipientEmail || "-"}${data.recipientName ? ` (${data.recipientName})` : ""}`
+          : "ไม่สามารถส่งอีเมลแจ้งได้ในขณะนี้";
+        const companyLine = `ชื่อบริษัท/ผู้ยื่น: ${data.companyName || "-"}`;
+        const taxLine = `TAX ID/เลขบัตร: ${data.taxId || "-"}`;
+        setSuccessMessage(
+          `ได้ทำการปฏิเสธการสมัครสมาชิกเรียบร้อยแล้ว\n${companyLine}\n${taxLine}\n${recipientLine}`,
+        );
         setShowSuccessModal(true);
       } else {
-        console.log('Reject Error:', data.message);
-        toast.error(data.message || 'ไม่สามารถปฏิเสธการสมัครสมาชิกได้');
+        console.log("Reject Error:", data.message);
+        toast.error(data.message || "ไม่สามารถปฏิเสธการสมัครสมาชิกได้");
         setShowRejectModal(false);
       }
     } catch (error) {
-      console.error('Error rejecting application:', error);
-      if (error.name === 'AbortError') {
-        toast.error('การร้องขอใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง');
+      console.error("Error rejecting application:", error);
+      if (error.name === "AbortError") {
+        toast.error("การร้องขอใช้เวลานานเกินไป กรุณาลองใหม่อีกครั้ง");
       } else {
-        toast.error('ไม่สามารถปฏิเสธการสมัครสมาชิกได้');
+        toast.error("ไม่สามารถปฏิเสธการสมัครสมาชิกได้");
       }
       setShowRejectModal(false);
     } finally {
@@ -264,49 +262,51 @@ export default function MembershipRequestDetail({ params }) {
 
   const handleViewDocument = (filePath) => {
     if (!filePath) return;
-    
-    if (filePath.startsWith('http')) {
-      window.open(filePath, '_blank');
+
+    if (filePath.startsWith("http")) {
+      window.open(filePath, "_blank");
     } else {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin;
-      const fullUrl = `${baseUrl}/${filePath.replace(/^\//, '')}`;
-      window.open(fullUrl, '_blank');
+      const fullUrl = `${baseUrl}/${filePath.replace(/^\//, "")}`;
+      window.open(fullUrl, "_blank");
     }
   };
 
   const handleDownload = async () => {
     if (!application) {
-      toast.error('ไม่พบข้อมูลสำหรับสร้าง PDF');
+      toast.error("ไม่พบข้อมูลสำหรับสร้าง PDF");
       return;
     }
     try {
-      toast.loading('กำลังสร้างไฟล์ PDF...', { id: 'pdf' });
-      
+      toast.loading("กำลังสร้างไฟล์ PDF...", { id: "pdf" });
+
       // ดึงข้อมูลจาก API เดียวกับที่ User ใช้ เพื่อให้ PDF เหมือนกัน 100%
       let payload = application;
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 20000);
-        const res = await fetch(`/api/membership/${type}/summary/${id}`, { signal: controller.signal });
+        const res = await fetch(`/api/membership/${type}/summary/${id}`, {
+          signal: controller.signal,
+        });
         clearTimeout(timeoutId);
-        
+
         if (res.ok) {
           const data = await res.json();
           if (data?.success && data?.data) {
-            console.log('ใช้ข้อมูลจาก User API สำหรับสร้าง PDF');
+            console.log("ใช้ข้อมูลจาก User API สำหรับสร้าง PDF");
             payload = data.data;
           }
         }
       } catch (e) {
-        console.warn('ไม่สามารถดึงข้อมูลจาก User API ได้ ใช้ข้อมูลจากฝั่ง Admin แทน', e);
+        console.warn("ไม่สามารถดึงข้อมูลจาก User API ได้ ใช้ข้อมูลจากฝั่ง Admin แทน", e);
       }
-      
+
       // ใช้ payload จาก User API (หรือ fallback เป็น Admin data ถ้าดึงไม่ได้)
       await generateMembershipPDF(payload, type, industrialGroups, provincialChapters);
-      toast.success('ดาวน์โหลดไฟล์ PDF เรียบร้อย', { id: 'pdf' });
+      toast.success("ดาวน์โหลดไฟล์ PDF เรียบร้อย", { id: "pdf" });
     } catch (e) {
-      console.error('PDF download failed:', e);
-      toast.error('ไม่สามารถสร้างไฟล์ PDF ได้', { id: 'pdf' });
+      console.error("PDF download failed:", e);
+      toast.error("ไม่สามารถสร้างไฟล์ PDF ได้", { id: "pdf" });
     }
   };
 
@@ -325,7 +325,7 @@ export default function MembershipRequestDetail({ params }) {
           <p className="text-center text-red-500">เกิดข้อผิดพลาด: {error}</p>
           <div className="mt-4 text-center">
             <button
-              onClick={() => router.push('/admin/dashboard/membership-requests')}
+              onClick={() => router.push("/admin/dashboard/membership-requests")}
               className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
             >
               กลับไปหน้ารายการ
@@ -337,7 +337,7 @@ export default function MembershipRequestDetail({ params }) {
   }
 
   const memberType = getMemberTypeInfo(type);
-  const ViewComponent = type === 'ic' ? ICDetailView : DetailView;
+  const ViewComponent = type === "ic" ? ICDetailView : DetailView;
 
   return (
     <AdminLayout>
@@ -348,11 +348,16 @@ export default function MembershipRequestDetail({ params }) {
             <div>
               <div className="flex items-center gap-2 mb-4 print:hidden">
                 <button
-                  onClick={() => router.push('/admin/dashboard/membership-requests')}
+                  onClick={() => router.push("/admin/dashboard/membership-requests")}
                   className="text-white hover:text-gray-200"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                 </button>
                 <span className="text-sm opacity-80">กลับ</span>
@@ -365,7 +370,7 @@ export default function MembershipRequestDetail({ params }) {
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">รหัสใบสมัคร:</span>
                     <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg font-mono">
-                      {application.id || 'N/A'}
+                      {application.id || "N/A"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -396,8 +401,18 @@ export default function MembershipRequestDetail({ params }) {
               className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors print:hidden flex-shrink-0"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 10l5 5m0 0l5-5m-5 5V4" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M7 10l5 5m0 0l5-5m-5 5V4"
+                />
               </svg>
               ดาวน์โหลด PDF
             </button>
@@ -405,7 +420,7 @@ export default function MembershipRequestDetail({ params }) {
         </div>
 
         {/* Main Content */}
-        <ViewComponent 
+        <ViewComponent
           application={application}
           type={type}
           industrialGroups={industrialGroups}

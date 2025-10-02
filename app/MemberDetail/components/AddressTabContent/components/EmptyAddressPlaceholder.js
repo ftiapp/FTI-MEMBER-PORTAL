@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaMapMarkerAlt } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaMapMarkerAlt } from "react-icons/fa";
 
 /**
  * Empty address placeholder component
  */
 export default function EmptyAddressPlaceholder() {
   return (
-    <motion.div 
+    <motion.div
       className="py-16 text-center text-gray-500 bg-white rounded-lg shadow-inner"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}

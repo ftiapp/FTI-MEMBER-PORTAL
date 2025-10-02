@@ -1,4 +1,4 @@
-import { FaBox, FaSpinner, FaCheck, FaTimes, FaQuestion } from 'react-icons/fa';
+import { FaBox, FaSpinner, FaCheck, FaTimes, FaQuestion } from "react-icons/fa";
 
 /**
  * Get the appropriate icon component for a product update status
@@ -7,15 +7,15 @@ import { FaBox, FaSpinner, FaCheck, FaTimes, FaQuestion } from 'react-icons/fa';
  */
 export const getProductUpdateStatusIcon = (status) => {
   switch (status) {
-    case 'pending':
+    case "pending":
       return FaSpinner;
-    case 'approved':
+    case "approved":
       return FaCheck;
-    case 'rejected':
+    case "rejected":
       return FaTimes;
-    case 'none':
+    case "none":
       return FaBox;
-    case 'error':
+    case "error":
       return FaQuestion;
     default:
       return FaBox;
@@ -29,18 +29,18 @@ export const getProductUpdateStatusIcon = (status) => {
  */
 export const getProductUpdateStatusText = (status) => {
   switch (status) {
-    case 'pending':
-      return 'รอการอนุมัติ';
-    case 'approved':
-      return 'อนุมัติแล้ว';
-    case 'rejected':
-      return 'ปฏิเสธแล้ว';
-    case 'none':
-      return 'ไม่มีคำขอ';
-    case 'error':
-      return 'โหลดผิดพลาด';
+    case "pending":
+      return "รอการอนุมัติ";
+    case "approved":
+      return "อนุมัติแล้ว";
+    case "rejected":
+      return "ปฏิเสธแล้ว";
+    case "none":
+      return "ไม่มีคำขอ";
+    case "error":
+      return "โหลดผิดพลาด";
     default:
-      return 'ไม่ทราบสถานะ';
+      return "ไม่ทราบสถานะ";
   }
 };
 
@@ -51,17 +51,17 @@ export const getProductUpdateStatusText = (status) => {
  */
 export const getProductUpdateStatusClass = (status) => {
   switch (status) {
-    case 'pending':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'approved':
-      return 'bg-green-100 text-green-800';
-    case 'rejected':
-      return 'bg-red-100 text-red-800';
-    case 'none':
-      return 'bg-gray-100 text-gray-800';
-    case 'error':
-      return 'bg-red-100 text-red-800';
+    case "pending":
+      return "bg-yellow-100 text-yellow-800";
+    case "approved":
+      return "bg-green-100 text-green-800";
+    case "rejected":
+      return "bg-red-100 text-red-800";
+    case "none":
+      return "bg-gray-100 text-gray-800";
+    case "error":
+      return "bg-red-100 text-red-800";
     default:
-      return 'bg-gray-100 text-gray-800';
+      return "bg-gray-100 text-gray-800";
   }
 };

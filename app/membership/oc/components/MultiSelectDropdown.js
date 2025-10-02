@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from "react";
 
 export default function MultiSelectDropdown({
   options,
@@ -8,10 +8,10 @@ export default function MultiSelectDropdown({
   onChange,
   placeholder,
   isLoading,
-  label
+  label,
 }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [filteredOptions, setFilteredOptions] = useState([]);
   const dropdownRef = useRef(null);
   const searchTimeout = useRef(null);
@@ -24,12 +24,12 @@ export default function MultiSelectDropdown({
 
     searchTimeout.current = setTimeout(() => {
       if (!options) return;
-      
+
       if (!searchTerm) {
         setFilteredOptions(options);
       } else {
-        const filtered = options.filter(option => 
-          option.name_th.toLowerCase().includes(searchTerm.toLowerCase())
+        const filtered = options.filter((option) =>
+          option.name_th.toLowerCase().includes(searchTerm.toLowerCase()),
         );
         setFilteredOptions(filtered);
       }
@@ -50,9 +50,9 @@ export default function MultiSelectDropdown({
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
 
@@ -64,12 +64,12 @@ export default function MultiSelectDropdown({
 
     if (currentSelected.includes(optionId)) {
       // If the option is already selected, remove it
-      newSelectedValues = currentSelected.filter(id => id !== optionId);
+      newSelectedValues = currentSelected.filter((id) => id !== optionId);
     } else {
       // If the option is not selected, add it
       newSelectedValues = [...currentSelected, optionId];
     }
-    
+
     // Pass the entire new array to the parent
     onChange(newSelectedValues);
   };
@@ -77,42 +77,38 @@ export default function MultiSelectDropdown({
   // Get selected options names for display
   const getSelectedOptionsText = () => {
     if (!options || selectedValues.length === 0) return placeholder;
-    
+
     if (selectedValues.length === 1) {
-      const selected = options.find(opt => opt.id === selectedValues[0]);
+      const selected = options.find((opt) => opt.id === selectedValues[0]);
       return selected ? selected.name_th : placeholder;
     }
-    
+
     return `เลือกแล้ว ${selectedValues.length} รายการ`;
   };
 
   return (
     <div className="relative" ref={dropdownRef}>
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {label}
-        </label>
-      )}
-      
-      <div 
+      {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
+
+      <div
         className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer bg-white"
         onClick={() => !isLoading && setIsOpen(!isOpen)}
       >
         <div className="flex-grow truncate">
-          {isLoading ? 'กำลังโหลดข้อมูล...' : getSelectedOptionsText()}
+          {isLoading ? "กำลังโหลดข้อมูล..." : getSelectedOptionsText()}
         </div>
         <div className="ml-2">
-          <svg 
-            className={`w-5 h-5 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className={`w-5 h-5 transition-transform ${isOpen ? "transform rotate-180" : ""}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </div>
-      
+
       {isOpen && (
         <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
           <div className="p-2 border-b">
@@ -126,14 +122,14 @@ export default function MultiSelectDropdown({
               autoFocus
             />
           </div>
-          
+
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length > 0 ? (
-              filteredOptions.map(option => (
-                <div 
-                  key={option.id} 
+              filteredOptions.map((option) => (
+                <div
+                  key={option.id}
                   className={`flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100 ${
-                    selectedValues.includes(option.id) ? 'bg-blue-50' : ''
+                    selectedValues.includes(option.id) ? "bg-blue-50" : ""
                   }`}
                   onClick={() => toggleOption(option.id)}
                 >
@@ -150,10 +146,12 @@ export default function MultiSelectDropdown({
               <div className="px-3 py-2 text-sm text-gray-500">ไม่พบข้อมูล</div>
             )}
           </div>
-          
+
           {selectedValues.length > 0 && (
             <div className="p-2 border-t flex justify-between items-center">
-              <span className="text-xs text-blue-600">เลือกแล้ว {selectedValues.length} รายการ</span>
+              <span className="text-xs text-blue-600">
+                เลือกแล้ว {selectedValues.length} รายการ
+              </span>
               <button
                 className="text-xs text-red-600 hover:text-red-800"
                 onClick={(e) => {

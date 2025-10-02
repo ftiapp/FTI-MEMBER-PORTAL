@@ -3,6 +3,7 @@
 This document explains the key components and behaviors in the admin area under `app/admin/` focusing on document preview/download, applicant account info fallbacks, and filter persistence for membership requests.
 
 ## Contents
+
 - Document preview and download
 - Applicant account info (fallback strategy)
 - Membership Requests: filter/search persistence
@@ -45,6 +46,7 @@ There are two main places with document preview behavior:
   - PDF preview uses `<iframe>`.
 
 ### Why no new tabs?
+
 - We removed `target="_blank"` and `rel="noopener noreferrer"` from download links and replaced with `download` to keep users in the same tab and provide a consistent UX.
 
 ---
@@ -83,6 +85,7 @@ This section aggregates user/account contact info from multiple possible fields 
 - IC only: ID card shows from `application.idCard || application.id_card_number`.
 
 Notes:
+
 - Some normalization also exists in `app/admin/dashboard/membership-requests/ีutils/dataTransformers.js` (`normalizeApplicationData`), but UI adds extra fallbacks to be robust to varying payloads per type.
 
 ---
@@ -92,14 +95,17 @@ Notes:
 File: `app/admin/dashboard/membership-requests/page.js`
 
 Behavior:
+
 - On first mount, state is restored from the URL query and `sessionStorage` snapshot `mr:listState`.
 - If the URL has only some query params (e.g., only `search`), missing fields (status/type/sort/page) will be filled from the session snapshot to keep filters consistent.
 - State updates continue to sync to the URL and the snapshot.
 
 Fields persisted:
+
 - `searchTerm`, `statusFilter`, `typeFilter`, `sortOrder`, `currentPage`.
 
 Tip:
+
 - If you want persistence across browser restarts, switch from `sessionStorage` to `localStorage` in this file.
 
 ---
@@ -116,15 +122,18 @@ File: `app/admin/dashboard/membership-requests/[type]/[id]/components/ICDetailVi
 ## Extending document support
 
 Where:
+
 - `DocumentsSection.js` and `RequestDetail.js` (for address updates).
 
 How to support more file types:
+
 - Extend detection functions to include the new extension.
   - In `RequestDetail.js`: update `isImage(url)` to include the new file extension.
   - In `DocumentsSection.js`: update `isImage(p)`, `isPDF(p)`, and `canPreview(p)` accordingly.
 - For formats that are not easily embeddable, keep preview as "unknown" and encourage download.
 
 Adding custom document labels:
+
 - For IC, the helper `getDocumentName()` in `ICDetailView.js` maps `document_type` to Thai labels for well-known types.
 - For the generic path, `dataTransformers.getDocumentDisplayName()` provides a fallback name.
 
@@ -186,9 +195,10 @@ These pages commonly reuse the shell components described below.
   - `components/hooks/useAdminData.js`: centralize fetching admin-level data where applicable.
 
 How to add a new admin page
-1) Create a folder under `app/admin/dashboard/<your-page>/page.js`.
-2) Wrap content with `AdminLayout` if needed (or rely on parent layout).
-3) Add a menu entry in `components/MenuConfig.js`.
+
+1. Create a folder under `app/admin/dashboard/<your-page>/page.js`.
+2. Wrap content with `AdminLayout` if needed (or rely on parent layout).
+3. Add a menu entry in `components/MenuConfig.js`.
 
 ---
 
@@ -198,6 +208,7 @@ How to add a new admin page
 - `dashboard/recent-activities/`: quick view of most recent actions.
 
 Common patterns
+
 - Paginated lists with search/filter.
 - Detail drawers or modals for context on each activity.
 
@@ -206,13 +217,16 @@ Common patterns
 ## Contact/Guest messages and stats
 
 Components
+
 - `components/ContactMessageStats.js` and `components/GuestContactMessageStats.js`: summary cards for messages volume.
 
 Pages
+
 - `dashboard/contact-messages/`: list and manage authenticated user messages.
 - `dashboard/guest-messages/`: list and manage guest (unauthenticated) messages.
 
 Suggested UX
+
 - Inline preview of message body.
 - Quick actions: mark as handled, assign, add admin note.
 
@@ -221,10 +235,12 @@ Suggested UX
 ## Manage admins and permissions
 
 Pages
+
 - `dashboard/manage-admins/`: CRUD for admin users.
 - `dashboard/admin-permissions/`: assign roles/permissions.
 
 Tips
+
 - Centralize role definitions and permission checks in a single module to avoid drift.
 - Display effective permissions per admin for transparency.
 
@@ -233,12 +249,14 @@ Tips
 ## Settings, profile updates, email change, verify
 
 Pages
+
 - `dashboard/settings/`: system or feature settings.
 - `dashboard/profile-updates/`: pending profile change approvals.
 - `dashboard/email-change/`: email change requests management.
 - `dashboard/verify/`: verification tasks (documents, identities) if applicable.
 
 Implementation notes
+
 - Reuse shared components: tables, filter bars, status badges.
 - For sensitive actions, use confirm modals (see `components/LogoutConfirmationDialog.js` or `components/modals/` in other sections as reference).
 
@@ -250,6 +268,7 @@ Implementation notes
 - In IC/other detail pages, the "เชื่อมต่อฐานข้อมูลสมาชิก" action triggers linkage using application identifiers (e.g., tax ID / ID card).
 
 Best practices
+
 - Always validate identifiers server-side before linking.
 - Log linkage attempts to the activities feed for auditing.
 
@@ -260,6 +279,7 @@ Best practices
 Path: `app/admin/address-updates/`
 
 Key components
+
 - `components/RequestList.js`: list of address update requests with filters.
 - `components/RequestDetail.js`: request detail and side-by-side comparison with preview modal (PDF/Image) and download.
 - `components/EditAddressForm.js`: inline edit with save handler injected via props.
@@ -267,8 +287,8 @@ Key components
 - Hook: `hooks/useAddressUpdateRequests.js`: data fetching and state for list/detail.
 
 Flow
-1) Select a request from the list.
-2) Review old vs new address and document evidence.
-3) Edit new address if needed and approve, or reject with a reason.
-4) Processed info displayed with timestamps and admin notes.
 
+1. Select a request from the list.
+2. Review old vs new address and document evidence.
+3. Edit new address if needed and approve, or reject with a reason.
+4. Processed info displayed with timestamps and admin notes.

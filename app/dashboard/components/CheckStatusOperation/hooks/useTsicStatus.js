@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook to fetch TSIC code update status
@@ -20,13 +20,15 @@ const useTsicStatus = (userId) => {
 
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/dashboard/operation-status/tsic-status?userId=${userId}`);
-        
+        const response = await fetch(
+          `/api/dashboard/operation-status/tsic-status?userId=${userId}`,
+        );
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(`Error response: ${JSON.stringify(errorData)}`);
         }
-        
+
         const data = await response.json();
 
         if (data.success) {
@@ -34,21 +36,21 @@ const useTsicStatus = (userId) => {
           setError(null);
         } else {
           // Gracefully handle no data cases instead of throwing
-          const msg = (data.message || '').toLowerCase();
+          const msg = (data.message || "").toLowerCase();
           if (
-            msg.includes('no member codes') ||
-            msg.includes('not found') ||
-            Array.isArray(data.tsicUpdates) && data.tsicUpdates.length === 0
+            msg.includes("no member codes") ||
+            msg.includes("not found") ||
+            (Array.isArray(data.tsicUpdates) && data.tsicUpdates.length === 0)
           ) {
             // Treat as empty state
             setTsicUpdates([]);
             setError(null);
           } else {
-            throw new Error(data.message || 'Failed to fetch TSIC code update status');
+            throw new Error(data.message || "Failed to fetch TSIC code update status");
           }
         }
       } catch (err) {
-        console.error('useTsicStatus:', err);
+        console.error("useTsicStatus:", err);
         setError(err.message);
         setTsicUpdates([]);
       } finally {

@@ -1,20 +1,17 @@
-import { query } from '@/app/lib/db';
-import { NextResponse } from 'next/server';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
+import { query } from "@/app/lib/db";
+import { NextResponse } from "next/server";
+import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 export async function GET(request) {
   try {
     // Check admin session
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json(
-        { error: 'ไม่ได้รับอนุญาต' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status') || 'pending';
+    const status = searchParams.get("status") || "pending";
 
     // Get profile update requests with user information and admin name
     const requests = await query(
@@ -25,15 +22,15 @@ export async function GET(request) {
        LEFT JOIN admin_users au ON pr.admin_id = au.id
        WHERE pr.status = ?
        ORDER BY pr.created_at DESC`,
-      [status]
+      [status],
     );
 
     return NextResponse.json({ requests });
   } catch (error) {
-    console.error('Error fetching profile update requests:', error);
+    console.error("Error fetching profile update requests:", error);
     return NextResponse.json(
-      { error: 'เกิดข้อผิดพลาดในการดึงข้อมูลคำขอแก้ไขข้อมูล' },
-      { status: 500 }
+      { error: "เกิดข้อผิดพลาดในการดึงข้อมูลคำขอแก้ไขข้อมูล" },
+      { status: 500 },
     );
   }
 }

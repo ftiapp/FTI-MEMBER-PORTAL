@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 /**
  * Component for displaying and editing address information
@@ -8,32 +8,32 @@ import { useState } from 'react';
 export default function AddressSection({ address, onUpdate, readOnly }) {
   const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState(address || {});
-  
+
   // Handle input change
   const handleChange = (field, value) => {
     setFormData({
       ...formData,
-      [field]: value
+      [field]: value,
     });
   };
-  
+
   // Handle save changes
   const handleSave = () => {
     onUpdate(formData);
     setEditMode(false);
   };
-  
+
   // Handle cancel edit
   const handleCancel = () => {
     setFormData(address);
     setEditMode(false);
   };
-  
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 mb-6 print:shadow-none">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">ที่อยู่จัดส่งเอกสาร</h2>
-        
+
         {!readOnly && (
           <div className="print:hidden">
             {editMode ? (
@@ -62,69 +62,59 @@ export default function AddressSection({ address, onUpdate, readOnly }) {
           </div>
         )}
       </div>
-      
+
       {address ? (
         <div>
           <h3 className="font-medium mb-2">ที่อยู่ภาษาไทย</h3>
-          
+
           {editMode ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ที่อยู่
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
                 <textarea
-                  value={formData.address_thai || ''}
-                  onChange={(e) => handleChange('address_thai', e.target.value)}
+                  value={formData.address_thai || ""}
+                  onChange={(e) => handleChange("address_thai", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                   rows="3"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  แขวง/ตำบล
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">แขวง/ตำบล</label>
                 <input
                   type="text"
-                  value={formData.subdistrict_thai || ''}
-                  onChange={(e) => handleChange('subdistrict_thai', e.target.value)}
+                  value={formData.subdistrict_thai || ""}
+                  onChange={(e) => handleChange("subdistrict_thai", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  เขต/อำเภอ
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">เขต/อำเภอ</label>
                 <input
                   type="text"
-                  value={formData.district_thai || ''}
-                  onChange={(e) => handleChange('district_thai', e.target.value)}
+                  value={formData.district_thai || ""}
+                  onChange={(e) => handleChange("district_thai", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  จังหวัด
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">จังหวัด</label>
                 <input
                   type="text"
-                  value={formData.province_thai || ''}
-                  onChange={(e) => handleChange('province_thai', e.target.value)}
+                  value={formData.province_thai || ""}
+                  onChange={(e) => handleChange("province_thai", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  รหัสไปรษณีย์
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">รหัสไปรษณีย์</label>
                 <input
                   type="text"
-                  value={formData.postal_code || ''}
-                  onChange={(e) => handleChange('postal_code', e.target.value)}
+                  value={formData.postal_code || ""}
+                  onChange={(e) => handleChange("postal_code", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
@@ -140,55 +130,47 @@ export default function AddressSection({ address, onUpdate, readOnly }) {
               </p>
             </div>
           )}
-          
+
           <h3 className="font-medium mb-2">ที่อยู่ภาษาอังกฤษ</h3>
-          
+
           {editMode ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ที่อยู่
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ที่อยู่</label>
                 <textarea
-                  value={formData.address_english || ''}
-                  onChange={(e) => handleChange('address_english', e.target.value)}
+                  value={formData.address_english || ""}
+                  onChange={(e) => handleChange("address_english", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                   rows="3"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  แขวง/ตำบล
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">แขวง/ตำบล</label>
                 <input
                   type="text"
-                  value={formData.subdistrict_english || ''}
-                  onChange={(e) => handleChange('subdistrict_english', e.target.value)}
+                  value={formData.subdistrict_english || ""}
+                  onChange={(e) => handleChange("subdistrict_english", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  เขต/อำเภอ
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">เขต/อำเภอ</label>
                 <input
                   type="text"
-                  value={formData.district_english || ''}
-                  onChange={(e) => handleChange('district_english', e.target.value)}
+                  value={formData.district_english || ""}
+                  onChange={(e) => handleChange("district_english", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  จังหวัด
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">จังหวัด</label>
                 <input
                   type="text"
-                  value={formData.province_english || ''}
-                  onChange={(e) => handleChange('province_english', e.target.value)}
+                  value={formData.province_english || ""}
+                  onChange={(e) => handleChange("province_english", e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md"
                 />
               </div>

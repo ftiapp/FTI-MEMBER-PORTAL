@@ -1,17 +1,17 @@
 // app/admin/dashboard/guest-messages/components/GuestMessagesPage.js
 
-'use client';
+"use client";
 
-import { useState } from 'react';
-import AdminLayout from '../../../../components/AdminLayout';
-import GuestContactMessageStats from '../../../../components/GuestContactMessageStats';
-import MessageList from './MessageList';
-import MessageDetail from './MessageDetail';
-import { useGuestMessages } from '../hooks/useGuestMessages';
+import { useState } from "react";
+import AdminLayout from "../../../../components/AdminLayout";
+import GuestContactMessageStats from "../../../../components/GuestContactMessageStats";
+import MessageList from "./MessageList";
+import MessageDetail from "./MessageDetail";
+import { useGuestMessages } from "../hooks/useGuestMessages";
 
 export default function GuestMessagesPage() {
   const [selectedMessage, setSelectedMessage] = useState(null);
-  
+
   const {
     messages,
     loading,
@@ -28,16 +28,16 @@ export default function GuestMessagesPage() {
     replyToMessage,
     closeMessage,
     assignToMe,
-    addSampleData
+    addSampleData,
   } = useGuestMessages();
 
   const handleMessageClick = async (message) => {
     // Mark as read if unread
-    if (message.status === 'unread') {
+    if (message.status === "unread") {
       const success = await markAsRead(message.id);
       if (success) {
         // Update selected message with new status
-        setSelectedMessage({ ...message, status: 'read' });
+        setSelectedMessage({ ...message, status: "read" });
       } else {
         setSelectedMessage(message);
       }
@@ -48,43 +48,43 @@ export default function GuestMessagesPage() {
 
   const handleReply = async (messageId, replyText) => {
     const result = await replyToMessage(messageId, replyText);
-    
+
     if (result) {
       // Update selected message
       setSelectedMessage({
         ...selectedMessage,
-        ...result
+        ...result,
       });
     }
-    
+
     return result;
   };
 
   const handleClose = async (messageId) => {
     const result = await closeMessage(messageId);
-    
+
     if (result) {
       // Update selected message
       setSelectedMessage({
         ...selectedMessage,
-        ...result
+        ...result,
       });
     }
-    
+
     return result;
   };
 
   const handleAssign = async (messageId) => {
     const adminName = await assignToMe(messageId);
-    
+
     if (adminName) {
       // Update selected message
       setSelectedMessage({
         ...selectedMessage,
-        assigned_to: adminName
+        assigned_to: adminName,
       });
     }
-    
+
     return adminName;
   };
 
@@ -92,11 +92,11 @@ export default function GuestMessagesPage() {
     <AdminLayout>
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold mb-6">ข้อความติดต่อจากบุคคลทั่วไป</h1>
-        
+
         <div className="mb-8">
           <GuestContactMessageStats title="สถิติข้อความติดต่อจากบุคคลทั่วไป" />
         </div>
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <MessageList
             messages={messages}
@@ -114,7 +114,7 @@ export default function GuestMessagesPage() {
             onSearch={fetchMessages}
             onAddSampleData={addSampleData}
           />
-          
+
           <MessageDetail
             selectedMessage={selectedMessage}
             onReply={handleReply}

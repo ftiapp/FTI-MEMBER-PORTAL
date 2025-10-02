@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useNavigation } from '@/app/contexts/NavigationContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigation } from "@/app/contexts/NavigationContext";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoadingOverlay() {
   const { isLoading } = useNavigation();

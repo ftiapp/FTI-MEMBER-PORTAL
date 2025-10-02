@@ -1,4 +1,4 @@
-import * as postmark from 'postmark';
+import * as postmark from "postmark";
 import { getFTIEmailHtmlTemplate } from "./fti-email-template";
 
 // Initialize Postmark client with API key
@@ -33,7 +33,7 @@ export async function sendEmailChangeOTP(email, firstName, lastName, otp) {
           </div>
           <p>รหัส OTP นี้จะหมดอายุใน 15 นาที</p>
           <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้และติดต่อเจ้าหน้าที่</p>
-        `
+        `,
       }),
       TextBody: `
         รหัส OTP สำหรับการเปลี่ยนอีเมล - FTI Portal
@@ -48,7 +48,7 @@ export async function sendEmailChangeOTP(email, firstName, lastName, otp) {
         
         หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้และติดต่อเจ้าหน้าที่
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {
@@ -81,7 +81,7 @@ export async function sendEmailChangeNotificationToOld(oldEmail, newEmail, first
             <p style="margin: 0; color: #9a3412; font-weight: bold;">หมายเหตุ:</p>
             <p style="margin-top: 8px; color: #9a3412;">นี่เป็นอีเมลแจ้งเตือนที่ส่งไปยังอีเมลเก่าของคุณ คุณจะไม่สามารถใช้อีเมลนี้ในการเข้าสู่ระบบได้อีกต่อไป</p>
           </div>
-        `
+        `,
       }),
       TextBody: `
         การเปลี่ยนแปลงอีเมลสำเร็จ - FTI Portal
@@ -94,7 +94,7 @@ export async function sendEmailChangeNotificationToOld(oldEmail, newEmail, first
         
         หมายเหตุ: นี่เป็นอีเมลแจ้งเตือนที่ส่งไปยังอีเมลเก่าของคุณ คุณจะไม่สามารถใช้อีเมลนี้ในการเข้าสู่ระบบได้อีกต่อไป
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {
@@ -127,7 +127,7 @@ export async function sendEmailChangeNotificationToNew(newEmail, oldEmail, first
             <a href="https://ftimemberportal-529sy.kinsta.app/login" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่ระบบ</a>
           </div>
           <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาติดต่อเจ้าหน้าที่โดย��่วน</p>
-        `
+        `,
       }),
       TextBody: `
         ยินดีต้อนรับ - การเปลี่ยนแปลงอีเมลสำเร็จ - FTI Portal
@@ -142,7 +142,7 @@ export async function sendEmailChangeNotificationToNew(newEmail, oldEmail, first
         
         หากคุณไม่ได้ดำเนินการนี้ กรุณาติดต่อเจ้าหน้าที่โดยด่วน
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {

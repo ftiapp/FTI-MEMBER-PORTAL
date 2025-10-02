@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import StatusBadge from './StatusBadge';
-import { formatDate } from '../utils/date';
+import { motion } from "framer-motion";
+import StatusBadge from "./StatusBadge";
+import { formatDate } from "../utils/date";
 
 export default function MessageList({ messages, selectedMessage, onSelectMessage }) {
   return (
@@ -12,12 +12,14 @@ export default function MessageList({ messages, selectedMessage, onSelectMessage
       </div>
       <div className="overflow-y-auto max-h-[calc(100vh-250px)]">
         {messages.map((message) => (
-          <motion.div 
+          <motion.div
             key={message.id}
             onClick={() => onSelectMessage(message)}
             className={`p-4 border-b cursor-pointer hover:bg-gray-50 transition-colors ${
-              selectedMessage && selectedMessage.id === message.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-            } ${message.status === 'unread' ? 'font-semibold' : ''}`}
+              selectedMessage && selectedMessage.id === message.id
+                ? "bg-blue-50 border-l-4 border-blue-500"
+                : ""
+            } ${message.status === "unread" ? "font-semibold" : ""}`}
             whileHover={{ backgroundColor: "#f9fafb", x: 3 }}
             whileTap={{ scale: 0.98 }}
             initial={{ opacity: 0, x: -5 }}
@@ -34,13 +36,13 @@ export default function MessageList({ messages, selectedMessage, onSelectMessage
               </div>
             </div>
             <div className="flex justify-between items-center">
-              <p className="text-xs text-black mt-1 font-semibold">{formatDate(message.created_at)}</p>
-              {message.status !== 'unread' && message.read_by_admin_name && (
-                <p className="text-xs text-gray-600 mt-1">
-                  อ่านโดย: {message.read_by_admin_name}
-                </p>
+              <p className="text-xs text-black mt-1 font-semibold">
+                {formatDate(message.created_at)}
+              </p>
+              {message.status !== "unread" && message.read_by_admin_name && (
+                <p className="text-xs text-gray-600 mt-1">อ่านโดย: {message.read_by_admin_name}</p>
               )}
-              {message.status === 'replied' && message.replied_by_admin_name && (
+              {message.status === "replied" && message.replied_by_admin_name && (
                 <p className="text-xs text-gray-600 mt-1">
                   ตอบกลับโดย: {message.replied_by_admin_name}
                 </p>

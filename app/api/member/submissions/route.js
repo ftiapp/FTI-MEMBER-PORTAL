@@ -1,18 +1,15 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-    
+    const userId = searchParams.get("userId");
+
     if (!userId) {
-      return NextResponse.json(
-        { error: 'ไม่ได้ระบุ userId' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "ไม่ได้ระบุ userId" }, { status: 400 });
     }
-    
+
     // Get all submissions for this user with document information
     const submissions = await query(
       `SELECT 
@@ -38,18 +35,18 @@ export async function GET(request) {
        LEFT JOIN documents_Member d ON c.user_id = d.user_id AND c.MEMBER_CODE = d.MEMBER_CODE
        WHERE c.user_id = ? 
        ORDER BY c.created_at DESC`,
-      [userId]
+      [userId],
     );
-    
+
     return NextResponse.json({
       success: true,
-      submissions
+      submissions,
     });
   } catch (error) {
-    console.error('Error fetching member submissions:', error);
+    console.error("Error fetching member submissions:", error);
     return NextResponse.json(
-      { success: false, error: 'เกิดข้อผิดพลาดในการดึงข้อมูลการยืนยันสมาชิก' },
-      { status: 500 }
+      { success: false, error: "เกิดข้อผิดพลาดในการดึงข้อมูลการยืนยันสมาชิก" },
+      { status: 500 },
     );
   }
 }

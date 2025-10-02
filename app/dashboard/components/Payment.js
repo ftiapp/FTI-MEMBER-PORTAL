@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
 export default function Payment() {
   return (
@@ -11,7 +11,7 @@ export default function Payment() {
           <div className="pb-4 border-b">
             <h3 className="text-lg font-medium">รายการชำระเงิน</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="border rounded-lg p-4">
               <div className="flex justify-between items-center">
@@ -21,7 +21,9 @@ export default function Payment() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-lg">3,500.00 บาท</p>
-                  <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">รอชำระเงิน</span>
+                  <span className="inline-block px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm">
+                    รอชำระเงิน
+                  </span>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t flex justify-end">
@@ -30,9 +32,9 @@ export default function Payment() {
                 </button>
               </div>
             </div>
-            
+
             <h3 className="text-lg font-medium mt-6">ประวัติการชำระเงิน</h3>
-            
+
             <div className="border rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <div className="space-y-1">
@@ -41,7 +43,9 @@ export default function Payment() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-lg">3,500.00 บาท</p>
-                  <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">ชำระแล้ว</span>
+                  <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                    ชำระแล้ว
+                  </span>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t flex justify-end">
@@ -50,7 +54,7 @@ export default function Payment() {
                 </button>
               </div>
             </div>
-            
+
             <div className="border rounded-lg p-4">
               <div className="flex justify-between items-center">
                 <div className="space-y-1">
@@ -59,7 +63,9 @@ export default function Payment() {
                 </div>
                 <div className="text-right">
                   <p className="font-medium text-lg">3,500.00 บาท</p>
-                  <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">ชำระแล้ว</span>
+                  <span className="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                    ชำระแล้ว
+                  </span>
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t flex justify-end">

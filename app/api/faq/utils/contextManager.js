@@ -9,7 +9,7 @@ const CONTEXT_EXPIRY = 10 * 60 * 1000; // 10 minutes
  */
 export function getConversationContext(sessionId) {
   if (!sessionId) return null;
-  
+
   const context = conversationContexts.get(sessionId);
   if (!context || Date.now() > context.expiry) {
     // Clean up expired context
@@ -28,10 +28,10 @@ export function getConversationContext(sessionId) {
  */
 export function setConversationContext(sessionId, data) {
   if (!sessionId || !data) return;
-  
+
   conversationContexts.set(sessionId, {
     data: data,
-    expiry: Date.now() + CONTEXT_EXPIRY
+    expiry: Date.now() + CONTEXT_EXPIRY,
   });
 }
 
@@ -43,17 +43,17 @@ export function setConversationContext(sessionId, data) {
  */
 export function setPendingChoices(sessionId, choices, originalQuestion) {
   if (!sessionId || !choices) return;
-  
+
   const existingContext = getConversationContext(sessionId) || {};
-  
+
   const newContext = {
     ...existingContext,
     pendingChoices: choices,
     originalQuestion: originalQuestion,
-    choiceExpiry: Date.now() + (5 * 60 * 1000), // 5 minutes for choice selection
-    timestamp: Date.now()
+    choiceExpiry: Date.now() + 5 * 60 * 1000, // 5 minutes for choice selection
+    timestamp: Date.now(),
   };
-  
+
   setConversationContext(sessionId, newContext);
 }
 
@@ -64,16 +64,16 @@ export function setPendingChoices(sessionId, choices, originalQuestion) {
  */
 export function getPendingChoices(sessionId) {
   if (!sessionId) return null;
-  
+
   const context = getConversationContext(sessionId);
   if (!context || !context.pendingChoices) return null;
-  
+
   // Check if choices have expired
   if (context.choiceExpiry && Date.now() > context.choiceExpiry) {
     clearPendingChoices(sessionId);
     return null;
   }
-  
+
   return context.pendingChoices;
 }
 
@@ -83,7 +83,7 @@ export function getPendingChoices(sessionId) {
  */
 export function clearPendingChoices(sessionId) {
   if (!sessionId) return;
-  
+
   const context = getConversationContext(sessionId);
   if (context) {
     delete context.pendingChoices;
@@ -102,15 +102,15 @@ export function clearPendingChoices(sessionId) {
  */
 export function updateContextWithFaq(sessionId, faq, userTokens, userIntents) {
   if (!sessionId || !faq) return;
-  
+
   const newContext = {
     lastCategory: faq.category,
     lastKeywords: userTokens.slice(0, 5), // Keep only first 5 keywords
     intents: userIntents.slice(0, 3), // Keep only top 3 intents
     timestamp: Date.now(),
-    lastFaqId: faq.id
+    lastFaqId: faq.id,
   };
-  
+
   setConversationContext(sessionId, newContext);
 }
 
@@ -144,7 +144,7 @@ export function getContextStats() {
   const now = Date.now();
   let activeContexts = 0;
   let expiredContexts = 0;
-  
+
   for (const [sessionId, context] of conversationContexts.entries()) {
     if (now > context.expiry) {
       expiredContexts++;
@@ -152,11 +152,11 @@ export function getContextStats() {
       activeContexts++;
     }
   }
-  
+
   return {
     total: conversationContexts.size,
     active: activeContexts,
-    expired: expiredContexts
+    expired: expiredContexts,
   };
 }
 

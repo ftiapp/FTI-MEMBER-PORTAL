@@ -1,41 +1,32 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
 
 export async function POST(request, { params }) {
   try {
     const id = await params?.id;
     const { adminId, adminName } = await request.json();
-    
+
     if (!id) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่พบ ID ข้อความ' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบ ID ข้อความ" }, { status: 400 });
     }
-    
+
     // Get message details
-    const messages = await query(
-      `SELECT * FROM contact_messages WHERE id = ?`,
-      [id]
-    );
-    
+    const messages = await query(`SELECT * FROM contact_messages WHERE id = ?`, [id]);
+
     if (!messages || messages.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่พบข้อความติดต่อ' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบข้อความติดต่อ" }, { status: 404 });
     }
-    
+
     const message = messages[0];
-    
+
     // Update message status to replied
     await query(
       `UPDATE contact_messages 
        SET status = 'replied', admin_response = TRUE, updated_at = NOW() 
        WHERE id = ?`,
-      [id]
+      [id],
     );
-    
+
     // Log admin action
     await query(
       `INSERT INTO admin_actions_log 
@@ -45,26 +36,26 @@ export async function POST(request, { params }) {
         adminId,
         id,
         JSON.stringify({
-          action: 'CONTACT_MESSAGE_RESPONSE',
+          action: "CONTACT_MESSAGE_RESPONSE",
           message_id: id,
           message_subject: message.subject,
           user_email: message.email,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         }),
-        request.headers.get('x-forwarded-for') || '',
-        request.headers.get('user-agent') || ''
-      ]
+        request.headers.get("x-forwarded-for") || "",
+        request.headers.get("user-agent") || "",
+      ],
     );
-    
+
     return NextResponse.json({
       success: true,
-      message: 'บันทึกการตอบกลับเรียบร้อยแล้ว'
+      message: "บันทึกการตอบกลับเรียบร้อยแล้ว",
     });
   } catch (error) {
-    console.error('Error responding to message:', error);
+    console.error("Error responding to message:", error);
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการตอบกลับข้อความ' },
-      { status: 500 }
+      { success: false, message: "เกิดข้อผิดพลาดในการตอบกลับข้อความ" },
+      { status: 500 },
     );
   }
 }

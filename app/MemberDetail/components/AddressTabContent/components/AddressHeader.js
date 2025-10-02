@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaEdit, FaExclamationTriangle, FaPrint } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaEdit, FaExclamationTriangle, FaPrint } from "react-icons/fa";
 
 /**
  * Header component for address content
@@ -12,23 +12,23 @@ import { FaEdit, FaExclamationTriangle, FaPrint } from 'react-icons/fa';
  * @param {function} setIsEditMode - Function to set edit mode
  * @param {function} handlePrint - Function to handle print
  */
-export default function AddressHeader({ 
-  selectedAddress, 
+export default function AddressHeader({
+  selectedAddress,
   isEditable,
   hasPendingRequest,
   isCheckingStatus,
   setIsEditMode,
-  handlePrint
+  handlePrint,
 }) {
   // Helper function to get address type name
   const getAddressTypeName = (code) => {
     switch (code) {
-      case '001':
-        return 'ที่อยู่สำหรับติดต่อ (ทะเบียน)';
-      case '002':
-        return 'ที่อยู่สำหรับจัดส่งเอกสาร';
-      case '003':
-        return 'ที่อยู่สำหรับออกใบกำกับภาษี';
+      case "001":
+        return "ที่อยู่สำหรับติดต่อ (ทะเบียน)";
+      case "002":
+        return "ที่อยู่สำหรับจัดส่งเอกสาร";
+      case "003":
+        return "ที่อยู่สำหรับออกใบกำกับภาษี";
       default:
         return `ที่อยู่ ${code}`;
     }
@@ -38,17 +38,15 @@ export default function AddressHeader({
     <div className="mb-6 flex justify-between items-center">
       <div>
         <h3 className="text-xl font-semibold text-blue-700 mb-1">
-          {getAddressTypeName(selectedAddress || '')}
+          {getAddressTypeName(selectedAddress || "")}
         </h3>
-        <p className="text-gray-500 text-sm">
-          รหัสที่อยู่: {selectedAddress || ''}
-        </p>
+        <p className="text-gray-500 text-sm">รหัสที่อยู่: {selectedAddress || ""}</p>
       </div>
-      
+
       {isEditable && (
         <div className="flex space-x-2">
           {hasPendingRequest ? (
-            <motion.div 
+            <motion.div
               className="px-4 py-2 bg-yellow-50 text-yellow-700 rounded-md flex items-center"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -65,10 +63,10 @@ export default function AddressHeader({
               disabled={isCheckingStatus}
             >
               <FaEdit className="mr-2" />
-              {isCheckingStatus ? 'กำลังตรวจสอบ...' : 'แก้ไขที่อยู่'}
+              {isCheckingStatus ? "กำลังตรวจสอบ..." : "แก้ไขที่อยู่"}
             </motion.button>
           )}
-          
+
           <motion.button
             onClick={handlePrint}
             className="px-4 py-2 bg-gray-50 text-gray-600 rounded-md hover:bg-gray-100 flex items-center"

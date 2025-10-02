@@ -1,8 +1,10 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { cookies } from "next/headers";
+import { jwtVerify } from "jose";
 
 // สร้าง secret key สำหรับ JWT
-const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secret-key-for-admin-auth');
+const secretKey = new TextEncoder().encode(
+  process.env.JWT_SECRET || "your-secret-key-for-admin-auth",
+);
 
 /**
  * ตรวจสอบว่าผู้ใช้ล็อกอินแล้วหรือไม่
@@ -12,7 +14,7 @@ const secretKey = new TextEncoder().encode(process.env.JWT_SECRET || 'your-secre
 export async function checkUserLoggedIn(request) {
   // อนุญาตให้ทุกคนใช้งานได้โดยไม่ต้องล็อกอิน
   return true;
-  
+
   // TODO: Implement actual JWT verification when needed
   /*
   try {

@@ -1,10 +1,10 @@
 const ErrorState = ({ error }) => {
-    return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-        <strong className="font-bold">เกิดข้อผิดพลาด!</strong>
-        <span className="block sm:inline"> {error}</span>
-      </div>
-    );
-  };
-  
-  export default ErrorState;
+  return (
+    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+      <strong className="font-bold">เกิดข้อผิดพลาด!</strong>
+      <span className="block sm:inline"> {error}</span>
+    </div>
+  );
+};
+
+export default ErrorState;

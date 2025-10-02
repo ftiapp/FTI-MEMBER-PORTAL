@@ -1,12 +1,12 @@
 // useVerification.js
-import { useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export function useVerification() {
   const searchParams = useSearchParams();
-  const [verificationStatus, setVerificationStatus] = useState('loading');
-  const [message, setMessage] = useState('กำลังตรวจสอบโทเค็น...');
-  const [token, setToken] = useState('');
+  const [verificationStatus, setVerificationStatus] = useState("loading");
+  const [message, setMessage] = useState("กำลังตรวจสอบโทเค็น...");
+  const [token, setToken] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [countdown, setCountdown] = useState(0);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -17,39 +17,40 @@ export function useVerification() {
 
     const initializeComponent = () => {
       try {
-        const emailVerified = typeof window !== 'undefined' ? sessionStorage.getItem('emailVerified') : null;
-        
-        if (emailVerified === 'true') {
-          setVerificationStatus('success');
-          setMessage('ยืนยันอีเมลสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
-          sessionStorage.removeItem('emailVerified');
+        const emailVerified =
+          typeof window !== "undefined" ? sessionStorage.getItem("emailVerified") : null;
+
+        if (emailVerified === "true") {
+          setVerificationStatus("success");
+          setMessage("ยืนยันอีเมลสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว");
+          sessionStorage.removeItem("emailVerified");
           setIsInitialized(true);
           return;
         }
 
-        const tokenFromUrl = searchParams.get('token');
-        
+        const tokenFromUrl = searchParams.get("token");
+
         if (!tokenFromUrl) {
-          setVerificationStatus('error');
-          setMessage('ไม่พบโทเค็นยืนยัน กรุณาตรวจสอบลิงก์ที่ได้รับทางอีเมล');
+          setVerificationStatus("error");
+          setMessage("ไม่พบโทเค็นยืนยัน กรุณาตรวจสอบลิงก์ที่ได้รับทางอีเมล");
           setIsInitialized(true);
           return;
         }
 
         setToken(tokenFromUrl);
-        setVerificationStatus('ready');
-        setMessage('กรุณากดปุ่มยืนยันอีเมลด้านล่างเพื่อยืนยันอีเมลของคุณ');
+        setVerificationStatus("ready");
+        setMessage("กรุณากดปุ่มยืนยันอีเมลด้านล่างเพื่อยืนยันอีเมลของคุณ");
         setIsInitialized(true);
       } catch (error) {
-        console.error('Initialization error:', error);
-        setVerificationStatus('error');
-        setMessage('เกิดข้อผิดพลาดในการโหลดหน้า');
+        console.error("Initialization error:", error);
+        setVerificationStatus("error");
+        setMessage("เกิดข้อผิดพลาดในการโหลดหน้า");
         setIsInitialized(true);
       }
     };
 
     const timer = setTimeout(initializeComponent, 100);
-    
+
     return () => clearTimeout(timer);
   }, [searchParams, isInitialized]);
 
@@ -59,7 +60,7 @@ export function useVerification() {
       const timer = setTimeout(() => {
         setCountdown(countdown - 1);
       }, 1000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [countdown]);
@@ -70,35 +71,34 @@ export function useVerification() {
 
   const handleVerify = async () => {
     if (!token || isSubmitting) return;
-    
+
     try {
       setIsSubmitting(true);
-      setVerificationStatus('verifying');
-      setMessage('กำลังยืนยันอีเมลของคุณ...');
-      
+      setVerificationStatus("verifying");
+      setMessage("กำลังยืนยันอีเมลของคุณ...");
+
       const response = await fetch(`/api/auth/verify-email?token=${token}`);
       const data = await response.json();
-      
+
       if (!response.ok) {
-        throw new Error(data.error || 'เกิดข้อผิดพลาดในการยืนยันอีเมล');
+        throw new Error(data.error || "เกิดข้อผิดพลาดในการยืนยันอีเมล");
       }
-      
+
       setTimeout(() => {
-        setVerificationStatus('success');
-        setMessage('ยืนยันอีเมลสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว');
-        
-        if (typeof window !== 'undefined') {
-          sessionStorage.setItem('emailVerified', 'true');
+        setVerificationStatus("success");
+        setMessage("ยืนยันอีเมลสำเร็จ! คุณสามารถเข้าสู่ระบบได้แล้ว");
+
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("emailVerified", "true");
         }
-        
+
         startCountdown();
       }, 1000);
-      
     } catch (error) {
-      console.error('Verification error:', error);
+      console.error("Verification error:", error);
       setTimeout(() => {
-        setVerificationStatus('error');
-        setMessage(error.message || 'เกิดข้อผิดพลาดในการยืนยันอีเมล');
+        setVerificationStatus("error");
+        setMessage(error.message || "เกิดข้อผิดพลาดในการยืนยันอีเมล");
       }, 1000);
     } finally {
       setIsSubmitting(false);
@@ -106,7 +106,7 @@ export function useVerification() {
   };
 
   const handleResendSuccess = (successMessage) => {
-    setVerificationStatus('success');
+    setVerificationStatus("success");
     setMessage(successMessage);
   };
 
@@ -117,6 +117,6 @@ export function useVerification() {
     countdown,
     isInitialized,
     handleVerify,
-    handleResendSuccess
+    handleResendSuccess,
   };
 }

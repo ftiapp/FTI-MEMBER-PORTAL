@@ -1,53 +1,62 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import PropTypes from 'prop-types';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import PropTypes from "prop-types";
+import { v4 as uuidv4 } from "uuid";
+import { toast } from "react-hot-toast";
 
 export default function BusinessInfoSection({ formData, setFormData, errors, showErrors = false }) {
   // Numeric helpers for auto-formatting
   const sanitizeNumberInput = useCallback((val) => {
-    if (val === null || val === undefined) return '';
-    const s = String(val).replace(/,/g, '');
-    const cleaned = s.replace(/[^0-9.]/g, '');
-    const parts = cleaned.split('.');
+    if (val === null || val === undefined) return "";
+    const s = String(val).replace(/,/g, "");
+    const cleaned = s.replace(/[^0-9.]/g, "");
+    const parts = cleaned.split(".");
     if (parts.length <= 1) return cleaned;
-    return parts[0] + '.' + parts.slice(1).join('');
+    return parts[0] + "." + parts.slice(1).join("");
   }, []);
 
   const formatWithCommas = useCallback((val) => {
-    if (val === null || val === undefined || val === '') return '';
-    const s = String(val).replace(/,/g, '');
-    if (s === '' || isNaN(Number(s))) return String(val);
-    const [intPart, decPart] = s.split('.');
-    const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    if (val === null || val === undefined || val === "") return "";
+    const s = String(val).replace(/,/g, "");
+    if (s === "" || isNaN(Number(s))) return String(val);
+    const [intPart, decPart] = s.split(".");
+    const intFmt = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     return decPart !== undefined ? `${intFmt}.${decPart}` : intFmt;
   }, []);
 
-  const handleNumericChange = useCallback((e) => {
-    const { name, value } = e.target;
-    const raw = sanitizeNumberInput(value);
-    setFormData(prev => ({ ...prev, [name]: raw }));
-  }, [sanitizeNumberInput, setFormData]);
+  const handleNumericChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      const raw = sanitizeNumberInput(value);
+      setFormData((prev) => ({ ...prev, [name]: raw }));
+    },
+    [sanitizeNumberInput, setFormData],
+  );
 
-  const handleNumericFocus = useCallback((e) => {
-    const { name } = e.target;
-    const current = formData?.[name];
-    if (current !== undefined && current !== null) {
-      const raw = String(current).replace(/,/g, '');
-      if (raw !== String(current)) {
-        setFormData(prev => ({ ...prev, [name]: raw }));
+  const handleNumericFocus = useCallback(
+    (e) => {
+      const { name } = e.target;
+      const current = formData?.[name];
+      if (current !== undefined && current !== null) {
+        const raw = String(current).replace(/,/g, "");
+        if (raw !== String(current)) {
+          setFormData((prev) => ({ ...prev, [name]: raw }));
+        }
       }
-    }
-  }, [formData, setFormData]);
+    },
+    [formData, setFormData],
+  );
 
-  const handleNumericBlur = useCallback((e) => {
-    const { name } = e.target;
-    const current = formData?.[name];
-    const formatted = formatWithCommas(current);
-    setFormData(prev => ({ ...prev, [name]: formatted }));
-  }, [formData, formatWithCommas, setFormData]);
+  const handleNumericBlur = useCallback(
+    (e) => {
+      const { name } = e.target;
+      const current = formData?.[name];
+      const formatted = formatWithCommas(current);
+      setFormData((prev) => ({ ...prev, [name]: formatted }));
+    },
+    [formData, formatWithCommas, setFormData],
+  );
   // Refs for scrolling to error fields
   const businessTypesRef = useRef(null);
   const otherBusinessTypeDetailRef = useRef(null);
@@ -64,107 +73,143 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
         { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail },
         { ref: memberCountRef, error: errors.memberCount },
         { ref: employeeCountRef, error: errors.numberOfEmployees },
-        { ref: productsRef, error: errors.products }
+        { ref: productsRef, error: errors.products },
       ];
 
       // Find the first field with an error
-      const firstErrorField = errorFields.find(field => field.error && field.ref.current);
-      
+      const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
+
       if (firstErrorField) {
         // Scroll to the first error field
-        firstErrorField.ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
+        firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+
         // Show toast notification (standardized with react-hot-toast)
-        toast.error('กรุณาตรวจสอบข้อมูลที่กรอกให้ถูกต้องครบถ้วน', { id: 'am-business-errors' });
+        toast.error("กรุณาตรวจสอบข้อมูลที่กรอกให้ถูกต้องครบถ้วน", { id: "am-business-errors" });
       }
     }
   }, [showErrors, errors]);
 
-  const BUSINESS_TYPES = useMemo(() => [
-    { id: 'manufacturer', nameTh: 'ผู้ผลิต' },
-    { id: 'distributor', nameTh: 'ผู้จัดจำหน่าย' },
-    { id: 'importer', nameTh: 'ผู้นำเข้า' },
-    { id: 'exporter', nameTh: 'ผู้ส่งออก' },
-    { id: 'service', nameTh: 'ผู้ให้บริการ' },
-    { id: 'other', nameTh: 'อื่นๆ' }
-  ], []);
-  
-  const [products, setProducts] = useState(() => 
-    (formData.products && formData.products.length > 0 
-      ? formData.products.map(p => ({ 
-          ...p, 
-          key: p.key || uuidv4(), 
+  const BUSINESS_TYPES = useMemo(
+    () => [
+      { id: "manufacturer", nameTh: "ผู้ผลิต" },
+      { id: "distributor", nameTh: "ผู้จัดจำหน่าย" },
+      { id: "importer", nameTh: "ผู้นำเข้า" },
+      { id: "exporter", nameTh: "ผู้ส่งออก" },
+      { id: "service", nameTh: "ผู้ให้บริการ" },
+      { id: "other", nameTh: "อื่นๆ" },
+    ],
+    [],
+  );
+
+  const [products, setProducts] = useState(() =>
+    formData.products && formData.products.length > 0
+      ? formData.products.map((p) => ({
+          ...p,
+          key: p.key || uuidv4(),
           // migrate legacy single-name to TH field
-          nameTh: p.nameTh !== undefined ? p.nameTh : (p.name !== undefined ? p.name : ''),
-          nameEn: p.nameEn !== undefined ? p.nameEn : ''
-        })) 
-      : [{ key: uuidv4(), id: null, nameTh: '', nameEn: '' }])
+          nameTh: p.nameTh !== undefined ? p.nameTh : p.name !== undefined ? p.name : "",
+          nameEn: p.nameEn !== undefined ? p.nameEn : "",
+        }))
+      : [{ key: uuidv4(), id: null, nameTh: "", nameEn: "" }],
   );
 
   // Memoize handlers to prevent unnecessary re-renders
-  const handleInputChange = useCallback((e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  }, [setFormData]);
+  const handleInputChange = useCallback(
+    (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    },
+    [setFormData],
+  );
 
-  const handleCheckboxChange = useCallback((e) => {
-    const { name, checked } = e.target;
-    setFormData(prev => {
-      const updatedBusinessTypes = { ...prev.businessTypes };
-      
-      if (checked) {
-        updatedBusinessTypes[name] = true;
-      } else {
-        delete updatedBusinessTypes[name];
-      }
-      
-      return { ...prev, businessTypes: updatedBusinessTypes };
-    });
-  }, [setFormData]);
-  
-  const handleProductChange = useCallback((key, field, value) => {
-    const updatedProducts = products.map(product => 
-      product.key === key ? { ...product, [field]: value } : product
-    );
-    setProducts(updatedProducts);
-    setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
-  }, [products, setFormData]);
-  
+  const handleCheckboxChange = useCallback(
+    (e) => {
+      const { name, checked } = e.target;
+      setFormData((prev) => {
+        const updatedBusinessTypes = { ...prev.businessTypes };
+
+        if (checked) {
+          updatedBusinessTypes[name] = true;
+        } else {
+          delete updatedBusinessTypes[name];
+        }
+
+        return { ...prev, businessTypes: updatedBusinessTypes };
+      });
+    },
+    [setFormData],
+  );
+
+  const handleProductChange = useCallback(
+    (key, field, value) => {
+      const updatedProducts = products.map((product) =>
+        product.key === key ? { ...product, [field]: value } : product,
+      );
+      setProducts(updatedProducts);
+      setFormData((prevForm) => ({ ...prevForm, products: updatedProducts }));
+    },
+    [products, setFormData],
+  );
+
   const addProduct = useCallback(() => {
     if (products.length >= 10) return;
-    
-    const newProduct = { key: uuidv4(), id: null, nameTh: '', nameEn: '' };
+
+    const newProduct = { key: uuidv4(), id: null, nameTh: "", nameEn: "" };
     const updatedProducts = [...products, newProduct];
     setProducts(updatedProducts);
-    setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
+    setFormData((prevForm) => ({ ...prevForm, products: updatedProducts }));
   }, [products, setFormData]);
-  
-  const removeProduct = useCallback((key) => {
-    if (products.length <= 1) return;
-    
-    const updatedProducts = products.filter(product => product.key !== key);
-    setProducts(updatedProducts);
-    setFormData(prevForm => ({ ...prevForm, products: updatedProducts }));
-  }, [products, setFormData]);
+
+  const removeProduct = useCallback(
+    (key) => {
+      if (products.length <= 1) return;
+
+      const updatedProducts = products.filter((product) => product.key !== key);
+      setProducts(updatedProducts);
+      setFormData((prevForm) => ({ ...prevForm, products: updatedProducts }));
+    },
+    [products, setFormData],
+  );
 
   // Memoize error icon to prevent re-creation
-  const ErrorIcon = useMemo(() => (
-    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-    </svg>
-  ), []);
+  const ErrorIcon = useMemo(
+    () => (
+      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    [],
+  );
 
-  const PlusIcon = useMemo(() => (
-    <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-    </svg>
-  ), []);
+  const PlusIcon = useMemo(
+    () => (
+      <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    [],
+  );
 
-  const DeleteIcon = useMemo(() => (
-    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-    </svg>
-  ), []);
+  const DeleteIcon = useMemo(
+    () => (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    [],
+  );
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
@@ -173,7 +218,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ</h2>
         <p className="text-blue-100 text-sm mt-1">ประเภทธุรกิจและข้อมูลผลิตภัณฑ์/บริการ</p>
       </div>
-      
+
       <div className="px-8 py-8 space-y-8">
         {/* Business Types */}
         <div ref={businessTypesRef} className="bg-white border border-gray-200 rounded-lg p-6">
@@ -181,12 +226,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
             <h3 className="text-base font-medium text-gray-900 mb-2">
               ประเภทธุรกิจ<span className="text-red-500 ml-1">*</span>
             </h3>
-            <p className="text-sm text-gray-600">เลือกประเภทธุรกิจที่เกี่ยวข้อง (เลือกได้มากกว่า 1 ข้อ)</p>
+            <p className="text-sm text-gray-600">
+              เลือกประเภทธุรกิจที่เกี่ยวข้อง (เลือกได้มากกว่า 1 ข้อ)
+            </p>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {BUSINESS_TYPES.map(type => (
-              <label key={type.id} className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer">
+            {BUSINESS_TYPES.map((type) => (
+              <label
+                key={type.id}
+                className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   name={type.id}
@@ -201,18 +251,23 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 
           {formData.businessTypes?.other && (
             <div ref={otherBusinessTypeDetailRef} className="mt-6 pt-6 border-t border-gray-100">
-              <label htmlFor="otherBusinessTypeDetail" className="block text-sm font-medium text-gray-900 mb-2">
+              <label
+                htmlFor="otherBusinessTypeDetail"
+                className="block text-sm font-medium text-gray-900 mb-2"
+              >
                 โปรดระบุประเภทธุรกิจอื่นๆ<span className="text-red-500 ml-1">*</span>
               </label>
               <input
                 type="text"
                 id="otherBusinessTypeDetail"
                 name="otherBusinessTypeDetail"
-                value={formData.otherBusinessTypeDetail || ''}
+                value={formData.otherBusinessTypeDetail || ""}
                 onChange={handleInputChange}
                 placeholder="ระบุประเภทธุรกิจ..."
                 className={`w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.otherBusinessTypeDetail ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                  errors.otherBusinessTypeDetail
+                    ? "border-red-300 bg-red-50"
+                    : "border-gray-300 hover:border-gray-400"
                 }`}
               />
               {errors.otherBusinessTypeDetail && (
@@ -223,7 +278,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               )}
             </div>
           )}
-          
+
           {errors.businessTypes && (
             <p className="text-sm text-red-600 flex items-center gap-2 mt-4">
               {ErrorIcon}
@@ -234,7 +289,9 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 
         {/* Member Count - เพิ่มส่วนนี้สำหรับ AM */}
         <div ref={memberCountRef} className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลสมาชิกสมาคม</h4>
+          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
+            ข้อมูลสมาชิกสมาคม
+          </h4>
           <div className="space-y-2">
             <label htmlFor="memberCount" className="block text-sm font-medium text-gray-900">
               จำนวนสมาชิกสมาคม<span className="text-red-500 ml-1">*</span>
@@ -243,13 +300,15 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               type="text"
               id="memberCount"
               name="memberCount"
-              value={formData.memberCount || ''}
+              value={formData.memberCount || ""}
               onChange={handleNumericChange}
               onFocus={handleNumericFocus}
               onBlur={handleNumericBlur}
               placeholder="0"
               className={`w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.memberCount ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                errors.memberCount
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300 hover:border-gray-400"
               }`}
             />
             {errors.memberCount && (
@@ -263,7 +322,9 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 
         {/* Employee Count */}
         <div ref={employeeCountRef} className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลพนักงาน</h4>
+          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
+            ข้อมูลพนักงาน
+          </h4>
           <div className="space-y-2">
             <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-900">
               จำนวนพนักงาน<span className="text-red-500 ml-1">*</span>
@@ -272,13 +333,15 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               type="text"
               id="numberOfEmployees"
               name="numberOfEmployees"
-              value={formData.numberOfEmployees || ''}
+              value={formData.numberOfEmployees || ""}
               onChange={handleNumericChange}
               onFocus={handleNumericFocus}
               onBlur={handleNumericBlur}
               placeholder="0"
               className={`w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.numberOfEmployees ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                errors.numberOfEmployees
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300 hover:border-gray-400"
               }`}
             />
             {errors.numberOfEmployees && (
@@ -292,8 +355,10 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 
         {/* Financial Information */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">ข้อมูลทางการเงิน <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></h4>
-          
+          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
+            ข้อมูลทางการเงิน <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+          </h4>
+
           {/* Registered Capital */}
           <div className="space-y-2 mb-6">
             <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
@@ -303,7 +368,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               type="text"
               id="registeredCapital"
               name="registeredCapital"
-              value={formData.registeredCapital || ''}
+              value={formData.registeredCapital || ""}
               onChange={handleNumericChange}
               onFocus={handleNumericFocus}
               onBlur={handleNumericBlur}
@@ -315,18 +380,22 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
           {/* Revenue (Optional) */}
           <div className="space-y-2 mb-6">
             <label className="block text-sm font-medium text-gray-900 mb-3">
-              รายได้รวมก่อนหักค่าใช้จ่าย (ย้อนหลัง 2 ปี) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+              รายได้รวมก่อนหักค่าใช้จ่าย (ย้อนหลัง 2 ปี){" "}
+              <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
             </label>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="revenueLastYear" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="revenueLastYear"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   ปีล่าสุด (บาท)
                 </label>
                 <input
                   type="text"
                   id="revenueLastYear"
                   name="revenueLastYear"
-                  value={formData.revenueLastYear || ''}
+                  value={formData.revenueLastYear || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -335,14 +404,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="revenuePreviousYear" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="revenuePreviousYear"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   ปีก่อนหน้า (บาท)
                 </label>
                 <input
                   type="text"
                   id="revenuePreviousYear"
                   name="revenuePreviousYear"
-                  value={formData.revenuePreviousYear || ''}
+                  value={formData.revenuePreviousYear || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -360,14 +432,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
             </label>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="productionCapacityValue" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="productionCapacityValue"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   ปริมาณ
                 </label>
                 <input
                   type="text"
                   id="productionCapacityValue"
                   name="productionCapacityValue"
-                  value={formData.productionCapacityValue || ''}
+                  value={formData.productionCapacityValue || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -376,14 +451,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="productionCapacityUnit" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="productionCapacityUnit"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   หน่วย
                 </label>
                 <input
                   type="text"
                   id="productionCapacityUnit"
                   name="productionCapacityUnit"
-                  value={formData.productionCapacityUnit || ''}
+                  value={formData.productionCapacityUnit || ""}
                   onChange={handleInputChange}
                   placeholder="เช่น ตัน, ชิ้น, ลิตร"
                   className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
@@ -394,9 +472,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 
           {/* Sales Information */}
           <div className="space-y-2 mb-6">
-            <label className="block text-sm font-medium text-gray-900 mb-3">
-              ยอดจำหน่าย (%)
-            </label>
+            <label className="block text-sm font-medium text-gray-900 mb-3">ยอดจำหน่าย (%)</label>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label htmlFor="salesDomestic" className="block text-sm font-medium text-gray-700">
@@ -406,7 +482,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   type="text"
                   id="salesDomestic"
                   name="salesDomestic"
-                  value={formData.salesDomestic || ''}
+                  value={formData.salesDomestic || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -422,7 +498,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   type="text"
                   id="salesExport"
                   name="salesExport"
-                  value={formData.salesExport || ''}
+                  value={formData.salesExport || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -440,14 +516,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
             </label>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label htmlFor="shareholderThaiPercent" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="shareholderThaiPercent"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   ผู้ถือหุ้นไทย
                 </label>
                 <input
                   type="text"
                   id="shareholderThaiPercent"
                   name="shareholderThaiPercent"
-                  value={formData.shareholderThaiPercent || ''}
+                  value={formData.shareholderThaiPercent || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -456,14 +535,17 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                 />
               </div>
               <div className="space-y-2">
-                <label htmlFor="shareholderForeignPercent" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="shareholderForeignPercent"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   ผู้ถือหุ้นต่างประเทศ
                 </label>
                 <input
                   type="text"
                   id="shareholderForeignPercent"
                   name="shareholderForeignPercent"
-                  value={formData.shareholderForeignPercent || ''}
+                  value={formData.shareholderForeignPercent || ""}
                   onChange={handleNumericChange}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
@@ -477,24 +559,22 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
             </p>
           </div>
         </div>
-        
+
         {/* Products */}
         <div ref={productsRef} className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="mb-6">
-            <h4 className="text-base font-medium text-gray-900 mb-2">
-              ผลิตภัณฑ์/บริการ
-            </h4>
+            <h4 className="text-base font-medium text-gray-900 mb-2">ผลิตภัณฑ์/บริการ</h4>
             <p className="text-sm text-gray-600">ระบุผลิตภัณฑ์หรือบริการของท่าน (ถ้ามี)</p>
           </div>
-          
+
           <div className="space-y-4">
             {products.map((product, index) => (
               <div key={product.key} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
                 <div className="flex justify-between items-center mb-4">
                   <span className="text-sm font-medium text-gray-700">รายการที่ {index + 1}</span>
                   {products.length > 1 && (
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => removeProduct(product.key)}
                       className="flex items-center gap-2 px-3 py-1.5 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all duration-200"
                     >
@@ -505,27 +585,33 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                 </div>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label htmlFor={`product-th-${product.key}`} className="block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor={`product-th-${product.key}`}
+                      className="block text-sm font-medium text-gray-900"
+                    >
                       ชื่อผลิตภัณฑ์/บริการ (ภาษาไทย)<span className="text-red-500 ml-1">*</span>
                     </label>
                     <input
                       type="text"
                       id={`product-th-${product.key}`}
-                      value={product.nameTh || ''}
-                      onChange={(e) => handleProductChange(product.key, 'nameTh', e.target.value)}
+                      value={product.nameTh || ""}
+                      onChange={(e) => handleProductChange(product.key, "nameTh", e.target.value)}
                       placeholder="ระบุชื่อผลิตภัณฑ์/บริการ..."
                       className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label htmlFor={`product-en-${product.key}`} className="block text-sm font-medium text-gray-900">
+                    <label
+                      htmlFor={`product-en-${product.key}`}
+                      className="block text-sm font-medium text-gray-900"
+                    >
                       ชื่อผลิตภัณฑ์/บริการ (ภาษาอังกฤษ)
                     </label>
                     <input
                       type="text"
                       id={`product-en-${product.key}`}
-                      value={product.nameEn || ''}
-                      onChange={(e) => handleProductChange(product.key, 'nameEn', e.target.value)}
+                      value={product.nameEn || ""}
+                      onChange={(e) => handleProductChange(product.key, "nameEn", e.target.value)}
                       placeholder="Product/Service name..."
                       className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400"
                     />
@@ -534,11 +620,11 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               </div>
             ))}
           </div>
-          
+
           {products.length < 10 && (
             <div className="mt-6">
-              <button 
-                type="button" 
+              <button
+                type="button"
                 onClick={addProduct}
                 className="flex items-center justify-center gap-3 w-full px-6 py-4 bg-white border-2 border-dashed border-gray-300 hover:border-blue-400 hover:bg-blue-50 rounded-lg transition-all duration-200"
               >
@@ -549,7 +635,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
               </button>
             </div>
           )}
-          
+
           {errors.products && (
             <p className="text-sm text-red-600 flex items-center gap-2 mt-4">
               {ErrorIcon}
@@ -567,7 +653,7 @@ BusinessInfoSection.propTypes = {
   formData: PropTypes.shape({
     businessTypes: PropTypes.object,
     otherBusinessTypeDetail: PropTypes.string,
-    memberCount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]), 
+    memberCount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     numberOfEmployees: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     registeredCapital: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     revenueLastYear: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
@@ -578,12 +664,14 @@ BusinessInfoSection.propTypes = {
     salesExport: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     shareholderThaiPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     shareholderForeignPercent: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-    products: PropTypes.arrayOf(PropTypes.shape({
-      key: PropTypes.string.isRequired,
-      id: PropTypes.number,
-      nameTh: PropTypes.string,
-      nameEn: PropTypes.string
-    }))
+    products: PropTypes.arrayOf(
+      PropTypes.shape({
+        key: PropTypes.string.isRequired,
+        id: PropTypes.number,
+        nameTh: PropTypes.string,
+        nameEn: PropTypes.string,
+      }),
+    ),
   }).isRequired,
   setFormData: PropTypes.func.isRequired,
   errors: PropTypes.shape({
@@ -591,6 +679,6 @@ BusinessInfoSection.propTypes = {
     otherBusinessTypeDetail: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     memberCount: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]), // เพิ่ม memberCount
     numberOfEmployees: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
-    products: PropTypes.oneOfType([PropTypes.string, PropTypes.bool])
-  }).isRequired
+    products: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+  }).isRequired,
 };

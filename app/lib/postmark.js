@@ -1,4 +1,4 @@
-import * as postmark from 'postmark';
+import * as postmark from "postmark";
 import { getFTIEmailHtmlTemplate } from "./fti-email-template";
 
 // Initialize Postmark client with API key
@@ -18,7 +18,7 @@ const defaultSender = "noreply@fti.or.th";
  */
 export async function sendVerificationEmail(email, name, verificationToken) {
   // Create base URL for verification link
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
   const verificationLink = `${baseUrl}/verify-email?token=${verificationToken}`;
 
   try {
@@ -37,7 +37,7 @@ export async function sendVerificationEmail(email, name, verificationToken) {
           <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
           <p style="color: #d97706; margin-top: 32px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-        `
+        `,
       }),
       TextBody: `
         ยืนยันอีเมลของคุณ - FTI Portal
@@ -52,7 +52,7 @@ export async function sendVerificationEmail(email, name, verificationToken) {
         
         © 2025 FTI Portal. สงวนลิขสิทธิ์.
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {
@@ -71,7 +71,7 @@ export async function sendVerificationEmail(email, name, verificationToken) {
  */
 export async function sendAdminInviteEmail(email, token, options = {}) {
   const adminLevel = options.adminLevel ?? 1;
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
   const acceptLink = `${baseUrl}/admin/invite/accept?token=${token}`;
 
   try {
@@ -91,7 +91,7 @@ export async function sendAdminInviteEmail(email, token, options = {}) {
           <p>หากคลิกปุ่มไม่ได้ ให้ใช้ลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${acceptLink}</p>
           <p style="color: #6b7280; font-size: 14px;">ลิงก์นี้มีอายุ 24 ชั่วโมง</p>
-        `
+        `,
       }),
       TextBody: `
         คำเชิญเป็นผู้ดูแลระบบ FTI Portal
@@ -101,7 +101,7 @@ export async function sendAdminInviteEmail(email, token, options = {}) {
 
         ลิงก์นี้มีอายุ 24 ชั่วโมง
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {
@@ -119,7 +119,7 @@ export async function sendAdminInviteEmail(email, token, options = {}) {
  */
 export async function sendNewEmailVerification(newEmail, name, verificationToken) {
   // Create base URL for verification link
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
   const verificationLink = `${baseUrl}/verify-new-email?token=${verificationToken}`;
 
   try {
@@ -138,7 +138,7 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
           <p>หากคลิกปุ่มไม่ได้ ให้คัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
           <p style="color: #6b7280; font-size: 14px; margin-top: 16px;">หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้</p>
-        `
+        `,
       }),
       TextBody: `
         ยืนยันอีเมลใหม่ของคุณ - FTI Portal
@@ -151,7 +151,7 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
         
         หากคุณไม่ได้ดำเนินการนี้ กรุณาละเว้นอีเมลฉบับนี้
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {
@@ -169,7 +169,7 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
  */
 export async function sendPasswordResetEmail(email, name, resetToken) {
   // Create base URL for reset link
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3456';
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
   const resetLink = `${baseUrl}/reset-password?token=${resetToken}`;
 
   try {
@@ -188,7 +188,7 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
           <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${resetLink}</p>
           <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">ลิงก์นี้จะหมดอายุใน 15 นาที</p>
-        `
+        `,
       }),
       TextBody: `
         รีเซ็ตรหัสผ่านของคุณ - FTI Portal
@@ -203,7 +203,7 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
         
         ลิงก์นี้จะหมดอายุใน 15 นาที
       `,
-      MessageStream: "outbound"
+      MessageStream: "outbound",
     });
     return response;
   } catch (error) {

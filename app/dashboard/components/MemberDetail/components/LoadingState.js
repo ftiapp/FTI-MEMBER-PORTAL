@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { FaSpinner } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaSpinner } from "react-icons/fa";
 
 /**
  * LoadingState component displays a loading spinner with animation
  * @returns {JSX.Element} The loading state UI
  */
 const LoadingState = () => (
-  <motion.div 
+  <motion.div
     className="bg-white shadow rounded-lg p-6 mb-6"
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -21,7 +21,7 @@ const LoadingState = () => (
       >
         <FaSpinner className="text-blue-600 mb-3" size={28} />
       </motion.div>
-      <motion.p 
+      <motion.p
         className="font-medium"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}

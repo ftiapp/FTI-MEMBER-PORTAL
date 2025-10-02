@@ -1,17 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast";
 
 /**
  * Super Admin Dashboard Component
- * 
+ *
  * This component provides functionality for managing admin users including:
  * - Viewing all admin accounts
  * - Creating new admin accounts with specific permission levels
  * - Activating/deactivating existing admin accounts
- * 
+ *
  * Only accessible to admin users with level 5 (SuperAdmin) permissions.
  */
 
@@ -21,11 +21,11 @@ export default function SuperAdminDashboard() {
   const [admins, setAdmins] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    username: "",
+    password: "",
     adminLevel: 1,
     canCreate: false,
-    canUpdate: false
+    canUpdate: false,
   });
 
   // Fetch admin users when component mounts
@@ -40,27 +40,27 @@ export default function SuperAdminDashboard() {
   const fetchAdmins = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch('/api/admin/list-admins');
-      
+      const response = await fetch("/api/admin/list-admins");
+
       if (!response.ok) {
         if (response.status === 401) {
-          toast.error('กรุณาเข้าสู่ระบบ');
-          router.push('/admin');
+          toast.error("กรุณาเข้าสู่ระบบ");
+          router.push("/admin");
           return;
         }
-        throw new Error('Failed to fetch data');
+        throw new Error("Failed to fetch data");
       }
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
         setAdmins(result.data);
       } else {
-        toast.error(result.message || 'ไม่สามารถดึงข้อมูลได้');
+        toast.error(result.message || "ไม่สามารถดึงข้อมูลได้");
       }
     } catch (error) {
-      console.error('Error fetching admins:', error);
-      toast.error('เกิดข้อผิดพลาดในการดึงข้อมูล');
+      console.error("Error fetching admins:", error);
+      toast.error("เกิดข้อผิดพลาดในการดึงข้อมูล");
     } finally {
       setIsLoading(false);
     }
@@ -72,9 +72,9 @@ export default function SuperAdminDashboard() {
    */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
@@ -85,48 +85,48 @@ export default function SuperAdminDashboard() {
    */
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.username || !formData.password) {
-      toast.error('กรุณากรอกชื่อผู้ใช้และรหัสผ่าน');
+      toast.error("กรุณากรอกชื่อผู้ใช้และรหัสผ่าน");
       return;
     }
-    
+
     // Validate password (must be 6 digits)
     if (!/^\d{6}$/.test(formData.password)) {
-      toast.error('รหัสผ่านต้องเป็นตัวเลข 6 หลักเท่านั้น');
+      toast.error("รหัสผ่านต้องเป็นตัวเลข 6 หลักเท่านั้น");
       return;
     }
-    
+
     try {
       setIsLoading(true);
-      
-      const response = await fetch('/api/admin/create-admin', {
-        method: 'POST',
+
+      const response = await fetch("/api/admin/create-admin", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(formData),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success('สร้างผู้ดูแลระบบใหม่เรียบร้อยแล้ว');
+        toast.success("สร้างผู้ดูแลระบบใหม่เรียบร้อยแล้ว");
         setShowCreateModal(false);
         setFormData({
-          username: '',
-          password: '',
+          username: "",
+          password: "",
           adminLevel: 1,
           canCreate: false,
-          canUpdate: false
+          canUpdate: false,
         });
         fetchAdmins();
       } else {
-        toast.error(result.message || 'ไม่สามารถสร้างผู้ดูแลระบบได้');
+        toast.error(result.message || "ไม่สามารถสร้างผู้ดูแลระบบได้");
       }
     } catch (error) {
-      console.error('Error creating admin:', error);
-      toast.error('เกิดข้อผิดพลาดในการสร้างผู้ดูแลระบบ');
+      console.error("Error creating admin:", error);
+      toast.error("เกิดข้อผิดพลาดในการสร้างผู้ดูแลระบบ");
     } finally {
       setIsLoading(false);
     }
@@ -139,28 +139,28 @@ export default function SuperAdminDashboard() {
    */
   const handleToggleActive = async (adminId, isActive) => {
     try {
-      const response = await fetch('/api/admin/toggle-admin-status', {
-        method: 'POST',
+      const response = await fetch("/api/admin/toggle-admin-status", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           adminId,
-          isActive: !isActive
-        })
+          isActive: !isActive,
+        }),
       });
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
-        toast.success(`${!isActive ? 'เปิดใช้งาน' : 'ปิดใช้งาน'}ผู้ดูแลระบบเรียบร้อยแล้ว`);
+        toast.success(`${!isActive ? "เปิดใช้งาน" : "ปิดใช้งาน"}ผู้ดูแลระบบเรียบร้อยแล้ว`);
         fetchAdmins();
       } else {
-        toast.error(result.message || 'ไม่สามารถเปลี่ยนสถานะผู้ดูแลระบบได้');
+        toast.error(result.message || "ไม่สามารถเปลี่ยนสถานะผู้ดูแลระบบได้");
       }
     } catch (error) {
-      console.error('Error toggling admin status:', error);
-      toast.error('เกิดข้อผิดพลาดในการเปลี่ยนสถานะผู้ดูแลระบบ');
+      console.error("Error toggling admin status:", error);
+      toast.error("เกิดข้อผิดพลาดในการเปลี่ยนสถานะผู้ดูแลระบบ");
     }
   };
 
@@ -177,11 +177,11 @@ export default function SuperAdminDashboard() {
   const closeCreateModal = () => {
     setShowCreateModal(false);
     setFormData({
-      username: '',
-      password: '',
+      username: "",
+      password: "",
       adminLevel: 1,
       canCreate: false,
-      canUpdate: false
+      canUpdate: false,
     });
   };
 
@@ -189,18 +189,16 @@ export default function SuperAdminDashboard() {
     <div className="min-h-screen bg-gray-100">
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-gray-900">
-            หน้าควบคุม SuperAdmin
-          </h1>
+          <h1 className="text-3xl font-bold text-gray-900">หน้าควบคุม SuperAdmin</h1>
           <div className="flex space-x-4">
             <button
-              onClick={() => router.push('/admin/dashboard')}
+              onClick={() => router.push("/admin/dashboard")}
               className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               หน้าอนุมัติสมาชิก
             </button>
             <button
-              onClick={() => router.push('/admin/logout')}
+              onClick={() => router.push("/admin/logout")}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
               ออกจากระบบ
@@ -221,39 +219,58 @@ export default function SuperAdminDashboard() {
                 เพิ่มผู้ดูแลระบบ
               </button>
             </div>
-            
+
             {isLoading ? (
               <div className="flex justify-center items-center h-64">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
               </div>
             ) : admins.length === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                ไม่มีข้อมูลผู้ดูแลระบบ
-              </div>
+              <div className="text-center py-12 text-gray-500">ไม่มีข้อมูลผู้ดูแลระบบ</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         ชื่อผู้ใช้
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         ระดับ
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         สิทธิ์การสร้าง
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         สิทธิ์การแก้ไข
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         สถานะ
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         วันที่สร้าง
                       </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <th
+                        scope="col"
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         การดำเนินการ
                       </th>
                     </tr>
@@ -308,16 +325,16 @@ export default function SuperAdminDashboard() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">
-                            {new Date(admin.created_at).toLocaleDateString('th-TH')}
+                            {new Date(admin.created_at).toLocaleDateString("th-TH")}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           {admin.admin_level < 5 && (
                             <button
                               onClick={() => handleToggleActive(admin.id, admin.is_active)}
-                              className={`text-sm ${admin.is_active ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
+                              className={`text-sm ${admin.is_active ? "text-red-600 hover:text-red-900" : "text-green-600 hover:text-green-900"}`}
                             >
-                              {admin.is_active ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
+                              {admin.is_active ? "ปิดใช้งาน" : "เปิดใช้งาน"}
                             </button>
                           )}
                         </td>
@@ -338,7 +355,7 @@ export default function SuperAdminDashboard() {
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">เพิ่มผู้ดูแลระบบใหม่</h3>
             </div>
-            
+
             <form onSubmit={handleSubmit}>
               <div className="px-6 py-4 space-y-4">
                 <div>
@@ -355,7 +372,7 @@ export default function SuperAdminDashboard() {
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                     รหัสผ่าน (ตัวเลข 6 หลัก)
@@ -371,9 +388,11 @@ export default function SuperAdminDashboard() {
                     pattern="[0-9]{6}"
                     className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   />
-                  <p className="mt-1 text-xs text-gray-500">รหัสผ่านต้องเป็นตัวเลข 6 หลักเท่านั้น</p>
+                  <p className="mt-1 text-xs text-gray-500">
+                    รหัสผ่านต้องเป็นตัวเลข 6 หลักเท่านั้น
+                  </p>
                 </div>
-                
+
                 <div>
                   <label htmlFor="adminLevel" className="block text-sm font-medium text-gray-700">
                     ระดับผู้ดูแลระบบ (1-4)
@@ -391,7 +410,7 @@ export default function SuperAdminDashboard() {
                     <option value={4}>4 - ระดับผู้จัดการ</option>
                   </select>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -405,7 +424,7 @@ export default function SuperAdminDashboard() {
                     สามารถสร้างข้อมูลได้
                   </label>
                 </div>
-                
+
                 <div className="flex items-center">
                   <input
                     type="checkbox"
@@ -420,7 +439,7 @@ export default function SuperAdminDashboard() {
                   </label>
                 </div>
               </div>
-              
+
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-4">
                 <button
                   type="button"
@@ -433,10 +452,10 @@ export default function SuperAdminDashboard() {
                   type="submit"
                   disabled={isLoading}
                   className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 ${
-                    isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                    isLoading ? "opacity-70 cursor-not-allowed" : ""
                   }`}
                 >
-                  {isLoading ? 'กำลังบันทึก...' : 'บันทึก'}
+                  {isLoading ? "กำลังบันทึก..." : "บันทึก"}
                 </button>
               </div>
             </form>

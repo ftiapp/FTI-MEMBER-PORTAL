@@ -1,36 +1,30 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { getAdminFromSession } from '@/app/lib/adminAuth';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 export async function GET(request, { params }) {
   try {
     // Verify admin authentication
     const admin = await getAdminFromSession();
-    
+
     if (!admin) {
       return NextResponse.json(
-        { success: false, message: 'ไม่มีสิทธิ์ในการดำเนินการนี้' },
-        { status: 403 }
+        { success: false, message: "ไม่มีสิทธิ์ในการดำเนินการนี้" },
+        { status: 403 },
       );
     }
-    
+
     // Get the message ID from params
     if (!params) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่พบพารามิเตอร์' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบพารามิเตอร์" }, { status: 400 });
     }
-    
+
     const id = parseInt(await params.id, 10);
-    
+
     if (isNaN(id)) {
-      return NextResponse.json(
-        { success: false, message: 'ID ไม่ถูกต้อง' },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "ID ไม่ถูกต้อง" }, { status: 400 });
     }
-    
+
     // Fetch the message details
     const messages = await query(
       `SELECT cm.*, 
@@ -40,18 +34,15 @@ export async function GET(request, { params }) {
        LEFT JOIN admin_users a1 ON cm.read_by_admin_id = a1.id
        LEFT JOIN admin_users a2 ON cm.replied_by_admin_id = a2.id
        WHERE cm.id = ?`,
-      [id]
+      [id],
     );
-    
+
     if (!messages || messages.length === 0) {
-      return NextResponse.json(
-        { success: false, message: 'ไม่พบข้อความติดต่อ' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบข้อความติดต่อ" }, { status: 404 });
     }
-    
+
     const message = messages[0];
-    
+
     // Check if contact_message_responses table exists and fetch admin responses
     let adminResponses = [];
     try {
@@ -62,13 +53,13 @@ export async function GET(request, { params }) {
          LEFT JOIN admin_users au ON cmr.admin_id = au.id
          WHERE cmr.message_id = ?
          ORDER BY cmr.created_at ASC`,
-        [id]
+        [id],
       );
     } catch (error) {
-      console.log('Error fetching admin responses, table might not exist:', error);
+      console.log("Error fetching admin responses, table might not exist:", error);
       // Continue even if table doesn't exist
     }
-    
+
     // Check if contact_message_replies table exists and fetch user replies
     let userReplies = [];
     try {
@@ -78,71 +69,71 @@ export async function GET(request, { params }) {
          FROM contact_message_replies
          WHERE message_id = ?
          ORDER BY created_at ASC`,
-        [id]
+        [id],
       );
     } catch (error) {
-      console.log('Error fetching user replies, table might not exist:', error);
+      console.log("Error fetching user replies, table might not exist:", error);
       // Continue even if table doesn't exist
     }
-    
+
     // Create a conversation thread that includes the original message, admin responses, and user replies
     const conversationThread = [];
-    
+
     // Add the original message as the first item in the thread
     conversationThread.push({
       id: message.id,
-      type: 'original',
+      type: "original",
       content: message.message,
       sender: {
         id: message.user_id,
         name: message.name,
         email: message.email,
-        phone: message.phone
+        phone: message.phone,
       },
-      created_at: message.created_at
+      created_at: message.created_at,
     });
-    
+
     // Add admin responses and user replies to the thread, sorted by timestamp
     const allResponses = [
-      ...adminResponses.map(response => ({
+      ...adminResponses.map((response) => ({
         id: response.id,
-        type: 'admin_response',
+        type: "admin_response",
         content: response.response_text,
         sender: {
           id: response.admin_id,
-          name: response.admin_name || 'Admin',
-          type: 'admin'
+          name: response.admin_name || "Admin",
+          type: "admin",
         },
-        created_at: response.created_at
+        created_at: response.created_at,
       })),
-      ...userReplies.map(reply => ({
+      ...userReplies.map((reply) => ({
         id: reply.id,
-        type: 'user_reply',
+        type: "user_reply",
         content: reply.reply_text,
         sender: {
           id: reply.user_id,
-          type: 'user',
-          name: message.name // Use the original message sender name
+          type: "user",
+          name: message.name, // Use the original message sender name
         },
-        created_at: reply.created_at
-      }))
+        created_at: reply.created_at,
+      })),
     ];
-    
+
     // Sort all responses by creation timestamp
     allResponses.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-    
+
     // Add sorted responses to the conversation thread
     conversationThread.push(...allResponses);
-    
+
     // Update message with conversation thread
     const messageWithThread = {
       ...message,
       conversation_thread: conversationThread,
-      has_user_replies: userReplies.length > 0
+      has_user_replies: userReplies.length > 0,
     };
-    
+
     // If message is unread, mark it as read
-    if (message.status === 'unread') {
+    if (message.status === "unread") {
       await query(
         `UPDATE contact_messages 
          SET status = 'read', 
@@ -150,9 +141,9 @@ export async function GET(request, { params }) {
              read_at = NOW(), 
              updated_at = NOW() 
          WHERE id = ?`,
-        [admin.id, id]
+        [admin.id, id],
       );
-      
+
       // Log admin action
       await query(
         `INSERT INTO admin_actions_log 
@@ -162,28 +153,28 @@ export async function GET(request, { params }) {
           admin.id,
           id,
           JSON.stringify({
-            action: 'CONTACT_MESSAGE_READ',
+            action: "CONTACT_MESSAGE_READ",
             message_id: id,
             message_subject: message.subject,
             user_email: message.email,
             userId: message.user_id || null,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           }),
-          request.headers.get('x-forwarded-for') || '',
-          request.headers.get('user-agent') || ''
-        ]
+          request.headers.get("x-forwarded-for") || "",
+          request.headers.get("user-agent") || "",
+        ],
       );
     }
-    
+
     return NextResponse.json({
       success: true,
-      message: messageWithThread
+      message: messageWithThread,
     });
   } catch (error) {
-    console.error('Error fetching message details:', error);
+    console.error("Error fetching message details:", error);
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลข้อความ' },
-      { status: 500 }
+      { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลข้อความ" },
+      { status: 500 },
     );
   }
 }

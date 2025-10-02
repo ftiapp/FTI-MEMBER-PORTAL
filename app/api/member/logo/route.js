@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { cookies } from 'next/headers';
-import jwt from 'jsonwebtoken';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { cookies } from "next/headers";
+import jwt from "jsonwebtoken";
 
 /**
  * API endpoint to fetch company logo information
@@ -13,33 +13,39 @@ export async function GET(request) {
   try {
     // Get member code from query parameters
     const { searchParams } = new URL(request.url);
-    const memberCode = searchParams.get('memberCode');
+    const memberCode = searchParams.get("memberCode");
 
     if (!memberCode) {
-      return NextResponse.json({ success: false, error: 'รหัสสมาชิกไม่ถูกต้อง' }, { status: 400 });
+      return NextResponse.json({ success: false, error: "รหัสสมาชิกไม่ถูกต้อง" }, { status: 400 });
     }
 
     // Verify user authentication - using await with cookies()
     const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    const token = cookieStore.get("token")?.value;
 
     if (!token) {
-      return NextResponse.json({ success: false, error: 'ไม่พบข้อมูลการเข้าสู่ระบบ' }, { status: 401 });
+      return NextResponse.json(
+        { success: false, error: "ไม่พบข้อมูลการเข้าสู่ระบบ" },
+        { status: 401 },
+      );
     }
 
     try {
-      jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
     } catch (err) {
-      console.error('JWT verification error:', err);
-      return NextResponse.json({ success: false, error: 'ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง' }, { status: 401 });
+      console.error("JWT verification error:", err);
+      return NextResponse.json(
+        { success: false, error: "ข้อมูลการเข้าสู่ระบบไม่ถูกต้อง" },
+        { status: 401 },
+      );
     }
 
     // Check if the company_logos table exists
     try {
-      await query('SELECT 1 FROM company_logos LIMIT 1');
+      await query("SELECT 1 FROM company_logos LIMIT 1");
     } catch (err) {
       // If the table doesn't exist, create it
-      console.log('company_logos table does not exist, creating it:', err.message);
+      console.log("company_logos table does not exist, creating it:", err.message);
       try {
         await query(`
           CREATE TABLE IF NOT EXISTS company_logos (
@@ -56,27 +62,30 @@ export async function GET(request) {
         `);
         return NextResponse.json({ success: true, data: null });
       } catch (createErr) {
-        console.error('Error creating company_logos table:', createErr);
-        return NextResponse.json({ success: false, error: 'เกิดข้อผิดพลาดในการสร้างตาราง company_logos' }, { status: 500 });
+        console.error("Error creating company_logos table:", createErr);
+        return NextResponse.json(
+          { success: false, error: "เกิดข้อผิดพลาดในการสร้างตาราง company_logos" },
+          { status: 500 },
+        );
       }
     }
 
     // Fetch logo data for the member
     const logoData = await query(
-      'SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM company_logos WHERE member_code = ?',
-      [memberCode]
+      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM company_logos WHERE member_code = ?",
+      [memberCode],
     );
 
     if (logoData.length === 0) {
-      return NextResponse.json({ success: true, data: null, error: 'ไม่พบข้อมูลโลโก้' });
+      return NextResponse.json({ success: true, data: null, error: "ไม่พบข้อมูลโลโก้" });
     }
 
     return NextResponse.json({ success: true, data: logoData[0] });
   } catch (error) {
-    console.error('Error fetching logo data:', error);
+    console.error("Error fetching logo data:", error);
     return NextResponse.json(
-      { success: false, error: 'เกิดข้อผิดพลาดในการดึงข้อมูลโลโก้' },
-      { status: 500 }
+      { success: false, error: "เกิดข้อผิดพลาดในการดึงข้อมูลโลโก้" },
+      { status: 500 },
     );
   }
 }

@@ -1,4 +1,4 @@
-import { query } from '@/app/lib/db';
+import { query } from "@/app/lib/db";
 
 /**
  * สร้างการแจ้งเตือนใหม่
@@ -25,17 +25,32 @@ import { query } from '@/app/lib/db';
  * @param {string} addrCode - รหัสที่อยู่ (เมื่อใช้แบบเก่า, optional)
  * @param {string} addrLang - ภาษาของที่อยู่ (เมื่อใช้แบบเก่า, optional)
  */
-export async function createNotification(params, type, message, link = null, memberCode = null, companyName = null, memberType = null, memberGroupCode = null, typeCode = null, addrCode = null, addrLang = null) {
+export async function createNotification(
+  params,
+  type,
+  message,
+  link = null,
+  memberCode = null,
+  companyName = null,
+  memberType = null,
+  memberGroupCode = null,
+  typeCode = null,
+  addrCode = null,
+  addrLang = null,
+) {
   try {
     let userIdNum, notificationType, notificationMessage, notificationLink, notificationStatus;
-    let notificationMemberCode, notificationMemberType, notificationMemberGroupCode, notificationTypeCode;
+    let notificationMemberCode,
+      notificationMemberType,
+      notificationMemberGroupCode,
+      notificationTypeCode;
     let notificationAddrCode, notificationAddrLang;
-    
+
     // ตรวจสอบว่าเป็นการเรียกใช้แบบใหม่ (Object) หรือแบบเก่า
-    if (typeof params === 'object' && params !== null) {
+    if (typeof params === "object" && params !== null) {
       // แบบใหม่ (Object)
-      console.log('Creating notification with object params:', params);
-      
+      console.log("Creating notification with object params:", params);
+
       userIdNum = parseInt(params.user_id);
       notificationType = params.type;
       notificationMessage = params.message;
@@ -47,38 +62,45 @@ export async function createNotification(params, type, message, link = null, mem
       notificationTypeCode = params.type_code || null;
       notificationAddrCode = params.addr_code || null;
       notificationAddrLang = params.addr_lang || null;
-      
+
       // ถ้าไม่มี status แต่มี message ให้ตรวจสอบสถานะจากข้อความ
       if (!notificationStatus && notificationMessage) {
-        if (notificationMessage.includes('ได้รับการอนุมัติแล้ว')) {
-          notificationStatus = 'approved';
-        } else if (notificationMessage.includes('ถูกปฏิเสธ')) {
-          notificationStatus = 'rejected';
+        if (notificationMessage.includes("ได้รับการอนุมัติแล้ว")) {
+          notificationStatus = "approved";
+        } else if (notificationMessage.includes("ถูกปฏิเสธ")) {
+          notificationStatus = "rejected";
         }
       }
     } else {
       // แบบเก่า (พารามิเตอร์แยก)
-      console.log('Creating notification with individual params:', { userId: params, type, message, link, memberCode, companyName });
-      
+      console.log("Creating notification with individual params:", {
+        userId: params,
+        type,
+        message,
+        link,
+        memberCode,
+        companyName,
+      });
+
       // ตรวจสอบว่า userId เป็นตัวเลขหรือไม่
       if (!params || isNaN(parseInt(params))) {
-        console.error('Invalid userId:', params);
+        console.error("Invalid userId:", params);
         return false;
       }
-      
+
       userIdNum = parseInt(params);
       notificationType = type;
       notificationMessage = message;
       notificationLink = link;
-      
+
       // ตรวจสอบสถานะจากข้อความ
       notificationStatus = null;
-      if (message && message.includes('ได้รับการอนุมัติแล้ว')) {
-        notificationStatus = 'approved';
-      } else if (message && message.includes('ถูกปฏิเสธ')) {
-        notificationStatus = 'rejected';
+      if (message && message.includes("ได้รับการอนุมัติแล้ว")) {
+        notificationStatus = "approved";
+      } else if (message && message.includes("ถูกปฏิเสธ")) {
+        notificationStatus = "rejected";
       }
-      
+
       notificationMemberCode = memberCode;
       notificationMemberType = memberType;
       notificationMemberGroupCode = memberGroupCode;
@@ -86,24 +108,36 @@ export async function createNotification(params, type, message, link = null, mem
       notificationAddrCode = addrCode;
       notificationAddrLang = addrLang;
     }
-    
+
     // ตรวจสอบว่า userId ถูกต้องหรือไม่
     if (isNaN(userIdNum)) {
-      console.error('Invalid userId after parsing:', userIdNum);
+      console.error("Invalid userId after parsing:", userIdNum);
       return false;
     }
-    
+
     // สร้างการแจ้งเตือนใหม่
     const result = await query(
       `INSERT INTO notifications (user_id, type, message, link, status, member_code, member_type, member_group_code, type_code, addr_code, addr_lang, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [userIdNum, notificationType, notificationMessage, notificationLink, notificationStatus, notificationMemberCode, notificationMemberType, notificationMemberGroupCode, notificationTypeCode, notificationAddrCode, notificationAddrLang]
+      [
+        userIdNum,
+        notificationType,
+        notificationMessage,
+        notificationLink,
+        notificationStatus,
+        notificationMemberCode,
+        notificationMemberType,
+        notificationMemberGroupCode,
+        notificationTypeCode,
+        notificationAddrCode,
+        notificationAddrLang,
+      ],
     );
-    
-    console.log('Notification created successfully:', result);
+
+    console.log("Notification created successfully:", result);
     return result;
   } catch (error) {
-    console.error('Error creating notification:', error);
+    console.error("Error creating notification:", error);
     return false;
   }
 }

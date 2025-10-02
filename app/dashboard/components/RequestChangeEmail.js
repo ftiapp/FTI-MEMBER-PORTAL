@@ -13,7 +13,7 @@ export default function RequestChangeEmail({ userEmail }) {
       const res = await fetch("/api/user/request-change-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail })
+        body: JSON.stringify({ email: userEmail }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -21,8 +21,11 @@ export default function RequestChangeEmail({ userEmail }) {
         setRequested(true);
         setCooldown(60); // 60s cooldown (frontend only)
         let timer = setInterval(() => {
-          setCooldown(prev => {
-            if (prev <= 1) { clearInterval(timer); return 0; }
+          setCooldown((prev) => {
+            if (prev <= 1) {
+              clearInterval(timer);
+              return 0;
+            }
             return prev - 1;
           });
         }, 1000);
@@ -41,7 +44,9 @@ export default function RequestChangeEmail({ userEmail }) {
 
   return (
     <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-      <div className="mb-2 text-gray-700">อีเมลปัจจุบัน: <b>{userEmail}</b></div>
+      <div className="mb-2 text-gray-700">
+        อีเมลปัจจุบัน: <b>{userEmail}</b>
+      </div>
       <button
         onClick={handleRequest}
         className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"

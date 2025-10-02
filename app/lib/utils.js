@@ -5,17 +5,17 @@
  */
 export function getClientIp(request) {
   // Try to get IP from headers first (for proxied requests)
-  const forwardedFor = request.headers.get('x-forwarded-for');
+  const forwardedFor = request.headers.get("x-forwarded-for");
   if (forwardedFor) {
-    return forwardedFor.split(',')[0].trim();
+    return forwardedFor.split(",")[0].trim();
   }
-  
+
   // Try to get IP from request
-  const ip = request.headers.get('x-real-ip');
+  const ip = request.headers.get("x-real-ip");
   if (ip) {
     return ip;
   }
-  
+
   // Default to localhost if no IP found
-  return '127.0.0.1';
+  return "127.0.0.1";
 }

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from 'react-icons/fa';
+import React from "react";
+import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 
 const ContactInfo = () => {
   return (
@@ -9,7 +9,7 @@ const ContactInfo = () => {
       {/* Contact Information */}
       <div className="space-y-4">
         <h4 className="font-medium text-lg text-blue-800">ข้อมูลการติดต่อ</h4>
-        
+
         <div className="flex items-start space-x-3">
           <div className="bg-blue-100 rounded-full p-2 mt-1">
             <FaPhone className="text-blue-700" size={16} />
@@ -19,17 +19,22 @@ const ContactInfo = () => {
             <p className="text-gray-600">1453 กด 2</p>
           </div>
         </div>
-        
+
         <div className="flex items-start space-x-3">
           <div className="bg-blue-100 rounded-full p-2 mt-1">
             <FaEnvelope className="text-blue-700" size={16} />
           </div>
           <div>
             <p className="font-medium text-gray-800">อีเมล</p>
-            <a href="mailto:member@fti.or.th" className="text-blue-700 underline hover:text-blue-900">member@fti.or.th</a>
+            <a
+              href="mailto:member@fti.or.th"
+              className="text-blue-700 underline hover:text-blue-900"
+            >
+              member@fti.or.th
+            </a>
           </div>
         </div>
-        
+
         <div className="flex items-start space-x-3">
           <div className="bg-blue-100 rounded-full p-2 mt-1">
             <FaClock className="text-blue-700" size={16} />
@@ -41,7 +46,7 @@ const ContactInfo = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Address and Map */}
       <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 shadow-sm hover:shadow-md transition-shadow">
         <div className="flex items-start">
@@ -56,7 +61,7 @@ const ContactInfo = () => {
               <p>เลขที่ 2 ถนนนางลิ้นจี่ แขวงทุ่งมหาเมฆ</p>
               <p>เขตสาทร กรุงเทพมหานคร 10120</p>
             </div>
-            
+
             {/* Map placeholder */}
             <div className="mt-4 flex flex-col items-center justify-center">
               <a
@@ -69,7 +74,9 @@ const ContactInfo = () => {
                 <span className="flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors mb-2">
                   <FaMapMarkerAlt className="text-blue-700" size={32} />
                 </span>
-                <span className="text-blue-700 font-medium group-hover:underline">คลิกเพื่อดูแผนที่</span>
+                <span className="text-blue-700 font-medium group-hover:underline">
+                  คลิกเพื่อดูแผนที่
+                </span>
               </a>
             </div>
           </div>

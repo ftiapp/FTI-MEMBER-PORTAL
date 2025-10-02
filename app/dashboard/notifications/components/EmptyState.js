@@ -1,21 +1,21 @@
-import { motion } from 'framer-motion';
-import { FaBell } from 'react-icons/fa';
+import { motion } from "framer-motion";
+import { FaBell } from "react-icons/fa";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
+  visible: {
+    opacity: 1,
     y: 0,
     transition: {
       duration: 0.4,
-      ease: "easeOut"
-    }
-  }
+      ease: "easeOut",
+    },
+  },
 };
 
 const EmptyState = () => {
   return (
-    <motion.div 
+    <motion.div
       className="bg-white shadow-md rounded-lg p-8 text-center"
       variants={fadeInUp}
       initial="hidden"

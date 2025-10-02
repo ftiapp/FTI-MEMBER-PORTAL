@@ -1,40 +1,42 @@
-import sql from 'mssql';
-import { NextResponse } from 'next/server';
+import sql from "mssql";
+import { NextResponse } from "next/server";
 
 // Database configuration
 const config = {
-  user: 'itadmin',
-  password: 'It#11044',
-  server: '203.151.40.31',
-  database: 'FTI',
+  user: "itadmin",
+  password: "It#11044",
+  server: "203.151.40.31",
+  database: "FTI",
   options: {
     encrypt: true,
-    trustServerCertificate: true
-  }
+    trustServerCertificate: true,
+  },
 };
 
 export async function GET(req) {
   let pool;
   try {
     const { searchParams } = new URL(req.url);
-    const compPersonCode = searchParams.get('compPersonCode')?.trim();
-    
-    console.log('Fetching addresses for COMP_PERSON_CODE:', compPersonCode);
+    const compPersonCode = searchParams.get("compPersonCode")?.trim();
+
+    console.log("Fetching addresses for COMP_PERSON_CODE:", compPersonCode);
 
     if (!compPersonCode) {
-      return NextResponse.json({
-        success: false,
-        message: 'รหัสบริษัท/บุคคลไม่ถูกต้อง',
-        data: {
-          addresses: []
-        }
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: "รหัสบริษัท/บุคคลไม่ถูกต้อง",
+          data: {
+            addresses: [],
+          },
+        },
+        { status: 400 },
+      );
     }
 
     pool = await sql.connect(config);
 
-    const result = await pool.request()
-      .input('compPersonCode', sql.NVarChar, compPersonCode)
+    const result = await pool.request().input("compPersonCode", sql.NVarChar, compPersonCode)
       .query(`
         SELECT
           [COMP_PERSON_CODE],
@@ -71,38 +73,40 @@ export async function GET(req) {
         AND (ADDR_CODE = '001' OR ADDR_CODE = '002' OR ADDR_CODE = '003')
         ORDER BY ADDR_CODE
       `);
-      
-    console.log('Query executed successfully');
-    console.log('Addresses found:', result.recordset.length);
-    
+
+    console.log("Query executed successfully");
+    console.log("Addresses found:", result.recordset.length);
+
     // Group addresses by ADDR_CODE for easier access in the frontend
     const addressesByCode = {};
-    result.recordset.forEach(address => {
+    result.recordset.forEach((address) => {
       addressesByCode[address.ADDR_CODE] = address;
     });
-    
+
     return NextResponse.json({
       success: true,
       data: {
         addresses: result.recordset,
-        addressesByCode
-      }
+        addressesByCode,
+      },
     });
-
   } catch (error) {
-    console.error('Error fetching member addresses:', error);
-    return NextResponse.json({
-      success: false,
-      message: 'เกิดข้อผิดพลาดในการดึงข้อมูลที่อยู่',
-      error: error.message
-    }, { status: 500 });
+    console.error("Error fetching member addresses:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "เกิดข้อผิดพลาดในการดึงข้อมูลที่อยู่",
+        error: error.message,
+      },
+      { status: 500 },
+    );
   } finally {
     if (pool) {
       try {
         await pool.close();
-        console.log('SQL connection closed');
+        console.log("SQL connection closed");
       } catch (err) {
-        console.error('Error closing SQL connection:', err);
+        console.error("Error closing SQL connection:", err);
       }
     }
   }

@@ -1,47 +1,47 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function AddressUpdateDetail({ update, onClose, onApprove, onReject }) {
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [showRejectForm, setShowRejectForm] = useState(false);
 
   // Parse old and new address JSON
   let oldAddress = {};
   let newAddress = {};
-  
+
   try {
     oldAddress = JSON.parse(update.old_address);
     newAddress = JSON.parse(update.new_address);
   } catch (e) {
-    console.error('Error parsing address data:', e);
+    console.error("Error parsing address data:", e);
   }
 
   // Format date
-  const requestDate = new Date(update.request_date).toLocaleDateString('th-TH', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  const requestDate = new Date(update.request_date).toLocaleDateString("th-TH", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 
   // Map address type code to readable text
   const addressTypeMap = {
-    '001': 'ที่ตั้งสำนักงาน',
-    '002': 'ที่ตั้งโรงงาน',
-    '003': 'ที่อยู่สำหรับจัดส่งเอกสาร',
+    "001": "ที่ตั้งสำนักงาน",
+    "002": "ที่ตั้งโรงงาน",
+    "003": "ที่อยู่สำหรับจัดส่งเอกสาร",
   };
-  
+
   const addressType = addressTypeMap[update.type_code] || `ประเภท ${update.type_code}`;
 
   // Helper function to format address for display
   const formatAddress = (addr) => {
-    if (!addr) return 'ไม่มีข้อมูล';
-    
+    if (!addr) return "ไม่มีข้อมูล";
+
     const parts = [];
-    
+
     if (addr.ADDR_NO) parts.push(addr.ADDR_NO);
     if (addr.ADDR_MOO) parts.push(`หมู่ ${addr.ADDR_MOO}`);
     if (addr.ADDR_SOI) parts.push(addr.ADDR_SOI);
@@ -50,27 +50,31 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
     if (addr.ADDR_DISTRICT) parts.push(addr.ADDR_DISTRICT);
     if (addr.ADDR_PROVINCE_NAME) parts.push(addr.ADDR_PROVINCE_NAME);
     if (addr.ADDR_POSTCODE) parts.push(addr.ADDR_POSTCODE);
-    
-    return parts.join(' ');
+
+    return parts.join(" ");
   };
 
   // Helper function to display field differences
   const renderFieldComparison = (label, oldField, newField, isHighlighted = false) => {
     const hasChanged = oldField !== newField;
-    const oldValue = oldField || 'ไม่ระบุ';
-    const newValue = newField || 'ไม่ระบุ';
+    const oldValue = oldField || "ไม่ระบุ";
+    const newValue = newField || "ไม่ระบุ";
 
     return (
       <div className="grid grid-cols-2 gap-4 mb-2">
         <div>
           <span className="text-gray-600 text-sm">{label}:</span>
-          <div className={`p-2 rounded ${hasChanged ? 'bg-red-50 border border-red-100' : 'bg-gray-50'}`}>
+          <div
+            className={`p-2 rounded ${hasChanged ? "bg-red-50 border border-red-100" : "bg-gray-50"}`}
+          >
             {oldValue}
           </div>
         </div>
         <div>
           <span className="text-gray-600 text-sm">{label}:</span>
-          <div className={`p-2 rounded ${hasChanged ? 'bg-green-50 border border-green-100' : 'bg-gray-50'}`}>
+          <div
+            className={`p-2 rounded ${hasChanged ? "bg-green-50 border border-green-100" : "bg-gray-50"}`}
+          >
             {newValue}
           </div>
         </div>
@@ -89,12 +93,20 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">รายละเอียดคำขอแก้ไขที่อยู่</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -125,22 +137,24 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
             <div>
               <p className="text-sm text-gray-600">ชื่อ-นามสกุล:</p>
               <p className="font-medium">
-                {update.firstname && update.lastname 
-                  ? `${update.firstname} ${update.lastname}` 
-                  : update.name || 'ไม่ระบุ'}
+                {update.firstname && update.lastname
+                  ? `${update.firstname} ${update.lastname}`
+                  : update.name || "ไม่ระบุ"}
               </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">เบอร์โทร:</p>
-              <p className="font-medium">{update.phone || oldAddress.ADDR_TELEPHONE || 'ไม่ระบุ'}</p>
+              <p className="font-medium">
+                {update.phone || oldAddress.ADDR_TELEPHONE || "ไม่ระบุ"}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">อีเมล:</p>
-              <p className="font-medium">{update.email || oldAddress.ADDR_EMAIL || 'ไม่ระบุ'}</p>
+              <p className="font-medium">{update.email || oldAddress.ADDR_EMAIL || "ไม่ระบุ"}</p>
             </div>
             <div>
               <p className="text-sm text-gray-600">ชื่อบริษัท:</p>
-              <p className="font-medium">{update.company_name || 'ไม่ระบุ'}</p>
+              <p className="font-medium">{update.company_name || "ไม่ระบุ"}</p>
             </div>
           </div>
         </div>
@@ -173,22 +187,38 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
 
           <div className="bg-gray-50 p-4 rounded-lg mb-4">
             <h4 className="font-medium mb-2">รายละเอียดที่อยู่</h4>
-            {renderFieldComparison('เลขที่', oldAddress.ADDR_NO, newAddress.ADDR_NO)}
-            {renderFieldComparison('หมู่', oldAddress.ADDR_MOO, newAddress.ADDR_MOO)}
-            {renderFieldComparison('ซอย', oldAddress.ADDR_SOI, newAddress.ADDR_SOI)}
-            {renderFieldComparison('ถนน', oldAddress.ADDR_ROAD, newAddress.ADDR_ROAD)}
-            {renderFieldComparison('แขวง/ตำบล', oldAddress.ADDR_SUB_DISTRICT, newAddress.ADDR_SUB_DISTRICT)}
-            {renderFieldComparison('เขต/อำเภอ', oldAddress.ADDR_DISTRICT, newAddress.ADDR_DISTRICT)}
-            {renderFieldComparison('จังหวัด', oldAddress.ADDR_PROVINCE_NAME, newAddress.ADDR_PROVINCE_NAME)}
-            {renderFieldComparison('รหัสไปรษณีย์', oldAddress.ADDR_POSTCODE, newAddress.ADDR_POSTCODE)}
+            {renderFieldComparison("เลขที่", oldAddress.ADDR_NO, newAddress.ADDR_NO)}
+            {renderFieldComparison("หมู่", oldAddress.ADDR_MOO, newAddress.ADDR_MOO)}
+            {renderFieldComparison("ซอย", oldAddress.ADDR_SOI, newAddress.ADDR_SOI)}
+            {renderFieldComparison("ถนน", oldAddress.ADDR_ROAD, newAddress.ADDR_ROAD)}
+            {renderFieldComparison(
+              "แขวง/ตำบล",
+              oldAddress.ADDR_SUB_DISTRICT,
+              newAddress.ADDR_SUB_DISTRICT,
+            )}
+            {renderFieldComparison("เขต/อำเภอ", oldAddress.ADDR_DISTRICT, newAddress.ADDR_DISTRICT)}
+            {renderFieldComparison(
+              "จังหวัด",
+              oldAddress.ADDR_PROVINCE_NAME,
+              newAddress.ADDR_PROVINCE_NAME,
+            )}
+            {renderFieldComparison(
+              "รหัสไปรษณีย์",
+              oldAddress.ADDR_POSTCODE,
+              newAddress.ADDR_POSTCODE,
+            )}
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg">
             <h4 className="font-medium mb-2">ข้อมูลการติดต่อ</h4>
-            {renderFieldComparison('เบอร์โทรศัพท์', oldAddress.ADDR_TELEPHONE, newAddress.ADDR_TELEPHONE)}
-            {renderFieldComparison('โทรสาร', oldAddress.ADDR_FAX, newAddress.ADDR_FAX)}
-            {renderFieldComparison('อีเมล', oldAddress.ADDR_EMAIL, newAddress.ADDR_EMAIL)}
-            {renderFieldComparison('เว็บไซต์', oldAddress.ADDR_WEBSITE, newAddress.ADDR_WEBSITE)}
+            {renderFieldComparison(
+              "เบอร์โทรศัพท์",
+              oldAddress.ADDR_TELEPHONE,
+              newAddress.ADDR_TELEPHONE,
+            )}
+            {renderFieldComparison("โทรสาร", oldAddress.ADDR_FAX, newAddress.ADDR_FAX)}
+            {renderFieldComparison("อีเมล", oldAddress.ADDR_EMAIL, newAddress.ADDR_EMAIL)}
+            {renderFieldComparison("เว็บไซต์", oldAddress.ADDR_WEBSITE, newAddress.ADDR_WEBSITE)}
           </div>
         </div>
 

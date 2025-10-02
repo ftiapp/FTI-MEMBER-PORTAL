@@ -1,35 +1,35 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { toast } from 'react-hot-toast';
+import { motion } from "framer-motion";
+import { toast } from "react-hot-toast";
 
-export default function RejectReasonModal({ 
-  isVisible, 
-  rejectReason, 
-  setRejectReason, 
-  onCancel, 
-  onConfirm, 
-  isProcessing 
+export default function RejectReasonModal({
+  isVisible,
+  rejectReason,
+  setRejectReason,
+  onCancel,
+  onConfirm,
+  isProcessing,
 }) {
   if (!isVisible) return null;
-  
+
   const handleConfirm = () => {
     if (!rejectReason.trim()) {
-      toast.error('กรุณาระบุเหตุผลในการปฏิเสธ');
+      toast.error("กรุณาระบุเหตุผลในการปฏิเสธ");
       return;
     }
     onConfirm();
   };
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <motion.div 
+      <motion.div
         className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >
         <h3 className="text-lg font-medium text-navy-800 mb-4">ระบุเหตุผลในการปฏิเสธ</h3>
-        
+
         <div className="space-y-4">
           <div>
             <label htmlFor="rejectReason" className="block text-sm font-medium text-navy-700 mb-1">
@@ -44,7 +44,7 @@ export default function RejectReasonModal({
               onChange={(e) => setRejectReason(e.target.value)}
             ></textarea>
           </div>
-          
+
           <div className="flex space-x-3 justify-end">
             <motion.button
               onClick={onCancel}
@@ -54,7 +54,7 @@ export default function RejectReasonModal({
             >
               ยกเลิก
             </motion.button>
-            
+
             <motion.button
               onClick={handleConfirm}
               disabled={isProcessing}
@@ -62,7 +62,7 @@ export default function RejectReasonModal({
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              {isProcessing ? 'กำลังดำเนินการ...' : 'ยืนยันการปฏิเสธ'}
+              {isProcessing ? "กำลังดำเนินการ..." : "ยืนยันการปฏิเสธ"}
             </motion.button>
           </div>
         </div>

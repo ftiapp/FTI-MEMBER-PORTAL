@@ -1,5 +1,5 @@
 // ค้นหาด้วยชื่อบริษัทหรือ MEMBER_CODE
-'use client';
+"use client";
 
 export default function SearchBar({ value, onChange, placeholder }) {
   return (
@@ -7,9 +7,9 @@ export default function SearchBar({ value, onChange, placeholder }) {
       <input
         type="text"
         className="w-full border rounded p-2 text-black"
-        placeholder={placeholder || 'ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก'}
+        placeholder={placeholder || "ค้นหาด้วยชื่อบริษัทหรือรหัสสมาชิก"}
         value={value}
-        onChange={e => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         minLength={2}
       />
     </div>

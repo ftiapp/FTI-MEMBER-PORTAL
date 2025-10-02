@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
-import { query } from '@/app/lib/db';
-import { checkAdminSession } from '@/app/lib/auth';
+import { NextResponse } from "next/server";
+import { query } from "@/app/lib/db";
+import { checkAdminSession } from "@/app/lib/auth";
 
 /**
  * GET /api/admin/users/search
- * 
+ *
  * Searches for users based on the provided search term.
  * Searches in name, email, and phone fields.
  * Requires admin authentication.
@@ -14,15 +14,15 @@ export async function GET(request) {
     // Check admin session
     const admin = await checkAdminSession();
     if (!admin) {
-      return NextResponse.json({ success: false, message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     // Get search term from query parameters
     const { searchParams } = new URL(request.url);
-    const searchTerm = searchParams.get('term') || '';
-    
+    const searchTerm = searchParams.get("term") || "";
+
     if (!searchTerm.trim()) {
-      return NextResponse.json({ success: false, message: 'กรุณาระบุคำค้นหา' }, { status: 400 });
+      return NextResponse.json({ success: false, message: "กรุณาระบุคำค้นหา" }, { status: 400 });
     }
 
     // Create search pattern
@@ -36,19 +36,19 @@ export async function GET(request) {
       ORDER BY id DESC
       LIMIT 50
     `;
-    
+
     const users = await query(searchQuery, [searchPattern, searchPattern, searchPattern]);
-    
+
     return NextResponse.json({
       success: true,
       users,
-      total: users.length
+      total: users.length,
     });
   } catch (error) {
-    console.error('Error searching users:', error);
+    console.error("Error searching users:", error);
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการค้นหาผู้ใช้' },
-      { status: 500 }
+      { success: false, message: "เกิดข้อผิดพลาดในการค้นหาผู้ใช้" },
+      { status: 500 },
     );
   }
 }

@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { getConnection } from '@/app/lib/db';
-import { checkAdminSession } from '@/app/lib/auth';
+import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { getConnection } from "@/app/lib/db";
+import { checkAdminSession } from "@/app/lib/auth";
 
 /**
  * GET handler for fetching membership requests
- * 
+ *
  * Fetches membership requests from all types (OC, AM, AC, IC) based on filters
  * Supports pagination, status filtering, type filtering, and search
  */
@@ -14,41 +14,41 @@ export async function GET(request) {
     // Verify admin authentication
     const admin = await checkAdminSession();
     if (!admin) {
-      return NextResponse.json({ success: false, message: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
-    
+
     // Parse query parameters
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status') || 'pending';
-    const type = searchParams.get('type') || 'all';
-    const search = searchParams.get('search') || '';
-    const sortOrderParam = (searchParams.get('sortOrder') || 'desc').toLowerCase();
-    const sortOrder = sortOrderParam === 'asc' ? 'ASC' : 'DESC';
-    
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const status = searchParams.get("status") || "pending";
+    const type = searchParams.get("type") || "all";
+    const search = searchParams.get("search") || "";
+    const sortOrderParam = (searchParams.get("sortOrder") || "desc").toLowerCase();
+    const sortOrder = sortOrderParam === "asc" ? "ASC" : "DESC";
+
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
-    
+
     // Convert status string to numeric value
     let statusValue;
     switch (status) {
-      case 'pending':
+      case "pending":
         statusValue = 0;
         break;
-      case 'approved':
+      case "approved":
         statusValue = 1;
         break;
-      case 'rejected':
+      case "rejected":
         statusValue = 2;
         break;
       default:
         statusValue = null; // 'all' or invalid status
     }
-    
+
     // Get database connection
     const connection = await getConnection();
-    
+
     try {
       // Prepare base queries for each membership type
       let queries = [];
@@ -56,9 +56,16 @@ export async function GET(request) {
       let params = [];
       // Track params per count query to avoid mismatches between types
       let countParamsList = [];
-      
+
       // Helper function to add type-specific queries
-      const addTypeQuery = (tableName, idField, nameThField, nameEnField, idTypeField, typeValue) => {
+      const addTypeQuery = (
+        tableName,
+        idField,
+        nameThField,
+        nameEnField,
+        idTypeField,
+        typeValue,
+      ) => {
         let query = `SELECT 
           ${tableName}.id, 
           '${typeValue}' as type, 
@@ -76,12 +83,12 @@ export async function GET(request) {
         FROM ${tableName} 
         LEFT JOIN users ON ${tableName}.user_id = users.id
         WHERE 1=1`;
-        
+
         let countQuery = `SELECT COUNT(*) as count FROM ${tableName} LEFT JOIN users ON ${tableName}.user_id = users.id WHERE 1=1`;
-        
+
         let queryParams = [];
         let countQueryParams = [];
-        
+
         // Add status filter if specified
         if (statusValue !== null) {
           query += ` AND ${tableName}.status = ?`;
@@ -89,24 +96,36 @@ export async function GET(request) {
           queryParams.push(statusValue);
           countQueryParams.push(statusValue);
         }
-        
+
         // Add search filter if specified (also search by applicant email/phone)
         if (search) {
           query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ? OR users.phone LIKE ?)`;
           countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ? OR users.phone LIKE ?)`;
           const searchPattern = `%${search}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          queryParams.push(
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+          );
+          countQueryParams.push(
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+          );
         }
-        
+
         return {
           query,
           countQuery,
           queryParams,
-          countQueryParams
+          countQueryParams,
         };
       };
-      
+
       // Helper function to add IC type query (different structure)
       const addICTypeQuery = () => {
         let query = `SELECT 
@@ -126,12 +145,12 @@ export async function GET(request) {
         FROM MemberRegist_IC_Main 
         LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id
         WHERE 1=1`;
-        
+
         let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id WHERE 1=1`;
-        
+
         let queryParams = [];
         let countQueryParams = [];
-        
+
         // Add status filter if specified
         if (statusValue !== null) {
           query += ` AND MemberRegist_IC_Main.status = ?`;
@@ -139,86 +158,104 @@ export async function GET(request) {
           queryParams.push(statusValue);
           countQueryParams.push(statusValue);
         }
-        
+
         // Add search filter if specified (also search by applicant email/phone)
         if (search) {
           query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ? OR users.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
           countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ? OR users.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
           const searchPattern = `%${search}%`;
-          queryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
-          countQueryParams.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+          queryParams.push(
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+          );
+          countQueryParams.push(
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+            searchPattern,
+          );
         }
-        
+
         return {
           query,
           countQuery,
           queryParams,
-          countQueryParams
+          countQueryParams,
         };
       };
-      
+
       // Add type-specific queries based on the type filter
-      if (type === 'all' || type === 'oc') {
+      if (type === "all" || type === "oc") {
         const ocQuery = addTypeQuery(
-          'MemberRegist_OC_Main',
-          'id',
-          'company_name_th',
-          'company_name_en',
-          'tax_id',
-          'oc'
+          "MemberRegist_OC_Main",
+          "id",
+          "company_name_th",
+          "company_name_en",
+          "tax_id",
+          "oc",
         );
         queries.push(ocQuery.query);
         countQueries.push(ocQuery.countQuery);
         params = [...params, ...ocQuery.queryParams];
         countParamsList.push(ocQuery.countQueryParams);
       }
-      
-      if (type === 'all' || type === 'am') {
+
+      if (type === "all" || type === "am") {
         const amQuery = addTypeQuery(
-          'MemberRegist_AM_Main',
-          'id',
-          'company_name_th',
-          'company_name_en',
-          'tax_id',
-          'am'
+          "MemberRegist_AM_Main",
+          "id",
+          "company_name_th",
+          "company_name_en",
+          "tax_id",
+          "am",
         );
         queries.push(amQuery.query);
         countQueries.push(amQuery.countQuery);
         params = [...params, ...amQuery.queryParams];
         countParamsList.push(amQuery.countQueryParams);
       }
-      
-      if (type === 'all' || type === 'ac') {
+
+      if (type === "all" || type === "ac") {
         const acQuery = addTypeQuery(
-          'MemberRegist_AC_Main',
-          'id',
-          'company_name_th',
-          'company_name_en',
-          'tax_id',
-          'ac'
+          "MemberRegist_AC_Main",
+          "id",
+          "company_name_th",
+          "company_name_en",
+          "tax_id",
+          "ac",
         );
         queries.push(acQuery.query);
         countQueries.push(acQuery.countQuery);
         params = [...params, ...acQuery.queryParams];
         countParamsList.push(acQuery.countQueryParams);
       }
-      
-      if (type === 'all' || type === 'ic') {
+
+      if (type === "all" || type === "ic") {
         const icQuery = addICTypeQuery();
         queries.push(icQuery.query);
         countQueries.push(icQuery.countQuery);
         params = [...params, ...icQuery.queryParams];
         countParamsList.push(icQuery.countQueryParams);
       }
-      
+
       // Combine all queries with UNION
-      let combinedQuery = queries.join(' UNION ');
+      let combinedQuery = queries.join(" UNION ");
       combinedQuery += ` ORDER BY createdAt ${sortOrder} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
-      
+
       // Execute the combined query
       const [rows] = await connection.query(combinedQuery, params);
-      
+
       // Execute count queries to get total count for pagination
       // Use per-type parameter arrays to avoid placeholder mismatches
       let totalCount = 0;
@@ -227,10 +264,10 @@ export async function GET(request) {
         const [countResult] = await connection.query(countQueries[i], queryParamsForThisType);
         totalCount += countResult[0].count;
       }
-      
+
       // Calculate total pages
       const totalPages = Math.ceil(totalCount / limit);
-      
+
       return NextResponse.json({
         success: true,
         data: rows,
@@ -238,17 +275,17 @@ export async function GET(request) {
           total: totalCount,
           page,
           limit,
-          totalPages
-        }
+          totalPages,
+        },
       });
     } finally {
       connection.release();
     }
   } catch (error) {
-    console.error('Error fetching membership requests:', error);
+    console.error("Error fetching membership requests:", error);
     return NextResponse.json(
-      { success: false, message: 'เกิดข้อผิดพลาดในการดึงข้อมูลการสมัครสมาชิก' },
-      { status: 500 }
+      { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลการสมัครสมาชิก" },
+      { status: 500 },
     );
   }
 }

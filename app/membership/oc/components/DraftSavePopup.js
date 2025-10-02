@@ -1,24 +1,19 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
+import { useRouter } from "next/navigation";
 
-export default function DraftSavePopup({ 
-  isOpen, 
-  onClose, 
-  taxId, 
-  companyName 
-}) {
+export default function DraftSavePopup({ isOpen, onClose, taxId, companyName }) {
   const router = useRouter();
 
   if (!isOpen) return null;
 
   const handleNavigateToDocuments = () => {
-    router.push('/dashboard?tab=documents');
+    router.push("/dashboard?tab=documents");
     onClose();
   };
 
   const handleNavigateToDashboard = () => {
-    router.push('/dashboard');
+    router.push("/dashboard");
     onClose();
   };
 
@@ -30,20 +25,30 @@ export default function DraftSavePopup({
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                <svg
+                  className="w-5 h-5 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-white">
-                บันทึกร่างสำเร็จ
-              </h3>
+              <h3 className="text-lg font-semibold text-white">บันทึกร่างสำเร็จ</h3>
             </div>
-            <button
-              onClick={onClose}
-              className="text-white hover:text-gray-200 transition-colors"
-            >
+            <button onClick={onClose} className="text-white hover:text-gray-200 transition-colors">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -53,45 +58,49 @@ export default function DraftSavePopup({
         <div className="px-6 py-6">
           <div className="text-center mb-6">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
             <p className="text-gray-700 text-sm leading-relaxed">
               ท่านได้บันทึกร่างเอกสารสมัครสมาชิกของบริษัท
               {companyName && (
-                <span className="block font-medium text-gray-900 mt-1">
-                  {companyName}
-                </span>
+                <span className="block font-medium text-gray-900 mt-1">{companyName}</span>
               )}
               <span className="block font-medium text-gray-900 mt-1">
                 หมายเลขทะเบียนนิติบุคคล {taxId}
               </span>
-              <span className="block mt-2">
-                สำเร็จแล้ว
-              </span>
+              <span className="block mt-2">สำเร็จแล้ว</span>
             </p>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
             <p className="text-sm text-gray-700 leading-relaxed">
-              ท่านสามารถเปิดเอกสารนี้อีกครั้ง โดยไปที่เมนู{' '}
+              ท่านสามารถเปิดเอกสารนี้อีกครั้ง โดยไปที่เมนู{" "}
               <button
                 onClick={handleNavigateToDashboard}
                 className="text-blue-600 hover:text-blue-800 font-medium underline transition-colors"
               >
                 จัดการสมาชิก
-              </button>{' '}
-              ทางด้านบน และเลือกเมนู{' '}
+              </button>{" "}
+              ทางด้านบน และเลือกเมนู{" "}
               <button
                 onClick={handleNavigateToDocuments}
                 className="text-blue-600 hover:text-blue-800 font-medium underline transition-colors"
               >
                 เอกสารสมัครสมาชิก
               </button>
-              
             </p>
-          
           </div>
 
           {/* Action Buttons */}

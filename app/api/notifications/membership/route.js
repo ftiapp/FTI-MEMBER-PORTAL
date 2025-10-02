@@ -1,12 +1,12 @@
-import { NextResponse } from 'next/server';
-import { getSession } from '@/app/lib/session';
-import { executeQueryWithoutTransaction } from '@/app/lib/db';
+import { NextResponse } from "next/server";
+import { getSession } from "@/app/lib/session";
+import { executeQueryWithoutTransaction } from "@/app/lib/db";
 
 export async function POST(request) {
   try {
     const session = await getSession();
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     const { membershipType, memberData, memberId } = await request.json();
@@ -14,19 +14,19 @@ export async function POST(request) {
 
     // Create notification message based on membership type
     const typeNames = {
-      'oc': 'สมาชิกสามัญ-โรงงาน (OC)',
-      'ac': 'สมาชิกสมทบ-นิติบุคคล (AC)', 
-      'ic': 'สมาชิกสมทบ-บุคคลธรรมดา (IC)',
-      'am': 'สมาชิกสามัญ-สมาคมการค้า (AM)'
+      oc: "สมาชิกสามัญ-โรงงาน (OC)",
+      ac: "สมาชิกสมทบ-นิติบุคคล (AC)",
+      ic: "สมาชิกสมทบ-บุคคลธรรมดา (IC)",
+      am: "สมาชิกสามัญ-สมาคมการค้า (AM)",
     };
 
-    const normalizedType = (membershipType || '').toLowerCase();
-    const pathType = ['oc', 'ac', 'ic', 'am'].includes(normalizedType) ? normalizedType : 'ic';
-    const typeName = typeNames[pathType] || 'สมาชิก';
-    
+    const normalizedType = (membershipType || "").toLowerCase();
+    const pathType = ["oc", "ac", "ic", "am"].includes(normalizedType) ? normalizedType : "ic";
+    const typeName = typeNames[pathType] || "สมาชิก";
+
     let title = `สมัคร${typeName}สำเร็จ`;
     let message = `ท่านได้ทำการสมัคร${typeName}สำเร็จแล้ว`;
-    
+
     if (memberData?.idCard) {
       message += `\nเลขบัตรประชาชน: ${memberData.idCard}`;
     }
@@ -39,7 +39,7 @@ export async function POST(request) {
     // หมายเหตุ: ไม่เพิ่มชื่อผู้สมัคร และไม่ใส่ประโยคแนะนำให้ไปที่แดชบอร์ด เพื่อลดความยาวข้อความตามที่ร้องขอ
 
     // Insert notification into database
-    const link = memberId 
+    const link = memberId
       ? `/membership/${pathType}/summary?id=${memberId}`
       : `/membership/${pathType}/summary`;
 
@@ -47,17 +47,19 @@ export async function POST(request) {
       `INSERT INTO notifications (
         user_id, type, message, link, created_at, status, member_code, member_type
       ) VALUES (?, ?, ?, ?, NOW(), 'unread', ?, ?)`,
-      [userId, 'membership_submission', message, link, memberId || null, pathType]
+      [userId, "membership_submission", message, link, memberId || null, pathType],
     );
 
     return NextResponse.json({ success: true });
-
   } catch (error) {
-    console.error('Error creating membership notification:', error);
-    return NextResponse.json({ 
-      error: 'เกิดข้อผิดพลาดในการสร้างการแจ้งเตือน',
-      details: error.message
-    }, { status: 500 });
+    console.error("Error creating membership notification:", error);
+    return NextResponse.json(
+      {
+        error: "เกิดข้อผิดพลาดในการสร้างการแจ้งเตือน",
+        details: error.message,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -65,13 +67,13 @@ export async function GET(request) {
   try {
     const session = await getSession();
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     const userId = session.user.id;
     const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get('limit')) || 20;
-    const offset = parseInt(url.searchParams.get('offset')) || 0;
+    const limit = parseInt(url.searchParams.get("limit")) || 20;
+    const offset = parseInt(url.searchParams.get("offset")) || 0;
 
     // Get notifications for the user
     const notifications = await executeQueryWithoutTransaction(
@@ -80,14 +82,14 @@ export async function GET(request) {
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT ? OFFSET ?`,
-      [userId, limit, offset]
+      [userId, limit, offset],
     );
 
     // Get unread count
     const unreadResult = await executeQueryWithoutTransaction(
       `SELECT COUNT(*) as count FROM notifications 
        WHERE user_id = ? AND status = 'unread'`,
-      [userId]
+      [userId],
     );
 
     const unreadCount = unreadResult[0]?.count || 0;
@@ -96,15 +98,17 @@ export async function GET(request) {
       success: true,
       notifications: notifications || [],
       unreadCount,
-      hasMore: notifications?.length === limit
+      hasMore: notifications?.length === limit,
     });
-
   } catch (error) {
-    console.error('Error fetching notifications:', error);
-    return NextResponse.json({ 
-      error: 'เกิดข้อผิดพลาดในการดึงข้อมูลการแจ้งเตือน',
-      details: error.message
-    }, { status: 500 });
+    console.error("Error fetching notifications:", error);
+    return NextResponse.json(
+      {
+        error: "เกิดข้อผิดพลาดในการดึงข้อมูลการแจ้งเตือน",
+        details: error.message,
+      },
+      { status: 500 },
+    );
   }
 }
 
@@ -112,7 +116,7 @@ export async function PATCH(request) {
   try {
     const session = await getSession();
     if (!session || !session.user) {
-      return NextResponse.json({ error: 'ไม่ได้รับอนุญาต' }, { status: 401 });
+      return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
     const { notificationId, markAsRead } = await request.json();
@@ -124,17 +128,19 @@ export async function PATCH(request) {
         `UPDATE notifications 
          SET status = 'read', read_at = NOW() 
          WHERE id = ? AND user_id = ?`,
-        [notificationId, userId]
+        [notificationId, userId],
       );
     }
 
     return NextResponse.json({ success: true });
-
   } catch (error) {
-    console.error('Error updating notification:', error);
-    return NextResponse.json({ 
-      error: 'เกิดข้อผิดพลาดในการอัปเดตการแจ้งเตือน',
-      details: error.message
-    }, { status: 500 });
+    console.error("Error updating notification:", error);
+    return NextResponse.json(
+      {
+        error: "เกิดข้อผิดพลาดในการอัปเดตการแจ้งเตือน",
+        details: error.message,
+      },
+      { status: 500 },
+    );
   }
 }

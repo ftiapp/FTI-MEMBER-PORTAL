@@ -1,43 +1,43 @@
-import React, { useState } from 'react';
-import { formatCurrency, formatNumber, formatPercent } from '../../ีutils/formatters';
+import React, { useState } from "react";
+import { formatCurrency, formatNumber, formatPercent } from "../../ีutils/formatters";
 
 const FinancialInfoSection = ({ application, type, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    registeredCapital: application?.registeredCapital || '',
-    productionCapacityValue: application?.productionCapacityValue || '',
-    productionCapacityUnit: application?.productionCapacityUnit || '',
-    salesDomestic: application?.salesDomestic || '',
-    salesExport: application?.salesExport || '',
-    shareholderThaiPercent: application?.shareholderThaiPercent || '',
-    shareholderForeignPercent: application?.shareholderForeignPercent || '',
-    revenueLastYear: application?.revenueLastYear || '',
-    revenuePreviousYear: application?.revenuePreviousYear || ''
+    registeredCapital: application?.registeredCapital || "",
+    productionCapacityValue: application?.productionCapacityValue || "",
+    productionCapacityUnit: application?.productionCapacityUnit || "",
+    salesDomestic: application?.salesDomestic || "",
+    salesExport: application?.salesExport || "",
+    shareholderThaiPercent: application?.shareholderThaiPercent || "",
+    shareholderForeignPercent: application?.shareholderForeignPercent || "",
+    revenueLastYear: application?.revenueLastYear || "",
+    revenuePreviousYear: application?.revenuePreviousYear || "",
   });
 
-  if (type === 'ic') return null;
+  if (type === "ic") return null;
 
   const handleEdit = () => {
     setIsEditing(true);
     setEditData({
-      registeredCapital: application?.registeredCapital || '',
-      productionCapacityValue: application?.productionCapacityValue || '',
-      productionCapacityUnit: application?.productionCapacityUnit || '',
-      salesDomestic: application?.salesDomestic || '',
-      salesExport: application?.salesExport || '',
-      shareholderThaiPercent: application?.shareholderThaiPercent || '',
-      shareholderForeignPercent: application?.shareholderForeignPercent || '',
-      revenueLastYear: application?.revenueLastYear || '',
-      revenuePreviousYear: application?.revenuePreviousYear || ''
+      registeredCapital: application?.registeredCapital || "",
+      productionCapacityValue: application?.productionCapacityValue || "",
+      productionCapacityUnit: application?.productionCapacityUnit || "",
+      salesDomestic: application?.salesDomestic || "",
+      salesExport: application?.salesExport || "",
+      shareholderThaiPercent: application?.shareholderThaiPercent || "",
+      shareholderForeignPercent: application?.shareholderForeignPercent || "",
+      revenueLastYear: application?.revenueLastYear || "",
+      revenuePreviousYear: application?.revenuePreviousYear || "",
     });
   };
 
   const handleSave = async () => {
     try {
-      await onUpdate('financialInfo', editData);
+      await onUpdate("financialInfo", editData);
       setIsEditing(false);
     } catch (error) {
-      console.error('Error updating financial info:', error);
+      console.error("Error updating financial info:", error);
     }
   };
 
@@ -53,17 +53,17 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
     const numValue = parseFloat(value) || 0;
     const newValue = Math.min(100, Math.max(0, numValue)); // Clamp between 0 and 100
 
-    if (field === 'shareholderThaiPercent') {
+    if (field === "shareholderThaiPercent") {
       setEditData({
         ...editData,
         shareholderThaiPercent: newValue,
-        shareholderForeignPercent: 100 - newValue
+        shareholderForeignPercent: 100 - newValue,
       });
     } else {
       setEditData({
         ...editData,
         shareholderForeignPercent: newValue,
-        shareholderThaiPercent: 100 - newValue
+        shareholderThaiPercent: 100 - newValue,
       });
     }
   };
@@ -71,9 +71,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
-        <h3 className="text-2xl font-bold text-blue-900">
-          ข้อมูลทางการเงิน
-        </h3>
+        <h3 className="text-2xl font-bold text-blue-900">ข้อมูลทางการเงิน</h3>
         {!isEditing ? (
           <button
             onClick={handleEdit}
@@ -81,7 +79,12 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             title="แก้ไขข้อมูลทางการเงิน"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
             </svg>
             แก้ไข
           </button>
@@ -92,7 +95,12 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white hover:bg-green-700 rounded-lg transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
               บันทึก
             </button>
@@ -101,7 +109,12 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               className="flex items-center gap-2 px-4 py-2 bg-gray-500 text-white hover:bg-gray-600 rounded-lg transition-colors"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
               ยกเลิก
             </button>
@@ -117,7 +130,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.revenueLastYear}
-                onChange={(e) => updateField('revenueLastYear', e.target.value)}
+                onChange={(e) => updateField("revenueLastYear", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ปีล่าสุด"
                 min="0"
@@ -126,7 +139,11 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">ล้านบาท</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.revenueLastYear ? `${formatNumber(application.revenueLastYear)} ล้านบาท` : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.revenueLastYear
+                ? `${formatNumber(application.revenueLastYear)} ล้านบาท`
+                : "-"}
+            </p>
           )}
         </div>
 
@@ -137,7 +154,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.revenuePreviousYear}
-                onChange={(e) => updateField('revenuePreviousYear', e.target.value)}
+                onChange={(e) => updateField("revenuePreviousYear", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ปีก่อนหน้า"
                 min="0"
@@ -146,7 +163,11 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">ล้านบาท</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.revenuePreviousYear ? `${formatNumber(application.revenuePreviousYear)} ล้านบาท` : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.revenuePreviousYear
+                ? `${formatNumber(application.revenuePreviousYear)} ล้านบาท`
+                : "-"}
+            </p>
           )}
         </div>
 
@@ -157,7 +178,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.registeredCapital}
-                onChange={(e) => updateField('registeredCapital', e.target.value)}
+                onChange={(e) => updateField("registeredCapital", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ทุนจดทะเบียน"
                 min="0"
@@ -165,7 +186,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.registeredCapital ? formatCurrency(application.registeredCapital) : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.registeredCapital ? formatCurrency(application.registeredCapital) : "-"}
+            </p>
           )}
         </div>
 
@@ -176,7 +199,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.productionCapacityValue}
-                onChange={(e) => updateField('productionCapacityValue', e.target.value)}
+                onChange={(e) => updateField("productionCapacityValue", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="กำลังการผลิต"
                 min="0"
@@ -184,7 +207,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="text"
                 value={editData.productionCapacityUnit}
-                onChange={(e) => updateField('productionCapacityUnit', e.target.value)}
+                onChange={(e) => updateField("productionCapacityUnit", e.target.value)}
                 className="w-32 px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="หน่วย"
               />
@@ -195,7 +218,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
                 ? `${formatNumber(application.productionCapacityValue)} ${application.productionCapacityUnit}`
                 : application.productionCapacityValue
                   ? formatNumber(application.productionCapacityValue)
-                  : application.productionCapacityUnit || '-'}
+                  : application.productionCapacityUnit || "-"}
             </p>
           )}
         </div>
@@ -207,7 +230,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.salesDomestic}
-                onChange={(e) => updateField('salesDomestic', e.target.value)}
+                onChange={(e) => updateField("salesDomestic", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ยอดจำหน่ายในประเทศ"
                 min="0"
@@ -215,7 +238,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.salesDomestic ? formatCurrency(application.salesDomestic) : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.salesDomestic ? formatCurrency(application.salesDomestic) : "-"}
+            </p>
           )}
         </div>
 
@@ -226,7 +251,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.salesExport}
-                onChange={(e) => updateField('salesExport', e.target.value)}
+                onChange={(e) => updateField("salesExport", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ยอดจำหน่ายส่งออก"
                 min="0"
@@ -234,7 +259,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.salesExport ? formatCurrency(application.salesExport) : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.salesExport ? formatCurrency(application.salesExport) : "-"}
+            </p>
           )}
         </div>
 
@@ -245,7 +272,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.shareholderThaiPercent}
-                onChange={(e) => handleShareholderPercentChange('shareholderThaiPercent', e.target.value)}
+                onChange={(e) =>
+                  handleShareholderPercentChange("shareholderThaiPercent", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="สัดส่วนผู้ถือหุ้นไทย"
                 min="0"
@@ -254,7 +283,13 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">%</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.shareholderThaiPercent !== undefined && application.shareholderThaiPercent !== null && application.shareholderThaiPercent !== '' ? formatPercent(application.shareholderThaiPercent) : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.shareholderThaiPercent !== undefined &&
+              application.shareholderThaiPercent !== null &&
+              application.shareholderThaiPercent !== ""
+                ? formatPercent(application.shareholderThaiPercent)
+                : "-"}
+            </p>
           )}
         </div>
 
@@ -265,7 +300,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <input
                 type="number"
                 value={editData.shareholderForeignPercent}
-                onChange={(e) => handleShareholderPercentChange('shareholderForeignPercent', e.target.value)}
+                onChange={(e) =>
+                  handleShareholderPercentChange("shareholderForeignPercent", e.target.value)
+                }
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="สัดส่วนผู้ถือหุ้นต่างประเทศ"
                 min="0"
@@ -274,7 +311,13 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
               <span className="ml-2 text-gray-600">%</span>
             </div>
           ) : (
-            <p className="text-lg text-gray-900">{application.shareholderForeignPercent !== undefined && application.shareholderForeignPercent !== null && application.shareholderForeignPercent !== '' ? formatPercent(application.shareholderForeignPercent) : '-'}</p>
+            <p className="text-lg text-gray-900">
+              {application.shareholderForeignPercent !== undefined &&
+              application.shareholderForeignPercent !== null &&
+              application.shareholderForeignPercent !== ""
+                ? formatPercent(application.shareholderForeignPercent)
+                : "-"}
+            </p>
           )}
         </div>
       </div>
