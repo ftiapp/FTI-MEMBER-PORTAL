@@ -614,14 +614,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-base font-semibold text-blue-800">เอกสารรับรอง</span>
+                <span className="text-base font-semibold text-blue-800">เอกสารรับรอง *</span>
               </div>
             </div>
 
             {/* Association Certificate Upload */}
             <div data-error-key="associationCertificate">
               <SingleFileUploadZone
-                title="สำเนาหนังสือรับรองการจดทะเบียนเป็นสมาคมการค้า"
+                title="สำเนาหนังสือรับรองการจดทะเบียนเป็นสมาคมการค้า *"
                 description="เอกสารรับรองการจดทะเบียนสมาคมการค้าที่ออกโดยหน่วยงานราชการ พร้อมลายเซ็นสำเนาถูกต้อง"
                 name="associationCertificate"
                 file={selectedFiles.associationCertificate}
@@ -649,7 +649,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             {/* Member List Upload */}
             <div data-error-key="memberList">
               <SingleFileUploadZone
-                title="รายชื่อสมาชิกสมาคม"
+                title="รายชื่อสมาชิกสมาคม *"
                 description="เอกสารแสดงรายชื่อสมาชิกของสมาคมการค้า พร้อมลายเซ็นสำเนาถูกต้อง"
                 name="memberList"
                 file={selectedFiles.memberList}
@@ -863,52 +863,88 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     ชื่อ-นามสกุล (ภาษาไทย)
                   </h4>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.authorizedSignatoryFirstNameTh || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryFirstNameTh: e.target.value,
-                        }))
-                      }
-                      data-error-key="authorizedSignatoryFirstNameTh"
-                      placeholder="เช่น สมชาย"
-                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                    />
-                    {errors?.authorizedSignatoryFirstNameTh && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryFirstNameTh}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.authorizedSignatoryLastNameTh || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryLastNameTh: e.target.value,
-                        }))
-                      }
-                      data-error-key="authorizedSignatoryLastNameTh"
-                      placeholder="เช่น ใจดี"
-                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                    />
-                    {errors?.authorizedSignatoryLastNameTh && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryLastNameTh}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        คำนำหน้า
+                      </label>
+                      <select
+                        value={formData.authorizedSignatoryPrenameTh || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameTh: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">เลือก</option>
+                        <option value="นาย">นาย</option>
+                        <option value="นาง">นาง</option>
+                        <option value="นางสาว">นางสาว</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                      </select>
+                      {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
+                        <input
+                          type="text"
+                          value={formData.authorizedSignatoryPrenameOther || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                            }))
+                          }
+                          placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                          className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ชื่อ <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.authorizedSignatoryFirstNameTh || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryFirstNameTh: e.target.value,
+                          }))
+                        }
+                        data-error-key="authorizedSignatoryFirstNameTh"
+                        placeholder="เช่น สมชาย"
+                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                      />
+                      {errors?.authorizedSignatoryFirstNameTh && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryFirstNameTh}
+                        </p>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        นามสกุล <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.authorizedSignatoryLastNameTh || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryLastNameTh: e.target.value,
+                          }))
+                        }
+                        data-error-key="authorizedSignatoryLastNameTh"
+                        placeholder="เช่น ใจดี"
+                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                      />
+                      {errors?.authorizedSignatoryLastNameTh && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryLastNameTh}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -918,52 +954,88 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     ชื่อ-นามสกุล (ภาษาอังกฤษ)
                   </h4>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ชื่อ (ภาษาอังกฤษ) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.authorizedSignatoryFirstNameEn || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryFirstNameEn: e.target.value,
-                        }))
-                      }
-                      data-error-key="authorizedSignatoryFirstNameEn"
-                      placeholder="e.g., Somchai"
-                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                    />
-                    {errors?.authorizedSignatoryFirstNameEn && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryFirstNameEn}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      นามสกุล (ภาษาอังกฤษ) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.authorizedSignatoryLastNameEn || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryLastNameEn: e.target.value,
-                        }))
-                      }
-                      data-error-key="authorizedSignatoryLastNameEn"
-                      placeholder="e.g., Jaidee"
-                      className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                    />
-                    {errors?.authorizedSignatoryLastNameEn && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryLastNameEn}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Prename
+                      </label>
+                      <select
+                        value={formData.authorizedSignatoryPrenameEn || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameEn: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select</option>
+                        <option value="Mr">Mr</option>
+                        <option value="Mrs">Mrs</option>
+                        <option value="Ms">Ms</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {formData.authorizedSignatoryPrenameEn === "Other" && (
+                        <input
+                          type="text"
+                          value={formData.authorizedSignatoryPrenameOtherEn || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                            }))
+                          }
+                          placeholder="e.g., Assoc. Prof., Dr."
+                          className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ชื่อ <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.authorizedSignatoryFirstNameEn || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryFirstNameEn: e.target.value,
+                          }))
+                        }
+                        data-error-key="authorizedSignatoryFirstNameEn"
+                        placeholder="e.g., Somchai"
+                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                      />
+                      {errors?.authorizedSignatoryFirstNameEn && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryFirstNameEn}
+                        </p>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        นามสกุล <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.authorizedSignatoryLastNameEn || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryLastNameEn: e.target.value,
+                          }))
+                        }
+                        data-error-key="authorizedSignatoryLastNameEn"
+                        placeholder="e.g., Jaidee"
+                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                      />
+                      {errors?.authorizedSignatoryLastNameEn && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryLastNameEn}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import ICMembershipForm from "./ICMembershipForm";
 import ICStepIndicator from "./ICStepIndicator";
 import { Toaster } from "react-hot-toast";
@@ -165,12 +166,7 @@ export default function ICPageClient() {
             )}
 
             <div className="relative z-10">
-              {isLoadingDraft && (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-2 text-gray-600">กำลังโหลดข้อมูลร่าง...</span>
-                </div>
-              )}
+              <LoadingOverlay isVisible={isLoadingDraft} message="กำลังโหลดข้อมูลร่าง..." />
               <ICMembershipForm
                 currentStep={currentStep}
                 setCurrentStep={setCurrentStep}

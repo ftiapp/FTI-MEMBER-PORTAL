@@ -245,6 +245,20 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   {getErr("prenameTh", "prename_th") && (
                     <p className="mt-1 text-sm text-red-600">{getErr("prenameTh", "prename_th")}</p>
                   )}
+                  {/* Other Prename Thai - shown immediately below */}
+                  {representative.prenameTh === "อื่นๆ" && (
+                    <input
+                      ref={prenameOtherRef}
+                      type="text"
+                      id="prenameOther"
+                      name="prenameOther"
+                      data-field="representative.prename_other"
+                      value={representative.prenameOther || ""}
+                      onChange={(e) => handleRepresentativeChange("prenameOther", e.target.value)}
+                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 mt-2"
+                    />
+                  )}
                 </div>
                 <div>
                   <label
@@ -311,36 +325,6 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                 </div>
               </div>
 
-              {/* Other Thai prename detail */}
-              {representative.prenameTh === "อื่นๆ" && (
-                <div className="mt-4" data-section="prename-other">
-                  <label
-                    htmlFor="prenameOther"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
-                  </label>
-                  <input
-                    ref={prenameOtherRef}
-                    type="text"
-                    id="prenameOther"
-                    name="prenameOther"
-                    data-field="representative.prename_other"
-                    value={representative.prenameOther || ""}
-                    onChange={(e) => handleRepresentativeChange("prenameOther", e.target.value)}
-                    placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {getErr("prenameOther", "prename_other") && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {getErr("prenameOther", "prename_other")}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    รองรับตัวอักษรไทย เว้นวรรค และจุด (.)
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* English Name Section - ด้านล่าง */}
@@ -378,6 +362,20 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   </select>
                   {getErr("prenameEn", "prename_en") && (
                     <p className="mt-1 text-sm text-red-600">{getErr("prenameEn", "prename_en")}</p>
+                  )}
+                  {/* Other Prename English - shown immediately below */}
+                  {String(representative.prenameEn || "").toLowerCase() === "other" && (
+                    <input
+                      ref={prenameOtherEnRef}
+                      type="text"
+                      id="prenameOtherEn"
+                      name="prenameOtherEn"
+                      data-field="representative.prename_other_en"
+                      value={representative.prenameOtherEn || ""}
+                      onChange={(e) => handleRepresentativeChange("prenameOtherEn", e.target.value)}
+                      placeholder="e.g., Assoc. Prof., Dr."
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 mt-2"
+                    />
                   )}
                 </div>
                 <div>
@@ -442,36 +440,6 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                   )}
                 </div>
               </div>
-              {/* Other English prename detail */}
-              {String(representative.prenameEn || "").toLowerCase() === "other" && (
-                <div className="mt-4">
-                  <label
-                    htmlFor="prenameOtherEn"
-                    className="block text-sm font-medium text-gray-700 mb-1"
-                  >
-                    Specify Prename (English only)
-                  </label>
-                  <input
-                    ref={prenameOtherEnRef}
-                    type="text"
-                    id="prenameOtherEn"
-                    name="prenameOtherEn"
-                    data-field="representative.prename_other_en"
-                    value={representative.prenameOtherEn || ""}
-                    onChange={(e) => handleRepresentativeChange("prenameOtherEn", e.target.value)}
-                    placeholder="e.g., Assoc. Prof., Dr., Col."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
-                  />
-                  {getErr("prenameOtherEn", "prename_other_en") && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {getErr("prenameOtherEn", "prename_other_en")}
-                    </p>
-                  )}
-                  <p className="text-xs text-gray-500 mt-1">
-                    Allowed characters: English letters, spaces, and dot (.)
-                  </p>
-                </div>
-              )}
             </div>
 
             {/* Contact Information Section */}

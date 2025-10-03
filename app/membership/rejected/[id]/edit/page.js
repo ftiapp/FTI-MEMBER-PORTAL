@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
+import LoadingOverlay from "../../../components/LoadingOverlay";
 // removed incorrect use() import; useParams is a hook usable directly in client components
 
 export default function EditRejectedApplication() {
@@ -129,38 +130,7 @@ export default function EditRejectedApplication() {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-gray-50">
-          {/* Hero Header */}
-          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
-            {/* Decorative elements - ซ่อนในมือถือ */}
-            {!isMobile && (
-              <>
-                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
-              </>
-            )}
-
-            <div className="container mx-auto px-4 relative z-10 max-w-5xl">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-                แก้ไขใบสมัครที่ถูกปฏิเสธ
-              </h1>
-              <motion.div
-                className="w-24 h-1 bg-white mx-auto mb-6"
-                initial={{ width: 0 }}
-                animate={{ width: 96 }}
-                transition={{ duration: 0.8, delay: 0.2 }}
-              />
-              <p className="text-lg md:text-xl text-center text-red-100 max-w-3xl mx-auto">
-                กำลังโหลดข้อมูลใบสมัครที่ถูกปฏิเสธ
-              </p>
-            </div>
-          </div>
-
-          <div className="flex justify-center items-center py-16">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
-            <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
-          </div>
-        </main>
+        <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูลใบสมัคร..." />
         <Footer />
       </>
     );

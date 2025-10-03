@@ -715,62 +715,98 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     ชื่อ-นามสกุล (ภาษาไทย)
                   </h4>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="authorizedSignatoryFirstNameTh"
-                      name="authorizedSignatoryFirstNameTh"
-                      value={formData.authorizedSignatoryFirstNameTh || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryFirstNameTh: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryFirstNameTh
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="กรอกชื่อผู้มีอำนาจลงนาม"
-                    />
-                    {errors?.authorizedSignatoryFirstNameTh && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryFirstNameTh}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="authorizedSignatoryLastNameTh"
-                      name="authorizedSignatoryLastNameTh"
-                      value={formData.authorizedSignatoryLastNameTh || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryLastNameTh: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryLastNameTh
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="กรอกนามสกุลผู้มีอำนาจลงนาม"
-                    />
-                    {errors?.authorizedSignatoryLastNameTh && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryLastNameTh}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        คำนำหน้า
+                      </label>
+                      <select
+                        value={formData.authorizedSignatoryPrenameTh || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameTh: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">เลือก</option>
+                        <option value="นาย">นาย</option>
+                        <option value="นาง">นาง</option>
+                        <option value="นางสาว">นางสาว</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                      </select>
+                      {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
+                        <input
+                          type="text"
+                          value={formData.authorizedSignatoryPrenameOther || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                            }))
+                          }
+                          placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                          className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ชื่อ <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="authorizedSignatoryFirstNameTh"
+                        name="authorizedSignatoryFirstNameTh"
+                        value={formData.authorizedSignatoryFirstNameTh || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryFirstNameTh: e.target.value,
+                          }))
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                          errors?.authorizedSignatoryFirstNameTh
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="กรอกชื่อผู้มีอำนาจลงนาม"
+                      />
+                      {errors?.authorizedSignatoryFirstNameTh && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryFirstNameTh}
+                        </p>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        นามสกุล <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="authorizedSignatoryLastNameTh"
+                        name="authorizedSignatoryLastNameTh"
+                        value={formData.authorizedSignatoryLastNameTh || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryLastNameTh: e.target.value,
+                          }))
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                          errors?.authorizedSignatoryLastNameTh
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="กรอกนามสกุลผู้มีอำนาจลงนาม"
+                      />
+                      {errors?.authorizedSignatoryLastNameTh && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryLastNameTh}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 
@@ -780,62 +816,98 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     ชื่อ-นามสกุล (ภาษาอังกฤษ)
                   </h4>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ชื่อ (ภาษาอังกฤษ) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="authorizedSignatoryFirstNameEn"
-                      name="authorizedSignatoryFirstNameEn"
-                      value={formData.authorizedSignatoryFirstNameEn || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryFirstNameEn: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryFirstNameEn
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Enter first name in English"
-                    />
-                    {errors?.authorizedSignatoryFirstNameEn && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryFirstNameEn}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      นามสกุล (ภาษาอังกฤษ) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      id="authorizedSignatoryLastNameEn"
-                      name="authorizedSignatoryLastNameEn"
-                      value={formData.authorizedSignatoryLastNameEn || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryLastNameEn: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryLastNameEn
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="Enter last name in English"
-                    />
-                    {errors?.authorizedSignatoryLastNameEn && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryLastNameEn}
-                      </p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Prename
+                      </label>
+                      <select
+                        value={formData.authorizedSignatoryPrenameEn || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameEn: e.target.value,
+                          }))
+                        }
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select</option>
+                        <option value="Mr">Mr</option>
+                        <option value="Mrs">Mrs</option>
+                        <option value="Ms">Ms</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {formData.authorizedSignatoryPrenameEn === "Other" && (
+                        <input
+                          type="text"
+                          value={formData.authorizedSignatoryPrenameOtherEn || ""}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                            }))
+                          }
+                          placeholder="e.g., Assoc. Prof., Dr."
+                          className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        ชื่อ <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="authorizedSignatoryFirstNameEn"
+                        name="authorizedSignatoryFirstNameEn"
+                        value={formData.authorizedSignatoryFirstNameEn || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryFirstNameEn: e.target.value,
+                          }))
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                          errors?.authorizedSignatoryFirstNameEn
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="Enter first name in English"
+                      />
+                      {errors?.authorizedSignatoryFirstNameEn && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryFirstNameEn}
+                        </p>
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        นามสกุล <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="authorizedSignatoryLastNameEn"
+                        name="authorizedSignatoryLastNameEn"
+                        value={formData.authorizedSignatoryLastNameEn || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryLastNameEn: e.target.value,
+                          }))
+                        }
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                          errors?.authorizedSignatoryLastNameEn
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300"
+                        }`}
+                        placeholder="Enter last name in English"
+                      />
+                      {errors?.authorizedSignatoryLastNameEn && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {errors.authorizedSignatoryLastNameEn}
+                        </p>
+                      )}
+                    </div>
                   </div>
                 </div>
 

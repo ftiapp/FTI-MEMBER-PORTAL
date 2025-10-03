@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import SummarySection from "../components/SummarySection";
 
 export default function ICSummaryPage() {
@@ -76,95 +77,7 @@ export default function ICSummaryPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-gray-50">
-          {/* Hero Header */}
-          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
-            {/* Decorative elements - ซ่อนในมือถือ */}
-            {!isMobile && (
-              <>
-                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
-              </>
-            )}
-
-            {/* Document icon - ซ่อนในมือถือ */}
-            {!isMobile && (
-              <div className="absolute right-10 top-1/2 transform -translate-y-1/2 hidden lg:block opacity-15">
-                <svg
-                  width="200"
-                  height="200"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M14 2V8H20"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16 13H8"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M16 17H8"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M10 9H9H8"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </div>
-            )}
-
-            <div className="container mx-auto px-4 relative z-10 max-w-5xl">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-                เอกสารสมัครสมาชิก: สมทบ-บุคคลธรรมดา
-              </h1>
-              <motion.div
-                className="w-24 h-1 bg-white mx-auto mb-6"
-                initial={{ width: 0 }}
-                animate={{ width: 96 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              />
-              <p className="text-lg md:text-xl text-center max-w-3xl mx-auto">
-                สมาชิกประเภทสมทบ-บุคคลธรรมดา
-              </p>
-            </div>
-          </div>
-
-          {/* Loading State */}
-          <div className="container mx-auto px-4 py-12 md:py-16">
-            <motion.div
-              className="bg-white rounded-xl shadow-lg p-8 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 text-lg">กำลังโหลดข้อมูล...</p>
-            </motion.div>
-          </div>
-        </main>
+        <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูลเอกสารสมัครสมาชิก..." />
         <Footer />
       </>
     );

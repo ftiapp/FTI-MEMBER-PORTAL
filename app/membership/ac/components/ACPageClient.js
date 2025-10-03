@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import ACMembershipForm from "./ACMembershipForm";
 import ACStepIndicator from "./ACStepIndicator";
 import { Toaster } from "react-hot-toast";
@@ -152,16 +153,10 @@ export default function ACPageClient() {
               </>
             )}
 
-            {isLoadingDraft ? (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
-              </div>
-            ) : (
-              <div className="relative z-10">
-                <ACStepIndicator steps={steps} currentStep={currentStep} />
-              </div>
-            )}
+            <LoadingOverlay isVisible={isLoadingDraft} message="กำลังโหลดข้อมูลร่าง..." />
+            <div className="relative z-10">
+              <ACStepIndicator steps={steps} currentStep={currentStep} />
+            </div>
           </motion.div>
 
           {/* Form Content */}
@@ -179,22 +174,15 @@ export default function ACPageClient() {
               </>
             )}
 
-            {isLoadingDraft ? (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
-              </div>
-            ) : (
-              <div className="relative z-10">
-                <ACMembershipForm
-                  currentStep={currentStep}
-                  setCurrentStep={setCurrentStep}
-                  formData={formData}
-                  setFormData={setFormData}
-                  totalSteps={steps.length}
-                />
-              </div>
-            )}
+            <div className="relative z-10">
+              <ACMembershipForm
+                currentStep={currentStep}
+                setCurrentStep={setCurrentStep}
+                formData={formData}
+                setFormData={setFormData}
+                totalSteps={steps.length}
+              />
+            </div>
           </motion.div>
         </div>
       </main>

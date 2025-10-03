@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast, Toaster } from "react-hot-toast";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
+import LoadingOverlay from "../../../components/LoadingOverlay";
 import OCMembershipForm from "../../components/OCMembershipForm";
 import OCStepIndicator from "../../components/OCStepIndicator";
 
@@ -229,10 +230,7 @@ export default function EditRejectedOCApplication() {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-gray-50 flex justify-center items-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
-        </main>
+        <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูลใบสมัคร..." />
         <Footer />
       </>
     );

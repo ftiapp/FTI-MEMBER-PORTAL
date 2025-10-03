@@ -293,6 +293,28 @@ const UserMenu = memo(({ user, isOpen, onToggle, onClose, onLogout }) => {
                 </div>
                 <span>แจ้งเปลี่ยนอีเมล</span>
               </Link>
+              <Link
+                href="/dashboard?tab=contact"
+                className="flex items-center px-6 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200 group"
+                onClick={onClose}
+              >
+                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center mr-3 group-hover:bg-indigo-200 transition-colors">
+                  <svg
+                    className="w-4 h-4 text-indigo-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
+                    />
+                  </svg>
+                </div>
+                <span>ติดต่อเรา</span>
+              </Link>
               <div className="border-t border-gray-100 my-2"></div>
               <button
                 onClick={() => {
@@ -556,7 +578,7 @@ export default function Navbar() {
                     isActive={pathname === "/login"}
                   />
                   <ActionButton href="/register" variant="primary">
-                    สมัครสมาชิก
+                    สมัครสมาชิกเว็บไซต์
                   </ActionButton>
                 </motion.div>
               )}
@@ -596,103 +618,168 @@ export default function Navbar() {
             {isMenuOpen && (
               <motion.div
                 ref={mobileMenuRef}
-                className="lg:hidden w-full fixed top-[85px] left-0 right-0 bg-white/98 backdrop-blur-md z-[9998] shadow-xl border-t border-gray-200"
+                className="lg:hidden w-full fixed top-[85px] left-0 right-0 bg-white z-[9998] shadow-2xl border-t-2 border-gray-300 max-h-[calc(100vh-85px)] overflow-y-auto"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.3, ease: "easeOut" }}
-                style={{
-                  height: "calc(100vh - 85px)",
-                  overflowY: "auto",
-                }}
               >
-                <div className="flex flex-col py-6 px-6 space-y-2">
-                  {menuItems.map((item, index) => (
-                    <motion.div
-                      key={item.name}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.2, delay: index * 0.05 }}
-                    >
-                      <Link
-                        href={item.href}
-                        className={`
-                          font-medium transition-all duration-300 px-6 py-4 block rounded-xl relative group
-                          ${
-                            pathname === item.href
-                              ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-200"
-                              : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
-                          }
-                        `}
-                        onClick={closeMenu}
+                <div className="flex flex-col py-4 px-6 space-y-3">
+                  {/* ส่วนที่ 1: เมนูหลัก - หน้าแรก / เกี่ยวกับเรา */}
+                  <div className="space-y-1">
+                    <div className="px-4 mb-1">
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                        เมนูหลัก
+                      </h3>
+                    </div>
+                    {menuItems.map((item, index) => (
+                      <motion.div
+                        key={item.name}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2, delay: index * 0.05 }}
                       >
-                        <span className="relative z-10">{item.name}</span>
-                        {pathname !== item.href && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
-                        )}
-                      </Link>
-                    </motion.div>
-                  ))}
+                        <Link
+                          href={item.href}
+                          className={`
+                            font-medium transition-all duration-300 px-6 py-3 block rounded-xl relative group
+                            ${
+                              pathname === item.href
+                                ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-200"
+                                : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
+                            }
+                          `}
+                          onClick={closeMenu}
+                        >
+                          <span className="relative z-10">{item.name}</span>
+                          {pathname !== item.href && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
+                          )}
+                        </Link>
+                      </motion.div>
+                    ))}
+                  </div>
 
-                  <div className="border-t border-gray-200 mt-6 pt-6">
-                    {user ? (
-                      <div className="space-y-4">
+                  {user ? (
+                    <>
+                      {/* ส่วนที่ 2: ค้นหาสมาชิก / จัดการสมาชิก */}
+                      <div className="space-y-1 pt-3 border-t border-gray-200">
+                        <div className="px-4 mb-1">
+                          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            บริการสมาชิก
+                          </h3>
+                        </div>
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: 0.1 }}
+                          transition={{ duration: 0.2, delay: 0.12 }}
                         >
                           <Link
-                            href="/ChangeEmail"
-                            className="font-medium transition-all duration-300 px-6 py-4 block rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50"
-                            onClick={closeMenu}
+                            href="https://membersearch.fti.or.th/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center px-4 py-2.5 rounded-md text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                           >
-                            แจ้งเปลี่ยนอีเมล
+                            <svg className="w-5 h-5 mr-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+                            </svg>
+                            <span className="text-sm font-medium">ค้นหาสมาชิก</span>
                           </Link>
                         </motion.div>
 
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: 0.15 }}
+                          transition={{ duration: 0.2, delay: 0.16 }}
                         >
-                          <ActionButton
-                            href="https://membersearch.fti.or.th/"
-                            variant="search"
-                            external={true}
-                            className="w-full text-center"
+                          <Link
+                            href="/dashboard?tab=documents"
+                            onClick={closeMenu}
+                            className={`flex items-center px-4 py-2.5 rounded-md transition-colors ${
+                              pathname === "/dashboard"
+                                ? "text-blue-700 bg-blue-50"
+                                : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
+                            }`}
                           >
-                            ค้นหาสมาชิก
-                          </ActionButton>
+                            <svg className="w-5 h-5 mr-3 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
+                            </svg>
+                            <span className="text-sm font-medium">จัดการสมาชิก</span>
+                          </Link>
                         </motion.div>
+                      </div>
 
+                      {/* ส่วนที่ 3: ไอคอนคน - ข้อมูลส่วนตัว */}
+                      <div className="space-y-1 pt-3 border-t border-gray-200">
+                        <div className="px-4 mb-1">
+                          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            บัญชีของฉัน
+                          </h3>
+                        </div>
+                        
                         <motion.div
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: 0.2 }}
+                          transition={{ duration: 0.2, delay: 0.1 }}
                         >
-                          <ActionButton
-                            href="/dashboard?tab=documents"
-                            variant="primary"
-                            className={`w-full text-center ${pathname === "/dashboard" ? "ring-2 ring-blue-300 ring-offset-2" : ""}`}
+                          <Link
+                            href="/dashboard?tab=userinfo"
+                            className="font-medium transition-all duration-300 px-6 py-3 block rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 flex items-center space-x-3"
                             onClick={closeMenu}
                           >
-                            จัดการสมาชิก
-                          </ActionButton>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span>ข้อมูลส่วนตัว</span>
+                          </Link>
                         </motion.div>
 
                         <motion.div
-                          className="pt-4 border-t border-gray-200"
                           initial={{ opacity: 0, x: -20 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: 0.25 }}
+                          transition={{ duration: 0.2, delay: 0.12 }}
+                        >
+                          <Link
+                            href="/ChangeEmail"
+                            className="font-medium transition-all duration-300 px-6 py-3 block rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 flex items-center space-x-3"
+                            onClick={closeMenu}
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8m-9 4l-9-6 9-6 9 6-9 6z" />
+                            </svg>
+                            <span>แจ้งเปลี่ยนอีเมล</span>
+                          </Link>
+                        </motion.div>
+
+                        <motion.div
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: 0.14 }}
+                        >
+                          <Link
+                            href="/dashboard?tab=contact"
+                            className="font-medium transition-all duration-300 px-6 py-3 block rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 flex items-center space-x-3"
+                            onClick={closeMenu}
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                            <span>ติดต่อเรา</span>
+                          </Link>
+                        </motion.div>
+
+                        <motion.div
+                          className="pt-4"
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ duration: 0.2, delay: 0.16 }}
                         >
                           <button
                             onClick={() => {
                               handleLogout();
                               closeMenu();
                             }}
-                            className="text-gray-500 hover:text-red-600 transition-colors duration-300 text-sm flex items-center space-x-3 px-6 py-3 rounded-xl hover:bg-red-50 w-full"
+                            className="text-red-600 hover:text-red-700 transition-colors duration-300 font-medium flex items-center space-x-3 px-6 py-4 rounded-xl hover:bg-red-50 w-full"
                           >
                             <div className="w-8 h-8 bg-red-100 rounded-lg flex items-center justify-center">
                               <svg
@@ -713,46 +800,46 @@ export default function Navbar() {
                           </button>
                         </motion.div>
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: 0.1 }}
+                    </>
+                  ) : (
+                    <div className="space-y-4 pt-6 border-t border-gray-200">
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2, delay: 0.1 }}
+                      >
+                        <Link
+                          href="/login"
+                          className={`
+                            font-medium transition-all duration-300 px-6 py-4 block rounded-xl
+                            ${
+                              pathname === "/login"
+                                ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-200"
+                                : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
+                            }
+                          `}
+                          onClick={closeMenu}
                         >
-                          <Link
-                            href="/login"
-                            className={`
-                              font-medium transition-all duration-300 px-6 py-4 block rounded-xl
-                              ${
-                                pathname === "/login"
-                                  ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-200"
-                                  : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
-                              }
-                            `}
-                            onClick={closeMenu}
-                          >
-                            เข้าสู่ระบบ
-                          </Link>
-                        </motion.div>
+                          เข้าสู่ระบบ
+                        </Link>
+                      </motion.div>
 
-                        <motion.div
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.2, delay: 0.15 }}
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.2, delay: 0.15 }}
+                      >
+                        <ActionButton
+                          href="/register"
+                          variant="primary"
+                          className="w-full text-center"
+                          onClick={closeMenu}
                         >
-                          <ActionButton
-                            href="/register"
-                            variant="primary"
-                            className="w-full text-center"
-                            onClick={closeMenu}
-                          >
-                            สมัครสมาชิก
-                          </ActionButton>
-                        </motion.div>
-                      </div>
-                    )}
-                  </div>
+                          สมัครสมาชิกเว็บไซต์
+                        </ActionButton>
+                      </motion.div>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

@@ -443,14 +443,15 @@ export async function POST(request) {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_AC_ContactPerson (
-            main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, 
+            main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, 
             position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
             mainId,
             contact.prenameTh || null,
             contact.prenameEn || null,
             contact.prenameOther || null,
+            contact.prenameOtherEn || null,
             contact.firstNameTh || "",
             contact.lastNameTh || "",
             contact.firstNameEn || "",
@@ -470,10 +471,11 @@ export async function POST(request) {
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_AC_ContactPerson (
-          main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId,
+          null,
           null,
           null,
           null,
@@ -521,14 +523,15 @@ export async function POST(request) {
           await executeQuery(
             trx,
             `INSERT INTO MemberRegist_AC_Representatives (
-              main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, 
+              main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, 
               last_name_en, position, email, phone, phone_extension, rep_order, is_primary
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             [
               mainId,
               rep.prenameTh || null,
               rep.prenameEn || null,
               rep.prenameOther || null,
+              rep.prenameOtherEn || null,
               rep.firstNameTh || rep.firstNameThai || "",
               rep.lastNameTh || rep.lastNameThai || "",
               rep.firstNameEn || rep.firstNameEng || "",
@@ -803,10 +806,14 @@ export async function POST(request) {
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_AC_Signature_Name (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
-        ) VALUES (?, ?, ?, ?, ?, ?, ?);`,
+          main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
         [
           mainId,
+          data.authorizedSignatoryPrenameTh || null,
+          data.authorizedSignatoryPrenameEn || null,
+          data.authorizedSignatoryPrenameOther || null,
+          data.authorizedSignatoryPrenameOtherEn || null,
           data.authorizedSignatoryFirstNameTh,
           data.authorizedSignatoryLastNameTh,
           data.authorizedSignatoryFirstNameEn,

@@ -333,6 +333,7 @@ export default function AMMembershipForm(props = {}) {
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
+  const [consentAgreed, setConsentAgreed] = useState(false);
 
   // Determine which form data and setters to use
   const isExternal = props.formData !== undefined;
@@ -490,6 +491,12 @@ export default function AMMembershipForm(props = {}) {
       // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
       if (currentStep !== 5) {
         console.log("AM Form submit prevented - not on final step");
+        return;
+      }
+
+      // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
+      if (!consentAgreed) {
+        toast.error("กรุณายอมรับเงื่อนไขการเก็บ ใช้ และเปิดเผยข้อมูลส่วนบุคคลก่อนส่งใบสมัคร");
         return;
       }
 
@@ -909,17 +916,30 @@ export default function AMMembershipForm(props = {}) {
 
               {/* Submit Button - Show only on the last step (5) */}
               {currentStep === 5 && (
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                    isSubmitting
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700 hover:shadow-md"
-                  } text-white`}
-                >
-                  {isSubmitting ? "⏳ กำลังส่ง..." : "✓ ยืนยันการสมัคร"}
-                </button>
+                <div className="flex flex-col items-end gap-3">
+                  <label className="flex items-start gap-3 text-sm text-gray-700 max-w-3xl">
+                    <input
+                      type="checkbox"
+                      className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                      checked={consentAgreed}
+                      onChange={(e) => setConsentAgreed(e.target.checked)}
+                    />
+                    <span>
+                      ข้าพเจ้าตกลงและยินยอมให้ สภาอุตสาหกรรมแห่งประเทศไทย เก็บ รวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ในการ [เช่น การติดต่อสื่อสาร การให้บริการ หรือการทำการตลาด] ทั้งนี้ ข้าพเจ้าสามารถเพิกถอนความยินยอมเมื่อใดก็ได้ ตามช่องทางที่องค์กรกำหนดไว้
+                    </span>
+                  </label>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || !consentAgreed}
+                    className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
+                      isSubmitting || !consentAgreed
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-green-600 hover:bg-green-700 hover:shadow-md"
+                    } text-white`}
+                  >
+                    {isSubmitting ? "⏳ กำลังส่ง..." : "✓ ยืนยันการสมัคร"}
+                  </button>
+                </div>
               )}
             </div>
           </div>

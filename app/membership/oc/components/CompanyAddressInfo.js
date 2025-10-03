@@ -434,10 +434,7 @@ export default function CompanyAddressInfo({ formData, setFormData, errors, isAu
                   <li>
                     บังคับ: กรุณากรอกที่อยู่ให้ครบทั้ง <strong>ทั้ง 3 ประเภท</strong>
                   </li>
-                  <li className="text-blue-700">
-                    <strong>เคล็ดลับ:</strong> พิมพ์ตำบลตรงๆ เพื่อเติมข้อมูลอัตโนมัติ หรือ เลือกตาม
-                    ตำบล → อำเภอ → จังหวัด
-                  </li>
+               
                 </ul>
               </div>
             </div>

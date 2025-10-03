@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import OCMembershipForm from "./OCMembershipForm";
 import OCStepIndicator from "./OCStepIndicator";
 import { Toaster } from "react-hot-toast";
@@ -12,6 +13,7 @@ export default function OCPageClient() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({});
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoadingDraft, setIsLoadingDraft] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -21,6 +23,35 @@ export default function OCPageClient() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  useEffect(() => {
+    const loadDraftData = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const draftId = urlParams.get("draftId");
+
+      if (draftId) {
+        setIsLoadingDraft(true);
+        try {
+          const response = await fetch(`/api/membership/get-drafts?type=oc`);
+          const data = await response.json();
+
+          if (data.success && data.drafts && data.drafts.length > 0) {
+            const draft = data.drafts.find((d) => d.id === parseInt(draftId));
+            if (draft && draft.draftData) {
+              setFormData((prev) => ({ ...prev, ...draft.draftData }));
+              setCurrentStep(draft.currentStep || 1);
+            }
+          }
+        } catch (error) {
+          console.error("Error loading draft:", error);
+        } finally {
+          setIsLoadingDraft(false);
+        }
+      }
+    };
+
+    loadDraftData();
   }, []);
 
   const steps = [
@@ -136,6 +167,7 @@ export default function OCPageClient() {
             )}
 
             <div className="relative z-10">
+              <LoadingOverlay isVisible={isLoadingDraft} message="กำลังโหลดข้อมูลร่าง..." />
               <OCMembershipForm
                 currentStep={currentStep}
                 setCurrentStep={setCurrentStep}

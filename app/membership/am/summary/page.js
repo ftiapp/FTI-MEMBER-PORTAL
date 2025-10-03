@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import SummarySection from "@/app/membership/am/components/SummarySection"; // ใช้ SummarySection ของ AM
 
 export default function AMSummaryPage() {
@@ -128,38 +129,7 @@ export default function AMSummaryPage() {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-gray-50">
-          {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
-          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
-            <div className="container mx-auto px-4 relative z-10 max-w-5xl">
-              <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-                เอกสารสมัครสมาชิก: สมทบ (สมาคม)
-              </h1>
-              <motion.div
-                className="w-24 h-1 bg-white mx-auto mb-6"
-                initial={{ width: 0 }}
-                animate={{ width: 96 }}
-                transition={{ delay: 0.3, duration: 0.8 }}
-              />
-              <p className="text-lg md:text-xl text-center max-w-3xl mx-auto">
-                สมาชิกประเภทสมทบ (สมาคม)
-              </p>
-            </div>
-          </div>
-
-          <div className="container mx-auto px-4 py-12 md:py-16">
-            <motion.div
-              className="bg-white rounded-xl shadow-lg p-8 text-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
-            >
-              {/* 🔥 แก้ไข: เปลี่ยนจากสีม่วงเป็นสีน้ำเงิน */}
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 text-lg">กำลังโหลดข้อมูล...</p>
-            </motion.div>
-          </div>
-        </main>
+        <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูลเอกสารสมัครสมาชิก..." />
         <Footer />
       </>
     );

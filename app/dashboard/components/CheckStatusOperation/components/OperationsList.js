@@ -5,19 +5,11 @@ import OperationsListContent from "./OperationsListContent";
 import OperationsListSearchBar from "./OperationsListSearchBar";
 import { containerVariants } from "../utils/animationVariants";
 import { operationTypeOptions, statusOptions } from "../utils/filterOptions";
-import useContactMessageStatus from "../hooks/useContactMessageStatus";
-import useAddressUpdateStatus from "../hooks/useAddressUpdateStatus";
-import useVerificationStatus from "../hooks/useVerificationStatus";
-import useProductUpdateStatus from "../hooks/useProductUpdateStatus";
-import useSocialMediaStatus from "../hooks/useSocialMediaStatus";
-import useLogoStatus from "../hooks/useLogoStatus";
-import useTsicStatus from "../hooks/useTsicStatus";
-import useMergedOperations from "../hooks/useMergedOperations";
 import useOperationsFiltering from "../hooks/useOperationsFiltering";
 
 /**
  * OperationsList component displays all operations for a user with filtering and pagination
- * @param {Array} operations - Initial operations to display
+ * @param {Array} operations - Initial operations to display (now contains all data from unified endpoint)
  * @param {string} userId - The user ID to fetch operations for
  */
 const OperationsList = ({ operations: initialOperations, userId }) => {
@@ -27,26 +19,8 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
   const [typeFilter, setTypeFilter] = useState("");
   const [dateRange, setDateRange] = useState(["", ""]);
 
-  // Fetch data using custom hooks
-  const { contactMessageStatus, isLoading: contactLoading } = useContactMessageStatus(userId);
-  const addressUpdates = useAddressUpdateStatus(userId);
-  const { verifications, isLoading: verificationsLoading } = useVerificationStatus(userId);
-  const productUpdates = useProductUpdateStatus(userId);
-  const { socialMediaUpdates, isLoading: socialMediaLoading } = useSocialMediaStatus(userId);
-  const { logoUpdates, loading: logoLoading } = useLogoStatus(userId);
-  const { tsicUpdates, isLoading: tsicLoading } = useTsicStatus(userId);
-
-  // Merge all operations
-  const operations = useMergedOperations(
-    initialOperations,
-    contactMessageStatus,
-    verifications,
-    addressUpdates,
-    productUpdates,
-    socialMediaUpdates,
-    logoUpdates,
-    tsicUpdates,
-  );
+  // Use initialOperations directly (already contains all merged data from unified endpoint)
+  const operations = initialOperations || [];
 
   // Apply filtering and pagination
   const { currentOperations, totalPages, currentPage, setCurrentPage } = useOperationsFiltering(
@@ -57,9 +31,8 @@ const OperationsList = ({ operations: initialOperations, userId }) => {
     dateRange,
   );
 
-  // Determine if we're still loading data
-  const isLoading =
-    contactLoading || verificationsLoading || socialMediaLoading || logoLoading || tsicLoading;
+  // No loading state needed since data comes from parent
+  const isLoading = false;
 
   return (
     <motion.div

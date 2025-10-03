@@ -42,7 +42,7 @@ const Footer = () => {
       animate="visible"
     >
       <div className="container mx-auto px-4 max-w-7xl w-full">
-        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 lg:gap-8">
+        <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
           {/* Logo and About */}
           <motion.div className="mb-4 sm:mb-0" variants={itemVariants}>
             <motion.div className="mb-4" variants={itemVariants}>
@@ -153,11 +153,6 @@ const Footer = () => {
                 </Link>
               </motion.li>
               <motion.li variants={itemVariants}>
-                <Link href="/services" className="text-gray-400 hover:text-white">
-                  บริการของเรา
-                </Link>
-              </motion.li>
-              <motion.li variants={itemVariants}>
                 <Link href="/news" className="text-gray-400 hover:text-white">
                   ข่าวสาร
                 </Link>
@@ -170,89 +165,6 @@ const Footer = () => {
               <motion.li variants={itemVariants}>
                 <Link href="/sitemap" className="text-gray-400 hover:text-white">
                   แผนผังเว็บไซต์
-                </Link>
-              </motion.li>
-            </motion.ul>
-          </motion.div>
-
-          {/* Member Services */}
-          <motion.div className="mb-4 sm:mb-0" variants={itemVariants}>
-            <motion.h3
-              className="text-base sm:text-lg font-semibold mb-2 sm:mb-3"
-              variants={itemVariants}
-            >
-              สำหรับสมาชิก
-            </motion.h3>
-            <motion.ul className="space-y-2" variants={itemVariants}>
-              <motion.li variants={itemVariants}>
-                <Link href="/register" className="text-gray-400 hover:text-white">
-                  สมัครสมาชิก
-                </Link>
-              </motion.li>
-              <motion.li variants={itemVariants}>
-                <Link
-                  href="/member-benefits"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-blue-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                  สิทธิประโยชน์
-                </Link>
-              </motion.li>
-              <motion.li variants={itemVariants}>
-                <Link
-                  href="/training"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-blue-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                  อบรมและสัมมนา
-                </Link>
-              </motion.li>
-              <motion.li variants={itemVariants}>
-                <Link
-                  href="/faq"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 text-blue-400"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                  คำถามที่พบบ่อย
                 </Link>
               </motion.li>
             </motion.ul>

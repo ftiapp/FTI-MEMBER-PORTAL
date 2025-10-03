@@ -228,6 +228,7 @@ export default function SummarySection({
   onBack,
   viewMode = false, // เพิ่ม viewMode สำหรับโหมดดูข้อมูล
 }) {
+  const [consentAgreed, setConsentAgreed] = React.useState(false);
   // Get selected business types from database
   const getSelectedBusinessTypes = () => {
     console.log("=== Debug Business Types ===");
@@ -415,6 +416,17 @@ export default function SummarySection({
     if (e) {
       e.preventDefault();
       e.stopPropagation();
+    }
+
+    // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
+    if (!consentAgreed) {
+      // Use React toast if available, otherwise alert
+      if (typeof window !== 'undefined' && window.toast) {
+        window.toast.error("กรุณายอมรับเงื่อนไขการเก็บ ใช้ และเปิดเผยข้อมูลส่วนบุคคลก่อนส่งใบสมัคร");
+      } else {
+        alert("กรุณายอมรับเงื่อนไขการเก็บ ใช้ และเปิดเผยข้อมูลส่วนบุคคลก่อนส่งใบสมัคร");
+      }
+      return;
     }
 
     if (onSubmit && typeof onSubmit === "function") {
@@ -711,6 +723,21 @@ export default function SummarySection({
                 กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดส่ง หลังจากส่งแล้วจะไม่สามารถแก้ไขได้
               </p>
 
+              {/* Consent Checkbox */}
+              <div className="mb-6">
+                <label className="flex items-start gap-3 text-sm text-gray-700">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded"
+                    checked={consentAgreed}
+                    onChange={(e) => setConsentAgreed(e.target.checked)}
+                  />
+                  <span>
+                    ข้าพเจ้าตกลงและยินยอมให้ สภาอุตสาหกรรมแห่งประเทศไทย เก็บ รวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ในการ [เช่น การติดต่อสื่อสาร การให้บริการ หรือการทำการตลาด] ทั้งนี้ ข้าพเจ้าสามารถเพิกถอนความยินยอมเมื่อใดก็ได้ ตามช่องทางที่องค์กรกำหนดไว้
+                  </span>
+                </label>
+              </div>
+
               {/* Navigation Buttons */}
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
                 {/* Back Button */}
@@ -734,9 +761,9 @@ export default function SummarySection({
                   <button
                     type="button"
                     onClick={handleSubmitClick}
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !consentAgreed}
                     className={`px-8 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
-                      isSubmitting
+                      isSubmitting || !consentAgreed
                         ? "bg-gray-400 cursor-not-allowed text-white"
                         : "bg-green-600 hover:bg-green-700 hover:shadow-lg text-white"
                     }`}

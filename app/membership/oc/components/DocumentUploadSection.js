@@ -859,7 +859,49 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               <p className="text-sm text-gray-600 mb-4">
                 กรุณากรอกชื่อ-นามสกุลของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* Prename Thai */}
+                <div>
+                  <label
+                    htmlFor="authorizedSignatoryPrenameTh"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    คำนำหน้า (ไทย)
+                  </label>
+                  <select
+                    id="authorizedSignatoryPrenameTh"
+                    name="authorizedSignatoryPrenameTh"
+                    value={formData.authorizedSignatoryPrenameTh || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPrenameTh: e.target.value,
+                      }))
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">เลือก</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
+                    <input
+                      type="text"
+                      name="authorizedSignatoryPrenameOther"
+                      value={formData.authorizedSignatoryPrenameOther || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                        }))
+                      }
+                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    />
+                  )}
+                </div>
                 <div>
                   <label
                     htmlFor="authorizedSignatoryFirstNameTh"
@@ -888,7 +930,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label
                     htmlFor="authorizedSignatoryLastNameTh"
                     className="block text-sm font-medium text-gray-700"
@@ -914,6 +956,48 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                       <span className="mr-1">*</span>
                       {errors.authorizedSignatoryLastNameTh}
                     </p>
+                  )}
+                </div>
+                {/* Prename English */}
+                <div>
+                  <label
+                    htmlFor="authorizedSignatoryPrenameEn"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Prename (EN)
+                  </label>
+                  <select
+                    id="authorizedSignatoryPrenameEn"
+                    name="authorizedSignatoryPrenameEn"
+                    value={formData.authorizedSignatoryPrenameEn || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPrenameEn: e.target.value,
+                      }))
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                  >
+                    <option value="">Select</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Ms">Ms</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {formData.authorizedSignatoryPrenameEn === "Other" && (
+                    <input
+                      type="text"
+                      name="authorizedSignatoryPrenameOtherEn"
+                      value={formData.authorizedSignatoryPrenameOtherEn || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                        }))
+                      }
+                      placeholder="e.g., Assoc. Prof., Dr."
+                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    />
                   )}
                 </div>
                 <div>
@@ -944,7 +1028,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="md:col-span-2">
                   <label
                     htmlFor="authorizedSignatoryLastNameEn"
                     className="block text-sm font-medium text-gray-700"

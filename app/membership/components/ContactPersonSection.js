@@ -20,6 +20,7 @@ const ContactPersonSection = ({
         prenameTh: "",
         prenameEn: "",
         prenameOther: "",
+        prenameOtherEn: "",
         firstNameTh: "",
         lastNameTh: "",
         firstNameEn: "",
@@ -150,6 +151,7 @@ const ContactPersonSection = ({
         prenameTh: "",
         prenameEn: "",
         prenameOther: "",
+        prenameOtherEn: "",
         firstNameTh: "",
         lastNameTh: "",
         firstNameEn: "",
@@ -415,6 +417,22 @@ const ContactPersonSection = ({
                               <option value="นางสาว">นางสาว</option>
                               <option value="อื่นๆ">อื่นๆ</option>
                             </select>
+                            {/* Other Prename Thai - shown immediately below */}
+                            {contact.prenameTh === "อื่นๆ" && (
+                              <input
+                                type="text"
+                                id={`contactPerson${index}PrenameOther`}
+                                name={`contactPerson${index}PrenameOther`}
+                                value={contact.prenameOther || ""}
+                                onChange={(e) => {
+                                  const thaiOnly = e.target.value.replace(/[^ก-๙\.\s]/g, "");
+                                  handleContactChange(index, "prenameOther", thaiOnly);
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2"
+                                placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                                required
+                              />
+                            )}
                           </div>
                           {/* First Name Thai */}
                           <div>
@@ -485,6 +503,22 @@ const ContactPersonSection = ({
                               <option value="Ms">Ms</option>
                               <option value="Other">Other</option>
                             </select>
+                            {/* Other Prename English - shown immediately below */}
+                            {contact.prenameEn === "Other" && (
+                              <input
+                                type="text"
+                                id={`contactPerson${index}PrenameOtherEn`}
+                                name={`contactPerson${index}PrenameOtherEn`}
+                                value={contact.prenameOtherEn || ""}
+                                onChange={(e) => {
+                                  const enOnly = e.target.value.replace(/[^a-zA-Z\.\s]/g, "");
+                                  handleContactChange(index, "prenameOtherEn", enOnly);
+                                }}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 mt-2"
+                                placeholder="e.g., Assoc. Prof., Dr."
+                                required
+                              />
+                            )}
                           </div>
                           {/* First Name English */}
                           <div>
@@ -528,31 +562,6 @@ const ContactPersonSection = ({
                           </p>
                         )}
                       </div>
-
-                      {/* Other Prename Detail (Thai-only, required when TH/EN selects Other) */}
-                      {(contact.prenameTh === "อื่นๆ" || contact.prenameEn === "Other") && (
-                        <div className="lg:col-span-2">
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
-                          </label>
-                          <input
-                            type="text"
-                            id={`contactPerson${index}PrenameOther`}
-                            name={`contactPerson${index}PrenameOther`}
-                            value={contact.prenameOther || ""}
-                            onChange={(e) => {
-                              const thaiOnly = e.target.value.replace(/[^ก-๙\.\s]/g, "");
-                              handleContactChange(index, "prenameOther", thaiOnly);
-                            }}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
-                            required
-                          />
-                          <p className="mt-1 text-xs text-gray-500">
-                            รองรับตัวอักษรไทย เว้นวรรค และจุด (.)
-                          </p>
-                        </div>
-                      )}
 
                       {/* Position and Email */}
                       <div>

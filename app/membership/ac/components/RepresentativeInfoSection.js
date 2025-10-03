@@ -19,6 +19,7 @@ export default function RepresentativeInfoSection({
     prenameTh: "",
     prenameEn: "",
     prenameOther: "",
+    prenameOtherEn: "",
     firstNameTh: "",
     lastNameTh: "",
     firstNameEn: "",
@@ -39,6 +40,7 @@ export default function RepresentativeInfoSection({
           prenameTh: rep.prenameTh ?? rep.prename_th ?? "",
           prenameEn: rep.prenameEn ?? rep.prename_en ?? "",
           prenameOther: rep.prenameOther ?? rep.prename_other ?? "",
+          prenameOtherEn: rep.prenameOtherEn ?? rep.prename_other_en ?? "",
           firstNameTh: rep.firstNameTh || rep.firstNameThai || "",
           lastNameTh: rep.lastNameTh || rep.lastNameThai || "",
           firstNameEn: rep.firstNameEn || rep.firstNameEng || rep.firstNameEnglish || "",
@@ -375,6 +377,23 @@ export default function RepresentativeInfoSection({
                             {representativeErrors[index].prename_th}
                           </p>
                         )}
+                        {/* Other Prename Thai - shown immediately below */}
+                        {rep.prenameTh === "อื่นๆ" && (
+                          <input
+                            ref={(el) => (prenameOtherRefs.current[index] = el)}
+                            type="text"
+                            value={rep.prenameOther || ""}
+                            onChange={(e) =>
+                              updateRepresentative(
+                                rep.id,
+                                "prenameOther",
+                                e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                              )
+                            }
+                            placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400 mt-2"
+                          />
+                        )}
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
@@ -431,38 +450,6 @@ export default function RepresentativeInfoSection({
                         )}
                       </div>
                     </div>
-                    {/* Other Prename Detail (Thai-only) */}
-                    {rep.prenameTh === "อื่นๆ" && (
-                      <div className="mt-4">
-                        <label className="block text-sm font-medium text-gray-900 mb-2">
-                          ระบุคำนำหน้า (ภาษาไทยเท่านั้น)
-                        </label>
-                        <input
-                          ref={(el) => (prenameOtherRefs.current[index] = el)}
-                          type="text"
-                          value={rep.prenameOther || ""}
-                          onChange={(e) =>
-                            updateRepresentative(
-                              rep.id,
-                              "prenameOther",
-                              e.target.value.replace(/[^ก-๙\.\s]/g, ""),
-                            )
-                          }
-                          placeholder="เช่น ผศ.ดร., ศ.ดร., พ.ต.อ."
-                          className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400"
-                          data-error-key={`rep-${index}-prename_other`}
-                          id={`prenameOther-${index}`}
-                        />
-                        {representativeErrors[index]?.prename_other && (
-                          <p className="text-sm text-red-600 mt-2">
-                            {representativeErrors[index].prename_other}
-                          </p>
-                        )}
-                        <p className="text-xs text-gray-500 mt-1">
-                          รองรับตัวอักษรไทย เว้นวรรค และจุด (.)
-                        </p>
-                      </div>
-                    )}
                   </div>
 
                   {/* English Name Section - ด้านล่าง */}
@@ -499,6 +486,22 @@ export default function RepresentativeInfoSection({
                           <p className="text-sm text-red-600 mt-2">
                             {representativeErrors[index].prename_en}
                           </p>
+                        )}
+                        {/* Other Prename English - shown immediately below */}
+                        {String(rep.prenameEn || "").toLowerCase() === "other" && (
+                          <input
+                            type="text"
+                            value={rep.prenameOtherEn || ""}
+                            onChange={(e) =>
+                              updateRepresentative(
+                                rep.id,
+                                "prenameOtherEn",
+                                e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                              )
+                            }
+                            placeholder="e.g., Assoc. Prof., Dr."
+                            className="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 border-gray-300 bg-white hover:border-gray-400 mt-2"
+                          />
                         )}
                       </div>
                       <div>
@@ -557,7 +560,6 @@ export default function RepresentativeInfoSection({
                       </div>
                     </div>
                   </div>
-
                   {/* Contact Info Section */}
                   <div>
                     <div className="flex items-center gap-2 mb-4">

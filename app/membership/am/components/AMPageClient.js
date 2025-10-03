@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import LoadingOverlay from "../../components/LoadingOverlay";
 import AMMembershipForm from "./AMMembershipForm";
 import OCStepIndicator from "../../oc/components/OCStepIndicator";
 import { Toaster } from "react-hot-toast";
@@ -153,12 +154,8 @@ export default function AMPageClient() {
               </>
             )}
 
-            {isLoadingDraft ? (
-              <div className="flex justify-center items-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-                <span className="ml-3 text-lg text-gray-600">กำลังโหลดข้อมูล...</span>
-              </div>
-            ) : (
+            <LoadingOverlay isVisible={isLoadingDraft} message="กำลังโหลดข้อมูลร่าง..." />
+            {!isLoadingDraft && (
               <div className="relative z-10">
                 <OCStepIndicator steps={steps} currentStep={currentStep} />
               </div>

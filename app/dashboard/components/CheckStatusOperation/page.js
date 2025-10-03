@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LoadingOverlay } from "../shared";
 import ErrorState from "./components/ErrorState";
 import OperationsList from "./components/OperationsList";
-import useProductUpdateStatus from "./hooks/useProductUpdateStatus";
 
 export default function CheckStatusOperation() {
   const { user } = useAuth();
@@ -18,9 +17,6 @@ export default function CheckStatusOperation() {
 
   // Refs for preventing duplicate requests
   const isLoadingOperations = useRef(false);
-
-  // Use the product update status hook
-  const productUpdates = useProductUpdateStatus(user?.id);
 
   useEffect(() => {
     if (user?.id) {

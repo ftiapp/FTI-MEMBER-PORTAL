@@ -88,13 +88,17 @@ export async function POST(request) {
 
     const factoryType = formData.get("factoryType");
 
-    // Extract authorized signatory name fields
+    // Extract authorized signatory name/prename fields
     const authorizedSignatoryFirstNameTh = formData.get("authorizedSignatoryFirstNameTh");
     const authorizedSignatoryLastNameTh = formData.get("authorizedSignatoryLastNameTh");
     const authorizedSignatoryFirstNameEn = formData.get("authorizedSignatoryFirstNameEn");
     const authorizedSignatoryLastNameEn = formData.get("authorizedSignatoryLastNameEn");
     const authorizedSignatoryPositionTh = formData.get("authorizedSignatoryPositionTh");
     const authorizedSignatoryPositionEn = formData.get("authorizedSignatoryPositionEn");
+    const authorizedSignatoryPrenameTh = formData.get("authorizedSignatoryPrenameTh");
+    const authorizedSignatoryPrenameEn = formData.get("authorizedSignatoryPrenameEn");
+    const authorizedSignatoryPrenameOther = formData.get("authorizedSignatoryPrenameOther");
+    const authorizedSignatoryPrenameOtherEn = formData.get("authorizedSignatoryPrenameOtherEn");
 
     // Small helper to convert undefined to SQL NULL
     const toNull = (v) => (v === undefined ? null : v);
@@ -312,10 +316,14 @@ export async function POST(request) {
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_AM_Signature_Name (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+          main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
         [
           mainId,
+          toNull(authorizedSignatoryPrenameTh),
+          toNull(authorizedSignatoryPrenameEn),
+          toNull(authorizedSignatoryPrenameOther),
+          toNull(authorizedSignatoryPrenameOtherEn),
           authorizedSignatoryFirstNameTh,
           authorizedSignatoryLastNameTh,
           authorizedSignatoryFirstNameEn,
@@ -414,7 +422,7 @@ export async function POST(request) {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_AM_Representatives (
-            main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en,
+            main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en,
             position, email, phone, rep_order, is_primary, created_at
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
@@ -422,6 +430,7 @@ export async function POST(request) {
             toNull(rep.prenameTh),
             toNull(rep.prenameEn),
             toNull(rep.prenameOther),
+            toNull(rep.prenameOtherEn),
             toNull(firstNameTh),
             toNull(lastNameTh),
             toNull(firstNameEn),
@@ -505,14 +514,15 @@ export async function POST(request) {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_AM_ContactPerson (
-            main_id, prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en,
+            main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en,
             position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             mainId,
             toNull(cp.prenameTh),
             toNull(cp.prenameEn),
             toNull(cp.prenameOther),
+            toNull(cp.prenameOtherEn),
             firstNameTh,
             lastNameTh,
             toNull(firstNameEn),

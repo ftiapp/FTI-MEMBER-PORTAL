@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 
 /**
  * คอมโพเนนต์สำหรับกรอกข้อมูลพื้นฐานของบริษัทในฟอร์มสมัครสมาชิกประเภท AC (สมทบ-นิติบุคคล)
@@ -15,9 +16,10 @@ export default function CompanyBasicInfo({
   setIsAutofill,
   isLoading,
 }) {
-  // State สำหรับ throttling และการตรวจสอบ TAX_ID
+  // State for throttling and TAX_ID validation
   const [isThrottled, setIsThrottled] = useState(false);
   const [validationStatus, setValidationStatus] = useState({ status: "idle", message: "" }); // idle, checking, valid, invalid
+  const [isFetchingDBD, setIsFetchingDBD] = useState(false);
   const lastFetchTime = useRef(0);
   const throttleTime = 5000; // 5 seconds
   const taxIdTimeoutRef = useRef(null);
@@ -38,6 +40,30 @@ export default function CompanyBasicInfo({
         fetchCompanyInfo(value);
       }, 1000); // 1 second delay
     }
+  };
+
+  // เคลียร์ข้อมูลที่ถูกดึงอัตโนมัติ (ชื่อบริษัท + ที่อยู่)
+  const clearAutofilledFields = () => {
+    setFormData((prev) => ({
+      ...prev,
+      companyName: "",
+      companyNameEn: "",
+      addresses: {
+        ...prev.addresses,
+        1: {
+          ...prev.addresses?.["1"],
+          addressNumber: "",
+          building: "",
+          street: "",
+          subDistrict: "",
+          district: "",
+          province: "",
+          postalCode: "",
+          addressType: prev.addresses?.["1"]?.addressType || "1",
+        },
+      },
+      postalCode: "",
+    }));
   };
 
   const fetchCompanyInfo = async (taxId) => {
@@ -62,14 +88,38 @@ export default function CompanyBasicInfo({
       setIsThrottled(false);
     }, throttleTime);
 
+    setIsFetchingDBD(true);
+
     try {
       const response = await fetch(`/api/dbd/company/${taxId}`);
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.message || "ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง",
-        );
+        
+        // ตรวจสอบ status code เพื่อแสดงข้อความที่เหมาะสม
+        if (response.status === 404) {
+          // ไม่พบข้อมูล
+          clearAutofilledFields();
+          toast.error(
+            errorData.message ||
+              "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง"
+          );
+          return;
+        } else if (response.status === 503 || response.status === 504 || response.status === 500) {
+          // ระบบไม่พร้อมใช้งาน
+          clearAutofilledFields();
+          toast.error(
+            errorData.message ||
+              "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+            { duration: 6000 }
+          );
+          return;
+        } else {
+          // Error อื่นๆ
+          clearAutofilledFields();
+          toast.error(errorData.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
       }
 
       const result = await response.json();
@@ -156,13 +206,23 @@ export default function CompanyBasicInfo({
           console.log("❌ ไม่มีชื่อตำบลหรือสั้นเกินไป");
         }
       } else {
+        // ไม่ควรเกิดขึ้น (success: false)
+        clearAutofilledFields();
         toast.error(
-          result.message || "ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง",
+          result.message || "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
         );
       }
     } catch (error) {
       console.error("Error fetching company info:", error);
-      toast.error(error.message || "ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
+      
+      // Network error (Failed to fetch)
+      clearAutofilledFields();
+      toast.error(
+        "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+        { duration: 6000 }
+      );
+    } finally {
+      setIsFetchingDBD(false);
     }
   };
 
@@ -281,18 +341,8 @@ export default function CompanyBasicInfo({
       }
       setValidationStatus({ status: "idle", message: "" });
       setErrors((prev) => ({ ...prev, taxId: undefined }));
-      // ล้างข้อมูลที่ดึงมาอัตโนมัติ (ถ้าต้องการ)
-      setFormData((prev) => ({
-        ...prev,
-        companyName: "",
-        companyNameEn: "",
-        addressNumber: "",
-        street: "",
-        subDistrict: "",
-        district: "",
-        province: "",
-        postalCode: "",
-      }));
+      // ล้างข้อมูลที่ดึงมาอัตโนมัติ
+      clearAutofilledFields();
       toast("โหมดกรอกข้อมูลเอง: กรุณากรอกข้อมูลบริษัทด้วยตนเอง");
     }
   };
@@ -307,7 +357,12 @@ export default function CompanyBasicInfo({
   }, []);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <>
+      <LoadingOverlay 
+        isVisible={isFetchingDBD} 
+        message="กำลังดึงข้อมูลจากกรมพัฒนาธุรกิจการค้า..."
+      />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header Section */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลบริษัท</h3>
@@ -662,5 +717,6 @@ export default function CompanyBasicInfo({
         </div>
       </div>
     </div>
+    </>
   );
 }

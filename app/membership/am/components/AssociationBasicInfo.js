@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
+import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 
 export default function AssociationBasicInfo({
   formData,
@@ -17,6 +18,7 @@ export default function AssociationBasicInfo({
   // State for throttling and TAX_ID validation
   const [isThrottled, setIsThrottled] = useState(false);
   const [validationStatus, setValidationStatus] = useState({ status: "idle", message: "" }); // idle, checking, valid, invalid
+  const [isFetchingDBD, setIsFetchingDBD] = useState(false);
   const lastFetchTime = useRef(0);
   const throttleTime = 5000; // 5 seconds
   const taxIdTimeoutRef = useRef(null);
@@ -24,6 +26,32 @@ export default function AssociationBasicInfo({
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // เคลียร์ข้อมูลที่ถูกดึงอัตโนมัติ (ชื่อสมาคม + ที่อยู่)
+  const clearAutofilledFields = () => {
+    setFormData((prev) => ({
+      ...prev,
+      associationName: "",
+      associationNameEng: "",
+      associationNameEn: "",
+      addresses: {
+        ...prev.addresses,
+        1: {
+          ...prev.addresses?.["1"],
+          addressNumber: "",
+          building: "",
+          road: "",
+          street: "",
+          subDistrict: "",
+          district: "",
+          province: "",
+          postalCode: "",
+          addressType: prev.addresses?.["1"]?.addressType || "1",
+        },
+      },
+      postalCode: "",
+    }));
   };
 
   const checkTaxIdUniqueness = async (taxId) => {
@@ -116,35 +144,61 @@ export default function AssociationBasicInfo({
       setIsThrottled(false);
     }, throttleTime);
 
+    setIsFetchingDBD(true);
+
     try {
-      const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`);
+      const response = await fetch(`/api/dbd/company/${taxId}`);
 
       if (!response.ok) {
-        throw new Error("ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง");
+        const errorData = await response.json();
+        
+        // ตรวจสอบ status code เพื่อแสดงข้อความที่เหมาะสม
+        if (response.status === 404) {
+          // ไม่พบข้อมูล
+          clearAutofilledFields();
+          toast.error(
+            errorData.message ||
+              "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง"
+          );
+          return;
+        } else if (response.status === 503 || response.status === 504 || response.status === 500) {
+          // ระบบไม่พร้อมใช้งาน
+          clearAutofilledFields();
+          toast.error(
+            errorData.message ||
+              "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+            { duration: 6000 }
+          );
+          return;
+        } else {
+          // Error อื่นๆ
+          clearAutofilledFields();
+          toast.error(errorData.message || "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
       }
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (data && data.status?.code === "1000" && data.data && data.data.length > 0) {
-        const associationData = data.data[0]["cd:OrganizationJuristicPerson"];
-        const address = associationData["cd:OrganizationJuristicAddress"]?.["cr:AddressType"];
-        const subDistrictName = address?.["cd:CitySubDivision"]?.["cr:CitySubDivisionTextTH"] || "";
+      if (result.success && result.data) {
+        const assocData = result.data;
+        const subDistrictName = assocData.address?.subDistrict || "";
 
         setFormData((prev) => ({
           ...prev,
-          associationName: associationData["cd:OrganizationJuristicNameTH"] || "",
-          associationNameEng: associationData["cd:OrganizationJuristicNameEN"] || "",
-          associationNameEn: associationData["cd:OrganizationJuristicNameEN"] || "",
+          associationName: assocData.companyName || "",
+          associationNameEng: assocData.companyNameEn || "",
+          associationNameEn: assocData.companyNameEn || "",
           addresses: {
             ...prev.addresses,
             1: {
               ...prev.addresses?.["1"],
-              addressNumber: address?.["cd:AddressNo"] || "",
-              building: address?.["cd:Building"] || address?.["cd:Village"] || "",
-              road: address?.["cd:Road"] || "",
+              addressNumber: assocData.address?.addressNumber || "",
+              building: assocData.address?.building || "",
+              road: assocData.address?.street || "",
               subDistrict: subDistrictName,
-              district: address?.["cd:City"]?.["cr:CityTextTH"] || "",
-              province: address?.["cd:CountrySubDivision"]?.["cr:CountrySubDivisionTextTH"] || "",
+              district: assocData.address?.district || "",
+              province: assocData.address?.province || "",
               addressType: "1",
             },
           },
@@ -187,14 +241,24 @@ export default function AssociationBasicInfo({
           }
         }
       } else {
+        // ไม่ควรเกิดขึ้น (success: false)
+        clearAutofilledFields();
         toast.error(
-          data.status?.description ||
-            "ไม่พบข้อมูลเลขทะเบียนนิติบุคคลของท่าน กรุณากรอกข้อมูลด้วยตนเอง",
+          result.message ||
+            "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
         );
       }
     } catch (error) {
       console.error("Error fetching association info:", error);
-      toast.error("ไม่สามารถดึงข้อมูลได้ กรุณาลองใหม่อีกครั้ง");
+      
+      // Network error (Failed to fetch)
+      clearAutofilledFields();
+      toast.error(
+        "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+        { duration: 6000 }
+      );
+    } finally {
+      setIsFetchingDBD(false);
     }
   };
 
@@ -247,18 +311,8 @@ export default function AssociationBasicInfo({
       }
       setValidationStatus({ status: "idle", message: "" });
       setErrors((prev) => ({ ...prev, taxId: undefined }));
-      // Optionally clear form data that was auto-filled
-      setFormData((prev) => ({
-        ...prev,
-        associationName: "",
-        associationNameEng: "",
-        addressNumber: "",
-        street: "",
-        subDistrict: "",
-        district: "",
-        province: "",
-        postalCode: "",
-      }));
+      // Clear fields that were auto-filled
+      clearAutofilledFields();
       toast("โหมดกรอกข้อมูลเอง: กรุณากรอกข้อมูลสมาคมด้วยตนเอง");
     }
   };
@@ -273,7 +327,12 @@ export default function AssociationBasicInfo({
   }, []);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <>
+      <LoadingOverlay 
+        isVisible={isFetchingDBD} 
+        message="กำลังดึงข้อมูลจากกรมพัฒนาธุรกิจการค้า..."
+      />
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header Section */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลสมาคม</h3>
@@ -631,5 +690,6 @@ export default function AssociationBasicInfo({
         </div>
       </div>
     </div>
+    </>
   );
 }

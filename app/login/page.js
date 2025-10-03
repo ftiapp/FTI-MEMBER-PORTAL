@@ -338,7 +338,7 @@ export default function Login() {
       if (redirectTarget && redirectTarget.startsWith("/")) {
         router.push(redirectTarget);
       } else {
-        router.push("/dashboard");
+        router.push("/");
       }
     } catch (err) {
       setError(err.message);
