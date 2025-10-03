@@ -34,6 +34,25 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
     [sanitizeNumberInput, setFormData],
   );
 
+  // Handler สำหรับข้อมูลเปอร์เซ็นต์ที่ต้องรวมกันเป็น 100
+  const handlePercentageChange = useCallback(
+    (e, pairFieldName) => {
+      const { name, value } = e.target;
+      let raw = sanitizeNumberInput(value);
+      const numValue = parseFloat(raw);
+      if (!isNaN(numValue) && numValue > 100) {
+        raw = "100";
+      }
+      const pairValue = raw && !isNaN(parseFloat(raw)) ? String(100 - parseFloat(raw)) : "";
+      setFormData((prev) => ({
+        ...prev,
+        [name]: raw,
+        [pairFieldName]: pairValue,
+      }));
+    },
+    [sanitizeNumberInput, setFormData],
+  );
+
   const handleNumericFocus = useCallback(
     (e) => {
       const { name } = e.target;
@@ -483,7 +502,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   id="salesDomestic"
                   name="salesDomestic"
                   value={formData.salesDomestic || ""}
-                  onChange={handleNumericChange}
+                  onChange={(e) => handlePercentageChange(e, "salesExport")}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
                   placeholder="0.00"
@@ -499,7 +518,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   id="salesExport"
                   name="salesExport"
                   value={formData.salesExport || ""}
-                  onChange={handleNumericChange}
+                  onChange={(e) => handlePercentageChange(e, "salesDomestic")}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
                   placeholder="0.00"
@@ -527,7 +546,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   id="shareholderThaiPercent"
                   name="shareholderThaiPercent"
                   value={formData.shareholderThaiPercent || ""}
-                  onChange={handleNumericChange}
+                  onChange={(e) => handlePercentageChange(e, "shareholderForeignPercent")}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
                   placeholder="0.00"
@@ -546,7 +565,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
                   id="shareholderForeignPercent"
                   name="shareholderForeignPercent"
                   value={formData.shareholderForeignPercent || ""}
-                  onChange={handleNumericChange}
+                  onChange={(e) => handlePercentageChange(e, "shareholderThaiPercent")}
                   onFocus={handleNumericFocus}
                   onBlur={handleNumericBlur}
                   placeholder="0.00"

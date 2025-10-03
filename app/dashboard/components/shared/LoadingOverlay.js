@@ -163,7 +163,7 @@ export default function LoadingOverlay({
   const overlay = (
     <div
       className="fixed inset-0 bg-white/60 backdrop-blur-sm flex items-center justify-center pointer-events-none"
-      style={{ zIndex: 2147483647 }}
+      style={{ zIndex: 9999 }}
     >
       {content}
     </div>

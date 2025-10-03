@@ -138,10 +138,20 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
           />
         </div>
 
-        <div className="text-xs text-gray-600 mb-4 bg-blue-50 p-3 rounded">
-          <p>• ลากเพื่อเลื่อนตำแหน่ง</p>
-          <p>• ปรับขนาดด้วย slider</p>
-          <p>• ขนาดแนะนำ: 120x60 พิกเซล (สำหรับวางในขวาล่างของ A4)</p>
+        <div className="text-xs text-gray-700 mb-4 bg-blue-50 p-3 rounded leading-5">
+          <div className="font-semibold mb-1">คำแนะนำการใช้งาน</div>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>กรุณาคลิกค้างและลากภาพเพื่อปรับเปลี่ยนตำแหน่ง</li>
+            <li>กรุณาใช้แถบเลื่อนเพื่อปรับขนาดภาพให้เหมาะสม (10-300%)</li>
+            <li>
+              ขนาดที่แนะนำ:
+              <ul className="list-[circle] pl-5 mt-1 space-y-0.5">
+                <li>โลโก้/ตราประทับบริษัท: 300 × 300 พิกเซล</li>
+                <li>ลายเซ็นผู้มีอำนาจลงนาม: 120 × 60 พิกเซล</li>
+              </ul>
+            </li>
+            <li>ท่านควรใช้ไฟล์ PNG พื้นหลังโปร่งใสเพื่อผลลัพธ์ที่เหมาะสม</li>
+          </ul>
         </div>
 
         <div className="flex justify-end space-x-2">
@@ -866,17 +876,24 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">
-                        คำนำหน้า
+                        คำนำหน้า <span className="text-red-500">*</span>
                       </label>
                       <select
                         value={formData.authorizedSignatoryPrenameTh || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const mapThToEn = { "นาย": "Mr", "นาง": "Mrs", "นางสาว": "Ms", "อื่นๆ": "Other" };
+                          const mappedEn = mapThToEn[value] || "";
                           setFormData((prev) => ({
                             ...prev,
-                            authorizedSignatoryPrenameTh: e.target.value,
-                          }))
-                        }
+                            authorizedSignatoryPrenameTh: value,
+                            authorizedSignatoryPrenameEn: mappedEn,
+                            authorizedSignatoryPrenameOther: value === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
+                            authorizedSignatoryPrenameOtherEn: mappedEn === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                          }));
+                        }}
                         className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
                       >
                         <option value="">เลือก</option>
                         <option value="นาย">นาย</option>
@@ -896,6 +913,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                           }
                           placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
                           className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
                         />
                       )}
                     </div>
@@ -915,6 +933,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         data-error-key="authorizedSignatoryFirstNameTh"
                         placeholder="เช่น สมชาย"
                         className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                        required
                       />
                       {errors?.authorizedSignatoryFirstNameTh && (
                         <p className="mt-1 text-sm text-red-600">
@@ -938,6 +957,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         data-error-key="authorizedSignatoryLastNameTh"
                         placeholder="เช่น ใจดี"
                         className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                        required
                       />
                       {errors?.authorizedSignatoryLastNameTh && (
                         <p className="mt-1 text-sm text-red-600">
@@ -961,12 +981,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       </label>
                       <select
                         value={formData.authorizedSignatoryPrenameEn || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          const mapEnToTh = { "Mr": "นาย", "Mrs": "นาง", "Ms": "นางสาว", "Other": "อื่นๆ" };
+                          const mappedTh = mapEnToTh[value] || "";
                           setFormData((prev) => ({
                             ...prev,
-                            authorizedSignatoryPrenameEn: e.target.value,
-                          }))
-                        }
+                            authorizedSignatoryPrenameEn: value,
+                            authorizedSignatoryPrenameTh: mappedTh,
+                            authorizedSignatoryPrenameOtherEn: value === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                            authorizedSignatoryPrenameOther: mappedTh === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
+                          }));
+                        }}
                         className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="">Select</option>
@@ -987,6 +1013,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                           }
                           placeholder="e.g., Assoc. Prof., Dr."
                           className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          required
                         />
                       )}
                     </div>

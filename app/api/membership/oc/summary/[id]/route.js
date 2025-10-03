@@ -187,7 +187,7 @@ export async function GET(request, { params }) {
 
     // Fetch authorized signatory name & position (latest)
     const signatureNameRows = await query(
-      "SELECT first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_OC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1",
+      "SELECT prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_OC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1",
       [id],
     );
     const signatureName =
@@ -425,6 +425,9 @@ export async function GET(request, { params }) {
       updatedAt: ocData.updated_at,
 
       // Authorized signatory (names & positions)
+      authorizedSignatoryPrenameTh: signatureName?.prename_th || null,
+      authorizedSignatoryPrenameEn: signatureName?.prename_en || null,
+      authorizedSignatoryPrenameOther: signatureName?.prename_other || null,
       authorizedSignatoryFirstNameTh: signatureName?.first_name_th || null,
       authorizedSignatoryLastNameTh: signatureName?.last_name_th || null,
       authorizedSignatoryFirstNameEn: signatureName?.first_name_en || null,

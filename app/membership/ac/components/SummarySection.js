@@ -250,6 +250,29 @@ export default function SummarySectionComponent({
   industrialGroups = [],
   provincialChapters = [],
 }) {
+  // Helpers: safe numeric parsing/formatting
+  const toNumber = (val) => {
+    if (val === undefined || val === null || (typeof val === "string" && val.trim() === ""))
+      return null;
+    const s = String(val).replace(/,/g, "");
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  };
+
+  const formatCurrency = (val) => {
+    const n = toNumber(val);
+    return n !== null ? n.toLocaleString() : "-";
+  };
+
+  const formatNumberWithUnit = (val, unit) => {
+    const n = toNumber(val);
+    return n !== null && unit ? `${n.toLocaleString()} ${unit}` : "-";
+  };
+
+  const formatPercent = (val) => {
+    const n = toNumber(val);
+    return n !== null ? `${n}%` : "-";
+  };
   // Helper functions สำหรับจัดการไฟล์
   const getFileName = (fileObj) => {
     if (!fileObj) return "ไม่ได้อัปโหลด";
@@ -797,43 +820,30 @@ export default function SummarySectionComponent({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard
             title="ทุนจดทะเบียน (บาท)"
-            value={
-              formData?.registeredCapital
-                ? Number(formData.registeredCapital).toLocaleString()
-                : "-"
-            }
+            value={formatCurrency(formData?.registeredCapital)}
           />
           <InfoCard
             title="กำลังการผลิต (ต่อปี)"
-            value={
-              formData?.productionCapacityValue && formData?.productionCapacityUnit
-                ? `${Number(formData.productionCapacityValue).toLocaleString()} ${formData.productionCapacityUnit}`
-                : "-"
-            }
+            value={formatNumberWithUnit(
+              formData?.productionCapacityValue,
+              formData?.productionCapacityUnit,
+            )}
           />
           <InfoCard
-            title="ยอดจำหน่ายในประเทศ (บาท/ปี)"
-            value={formData?.salesDomestic ? Number(formData.salesDomestic).toLocaleString() : "-"}
+            title="ยอดจำหน่ายในประเทศ (%)"
+            value={formatPercent(formData?.salesDomestic)}
           />
           <InfoCard
-            title="ยอดจำหน่ายส่งออก (บาท/ปี)"
-            value={formData?.salesExport ? Number(formData.salesExport).toLocaleString() : "-"}
+            title="ยอดจำหน่ายส่งออก (%)"
+            value={formatPercent(formData?.salesExport)}
           />
           <InfoCard
             title="สัดส่วนผู้ถือหุ้นไทย (%)"
-            value={
-              formData?.shareholderThaiPercent
-                ? `${Number(formData.shareholderThaiPercent).toFixed(2)}%`
-                : "-"
-            }
+            value={formatPercent(formData?.shareholderThaiPercent)}
           />
           <InfoCard
             title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)"
-            value={
-              formData?.shareholderForeignPercent
-                ? `${Number(formData.shareholderForeignPercent).toFixed(2)}%`
-                : "-"
-            }
+            value={formatPercent(formData?.shareholderForeignPercent)}
           />
         </div>
       </Section>

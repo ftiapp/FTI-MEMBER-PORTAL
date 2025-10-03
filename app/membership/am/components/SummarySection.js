@@ -202,6 +202,30 @@ export default function SummarySection({ formData, industrialGroups, provincialC
   });
 
   // Helper functions
+  // Safe numeric helpers
+  const toNumber = (val) => {
+    if (val === undefined || val === null || (typeof val === "string" && val.trim() === ""))
+      return null;
+    const s = String(val).replace(/,/g, "");
+    const n = parseFloat(s);
+    return isNaN(n) ? null : n;
+  };
+
+  const formatCurrency = (val) => {
+    const n = toNumber(val);
+    return n !== null ? n.toLocaleString() : "-";
+  };
+
+  const formatNumberWithUnit = (val, unit) => {
+    const n = toNumber(val);
+    return n !== null && unit ? `${n.toLocaleString()} ${unit}` : "-";
+  };
+
+  const formatPercent = (val) => {
+    const n = toNumber(val);
+    return n !== null ? `${n}%` : "-";
+  };
+
   const getFileName = (file) => {
     if (file && typeof file === "object" && file.name) {
       return file.name;
@@ -294,7 +318,8 @@ export default function SummarySection({ formData, industrialGroups, provincialC
 
   // จัดรูปแบบตัวเลข
   const formatNumber = (number) => {
-    return number ? `${number.toLocaleString()}` : "-";
+    const n = toNumber(number);
+    return n !== null ? `${n.toLocaleString()}` : "-";
   };
 
   // ฟังก์ชันสำหรับแสดงชื่อผู้ติดต่อ
@@ -656,53 +681,34 @@ export default function SummarySection({ formData, industrialGroups, provincialC
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <InfoCard
             title="ทุนจดทะเบียน (บาท)"
-            value={
-              formData?.registeredCapital || formData?.registered_capital
-                ? formatNumber(formData.registeredCapital || formData.registered_capital)
-                : "-"
-            }
+            value={formatCurrency(formData?.registeredCapital || formData?.registered_capital)}
           />
           <InfoCard
             title="กำลังการผลิต (ต่อปี)"
-            value={
-              formData?.productionCapacityValue ||
-              (formData?.production_capacity_value &&
-                (formData?.productionCapacityUnit || formData?.production_capacity_unit))
-                ? `${formatNumber(formData.productionCapacityValue || formData.production_capacity_value)} ${formData.productionCapacityUnit || formData.production_capacity_unit}`
-                : "-"
-            }
+            value={formatNumberWithUnit(
+              formData?.productionCapacityValue || formData?.production_capacity_value,
+              formData?.productionCapacityUnit || formData?.production_capacity_unit,
+            )}
           />
           <InfoCard
-            title="ยอดจำหน่ายในประเทศ (บาท/ปี)"
-            value={
-              formData?.salesDomestic || formData?.sales_domestic
-                ? formatNumber(formData.salesDomestic || formData.sales_domestic)
-                : "-"
-            }
+            title="ยอดจำหน่ายในประเทศ (%)"
+            value={formatPercent(formData?.salesDomestic || formData?.sales_domestic)}
           />
           <InfoCard
-            title="ยอดจำหน่ายส่งออก (บาท/ปี)"
-            value={
-              formData?.salesExport || formData?.sales_export
-                ? formatNumber(formData.salesExport || formData.sales_export)
-                : "-"
-            }
+            title="ยอดจำหน่ายส่งออก (%)"
+            value={formatPercent(formData?.salesExport || formData?.sales_export)}
           />
           <InfoCard
             title="สัดส่วนผู้ถือหุ้นไทย (%)"
-            value={
-              formData?.shareholderThaiPercent || formData?.shareholder_thai_percent
-                ? `${Number(formData.shareholderThaiPercent || formData.shareholder_thai_percent).toFixed(2)}%`
-                : "-"
-            }
+            value={formatPercent(
+              formData?.shareholderThaiPercent || formData?.shareholder_thai_percent,
+            )}
           />
           <InfoCard
             title="สัดส่วนผู้ถือหุ้นต่างประเทศ (%)"
-            value={
-              formData?.shareholderForeignPercent || formData?.shareholder_foreign_percent
-                ? `${Number(formData.shareholderForeignPercent || formData.shareholder_foreign_percent).toFixed(2)}%`
-                : "-"
-            }
+            value={formatPercent(
+              formData?.shareholderForeignPercent || formData?.shareholder_foreign_percent,
+            )}
           />
         </div>
       </Section>

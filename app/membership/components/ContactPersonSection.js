@@ -403,6 +403,9 @@ const ContactPersonSection = ({
                         <div className="grid grid-cols-4 gap-2">
                           {/* Prename Thai */}
                           <div>
+                            <div className="text-xs text-gray-700 mb-1">
+                              คำนำหน้า {isMain && <span className="text-red-500">*</span>}
+                            </div>
                             <select
                               value={contact.prenameTh || ""}
                               onChange={(e) =>
@@ -436,6 +439,9 @@ const ContactPersonSection = ({
                           </div>
                           {/* First Name Thai */}
                           <div>
+                            <div className="text-xs text-gray-700 mb-1">
+                              ชื่อ {isMain && <span className="text-red-500">*</span>}
+                            </div>
                             <input
                               type="text"
                               id={`contactPerson${index}FirstNameTh`}
@@ -453,6 +459,9 @@ const ContactPersonSection = ({
                           </div>
                           {/* Last Name Thai */}
                           <div className="col-span-2">
+                            <div className="text-xs text-gray-700 mb-1">
+                              นามสกุล {isMain && <span className="text-red-500">*</span>}
+                            </div>
                             <input
                               type="text"
                               id={`contactPerson${index}LastNameTh`}
@@ -489,6 +498,9 @@ const ContactPersonSection = ({
                         <div className="grid grid-cols-4 gap-2">
                           {/* Prename English */}
                           <div>
+                            <div className="text-xs text-gray-700 mb-1">
+                              Prename {isMain && <span className="text-red-500">*</span>}
+                            </div>
                             <select
                               value={contact.prenameEn || ""}
                               onChange={(e) =>
@@ -522,6 +534,9 @@ const ContactPersonSection = ({
                           </div>
                           {/* First Name English */}
                           <div>
+                            <div className="text-xs text-gray-700 mb-1">
+                              First Name {isMain && <span className="text-red-500">*</span>}
+                            </div>
                             <input
                               type="text"
                               value={contact.firstNameEn}
@@ -537,6 +552,9 @@ const ContactPersonSection = ({
                           </div>
                           {/* Last Name English */}
                           <div className="col-span-2">
+                            <div className="text-xs text-gray-700 mb-1">
+                              Last Name {isMain && <span className="text-red-500">*</span>}
+                            </div>
                             <input
                               type="text"
                               value={contact.lastNameEn}

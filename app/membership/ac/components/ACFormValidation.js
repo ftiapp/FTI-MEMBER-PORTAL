@@ -319,6 +319,25 @@ export const validateACForm = (formData, step) => {
       errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
     }
 
+    // ตรวจสอบคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับ
+    if (!formData.authorizedSignatoryPrenameTh) {
+      errors.authorizedSignatoryPrenameTh = "กรุณาเลือกคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย)";
+    }
+
+    // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
+    if (formData.authorizedSignatoryPrenameTh === "อื่นๆ") {
+      if (!formData.authorizedSignatoryPrenameOther || formData.authorizedSignatoryPrenameOther.trim() === "") {
+        errors.authorizedSignatoryPrenameOther = "กรุณาระบุคำนำหน้า (อื่นๆ) ภาษาไทย";
+      }
+    }
+
+    // ถ้าเลือก "Other" ในภาษาอังกฤษ ต้องระบุรายละเอียด
+    if (formData.authorizedSignatoryPrenameEn === "Other") {
+      if (!formData.authorizedSignatoryPrenameOtherEn || formData.authorizedSignatoryPrenameOtherEn.trim() === "") {
+        errors.authorizedSignatoryPrenameOtherEn = "กรุณาระบุคำนำหน้า (Other) ภาษาอังกฤษ";
+      }
+    }
+
     // ตรวจสอบข้อมูลผู้มีอำนาจลงนาม (ชื่อ-นามสกุล และตำแหน่ง)
     // ภาษาไทย: ต้องมีเฉพาะอักษรไทยและเว้นวรรค
     if (
@@ -341,27 +360,13 @@ export const validateACForm = (formData, step) => {
         "นามสกุลผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น";
     }
 
-    // ภาษาอังกฤษ: ต้องมีเฉพาะอักษรอังกฤษและเว้นวรรค
-    if (
-      !formData.authorizedSignatoryFirstNameEn ||
-      formData.authorizedSignatoryFirstNameEn.trim() === ""
-    ) {
-      errors.authorizedSignatoryFirstNameEn =
-        "Please enter authorized signatory first name (English)";
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
-      errors.authorizedSignatoryFirstNameEn =
-        "First name (English) must contain only English letters";
+    // ภาษาอังกฤษ: ไม่บังคับกรอก แต่ตรวจสอบรูปแบบถ้ามีค่า
+    if (formData.authorizedSignatoryFirstNameEn && !/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
+      errors.authorizedSignatoryFirstNameEn = "First name (English) must contain only English letters";
     }
 
-    if (
-      !formData.authorizedSignatoryLastNameEn ||
-      formData.authorizedSignatoryLastNameEn.trim() === ""
-    ) {
-      errors.authorizedSignatoryLastNameEn =
-        "Please enter authorized signatory last name (English)";
-    } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-      errors.authorizedSignatoryLastNameEn =
-        "Last name (English) must contain only English letters";
+    if (formData.authorizedSignatoryLastNameEn && !/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
+      errors.authorizedSignatoryLastNameEn = "Last name (English) must contain only English letters";
     }
 
     // ตำแหน่ง (บังคับทั้งไทยและอังกฤษ)

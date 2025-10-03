@@ -156,7 +156,7 @@ export async function GET(request, { params }) {
 
     // ดึงชื่อผู้มีอำนาจลงนามจากตารางใหม่
     const signatureNameQuery = `
-      SELECT * FROM MemberRegist_IC_Signature_Name
+      SELECT prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_IC_Signature_Name
       WHERE main_id = ?
       ORDER BY id DESC
       LIMIT 1

@@ -404,10 +404,51 @@ const processData = (app) => {
     addressType2Website,
     // Address type 2 full data
     address2,
-    // Compute authorized signatory name (prefer Thai, fallback to English, then representative)
+    // Compute authorized signatory name WITH PRENAME (prefer Thai, fallback to English, then representative)
     // Accept multiple possible shapes from API/frontend until APIs are unified
     authorizedSignatoryName: (() => {
       const pick = (...vals) => vals.find((v) => typeof v === "string" && v.trim());
+
+      // Support nested signature name containers from DB/API joins
+      const sigContainer = (() => {
+        const cands = [
+          app.signatureName,
+          app.authorizedSignatureName,
+          app.authorized_signature_name,
+          app.signature_name,
+          app.SignatureName,
+        ];
+        return cands.find((c) => c && typeof c === "object") || null;
+      })();
+
+      // Extract prename fields - include flat fields from main app object
+      const prenameTh = pick(
+        app.authorizedSignatoryPrenameTh,
+        app.authorizedSignaturePrenameTh,
+        app.authorized_signatory_prename_th,
+        sigContainer?.prename_th,
+        sigContainer?.prenameTh,
+        app.prename_th,
+        app.prenameTh,
+      );
+      const prenameEn = pick(
+        app.authorizedSignatoryPrenameEn,
+        app.authorizedSignaturePrenameEn,
+        app.authorized_signatory_prename_en,
+        sigContainer?.prename_en,
+        sigContainer?.prenameEn,
+        app.prename_en,
+        app.prenameEn,
+      );
+      const prenameOther = pick(
+        app.authorizedSignatoryPrenameOther,
+        app.authorizedSignaturePrenameOther,
+        app.authorized_signatory_prename_other,
+        sigContainer?.prename_other,
+        sigContainer?.prenameOther,
+        app.prename_other,
+        app.prenameOther,
+      );
 
       // Possible flat fields
       const thFirst = pick(
@@ -415,28 +456,54 @@ const processData = (app) => {
         app.authorizedSignatureFirstNameTh,
         app.authorizedSignatoryNameTh?.firstName,
         app.authorizedSignatureNameTh?.firstName,
+        sigContainer?.first_name_th,
+        sigContainer?.firstNameTh,
       );
       const thLast = pick(
         app.authorizedSignatoryLastNameTh,
         app.authorizedSignatureLastNameTh,
         app.authorizedSignatoryNameTh?.lastName,
         app.authorizedSignatureNameTh?.lastName,
+        sigContainer?.last_name_th,
+        sigContainer?.lastNameTh,
       );
       const enFirst = pick(
         app.authorizedSignatoryFirstNameEn,
         app.authorizedSignatureFirstNameEn,
         app.authorizedSignatoryNameEn?.firstName,
         app.authorizedSignatureNameEn?.firstName,
+        sigContainer?.first_name_en,
+        sigContainer?.firstNameEn,
       );
       const enLast = pick(
         app.authorizedSignatoryLastNameEn,
         app.authorizedSignatureLastNameEn,
         app.authorizedSignatoryNameEn?.lastName,
         app.authorizedSignatureNameEn?.lastName,
+        sigContainer?.last_name_en,
+        sigContainer?.lastNameEn,
       );
 
-      const fullTh = [thFirst || "", thLast || ""].join(" ").trim();
-      const fullEn = [enFirst || "", enLast || ""].join(" ").trim();
+      // Resolve prename (handle "อื่นๆ"/"Other" case)
+      let displayPrenameTh = "";
+      let displayPrenameEn = "";
+      
+      if (prenameTh && (/^อื่นๆ$/i.test(prenameTh) || /^other$/i.test(prenameEn))) {
+        displayPrenameTh = prenameOther || prenameTh;
+      } else {
+        displayPrenameTh = prenameTh || "";
+      }
+
+      if (prenameEn && /^other$/i.test(prenameEn)) {
+        displayPrenameEn = prenameOther || prenameEn;
+      } else {
+        displayPrenameEn = prenameEn || "";
+      }
+
+      // Thai formatting: concatenate prename directly with first name (e.g., ดร.พลวัต)
+      const firstWithPrenameTh = (displayPrenameTh || "") + (thFirst || "");
+      const fullTh = [firstWithPrenameTh.trim(), thLast || ""].filter(Boolean).join(" ").trim();
+      const fullEn = [displayPrenameEn, enFirst || "", enLast || ""].filter(Boolean).join(" ").trim();
 
       if (fullTh) return fullTh;
       if (fullEn) return fullEn;
@@ -444,8 +511,11 @@ const processData = (app) => {
       // Fallback to first representative name if present
       if (app.representatives?.[0]) {
         const r = app.representatives[0];
+        const repPrenameTh = r.prename_th || r.prenameTh || "";
+        const repPrenameOther = r.prename_other || r.prenameOther || "";
+        const repDisplayPrename = (/^อื่นๆ$/i.test(repPrenameTh)) ? repPrenameOther : repPrenameTh;
         const repTh =
-          `${r.firstNameTh || r.first_name_th || ""} ${r.lastNameTh || r.last_name_th || ""}`.trim();
+          [repDisplayPrename, r.firstNameTh || r.first_name_th || "", r.lastNameTh || r.last_name_th || ""].filter(Boolean).join(" ").trim();
         const repEn =
           `${r.firstNameEn || r.firstNameEng || r.first_name_en || ""} ${r.lastNameEn || r.lastNameEng || r.last_name_en || ""}`.trim();
         return pick(repTh, repEn, r.name, app.representativeName, "ผู้มีอำนาจลงนาม");

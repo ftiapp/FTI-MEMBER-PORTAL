@@ -400,6 +400,25 @@ export const validateOCForm = (formData, step) => {
       errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
     }
 
+    // ตรวจสอบคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับ
+    if (!formData.authorizedSignatoryPrenameTh) {
+      errors.authorizedSignatoryPrenameTh = "กรุณาเลือกคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย)";
+    }
+
+    // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
+    if (formData.authorizedSignatoryPrenameTh === "อื่นๆ") {
+      if (!formData.authorizedSignatoryPrenameOther || formData.authorizedSignatoryPrenameOther.trim() === "") {
+        errors.authorizedSignatoryPrenameOther = "กรุณาระบุคำนำหน้า (อื่นๆ) ภาษาไทย";
+      }
+    }
+
+    // ถ้าเลือก "Other" ในภาษาอังกฤษ ต้องระบุรายละเอียด
+    if (formData.authorizedSignatoryPrenameEn === "Other") {
+      if (!formData.authorizedSignatoryPrenameOtherEn || formData.authorizedSignatoryPrenameOtherEn.trim() === "") {
+        errors.authorizedSignatoryPrenameOtherEn = "กรุณาระบุคำนำหน้า (Other) ภาษาอังกฤษ";
+      }
+    }
+
     // ตรวจสอบชื่อผู้มีอำนาจลงนาม
     if (!formData.authorizedSignatoryFirstNameTh) {
       errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
@@ -413,17 +432,13 @@ export const validateOCForm = (formData, step) => {
       errors.authorizedSignatoryLastNameTh = "นามสกุลภาษาไทยต้องเป็นภาษาไทยและช่องว่างเท่านั้น";
     }
 
-    if (!formData.authorizedSignatoryFirstNameEn) {
-      errors.authorizedSignatoryFirstNameEn = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาอังกฤษ)";
-    } else if (!/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
+    // ชื่อ-นามสกุลภาษาอังกฤษ: ไม่บังคับกรอก แต่ตรวจสอบรูปแบบถ้ามีค่า
+    if (formData.authorizedSignatoryFirstNameEn && !/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
       errors.authorizedSignatoryFirstNameEn = "ชื่อภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น";
     }
 
-    if (!formData.authorizedSignatoryLastNameEn) {
-      errors.authorizedSignatoryLastNameEn = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาอังกฤษ)";
-    } else if (!/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-      errors.authorizedSignatoryLastNameEn =
-        "นามสกุลภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น";
+    if (formData.authorizedSignatoryLastNameEn && !/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
+      errors.authorizedSignatoryLastNameEn = "นามสกุลภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น";
     }
 
     // ตรวจสอบตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับกรอก

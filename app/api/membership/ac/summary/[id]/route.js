@@ -103,7 +103,7 @@ export async function GET(request, { params }) {
 
     // Fetch authorized signatory name & position
     const signatureNameRows = await query(
-      "SELECT first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_AC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1",
+      "SELECT prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_AC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1",
       [id],
     );
     const signatureName =

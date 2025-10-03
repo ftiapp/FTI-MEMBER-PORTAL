@@ -311,7 +311,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                       {/* Prename Thai */}
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
-                          คำนำหน้า
+                          คำนำหน้า {index === 0 && <span className="text-red-500">*</span>}
                         </label>
                         <select
                           ref={(el) => (prenameThRefs.current[index] = el)}
@@ -361,7 +361,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
-                          ชื่อ <span className="text-red-500">*</span>
+                          ชื่อ {index === 0 && <span className="text-red-500">*</span>}
                           <span className="text-xs text-gray-500 ml-2">(ไม่ต้องใส่คำนำหน้า)</span>
                         </label>
                         <input
@@ -396,7 +396,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
 
                       <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-900 mb-2">
-                          นามสกุล <span className="text-red-500">*</span>
+                          นามสกุล {index === 0 && <span className="text-red-500">*</span>}
                         </label>
                         <input
                           type="text"
@@ -444,7 +444,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                       {/* Prename English (optional) */}
                       <div>
                         <label className="block text-sm font-medium text-gray-900 mb-2">
-                          Prename
+                          Prename {index === 0 && <span className="text-red-500">*</span>}
                         </label>
                         <select
                           ref={(el) => (prenameEnRefs.current[index] = el)}
