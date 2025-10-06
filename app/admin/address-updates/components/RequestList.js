@@ -78,9 +78,9 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
 
         // Format name
         const fullName =
-          request.firstname && request.lastname
+          request?.firstname && request?.lastname
             ? `${request.firstname} ${request.lastname}`
-            : request.name || oldAddress?.MEMBER_NAME || "ไม่ระบุ";
+            : request?.name || oldAddress?.MEMBER_NAME || "ไม่ระบุ";
 
         return (
           <motion.div
@@ -103,26 +103,25 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
                     <span className="ml-2 text-sm text-gray-600">({request.comp_person_code})</span>
                   )}
                 </h3>
-                <p className="text-sm text-black font-medium">{fullName}</p>
+                {request.company_name && (
+                  <p className="text-sm text-black font-medium">{request.company_name}</p>
+                )}
+                <p className="text-xs text-gray-600">{fullName}</p>
               </div>
               {getStatusBadge(request.status)}
             </div>
             <div className="mt-2">
               <p className="text-xs text-gray-600">
-                <span className="font-medium">ประเภทสมาชิก:</span>{" "}
-                {getMemberTypeName(request.member_type)}
+                <span className="font-medium">ประเภทสมาชิก:</span> {getMemberTypeName(request.member_type)}
               </p>
               <p className="text-xs text-gray-600">
-                <span className="font-medium">ประเภทที่อยู่:</span>{" "}
-                {getAddressTypeName(request.addr_code)}
+                <span className="font-medium">ประเภทที่อยู่:</span> {getAddressTypeName(request.addr_code)}
               </p>
               <p className="text-xs text-gray-600">
                 <span className="font-medium">ภาษา:</span> {getLanguageLabel(request.addr_lang)}
               </p>
             </div>
-            <div className="mt-2 text-xs text-gray-500">
-              วันที่ขอแก้ไข: {formatDate(request.request_date)}
-            </div>
+            <div className="mt-2 text-xs text-gray-500">วันที่ขอแก้ไข: {formatDate(request.request_date)}</div>
           </motion.div>
         );
       })}

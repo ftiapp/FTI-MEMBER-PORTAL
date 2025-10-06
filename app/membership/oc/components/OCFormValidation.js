@@ -114,11 +114,11 @@ export const validateOCForm = (formData, step) => {
           }
         }
 
-        // เบอร์โทรศัพท์บังคับ
+        // เบอร์โทรศัพท์บังคับ (รองรับ 9-10 หลัก)
         if (!phoneVal) {
           errors[`addresses.${type}.phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
         } else if (!/^\d{9,10}$/.test(phoneVal)) {
-          errors[`addresses.${type}.phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+          errors[`addresses.${type}.phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
         }
       });
 
@@ -213,6 +213,8 @@ export const validateOCForm = (formData, step) => {
 
         if (!mainContact.phone) {
           errors.contactPerson0Phone = "กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน";
+        } else if (!/^\d{9,10}$/.test(mainContact.phone.replace(/[-\s]/g, ""))) {
+          errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
         }
 
         // ตรวจสอบประเภทผู้ติดต่อ
@@ -298,9 +300,11 @@ export const validateOCForm = (formData, step) => {
           repError.email = "รูปแบบอีเมลไม่ถูกต้อง";
         }
 
-        // ตรวจสอบเบอร์โทรศัพท์
+        // ตรวจสอบเบอร์โทรศัพท์ (รองรับ 9-10 หลัก)
         if (!rep.phone) {
           repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
+        } else if (!/^\d{9,10}$/.test(rep.phone.replace(/[-\s]/g, ""))) {
+          repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
         }
 
         // เพิ่มข้อผิดพลาดของผู้แทนคนนี้เข้าไปใน array

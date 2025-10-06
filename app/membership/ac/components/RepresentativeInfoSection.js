@@ -618,7 +618,7 @@ export default function RepresentativeInfoSection({
                               onBlur={() =>
                                 setTouchedPhones((prev) => ({ ...prev, [rep.id]: true }))
                               }
-                              placeholder="02-123-4567"
+                              placeholder="เช่น 0812345678 หรือ 023451075 (9-10 หลัก)"
                               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                                 touchedPhones[rep.id] && getFieldError(rep, "phone", index)
                                   ? "border-red-300 bg-red-50 focus:ring-red-500"

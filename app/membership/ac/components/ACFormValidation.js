@@ -30,7 +30,7 @@ export const validateACForm = (formData, step) => {
     if (!formData.companyPhone) {
       errors.companyPhone = "กรุณากรอกเบอร์โทรศัพท์บริษัท";
     } else if (!/^\d{9,10}$/.test(String(formData.companyPhone).replace(/[-\s]/g, ""))) {
-      errors.companyPhone = "รูปแบบเบอร์โทรศัพท์บริษัทไม่ถูกต้อง";
+      errors.companyPhone = "เบอร์โทรศัพท์บริษัทต้องเป็นตัวเลข 9-10 หลัก";
     }
 
     // ตรวจสอบที่อยู่ - รองรับ multi-address
@@ -157,6 +157,8 @@ export const validateACForm = (formData, step) => {
 
         if (!mainContact.phone) {
           errors.contactPerson0Phone = "กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน";
+        } else if (!/^\d{9,10}$/.test(mainContact.phone.replace(/[-\s]/g, ""))) {
+          errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
         }
 
         // ตรวจสอบประเภทผู้ติดต่อ
@@ -247,14 +249,11 @@ export const validateACForm = (formData, step) => {
           repError.email = "รูปแบบอีเมลไม่ถูกต้อง";
         }
 
-        // ตรวจสอบเบอร์โทรศัพท์ - ใช้ regex ที่ตรงกับ component
+        // ตรวจสอบเบอร์โทรศัพท์ (รองรับ 9-10 หลัก)
         if (!rep.phone || rep.phone.trim() === "") {
           repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
-        } else {
-          // ใช้ regex ที่ตรงกับ component: /^[0-9\-\s\+\(\)]{10,15}$/
-          if (!/^[0-9\-\s\+\(\)]{10,15}$/.test(rep.phone)) {
-            repError.phone = "รูปแบบเบอร์โทรไม่ถูกต้อง"; // เปลี่ยนจาก 'กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง'
-          }
+        } else if (!/^\d{9,10}$/.test(rep.phone.replace(/[-\s]/g, ""))) {
+          repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
         }
 
         // เพิ่มข้อผิดพลาดของผู้แทนคนนี้เข้าไปใน array

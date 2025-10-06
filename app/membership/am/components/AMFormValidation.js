@@ -124,7 +124,7 @@ const validateAssociationInfo = (formData, errors) => {
       if (!mainContact.phone) {
         errors.contactPerson0Phone = "กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน";
       } else if (!/^\d{9,10}$/.test(mainContact.phone.replace(/[-\s]/g, ""))) {
-        errors.contactPerson0Phone = "รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง";
+        errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
       }
 
       // ตรวจสอบประเภทผู้ติดต่อ
@@ -194,11 +194,11 @@ const validateAssociationInfo = (formData, errors) => {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
-      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก)
+      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
       if (!address.phone) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
       } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ""))) {
-        errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+        errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
       }
     });
   } else {

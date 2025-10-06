@@ -105,11 +105,11 @@ const validateApplicantInfo = (formData) => {
     errors.lastNameEng = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  // Contact information validation
+  // Contact information validation (รองรับ 9-10 หลัก)
   if (!formData.phone) {
     errors.phone = "กรุณากรอกเบอร์โทรศัพท์";
-  } else if (!/^\d{9,10}$/.test(formData.phone.replace(/\s/g, ""))) {
-    errors.phone = "เบอร์โทรศัพท์ไม่ถูกต้อง";
+  } else if (!/^\d{9,10}$/.test(formData.phone.replace(/[-\s]/g, ""))) {
+    errors.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
   }
 
   // Phone extension validation: allow non-numeric characters (commas, parentheses, etc.)
@@ -170,11 +170,11 @@ const validateApplicantInfo = (formData) => {
         }
       }
 
-      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก)
+      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
       if (!address.phone) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
       } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ""))) {
-        errors[`address_${type}_phone`] = `รูปแบบเบอร์โทรศัพท์ไม่ถูกต้อง (${label})`;
+        errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
       }
 
       // ตรวจสอบเว็บไซต์ถ้ามี
@@ -292,11 +292,11 @@ const validateRepresentativeInfo = (formData) => {
     representativeErrors.lastNameEng = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  // Contact information validation
+  // Contact information validation (รองรับ 9-10 หลัก)
   if (!representative.phone) {
     representativeErrors.phone = "กรุณากรอกเบอร์โทรศัพท์";
-  } else if (!/^\d{9,10}$/.test(representative.phone.replace(/\s/g, ""))) {
-    representativeErrors.phone = "เบอร์โทรศัพท์ไม่ถูกต้อง";
+  } else if (!/^\d{9,10}$/.test(representative.phone.replace(/[-\s]/g, ""))) {
+    representativeErrors.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
   }
 
   // Phone extension validation: allow non-numeric characters for representative as well

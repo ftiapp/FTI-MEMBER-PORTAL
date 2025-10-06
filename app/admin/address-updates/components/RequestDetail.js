@@ -257,6 +257,10 @@ export default function RequestDetail({
             <p className="font-medium">{selectedRequest.member_code}</p>
           </div>
           <div>
+            <p className="text-sm text-gray-600">ชื่อบริษัท</p>
+            <p className="font-medium">{selectedRequest.company_name || "-"}</p>
+          </div>
+          <div>
             <p className="text-sm text-gray-600">รหัสบุคคล</p>
             <p className="font-medium">{selectedRequest.comp_person_code || "-"}</p>
           </div>

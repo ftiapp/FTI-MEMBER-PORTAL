@@ -414,7 +414,7 @@ function RegisterForm() {
                 type="tel"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="0812345678"
+                placeholder="เช่น 0812345678 (10 หลัก)"
                 autoComplete="tel"
                 inputMode="numeric"
                 pattern="[0-9]*"

@@ -638,7 +638,7 @@ const ContactPersonSection = ({
                               value={contact.phone}
                               onChange={(e) => handleContactChange(index, "phone", e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                              placeholder="02-123-4567"
+                              placeholder="เช่น 0812345678 หรือ 023451075 (9-10 หลัก)"
                               required={isMain}
                             />
                           </div>

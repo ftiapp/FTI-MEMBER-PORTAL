@@ -495,7 +495,7 @@ export default function RepresentativeInfoSection({ formData, setFormData, error
                           value={representative.phone || ""}
                           onChange={(e) => handleRepresentativeChange("phone", e.target.value)}
                           onBlur={() => setPhoneTouched(true)}
-                          placeholder="02-123-4567"
+                          placeholder="เช่น 0812345678 หรือ 023451075 (9-10 หลัก)"
                           className={`w-full px-4 py-2 border ${
                             phoneTouched && representativeErrors?.phone
                               ? "border-red-300"

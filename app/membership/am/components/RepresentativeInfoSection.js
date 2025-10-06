@@ -205,14 +205,11 @@ export default function RepresentativeInfoSection({
       if (!touchedPhones[rep.id]) {
         return null;
       }
-      const phonePattern = /^[0-9\-\s\+\(\)]+$/; // allow only valid characters
-      if (!phonePattern.test(value)) {
-        return "อนุญาตเฉพาะตัวเลข เครื่องหมาย - + () และเว้นวรรค";
-      }
-      // Validate digit length (10-15) after blur
-      const digits = (value.match(/\d/g) || []).length;
-      if (digits < 10 || digits > 15) {
-        return "กรุณากรอกหมายเลข 10-15 หลัก";
+      // Remove spaces and hyphens for validation
+      const cleanPhone = value.replace(/[-\s]/g, "");
+      // Check if it's 9-10 digits only
+      if (!/^\d{9,10}$/.test(cleanPhone)) {
+        return "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
       }
     }
 
@@ -631,9 +628,9 @@ export default function RepresentativeInfoSection({
                               onBlur={() =>
                                 setTouchedPhones((prev) => ({ ...prev, [rep.id]: true }))
                               }
-                              placeholder="02-123-4567"
+                              placeholder="เช่น 0812345678 หรือ 023451075 (9-10 หลัก)"
                               className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                                getFieldError(rep, "phone", index)
+                                touchedPhones[rep.id] && getFieldError(rep, "phone", index)
                                   ? "border-red-300 bg-red-50 focus:ring-red-500"
                                   : "border-gray-300 bg-white hover:border-gray-400"
                               }`}
@@ -651,7 +648,7 @@ export default function RepresentativeInfoSection({
                             />
                           </div>
                         </div>
-                        {getFieldError(rep, "phone", index) && (
+                        {touchedPhones[rep.id] && getFieldError(rep, "phone", index) && (
                           <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
                             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                               <path

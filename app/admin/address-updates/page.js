@@ -59,18 +59,30 @@ const AddressUpdatesPage = () => {
     };
 
     checkAdminSession();
-  }, [router, status, fetchRequests]);
+  }, [status]);
 
   const handleStatusChange = (newStatus) => {
+    // Reset selection and search when switching status
+    setSelectedRequest(null);
+    setAdminNotes("");
+    setRejectReason("");
+    setSearchTerm("");
     router.push(`/admin/address-updates?status=${newStatus}`);
+    // After route updates, trigger a fresh fetch
+    fetchRequests(newStatus, 1, "", true);
   };
 
   const handlePageChange = (newPage) => {
-    fetchRequests(status, newPage, searchTerm);
+    // Clear selection when changing pages to avoid stale details
+    setSelectedRequest(null);
+    // Force fresh fetch to avoid cache oddities after searches
+    fetchRequests(status, newPage, searchTerm, true);
   };
 
   const handleSearch = (e) => {
     e.preventDefault();
+    // Reset selection and go to page 1
+    setSelectedRequest(null);
     fetchRequests(status, 1, searchTerm, true); // Skip cache when searching
   };
 
