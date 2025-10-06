@@ -1144,6 +1144,17 @@ export default function ICMembershipForm({
                       เพื่อวัตถุประสงค์ในการติดต่อสื่อสาร การให้บริการ
                       และการดำเนินงานที่เกี่ยวข้องกับการเป็นสมาชิก
                     </p>
+                    <p className="text-sm text-gray-700 mt-2">
+                      อ่านรายละเอียดฉบับเต็มได้ที่{" "}
+                      <a
+                        href="/Privacy-Notice-ผู้สมัครสมาชิกส.อ.ท_.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-700 underline hover:text-blue-800"
+                      >
+                        นโยบายความเป็นส่วนตัว (Privacy Notice) สำหรับผู้สมัครสมาชิก
+                      </a>
+                    </p>
                     <p className="text-xs text-gray-600 mt-2 italic">
                       ทั้งนี้ ข้าพเจ้าสามารถเพิกถอนความยินยอมได้ตามช่องทางที่องค์กรกำหนด
                     </p>

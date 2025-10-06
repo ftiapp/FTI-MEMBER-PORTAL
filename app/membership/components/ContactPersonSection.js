@@ -241,9 +241,14 @@ const ContactPersonSection = ({
             className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <Plus className="h-4 w-4 mr-2" />
-            เพิ่มผู้ติดต่อ
+            เพิ่มผู้ติดต่อ (เพิ่มได้อีก {4 - contactPersons.length} ท่าน)
           </button>
         )}
+      </div>
+      {/* Header helper text */}
+      <div className="px-6 pt-3 pb-0 text-sm text-gray-600">
+        เพิ่มผู้ติดต่อในด้านต่างๆ เพื่อประโยชน์ในการรับข้อมูลข่าวสาร
+        <span className="ml-1 text-gray-500">(เพิ่มได้อีก {4 - contactPersons.length} ท่าน)</span>
       </div>
 
       {/* Contact List */}
@@ -605,7 +610,7 @@ const ContactPersonSection = ({
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          อีเมล
+                          อีเมล {isMain && <span className="text-red-500">*</span>}
                         </label>
                         <input
                           type="email"
@@ -627,7 +632,7 @@ const ContactPersonSection = ({
                       {/* Phone */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          หมายเลขโทรศัพท์
+                          โทรศัพท์ / โทรศัพท์มือถือ {isMain && <span className="text-red-500">*</span>}
                         </label>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           <div className="lg:col-span-2">
@@ -678,7 +683,7 @@ const ContactPersonSection = ({
             className="w-full flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <Plus className="h-5 w-5 mr-2" />
-            เพิ่มผู้ติดต่อ (เพิ่มได้อีก {4 - contactPersons.length} ท่าน)
+            เพิ่มผู้ติดต่อ ในด้านต่างๆเพื่อประโยชน์ในการรับข้อมูลข่าวสาร (เพิ่มได้อีก {4 - contactPersons.length} ท่าน)
           </button>
         </div>
       )}

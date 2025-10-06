@@ -679,7 +679,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
             {/* Company Phone */}
             <div className="lg:col-span-2 space-y-2">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
-                โทรศัพท์
+                โทรศัพท์ / โทรศัพท์มือถือ
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -796,7 +796,11 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                 disabled={isLoading}
                 className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hover:border-gray-400 bg-white placeholder-gray-400"
               />
-              {errors?.website && (
+              {/* Helper note for website format */}
+              <p className="text-xs text-red-600">
+               กรุณากรอกเป็นลิงก์เต็มรูปแบบ โดยขึ้นต้นด้วย https:// เช่น https://www.google.com
+              </p>
+              {errors?.[`addresses.${activeTab}.website`] && (
                 <p className="text-sm text-red-600 flex items-center gap-2">
                   <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                     <path
@@ -805,7 +809,7 @@ export default function AddressSection({ formData, setFormData, errors, isLoadin
                       clipRule="evenodd"
                     />
                   </svg>
-                  {errors.website}
+                  {errors[`addresses.${activeTab}.website`]}
                 </p>
               )}
             </div>

@@ -11,6 +11,7 @@ export default function SearchableDropdown({
   fetchOptions,
   isRequired,
   isReadOnly,
+  disabled,
   error,
   className,
   autoFillNote,
@@ -84,8 +85,11 @@ export default function SearchableDropdown({
     };
   }, []);
 
+  const isDisabled = !!disabled || !!isReadOnly;
+
   // Handle input change
   const handleInputChange = (e) => {
+    if (isDisabled) return;
     const newValue = e.target.value;
     setSearchTerm(newValue);
     onChange(newValue);
@@ -98,6 +102,7 @@ export default function SearchableDropdown({
 
   // Handle option selection
   const handleOptionSelect = (option) => {
+    if (isDisabled) return;
     if (!option || option.text === undefined || option.text === null) {
       console.warn("Invalid option selected:", option);
       return;
@@ -123,10 +128,14 @@ export default function SearchableDropdown({
           type="text"
           value={value || ""}
           onChange={handleInputChange}
-          onFocus={() => searchTerm.length >= 2 && setIsOpen(true)}
+          onFocus={() => {
+            if (isDisabled) return;
+            if (searchTerm.length >= 2) setIsOpen(true);
+          }}
           placeholder={placeholder || ""}
-          className={`w-full px-3 py-2 border rounded-md ${error ? "border-red-500" : "border-gray-300"} ${isReadOnly ? "bg-gray-100" : ""}`}
-          readOnly={isReadOnly}
+          className={`w-full px-3 py-2 border rounded-md ${error ? "border-red-500" : "border-gray-300"} ${isReadOnly || disabled ? "bg-gray-100 cursor-not-allowed opacity-90" : ""}`}
+          readOnly={!!isReadOnly}
+          disabled={!!disabled}
           required={isRequired}
         />
 

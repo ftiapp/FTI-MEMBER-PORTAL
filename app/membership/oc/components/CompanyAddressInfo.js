@@ -658,15 +658,13 @@ export default function CompanyAddressInfo({ formData, setFormData, errors, isAu
             <div className="space-y-2">
               <SearchableDropdown
                 label="อำเภอ/เขต"
-                placeholder={
-                  currentAddress.province ? "พิมพ์เพื่อค้นหาอำเภอ/เขต" : "พิมพ์เพื่อค้นหาอำเภอ/เขต"
-                }
+                placeholder={"ระบบจะเติมอัตโนมัติจาก ตำบล/รหัสไปรษณีย์"}
                 value={currentAddress.district || ""}
                 onChange={handleDistrictChange}
                 onSelect={handleDistrictSelect}
                 fetchOptions={fetchDistricts}
                 isRequired={true}
-                isReadOnly={false}
+                isReadOnly={true}
                 error={errors?.[`addresses.${activeTab}.district`]}
                 autoFillNote={
                   isAutofill && currentAddress.district ? "* ข้อมูลถูกดึงอัตโนมัติ" : null
@@ -678,13 +676,13 @@ export default function CompanyAddressInfo({ formData, setFormData, errors, isAu
             <div className="space-y-2">
               <SearchableDropdown
                 label="จังหวัด"
-                placeholder="พิมพ์เพื่อค้นหาจังหวัด"
+                placeholder="ระบบจะเติมอัตโนมัติจาก ตำบล/รหัสไปรษณีย์"
                 value={currentAddress.province || ""}
                 onChange={handleProvinceChange}
                 onSelect={handleProvinceSelect}
                 fetchOptions={fetchProvinces}
                 isRequired={true}
-                isReadOnly={false}
+                isReadOnly={true}
                 error={errors?.[`addresses.${activeTab}.province`]}
                 autoFillNote={
                   isAutofill && currentAddress.province ? "* ข้อมูลถูกดึงอัตโนมัติ" : null
@@ -711,7 +709,7 @@ export default function CompanyAddressInfo({ formData, setFormData, errors, isAu
             {/* Company Phone */}
             <div className="lg:col-span-2 space-y-2">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
-                โทรศัพท์
+                โทรศัพท์ / โทรศัพท์มือถือ
                 <span className="text-red-500 ml-1">*</span>
               </label>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -833,10 +831,11 @@ export default function CompanyAddressInfo({ formData, setFormData, errors, isAu
                   border-gray-300 hover:border-gray-400
                 "
               />
+              <p className="text-xs text-red-600 mt-2">กรุณาระบุ URL ที่ขึ้นต้นด้วย https:// เช่น https://example.com</p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  );
+);
 }

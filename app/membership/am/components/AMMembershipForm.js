@@ -912,6 +912,17 @@ export default function AMMembershipForm(props = {}) {
                       </span>{" "}
                       เก็บ รวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ในการติดต่อสื่อสาร การให้บริการ และการดำเนินงานที่เกี่ยวข้องกับการเป็นสมาชิก
                     </p>
+                    <p className="text-sm text-gray-700 mt-2">
+                      อ่านรายละเอียดฉบับเต็มได้ที่{" "}
+                      <a
+                        href="/Privacy-Notice-ผู้สมัครสมาชิกส.อ.ท_.pdf"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-700 underline hover:text-blue-800"
+                      >
+                        นโยบายความเป็นส่วนตัว (Privacy Notice) สำหรับผู้สมัครสมาชิก
+                      </a>
+                    </p>
                     <p className="text-xs text-gray-600 mt-2 italic">
                       ทั้งนี้ ข้าพเจ้าสามารถเพิกถอนความยินยอมได้ตามช่องทางที่องค์กรกำหนด
                     </p>
@@ -922,7 +933,6 @@ export default function AMMembershipForm(props = {}) {
                   <div className="mt-3 flex items-center gap-2 text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
                     <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path
-                        fillRule="evenodd"
                         d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
                         clipRule="evenodd"
                       />
