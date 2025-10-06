@@ -7,6 +7,7 @@ import {
   rollbackTransaction,
 } from "@/app/lib/db";
 import { uploadToCloudinary } from "@/app/lib/cloudinary";
+import { sendMembershipConfirmationEmail } from "@/app/lib/postmark";
 
 export async function POST(request) {
   let trx;
@@ -651,6 +652,21 @@ export async function POST(request) {
       }
     } catch (draftError) {
       console.error("Error deleting draft:", draftError.message);
+    }
+
+    // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
+    try {
+      const userEmail = data.email;
+      const userName = `${data.firstNameTh || ""} ${data.lastNameTh || ""}`.trim() || "ผู้สมัคร";
+      const applicantName = userName; // IC เป็นบุคคลธรรมดา ใช้ชื่อผู้สมัครแทนชื่อบริษัท
+
+      if (userEmail) {
+        await sendMembershipConfirmationEmail(userEmail, userName, "IC", applicantName);
+        console.log("✅ [IC] Membership confirmation email sent to:", userEmail);
+      }
+    } catch (emailError) {
+      console.error("❌ [IC] Error sending membership confirmation email:", emailError);
+      // ไม่ต้องหยุดการทำงานหากส่งอีเมลไม่สำเร็จ
     }
 
     return NextResponse.json({

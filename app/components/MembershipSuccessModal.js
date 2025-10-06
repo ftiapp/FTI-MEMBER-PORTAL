@@ -80,7 +80,7 @@ export default function MembershipSuccessModal({
                 </svg>
               </div>
             </div>
-            <h2 className="mt-4 text-center text-2xl font-bold text-white">สมัครสมาชิกสำเร็จ!</h2>
+            <h2 className="mt-4 text-center text-2xl font-bold text-white">สมัครสมาชิก ส.อ.ท. สำเร็จ</h2>
           </div>
 
           {/* Content */}
@@ -151,13 +151,18 @@ export default function MembershipSuccessModal({
                     />
                   </svg>
                   <div className="text-left">
-                    <p className="text-sm text-blue-800 font-medium mb-2">
-                      ท่านสามารถตรวจสอบข้อมูลใบสมัครอีกครั้งได้ที่:
+                    <p className="text-sm text-blue-800 font-semibold mb-2">
+                      ท่านจะได้รับการพิจารณาอนุมัติภายใน 3-5 วันทำการ
+                    </p>
+                    <p className="text-sm text-blue-700 mb-2">
+                      ท่านสามารถติดตามความคืบหน้าได้ที่:
                     </p>
                     <p className="text-sm text-blue-700">
-                      <span className="font-medium">แดชบอร์ด</span> →{" "}
-                      <span className="font-medium">เอกสารสมัครสมาชิก</span> →{" "}
-                      <span className="font-medium">เอกสารสมัครสมาชิก</span>
+                      <span className="font-medium">เมนู "สถานะดำเนินการ"</span> ใน{" "}
+                      <span className="font-medium">เมนู "จัดการสมาชิก"</span>
+                    </p>
+                    <p className="text-sm text-gray-700 mt-3">
+                      ทั้งนี้ ระบบได้จัดส่งอีเมลแจ้งเตือนการสมัครสมาชิกไปยังอีเมลที่ท่านได้ลงทะเบียนไว้แล้ว และผลการพิจารณาจะมีการแจ้งให้ทราบทางอีเมลด้วยเช่นกัน ท่านจึงสามารถติดตามความคืบหน้าผ่านอีเมลได้อีกหนึ่งช่องทาง
                     </p>
                   </div>
                 </div>

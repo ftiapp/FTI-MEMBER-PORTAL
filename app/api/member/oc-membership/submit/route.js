@@ -8,6 +8,7 @@ import {
   executeQueryWithoutTransaction,
 } from "@/app/lib/db";
 import { uploadToCloudinary } from "@/app/lib/cloudinary";
+import { sendMembershipConfirmationEmail } from "@/app/lib/postmark";
 
 // Helpers for numeric sanitization/validation
 function sanitizeDecimal(
@@ -779,6 +780,23 @@ export async function POST(request) {
       }
     } catch (draftError) {
       console.error("❌ [OC API] Error deleting draft:", draftError.message);
+    }
+
+    // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
+    try {
+      const userEmail = data.contactPersons?.[0]?.email || companyEmail;
+      const userName = data.contactPersons?.[0]
+        ? `${data.contactPersons[0].firstNameTh || ""} ${data.contactPersons[0].lastNameTh || ""}`.trim()
+        : "ผู้สมัคร";
+      const companyName = data.companyName || "บริษัท";
+
+      if (userEmail) {
+        await sendMembershipConfirmationEmail(userEmail, userName, "OC", companyName);
+        console.log("✅ Membership confirmation email sent to:", userEmail);
+      }
+    } catch (emailError) {
+      console.error("❌ Error sending membership confirmation email:", emailError);
+      // ไม่ต้องหยุดการทำงานหากส่งอีเมลไม่สำเร็จ
     }
 
     console.log("🎉 OC Membership submission completed successfully");

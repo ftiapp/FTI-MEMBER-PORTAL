@@ -212,4 +212,88 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
   }
 }
 
+/**
+ * Send membership application confirmation email
+ * @param {string} email - Applicant's email address
+ * @param {string} name - Applicant's name
+ * @param {string} membershipType - Type of membership (OC, AC, IC, AM)
+ * @param {string} companyName - Company/Association name
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendMembershipConfirmationEmail(email, name, membershipType, companyName) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const statusUrl = `${baseUrl}/member/dashboard`;
+
+  // Map membership type to Thai name
+  const membershipTypeMap = {
+    OC: "สามัญ (นิติบุคคล)",
+    AC: "สมทบ (นิติบุคคล)",
+    IC: "สามัญ (บุคคลธรรมดา)",
+    AM: "สมาคม",
+  };
+
+  const membershipTypeThai = membershipTypeMap[membershipType] || membershipType;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: `แจ้งการสมัครสมาชิก${membershipTypeThai} - FTI Portal`,
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "แจ้งการสมัครสมาชิกสำเร็จ",
+        bodyContent: `
+          <p>เรียน ${name},</p>
+          <p>ขอบคุณที่ท่านได้ทำการสมัครสมาชิกกับสภาอุตสาหกรรมแห่งประเทศไทย</p>
+          
+          <div style="background-color: #f0f9ff; border-left: 4px solid #1a56db; padding: 16px; margin: 24px 0; border-radius: 4px;">
+            <p style="margin: 0 0 8px 0;"><strong>ประเภทสมาชิก:</strong> ${membershipTypeThai}</p>
+            <p style="margin: 0;"><strong>ชื่อบริษัท/สมาคม:</strong> ${companyName}</p>
+          </div>
+
+          <p><strong>ท่านจะได้รับการพิจารณาอนุมัติภายใน 3-5 วันทำการ</strong></p>
+          
+          <p>ท่านสามารถติดตามความคืบหน้าได้ที่:</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${statusUrl}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">ติดตามสถานะดำเนินการ</a>
+          </div>
+          
+          <p style="font-size: 14px; color: #6b7280;">หรือเข้าไปที่เมนู <strong>"สถานะดำเนินการ"</strong> ในเมนู <strong>"จัดการสมาชิก"</strong></p>
+          
+          <p style="margin-top: 32px;">หากมีข้อสงสัยประการใด กรุณาติดต่อ:</p>
+          <p style="margin: 8px 0;">
+            📞 CALL CENTER: <strong>1453 กด 2</strong><br/>
+            📧 E-MAIL: <strong>member@fti.or.th</strong>
+          </p>
+        `,
+      }),
+      TextBody: `
+        แจ้งการสมัครสมาชิกสำเร็จ - FTI Portal
+        
+        เรียน ${name},
+        
+        ขอบคุณที่ท่านได้ทำการสมัครสมาชิกกับสภาอุตสาหกรรมแห่งประเทศไทย
+        
+        ประเภทสมาชิก: ${membershipTypeThai}
+        ชื่อบริษัท/สมาคม: ${companyName}
+        
+        ท่านจะได้รับการพิจารณาอนุมัติภายใน 3-5 วันทำการ
+        
+        ท่านสามารถติดตามความคืบหน้าได้ที่: ${statusUrl}
+        หรือเข้าไปที่เมนู "สถานะดำเนินการ" ในเมนู "จัดการสมาชิก"
+        
+        หากมีข้อสงสัยประการใด กรุณาติดต่อ:
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 FTI Portal. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending membership confirmation email:", error);
+    throw error;
+  }
+}
+
 // Export other email functions as needed, following the same pattern

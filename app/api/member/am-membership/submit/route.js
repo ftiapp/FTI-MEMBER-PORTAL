@@ -8,6 +8,7 @@ import {
   rollbackTransaction,
 } from "@/app/lib/db";
 import { uploadToCloudinary } from "@/app/lib/cloudinary";
+import { sendMembershipConfirmationEmail } from "@/app/lib/postmark";
 
 // Helpers for numeric sanitization/validation
 function sanitizeDecimal(
@@ -772,6 +773,23 @@ export async function POST(request) {
     // Commit transaction
     await commitTransaction(trx);
     console.log("🎉 [AM Membership Submit] Transaction committed successfully");
+
+    // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
+    try {
+      const userEmail = data.contactPersons?.[0]?.email;
+      const userName = data.contactPersons?.[0]
+        ? `${data.contactPersons[0].firstNameTh || ""} ${data.contactPersons[0].lastNameTh || ""}`.trim()
+        : "ผู้สมัคร";
+      const associationName = data.associationName || "สมาคม";
+
+      if (userEmail) {
+        await sendMembershipConfirmationEmail(userEmail, userName, "AM", associationName);
+        console.log("✅ [AM] Membership confirmation email sent to:", userEmail);
+      }
+    } catch (emailError) {
+      console.error("❌ [AM] Error sending membership confirmation email:", emailError);
+      // ไม่ต้องหยุดการทำงานหากส่งอีเมลไม่สำเร็จ
+    }
 
     return NextResponse.json(
       {
