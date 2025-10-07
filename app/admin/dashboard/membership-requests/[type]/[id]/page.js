@@ -15,11 +15,13 @@ import { getMemberTypeInfo } from "../../ีutils/dataTransformers";
 import { formatThaiDate } from "../../ีutils/formatters";
 import { STATUS } from "../../ีutils/constants";
 import ApplicationComments from "../../../../components/ApplicationComments";
-import { generateMembershipPDF } from "./components/PDFGenerator";
+ import { generateMembershipPDF } from "./components/PDFGenerator";
+ import SwitchTypeModal from "./components/SwitchTypeModal";
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
   const { type, id } = use(params);
+  const typeUpper = (type || "").toString().toUpperCase();
 
   const { application, isLoading, error, industrialGroups, provincialChapters, updateApplication } =
     useApplicationData(type, id);
@@ -31,6 +33,7 @@ export default function MembershipRequestDetail({ params }) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successTitle, setSuccessTitle] = useState("สำเร็จ");
   const [successMessage, setSuccessMessage] = useState("ดำเนินการสำเร็จ");
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
   const [recipientEmail, setRecipientEmail] = useState(null);
   const [recipientName, setRecipientName] = useState(null);
   const [recipientLoading, setRecipientLoading] = useState(false);
@@ -40,6 +43,13 @@ export default function MembershipRequestDetail({ params }) {
   const handleGoToList = () => {
     setShowSuccessModal(false);
     router.push("/admin/dashboard/membership-requests");
+  };
+
+  const handleSwitchSuccess = (newId, newType) => {
+    setShowSwitchModal(false);
+    // Navigate back to list with switch flag for toast feedback
+    const params = new URLSearchParams({ switched: "1", from: typeUpper, to: newType, id: String(newId) });
+    router.push(`/admin/dashboard/membership-requests?${params.toString()}`);
   };
 
   // Initialize admin note when application loads
@@ -396,26 +406,45 @@ export default function MembershipRequestDetail({ params }) {
                 </div>
               )}
             </div>
-            <button
-              onClick={handleDownload}
-              className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors print:hidden flex-shrink-0"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M7 10l5 5m0 0l5-5m-5 5V4"
-                />
-              </svg>
-              ดาวน์โหลด PDF
-            </button>
+            <div className="flex items-center gap-3 print:hidden">
+              {(typeUpper === "OC" || typeUpper === "AC") && (
+                <button
+                  onClick={() => setShowSwitchModal(true)}
+                  className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex-shrink-0"
+                  title="เปลี่ยนประเภทสมาชิก"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                    />
+                  </svg>
+                  เปลี่ยนประเภท
+                </button>
+              )}
+              <button
+                onClick={handleDownload}
+                className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex-shrink-0"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M7 10l5 5m0 0l5-5m-5 5V4"
+                  />
+                </svg>
+                ดาวน์โหลด PDF
+              </button>
+            </div>
           </div>
         </div>
 
@@ -466,7 +495,31 @@ export default function MembershipRequestDetail({ params }) {
           confirmText="กลับไปหน้ารายการ"
           cancelText="ปิด"
         />
+
+        {/* Switch Type Modal */}
+        {(typeUpper === "OC" || typeUpper === "AC") && (
+          <SwitchTypeModal
+            isOpen={showSwitchModal}
+            onClose={() => setShowSwitchModal(false)}
+            application={application}
+            currentType={typeUpper}
+            onSuccess={handleSwitchSuccess}
+          />
+        )}
       </div>
     </AdminLayout>
+  );
+}
+
+// Modal mount at page bottom to avoid z-index/context issues
+export function SwitchTypeModalMount({ isOpen, onClose, application, currentType, onSuccess }) {
+  return (
+    <SwitchTypeModal
+      isOpen={isOpen}
+      onClose={onClose}
+      application={application}
+      currentType={currentType}
+      onSuccess={onSuccess}
+    />
   );
 }

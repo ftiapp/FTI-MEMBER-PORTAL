@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
+import { toast } from "react-hot-toast";
 
-const DocumentsSection = ({ application, onViewDocument }) => {
+const DocumentsSection = ({ application, onViewDocument, type }) => {
   if (!application?.documents || application.documents.length === 0) return null;
 
   const [previewFile, setPreviewFile] = useState(null);
@@ -90,6 +91,75 @@ const DocumentsSection = ({ application, onViewDocument }) => {
     setIsDragging(false);
   };
 
+  // Upload handling
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+  const [replaceTargetId, setReplaceTargetId] = useState(null);
+
+  const handleSelectFile = (docId = null) => {
+    setReplaceTargetId(docId);
+    fileInputRef.current?.click();
+  };
+
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!type || !application?.id) {
+      toast.error("ไม่พบข้อมูลใบสมัครหรือตัวประเภท");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("membershipType", String(type).toUpperCase());
+      formData.append("applicationId", String(application.id));
+      formData.append("documentType", "other");
+      if (replaceTargetId) formData.append("replaceDocumentId", String(replaceTargetId));
+
+      const res = await fetch("/api/admin/membership-requests/documents/upload", {
+        method: "POST",
+        body: formData,
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "อัปโหลดล้มเหลว");
+      toast.success(data.message || "อัปโหลดสำเร็จ");
+      // refresh page to reload documents
+      window.location.reload();
+    } catch (e) {
+      console.error("Upload failed", e);
+      toast.error(e.message || "ไม่สามารถอัปโหลดไฟล์ได้");
+    } finally {
+      setIsUploading(false);
+      setReplaceTargetId(null);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDelete = async (docId) => {
+    if (!confirm("ยืนยันลบเอกสารนี้?")) return;
+    try {
+      const params = new URLSearchParams({
+        documentId: String(docId),
+        membershipType: String(type).toUpperCase(),
+        applicationId: String(application.id),
+      });
+      const res = await fetch(`/api/admin/membership-requests/documents/delete?${params}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || "ลบล้มเหลว");
+      toast.success("ลบเอกสารสำเร็จ");
+      window.location.reload();
+    } catch (e) {
+      console.error("Delete failed", e);
+      toast.error(e.message || "ไม่สามารถลบเอกสารได้");
+    }
+  };
+
   // Reset zoom and position
   const resetZoom = () => {
     setZoomLevel(1);
@@ -143,15 +213,32 @@ const DocumentsSection = ({ application, onViewDocument }) => {
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
-      <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
+      <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4 flex items-center justify-between">
         เอกสารแนบ
+        {/* Upload controls */}
+        <div className="flex items-center gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleUpload}
+            className="hidden"
+            accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+          />
+          <button
+            onClick={() => handleSelectFile(null)}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            disabled={isUploading}
+          >
+            {isUploading ? "กำลังอัปโหลด..." : "อัปโหลดเอกสาร"}
+          </button>
+        </div>
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {application.documents.map((doc, index) => (
           <div
             key={index}
-            className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex items-center gap-4"
+            className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col gap-3"
           >
             <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,17 +251,17 @@ const DocumentsSection = ({ application, onViewDocument }) => {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 mb-1">{doc.name}</p>
+              <p className="font-semibold text-gray-900 mb-1 truncate" title={doc.name}>{doc.name}</p>
               <p className="text-sm text-gray-600 truncate" title={doc.filePath || "-"}>
                 {doc.filePath || "-"}
               </p>
             </div>
             {doc.filePath && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap gap-2 w-full justify-start border-t border-blue-200 pt-3">
                 {canPreview(doc.filePath || doc.name) && (
                   <button
                     onClick={() => handlePreview(doc.filePath, doc.name)}
-                    className="flex items-center gap-2 px-3 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                    className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-indigo-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
                     title={
                       isImage(doc.filePath || doc.name) ? "ดูตัวอย่างรูปภาพ" : "ดูตัวอย่าง PDF"
                     }
@@ -199,7 +286,7 @@ const DocumentsSection = ({ application, onViewDocument }) => {
                 <a
                   href={doc.filePath}
                   download
-                  className="flex items-center gap-2 px-3 py-2 bg-white border border-blue-300 text-blue-700 text-sm font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+                  className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-white border border-blue-300 text-blue-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
                   title="ดาวน์โหลดไฟล์"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -218,6 +305,29 @@ const DocumentsSection = ({ application, onViewDocument }) => {
                   </svg>
                   ดาวน์โหลด
                 </a>
+                {/* Replace */}
+                <button
+                  onClick={() => handleSelectFile(doc.id)}
+                  className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-amber-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
+                  title="แทนที่ไฟล์นี้"
+                  disabled={isUploading}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  แทนที่
+                </button>
+                {/* Delete */}
+                <button
+                  onClick={() => handleDelete(doc.id)}
+                  className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                  title="ลบไฟล์นี้"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  ลบ
+                </button>
               </div>
             )}
           </div>

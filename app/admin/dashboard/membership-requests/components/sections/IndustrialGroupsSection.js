@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import MultiSelectDropdown from "../common/MultiSelectDropdown";
 
 const IndustrialGroupsSection = ({
   application,
@@ -11,12 +12,25 @@ const IndustrialGroupsSection = ({
     industrialGroups: application?.industrialGroups || [],
     provincialChapters: application?.provincialChapters || [],
   });
+  const [selectedIndustrialGroups, setSelectedIndustrialGroups] = useState([]);
+  const [selectedProvincialChapters, setSelectedProvincialChapters] = useState([]);
+  const [showIndustrialDropdown, setShowIndustrialDropdown] = useState(false);
+  const [showProvincialDropdown, setShowProvincialDropdown] = useState(false);
 
   const hasIndustrialGroups = application?.industrialGroups?.length > 0;
   const hasProvincialChapters = application?.provincialChapters?.length > 0;
   const hasChapters = hasProvincialChapters;
 
-  if (!hasIndustrialGroups && !hasProvincialChapters) return null;
+  // Allow editing even if empty (to add new groups/chapters)
+  // if (!hasIndustrialGroups && !hasProvincialChapters) return null;
+
+  // Initialize selected items when editing starts
+  useEffect(() => {
+    if (isEditing) {
+      setSelectedIndustrialGroups(editData.industrialGroups || []);
+      setSelectedProvincialChapters(editData.provincialChapters || []);
+    }
+  }, [isEditing, editData]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -28,7 +42,10 @@ const IndustrialGroupsSection = ({
 
   const handleSave = async () => {
     try {
-      await onUpdate("industrialGroups", editData);
+      await onUpdate("industrialGroups", {
+        industrialGroups: selectedIndustrialGroups,
+        provincialChapters: selectedProvincialChapters,
+      });
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating industrial groups:", error);
@@ -41,17 +58,33 @@ const IndustrialGroupsSection = ({
       industrialGroups: application?.industrialGroups || [],
       provincialChapters: application?.provincialChapters || [],
     });
+    setSelectedIndustrialGroups([]);
+    setSelectedProvincialChapters([]);
   };
 
-  const getGroupName = (groupId) => {
-    const group = industrialGroups?.find((g) => g.MEMBER_GROUP_CODE === groupId);
-    return group ? group.MEMBER_GROUP_NAME_TH : `รหัส: ${groupId}`;
-  };
+  // Transform API data to dropdown format (supports array or object maps)
+  const igRaw = Array.isArray(industrialGroups)
+    ? industrialGroups
+    : industrialGroups && typeof industrialGroups === "object"
+    ? Object.values(industrialGroups)
+    : [];
+  const pcRaw = Array.isArray(provincialChapters)
+    ? provincialChapters
+    : provincialChapters && typeof provincialChapters === "object"
+    ? Object.values(provincialChapters)
+    : [];
 
-  const getChapterName = (chapterId) => {
-    const chapter = provincialChapters?.find((c) => c.MEMBER_GROUP_CODE === chapterId);
-    return chapter ? chapter.MEMBER_GROUP_NAME_TH : `รหัส: ${chapterId}`;
-  };
+  const industrialGroupOptions = igRaw.map((g) => ({
+    id: g.MEMBER_GROUP_CODE || g.id || g.code,
+    name: g.MEMBER_GROUP_NAME_TH || g.name_th || g.name || g.MEMBER_GROUP_NAME || "",
+    code: g.MEMBER_GROUP_CODE || g.code || g.id,
+  })).filter((o) => o.id);
+
+  const provincialChapterOptions = pcRaw.map((c) => ({
+    id: c.MEMBER_GROUP_CODE || c.id || c.code,
+    name: c.MEMBER_GROUP_NAME_TH || c.name_th || c.name || c.MEMBER_GROUP_NAME || "",
+    code: c.MEMBER_GROUP_CODE || c.code || c.id,
+  })).filter((o) => o.id);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
@@ -107,36 +140,64 @@ const IndustrialGroupsSection = ({
         )}
       </div>
 
-      {hasIndustrialGroups && (
-        <div className="mb-6">
-          <h4 className="text-xl font-semibold mb-4 text-gray-800">กลุ่มอุตสาหกรรม</h4>
-          <div className="space-y-3">
-            {application.industrialGroups.map((group, index) => (
-              <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-lg font-medium text-gray-900">
-                  {group.name || `รหัส: ${group.id}`}
-                </p>
-                {group.name && <p className="text-sm text-blue-600">รหัส: {group.id}</p>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {isEditing ? (
+        <div className="space-y-6">
+          {/* Industrial Groups Multi-select */}
+          <MultiSelectDropdown
+            options={industrialGroupOptions}
+            selectedItems={selectedIndustrialGroups}
+            onChange={setSelectedIndustrialGroups}
+            placeholder="เลือกกลุ่มอุตสาหกรรม"
+            label="กลุ่มอุตสาหกรรม"
+          />
 
-      {hasChapters && (
-        <div>
-          <h4 className="text-xl font-semibold mb-4 text-gray-800">สภาอุตสาหกรรมจังหวัด</h4>
-          <div className="space-y-3">
-            {application.provincialChapters.map((chapter, index) => (
-              <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-lg font-medium text-gray-900">
-                  {chapter.name || `รหัส: ${chapter.id}`}
-                </p>
-                {chapter.name && <p className="text-sm text-blue-600">รหัส: {chapter.id}</p>}
-              </div>
-            ))}
-          </div>
+          {/* Provincial Chapters Multi-select */}
+          <MultiSelectDropdown
+            options={provincialChapterOptions}
+            selectedItems={selectedProvincialChapters}
+            onChange={setSelectedProvincialChapters}
+            placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
+            label="สภาอุตสาหกรรมจังหวัด"
+          />
         </div>
+      ) : (
+        <>
+          {hasIndustrialGroups && (
+            <div className="mb-6">
+              <h4 className="text-xl font-semibold mb-4 text-gray-800">กลุ่มอุตสาหกรรม</h4>
+              <div className="space-y-3">
+                {application.industrialGroups.map((group, index) => (
+                  <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-lg font-medium text-gray-900">
+                      {group.name || `รหัส: ${group.id}`}
+                    </p>
+                    {group.name && <p className="text-sm text-blue-600">รหัส: {group.id}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {hasChapters && (
+            <div>
+              <h4 className="text-xl font-semibold mb-4 text-gray-800">สภาอุตสาหกรรมจังหวัด</h4>
+              <div className="space-y-3">
+                {application.provincialChapters.map((chapter, index) => (
+                  <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <p className="text-lg font-medium text-gray-900">
+                      {chapter.name || `รหัส: ${chapter.id}`}
+                    </p>
+                    {chapter.name && <p className="text-sm text-blue-600">รหัส: {chapter.id}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!hasIndustrialGroups && !hasChapters && (
+            <p className="text-gray-500 italic">ยังไม่ได้เลือกกลุ่มอุตสาหกรรมหรือสภาจังหวัด</p>
+          )}
+        </>
       )}
     </div>
   );

@@ -30,6 +30,19 @@ export default function MembershipRequestsManagement() {
     try {
       const url = new URL(window.location.href);
       const q = url.searchParams;
+      // Show success toast after switching type
+      if (q.get("switched") === "1") {
+        const from = q.get("from") || "-";
+        const to = q.get("to") || "-";
+        toast.success(`เปลี่ยนประเภทสมาชิกจาก ${from} เป็น ${to} สำเร็จ`);
+        // remove flag from URL
+        q.delete("switched");
+        q.delete("from");
+        q.delete("to");
+        q.delete("id");
+        const cleanUrl = `${url.pathname}?${q.toString()}`;
+        window.history.replaceState(null, "", cleanUrl);
+      }
       const hasAnyQuery = ["page", "status", "type", "search", "sortOrder"].some((k) => q.has(k));
 
       // Always read session snapshot as fallback for any missing fields

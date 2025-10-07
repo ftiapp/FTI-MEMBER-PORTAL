@@ -10,6 +10,7 @@ import ProductsSection from "./ProductsSection";
 import DocumentsSection from "./DocumentsSection";
 import AdminActionsSection from "./AdminActionsSection";
 import PDFDownloadButton from "./PDFDownloadButton";
+import SwitchTypeModal from "./SwitchTypeModal";
 import { getMemberTypeInfo } from "../../../ีutils/dataTransformers";
 
 const MembershipDetailView = ({
@@ -24,6 +25,7 @@ const MembershipDetailView = ({
 }) => {
   const [localAdminNote, setLocalAdminNote] = useState(adminNote || "");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSwitchModal, setShowSwitchModal] = useState(false);
 
   // Sync local admin note with prop
   useEffect(() => {
@@ -96,6 +98,14 @@ const MembershipDetailView = ({
     );
   }
 
+  // Check if type switching is available (only OC and AC)
+  const canSwitchType = type === "OC" || type === "AC";
+
+  const handleSwitchSuccess = (newId, newType) => {
+    // Redirect to new application page
+    window.location.href = `/admin/dashboard/membership-requests/${newType}/${newId}`;
+  };
+
   return (
     <div className="space-y-8">
       {/* Header with PDF Download */}
@@ -115,7 +125,26 @@ const MembershipDetailView = ({
               </p>
             )}
           </div>
-          <PDFDownloadButton application={application} type={type} />
+          <div className="flex gap-3">
+            {canSwitchType && (
+              <button
+                onClick={() => setShowSwitchModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors shadow-lg"
+                title="เปลี่ยนประเภทสมาชิก"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                  />
+                </svg>
+                <span className="hidden sm:inline">เปลี่ยนประเภท</span>
+              </button>
+            )}
+            <PDFDownloadButton application={application} type={type} />
+          </div>
         </div>
       </div>
 
@@ -614,6 +643,15 @@ const MembershipDetailView = ({
           </div>
         )}
       </div>
+
+      {/* Switch Type Modal */}
+      <SwitchTypeModal
+        isOpen={showSwitchModal}
+        onClose={() => setShowSwitchModal(false)}
+        application={application}
+        currentType={type}
+        onSuccess={handleSwitchSuccess}
+      />
     </div>
   );
 };

@@ -10,6 +10,57 @@ export async function POST(request) {
       return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
+// ฟังก์ชันสำหรับอัปเดตประเภทธุรกิจ
+async function updateBusinessTypes(applicationId, type, data) {
+  const upper = type.toUpperCase();
+  const base = `MemberRegist_${upper}`;
+
+  const allowedTypes = new Set([
+    "manufacturer",
+    "distributor",
+    "importer",
+    "exporter",
+    "service",
+    "other",
+  ]);
+
+  // Normalize input
+  const selected = Array.isArray(data?.businessTypes) ? data.businessTypes : [];
+  const filtered = selected.filter((t) => allowedTypes.has(String(t)));
+  const otherDetail = data?.businessTypeOther || data?.otherDetail || null;
+
+  // Resolve table names and column differences
+  const businessTypesTable = `${base}_BusinessTypes`;
+  const otherTable = `${base}_BusinessTypeOther`;
+  const otherColumn = type === "ic" ? "other_type" : "detail";
+
+  // Delete old rows
+  await executeQueryWithoutTransaction(`DELETE FROM ${businessTypesTable} WHERE main_id = ?`, [
+    applicationId,
+  ]);
+  await executeQueryWithoutTransaction(`DELETE FROM ${otherTable} WHERE main_id = ?`, [
+    applicationId,
+  ]).catch(() => {});
+
+  // Insert new business types
+  for (const bt of filtered) {
+    await executeQueryWithoutTransaction(
+      `INSERT INTO ${businessTypesTable} (main_id, business_type) VALUES (?, ?)`,
+      [applicationId, bt],
+    );
+  }
+
+  // Insert other detail if provided and 'other' selected
+  if (filtered.includes("other") && otherDetail) {
+    await executeQueryWithoutTransaction(
+      `INSERT INTO ${otherTable} (main_id, ${otherColumn}) VALUES (?, ?)`,
+      [applicationId, otherDetail],
+    ).catch(() => {});
+  }
+
+  return { updated: filtered.length, other: !!otherDetail };
+}
+
     const { applicationId, type, section, data } = await request.json();
 
     if (!applicationId || !type || !section || !data) {
@@ -30,6 +81,9 @@ export async function POST(request) {
           break;
         case "addresses":
           updateResult = await updateAddresses(applicationId, type, data);
+          break;
+        case "businessTypes":
+          updateResult = await updateBusinessTypes(applicationId, type, data);
           break;
         case "industrialGroups":
           updateResult = await updateIndustrialGroups(applicationId, type, data);
@@ -237,26 +291,43 @@ async function updateRepresentatives(applicationId, type, data) {
 async function updateCompanyInfo(applicationId, type, data) {
   const tableName = `MemberRegist_${type.toUpperCase()}_Main`;
 
+  // Get existing columns from table
+  const columns = await executeQueryWithoutTransaction(`SHOW COLUMNS FROM ${tableName}`);
+  const columnNames = columns.map((col) => col.Field);
+
   const updateFields = [];
   const updateValues = [];
 
+  // Helper to add field if column exists
+  const addField = (dataKey, columnName, value) => {
+    if (value !== undefined && columnNames.includes(columnName)) {
+      updateFields.push(`${columnName} = ?`);
+      updateValues.push(value);
+    }
+  };
+
   // สร้าง dynamic update query
-  if (data.companyName !== undefined) {
-    updateFields.push("company_name = ?");
-    updateValues.push(data.companyName);
-  }
-  if (data.companyNameEn !== undefined) {
-    updateFields.push("company_name_en = ?");
-    updateValues.push(data.companyNameEn);
-  }
-  if (data.registrationNumber !== undefined) {
-    updateFields.push("registration_number = ?");
-    updateValues.push(data.registrationNumber);
-  }
-  if (data.taxId !== undefined) {
-    updateFields.push("tax_id = ?");
-    updateValues.push(data.taxId);
-  }
+  addField("companyName", "company_name", data.companyName);
+  addField("companyNameTh", "company_name_th", data.companyNameTh);
+  addField("companyNameEn", "company_name_en", data.companyNameEn);
+  addField("registrationNumber", "registration_number", data.registrationNumber);
+  addField("taxId", "tax_id", data.taxId);
+  addField("email", "company_email", data.email);
+  addField("phone", "company_phone", data.phone);
+  addField("phoneExtension", "company_phone_extension", data.phoneExtension);
+  addField("website", "company_website", data.website);
+  addField("factoryType", "factory_type", data.factoryType);
+  addField("numberOfEmployees", "number_of_employees", data.numberOfEmployees);
+  addField("numberOfMembers", "number_of_members", data.numberOfMembers);
+  addField("registeredCapital", "registered_capital", data.registeredCapital);
+  addField("productionCapacityValue", "production_capacity_value", data.productionCapacityValue);
+  addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
+  addField("salesDomestic", "sales_domestic", data.salesDomestic);
+  addField("salesExport", "sales_export", data.salesExport);
+  addField("shareholderThaiPercent", "shareholder_thai_percent", data.shareholderThaiPercent);
+  addField("shareholderForeignPercent", "shareholder_foreign_percent", data.shareholderForeignPercent);
+  addField("revenueLastYear", "revenue_last_year", data.revenueLastYear);
+  addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear);
 
   if (updateFields.length > 0) {
     updateValues.push(applicationId);

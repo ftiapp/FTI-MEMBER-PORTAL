@@ -6,7 +6,7 @@ import AddressSection from "../../../components/sections/AddressSection";
 import RepresentativesSection from "../../../components/sections/RepresentativesSection";
 import IndustrialGroupsSection from "../../../components/sections/IndustrialGroupsSection";
 import FinancialInfoSection from "../../../components/sections/FinancialInfoSection";
-import ProductsSection from "../../../components/sections/ProductsSection";
+import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "../../../components/sections/DocumentsSection";
 import AdminActionsSection from "../../../components/sections/AdminActionsSection";
 
@@ -84,8 +84,8 @@ const DetailView = ({
       <FinancialInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
       <RepresentativesSection application={application} onUpdate={handleSectionUpdate} />
       <AddressSection application={application} onUpdate={handleSectionUpdate} />
-      <ProductsSection application={application} onUpdate={handleSectionUpdate} />
-      <DocumentsSection application={application} onViewDocument={onViewDocument} />
+      <BusinessInfoSection application={application} onUpdate={handleSectionUpdate} />
+      <DocumentsSection application={application} onViewDocument={onViewDocument} type={type} />
       <ApplicantInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
       <AdminActionsSection
         application={application}
