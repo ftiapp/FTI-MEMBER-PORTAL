@@ -1,8 +1,173 @@
 import React, { useState, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
+// Image Editor Modal Component for Company Stamp and Signature
+const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
+  const canvasRef = useRef(null);
+  const [scale, setScale] = useState(1);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [image, setImage] = useState(null);
+
+  useEffect(() => {
+    if (initialImage && isOpen) {
+      const img = new Image();
+      img.onload = () => {
+        setImage(img);
+        setScale(1);
+        setPosition({ x: 0, y: 0 });
+      };
+      if (typeof initialImage === "string") {
+        img.src = initialImage;
+      } else {
+        img.src = URL.createObjectURL(initialImage);
+      }
+    }
+  }, [initialImage, isOpen]);
+
+  useEffect(() => {
+    if (image && isOpen) {
+      drawCanvas();
+    }
+  }, [image, scale, position, isOpen]);
+
+  const drawCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas || !image) return;
+
+    const ctx = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 200;
+
+    ctx.fillStyle = "#f8f9fa";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.strokeStyle = "#e9ecef";
+    ctx.lineWidth = 1;
+    for (let i = 0; i < canvas.width; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(i, 0);
+      ctx.lineTo(i, canvas.height);
+      ctx.stroke();
+    }
+    for (let i = 0; i < canvas.height; i += 20) {
+      ctx.beginPath();
+      ctx.moveTo(0, i);
+      ctx.lineTo(canvas.width, i);
+      ctx.stroke();
+    }
+
+    ctx.save();
+    ctx.translate(canvas.width / 2 + position.x, canvas.height / 2 + position.y);
+    ctx.scale(scale, scale);
+    ctx.drawImage(image, -image.width / 2, -image.height / 2);
+    ctx.restore();
+
+    ctx.strokeStyle = "#dee2e6";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    const rect = canvasRef.current.getBoundingClientRect();
+    setDragStart({
+      x: e.clientX - rect.left - position.x,
+      y: e.clientY - rect.top - position.y,
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    setPosition({
+      x: e.clientX - rect.left - dragStart.x,
+      y: e.clientY - rect.top - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleSave = () => {
+    const canvas = canvasRef.current;
+    canvas.toBlob((blob) => {
+      onSave(blob);
+    }, "image/png");
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[80]">
+      <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <h3 className="text-lg font-semibold mb-4">{title}</h3>
+
+        <div className="mb-4">
+          <canvas
+            ref={canvasRef}
+            className="border border-gray-300 rounded cursor-move block mx-auto"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          />
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            ขนาด: {Math.round(scale * 100)}%
+          </label>
+          <input
+            type="range"
+            min="0.1"
+            max="3"
+            step="0.1"
+            value={scale}
+            onChange={(e) => setScale(parseFloat(e.target.value))}
+            className="w-full"
+          />
+        </div>
+
+        <div className="text-xs text-gray-700 mb-4 bg-blue-50 p-3 rounded leading-5">
+          <div className="font-semibold mb-1">คำแนะนำการใช้งาน</div>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>กรุณาคลิกค้างและลากภาพเพื่อปรับเปลี่ยนตำแหน่ง</li>
+            <li>กรุณาใช้แถบเลื่อนเพื่อปรับขนาดภาพให้เหมาะสม (10-300%)</li>
+            <li>
+              ขนาดที่แนะนำ:
+              <ul className="list-[circle] pl-5 mt-1 space-y-0.5">
+                <li>โลโก้/ตราประทับบริษัท: 300 × 300 พิกเซล</li>
+                <li>ลายเซ็นผู้มีอำนาจลงนาม: 120 × 60 พิกเซล</li>
+              </ul>
+            </li>
+            <li>ท่านควรใช้ไฟล์ PNG พื้นหลังโปร่งใสเพื่อผลลัพธ์ที่เหมาะสม</li>
+          </ul>
+        </div>
+
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
+          >
+            ยกเลิก
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
+          >
+            บันทึก
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const DocumentsSection = ({ application, onViewDocument, type }) => {
-  if (!application?.documents || application.documents.length === 0) return null;
+  const docs = Array.isArray(application?.documents) ? application.documents : [];
 
   const [previewFile, setPreviewFile] = useState(null);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -95,15 +260,109 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const [replaceTargetId, setReplaceTargetId] = useState(null);
+  const [replaceTargetType, setReplaceTargetType] = useState(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState("");
+  const [showImageEditor, setShowImageEditor] = useState(false);
+  const [editingImage, setEditingImage] = useState(null);
+  const [pendingFile, setPendingFile] = useState(null);
+  // Delete confirmation modal state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { id, name, type }
 
-  const handleSelectFile = (docId = null) => {
+  const handleSelectFile = (docId = null, docType = null) => {
     setReplaceTargetId(docId);
+    setReplaceTargetType(docType);
     fileInputRef.current?.click();
   };
 
-  const handleUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  // Document type options per membership type
+  const getDocumentTypeOptions = () => {
+    const typeUpper = String(type).toUpperCase();
+    
+    const documentTypes = {
+      OC: [
+        { value: "factoryLicense", label: "ใบอนุญาตประกอบกิจการโรงงาน (รง.4)" },
+        { value: "industrialEstateLicense", label: "ใบอนุญาตนิคมอุตสาหกรรม (กนอ.)" },
+        { value: "productionImages", label: "รูปภาพการผลิต/เอกสารการผลิต" },
+        { value: "companyStamp", label: "รูปตราประทับบริษัท" },
+        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        { value: "other", label: "เอกสารอื่นๆ" },
+      ],
+      AC: [
+        { value: "companyRegistration", label: "หนังสือรับรองการจดทะเบียนนิติบุคคล" },
+        { value: "productionImages", label: "รูปภาพการผลิต/เอกสารการผลิต" },
+        { value: "companyStamp", label: "รูปตราประทับบริษัท" },
+        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        { value: "other", label: "เอกสารอื่นๆ" },
+      ],
+      AM: [
+        { value: "associationRegistration", label: "หนังสือรับรองการจดทะเบียนสมาคม" },
+        { value: "memberList", label: "รายชื่อสมาชิก" },
+        { value: "productionImage", label: "รูปภาพกิจกรรม/เอกสารประกอบ" },
+        { value: "companyStamp", label: "รูปตราประทับสมาคม" },
+        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        { value: "other", label: "เอกสารอื่นๆ" },
+      ],
+      IC: [
+        { value: "idCardDocument", label: "สำเนาบัตรประชาชน" },
+        { value: "companyRegistrationDocument", label: "หนังสือรับรองการจดทะเบียนบริษัท" },
+        { value: "taxRegistrationDocument", label: "ทะเบียนภาษี" },
+        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        { value: "other", label: "เอกสารอื่นๆ" },
+      ],
+    };
+
+    return documentTypes[typeUpper] || documentTypes.OC;
+  };
+
+  // Map a raw document type to its display label
+  const getDocumentTypeLabel = (docType) => {
+    const opts = getDocumentTypeOptions();
+    const found = opts.find((o) => o.value === docType);
+    // Fallback to capitalized type or 'ไม่ระบุ'
+    if (!found) {
+      if (!docType) return "ไม่ระบุ";
+      return docType
+        .replace(/([A-Z])/g, " $1")
+        .replace(/^\w/, (c) => c.toUpperCase());
+    }
+    return found.label;
+  };
+
+  const handleNewUpload = () => {
+    setShowUploadModal(true);
+    setSelectedDocType("");
+  };
+
+  const handleUploadModalConfirm = () => {
+    if (!selectedDocType) {
+      toast.error("กรุณาเลือกประเภทเอกสาร");
+      return;
+    }
+    setShowUploadModal(false);
+    setReplaceTargetType(selectedDocType);
+    fileInputRef.current?.click();
+  };
+
+  const isImageDocument = (docType) => {
+    return docType === "companyStamp" || docType === "authorizedSignature";
+  };
+
+  const getImageEditorTitle = (docType) => {
+    if (docType === "companyStamp") return "ปรับแต่งตราประทับบริษัท";
+    if (docType === "authorizedSignature") return "ปรับแต่งลายเซ็นผู้มีอำนาจลงนาม";
+    return "ปรับแต่งรูปภาพ";
+  };
+
+  const handleImageSave = async (blob) => {
+    const file = new File([blob], `${replaceTargetType}.png`, { type: "image/png" });
+    setShowImageEditor(false);
+    setEditingImage(null);
+    await performUpload(file);
+  };
+
+  const performUpload = async (file) => {
     if (!type || !application?.id) {
       toast.error("ไม่พบข้อมูลใบสมัครหรือตัวประเภท");
       return;
@@ -115,7 +374,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
       formData.append("file", file);
       formData.append("membershipType", String(type).toUpperCase());
       formData.append("applicationId", String(application.id));
-      formData.append("documentType", "other");
+      formData.append("documentType", replaceTargetType || "other");
       if (replaceTargetId) formData.append("replaceDocumentId", String(replaceTargetId));
 
       const res = await fetch("/api/admin/membership-requests/documents/upload", {
@@ -126,7 +385,6 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
       const data = await res.json();
       if (!res.ok || !data.success) throw new Error(data.message || "อัปโหลดล้มเหลว");
       toast.success(data.message || "อัปโหลดสำเร็จ");
-      // refresh page to reload documents
       window.location.reload();
     } catch (e) {
       console.error("Upload failed", e);
@@ -134,15 +392,44 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
     } finally {
       setIsUploading(false);
       setReplaceTargetId(null);
+      setReplaceTargetType(null);
+      setPendingFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   };
 
-  const handleDelete = async (docId) => {
-    if (!confirm("ยืนยันลบเอกสารนี้?")) return;
+  const handleUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check if this is an image document type that needs editing
+    if (replaceTargetType && isImageDocument(replaceTargetType)) {
+      // Check if file is an image
+      if (!file.type || !file.type.startsWith("image/")) {
+        toast.error("ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)");
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        return;
+      }
+      // Open image editor
+      setPendingFile(file);
+      setEditingImage(file);
+      setShowImageEditor(true);
+    } else {
+      // Direct upload for non-image documents
+      await performUpload(file);
+    }
+  };
+
+  const requestDelete = (doc) => {
+    setDeleteTarget({ id: doc.id, name: doc.name, type: doc.type });
+    setShowDeleteModal(true);
+  };
+
+  const performDelete = async () => {
+    if (!deleteTarget?.id) return;
     try {
       const params = new URLSearchParams({
-        documentId: String(docId),
+        documentId: String(deleteTarget.id),
         membershipType: String(type).toUpperCase(),
         applicationId: String(application.id),
       });
@@ -157,6 +444,9 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
     } catch (e) {
       console.error("Delete failed", e);
       toast.error(e.message || "ไม่สามารถลบเอกสารได้");
+    } finally {
+      setShowDeleteModal(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -215,27 +505,40 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8 print:hidden">
       <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4 flex items-center justify-between">
         เอกสารแนบ
-        {/* Upload controls */}
-        <div className="flex items-center gap-2">
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleUpload}
-            className="hidden"
-            accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
-          />
-          <button
-            onClick={() => handleSelectFile(null)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            disabled={isUploading}
-          >
-            {isUploading ? "กำลังอัปโหลด..." : "อัปโหลดเอกสาร"}
-          </button>
-        </div>
+        <button
+          onClick={handleNewUpload}
+          disabled={isUploading}
+          className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+          title="อัปโหลดเอกสารใหม่"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+          </svg>
+          อัปโหลดเอกสารใหม่
+        </button>
+        {/* Keep hidden input for per-type/replace uploads */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleUpload}
+          className="hidden"
+          accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.webp"
+        />
       </h3>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {application.documents.map((doc, index) => (
+        {docs.length === 0 ? (
+          <div className="col-span-full">
+            <div className="flex flex-col items-center justify-center border border-dashed border-blue-300 rounded-xl p-8 bg-blue-50/50 text-center">
+              <svg className="w-12 h-12 text-blue-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <p className="text-blue-900 font-medium">ยังไม่มีเอกสารแนบ</p>
+              <p className="text-sm text-blue-700 mt-1">กดปุ่ม "อัปโหลดเอกสารใหม่" เพื่อเพิ่มเอกสาร</p>
+            </div>
+          </div>
+        ) : (
+          docs.map((doc, index) => (
           <div
             key={index}
             className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col gap-3"
@@ -251,7 +554,18 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
               </svg>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-semibold text-gray-900 mb-1 truncate" title={doc.name}>{doc.name}</p>
+              <div className="flex items-center gap-2 mb-1">
+                <p className="font-semibold text-gray-900 truncate" title={doc.name}>{doc.name}</p>
+                {/* Document type badge */}
+                {doc.type && (
+                  <span
+                    title={doc.type}
+                    className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                  >
+                    {getDocumentTypeLabel(doc.type)}
+                  </span>
+                )}
+              </div>
               <p className="text-sm text-gray-600 truncate" title={doc.filePath || "-"}>
                 {doc.filePath || "-"}
               </p>
@@ -307,7 +621,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                 </a>
                 {/* Replace */}
                 <button
-                  onClick={() => handleSelectFile(doc.id)}
+                  onClick={() => handleSelectFile(doc.id, doc.type)}
                   className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-amber-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
                   title="แทนที่ไฟล์นี้"
                   disabled={isUploading}
@@ -319,7 +633,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                 </button>
                 {/* Delete */}
                 <button
-                  onClick={() => handleDelete(doc.id)}
+                  onClick={() => requestDelete(doc)}
                   className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
                   title="ลบไฟล์นี้"
                 >
@@ -331,7 +645,8 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
               </div>
             )}
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       {/* Full-screen Preview Modal */}
@@ -496,6 +811,110 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                   Esc: ปิด | หากไม่แสดงผล ให้ใช้ปุ่มดาวน์โหลดแทน
                 </p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Editor Modal */}
+      <ImageEditor
+        isOpen={showImageEditor}
+        onClose={() => {
+          setShowImageEditor(false);
+          setEditingImage(null);
+          setPendingFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+        }}
+        onSave={handleImageSave}
+        initialImage={editingImage}
+        title={getImageEditorTitle(replaceTargetType)}
+      />
+
+      {/* Upload Type Selection Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">เลือกประเภทเอกสาร</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              กรุณาเลือกประเภทเอกสารที่ต้องการอัปโหลด
+            </p>
+            
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                ประเภทเอกสาร *
+              </label>
+              <select
+                value={selectedDocType}
+                onChange={(e) => setSelectedDocType(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">-- เลือกประเภทเอกสาร --</option>
+                {getDocumentTypeOptions().map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setSelectedDocType("");
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={handleUploadModalConfirm}
+                disabled={!selectedDocType}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ดำเนินการต่อ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[75] p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+            <h3 className="text-xl font-bold text-gray-900 mb-2">ยืนยันการลบเอกสาร</h3>
+            <p className="text-sm text-gray-600 mb-4">คุณต้องการลบเอกสารนี้หรือไม่?</p>
+            {deleteTarget && (
+              <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200">
+                <div className="text-sm text-gray-800 font-medium truncate" title={deleteTarget.name}>
+                  {deleteTarget.name}
+                </div>
+                <div className="mt-1 text-xs text-gray-600 flex items-center gap-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    {getDocumentTypeLabel(deleteTarget.type)}
+                  </span>
+                  <span className="text-gray-400">ID: {deleteTarget.id}</span>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteTarget(null);
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={performDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                ยืนยันลบ
+              </button>
             </div>
           </div>
         </div>

@@ -209,6 +209,19 @@ async function copyRelatedData(oldMainId, newMainId, fromType, toType) {
     { name: "IndustryGroups", fields: ["industry_group_id", "industry_group_name"] },
     { name: "ProvinceChapters", fields: ["province_chapter_id", "province_chapter_name"] },
     { name: "Documents", fields: ["document_type", "file_name", "file_path", "file_size", "mime_type", "cloudinary_id", "cloudinary_url"] },
+    // Signature name needs to be migrated as well (OC <-> AC)
+    { name: "Signature_Name", fields: [
+      "prename_th",
+      "prename_en",
+      "prename_other",
+      "prename_other_en",
+      "first_name_th",
+      "last_name_th",
+      "first_name_en",
+      "last_name_en",
+      "position_th",
+      "position_en",
+    ] },
   ];
 
   for (const table of tables) {

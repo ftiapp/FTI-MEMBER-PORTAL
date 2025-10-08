@@ -181,22 +181,6 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Building */}
-          <div>
-            <p className="text-sm font-semibold text-blue-700 mb-1">อาคาร/หมู่บ้าน</p>
-            {isEditing ? (
-              <input
-                type="text"
-                value={addr.building || ""}
-                onChange={(e) => updateAddress(index, "building", e.target.value)}
-                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ชื่ออาคาร/หมู่บ้าน"
-              />
-            ) : (
-              <p className="text-base text-gray-900">{addr.building || "-"}</p>
-            )}
-          </div>
-
           {/* Address Number */}
           <div>
             <p className="text-sm font-semibold text-blue-700 mb-1">บ้านเลขที่</p>
@@ -226,6 +210,22 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
               />
             ) : (
               <p className="text-base text-gray-900">{addr.moo || "-"}</p>
+            )}
+          </div>
+
+          {/* Building */}
+          <div>
+            <p className="text-sm font-semibold text-blue-700 mb-1">อาคาร/หมู่บ้าน</p>
+            {isEditing ? (
+              <input
+                type="text"
+                value={addr.building || ""}
+                onChange={(e) => updateAddress(index, "building", e.target.value)}
+                className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="ชื่ออาคาร/หมู่บ้าน"
+              />
+            ) : (
+              <p className="text-base text-gray-900">{addr.building || "-"}</p>
             )}
           </div>
 
@@ -485,8 +485,8 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
         ? // Display all addresses with their types in the correct order
           (isEditing ? editData : application.addresses)
             .sort((a, b) => {
-              // Sort by address type: 2 first, then 1, then 3
-              const typeOrder = { 2: 1, 1: 2, 3: 3 };
+              // Sort by address type: 1 (สำนักงาน), 2 (จัดส่งเอกสาร), 3 (ใบกำกับภาษี)
+              const typeOrder = { 1: 1, 2: 2, 3: 3 };
               return (typeOrder[a.addressType] || 99) - (typeOrder[b.addressType] || 99);
             })
             .map((addr, index) => {

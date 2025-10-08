@@ -309,6 +309,19 @@ export const normalizeContactPerson = (application) => {
   if (!contact) return null;
 
   return {
+    // prename support (both snake and camel for UI compatibility)
+    prename_th:
+      contact.prename_th || contact.prenameTh || contact.title_th || contact.titleTh || contact.title || null,
+    prename_en:
+      contact.prename_en || contact.prenameEn || contact.title_en || contact.titleEn || null,
+    prename_other: contact.prename_other || contact.prenameOther || null,
+    prename_other_en: contact.prename_other_en || contact.prenameOtherEn || null,
+    // also expose camelCase for components that prefer it
+    prenameTh:
+      contact.prenameTh || contact.prename_th || contact.titleTh || contact.title_th || contact.title || null,
+    prenameEn: contact.prenameEn || contact.prename_en || contact.titleEn || contact.title_en || null,
+    prenameOther: contact.prenameOther || contact.prename_other || null,
+    prenameOtherEn: contact.prenameOtherEn || contact.prename_other_en || null,
     firstNameTh: contact.first_name_th || contact.firstNameTh,
     lastNameTh: contact.last_name_th || contact.lastNameTh,
     firstNameEn: contact.first_name_en || contact.firstNameEn,
@@ -368,6 +381,18 @@ export const normalizeContactPersons = (application) => {
 
   // Map each contact to normalized format
   return contacts.map((contact) => ({
+    // prename support
+    prename_th:
+      contact.prename_th || contact.prenameTh || contact.title_th || contact.titleTh || contact.title || null,
+    prename_en:
+      contact.prename_en || contact.prenameEn || contact.title_en || contact.titleEn || null,
+    prename_other: contact.prename_other || contact.prenameOther || null,
+    prename_other_en: contact.prename_other_en || contact.prenameOtherEn || null,
+    prenameTh:
+      contact.prenameTh || contact.prename_th || contact.titleTh || contact.title_th || contact.title || null,
+    prenameEn: contact.prenameEn || contact.prename_en || contact.titleEn || contact.title_en || null,
+    prenameOther: contact.prenameOther || contact.prename_other || null,
+    prenameOtherEn: contact.prenameOtherEn || contact.prename_other_en || null,
     firstNameTh: contact.first_name_th || contact.firstNameTh,
     lastNameTh: contact.last_name_th || contact.lastNameTh,
     firstNameEn: contact.first_name_en || contact.firstNameEn,
@@ -398,6 +423,11 @@ export const normalizeDocuments = (application) => {
     [];
 
   return (Array.isArray(docs) ? docs : [docs]).map((doc) => ({
+    // Preserve identifiers for admin actions like delete/replace
+    id: doc.id || doc.document_id || doc.doc_id,
+    mainId: doc.main_id || doc.application_id || doc.mainId,
+    cloudinaryId: doc.cloudinary_id || doc.public_id || doc.cloudinaryId,
+
     type: doc.document_type || doc.type,
     name: doc.document_name || doc.name || doc.file_name || getDocumentDisplayName(doc),
     filePath: doc.file_path || doc.filePath,

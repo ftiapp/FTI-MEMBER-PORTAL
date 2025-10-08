@@ -7,6 +7,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
     registeredCapital: application?.registeredCapital || "",
     productionCapacityValue: application?.productionCapacityValue || "",
     productionCapacityUnit: application?.productionCapacityUnit || "",
+    // Treat salesDomestic/salesExport as percentages (0-100)
     salesDomestic: application?.salesDomestic || "",
     salesExport: application?.salesExport || "",
     shareholderThaiPercent: application?.shareholderThaiPercent || "",
@@ -38,6 +39,25 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
       setIsEditing(false);
     } catch (error) {
       console.error("Error updating financial info:", error);
+    }
+  };
+
+  // Keep salesDomestic and salesExport as a complementary percentage pair
+  const handleSalesPercentChange = (field, value) => {
+    const numValue = parseFloat(value) || 0;
+    const newValue = Math.min(100, Math.max(0, numValue));
+    if (field === "salesDomestic") {
+      setEditData({
+        ...editData,
+        salesDomestic: newValue,
+        salesExport: 100 - newValue,
+      });
+    } else {
+      setEditData({
+        ...editData,
+        salesExport: newValue,
+        salesDomestic: 100 - newValue,
+      });
     }
   };
 
@@ -124,7 +144,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมต่อปี - ปีล่าสุด</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมก่อนหักค่าใช้จ่าย - ปีล่าสุด <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></p>
           {isEditing ? (
             <div className="flex items-center">
               <input
@@ -132,23 +152,23 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
                 value={editData.revenueLastYear}
                 onChange={(e) => updateField("revenueLastYear", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ปีล่าสุด"
+                placeholder="0.00"
                 min="0"
                 step="0.01"
               />
-              <span className="ml-2 text-gray-600">ล้านบาท</span>
+              <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
             <p className="text-lg text-gray-900">
               {application.revenueLastYear
-                ? `${formatNumber(application.revenueLastYear)} ล้านบาท`
+                ? `${formatCurrency(application.revenueLastYear)}`
                 : "-"}
             </p>
           )}
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมต่อปี - ปีก่อนหน้า</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมก่อนหักค่าใช้จ่าย - ปีก่อนหน้า <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></p>
           {isEditing ? (
             <div className="flex items-center">
               <input
@@ -156,16 +176,16 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
                 value={editData.revenuePreviousYear}
                 onChange={(e) => updateField("revenuePreviousYear", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ปีก่อนหน้า"
+                placeholder="0.00"
                 min="0"
                 step="0.01"
               />
-              <span className="ml-2 text-gray-600">ล้านบาท</span>
+              <span className="ml-2 text-gray-600">บาท</span>
             </div>
           ) : (
             <p className="text-lg text-gray-900">
               {application.revenuePreviousYear
-                ? `${formatNumber(application.revenuePreviousYear)} ล้านบาท`
+                ? `${formatCurrency(application.revenuePreviousYear)}`
                 : "-"}
             </p>
           )}
@@ -224,43 +244,49 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ยอดจำหน่ายในประเทศ (ต่อปี)</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">ยอดจำหน่ายในประเทศ (%)</p>
           {isEditing ? (
             <div className="flex items-center">
               <input
                 type="number"
                 value={editData.salesDomestic}
-                onChange={(e) => updateField("salesDomestic", e.target.value)}
+                onChange={(e) => handleSalesPercentChange("salesDomestic", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ยอดจำหน่ายในประเทศ"
+                placeholder="0"
                 min="0"
+                max="100"
               />
-              <span className="ml-2 text-gray-600">บาท</span>
+              <span className="ml-2 text-gray-600">%</span>
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.salesDomestic ? formatCurrency(application.salesDomestic) : "-"}
+              {application.salesDomestic !== undefined && application.salesDomestic !== null && application.salesDomestic !== ""
+                ? formatPercent(application.salesDomestic)
+                : "-"}
             </p>
           )}
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ยอดจำหน่ายส่งออก (ต่อปี)</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">ยอดจำหน่ายส่งออก (%)</p>
           {isEditing ? (
             <div className="flex items-center">
               <input
                 type="number"
                 value={editData.salesExport}
-                onChange={(e) => updateField("salesExport", e.target.value)}
+                onChange={(e) => handleSalesPercentChange("salesExport", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="ยอดจำหน่ายส่งออก"
+                placeholder="0"
                 min="0"
+                max="100"
               />
-              <span className="ml-2 text-gray-600">บาท</span>
+              <span className="ml-2 text-gray-600">%</span>
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.salesExport ? formatCurrency(application.salesExport) : "-"}
+              {application.salesExport !== undefined && application.salesExport !== null && application.salesExport !== ""
+                ? formatPercent(application.salesExport)
+                : "-"}
             </p>
           )}
         </div>

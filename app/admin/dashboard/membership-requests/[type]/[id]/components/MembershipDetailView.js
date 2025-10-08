@@ -189,8 +189,7 @@ const MembershipDetailView = ({
           application.contactPerson ||
           application.contact_person ||
           application.contact ||
-          (Array.isArray(application.contacts) ? application.contacts[0] : null) ||
-          primaryRep;
+          (Array.isArray(application.contacts) ? application.contacts[0] : null);
 
         // If still no contact, synthesize from root-level fields
         if (!contact) {
@@ -333,39 +332,46 @@ const MembershipDetailView = ({
           lastNameEn = parts.slice(1).join(" ") || "";
         }
 
-        return contact ? (
+        return (
           <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8">
             <h3 className="text-2xl font-bold text-blue-900 mb-6 border-b border-blue-100 pb-4">
               ข้อมูลผู้ติดต่อ
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล (ไทย)</p>
-                <p className="text-lg text-gray-900">
-                  {`${firstNameTh || ""} ${lastNameTh || ""}`.trim() || "-"}
-                </p>
+            {contact ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล (ไทย)</p>
+                  <p className="text-lg text-gray-900">
+                    {`${firstNameTh || ""} ${lastNameTh || ""}`.trim() || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล (อังกฤษ)</p>
+                  <p className="text-lg text-gray-900">
+                    {`${firstNameEn || ""} ${lastNameEn || ""}`.trim() || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">ตำแหน่ง</p>
+                  <p className="text-lg text-gray-900">{position || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
+                  <p className="text-lg text-gray-900">{email || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
+                  <p className="text-lg text-gray-900 font-mono">{phone || "-"}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล (อังกฤษ)</p>
-                <p className="text-lg text-gray-900">
-                  {`${firstNameEn || ""} ${lastNameEn || ""}`.trim() || "-"}
-                </p>
+            ) : (
+              <div className="border border-dashed border-blue-300 rounded-xl p-6 bg-blue-50/50 text-center">
+                <p className="text-blue-900 font-medium">ยังไม่มีข้อมูลผู้ติดต่อ</p>
+                <p className="text-sm text-blue-700 mt-1">เพิ่มหรือตั้งค่าผู้ติดต่อจากแบบฟอร์มได้ภายหลัง</p>
               </div>
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">ตำแหน่ง</p>
-                <p className="text-lg text-gray-900">{position || "-"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">อีเมล</p>
-                <p className="text-lg text-gray-900">{email || "-"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
-                <p className="text-lg text-gray-900 font-mono">{phone || "-"}</p>
-              </div>
-            </div>
+            )}
           </div>
-        ) : null;
+        );
       })()}
 
       {/* Business Information Section */}
