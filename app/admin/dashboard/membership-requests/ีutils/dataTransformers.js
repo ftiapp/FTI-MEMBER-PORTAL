@@ -61,6 +61,8 @@ export const normalizeApplicationData = (application, type) => {
       application.shareholder_thai_percent || application.shareholderThaiPercent,
     shareholderForeignPercent:
       application.shareholder_foreign_percent || application.shareholderForeignPercent,
+    revenueLastYear: application.revenue_last_year || application.revenueLastYear,
+    revenuePreviousYear: application.revenue_previous_year || application.revenuePreviousYear,
 
     // Address - support multiple address types
     address: normalizeAddress(application),

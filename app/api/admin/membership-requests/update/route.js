@@ -10,6 +10,68 @@ export async function POST(request) {
       return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
+// ฟังก์ชันสำหรับอัปเดตข้อมูลทางการเงิน (OC/AC/AM)
+async function updateFinancialInfo(applicationId, type, data) {
+  const upper = type.toUpperCase();
+  const tableName = `MemberRegist_${upper}_Main`;
+
+  // ตรวจสอบคอลัมน์ที่มีอยู่จริงในตาราง เพื่อหลีกเลี่ยง error ระหว่าง type ต่างๆ
+  const columns = await executeQueryWithoutTransaction(`SHOW COLUMNS FROM ${tableName}`);
+  const columnNames = columns.map((c) => c.Field);
+
+  const updateFields = [];
+  const updateValues = [];
+
+  const toNumberOrNull = (v) => {
+    if (v === undefined || v === null || v === "") return null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const addField = (key, column, value, numeric = false) => {
+    if (value !== undefined && columnNames.includes(column)) {
+      updateFields.push(`${column} = ?`);
+      updateValues.push(numeric ? toNumberOrNull(value) : value);
+    }
+  };
+
+  // Map fields from FinancialInfoSection
+  addField("registeredCapital", "registered_capital", data.registeredCapital, true);
+  addField(
+    "productionCapacityValue",
+    "production_capacity_value",
+    data.productionCapacityValue,
+    true
+  );
+  addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
+  addField("salesDomestic", "sales_domestic", data.salesDomestic, true);
+  addField("salesExport", "sales_export", data.salesExport, true);
+  addField(
+    "shareholderThaiPercent",
+    "shareholder_thai_percent",
+    data.shareholderThaiPercent,
+    true
+  );
+  addField(
+    "shareholderForeignPercent",
+    "shareholder_foreign_percent",
+    data.shareholderForeignPercent,
+    true
+  );
+  addField("revenueLastYear", "revenue_last_year", data.revenueLastYear, true);
+  addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear, true);
+
+  if (updateFields.length === 0) return { updated: 0 };
+
+  updateValues.push(applicationId);
+  await executeQueryWithoutTransaction(
+    `UPDATE ${tableName} SET ${updateFields.join(", ")} WHERE id = ?`,
+    updateValues,
+  );
+
+  return { updated: updateFields.length };
+}
+
 // ฟังก์ชันสำหรับอัปเดตประเภทธุรกิจ
 async function updateBusinessTypes(applicationId, type, data) {
   const upper = type.toUpperCase();
@@ -99,6 +161,9 @@ async function updateBusinessTypes(applicationId, type, data) {
           break;
         case "applicantInfo":
           updateResult = await updateApplicantInfo(applicationId, type, data);
+          break;
+        case "financialInfo":
+          updateResult = await updateFinancialInfo(applicationId, type, data);
           break;
         default:
           throw new Error(`ไม่รองรับการแก้ไขส่วน: ${section}`);

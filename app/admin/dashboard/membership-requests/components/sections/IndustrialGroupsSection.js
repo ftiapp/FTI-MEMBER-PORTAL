@@ -176,34 +176,7 @@ const IndustrialGroupsSection = ({
               กลุ่มอุตสาหกรรม
             </label>
             
-            {/* Selected Industrial Groups */}
-            {selectedIndustrialGroups.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {selectedIndustrialGroups.map((item) => (
-                  <span
-                    key={item.id}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
-                  >
-                    {item.name}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveIndustrialGroup(item.id)}
-                      className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
-                      title="ลบรายการนี้"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Selected items are shown inside MultiSelectDropdown */}
 
             {/* Dropdown */}
             <MultiSelectDropdown
@@ -227,34 +200,7 @@ const IndustrialGroupsSection = ({
               สภาอุตสาหกรรมจังหวัด
             </label>
             
-            {/* Selected Provincial Chapters */}
-            {selectedProvincialChapters.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
-                {selectedProvincialChapters.map((item) => (
-                  <span
-                    key={item.id}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-sm font-medium"
-                  >
-                    {item.name}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveProvincialChapter(item.id)}
-                      className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
-                      title="ลบรายการนี้"
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+            {/* Selected items are shown inside MultiSelectDropdown */}
 
             {/* Dropdown */}
             <MultiSelectDropdown

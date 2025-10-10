@@ -16,6 +16,24 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
     revenuePreviousYear: application?.revenuePreviousYear || "",
   });
 
+  // Format number with commas for display, keep raw numeric string in state
+  const formatWithCommas = (value) => {
+    if (value === undefined || value === null || value === "") return "";
+    const str = String(value).replace(/,/g, "");
+    if (isNaN(str)) return String(value); // fallback
+    const [intPart, decPart] = str.split(".");
+    const withCommas = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    return decPart !== undefined ? `${withCommas}.${decPart}` : withCommas;
+  };
+
+  const handleNumericInput = (field, value) => {
+    const raw = String(value).replace(/,/g, "");
+    // allow only digits and single decimal point
+    if (/^\d*(?:\.\d*)?$/.test(raw)) {
+      setEditData((prev) => ({ ...prev, [field]: raw }));
+    }
+  };
+
   if (type === "ic") return null;
 
   const handleEdit = () => {
@@ -148,9 +166,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
           {isEditing ? (
             <div className="flex items-center">
               <input
-                type="number"
-                value={editData.revenueLastYear}
-                onChange={(e) => updateField("revenueLastYear", e.target.value)}
+                type="text"
+                value={formatWithCommas(editData.revenueLastYear)}
+                onChange={(e) => handleNumericInput("revenueLastYear", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00"
                 min="0"
@@ -160,7 +178,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.revenueLastYear
+              {application.revenueLastYear !== undefined && application.revenueLastYear !== null && application.revenueLastYear !== ""
                 ? `${formatCurrency(application.revenueLastYear)}`
                 : "-"}
             </p>
@@ -172,9 +190,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
           {isEditing ? (
             <div className="flex items-center">
               <input
-                type="number"
-                value={editData.revenuePreviousYear}
-                onChange={(e) => updateField("revenuePreviousYear", e.target.value)}
+                type="text"
+                value={formatWithCommas(editData.revenuePreviousYear)}
+                onChange={(e) => handleNumericInput("revenuePreviousYear", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="0.00"
                 min="0"
@@ -184,7 +202,7 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.revenuePreviousYear
+              {application.revenuePreviousYear !== undefined && application.revenuePreviousYear !== null && application.revenuePreviousYear !== ""
                 ? `${formatCurrency(application.revenuePreviousYear)}`
                 : "-"}
             </p>
@@ -196,9 +214,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
           {isEditing ? (
             <div className="flex items-center">
               <input
-                type="number"
-                value={editData.registeredCapital}
-                onChange={(e) => updateField("registeredCapital", e.target.value)}
+                type="text"
+                value={formatWithCommas(editData.registeredCapital)}
+                onChange={(e) => handleNumericInput("registeredCapital", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ทุนจดทะเบียน"
                 min="0"
@@ -217,9 +235,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
           {isEditing ? (
             <div className="flex items-center gap-2">
               <input
-                type="number"
-                value={editData.productionCapacityValue}
-                onChange={(e) => updateField("productionCapacityValue", e.target.value)}
+                type="text"
+                value={formatWithCommas(editData.productionCapacityValue)}
+                onChange={(e) => handleNumericInput("productionCapacityValue", e.target.value)}
                 className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="กำลังการผลิต"
                 min="0"

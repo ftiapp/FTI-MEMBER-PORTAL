@@ -52,11 +52,9 @@ export const useApplicationData = (type, id) => {
 
         const normalizedData = normalizeApplicationData(data.data, type);
         setApplication(normalizedData);
-
-        // Fetch additional data for IC type
-        if (type === "ic") {
-          await fetchAdditionalData();
-        }
+        // Always fetch additional data (industrial groups and provincial chapters)
+        // for all types (OC/AC/AM/IC) so admin dropdowns have data
+        await fetchAdditionalData();
       } catch (err) {
         console.error("Error fetching application:", err);
         setError(err.message);
@@ -100,30 +98,61 @@ export const useApplicationData = (type, id) => {
       };
 
       const [groupsData, chaptersData] = await Promise.all([
-        fetchWithErrorHandling("/api/industrial-groups"),
-        fetchWithErrorHandling("/api/provincial-chapters"),
+        // Request larger limits so admin can see all options
+        fetchWithErrorHandling("/api/industrial-groups?limit=500"),
+        fetchWithErrorHandling("/api/provincial-chapters?limit=300"),
       ]);
 
-      // Process industrial groups
-      if (groupsData && groupsData.success && Array.isArray(groupsData.data)) {
-        const groupsMap = {};
-        groupsData.data.forEach((group) => {
-          if (group && group.id) {
-            groupsMap[group.id] = group.name || "";
-          }
-        });
-        setIndustrialGroups(groupsMap);
+      // Process industrial groups as array of { id, name, code }
+      if (
+        (groupsData && Array.isArray(groupsData?.data)) ||
+        Array.isArray(groupsData)
+      ) {
+        const rawGroups = Array.isArray(groupsData) ? groupsData : groupsData.data;
+        const groupsArray = rawGroups
+          .map((group) => {
+            if (!group) return null;
+            // Support MSSQL field names and normalized API format
+            const id = group.id || group.MEMBER_GROUP_CODE || group.code;
+            const name =
+              group.name || group.MEMBER_GROUP_NAME_TH || group.MEMBER_GROUP_NAME || group.name_th;
+            const code = group.MEMBER_GROUP_CODE || group.code || id;
+            if (!id || !name) return null;
+            return { id: String(id), name: String(name), code: String(code) };
+          })
+          .filter(Boolean);
+        // Dedupe by id
+        const uniqueGroups = Array.from(
+          groupsArray.reduce((map, item) => map.set(item.id, item), new Map()).values()
+        );
+        setIndustrialGroups(uniqueGroups);
       }
 
-      // Process provincial chapters
-      if (chaptersData && chaptersData.success && Array.isArray(chaptersData.data)) {
-        const chaptersMap = {};
-        chaptersData.data.forEach((chapter) => {
-          if (chapter && chapter.id) {
-            chaptersMap[chapter.id] = chapter.name || "";
-          }
-        });
-        setProvincialChapters(chaptersMap);
+      // Process provincial chapters as array of { id, name, code }
+      if (
+        (chaptersData && Array.isArray(chaptersData?.data)) ||
+        Array.isArray(chaptersData)
+      ) {
+        const rawChapters = Array.isArray(chaptersData) ? chaptersData : chaptersData.data;
+        const chaptersArray = rawChapters
+          .map((chapter) => {
+            if (!chapter) return null;
+            const id = chapter.id || chapter.MEMBER_GROUP_CODE || chapter.code;
+            const name =
+              chapter.name ||
+              chapter.MEMBER_GROUP_NAME_TH ||
+              chapter.MEMBER_GROUP_NAME ||
+              chapter.name_th;
+            const code = chapter.MEMBER_GROUP_CODE || chapter.code || id;
+            if (!id || !name) return null;
+            return { id: String(id), name: String(name), code: String(code) };
+          })
+          .filter(Boolean);
+        // Dedupe by id
+        const uniqueChapters = Array.from(
+          chaptersArray.reduce((map, item) => map.set(item.id, item), new Map()).values()
+        );
+        setProvincialChapters(uniqueChapters);
       }
     } catch (err) {
       console.error("Error fetching additional data:", err);
