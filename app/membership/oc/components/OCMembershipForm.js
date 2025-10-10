@@ -392,7 +392,20 @@ export default function OCMembershipForm({
         // Set showErrors to true to trigger error UI in child components
         setShowErrors(true);
 
-        toast.error("กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน");
+        // แสดง error message ที่ละเอียดขึ้น
+        const errorCount = Object.keys(formErrors).length;
+        const errorFields = Object.keys(formErrors).map(key => {
+          const fieldName = key.split('.').pop();
+          return fieldName;
+        }).slice(0, 3).join(', ');
+        
+        toast.error(
+          `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน${errorCount > 3 ? ' และอื่นๆ' : ''}`,
+          { duration: 5000 }
+        );
+        
+        console.log("❌ Validation errors:", formErrors);
+        
         // Optionally, navigate to the first step with an error
         const firstErrorStep = STEPS.find(
           (step) => Object.keys(validateOCForm(updatedFormData, step)).length > 0,

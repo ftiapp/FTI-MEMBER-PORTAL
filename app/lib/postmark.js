@@ -597,7 +597,7 @@ export async function sendExistingMemberApprovalEmail(
 }
 
 /**
- * Send existing member verification rejection email
+ * Send existing member rejection email
  * @param {string} email - User's email address
  * @param {string} firstname - User's first name
  * @param {string} lastname - User's last name
@@ -1163,6 +1163,197 @@ export async function sendProductUpdateRejectionEmail(
     return response;
   } catch (error) {
     console.error("Error sending product update rejection email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send membership application approval email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @param {string} comment - Admin comment (optional)
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendApprovalEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+  comment,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=member`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "การสมัครสมาชิกได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "การสมัครสมาชิกได้รับการอนุมัติแล้ว",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การสมัครสมาชิกของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              ข้อมูลสมาชิก:
+            </p>
+            <p style="margin: 5px 0;"><strong>บริษัท:</strong> ${companyName}</p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          </div>
+          
+          ${
+            comment
+              ? `
+          <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+              ข้อความจากเจ้าหน้าที่:
+            </p>
+            <p style="margin: 0; color: #374151;">${comment}</p>
+          </div>
+          `
+              : ""
+          }
+          
+          <p>ท่านสามารถเข้าสู่ระบบและดูข้อมูลสมาชิกได้ที่แดชบอร์ดของท่าน</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            ขอบคุณที่เป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        การสมัครสมาชิกได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการสมัครสมาชิกของท่านได้รับการอนุมัติเรียบร้อยแล้ว
+        
+        ข้อมูลสมาชิก:
+        บริษัท: ${companyName}
+        หมายเลขสมาชิก: ${memberCode}
+        
+        ${comment ? `ข้อความจากเจ้าหน้าที่: ${comment}\n` : ""}
+        ท่านสามารถเข้าสู่ระบบและดูข้อมูลสมาชิกได้ที่แดชบอร์ดของท่าน
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        ขอบคุณที่เป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending approval email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send membership application rejection email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code (if available)
+ * @param {string} companyName - Company name
+ * @param {string} reason - Rejection reason
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendRejectionEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+  reason,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "แจ้งผลการพิจารณาการสมัครสมาชิก",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ</strong></p>
+          
+          <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+              ข้อมูลที่ท่านยื่น:
+            </p>
+            <p style="margin: 5px 0;"><strong>บริษัท:</strong> ${companyName}</p>
+            ${memberCode ? `<p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>` : ""}
+          </div>
+          
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626; font-size: 16px;">
+              เหตุผลที่ไม่ได้รับการอนุมัติ:
+            </p>
+            <p style="margin: 0; color: #374151;">${reason || "ไม่ระบุเหตุผล"}</p>
+          </div>
+          
+          <p>ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ
+        
+        ข้อมูลที่ท่านยื่น:
+        บริษัท: ${companyName}
+        ${memberCode ? `หมายเลขสมาชิก: ${memberCode}` : ""}
+        
+        เหตุผลที่ไม่ได้รับการอนุมัติ: ${reason || "ไม่ระบุเหตุผล"}
+        
+        ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending rejection email:", error);
     throw error;
   }
 }

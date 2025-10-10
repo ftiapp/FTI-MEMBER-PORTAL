@@ -853,12 +853,13 @@ export default function ACMembershipForm({
       if (Object.keys(formErrors).length > 0) {
         console.log("❌ Final validation errors:", formErrors);
 
-        // ดึงข้อผิดพลาดฟิลด์เฉพาะตัวแรกเพื่อแสดงใน toast
+        // แสดง error message ที่ละเอียดขึ้น
+        const errorCount = Object.keys(formErrors).length;
         const { key: firstSpecificKey, message: firstSpecificMessage } =
           getFirstFieldError(formErrors);
         const firstMessage =
-          firstSpecificMessage || "กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน";
-        toast.error(firstMessage);
+          firstSpecificMessage || `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
+        toast.error(firstMessage, { duration: 5000 });
 
         const firstErrorStep = STEPS.find(
           (step) => Object.keys(validateACForm(formData, step.id)).length > 0,

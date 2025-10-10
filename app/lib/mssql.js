@@ -1,12 +1,26 @@
 import sql from "mssql";
 
+// ตรวจสอบว่ามี environment variables ครบถ้วน
+if (!process.env.MSSQL_SERVER) {
+  throw new Error("MSSQL_SERVER environment variable is not set");
+}
+if (!process.env.MSSQL_USER) {
+  throw new Error("MSSQL_USER environment variable is not set");
+}
+if (!process.env.MSSQL_PASSWORD) {
+  throw new Error("MSSQL_PASSWORD environment variable is not set");
+}
+if (!process.env.MSSQL_DATABASE) {
+  throw new Error("MSSQL_DATABASE environment variable is not set");
+}
+
 const config = {
-  server: process.env.MSSQL_SERVER || "203.151.40.31",
-  user: process.env.MSSQL_USER || "itadmin",
-  password: process.env.MSSQL_PASSWORD || "It#11044",
-  database: process.env.MSSQL_DATABASE || "FTI",
+  server: process.env.MSSQL_SERVER,
+  user: process.env.MSSQL_USER,
+  password: process.env.MSSQL_PASSWORD,
+  database: process.env.MSSQL_DATABASE,
   options: {
-    encrypt: false, // ไม่ใช้การเข้ารหัส
+    encrypt: true, // เปิดการเข้ารหัสการเชื่อมต่อ
     trustServerCertificate: true, // ยอมรับใบรับรองจากเซิร์ฟเวอร์
     connectTimeout: 30000, // Increase connection timeout
     requestTimeout: 60000, // Increase request timeout for long-running queries

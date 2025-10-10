@@ -518,11 +518,16 @@ export default function AMMembershipForm(props = {}) {
       setErrors(formErrors);
 
       if (Object.keys(formErrors).length > 0) {
+        console.log("❌ Validation errors:", formErrors);
+        
         // Set showErrors to true to trigger error display and scrolling
         if (typeof setShowErrors === "function") {
           setShowErrors(true);
         }
 
+        // แสดง error message ที่ละเอียดขึ้น
+        const errorCount = Object.keys(formErrors).length;
+        
         // Find first error key deterministically and step with errors
         const firstErrorKey = getFirstFieldError(formErrors) || "representativeErrors";
         const firstErrorStep = STEPS.find(
@@ -548,9 +553,9 @@ export default function AMMembershipForm(props = {}) {
         const errorMessage =
           typeof formErrors[firstErrorKey] === "string"
             ? formErrors[firstErrorKey]
-            : "กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วนทุกขั้นตอน";
+            : `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
 
-        toast.error(errorMessage);
+        toast.error(errorMessage, { duration: 5000 });
         return;
       }
 

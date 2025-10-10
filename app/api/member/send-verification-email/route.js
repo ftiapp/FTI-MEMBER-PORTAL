@@ -23,7 +23,7 @@ export async function POST(request) {
 
     // Get user information from database
     const userResult = await query(
-      `SELECT id, first_name, last_name, email FROM users WHERE id = ?`,
+      `SELECT id, firstname, lastname, email FROM users WHERE id = ?`,
       [userId],
     );
 
@@ -40,8 +40,8 @@ export async function POST(request) {
     try {
       await sendExistingMemberVerificationEmail(
         user.email,
-        user.first_name,
-        user.last_name,
+        user.firstname,
+        user.lastname,
         companies,
       );
 

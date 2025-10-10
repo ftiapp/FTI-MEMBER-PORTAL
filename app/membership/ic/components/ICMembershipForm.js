@@ -725,7 +725,14 @@ export default function ICMembershipForm({
       setErrors(formErrors);
 
       if (Object.keys(formErrors).length > 0) {
-        console.log("Validation failed with errors:", formErrors);
+        console.log("❌ Validation failed with errors:", formErrors);
+
+        // แสดง error message ที่ละเอียดขึ้น
+        const errorCount = Object.keys(formErrors).length;
+        toast.error(
+          `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`,
+          { duration: 5000 }
+        );
 
         // Use the enhanced scrollToFirstError function which handles toast notifications
         scrollToFirstError(formErrors);

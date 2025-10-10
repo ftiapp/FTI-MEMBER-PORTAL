@@ -805,6 +805,9 @@ export default function WasMember() {
             companyName: company.companyName,
           }));
 
+          console.log("📧 Sending verification email to user:", user?.id);
+          console.log("Companies:", emailCompanies);
+
           fetch("/api/member/send-verification-email", {
             method: "POST",
             headers: {
@@ -814,12 +817,21 @@ export default function WasMember() {
               userId: user?.id,
               companies: emailCompanies,
             }),
-          }).catch((err) => {
-            console.error("Failed to send verification email:", err);
-            // Don't show error to user - email is optional
-          });
+          })
+            .then(async (response) => {
+              const data = await response.json();
+              if (response.ok) {
+                console.log("✅ Verification email sent successfully:", data);
+              } else {
+                console.error("❌ Failed to send verification email:", data);
+              }
+            })
+            .catch((err) => {
+              console.error("❌ Network error sending verification email:", err);
+              // Don't show error to user - email is optional
+            });
         } catch (emailErr) {
-          console.error("Error preparing verification email:", emailErr);
+          console.error("❌ Error preparing verification email:", emailErr);
           // Don't show error to user - email is optional
         }
 

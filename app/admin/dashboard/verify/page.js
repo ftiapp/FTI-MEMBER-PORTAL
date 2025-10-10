@@ -172,52 +172,44 @@ export default function VerifyMembers() {
   };
 
   /**
-   * Rejects a member verification request with a reason and optional comment
+   * Rejects an existing member verification request with a reason
    */
   const handleReject = async (reason, comment) => {
     if (!selectedMember) return;
 
     try {
       setIsRejecting(true);
-      // Get the first document ID from the documents array
-      const documentId =
-        selectedMember.documents && selectedMember.documents.length > 0
-          ? selectedMember.documents[0].id
-          : null;
 
-      if (!documentId) {
-        toast.error("ไม่พบเอกสารสำหรับสมาชิกนี้");
-        setShowRejectModal(false);
-        return;
-      }
+      console.log("🚫 Rejecting existing member verification:");
+      console.log("Member:", selectedMember);
+      console.log("Reason:", reason);
 
-      const response = await fetch("/api/admin/approve-member", {
+      const response = await fetch("/api/admin/verify-existing-member/reject", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          memberId: selectedMember.id,
-          documentId: documentId,
-          action: "reject",
+          userId: selectedMember.user_id,
+          memberCode: selectedMember.MEMBER_CODE,
+          companyId: selectedMember.id,
           reason: reason,
-          comment: comment || null,
         }),
       });
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success("ปฏิเสธสมาชิกเรียบร้อยแล้ว");
+        toast.success("ปฏิเสธการยืนยันสมาชิกเดิมเรียบร้อยแล้ว");
         setShowRejectModal(false);
         fetchMembers();
         setSelectedMember(null);
       } else {
-        toast.error(result.message || "ไม่สามารถปฏิเสธสมาชิกได้");
+        toast.error(result.message || "ไม่สามารถปฏิเสธการยืนยันสมาชิกเดิมได้");
       }
     } catch (error) {
-      console.error("Error rejecting member:", error);
-      toast.error("เกิดข้อผิดพลาดในการปฏิเสธสมาชิก");
+      console.error("Error rejecting existing member:", error);
+      toast.error("เกิดข้อผิดพลาดในการปฏิเสธการยืนยันสมาชิกเดิม");
     } finally {
       setIsRejecting(false);
     }

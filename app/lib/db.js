@@ -10,41 +10,38 @@ const initMysql = async () => {
   return mysql;
 };
 
+// ตรวจสอบว่ามี environment variables ครบถ้วน
+if (!process.env.DB_HOST) {
+  throw new Error("DB_HOST environment variable is not set");
+}
+if (!process.env.DB_USER) {
+  throw new Error("DB_USER environment variable is not set");
+}
+if (!process.env.DB_PASSWORD) {
+  throw new Error("DB_PASSWORD environment variable is not set");
+}
+if (!process.env.DB_NAME) {
+  throw new Error("DB_NAME environment variable is not set");
+}
+
 // Log environment variables (mask sensitive data)
 console.log("Database connection attempt:", {
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   user: process.env.DB_USER,
-  port: process.env.DB_PORT,
+  port: process.env.DB_PORT || "3306",
   hasPassword: !!process.env.DB_PASSWORD,
+  environment: process.env.NODE_ENV || "development",
 });
 
-// ตรวจสอบสภาพแวดล้อม (development หรือ production)
-const isProd = process.env.NODE_ENV === "production";
-
-// กำหนดค่า connection ตามสภาพแวดล้อม
-let dbConfig;
-if (isProd) {
-  // ค่าสำหรับ production environment (Kubernetes)
-  dbConfig = {
-    host:
-      process.env.DB_HOST || "ftimemberportal-rofxa-mysql.ftimemberportal-rofxa.svc.cluster.local",
-    user: process.env.DB_USER || "ermine",
-    password: process.env.DB_PASSWORD || "qZ5[oG2:wK5*zC2[",
-    database: process.env.DB_NAME || "ftimemberportal",
-    port: process.env.DB_PORT || "3306",
-    ssl: false,
-  };
-} else {
-  // ค่าสำหรับ development environment
-  dbConfig = {
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-    ssl: false,
-  };
+// กำหนดค่า connection (ไม่มี fallback values)
+let dbConfig = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || "3306",
+  ssl: false, // ถ้า MySQL รองรับ SSL ควรเปลี่ยนเป็น true
 }
 
 // เพิ่ม connection options
