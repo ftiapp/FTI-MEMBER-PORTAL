@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { checkAdminSession } from "@/app/lib/auth";
 import { pool } from "@/app/lib/db";
 import { createNotification } from "@/app/lib/notifications";
+import { sendProductUpdateApprovalEmail } from "@/app/lib/postmark";
 
 /**
  * API endpoint to approve a product update request
@@ -109,6 +110,28 @@ export async function POST(request) {
 
       // Commit the transaction
       await pool.query("COMMIT");
+
+      // ส่งอีเมลแจ้งเตือนผู้ใช้
+      try {
+        // ดึงข้อมูลผู้ใช้
+        const [userData] = await pool.query(
+          "SELECT email, firstname, lastname FROM users WHERE id = ?",
+          [productUpdateRequest.user_id]
+        );
+        if (userData && userData.length > 0 && userData[0].email) {
+          await sendProductUpdateApprovalEmail(
+            userData[0].email,
+            userData[0].firstname || "",
+            userData[0].lastname || "",
+            productUpdateRequest.member_code,
+            productUpdateRequest.company_name || "ไม่ระบุ",
+          );
+          console.log("Product update approval email sent to:", userData[0].email);
+        }
+      } catch (emailError) {
+        console.error("Error sending product update approval email:", emailError);
+        // Continue with the process even if email sending fails
+      }
 
       return NextResponse.json({
         success: true,

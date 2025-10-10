@@ -896,3 +896,273 @@ export async function sendProfileUpdateRejectionEmail(email, firstname, lastname
     throw error;
   }
 }
+
+/**
+ * Send product update request confirmation email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendProductUpdateRequestEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=status`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "ยืนยันการส่งคำขอแก้ไขข้อมูลสินค้า - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "ยืนยันการส่งคำขอแก้ไขข้อมูลสินค้า",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขข้อมูลสินค้าของท่านได้รับการบันทึกเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+              รายละเอียดคำขอ:
+            </p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
+          </div>
+          
+          <div style="background-color: #fef3c7; padding: 14px 18px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e; font-size: 15px;">
+              <strong>⏱️ ระยะเวลาในการพิจารณา:</strong> เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา <strong>1-2 วันทำการ</strong>
+            </p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า <strong>"ตรวจสอบสถานะการดำเนินการ"</strong> ในแดชบอร์ดของท่าน</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ตรวจสอบสถานะ
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        ยืนยันการส่งคำขอแก้ไขข้อมูลสินค้า - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขข้อมูลสินค้าของท่านได้รับการบันทึกเรียบร้อยแล้ว
+        
+        รายละเอียดคำขอ:
+        หมายเลขสมาชิก: ${memberCode}
+        ชื่อบริษัท: ${companyName}
+        
+        ระยะเวลาในการพิจารณา: เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา 1-2 วันทำการ
+        
+        ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า "ตรวจสอบสถานะการดำเนินการ" ในแดชบอร์ดของท่าน
+        
+        ตรวจสอบสถานะ: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending product update request email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send product update approval email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendProductUpdateApprovalEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const memberDetailLink = `${baseUrl}/MemberDetail?memberCode=${encodeURIComponent(memberCode)}`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "คำขอแก้ไขข้อมูลสินค้าได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "คำขอแก้ไขข้อมูลสินค้าได้รับการอนุมัติแล้ว",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขข้อมูลสินค้าของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              รายละเอียด:
+            </p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
+          </div>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              ✓ ข้อมูลสินค้าของท่านได้รับการอัปเดตเรียบร้อยแล้ว
+            </p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบข้อมูลสินค้าที่อัปเดตได้ที่หน้า <strong>"ข้อมูลสมาชิก"</strong></p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${memberDetailLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ดูข้อมูลสินค้า
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        คำขอแก้ไขข้อมูลสินค้าได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขข้อมูลสินค้าของท่านได้รับการอนุมัติเรียบร้อยแล้ว
+        
+        รายละเอียด:
+        หมายเลขสมาชิก: ${memberCode}
+        ชื่อบริษัท: ${companyName}
+        
+        ข้อมูลสินค้าของท่านได้รับการอัปเดตเรียบร้อยแล้ว
+        
+        ท่านสามารถตรวจสอบข้อมูลสินค้าที่อัปเดตได้ที่หน้า "ข้อมูลสมาชิก"
+        
+        ดูข้อมูลสินค้า: ${memberDetailLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending product update approval email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send product update rejection email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @param {string} rejectReason - Rejection reason
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendProductUpdateRejectionEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+  rejectReason,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=status`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "คำขอแก้ไขข้อมูลสินค้าไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "คำขอแก้ไขข้อมูลสินค้าไม่ได้รับการอนุมัติ",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขข้อมูลสินค้าของท่านไม่ได้รับการอนุมัติ</strong></p>
+          
+          <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+              รายละเอียด:
+            </p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
+          </div>
+          
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626; font-size: 16px;">
+              เหตุผลที่ไม่ได้รับการอนุมัติ:
+            </p>
+            <p style="margin: 0; color: #374151;">${rejectReason || "ไม่ระบุเหตุผล"}</p>
+          </div>
+          
+          <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        คำขอแก้ไขข้อมูลสินค้าไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขข้อมูลสินค้าของท่านไม่ได้รับการอนุมัติ
+        
+        รายละเอียด:
+        หมายเลขสมาชิก: ${memberCode}
+        ชื่อบริษัท: ${companyName}
+        
+        เหตุผลที่ไม่ได้รับการอนุมัติ: ${rejectReason || "ไม่ระบุเหตุผล"}
+        
+        ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending product update rejection email:", error);
+    throw error;
+  }
+}

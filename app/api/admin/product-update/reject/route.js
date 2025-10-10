@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { checkAdminSession } from "../../../../lib/auth";
 import { pool } from "../../../../lib/db";
 import { createNotification } from "../../../../lib/notifications";
+import { sendProductUpdateRejectionEmail } from "../../../../lib/postmark";
 
 /**
  * API endpoint to reject a product update request
@@ -135,6 +136,24 @@ export async function POST(request) {
 
       // Commit the transaction
       await pool.query("COMMIT");
+
+      // ส่งอีเมลแจ้งเตือนผู้ใช้
+      try {
+        if (request.email) {
+          await sendProductUpdateRejectionEmail(
+            request.email,
+            request.firstname || "",
+            request.lastname || "",
+            request.member_code,
+            request.company_name || "ไม่ระบุ",
+            reject_reason,
+          );
+          console.log("Product update rejection email sent to:", request.email);
+        }
+      } catch (emailError) {
+        console.error("Error sending product update rejection email:", emailError);
+        // Continue with the process even if email sending fails
+      }
 
       return NextResponse.json({
         success: true,

@@ -9,6 +9,7 @@ import {
   rollbackTransaction,
 } from "../../../lib/db";
 import { createNotification } from "../../../lib/notifications";
+import { sendProductUpdateRequestEmail } from "../../../lib/postmark";
 
 /**
  * API endpoint to submit a product update request
@@ -172,6 +173,25 @@ export async function POST(request) {
 
       // Commit the transaction
       await commitTransaction(conn);
+
+      // ส่งอีเมลแจ้งเตือนผู้ใช้
+      try {
+        // ดึงข้อมูลผู้ใช้
+        const userData = await dbQuery("SELECT email, firstname, lastname FROM users WHERE id = ?", [userId]);
+        if (userData && userData.length > 0 && userData[0].email) {
+          await sendProductUpdateRequestEmail(
+            userData[0].email,
+            userData[0].firstname || "",
+            userData[0].lastname || "",
+            member_code,
+            company_name || "ไม่ระบุ",
+          );
+          console.log("Product update request email sent to:", userData[0].email);
+        }
+      } catch (emailError) {
+        console.error("Error sending product update request email:", emailError);
+        // Continue with the process even if email sending fails
+      }
 
       return NextResponse.json({
         success: true,
