@@ -4,6 +4,7 @@ import { mssqlQuery } from "@/app/lib/mssql";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 import { logAdminAction } from "@/app/lib/adminAuth";
 import { getClientIp } from "@/app/lib/utils";
+import { sendExistingMemberApprovalEmail } from "@/app/lib/postmark";
 
 export async function POST(request) {
   try {
@@ -141,6 +142,21 @@ export async function POST(request) {
         request,
         userId,
       );
+
+      // ส่งอีเมลแจ้งเตือนผู้ใช้
+      try {
+        await sendExistingMemberApprovalEmail(
+          user.email,
+          user.firstname || "",
+          user.lastname || "",
+          memberCode,
+          memberInfo.COMPANY_NAME || "ไม่ระบุ",
+        );
+        console.log("Existing member approval email sent to:", user.email);
+      } catch (emailError) {
+        console.error("Error sending existing member approval email:", emailError);
+        // Continue with the process even if email sending fails
+      }
 
       return NextResponse.json({
         success: true,

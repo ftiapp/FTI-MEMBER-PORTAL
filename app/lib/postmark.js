@@ -296,4 +296,603 @@ export async function sendMembershipConfirmationEmail(email, name, membershipTyp
   }
 }
 
-// Export other email functions as needed, following the same pattern
+/**
+ * Send address update request confirmation email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @param {string} addrType - Address type (001, 002, 003)
+ * @param {string} addrLang - Address language (th, en)
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendAddressUpdateRequestEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+  addrType,
+  addrLang,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard`;
+
+  // Map address type to Thai name
+  const addrTypeMap = {
+    "001": "ที่อยู่สำหรับติดต่อ",
+    "002": "ที่อยู่สำหรับจัดส่งเอกสาร",
+    "003": "ที่อยู่สำหรับออกใบกำกับภาษี",
+  };
+  const addrTypeName = addrTypeMap[addrType] || "ที่อยู่";
+  const langName = addrLang === "en" ? "ภาษาอังกฤษ" : "ภาษาไทย";
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "ยืนยันการส่งคำขอแก้ไขที่อยู่ - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "ยืนยันการส่งคำขอแก้ไขที่อยู่",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขที่อยู่ของท่านได้รับการบันทึกเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+              รายละเอียดคำขอ:
+            </p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อบริษัท:</strong> ${companyName}</p>
+            <p style="margin: 5px 0;"><strong>ประเภทที่อยู่:</strong> ${addrTypeName} (${langName})</p>
+          </div>
+          
+          <div style="background-color: #fef3c7; padding: 14px 18px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e; font-size: 15px;">
+              <strong>⏱️ ระยะเวลาในการพิจารณา:</strong> เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา <strong>1-2 วันทำการ</strong>
+            </p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า <strong>"ข้อมูลสมาชิก"</strong> ในแดชบอร์ดของท่าน</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        ยืนยันการส่งคำขอแก้ไขที่อยู่ - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขที่อยู่ของท่านได้รับการบันทึกเรียบร้อยแล้ว
+        
+        รายละเอียดคำขอ:
+        หมายเลขสมาชิก: ${memberCode}
+        ชื่อบริษัท: ${companyName}
+        ประเภทที่อยู่: ${addrTypeName} (${langName})
+        
+        ระยะเวลาในการพิจารณา: เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา 1-2 วันทำการ
+        
+        ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า "ข้อมูลสมาชิก" ในแดชบอร์ดของท่าน
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending address update request email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send existing member verification confirmation email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {Array} companies - Array of company objects with memberCode and companyName
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendExistingMemberVerificationEmail(
+  email,
+  firstname,
+  lastname,
+  companies = [],
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const loginLink = `${baseUrl}/login`;
+  const dashboardLink = `${baseUrl}/dashboard?tab=wasmember`;
+
+  // Create company list HTML
+  const companyListHtml = companies
+    .map(
+      (company, index) => `
+    <div style="background-color: #f9fafb; padding: 12px 16px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid #1a56db;">
+      <p style="margin: 0 0 5px 0; font-weight: 600; color: #1f2937;">
+        ${index + 1}. ${company.companyName || "ไม่ระบุชื่อบริษัท"}
+      </p>
+      <p style="margin: 0; color: #6b7280; font-size: 14px;">
+        หมายเลขสมาชิก: <strong>${company.memberCode || "ไม่ระบุ"}</strong>
+      </p>
+    </div>
+  `,
+    )
+    .join("");
+
+  // Create company list plain text
+  const companyListText = companies
+    .map(
+      (company, index) =>
+        `${index + 1}. ${company.companyName || "ไม่ระบุชื่อบริษัท"} (หมายเลขสมาชิก: ${company.memberCode || "ไม่ระบุ"})`,
+    )
+    .join("\n");
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "ยืนยันการส่งข้อมูลยืนยันสมาชิกเดิม - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "ยืนยันการส่งข้อมูลยืนยันสมาชิกเดิม",
+        bodyContent: `
+        <p>เรียน คุณ${fullName}</p>
+        
+        <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>ท่านได้ทำการยืนยันสมาชิกเดิมภายในบัญชีของท่านเรียบร้อยแล้ว</strong></p>
+        
+        <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+          <p style="margin: 0 0 12px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+            รายชื่อสมาชิกที่ยื่นขอยืนยัน:
+          </p>
+          ${companyListHtml}
+        </div>
+        
+        <div style="background-color: #fef3c7; padding: 14px 18px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <p style="margin: 0; color: #92400e; font-size: 15px;">
+            <strong>⏱️ ระยะเวลาในการพิจารณา:</strong> เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา <strong>1-2 วันทำการ</strong>
+          </p>
+        </div>
+        
+        <p>ท่านสามารถตรวจสอบสถานะการยืนยันได้ที่เมนู <strong>"ยืนยันสมาชิกเดิม"</strong> ในแดชบอร์ดของท่าน</p>
+        
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+            ตรวจสอบสถานะ
+          </a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+          หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        </p>
+      `,
+      }),
+      TextBody: `
+      ยืนยันการส่งข้อมูลยืนยันสมาชิกเดิม - สภาอุตสาหกรรมแห่งประเทศไทย
+      
+      เรียน คุณ${fullName}
+      
+      สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าท่านได้ทำการยืนยันสมาชิกเดิมภายในบัญชีของท่านเรียบร้อยแล้ว
+      
+      รายชื่อสมาชิกที่ยื่นขอยืนยัน:
+      ${companyListText}
+      
+      ระยะเวลาในการพิจารณา: เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา 1-2 วันทำการ
+      
+      ท่านสามารถตรวจสอบสถานะการยืนยันได้ที่เมนู "ยืนยันสมาชิกเดิม" ในแดชบอร์ดของท่าน
+      
+      ตรวจสอบสถานะได้ที่: ${dashboardLink}
+      เข้าสู่ระบบได้ที่: ${loginLink}
+      
+      หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+      CALL CENTER: 1453 กด 2
+      E-MAIL: member@fti.or.th
+      
+      © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+    `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending existing member verification email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send existing member verification approval email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendExistingMemberApprovalEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=member`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "การยืนยันสมาชิกเดิมได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "การยืนยันสมาชิกเดิมได้รับการอนุมัติแล้ว",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การยืนยันสมาชิกเดิมของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              ข้อมูลสมาชิก:
+            </p>
+            <p style="margin: 5px 0;"><strong>บริษัท:</strong> ${companyName}</p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ เมนู <strong>จัดการสมาชิก → ข้อมูลสมาชิก</strong> บนเว็บไซต์</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ตรวจสอบข้อมูลสมาชิก
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        การยืนยันสมาชิกเดิมได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการยืนยันสมาชิกเดิมของท่านได้รับการอนุมัติเรียบร้อยแล้ว
+        
+        ข้อมูลสมาชิก:
+        บริษัท: ${companyName}
+        หมายเลขสมาชิก: ${memberCode}
+        
+        ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ เมนู จัดการสมาชิก → ข้อมูลสมาชิก บนเว็บไซต์
+        
+        ตรวจสอบข้อมูลสมาชิก: ${dashboardLink}
+        
+        หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending existing member approval email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send existing member verification rejection email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} memberCode - Member code
+ * @param {string} companyName - Company name
+ * @param {string} rejectReason - Rejection reason
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendExistingMemberRejectionEmail(
+  email,
+  firstname,
+  lastname,
+  memberCode,
+  companyName,
+  rejectReason,
+) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=wasmember`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "การยืนยันสมาชิกเดิมไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "การยืนยันสมาชิกเดิมไม่ได้รับการอนุมัติ",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การยืนยันสมาชิกเดิมของท่านไม่ได้รับการอนุมัติ</strong></p>
+          
+          <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
+              ข้อมูลที่ท่านยื่น:
+            </p>
+            <p style="margin: 5px 0;"><strong>บริษัท:</strong> ${companyName}</p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>
+          </div>
+          
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626; font-size: 16px;">
+              เหตุผลที่ไม่ได้รับการอนุมัติ:
+            </p>
+            <p style="margin: 0; color: #374151;">${rejectReason || "ไม่ระบุเหตุผล"}</p>
+          </div>
+          
+          <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        การยืนยันสมาชิกเดิมไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการยืนยันสมาชิกเดิมของท่านไม่ได้รับการอนุมัติ
+        
+        ข้อมูลที่ท่านยื่น:
+        บริษัท: ${companyName}
+        หมายเลขสมาชิก: ${memberCode}
+        
+        เหตุผลที่ไม่ได้รับการอนุมัติ: ${rejectReason || "ไม่ระบุเหตุผล"}
+        
+        ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending existing member rejection email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send profile update request confirmation email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendProfileUpdateRequestEmail(email, firstname, lastname) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=updatemember`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "ยืนยันการส่งคำขอแก้ไขข้อมูลส่วนตัว - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "ยืนยันการส่งคำขอแก้ไขข้อมูลส่วนตัว",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>ท่านได้ทำการขอแก้ไขข้อมูลส่วนตัว (ชื่อ-นามสกุล) เรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #fef3c7; padding: 14px 18px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="margin: 0; color: #92400e; font-size: 15px;">
+              <strong>⏱️ ระยะเวลาในการพิจารณา:</strong> เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา <strong>1-2 วันทำการ</strong>
+            </p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า <strong>"แก้ไขข้อมูลส่วนตัว"</strong> ในแดชบอร์ดของท่าน</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ตรวจสอบสถานะ
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        ยืนยันการส่งคำขอแก้ไขข้อมูลส่วนตัว - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าท่านได้ทำการขอแก้ไขข้อมูลส่วนตัว (ชื่อ-นามสกุล) เรียบร้อยแล้ว
+        
+        ระยะเวลาในการพิจารณา: เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา 1-2 วันทำการ
+        
+        ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า "แก้ไขข้อมูลส่วนตัว" ในแดชบอร์ดของท่าน
+        
+        ตรวจสอบสถานะ: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending profile update request email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send profile update approval email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendProfileUpdateApprovalEmail(email, firstname, lastname) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=updatemember`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "คำขอแก้ไขข้อมูลส่วนตัวได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "คำขอแก้ไขข้อมูลส่วนตัวได้รับการอนุมัติแล้ว",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขข้อมูลส่วนตัวของท่านได้รับการอนุมัติเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              ✓ ข้อมูลของท่านได้รับการอัปเดตเรียบร้อยแล้ว
+            </p>
+          </div>
+          
+          <p>ท่านสามารถตรวจสอบข้อมูลที่อัปเดตได้ที่หน้า <strong>"แก้ไขข้อมูลส่วนตัว"</strong> ในแดชบอร์ดของท่าน</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ดูข้อมูลที่อัปเดต
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        คำขอแก้ไขข้อมูลส่วนตัวได้รับการอนุมัติแล้ว - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขข้อมูลส่วนตัวของท่านได้รับการอนุมัติเรียบร้อยแล้ว
+        
+        ข้อมูลของท่านได้รับการอัปเดตเรียบร้อยแล้ว
+        
+        ท่านสามารถตรวจสอบข้อมูลที่อัปเดตได้ที่หน้า "แก้ไขข้อมูลส่วนตัว" ในแดชบอร์ดของท่าน
+        
+        ดูข้อมูลที่อัปเดต: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending profile update approval email:", error);
+    throw error;
+  }
+}
+
+/**
+ * Send profile update rejection email
+ * @param {string} email - User's email address
+ * @param {string} firstname - User's first name
+ * @param {string} lastname - User's last name
+ * @param {string} rejectReason - Rejection reason
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendProfileUpdateRejectionEmail(email, firstname, lastname, rejectReason) {
+  const fullName = `${firstname} ${lastname}`.trim();
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=updatemember`;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "คำขอแก้ไขข้อมูลส่วนตัวไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "คำขอแก้ไขข้อมูลส่วนตัวไม่ได้รับการอนุมัติ",
+        bodyContent: `
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>คำขอแก้ไขข้อมูลส่วนตัวของท่านไม่ได้รับการอนุมัติ</strong></p>
+          
+          <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626; font-size: 16px;">
+              เหตุผลที่ไม่ได้รับการอนุมัติ:
+            </p>
+            <p style="margin: 0; color: #374151;">${rejectReason || "ไม่ระบุเหตุผล"}</p>
+          </div>
+          
+          <p>ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+        `,
+      }),
+      TextBody: `
+        คำขอแก้ไขข้อมูลส่วนตัวไม่ได้รับการอนุมัติ - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${fullName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าคำขอแก้ไขข้อมูลส่วนตัวของท่านไม่ได้รับการอนุมัติ
+        
+        เหตุผลที่ไม่ได้รับการอนุมัติ: ${rejectReason || "ไม่ระบุเหตุผล"}
+        
+        ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending profile update rejection email:", error);
+    throw error;
+  }
+}

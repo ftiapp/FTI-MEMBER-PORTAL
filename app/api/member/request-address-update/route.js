@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import { query } from "../../../lib/db";
 import { cookies } from "next/headers";
 import { createNotification } from "../../../lib/notifications";
+import { sendAddressUpdateRequestEmail } from "../../../lib/postmark";
 
 /**
  * API endpoint to handle address update requests
@@ -305,6 +306,35 @@ export async function POST(request) {
     } catch (notificationError) {
       console.error("Error creating address update request notification:", notificationError);
       // Continue with the process even if notification creation fails
+    }
+
+    // ส่งอีเมลแจ้งเตือนผู้ใช้
+    try {
+      // ดึงข้อมูลผู้ใช้และบริษัท
+      const userDataQuery = `
+        SELECT u.email, u.first_name, u.last_name, cm.COMP_NAME_TH
+        FROM users u
+        LEFT JOIN companies_Member cm ON cm.MEMBER_CODE = ?
+        WHERE u.id = ?
+        LIMIT 1
+      `;
+      const userData = await query(userDataQuery, [memberCodeValue, userId]);
+
+      if (userData && userData.length > 0 && userData[0].email) {
+        await sendAddressUpdateRequestEmail(
+          userData[0].email,
+          userData[0].first_name || "",
+          userData[0].last_name || "",
+          memberCodeValue,
+          userData[0].COMP_NAME_TH || "ไม่ระบุ",
+          addrCodeValue,
+          addrLangValue,
+        );
+        console.log("Address update request email sent to:", userData[0].email);
+      }
+    } catch (emailError) {
+      console.error("Error sending address update request email:", emailError);
+      // Continue with the process even if email sending fails
     }
 
     return NextResponse.json({

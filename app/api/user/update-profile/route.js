@@ -1,6 +1,7 @@
 import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { getClientIp } from "@/app/lib/utils";
+import { sendProfileUpdateRequestEmail } from "@/app/lib/postmark";
 
 export async function POST(request) {
   try {
@@ -62,6 +63,15 @@ export async function POST(request) {
         userAgent,
       ],
     );
+
+    // ส่งอีเมลแจ้งเตือนผู้ใช้
+    try {
+      await sendProfileUpdateRequestEmail(email, firstName, lastName);
+      console.log("Profile update request email sent to:", email);
+    } catch (emailError) {
+      console.error("Error sending profile update request email:", emailError);
+      // Continue with the process even if email sending fails
+    }
 
     return NextResponse.json({
       success: true,

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../lib/adminAuth";
 import { getClientIp } from "../../../lib/utils";
 import { createNotification } from "../../../lib/notifications";
+import { sendProfileUpdateRejectionEmail } from "../../../lib/postmark";
 
 export async function POST(request) {
   try {
@@ -75,6 +76,24 @@ export async function POST(request) {
     } catch (notificationError) {
       console.error("Error creating notification:", notificationError);
       // ไม่ต้องหยุดการทำงานหากไม่สามารถสร้างการแจ้งเตือนได้
+    }
+
+    // ส่งอีเมลแจ้งเตือนผู้ใช้
+    try {
+      // ดึงข้อมูลผู้ใช้
+      const userData = await query("SELECT email, firstname, lastname FROM users WHERE id = ?", [userId]);
+      if (userData && userData.length > 0 && userData[0].email) {
+        await sendProfileUpdateRejectionEmail(
+          userData[0].email,
+          userData[0].firstname || "",
+          userData[0].lastname || "",
+          reason,
+        );
+        console.log("Profile update rejection email sent to:", userData[0].email);
+      }
+    } catch (emailError) {
+      console.error("Error sending profile update rejection email:", emailError);
+      // Continue with the process even if email sending fails
     }
 
     return NextResponse.json({

@@ -27,10 +27,22 @@ const IndustrialGroupsSection = ({
   // Initialize selected items when editing starts
   useEffect(() => {
     if (isEditing) {
-      setSelectedIndustrialGroups(editData.industrialGroups || []);
-      setSelectedProvincialChapters(editData.provincialChapters || []);
+      // Transform application data to match dropdown format
+      const igItems = (application?.industrialGroups || []).map(g => ({
+        id: g.id || g.code,
+        name: g.name || g.name_th || `รหัส: ${g.id}`,
+        code: g.code || g.id
+      }));
+      const pcItems = (application?.provincialChapters || []).map(c => ({
+        id: c.id || c.code,
+        name: c.name || c.name_th || `รหัส: ${c.id}`,
+        code: c.code || c.id
+      }));
+      
+      setSelectedIndustrialGroups(igItems);
+      setSelectedProvincialChapters(pcItems);
     }
-  }, [isEditing, editData]);
+  }, [isEditing, application]);
 
   const handleEdit = () => {
     setIsEditing(true);
@@ -62,6 +74,14 @@ const IndustrialGroupsSection = ({
     setSelectedProvincialChapters([]);
   };
 
+  const handleRemoveIndustrialGroup = (id) => {
+    setSelectedIndustrialGroups(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleRemoveProvincialChapter = (id) => {
+    setSelectedProvincialChapters(prev => prev.filter(item => item.id !== id));
+  };
+
   // Transform API data to dropdown format (supports array or object maps)
   const igRaw = Array.isArray(industrialGroups)
     ? industrialGroups
@@ -74,17 +94,25 @@ const IndustrialGroupsSection = ({
     ? Object.values(provincialChapters)
     : [];
 
+  // Debug: Log raw data
+  console.log("IndustrialGroupsSection - Raw IG data:", igRaw);
+  console.log("IndustrialGroupsSection - Raw PC data:", pcRaw);
+
   const industrialGroupOptions = igRaw.map((g) => ({
     id: g.MEMBER_GROUP_CODE || g.id || g.code,
     name: g.MEMBER_GROUP_NAME_TH || g.name_th || g.name || g.MEMBER_GROUP_NAME || "",
     code: g.MEMBER_GROUP_CODE || g.code || g.id,
-  })).filter((o) => o.id);
+  })).filter((o) => o.id && o.name);
 
   const provincialChapterOptions = pcRaw.map((c) => ({
     id: c.MEMBER_GROUP_CODE || c.id || c.code,
     name: c.MEMBER_GROUP_NAME_TH || c.name_th || c.name || c.MEMBER_GROUP_NAME || "",
     code: c.MEMBER_GROUP_CODE || c.code || c.id,
-  })).filter((o) => o.id);
+  })).filter((o) => o.id && o.name);
+
+  // Debug: Log transformed options
+  console.log("IndustrialGroupsSection - IG Options:", industrialGroupOptions);
+  console.log("IndustrialGroupsSection - PC Options:", provincialChapterOptions);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
@@ -142,23 +170,107 @@ const IndustrialGroupsSection = ({
 
       {isEditing ? (
         <div className="space-y-6">
-          {/* Industrial Groups Multi-select */}
-          <MultiSelectDropdown
-            options={industrialGroupOptions}
-            selectedItems={selectedIndustrialGroups}
-            onChange={setSelectedIndustrialGroups}
-            placeholder="เลือกกลุ่มอุตสาหกรรม"
-            label="กลุ่มอุตสาหกรรม"
-          />
+          {/* Industrial Groups Section */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700">
+              กลุ่มอุตสาหกรรม
+            </label>
+            
+            {/* Selected Industrial Groups */}
+            {selectedIndustrialGroups.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedIndustrialGroups.map((item) => (
+                  <span
+                    key={item.id}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-800 rounded-lg text-sm font-medium"
+                  >
+                    {item.name}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveIndustrialGroup(item.id)}
+                      className="hover:bg-blue-200 rounded-full p-0.5 transition-colors"
+                      title="ลบรายการนี้"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
 
-          {/* Provincial Chapters Multi-select */}
-          <MultiSelectDropdown
-            options={provincialChapterOptions}
-            selectedItems={selectedProvincialChapters}
-            onChange={setSelectedProvincialChapters}
-            placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
-            label="สภาอุตสาหกรรมจังหวัด"
-          />
+            {/* Dropdown */}
+            <MultiSelectDropdown
+              options={industrialGroupOptions}
+              selectedItems={selectedIndustrialGroups}
+              onChange={setSelectedIndustrialGroups}
+              placeholder="เลือกกลุ่มอุตสาหกรรม"
+              label=""
+            />
+            
+            {industrialGroupOptions.length === 0 && (
+              <p className="text-sm text-amber-600 mt-2">
+                ⚠️ ไม่พบข้อมูลกลุ่มอุตสาหกรรม กรุณาตรวจสอบการโหลดข้อมูล
+              </p>
+            )}
+          </div>
+
+          {/* Provincial Chapters Section */}
+          <div className="space-y-3">
+            <label className="block text-sm font-semibold text-gray-700">
+              สภาอุตสาหกรรมจังหวัด
+            </label>
+            
+            {/* Selected Provincial Chapters */}
+            {selectedProvincialChapters.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {selectedProvincialChapters.map((item) => (
+                  <span
+                    key={item.id}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-800 rounded-lg text-sm font-medium"
+                  >
+                    {item.name}
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveProvincialChapter(item.id)}
+                      className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                      title="ลบรายการนี้"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Dropdown */}
+            <MultiSelectDropdown
+              options={provincialChapterOptions}
+              selectedItems={selectedProvincialChapters}
+              onChange={setSelectedProvincialChapters}
+              placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
+              label=""
+            />
+            
+            {provincialChapterOptions.length === 0 && (
+              <p className="text-sm text-amber-600 mt-2">
+                ⚠️ ไม่พบข้อมูลสภาอุตสาหกรรมจังหวัด กรุณาตรวจสอบการโหลดข้อมูล
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <>

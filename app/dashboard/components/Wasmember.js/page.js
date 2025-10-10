@@ -798,6 +798,31 @@ export default function WasMember() {
           setShowSuccessMessage(false);
         }, 8000);
 
+        // Send email notification (non-blocking)
+        try {
+          const emailCompanies = companies.map((company) => ({
+            memberCode: company.memberNumber,
+            companyName: company.companyName,
+          }));
+
+          fetch("/api/member/send-verification-email", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user?.id,
+              companies: emailCompanies,
+            }),
+          }).catch((err) => {
+            console.error("Failed to send verification email:", err);
+            // Don't show error to user - email is optional
+          });
+        } catch (emailErr) {
+          console.error("Error preparing verification email:", emailErr);
+          // Don't show error to user - email is optional
+        }
+
         // Add all submissions to the list
         const newSubmissions = companies.map((company) => ({
           id: Date.now() + Math.random(), // Use timestamp + random as a simple unique ID

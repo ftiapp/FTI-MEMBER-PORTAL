@@ -251,54 +251,58 @@ export default function UpdateMember() {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="space-y-4"
-    >
-      <Toaster position="top-center" />
+    <>
+      <LoadingOverlay isVisible={submitting} message="กำลังส่งข้อมูล..." />
+      
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+        className="space-y-4"
+      >
+        <Toaster position="top-center" />
 
-      {/* Show update status banner if there's a pending or rejected update */}
-      {updateStatus && (
-        <UpdateStatusBanner
-          status={updateStatus}
-          requestsToday={requestsToday}
-          maxRequests={MAX_REQUESTS_PER_DAY}
-          limitLoading={limitLoading}
-        />
-      )}
+        {/* Show update status banner if there's a pending or rejected update */}
+        {updateStatus && (
+          <UpdateStatusBanner
+            status={updateStatus}
+            requestsToday={requestsToday}
+            maxRequests={MAX_REQUESTS_PER_DAY}
+            limitLoading={limitLoading}
+          />
+        )}
 
-      {/* Step Indicator */}
-      {editMode || currentStep > 1 ? <ProfileStepIndicator currentStep={currentStep} /> : null}
+        {/* Step Indicator */}
+        {editMode || currentStep > 1 ? <ProfileStepIndicator currentStep={currentStep} /> : null}
 
-      {/* Show different steps based on current step */}
-      {currentStep === 1 && (
-        <ProfileForm
-          formData={formData}
-          originalData={originalData}
-          editMode={editMode}
-          toggleEditMode={toggleEditMode}
-          handleInputChange={handleInputChange}
-          handleSubmit={handleSubmit}
-          submitting={submitting}
-          requestsToday={requestsToday}
-          maxRequests={MAX_REQUESTS_PER_DAY}
-          updateStatus={updateStatus}
-        />
-      )}
+        {/* Show different steps based on current step */}
+        {currentStep === 1 && (
+          <ProfileForm
+            formData={formData}
+            originalData={originalData}
+            editMode={editMode}
+            toggleEditMode={toggleEditMode}
+            handleInputChange={handleInputChange}
+            handleSubmit={handleSubmit}
+            submitting={submitting}
+            requestsToday={requestsToday}
+            maxRequests={MAX_REQUESTS_PER_DAY}
+            updateStatus={updateStatus}
+          />
+        )}
 
-      {currentStep === 2 && (
-        <ConfirmationStep
-          formData={formData}
-          originalData={originalData}
-          handleConfirmUpdate={handleConfirmUpdate}
-          handleCancelUpdate={handleCancelUpdate}
-          submitting={submitting}
-        />
-      )}
+        {currentStep === 2 && (
+          <ConfirmationStep
+            formData={formData}
+            originalData={originalData}
+            handleConfirmUpdate={handleConfirmUpdate}
+            handleCancelUpdate={handleCancelUpdate}
+            submitting={submitting}
+          />
+        )}
 
-      {currentStep === 3 && <FinalStep />}
-    </motion.div>
+        {currentStep === 3 && <FinalStep />}
+      </motion.div>
+    </>
   );
 }
