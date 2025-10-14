@@ -12,7 +12,7 @@ import RepresentativeInfoSection from "../../components/RepresentativeInfoSectio
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
-import DraftSavePopup from "./DraftSavePopup";
+import DraftSavePopup from "../../components/DraftSavePopup";
 
 // นำเข้าโมดูลที่สร้างขึ้นใหม่
 import { validateAMForm } from "./AMFormValidation";
@@ -1083,8 +1083,12 @@ export default function AMMembershipForm(props = {}) {
       <DraftSavePopup
         isOpen={showDraftSavePopup}
         onClose={() => setShowDraftSavePopup(false)}
-        taxId={formData.taxId}
-        associationName={formData.associationName}
+        membershipType="AM"
+        displayInfo={{
+          primaryId: formData.taxId,
+          primaryName: formData.associationName,
+          primaryIdLabel: "เลขประจำตัวผู้เสียภาษี",
+        }}
       />
 
       {/* Loading Overlay */}

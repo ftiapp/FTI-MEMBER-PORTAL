@@ -12,7 +12,7 @@ import RepresentativeInfoSection from "../../components/RepresentativeInfoSectio
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
-import DraftSavePopup from "./DraftSavePopup";
+import DraftSavePopup from "../../components/DraftSavePopup";
 
 // Import utilities
 import { validateACForm } from "./ACFormValidation";
@@ -1423,8 +1423,12 @@ export default function ACMembershipForm({
       <DraftSavePopup
         isOpen={showDraftSavePopup}
         onClose={() => setShowDraftSavePopup(false)}
-        taxId={formData.taxId}
-        companyName={formData.companyName}
+        membershipType="AC"
+        displayInfo={{
+          primaryId: formData.taxId,
+          primaryName: formData.companyName,
+          primaryIdLabel: "หมายเลขทะเบียนนิติบุคคล",
+        }}
       />
 
       {/* Loading Overlay */}

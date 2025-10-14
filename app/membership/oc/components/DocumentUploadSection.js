@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import FactoryTypeSelector from "./FactoryTypeSelector";
-import MultipleFileManager from "./MultipleFileManager";
+import FactoryTypeSelector from "../../components/FactoryTypeSelector";
+import MultipleFileManager from "../../components/MultipleFileManager";
 
 // Image Editor Modal Component for Company Stamp and Signature
 const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
@@ -641,7 +641,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         {/* Content Section */}
         <div className="px-8 py-8 space-y-8">
           {/* Factory Type Selection */}
-          <FactoryTypeSelector factoryType={factoryType} onChange={handleFactoryTypeChange} />
+          <FactoryTypeSelector
+            factoryType={factoryType}
+            onChange={handleFactoryTypeChange}
+            membershipType="OC"
+          />
 
           {/* Document Upload Section */}
           {factoryType && (

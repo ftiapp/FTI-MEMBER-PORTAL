@@ -8,7 +8,7 @@ import RepresentativeInfoSection from "../../components/RepresentativeInfoSectio
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentUploadSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
-import DraftSavePopup from "./DraftSavePopup";
+import DraftSavePopup from "../../components/DraftSavePopup";
 import MembershipSuccessModal from "../../../components/MembershipSuccessModal";
 import { validateCurrentStep } from "./ICFormValidation";
 import { submitICMembershipForm, saveDraft } from "./ICFormSubmission";
@@ -1305,8 +1305,12 @@ export default function ICMembershipForm({
       <DraftSavePopup
         isOpen={showDraftSavePopup}
         onClose={() => setShowDraftSavePopup(false)}
-        idCard={formData.idCardNumber}
-        fullName={`${formData.firstNameTh || ""} ${formData.lastNameTh || ""}`.trim()}
+        membershipType="IC"
+        displayInfo={{
+          primaryId: formData.idCardNumber,
+          primaryName: `${formData.firstNameTh || ""} ${formData.lastNameTh || ""}`.trim(),
+          primaryIdLabel: "หมายเลขบัตรประชาชน",
+        }}
       />
 
       {/* Loading Overlay */}

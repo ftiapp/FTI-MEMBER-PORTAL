@@ -1,6 +1,11 @@
 // components/MultipleFileManager.js
 "use client";
 
+/**
+ * Multiple File Manager Component
+ * คอมโพเนนต์สำหรับจัดการไฟล์หลายไฟล์ (อัปโหลด, ดู, ลบ)
+ * ใช้ร่วมกันระหว่าง AM และ OC
+ */
 export default function MultipleFileManager({
   files,
   onUpload,
@@ -8,6 +13,7 @@ export default function MultipleFileManager({
   onRemove,
   maxFiles = 5,
   accept = ".pdf,.jpg,.jpeg,.png",
+  showEmptyState = true,
 }) {
   return (
     <div className="space-y-6">
@@ -132,7 +138,7 @@ export default function MultipleFileManager({
       )}
 
       {/* Empty State */}
-      {files.length === 0 && (
+      {showEmptyState && files.length === 0 && (
         <div className="text-center py-8">
           <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">

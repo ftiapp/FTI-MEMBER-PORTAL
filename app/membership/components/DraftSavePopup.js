@@ -2,10 +2,26 @@
 
 import { useRouter } from "next/navigation";
 
-export default function DraftSavePopup({ isOpen, onClose, idCard, firstName, lastName }) {
+/**
+ * Draft Save Popup Component
+ * คอมโพเนนต์แสดง popup เมื่อบันทึกร่างสำเร็จ
+ * ใช้ร่วมกันระหว่าง AC, AM, IC, OC
+ * 
+ * @param {Object} props
+ * @param {boolean} props.isOpen - เปิด/ปิด popup
+ * @param {Function} props.onClose - ฟังก์ชันปิด popup
+ * @param {string} props.membershipType - ประเภทสมาชิก (AC, AM, IC, OC)
+ * @param {Object} props.displayInfo - ข้อมูลที่จะแสดง
+ * @param {string} props.displayInfo.primaryId - ID หลัก (taxId, idCard)
+ * @param {string} props.displayInfo.primaryName - ชื่อหลัก (companyName, associationName, fullName)
+ * @param {string} props.displayInfo.primaryIdLabel - Label สำหรับ ID (เลขทะเบียนนิติบุคคล, เลขบัตรประชาชน, เลขประจำตัวผู้เสียภาษี)
+ */
+export default function DraftSavePopup({ isOpen, onClose, membershipType = "OC", displayInfo = {} }) {
   const router = useRouter();
 
   if (!isOpen) return null;
+
+  const { primaryId, primaryName, primaryIdLabel } = displayInfo;
 
   const handleNavigateToDocuments = () => {
     router.push("/dashboard?tab=documents");
@@ -17,7 +33,35 @@ export default function DraftSavePopup({ isOpen, onClose, idCard, firstName, las
     onClose();
   };
 
-  const fullName = firstName && lastName ? `${firstName} ${lastName}` : "";
+  // กำหนด label ตามประเภทสมาชิก
+  const getDefaultIdLabel = () => {
+    switch (membershipType) {
+      case "IC":
+        return "หมายเลขบัตรประชาชน";
+      case "AM":
+        return "เลขประจำตัวผู้เสียภาษี";
+      case "AC":
+      case "OC":
+      default:
+        return "หมายเลขทะเบียนนิติบุคคล";
+    }
+  };
+
+  const idLabel = primaryIdLabel || getDefaultIdLabel();
+
+  // กำหนดข้อความตามประเภทสมาชิก
+  const getEntityType = () => {
+    switch (membershipType) {
+      case "IC":
+        return "";
+      case "AM":
+        return "";
+      case "AC":
+      case "OC":
+      default:
+        return "ของบริษัท";
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -75,11 +119,15 @@ export default function DraftSavePopup({ isOpen, onClose, idCard, firstName, las
               </svg>
             </div>
             <p className="text-gray-700 text-sm leading-relaxed">
-              ท่านได้บันทึกร่างเอกสารสมัครสมาชิก
-              {fullName && <span className="block font-medium text-gray-900 mt-1">{fullName}</span>}
-              <span className="block font-medium text-gray-900 mt-1">
-                หมายเลขบัตรประชาชน {idCard}
-              </span>
+              ท่านได้บันทึกร่างเอกสารสมัครสมาชิก{getEntityType()}
+              {primaryName && (
+                <span className="block font-medium text-gray-900 mt-1">{primaryName}</span>
+              )}
+              {primaryId && (
+                <span className="block font-medium text-gray-900 mt-1">
+                  {idLabel} {primaryId}
+                </span>
+              )}
               <span className="block mt-2">สำเร็จแล้ว</span>
             </p>
           </div>

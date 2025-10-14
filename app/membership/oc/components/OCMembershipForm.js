@@ -12,7 +12,7 @@ import RepresentativeInfoSection from "../../components/RepresentativeInfoSectio
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
-import DraftSavePopup from "./DraftSavePopup";
+import DraftSavePopup from "../../components/DraftSavePopup";
 
 // Import utilities
 import { validateOCForm } from "./OCFormValidation";
@@ -1058,8 +1058,12 @@ export default function OCMembershipForm({
       <DraftSavePopup
         isOpen={showDraftSavePopup}
         onClose={() => setShowDraftSavePopup(false)}
-        taxId={formData.taxId}
-        companyName={formData.companyName}
+        membershipType="OC"
+        displayInfo={{
+          primaryId: formData.taxId,
+          primaryName: formData.companyName,
+          primaryIdLabel: "หมายเลขทะเบียนนิติบุคคล",
+        }}
       />
 
       {/* Loading Overlay */}

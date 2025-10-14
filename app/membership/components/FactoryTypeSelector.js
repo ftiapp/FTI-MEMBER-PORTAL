@@ -1,7 +1,23 @@
 // components/FactoryTypeSelector.js
 "use client";
 
-export default function FactoryTypeSelector({ factoryType, onChange }) {
+/**
+ * Factory Type Selector Component
+ * คอมโพเนนต์สำหรับเลือกประเภทโรงงาน (ประเภทที่ 1 หรือ 2)
+ * ใช้ร่วมกันระหว่าง AM และ OC
+ */
+export default function FactoryTypeSelector({ factoryType, onChange, membershipType = "OC" }) {
+  // กำหนดข้อความตามประเภทสมาชิก
+  const titles = {
+    AM: "สมาชิกสามัญ - สมาคม (สม)",
+    OC: "สมาชิกสามัญ - โรงงาน (สน)",
+  };
+
+  const selectionLabels = {
+    AM: "เลือกประเภทโรงงานของสมาคม",
+    OC: "เลือกประเภทโรงงานของคุณ",
+  };
+
   return (
     <div className="space-y-6">
       {/* Information Section */}
@@ -14,7 +30,7 @@ export default function FactoryTypeSelector({ factoryType, onChange }) {
               clipRule="evenodd"
             />
           </svg>
-          สมาชิกสามัญ - สมาคม (สม)
+          {titles[membershipType] || titles.OC}
         </h4>
         <p className="text-sm text-blue-800 mb-4">
           เป็นนิติบุคคลที่ดำเนินงานภาคอุตสาหกรรมไทย และประกอบกิจการผลิต แบ่งออกเป็น 2 ประเภท ดังนี้
@@ -65,7 +81,7 @@ export default function FactoryTypeSelector({ factoryType, onChange }) {
       {/* Factory Type Selection */}
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h4 className="text-sm font-medium text-gray-900 mb-4">
-          เลือกประเภทโรงงานของสมาคม
+          {selectionLabels[membershipType] || selectionLabels.OC}
           <span className="text-red-500 ml-1">*</span>
         </h4>
         <div className="space-y-3">
