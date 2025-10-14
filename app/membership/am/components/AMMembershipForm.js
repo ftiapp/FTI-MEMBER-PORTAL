@@ -8,7 +8,7 @@ import MembershipSuccessModal from "@/app/components/MembershipSuccessModal";
 
 // นำเข้าคอมโพเนนต์ย่อยสำหรับแต่ละขั้นตอน
 import AssociationInfoSection from "./AssociationInfoSection";
-import RepresentativeSection from "./RepresentativeInfoSection";
+import RepresentativeInfoSection from "../../components/RepresentativeInfoSection";
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
@@ -489,23 +489,6 @@ export default function AMMembershipForm(props = {}) {
     async (e) => {
       if (e) e.preventDefault();
 
-      // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
-      if (!consentAgreed) {
-        toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
-          duration: 4000,
-          position: "top-center",
-        });
-        // เลื่อนไปที่กล่อง consent
-        setTimeout(() => {
-          const consentBox = document.querySelector('[data-consent-box]');
-          if (consentBox) {
-            consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
-        return;
-      }
-
-
       // ✅ เพิ่มเงื่อนไข: ต้องอยู่ใน step 5 เท่านั้น
       if (currentStep !== 5) {
         console.log("AM Form submit prevented - not on final step");
@@ -525,8 +508,44 @@ export default function AMMembershipForm(props = {}) {
           setShowErrors(true);
         }
 
-        // แสดง error message ที่ละเอียดขึ้น
-        const errorCount = Object.keys(formErrors).length;
+        // สร้าง error message ที่ละเอียดสำหรับ representatives
+        let errorMessage = '';
+        let errorCount = 0;
+        
+        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
+          const repErrors = formErrors.representativeErrors;
+          const repErrorDetails = [];
+          
+          repErrors.forEach((repError, index) => {
+            if (repError && Object.keys(repError).length > 0) {
+              const fieldNames = Object.keys(repError).map(key => {
+                const fieldMap = {
+                  'prename_th': 'คำนำหน้าชื่อ (ไทย)',
+                  'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
+                  'firstNameThai': 'ชื่อ (ไทย)',
+                  'lastNameThai': 'นามสกุล (ไทย)',
+                  'firstNameEnglish': 'ชื่อ (อังกฤษ)',
+                  'lastNameEnglish': 'นามสกุล (อังกฤษ)',
+                  'email': 'อีเมล',
+                  'phone': 'เบอร์โทรศัพท์',
+                  'position': 'ตำแหน่ง'
+                };
+                return fieldMap[key] || key;
+              }).join(', ');
+              
+              repErrorDetails.push(`ผู้แทนคนที่ ${index + 1}: ${fieldNames}`);
+              errorCount += Object.keys(repError).length;
+            }
+          });
+          
+          if (repErrorDetails.length > 0) {
+            errorMessage = `ข้อมูลผู้แทนไม่ครบถ้วน:\n${repErrorDetails.join('\n')}`;
+          }
+        }
+        
+        // นับ errors อื่นๆ ที่ไม่ใช่ representativeErrors
+        const otherErrorCount = Object.keys(formErrors).filter(key => key !== 'representativeErrors').length;
+        errorCount += otherErrorCount;
         
         // Find first error key deterministically and step with errors
         const firstErrorKey = getFirstFieldError(formErrors) || "representativeErrors";
@@ -549,28 +568,39 @@ export default function AMMembershipForm(props = {}) {
           }, 100);
         }
 
-        // Show toast with more specific error message if available
-        const errorMessage =
-          typeof formErrors[firstErrorKey] === "string"
+        // Show toast with more specific error message
+        if (!errorMessage) {
+          errorMessage = typeof formErrors[firstErrorKey] === "string"
             ? formErrors[firstErrorKey]
             : `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
+        } else if (otherErrorCount > 0) {
+          errorMessage += `\n\nและข้อผิดพลาดอื่นๆ อีก ${otherErrorCount} รายการ`;
+        }
 
-        toast.error(errorMessage, { duration: 5000 });
+        toast.error(errorMessage, { duration: 7000 });
         return;
       }
 
-      // Show warning toast and set submitting state
-      toast.loading("กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้", {
-        id: "submitting",
-        duration: Infinity,
-      });
+      // ✅ ตรวจสอบ consent หลังจาก validation ผ่านแล้ว
+      if (!consentAgreed) {
+        toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
+          duration: 4000,
+        });
+        // เลื่อนไปที่กล่อง consent
+        setTimeout(() => {
+          const consentBox = document.querySelector('[data-consent-box]');
+          if (consentBox) {
+            consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        return;
+      }
+
+      // Set submitting state
       setIsSubmitting(true);
 
       try {
         const result = await submitAMMembershipForm(formData);
-
-        // Dismiss loading toast
-        toast.dismiss("submitting");
 
         if (result.success) {
           // ลบ draft หลังจากสมัครสำเร็จ
@@ -579,17 +609,16 @@ export default function AMMembershipForm(props = {}) {
           setSubmissionResult(result);
           setShowSuccessModal(true);
         } else {
-          toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล");
           setIsSubmitting(false);
+          toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล");
         }
       } catch (error) {
         console.error("Submission error:", error);
-        toast.dismiss("submitting");
-        toast.error("เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง");
         setIsSubmitting(false);
+        toast.error("เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง");
       }
     },
-    [formData, currentStep, router, setCurrentStep],
+    [formData, currentStep, router, setCurrentStep, consentAgreed],
   );
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
@@ -608,6 +637,19 @@ export default function AMMembershipForm(props = {}) {
         // Set showErrors to true to trigger error display and scrolling
         if (typeof setShowErrors === "function") {
           setShowErrors(true);
+        }
+
+        // If representative step has errors, let the child component handle scroll AND toast (avoid duplicate)
+        if (currentStep === 2 && formErrors.representativeErrors) {
+          // Child component (RepresentativeInfoSection) will handle both scroll and toast
+          return;
+        }
+
+        // If business info step has errors, let the child component handle scroll AND toast (avoid duplicate)
+        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || 
+            formErrors.memberCount || formErrors.numberOfEmployees || formErrors.products)) {
+          // Child component (BusinessInfoSection) will handle both scroll and toast
+          return;
         }
 
         // Find first error key to scroll to deterministically
@@ -771,7 +813,18 @@ export default function AMMembershipForm(props = {}) {
           taxIdValidating={taxIdValidating}
         />
       ),
-      2: <RepresentativeSection {...commonProps} />,
+      2: <RepresentativeInfoSection 
+        mode="multiple"
+        formData={formData}
+        setFormData={setFormData}
+        errors={errors}
+        config={{
+          headerTitle: "ข้อมูลผู้แทนสมาคม",
+          headerSubtitle: "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม",
+          positionPlaceholder: "ประธาน, รองประธาน, เลขานุการ...",
+          toastId: "am-representative-errors",
+        }}
+      />,
       3: (
         <BusinessInfoSection
           {...commonProps}
@@ -1032,6 +1085,12 @@ export default function AMMembershipForm(props = {}) {
         onClose={() => setShowDraftSavePopup(false)}
         taxId={formData.taxId}
         associationName={formData.associationName}
+      />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isSubmitting}
+        message="กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้"
       />
 
       {/* Success Modal */}

@@ -88,6 +88,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   const businessTypesRef = useRef(null);
   const otherBusinessTypeDetailRef = useRef(null);
   const productsRef = useRef(null);
+  const lastScrolledErrorRef = useRef(null);
   // Use business types from props or fallback to default
   const BUSINESS_TYPES = useMemo(
     () => [
@@ -111,23 +112,34 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   // Handle errors and scroll to the first error field
   useEffect(() => {
     if (errors) {
-      // Check for specific errors and scroll to them
-      if (errors.businessTypes && businessTypesRef.current) {
-        businessTypesRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        toast.error("กรุณาเลือกประเภทธุรกิจอย่างน้อย 1 ข้อ");
-        return;
-      }
+      // Collect all error fields
+      const errorFields = [];
+      if (errors.businessTypes) errorFields.push({ ref: businessTypesRef, name: 'ประเภทธุรกิจ' });
+      if (errors.otherBusinessTypeDetail) errorFields.push({ ref: otherBusinessTypeDetailRef, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' });
+      if (errors.products) errorFields.push({ ref: productsRef, name: 'สินค้า/บริการ' });
 
-      if (errors.otherBusinessTypeDetail && otherBusinessTypeDetailRef.current) {
-        otherBusinessTypeDetailRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        toast.error("กรุณาระบุรายละเอียดประเภทธุรกิจอื่นๆ");
-        return;
+      // Create a unique key for current errors to prevent duplicate scrolling
+      const errorKey = errorFields.map(f => f.name).sort().join('|');
+      
+      // Only scroll if there are errors AND they're different from the last scroll
+      if (errorFields.length > 0 && errorKey !== lastScrolledErrorRef.current && errorFields[0].ref.current) {
+        // Update the last scrolled error key
+        lastScrolledErrorRef.current = errorKey;
+        
+        // Scroll to first error
+        errorFields[0].ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        
+        // Show toast with all error fields
+        const fieldNames = errorFields.map(f => f.name).join(', ');
+        toast.error(`กรุณากรอก ${fieldNames} ให้ถูกต้องครบถ้วน`, { 
+          id: "ac-business-errors",
+          duration: 5000 
+        });
       }
-
-      if (errors.products && productsRef.current) {
-        productsRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        toast.error("กรุณาระบุชื่อผลิตภัณฑ์/บริการภาษาไทยอย่างน้อย 1 รายการ");
-        return;
+      
+      // Reset the scroll tracker when all errors are cleared
+      if (errorFields.length === 0) {
+        lastScrolledErrorRef.current = null;
       }
     }
   }, [errors]);
@@ -232,7 +244,10 @@ export default function BusinessInfoSection({ formData, setFormData, errors }) {
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
+    <div 
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10"
+      data-section="business-info"
+    >
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ</h2>

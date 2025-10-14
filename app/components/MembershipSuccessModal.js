@@ -57,16 +57,16 @@ export default function MembershipSuccessModal({
       {/* Modal */}
       <div className="flex min-h-full items-center justify-center p-4">
         <div
-          className={`relative w-full max-w-lg transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 ${
+          className={`relative w-full max-w-md transform overflow-hidden rounded-2xl bg-white shadow-2xl transition-all duration-300 ${
             isVisible ? "scale-100 opacity-100" : "scale-95 opacity-0"
           }`}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-green-500 to-green-600 px-8 py-6">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 px-6 py-5">
             <div className="flex items-center justify-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white bg-opacity-20">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-white bg-opacity-20">
                 <svg
-                  className="h-8 w-8 text-white"
+                  className="h-7 w-7 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -80,11 +80,11 @@ export default function MembershipSuccessModal({
                 </svg>
               </div>
             </div>
-            <h2 className="mt-4 text-center text-2xl font-bold text-white">สมัครสมาชิก ส.อ.ท. สำเร็จ</h2>
+            <h2 className="mt-3 text-center text-xl font-bold text-white">สมัครสมาชิก ส.อ.ท. สำเร็จ</h2>
           </div>
 
           {/* Content */}
-          <div className="px-8 py-6">
+          <div className="px-6 py-5">
             <div className="text-center">
               <p className="text-lg text-gray-800 mb-6">
                 ท่านได้ทำการสมัคร

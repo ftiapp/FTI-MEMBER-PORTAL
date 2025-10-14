@@ -2,14 +2,18 @@
 
 import { useState } from "react";
 import AssociationBasicInfo from "./AssociationBasicInfo";
-import AssociationAddressInfo from "./AssociationAddressInfo";
+import { AddressSection } from "../../shared/address";
 import ContactPersonInfo from "./ContactPersonInfo";
-import IndustrialGroupInfo from "./IndustrialGroupInfo";
+import IndustrialGroupSection from "../../components/IndustrialGroupSection";
+import { useIndustrialGroups } from "../../hooks/useIndustrialGroups";
 
 export default function AssociationInfoSection({ formData, setFormData, errors, setErrors }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isAutofill, setIsAutofill] = useState(true); // เริ่มต้นด้วยโหมด autofill
   const [isCheckingTaxId, setIsCheckingTaxId] = useState(false);
+  
+  // Fetch industrial groups and provincial chapters from MSSQL
+  const { industrialGroups, provincialChapters, isLoading: isLoadingGroups } = useIndustrialGroups();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,18 +41,27 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
       />
 
       {/* ที่อยู่สมาคมและข้อมูลติดต่อ */}
-      <AssociationAddressInfo
+      <AddressSection
         formData={formData}
         setFormData={setFormData}
         errors={errors}
         isAutofill={isAutofill}
+        title="ที่อยู่สมาคม"
+        subtitle="ข้อมูลที่อยู่และการติดต่อของสมาคม"
       />
 
       {/* ข้อมูลผู้ให้ข้อมูล */}
       <ContactPersonInfo formData={formData} setFormData={setFormData} errors={errors} />
 
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
-      <IndustrialGroupInfo formData={formData} setFormData={setFormData} errors={errors} />
+      <IndustrialGroupSection
+        formData={formData}
+        setFormData={setFormData}
+        errors={errors}
+        industrialGroups={industrialGroups}
+        provincialChapters={provincialChapters}
+        isLoading={isLoadingGroups}
+      />
     </div>
   );
 }

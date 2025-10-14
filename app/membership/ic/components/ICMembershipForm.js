@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { toast } from "react-hot-toast";
 import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 import ApplicantInfoSection from "./ApplicantInfoSection";
-import RepresentativeInfoSection from "./RepresentativeInfoSection";
+import RepresentativeInfoSection from "../../components/RepresentativeInfoSection";
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentUploadSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
@@ -323,6 +323,7 @@ export default function ICMembershipForm({
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
   const [consentAgreed, setConsentAgreed] = useState(false);
+  const [representativePhoneTouched, setRepresentativePhoneTouched] = useState(false);
   const abortControllerRef = useRef(null);
 
   const isExternal = externalFormData !== undefined;
@@ -604,22 +605,6 @@ export default function ICMembershipForm({
     async (e) => {
       if (e) e.preventDefault();
 
-      // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
-      if (!consentAgreed) {
-        toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
-          duration: 4000,
-          position: "top-center",
-        });
-        // เลื่อนไปที่กล่อง consent
-        setTimeout(() => {
-          const consentBox = document.querySelector('[data-consent-box]');
-          if (consentBox) {
-            consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
-        return;
-      }
-
       if (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -628,9 +613,6 @@ export default function ICMembershipForm({
       // Prevent duplicate submit
       if (isSubmitting) return;
 
-      const loadingToastId = toast.loading("กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้", {
-        duration: Infinity,
-      });
       setIsSubmitting(true);
 
       try {
@@ -643,7 +625,7 @@ export default function ICMembershipForm({
 
         if (Object.keys(allErrors).length > 0) {
           setErrors(allErrors);
-          toast.dismiss(loadingToastId);
+          setIsSubmitting(false);
           // Navigate to first step with errors and scroll
           for (let step = 1; step <= totalSteps - 1; step++) {
             const stepErrors = validateCurrentStep(step, formData);
@@ -662,10 +644,27 @@ export default function ICMembershipForm({
           return;
         }
 
+        // ✅ ตรวจสอบ consent หลังจาก validation ผ่านแล้ว
+        if (!consentAgreed) {
+          setIsSubmitting(false);
+          toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
+            duration: 4000,
+          });
+          // เลื่อนไปที่กล่อง consent
+          setTimeout(() => {
+            const consentBox = document.querySelector('[data-consent-box]');
+            if (consentBox) {
+              consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 100);
+          setIsSubmitting(false);
+          return;
+        }
+
         // Re-check ID card before submit
         const idCardCheckResult = await checkIdCard(formData.idCardNumber);
         if (!idCardCheckResult.valid) {
-          toast.dismiss(loadingToastId);
+          setIsSubmitting(false);
           toast.error(idCardCheckResult.message);
           return;
         }
@@ -683,8 +682,6 @@ export default function ICMembershipForm({
           result = await submitICMembershipForm(formData);
         }
 
-        toast.dismiss(loadingToastId);
-
         if (result.success) {
           if (!rejectionId) {
             await deleteDraft();
@@ -692,17 +689,18 @@ export default function ICMembershipForm({
           setSubmissionResult(result);
           setShowSuccessModal(true);
         } else {
+          setIsSubmitting(false);
           toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
         }
       } catch (error) {
         console.error("Error in handleSubmit:", error);
-        toast.dismiss(loadingToastId);
+        setIsSubmitting(false);
         toast.error("เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
       } finally {
         setIsSubmitting(false);
       }
     },
-    [formData, totalSteps, isSubmitting, rejectionId, setCurrentStep, scrollToFirstError],
+    [formData, totalSteps, isSubmitting, rejectionId, setCurrentStep, scrollToFirstError, consentAgreed],
   );
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
@@ -727,15 +725,34 @@ export default function ICMembershipForm({
       if (Object.keys(formErrors).length > 0) {
         console.log("❌ Validation failed with errors:", formErrors);
 
-        // แสดง error message ที่ละเอียดขึ้น
-        const errorCount = Object.keys(formErrors).length;
-        toast.error(
-          `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`,
-          { duration: 5000 }
-        );
+        // If business info step has errors, let the child component handle scroll AND toast (avoid duplicate)
+        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
+          // Child component (BusinessInfoSection) will handle both scroll and toast
+          setShowErrors(true);
+          return;
+        }
+
+        // For representative step, filter out phone error if not touched yet
+        let filteredErrors = { ...formErrors };
+        if (currentStep === 2 && !representativePhoneTouched && filteredErrors.representativeErrors?.phone) {
+          const { phone, ...restRepErrors } = filteredErrors.representativeErrors;
+          if (Object.keys(restRepErrors).length > 0) {
+            filteredErrors = { ...filteredErrors, representativeErrors: restRepErrors };
+          } else {
+            // Only phone error exists and it's not touched yet - don't show toast
+            const { representativeErrors, ...otherErrors } = filteredErrors;
+            filteredErrors = otherErrors;
+          }
+        }
+
+        // If all errors were filtered out, don't show toast but keep errors in state for UI
+        if (Object.keys(filteredErrors).length === 0) {
+          setErrors(formErrors);
+          return;
+        }
 
         // Use the enhanced scrollToFirstError function which handles toast notifications
-        scrollToFirstError(formErrors);
+        scrollToFirstError(filteredErrors);
         return;
       }
 
@@ -812,7 +829,7 @@ export default function ICMembershipForm({
         }
       }
     },
-    [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError],
+    [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError, representativePhoneTouched],
   );
 
   const handleSaveDraft = useCallback(async () => {
@@ -990,7 +1007,24 @@ export default function ICMembershipForm({
           isLoading={isLoading}
         />
       ),
-      2: <RepresentativeInfoSection {...commonProps} />,
+      2: <RepresentativeInfoSection 
+        mode="single"
+        formData={formData}
+        setFormData={setFormData}
+        errors={errors}
+        config={{
+          headerTitle: "ข้อมูลผู้แทน",
+          headerSubtitle: "ข้อมูลผู้แทนที่สามารถติดต่อได้",
+          showPosition: false,
+          toastId: "ic-representative-errors",
+          fieldNames: {
+            firstNameTh: "firstNameThai",
+            lastNameTh: "lastNameThai",
+            firstNameEn: "firstNameEng",
+            lastNameEn: "lastNameEng",
+          },
+        }}
+      />,
       3: <BusinessInfoSection {...commonProps} />,
       4: <DocumentUploadSection {...commonProps} />,
       5: (
@@ -1017,6 +1051,7 @@ export default function ICMembershipForm({
     isSubmitting,
     handleSubmit,
     handlePrevStep,
+    representativePhoneTouched,
   ]);
 
   // Render error message helper
@@ -1198,9 +1233,9 @@ export default function ICMembershipForm({
               type="button"
               onClick={handlePrev}
               disabled={currentStep === 1}
-              className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 $${
+              className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
                 currentStep === 1
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-gray-400 text-gray-700 cursor-not-allowed opacity-60"
                   : "bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md"
               }`}
             >
@@ -1238,7 +1273,7 @@ export default function ICMembershipForm({
                   type="button"
                   onClick={handleSubmit}
                   disabled={isSubmitting || !consentAgreed}
-                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 $${
+                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
                     isSubmitting || !consentAgreed
                       ? "bg-gray-400 cursor-not-allowed"
                       : "bg-green-600 hover:bg-green-700 hover:shadow-md"
@@ -1254,72 +1289,6 @@ export default function ICMembershipForm({
             </div>
           </div>
         </div>
-
-        {/* Old navigation - hidden */}
-        {false && currentStep < totalSteps && (
-          <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-              <button
-                type="button"
-                onClick={handlePrev}
-                disabled={currentStep === 1}
-                className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                  currentStep === 1
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md"
-                }`}
-              >
-                ← ย้อนกลับ
-              </button>
-
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                  <span className="text-lg text-blue-700 font-semibold">
-                    ขั้นตอนที่ {currentStep} จาก {totalSteps}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                {currentStep < 5 && currentStep !== 4 && (
-                  <button
-                    type="button"
-                    onClick={handleSaveDraft}
-                    className="px-10 py-4 bg-yellow-500 text-white rounded-xl font-semibold text-base hover:bg-yellow-600 transition-all duration-200 hover:shadow-md"
-                  >
-                    บันทึกร่าง
-                  </button>
-                )}
-                {currentStep < totalSteps ? (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
-                  >
-                    ถัดไป →
-                  </button>
-                ) : (
-                  <button
-                    type="button" // Changed to button to prevent form submission
-                    onClick={handleSubmit} // Use handleSubmit for final step logic
-                    disabled={isSubmitting}
-                    className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                      isSubmitting
-                        ? "bg-gray-400 cursor-not-allowed"
-                        : "bg-green-600 hover:bg-green-700 hover:shadow-md"
-                    } text-white`}
-                  >
-                    {isSubmitting
-                      ? "⏳ กำลังส่ง..."
-                      : rejectionId
-                        ? "✓ ยืนยันการส่งใบสมัครใหม่"
-                        : "✓ ยืนยันการสมัคร"}
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Document preparation hint */}
         {currentStep === 1 && (
@@ -1338,6 +1307,12 @@ export default function ICMembershipForm({
         onClose={() => setShowDraftSavePopup(false)}
         idCard={formData.idCardNumber}
         fullName={`${formData.firstNameTh || ""} ${formData.lastNameTh || ""}`.trim()}
+      />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isSubmitting}
+        message="กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้"
       />
 
       {/* Success Modal */}

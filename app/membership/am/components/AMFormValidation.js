@@ -241,14 +241,6 @@ const validateRepresentatives = (formData, errors) => {
   formData.representatives.forEach((rep, index) => {
     const repError = {};
 
-    // ตรวจสอบฟิลด์ที่จำเป็น
-    if (!rep.firstNameTh) repError.firstNameTh = "กรุณากรอกชื่อภาษาไทย";
-    if (!rep.lastNameTh) repError.lastNameTh = "กรุณากรอกนามสกุลภาษาไทย";
-    if (!rep.firstNameEn) repError.firstNameEn = "กรุณากรอกชื่อภาษาอังกฤษ";
-    if (!rep.lastNameEn) repError.lastNameEn = "กรุณากรอกนามสกุลภาษาอังกฤษ";
-    if (!rep.email) repError.email = "กรุณากรอกอีเมล";
-    if (!rep.phone) repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
-
     // ตรวจสอบคำนำหน้าชื่อ (prename)
     const prenameTh = rep.prenameTh ?? rep.prename_th;
     const prenameEn = rep.prenameEn ?? rep.prename_en;
@@ -271,6 +263,53 @@ const validateRepresentatives = (formData, errors) => {
       !prenameOther
     ) {
       repError.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
+    }
+
+    // ตรวจสอบชื่อ-นามสกุล
+    if (!rep.firstNameTh || rep.firstNameTh.trim() === "") {
+      repError.firstNameTh = "กรุณากรอกชื่อภาษาไทย";
+    } else if (!/^[ก-๙\s]+$/.test(rep.firstNameTh)) {
+      repError.firstNameTh = "กรุณากรอกเฉพาะภาษาไทยเท่านั้น";
+    }
+
+    if (!rep.lastNameTh || rep.lastNameTh.trim() === "") {
+      repError.lastNameTh = "กรุณากรอกนามสกุลภาษาไทย";
+    } else if (!/^[ก-๙\s]+$/.test(rep.lastNameTh)) {
+      repError.lastNameTh = "กรุณากรอกเฉพาะภาษาไทยเท่านั้น";
+    }
+
+    if (!rep.firstNameEn || rep.firstNameEn.trim() === "") {
+      repError.firstNameEn = "กรุณากรอกชื่อภาษาอังกฤษ";
+    } else if (!/^[a-zA-Z\s]+$/.test(rep.firstNameEn)) {
+      repError.firstNameEn = "กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น";
+    }
+
+    if (!rep.lastNameEn || rep.lastNameEn.trim() === "") {
+      repError.lastNameEn = "กรุณากรอกนามสกุลภาษาอังกฤษ";
+    } else if (!/^[a-zA-Z\s]+$/.test(rep.lastNameEn)) {
+      repError.lastNameEn = "กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น";
+    }
+
+    // ตรวจสอบตำแหน่ง (บังคับกรอก)
+    if (!rep.position || rep.position.trim() === "") {
+      repError.position = "กรุณากรอกตำแหน่ง";
+    }
+
+    // ตรวจสอบอีเมล (บังคับกรอก)
+    if (!rep.email || rep.email.trim() === "") {
+      repError.email = "กรุณากรอกอีเมล";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rep.email)) {
+      repError.email = "รูปแบบอีเมลไม่ถูกต้อง";
+    }
+    
+    // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก, อนุญาตให้มี - และช่องว่าง)
+    if (!rep.phone || rep.phone.trim() === "") {
+      repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
+    } else {
+      const cleanPhone = rep.phone.replace(/[-\s]/g, "");
+      if (!/^\d{9,10}$/.test(cleanPhone)) {
+        repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (สามารถใส่ - หรือช่องว่างได้)";
+      }
     }
 
     if (Object.keys(repError).length > 0) {

@@ -784,13 +784,16 @@ export async function POST(request) {
 
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
-      const userEmail = data.contactPersons?.[0]?.email || companyEmail;
-      const userName = data.contactPersons?.[0]
-        ? `${data.contactPersons[0].firstNameTh || ""} ${data.contactPersons[0].lastNameTh || ""}`.trim()
-        : "ผู้สมัคร";
-      const companyName = data.companyName || "บริษัท";
+      // ดึงข้อมูล user จาก users table
+      const userQuery = `SELECT firstname, lastname, email FROM users WHERE id = ?`;
+      const userResult = await executeQueryWithoutTransaction(userQuery, [userId]);
+      
+      if (userResult && userResult.length > 0) {
+        const user = userResult[0];
+        const userEmail = user.email;
+        const userName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
+        const companyName = data.companyName || "บริษัท";
 
-      if (userEmail) {
         await sendMembershipConfirmationEmail(userEmail, userName, "OC", companyName);
         console.log("✅ Membership confirmation email sent to:", userEmail);
       }

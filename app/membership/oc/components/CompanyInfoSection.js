@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import CompanyBasicInfo from "./CompanyBasicInfo";
-import CompanyAddressInfo from "./CompanyAddressInfo";
+import { AddressSection } from "../../shared/address";
 import ContactPersonInfo from "./ContactPersonInfo";
-import IndustrialGroupInfo from "./IndustrialGroupInfo";
+import IndustrialGroupSection from "../../components/IndustrialGroupSection";
 
 export default function CompanyInfoSection({
   formData,
@@ -43,18 +43,20 @@ export default function CompanyInfoSection({
       />
 
       {/* ที่อยู่บริษัทและข้อมูลติดต่อ */}
-      <CompanyAddressInfo
+      <AddressSection
         formData={formData}
         setFormData={setFormData}
         errors={errors}
         isAutofill={isAutofill}
+        title="ที่อยู่บริษัท"
+        subtitle="ข้อมูลที่อยู่และการติดต่อ"
       />
 
       {/* ข้อมูลผู้ให้ข้อมูล */}
       <ContactPersonInfo formData={formData} setFormData={setFormData} errors={errors} />
 
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
-      <IndustrialGroupInfo
+      <IndustrialGroupSection
         formData={formData}
         setFormData={setFormData}
         errors={errors}

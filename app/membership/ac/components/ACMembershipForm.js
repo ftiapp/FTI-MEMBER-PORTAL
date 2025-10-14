@@ -8,7 +8,7 @@ import MembershipSuccessModal from "@/app/components/MembershipSuccessModal";
 
 // Import components
 import CompanyInfoSection from "./CompanyInfoSection";
-import RepresentativeSection from "./RepresentativeInfoSection";
+import RepresentativeInfoSection from "../../components/RepresentativeInfoSection";
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
@@ -754,6 +754,20 @@ export default function ACMembershipForm({
           setErrors(formErrors);
 
           if (Object.keys(formErrors).length > 0) {
+            // If representative step has errors, let the child component handle scroll AND toast (avoid duplicate)
+            if (currentStep === 2 && formErrors.representativeErrors) {
+              // Child component (RepresentativeInfoSection) will handle both scroll and toast
+              setIsSubmitting(false);
+              return;
+            }
+
+            // If business info step has errors, let the child component handle scroll AND toast (avoid duplicate)
+            if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
+              // Child component (BusinessInfoSection) will handle both scroll and toast
+              setIsSubmitting(false);
+              return;
+            }
+
             const { key: firstSpecificKey, message: firstSpecificMessage } =
               getFirstFieldError(formErrors);
             const firstMessage = firstSpecificMessage || "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
@@ -853,13 +867,53 @@ export default function ACMembershipForm({
       if (Object.keys(formErrors).length > 0) {
         console.log("❌ Final validation errors:", formErrors);
 
-        // แสดง error message ที่ละเอียดขึ้น
-        const errorCount = Object.keys(formErrors).length;
-        const { key: firstSpecificKey, message: firstSpecificMessage } =
-          getFirstFieldError(formErrors);
-        const firstMessage =
-          firstSpecificMessage || `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
-        toast.error(firstMessage, { duration: 5000 });
+        // สร้าง error message ที่ละเอียดสำหรับ representatives
+        let errorMessage = '';
+        let errorCount = 0;
+        
+        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
+          const repErrors = formErrors.representativeErrors;
+          const repErrorDetails = [];
+          
+          repErrors.forEach((repError, index) => {
+            if (repError && Object.keys(repError).length > 0) {
+              const fieldNames = Object.keys(repError).map(key => {
+                const fieldMap = {
+                  'prename_th': 'คำนำหน้าชื่อ (ไทย)',
+                  'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
+                  'firstNameThai': 'ชื่อ (ไทย)',
+                  'lastNameThai': 'นามสกุล (ไทย)',
+                  'firstNameEnglish': 'ชื่อ (อังกฤษ)',
+                  'lastNameEnglish': 'นามสกุล (อังกฤษ)',
+                  'email': 'อีเมล',
+                  'phone': 'เบอร์โทรศัพท์',
+                  'position': 'ตำแหน่ง'
+                };
+                return fieldMap[key] || key;
+              }).join(', ');
+              
+              repErrorDetails.push(`ผู้แทนคนที่ ${index + 1}: ${fieldNames}`);
+              errorCount += Object.keys(repError).length;
+            }
+          });
+          
+          if (repErrorDetails.length > 0) {
+            errorMessage = `ข้อมูลผู้แทนไม่ครบถ้วน:\n${repErrorDetails.join('\n')}`;
+          }
+        }
+        
+        // นับ errors อื่นๆ ที่ไม่ใช่ representativeErrors
+        const otherErrorCount = Object.keys(formErrors).filter(key => key !== 'representativeErrors').length;
+        errorCount += otherErrorCount;
+        
+        if (!errorMessage) {
+          const { message: firstSpecificMessage } = getFirstFieldError(formErrors);
+          errorMessage = firstSpecificMessage || `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
+        } else if (otherErrorCount > 0) {
+          errorMessage += `\n\nและข้อผิดพลาดอื่นๆ อีก ${otherErrorCount} รายการ`;
+        }
+        
+        toast.error(errorMessage, { duration: 7000 });
 
         const firstErrorStep = STEPS.find(
           (step) => Object.keys(validateACForm(formData, step.id)).length > 0,
@@ -928,11 +982,10 @@ export default function ACMembershipForm({
         return;
       }
 
-      // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
+      // ✅ ตรวจสอบ consent หลังจาก validation ผ่านแล้ว
       if (!consentAgreed) {
         toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
           duration: 4000,
-          position: "top-center",
         });
         // เลื่อนไปที่กล่อง consent
         setTimeout(() => {
@@ -946,7 +999,6 @@ export default function ACMembershipForm({
       }
 
       console.log("✅ Final validation passed, proceeding with submission");
-      toast.loading("กำลังส่งข้อมูล...", { id: "submitting" });
       setIsSubmitting(true);
 
       try {
@@ -980,8 +1032,6 @@ export default function ACMembershipForm({
           result = await submitACMembershipForm(formData);
         }
 
-        toast.dismiss("submitting");
-
         if (result.success) {
           console.log("✅ Final submission successful");
           if (!rejectionId) {
@@ -992,11 +1042,12 @@ export default function ACMembershipForm({
           setShowSuccessModal(true);
         } else {
           console.log("❌ Final submission failed:", result.message);
+          setIsSubmitting(false);
           toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล");
         }
       } catch (error) {
         console.error("💥 Final submission error:", error);
-        toast.dismiss("submitting");
+        setIsSubmitting(false);
 
         let errorMessage = "เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง";
         if (error.message) {
@@ -1018,6 +1069,7 @@ export default function ACMembershipForm({
       handleNextStep,
       deleteDraft,
       isSinglePageLayout,
+      consentAgreed,
     ],
   );
 
@@ -1046,7 +1098,18 @@ export default function ACMembershipForm({
             taxIdValidating={taxIdValidating}
           />
           <hr />
-          <RepresentativeSection {...commonProps} />
+          <RepresentativeInfoSection 
+            mode="multiple"
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+            config={{
+              headerTitle: "ข้อมูลผู้แทนสมาคม",
+              headerSubtitle: "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม",
+              positionPlaceholder: "ประธาน, รองประธาน...",
+              toastId: "ac-representative-errors",
+            }}
+          />
           <hr />
           <BusinessInfoSection
             {...commonProps}
@@ -1070,7 +1133,18 @@ export default function ACMembershipForm({
           taxIdValidating={taxIdValidating}
         />
       ),
-      2: <RepresentativeSection {...commonProps} />,
+      2: <RepresentativeInfoSection 
+        mode="multiple"
+        formData={formData}
+        setFormData={setFormData}
+        errors={errors}
+        config={{
+          headerTitle: "ข้อมูลผู้แทนสมาคม",
+          headerSubtitle: "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม",
+          positionPlaceholder: "ประธาน, รองประธาน...",
+          toastId: "ac-representative-errors",
+        }}
+      />,
       3: (
         <BusinessInfoSection
           {...commonProps}
@@ -1351,6 +1425,12 @@ export default function ACMembershipForm({
         onClose={() => setShowDraftSavePopup(false)}
         taxId={formData.taxId}
         companyName={formData.companyName}
+      />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isSubmitting}
+        message="กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้"
       />
 
       {/* Success Modal */}

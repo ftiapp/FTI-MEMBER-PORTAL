@@ -6,125 +6,81 @@ export default function LoadingOverlay({ isVisible, message = "กำลัง�
   if (!isVisible) return null;
 
   return (
-    <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-[9999] flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white p-8 rounded-xl shadow-2xl flex flex-col items-center max-w-md w-full mx-4 border border-gray-200"
-      >
-        <style>{`
-          .perspective-1000 {
-            perspective: 1000px;
-          }
-          .preserve-3d {
-            transform-style: preserve-3d;
-          }
-        `}</style>
+    <div className="fixed inset-0 bg-white/60 backdrop-blur-sm z-[9999] flex items-center justify-center pointer-events-none">
+      <div className="relative pointer-events-auto flex flex-col items-center">
+        <motion.div
+          className="flex flex-col items-center"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          {/* Rotating Logo */}
+          <div className="relative">
+            <motion.div
+              className="relative w-16 h-16"
+              animate={{ rotateY: 360 }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "linear",
+              }}
+            >
+              <img
+                src="/images/Logo_FTI.webp"
+                alt="FTI Logo"
+                className="w-full h-full object-contain drop-shadow-xl"
+              />
+            </motion.div>
+            
+            {/* Shine Effect */}
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
+              animate={{
+                x: [-100, 100],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                repeatDelay: 0.5,
+                ease: "easeInOut",
+              }}
+              style={{
+                clipPath: "polygon(20% 0%, 40% 0%, 60% 100%, 40% 100%)",
+              }}
+            />
+          </div>
 
-        {/* 3D Cube Container */}
-        <div className="perspective-1000 mb-6">
+          {/* Loading Message */}
           <motion.div
-            className="relative w-16 h-16 preserve-3d"
-            animate={{ rotateX: 360, rotateY: 360 }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-            style={{
-              transformStyle: "preserve-3d",
-            }}
+            className="text-center mt-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
           >
-            {/* Front Face */}
-            <div
-              className="absolute w-16 h-16 bg-white border border-blue-800 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "translateZ(32px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-8 h-8 bg-blue-800 rounded"></div>
-            </div>
+            <p className="text-blue-800 font-semibold text-lg tracking-wide">{message}</p>
 
-            {/* Back Face */}
-            <div
-              className="absolute w-16 h-16 bg-blue-800 border border-blue-900 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "translateZ(-32px) rotateY(180deg)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-8 h-8 bg-white rounded"></div>
-            </div>
-
-            {/* Right Face */}
-            <div
-              className="absolute w-16 h-16 bg-white border border-blue-800 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateY(90deg) translateZ(32px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-8 h-8 bg-blue-800 rounded"></div>
-            </div>
-
-            {/* Left Face */}
-            <div
-              className="absolute w-16 h-16 bg-blue-800 border border-blue-900 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateY(-90deg) translateZ(32px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-8 h-8 bg-white rounded"></div>
-            </div>
-
-            {/* Top Face */}
-            <div
-              className="absolute w-16 h-16 bg-white border border-blue-800 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateX(90deg) translateZ(32px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-8 h-8 bg-blue-800 rounded"></div>
-            </div>
-
-            {/* Bottom Face */}
-            <div
-              className="absolute w-16 h-16 bg-blue-800 border border-blue-900 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateX(-90deg) translateZ(32px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-8 h-8 bg-white rounded"></div>
+            {/* Animated dots */}
+            <div className="flex justify-center gap-1.5 mt-3">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-blue-800"
+                  animate={{
+                    opacity: [0.3, 1, 0.3],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: 1.2,
+                    repeat: Infinity,
+                    delay: i * 0.3,
+                    ease: "easeInOut",
+                  }}
+                />
+              ))}
             </div>
           </motion.div>
-        </div>
-
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{message}</h3>
-        <p className="text-gray-600 text-center text-sm">กรุณารอสักครู่...</p>
-
-        {/* Animated dots */}
-        <div className="flex space-x-2 mt-4">
-          <motion.div
-            className="w-2 h-2 bg-blue-800 rounded-full"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1.2, repeat: Infinity, delay: 0 }}
-          />
-          <motion.div
-            className="w-2 h-2 bg-blue-800 rounded-full"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1.2, repeat: Infinity, delay: 0.3 }}
-          />
-          <motion.div
-            className="w-2 h-2 bg-blue-800 rounded-full"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 1, 0.3] }}
-            transition={{ duration: 1.2, repeat: Infinity, delay: 0.6 }}
-          />
-        </div>
-      </motion.div>
+        </motion.div>
+      </div>
     </div>
   );
 }

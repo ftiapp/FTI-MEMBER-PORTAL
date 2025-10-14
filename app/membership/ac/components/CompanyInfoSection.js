@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import CompanyBasicInfo from "./CompanyBasicInfo";
-import CompanyAddressInfo from "./CompanyAddressInfo";
+import { AddressSection } from "../../shared/address";
 import ContactPersonInfo from "./ContactPersonInfo";
-import IndustrialGroupInfo from "./IndustrialGroupInfo";
+import IndustrialGroupSection from "../../components/IndustrialGroupSection";
+import { useIndustrialGroups } from "../../hooks/useIndustrialGroups";
 
 /**
  * คอมโพเนนต์สำหรับกรอกข้อมูลบริษัทในฟอร์มสมัครสมาชิกประเภท AC (สมทบ-นิติบุคคล)
@@ -18,6 +19,9 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
   const [isLoading, setIsLoading] = useState(false);
   const [isAutofill, setIsAutofill] = useState(true); // เริ่มต้นด้วยโหมด autofill
   const [isCheckingTaxId, setIsCheckingTaxId] = useState(false);
+  
+  // Fetch industrial groups and provincial chapters from MSSQL
+  const { industrialGroups, provincialChapters, isLoading: isLoadingGroups } = useIndustrialGroups();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -54,12 +58,13 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
       />
 
       {/* ที่อยู่บริษัทและข้อมูลติดต่อ */}
-      <CompanyAddressInfo
+      <AddressSection
         formData={formData}
         setFormData={setFormData}
         errors={errors}
-        setErrors={setErrors}
         isAutofill={isAutofill}
+        title="ที่อยู่บริษัท"
+        subtitle="ข้อมูลที่อยู่และการติดต่อ"
       />
 
       {/* ข้อมูลผู้ให้ข้อมูล */}
@@ -71,11 +76,13 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
       />
 
       {/* กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด */}
-      <IndustrialGroupInfo
+      <IndustrialGroupSection
         formData={formData}
         setFormData={setFormData}
         errors={errors}
-        setErrors={setErrors}
+        industrialGroups={industrialGroups}
+        provincialChapters={provincialChapters}
+        isLoading={isLoadingGroups}
       />
     </div>
   );

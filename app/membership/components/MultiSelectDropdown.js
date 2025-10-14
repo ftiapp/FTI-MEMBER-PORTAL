@@ -1,14 +1,25 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 
+/**
+ * Multi-Select Dropdown Component
+ * A reusable dropdown with search and multi-selection capabilities
+ */
 export default function MultiSelectDropdown({
-  options,
+  options = [],
   selectedValues = [],
   onChange,
-  placeholder,
-  isLoading,
-  label,
+  placeholder = "เลือกรายการ",
+  isLoading = false,
+  label = "",
+  searchPlaceholder = "ค้นหา...",
+  noDataText = "ไม่พบข้อมูล",
+  loadingText = "กำลังโหลดข้อมูล...",
+  clearText = "ล้างการเลือก",
+  selectedCountText = "เลือกแล้ว",
+  itemsText = "รายการ",
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -23,13 +34,16 @@ export default function MultiSelectDropdown({
     }
 
     searchTimeout.current = setTimeout(() => {
-      if (!options) return;
+      if (!options || !Array.isArray(options)) {
+        setFilteredOptions([]);
+        return;
+      }
 
       if (!searchTerm) {
         setFilteredOptions(options);
       } else {
         const filtered = options.filter((option) =>
-          option.name_th.toLowerCase().includes(searchTerm.toLowerCase()),
+          option.name_th?.toLowerCase().includes(searchTerm.toLowerCase()),
         );
         setFilteredOptions(filtered);
       }
@@ -47,6 +61,7 @@ export default function MultiSelectDropdown({
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
+        setSearchTerm(""); // Reset search when closing
       }
     }
 
@@ -76,14 +91,16 @@ export default function MultiSelectDropdown({
 
   // Get selected options names for display
   const getSelectedOptionsText = () => {
-    if (!options || selectedValues.length === 0) return placeholder;
+    if (!options || !Array.isArray(options) || selectedValues.length === 0) {
+      return placeholder;
+    }
 
     if (selectedValues.length === 1) {
       const selected = options.find((opt) => opt.id === selectedValues[0]);
       return selected ? selected.name_th : placeholder;
     }
 
-    return `เลือกแล้ว ${selectedValues.length} รายการ`;
+    return `${selectedCountText} ${selectedValues.length} ${itemsText}`;
   };
 
   return (
@@ -91,15 +108,15 @@ export default function MultiSelectDropdown({
       {label && <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>}
 
       <div
-        className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer bg-white"
+        className="flex items-center justify-between w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer bg-white hover:border-gray-400 transition-colors duration-200"
         onClick={() => !isLoading && setIsOpen(!isOpen)}
       >
-        <div className="flex-grow truncate">
-          {isLoading ? "กำลังโหลดข้อมูล..." : getSelectedOptionsText()}
+        <div className="flex-grow truncate text-sm">
+          {isLoading ? loadingText : getSelectedOptionsText()}
         </div>
         <div className="ml-2">
           <svg
-            className={`w-5 h-5 transition-transform ${isOpen ? "transform rotate-180" : ""}`}
+            className={`w-5 h-5 transition-transform duration-200 ${isOpen ? "transform rotate-180" : ""}`}
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -111,24 +128,26 @@ export default function MultiSelectDropdown({
 
       {isOpen && (
         <div className="absolute z-[9999] w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg">
+          {/* Search Input */}
           <div className="p-2 border-b">
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="ค้นหา..."
-              className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder={searchPlaceholder}
+              className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 text-sm"
               onClick={(e) => e.stopPropagation()}
               autoFocus
             />
           </div>
 
+          {/* Options List */}
           <div className="max-h-60 overflow-y-auto">
             {filteredOptions.length > 0 ? (
               filteredOptions.map((option) => (
                 <div
                   key={option.id}
-                  className={`flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100 ${
+                  className={`flex items-center px-3 py-2 cursor-pointer hover:bg-gray-100 transition-colors duration-150 ${
                     selectedValues.includes(option.id) ? "bg-blue-50" : ""
                   }`}
                   onClick={() => toggleOption(option.id)}
@@ -137,29 +156,30 @@ export default function MultiSelectDropdown({
                     type="checkbox"
                     checked={selectedValues.includes(option.id)}
                     onChange={() => {}}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                   />
                   <span className="ml-2 text-sm">{option.name_th}</span>
                 </div>
               ))
             ) : (
-              <div className="px-3 py-2 text-sm text-gray-500">ไม่พบข้อมูล</div>
+              <div className="px-3 py-2 text-sm text-gray-500 text-center">{noDataText}</div>
             )}
           </div>
 
+          {/* Footer with selected count and clear button */}
           {selectedValues.length > 0 && (
-            <div className="p-2 border-t flex justify-between items-center">
-              <span className="text-xs text-blue-600">
-                เลือกแล้ว {selectedValues.length} รายการ
+            <div className="p-2 border-t flex justify-between items-center bg-gray-50">
+              <span className="text-xs text-blue-600 font-medium">
+                {selectedCountText} {selectedValues.length} {itemsText}
               </span>
               <button
-                className="text-xs text-red-600 hover:text-red-800"
+                className="text-xs text-red-600 hover:text-red-800 font-medium transition-colors duration-150"
                 onClick={(e) => {
                   e.stopPropagation();
                   onChange([]);
                 }}
               >
-                ล้างการเลือก
+                {clearText}
               </button>
             </div>
           )}
@@ -168,3 +188,23 @@ export default function MultiSelectDropdown({
     </div>
   );
 }
+
+MultiSelectDropdown.propTypes = {
+  options: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+      name_th: PropTypes.string.isRequired,
+    }),
+  ),
+  selectedValues: PropTypes.array,
+  onChange: PropTypes.func.isRequired,
+  placeholder: PropTypes.string,
+  isLoading: PropTypes.bool,
+  label: PropTypes.string,
+  searchPlaceholder: PropTypes.string,
+  noDataText: PropTypes.string,
+  loadingText: PropTypes.string,
+  clearText: PropTypes.string,
+  selectedCountText: PropTypes.string,
+  itemsText: PropTypes.string,
+};

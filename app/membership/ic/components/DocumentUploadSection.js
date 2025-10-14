@@ -126,7 +126,7 @@ const SignatureEditor = ({ isOpen, onClose, onSave, initialImage, title = "ป�
             type="range"
             min="0.1"
             max="3"
-            step="0.1"
+            step="0.01"
             value={scale}
             onChange={(e) => setScale(parseFloat(e.target.value))}
             className="w-full"
@@ -555,15 +555,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             )}
 
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h4 className="text-md font-semibold text-blue-800 mb-2">คำแนะนำการอัพโหลดไฟล์</h4>
-              <ul className="text-xs text-blue-700 space-y-1">
-                <li>• ไฟล์ต้องชัดเจน อ่านได้ง่าย</li>
-                <li>• สำเนาต้องมีลายเซ็นรับรองสำเนาถูกต้อง</li>
-                <li>• ขนาดไฟล์ไม่เกิน 5MB</li>
-                <li>• รองรับไฟล์ JPG, JPEG, PNG หรือ PDF</li>
-              </ul>
-            </div>
+            
           </div>
         </div>
 
@@ -591,46 +583,22 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="h-5 w-5 text-blue-400"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800">เอกสารที่จำเป็น</h3>
-                  <div className="mt-2 text-sm text-blue-700">
-                    <p>
-                      ลายเซ็นผู้มีอำนาจลงนามจำเป็นสำหรับการสมัครสมาชิก
-                      (จะถูกนำไปแปะในขวาล่างของเอกสาร A4)
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
+          
 
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6">
               <h4 className="text-md font-semibold text-gray-800 mb-2">ข้อมูลผู้มีอำนาจลงนาม</h4>
               <p className="text-sm text-gray-600 mb-4">
-                กรุณากรอกชื่อ-นามสกุลของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
+                กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* แถวที่ 1: ภาษาไทย */}
+                {/* คำนำหน้า (ไทย) */}
                 <div>
                   <label
                     htmlFor="authorizedSignatoryPrenameTh"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    คำนำหน้า (ภาษาไทย)
+                    คำนำหน้า (ไทย) <span className="text-red-500">*</span>
                   </label>
                   <select
                     id="authorizedSignatoryPrenameTh"
@@ -641,64 +609,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     }
                     className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameTh ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
                   >
-                    <option value="" disabled>
-                      เลือกคำนำหน้า
-                    </option>
+                    <option value="">เลือก</option>
                     <option value="นาย">นาย</option>
                     <option value="นาง">นาง</option>
                     <option value="นางสาว">นางสาว</option>
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
-                  {errors?.authorizedSignatoryPrenameTh && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryPrenameTh}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="authorizedSignatoryPrenameEn"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    คำนำหน้า (ภาษาอังกฤษ)
-                  </label>
-                  <select
-                    id="authorizedSignatoryPrenameEn"
-                    name="authorizedSignatoryPrenameEn"
-                    value={formData.authorizedSignatoryPrenameEn || ""}
-                    onChange={(e) =>
-                      handleAuthorizedPrenameChange("authorizedSignatoryPrenameEn", e.target.value)
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameEn ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                  >
-                    <option value="" disabled>
-                      Select prename
-                    </option>
-                    <option value="Mr.">Mr.</option>
-                    <option value="Mrs.">Mrs.</option>
-                    <option value="Miss">Miss</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {errors?.authorizedSignatoryPrenameEn && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryPrenameEn}
-                    </p>
-                  )}
-                </div>
-                {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                  <div>
-                    <label
-                      htmlFor="authorizedSignatoryPrenameOther"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      ระบุคำนำหน้า (ภาษาไทย)
-                    </label>
+                  {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
                     <input
-                      id="authorizedSignatoryPrenameOther"
-                      name="authorizedSignatoryPrenameOther"
                       type="text"
+                      name="authorizedSignatoryPrenameOther"
                       value={formData.authorizedSignatoryPrenameOther || ""}
                       onChange={(e) =>
                         setFormData((prev) => ({
@@ -706,53 +626,25 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                           authorizedSignatoryPrenameOther: e.target.value,
                         }))
                       }
-                      className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                      placeholder="กรอกคำนำหน้าอื่นๆ"
+                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
                     />
-                    {errors?.authorizedSignatoryPrenameOther && (
-                      <p className="mt-1 text-xs text-red-600 flex items-center">
-                        <span className="mr-1">*</span>
-                        {errors.authorizedSignatoryPrenameOther}
-                      </p>
-                    )}
-                  </div>
-                )}
-                {formData.authorizedSignatoryPrenameEn === "Other" && (
-                  <div>
-                    <label
-                      htmlFor="authorizedSignatoryPrenameOtherEn"
-                      className="block text-sm font-medium text-gray-700"
-                    >
-                      Specify prename (English)
-                    </label>
-                    <input
-                      id="authorizedSignatoryPrenameOtherEn"
-                      name="authorizedSignatoryPrenameOtherEn"
-                      type="text"
-                      value={formData.authorizedSignatoryPrenameOtherEn || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryPrenameOtherEn: e.target.value,
-                        }))
-                      }
-                      className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOtherEn ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                      placeholder="Enter other prename"
-                    />
-                    {errors?.authorizedSignatoryPrenameOtherEn && (
-                      <p className="mt-1 text-xs text-red-600 flex items-center">
-                        <span className="mr-1">*</span>
-                        {errors.authorizedSignatoryPrenameOtherEn}
-                      </p>
-                    )}
-                  </div>
-                )}
+                  )}
+                  {errors?.authorizedSignatoryPrenameTh && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>
+                      {errors.authorizedSignatoryPrenameTh}
+                    </p>
+                  )}
+                </div>
+                
+                {/* ชื่อ (ไทย) */}
                 <div>
                   <label
                     htmlFor="authorizedSignatoryFirstNameTh"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    ชื่อ (ภาษาไทย)
+                    ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="authorizedSignatoryFirstNameTh"
@@ -776,12 +668,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
+                
+                {/* นามสกุล (ไทย) */}
                 <div>
                   <label
                     htmlFor="authorizedSignatoryLastNameTh"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    นามสกุล (ภาษาไทย)
+                    นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="authorizedSignatoryLastNameTh"
@@ -805,12 +699,85 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
+
+                {/* ตำแหน่ง (ไทย) */}
+                <div>
+                  <label
+                    htmlFor="authorizedSignatoryPositionTh"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    ตำแหน่ง (ภาษาไทย)
+                  </label>
+                  <input
+                    id="authorizedSignatoryPositionTh"
+                    name="authorizedSignatoryPositionTh"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionTh || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPositionTh: e.target.value,
+                      }))
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="เช่น กรรมการผู้จัดการ"
+                  />
+                </div>
+
+                {/* แถวที่ 2: ภาษาอังกฤษ */}
+                {/* Prename (EN) */}
+                <div>
+                  <label
+                    htmlFor="authorizedSignatoryPrenameEn"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Prename (EN)
+                  </label>
+                  <select
+                    id="authorizedSignatoryPrenameEn"
+                    name="authorizedSignatoryPrenameEn"
+                    value={formData.authorizedSignatoryPrenameEn || ""}
+                    onChange={(e) =>
+                      handleAuthorizedPrenameChange("authorizedSignatoryPrenameEn", e.target.value)
+                    }
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameEn ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
+                  >
+                    <option value="">Select</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {formData.authorizedSignatoryPrenameEn === "Other" && (
+                    <input
+                      type="text"
+                      name="authorizedSignatoryPrenameOtherEn"
+                      value={formData.authorizedSignatoryPrenameOtherEn || ""}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          authorizedSignatoryPrenameOtherEn: e.target.value,
+                        }))
+                      }
+                      placeholder="e.g., Assoc. Prof., Dr."
+                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    />
+                  )}
+                  {errors?.authorizedSignatoryPrenameEn && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>
+                      {errors.authorizedSignatoryPrenameEn}
+                    </p>
+                  )}
+                </div>
+                
+                {/* First Name (EN) */}
                 <div>
                   <label
                     htmlFor="authorizedSignatoryFirstNameEn"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    ชื่อ (อังกฤษ)
+                    First Name (EN) <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="authorizedSignatoryFirstNameEn"
@@ -834,12 +801,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
+                
+                {/* Last Name (EN) */}
                 <div>
                   <label
                     htmlFor="authorizedSignatoryLastNameEn"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    นามสกุล (อังกฤษ)
+                    Last Name (EN) <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="authorizedSignatoryLastNameEn"
@@ -863,6 +832,35 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
+
+                {/* Position (EN) */}
+                <div>
+                  <label
+                    htmlFor="authorizedSignatoryPositionEn"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Position (EN)
+                  </label>
+                  <input
+                    id="authorizedSignatoryPositionEn"
+                    name="authorizedSignatoryPositionEn"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionEn || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPositionEn: e.target.value,
+                      }))
+                    }
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="e.g. Managing Director"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6" style={{ display: 'none' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label
                     htmlFor="authorizedSignatoryPositionTh"
@@ -1031,10 +1029,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             )}
 
-            <div className="mt-6 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
               <div className="flex items-start gap-2">
                 <svg
-                  className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                  className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -1046,83 +1044,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <div className="text-sm">
-                  <p className="font-semibold text-blue-800 mb-3">
-                    คำแนะนำสำหรับลายเซ็นที่จะแปะในขวาล่างของเอกสาร A4:
+                <div className="text-xs">
+                  <p className="font-medium text-blue-800 mb-2">
+                    ขนาดแนะนำ: 120x60 พิกเซล, พื้นหลังโปร่งใส (PNG)
                   </p>
-
-                  <div className="grid md:grid-cols-2 gap-4 mb-4">
-                    <div className="bg-white p-3 rounded border border-blue-100">
-                      <h5 className="font-medium text-blue-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                      <ul className="text-blue-700 space-y-1 text-xs">
-                        <li>
-                          • <strong>120 x 60 พิกเซล</strong> (อัตราส่วน 2:1)
-                        </li>
-                        <li>• หรือ 240 x 120 พิกเซล (ความละเอียดสูง)</li>
-                        <li>• ขนาดจริงบนกระดาษ: ประมาณ 3 x 1.5 ซม.</li>
-                      </ul>
-                    </div>
-
-                    <div className="bg-white p-3 rounded border border-blue-100">
-                      <h5 className="font-medium text-blue-800 mb-2">🎨 รูปแบบภาพ</h5>
-                      <ul className="text-blue-700 space-y-1 text-xs">
-                        <li>
-                          • <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว
-                        </li>
-                        <li>• ลายเซ็นสีดำหรือสีเข้ม</li>
-                        <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
-                      </ul>
-                    </div>
-                  </div>
-
-                  <div className="bg-blue-50 border border-blue-200 rounded p-3 mb-3">
-                    <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
-                    <p className="text-blue-700 text-xs">
-                      หลังอัปโหลดภาพลายเซ็น คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
-                    </p>
-                    <ul className="text-blue-700 space-y-1 text-xs mt-1">
-                      <li>
-                        • <strong>ซูมเข้า/ออก</strong> เพื่อปรับขนาดให้เหมาะสม
-                      </li>
-                      <li>
-                        • <strong>เลื่อนตำแหน่ง</strong> เพื่อจัดตำแหน่งให้ตรงกลาง
-                      </li>
-                      <li>
-                        • <strong>ครอบตัด</strong> เพื่อให้ได้สัดส่วนที่ต้องการ
-                      </li>
-                    </ul>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="text-xs text-blue-600">
-                      💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพลายเซ็นบนกระดาษขาวด้วยแสงที่เพียงพอ
-                    </div>
+                  <div className="flex gap-4">
                     <a
                       href="/images/FTI-SIGNATUREsample.jpg"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs"
+                      className="text-blue-600 hover:text-blue-800 underline"
                     >
-                      <svg
-                        className="w-3 h-3"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                      ดูตัวอย่าง
+                      ดูตัวอย่างลายเซ็น
                     </a>
                   </div>
                 </div>

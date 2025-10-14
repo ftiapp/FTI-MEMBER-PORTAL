@@ -131,7 +131,7 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
             type="range"
             min="0.1"
             max="3"
-            step="0.1"
+            step="0.01"
             value={scale}
             onChange={(e) => setScale(parseFloat(e.target.value))}
             className="w-full"
@@ -748,10 +748,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 error={errors?.companyStamp}
                 isImageRequired={true}
               />
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-start gap-2">
                   <svg
-                    className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                    className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -763,81 +763,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <div className="text-sm">
-                    <p className="font-semibold text-blue-800 mb-3">คำแนะนำสำหรับตราประทับสมาคม:</p>
-
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded border border-blue-100">
-                        <h5 className="font-medium text-blue-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                        <ul className="text-blue-700 space-y-1 text-xs">
-                          <li>
-                            • <strong>300 x 300 พิกเซล</strong> (สำหรับตราประทับแบบกลม)
-                          </li>
-                          <li>• หรือ 400 x 200 พิกเซล (สำหรับตราประทับแบบสี่เหลี่ยม)</li>
-                          <li>• ความละเอียดสูง: 600x600 พิกเซล</li>
-                        </ul>
-                      </div>
-
-                      <div className="bg-white p-3 rounded border border-blue-100">
-                        <h5 className="font-medium text-blue-800 mb-2">🎨 คุณภาพภาพ</h5>
-                        <ul className="text-blue-700 space-y-1 text-xs">
-                          <li>
-                            • <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว
-                          </li>
-                          <li>• ตราประทับสีชัดเจน</li>
-                          <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="bg-white border border-blue-200 rounded p-3 mb-3">
-                      <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
-                      <p className="text-blue-700 text-xs">
-                        หลังอัปโหลดภาพตราประทับ คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
-                      </p>
-                      <ul className="text-blue-700 space-y-1 text-xs mt-1">
-                        <li>
-                          • <strong>ซูมเข้า/ออก</strong> เพื่อปรับขนาดให้เหมาะสม
-                        </li>
-                        <li>
-                          • <strong>เลื่อนตำแหน่ง</strong> เพื่อจัดตำแหน่งให้ตรงกลาง
-                        </li>
-                        <li>
-                          • <strong>ครอบตัด</strong> เพื่อให้ได้สัดส่วนที่ต้องการ
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-blue-600">
-                        💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพตราประทับบนกระดาษขาวด้วยแสงที่เพียงพอ
-                      </div>
+                  <div className="text-xs">
+                    <p className="font-medium text-blue-800 mb-2">
+                      ขนาดแนะนำ: 300x300 พิกเซล, พื้นหลังโปร่งใส (PNG)
+                    </p>
+                    <div className="flex gap-4">
                       <a
-                        href="/images/FTI-LOGOsample.jpg"
+                        href="/images/FTI-LOGOsample.png"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs"
+                        className="text-blue-600 hover:text-blue-800 underline"
                       >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                        ดูตัวอย่าง
+                        ดูตัวอย่างตราประทับ
                       </a>
                     </div>
                   </div>
@@ -864,248 +801,239 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้มีอำนาจลงนาม</h3>
+                <p className="text-sm text-gray-600 mt-2">
+                  กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
+                </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Thai Name Fields */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-blue-700 border-b border-blue-200 pb-2">
-                    ชื่อ-นามสกุล (ภาษาไทย)
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        คำนำหน้า <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={formData.authorizedSignatoryPrenameTh || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const mapThToEn = { "นาย": "Mr", "นาง": "Mrs", "นางสาว": "Ms", "อื่นๆ": "Other" };
-                          const mappedEn = mapThToEn[value] || "";
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryPrenameTh: value,
-                            authorizedSignatoryPrenameEn: mappedEn,
-                            authorizedSignatoryPrenameOther: value === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
-                            authorizedSignatoryPrenameOtherEn: mappedEn === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
-                          }));
-                        }}
-                        className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        required
-                      >
-                        <option value="">เลือก</option>
-                        <option value="นาย">นาย</option>
-                        <option value="นาง">นาง</option>
-                        <option value="นางสาว">นางสาว</option>
-                        <option value="อื่นๆ">อื่นๆ</option>
-                      </select>
-                      {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                        <input
-                          type="text"
-                          value={formData.authorizedSignatoryPrenameOther || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
-                            }))
-                          }
-                          placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                          className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        ชื่อ <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.authorizedSignatoryFirstNameTh || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryFirstNameTh: e.target.value,
-                          }))
-                        }
-                        data-error-key="authorizedSignatoryFirstNameTh"
-                        placeholder="เช่น สมชาย"
-                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                        required
-                      />
-                      {errors?.authorizedSignatoryFirstNameTh && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.authorizedSignatoryFirstNameTh}
-                        </p>
-                      )}
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        นามสกุล <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.authorizedSignatoryLastNameTh || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryLastNameTh: e.target.value,
-                          }))
-                        }
-                        data-error-key="authorizedSignatoryLastNameTh"
-                        placeholder="เช่น ใจดี"
-                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                        required
-                      />
-                      {errors?.authorizedSignatoryLastNameTh && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.authorizedSignatoryLastNameTh}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* English Name Fields */}
-                <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-blue-700 border-b border-blue-200 pb-2">
-                    ชื่อ-นามสกุล (ภาษาอังกฤษ)
-                  </h4>
-
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Prename
-                      </label>
-                      <select
-                        value={formData.authorizedSignatoryPrenameEn || ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const mapEnToTh = { "Mr": "นาย", "Mrs": "นาง", "Ms": "นางสาว", "Other": "อื่นๆ" };
-                          const mappedTh = mapEnToTh[value] || "";
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryPrenameEn: value,
-                            authorizedSignatoryPrenameTh: mappedTh,
-                            authorizedSignatoryPrenameOtherEn: value === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
-                            authorizedSignatoryPrenameOther: mappedTh === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
-                          }));
-                        }}
-                        className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        <option value="">Select</option>
-                        <option value="Mr">Mr</option>
-                        <option value="Mrs">Mrs</option>
-                        <option value="Ms">Ms</option>
-                        <option value="Other">Other</option>
-                      </select>
-                      {formData.authorizedSignatoryPrenameEn === "Other" && (
-                        <input
-                          type="text"
-                          value={formData.authorizedSignatoryPrenameOtherEn || ""}
-                          onChange={(e) =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
-                            }))
-                          }
-                          placeholder="e.g., Assoc. Prof., Dr."
-                          className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          required
-                        />
-                      )}
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        ชื่อ <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.authorizedSignatoryFirstNameEn || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryFirstNameEn: e.target.value,
-                          }))
-                        }
-                        data-error-key="authorizedSignatoryFirstNameEn"
-                        placeholder="e.g., Somchai"
-                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                      />
-                      {errors?.authorizedSignatoryFirstNameEn && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.authorizedSignatoryFirstNameEn}
-                        </p>
-                      )}
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        นามสกุล <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.authorizedSignatoryLastNameEn || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryLastNameEn: e.target.value,
-                          }))
-                        }
-                        data-error-key="authorizedSignatoryLastNameEn"
-                        placeholder="e.g., Jaidee"
-                        className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
-                      />
-                      {errors?.authorizedSignatoryLastNameEn && (
-                        <p className="mt-1 text-sm text-red-600">
-                          {errors.authorizedSignatoryLastNameEn}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Position Fields */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ตำแหน่ง (ภาษาไทย) <span className="text-red-500">*</span>
-                    </label>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {/* คำนำหน้า (ไทย) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    คำนำหน้า (ไทย) <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    value={formData.authorizedSignatoryPrenameTh || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const mapThToEn = { "นาย": "Mr", "นาง": "Mrs", "นางสาว": "Ms", "อื่นๆ": "Other" };
+                      const mappedEn = mapThToEn[value] || "";
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPrenameTh: value,
+                        authorizedSignatoryPrenameEn: mappedEn,
+                        authorizedSignatoryPrenameOther: value === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
+                        authorizedSignatoryPrenameOtherEn: mappedEn === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                      }));
+                    }}
+                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  >
+                    <option value="">เลือก</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
                     <input
                       type="text"
-                      value={formData.authorizedSignatoryPositionTh || ""}
+                      value={formData.authorizedSignatoryPrenameOther || ""}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          authorizedSignatoryPositionTh: e.target.value,
+                          authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
                         }))
                       }
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryPositionTh
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="เช่น กรรมการผู้จัดการ"
+                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                      className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
                     />
-                    {errors?.authorizedSignatoryPositionTh && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryPositionTh}
-                      </p>
-                    )}
-                  </div>
+                  )}
+                </div>
+                
+                {/* ชื่อ (ไทย) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.authorizedSignatoryFirstNameTh || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryFirstNameTh: e.target.value,
+                      }))
+                    }
+                    data-error-key="authorizedSignatoryFirstNameTh"
+                    placeholder="เช่น สมชาย"
+                    className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                    required
+                  />
+                  {errors?.authorizedSignatoryFirstNameTh && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.authorizedSignatoryFirstNameTh}
+                    </p>
+                  )}
+                </div>
+                
+                {/* นามสกุล (ไทย) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.authorizedSignatoryLastNameTh || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryLastNameTh: e.target.value,
+                      }))
+                    }
+                    data-error-key="authorizedSignatoryLastNameTh"
+                    placeholder="เช่น ใจดี"
+                    className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                    required
+                  />
+                  {errors?.authorizedSignatoryLastNameTh && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.authorizedSignatoryLastNameTh}
+                    </p>
+                  )}
+                </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      ตำแหน่ง (อังกฤษ) <span className="text-red-500">*</span>
-                    </label>
+                {/* ตำแหน่ง (ไทย) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    ตำแหน่ง (ภาษาไทย) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.authorizedSignatoryPositionTh || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPositionTh: e.target.value,
+                      }))
+                    }
+                    placeholder="เช่น กรรมการผู้จัดการ"
+                    className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryPositionTh ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                  />
+                  {errors?.authorizedSignatoryPositionTh && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.authorizedSignatoryPositionTh}
+                    </p>
+                  )}
+                </div>
+
+                {/* Prename (EN) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Prename (EN)
+                  </label>
+                  <select
+                    value={formData.authorizedSignatoryPrenameEn || ""}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const mapEnToTh = { "Mr": "นาย", "Mrs": "นาง", "Ms": "นางสาว", "Other": "อื่นๆ" };
+                      const mappedTh = mapEnToTh[value] || "";
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPrenameEn: value,
+                        authorizedSignatoryPrenameTh: mappedTh,
+                        authorizedSignatoryPrenameOtherEn: value === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                        authorizedSignatoryPrenameOther: mappedTh === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
+                      }));
+                    }}
+                    className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Select</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Ms">Ms</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {formData.authorizedSignatoryPrenameEn === "Other" && (
                     <input
                       type="text"
-                      value={formData.authorizedSignatoryPositionEn || ""}
+                      value={formData.authorizedSignatoryPrenameOtherEn || ""}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          authorizedSignatoryPositionEn: e.target.value,
+                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                        }))
+                      }
+                      placeholder="e.g., Assoc. Prof., Dr."
+                      className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      required
+                    />
+                  )}
+                </div>
+                
+                {/* First Name (EN) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    First Name (EN) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.authorizedSignatoryFirstNameEn || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryFirstNameEn: e.target.value,
+                      }))
+                    }
+                    data-error-key="authorizedSignatoryFirstNameEn"
+                    placeholder="e.g., Somchai"
+                    className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryFirstNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                  />
+                  {errors?.authorizedSignatoryFirstNameEn && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.authorizedSignatoryFirstNameEn}
+                    </p>
+                  )}
+                </div>
+                
+                {/* Last Name (EN) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Last Name (EN) <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.authorizedSignatoryLastNameEn || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryLastNameEn: e.target.value,
+                      }))
+                    }
+                    data-error-key="authorizedSignatoryLastNameEn"
+                    placeholder="e.g., Jaidee"
+                    className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.authorizedSignatoryLastNameEn ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}`}
+                  />
+                  {errors?.authorizedSignatoryLastNameEn && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.authorizedSignatoryLastNameEn}
+                    </p>
+                  )}
+                </div>
+
+                {/* Position (EN) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Position (EN)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.authorizedSignatoryPositionEn || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPositionEn: e.target.value,
                         }))
                       }
                       className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
@@ -1115,12 +1043,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       }`}
                       placeholder="e.g. Managing Director"
                     />
-                    {errors?.authorizedSignatoryPositionEn && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {errors.authorizedSignatoryPositionEn}
-                      </p>
-                    )}
-                  </div>
+                  {errors?.authorizedSignatoryPositionEn && (
+                    <p className="mt-1 text-sm text-red-600">
+                      {errors.authorizedSignatoryPositionEn}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -1180,10 +1107,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 error={errors?.authorizedSignature}
                 isImageRequired={true}
               />
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-start gap-2">
                   <svg
-                    className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0"
+                    className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -1195,83 +1122,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  <div className="text-sm">
-                    <p className="font-semibold text-blue-800 mb-3">
-                      คำแนะนำสำหรับลายเซ็นที่จะแปะในขวาล่างของเอกสาร A4:
+                  <div className="text-xs">
+                    <p className="font-medium text-blue-800 mb-2">
+                      ขนาดแนะนำ: 120x60 พิกเซล, พื้นหลังโปร่งใส (PNG)
                     </p>
-
-                    <div className="grid md:grid-cols-2 gap-4 mb-4">
-                      <div className="bg-white p-3 rounded border border-blue-100">
-                        <h5 className="font-medium text-blue-800 mb-2">📐 ขนาดที่แนะนำ</h5>
-                        <ul className="text-blue-700 space-y-1 text-xs">
-                          <li>
-                            • <strong>120 x 60 พิกเซล</strong> (อัตราส่วน 2:1)
-                          </li>
-                          <li>• หรือ 240 x 120 พิกเซล (ความละเอียดสูง)</li>
-                          <li>• ขนาดจริงบนกระดาษ: ประมาณ 3 x 1.5 ซม.</li>
-                        </ul>
-                      </div>
-
-                      <div className="bg-white p-3 rounded border border-blue-100">
-                        <h5 className="font-medium text-blue-800 mb-2">🎨 รูปแบบภาพ</h5>
-                        <ul className="text-blue-700 space-y-1 text-xs">
-                          <li>
-                            • <strong>พื้นหลังโปร่งใส</strong> (PNG) หรือสีขาว
-                          </li>
-                          <li>• ลายเซ็นสีดำหรือสีเข้ม</li>
-                          <li>• ความละเอียดชัดเจน ไม่เบลอ</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    <div className="bg-white border border-blue-200 rounded p-3 mb-3">
-                      <h5 className="font-medium text-blue-800 mb-2">✨ ฟีเจอร์ปรับแต่ง </h5>
-                      <p className="text-blue-700 text-xs">
-                        หลังอัปโหลดภาพลายเซ็น คุณสามารถใช้เครื่องมือปรับแต่งเพื่อ:
-                      </p>
-                      <ul className="text-blue-700 space-y-1 text-xs mt-1">
-                        <li>
-                          • <strong>ซูมเข้า/ออก</strong> เพื่อปรับขนาดให้เหมาะสม
-                        </li>
-                        <li>
-                          • <strong>เลื่อนตำแหน่ง</strong> เพื่อจัดตำแหน่งให้ตรงกลาง
-                        </li>
-                        <li>
-                          • <strong>ครอบตัด</strong> เพื่อให้ได้สัดส่วนที่ต้องการ
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs text-blue-600">
-                        💡 <strong>เคล็ดลับ:</strong> ถ่ายภาพลายเซ็นบนกระดาษขาวด้วยแสงที่เพียงพอ
-                      </div>
+                    <div className="flex gap-4">
                       <a
                         href="/images/FTI-SIGNATUREsample.jpg"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:text-blue-800 underline text-xs"
+                        className="text-blue-600 hover:text-blue-800 underline"
                       >
-                        <svg
-                          className="w-3 h-3"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                          />
-                        </svg>
-                        ดูตัวอย่าง
+                        ดูตัวอย่างลายเซ็น
                       </a>
                     </div>
                   </div>

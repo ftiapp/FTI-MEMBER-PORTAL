@@ -292,11 +292,14 @@ const validateRepresentativeInfo = (formData) => {
     representativeErrors.lastNameEng = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  // Contact information validation (รองรับ 9-10 หลัก)
+  // Contact information validation (รองรับ 9-10 หลัก, อนุญาตให้มี - และช่องว่าง)
   if (!representative.phone) {
     representativeErrors.phone = "กรุณากรอกเบอร์โทรศัพท์";
-  } else if (!/^\d{9,10}$/.test(representative.phone.replace(/[-\s]/g, ""))) {
-    representativeErrors.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
+  } else {
+    const cleanPhone = representative.phone.replace(/[-\s]/g, "");
+    if (!/^\d{9,10}$/.test(cleanPhone)) {
+      representativeErrors.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (สามารถใส่ - หรือช่องว่างได้)";
+    }
   }
 
   // Phone extension validation: allow non-numeric characters for representative as well

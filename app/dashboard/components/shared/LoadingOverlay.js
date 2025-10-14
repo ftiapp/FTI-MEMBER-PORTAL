@@ -20,101 +20,46 @@ export default function LoadingOverlay({
 
   const content = (
     <div className="relative pointer-events-auto flex flex-col items-center">
-      <style>{`
-        .perspective-1000 {
-          perspective: 1000px;
-        }
-        .preserve-3d {
-          transform-style: preserve-3d;
-        }
-      `}</style>
-
       <motion.div
         className="flex flex-col items-center"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {/* 3D Cube Container */}
-        <div className="perspective-1000">
+        {/* Rotating Logo */}
+        <div className="relative">
           <motion.div
-            className="relative w-12 h-12 preserve-3d"
-            animate={{ rotateX: 360, rotateY: 360 }}
+            className="relative w-16 h-16"
+            animate={{ rotateY: 360 }}
             transition={{
-              duration: 4,
+              duration: 3,
               repeat: Infinity,
               ease: "linear",
             }}
-            style={{
-              transformStyle: "preserve-3d",
-            }}
           >
-            {/* Front Face */}
-            <div
-              className="absolute w-12 h-12 bg-white border border-blue-800 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "translateZ(24px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-6 h-6 bg-blue-800 rounded"></div>
-            </div>
-
-            {/* Back Face */}
-            <div
-              className="absolute w-12 h-12 bg-blue-800 border border-blue-900 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "translateZ(-24px) rotateY(180deg)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-6 h-6 bg-white rounded"></div>
-            </div>
-
-            {/* Right Face */}
-            <div
-              className="absolute w-12 h-12 bg-white border border-blue-800 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateY(90deg) translateZ(24px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-6 h-6 bg-blue-800 rounded"></div>
-            </div>
-
-            {/* Left Face */}
-            <div
-              className="absolute w-12 h-12 bg-blue-800 border border-blue-900 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateY(-90deg) translateZ(24px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-6 h-6 bg-white rounded"></div>
-            </div>
-
-            {/* Top Face */}
-            <div
-              className="absolute w-12 h-12 bg-white border border-blue-800 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateX(90deg) translateZ(24px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-6 h-6 bg-blue-800 rounded"></div>
-            </div>
-
-            {/* Bottom Face */}
-            <div
-              className="absolute w-12 h-12 bg-blue-800 border border-blue-900 shadow-lg flex items-center justify-center"
-              style={{
-                transform: "rotateX(-90deg) translateZ(24px)",
-                backfaceVisibility: "hidden",
-              }}
-            >
-              <div className="w-6 h-6 bg-white rounded"></div>
-            </div>
+            <img
+              src="/images/Logo_FTI.webp"
+              alt="FTI Logo"
+              className="w-full h-full object-contain drop-shadow-xl"
+            />
           </motion.div>
+          
+          {/* Shine Effect */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
+            animate={{
+              x: [-100, 100],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              repeatDelay: 0.5,
+              ease: "easeInOut",
+            }}
+            style={{
+              clipPath: "polygon(20% 0%, 40% 0%, 60% 100%, 40% 100%)",
+            }}
+          />
         </div>
 
         {/* Loading Message */}

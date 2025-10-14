@@ -132,7 +132,7 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
             type="range"
             min="0.1"
             max="3"
-            step="0.1"
+            step="0.01"
             value={scale}
             onChange={(e) => setScale(parseFloat(e.target.value))}
             className="w-full"
@@ -442,6 +442,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     iconColor,
     bgColor,
     isImageRequired = false,
+    disabled = false,
   }) => {
     const handleSingleFileChange = (e) => {
       handleFileChange(e, name);
@@ -480,38 +481,48 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
 
         <div
           className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
-            errors?.[name] ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-blue-400"
+            disabled 
+              ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed" 
+              : errors?.[name] 
+                ? "border-red-300 bg-red-50" 
+                : "border-gray-300 hover:border-blue-400"
           }`}
         >
           {!hasFile(file) ? (
             <div className="text-center">
               {UploadIcon}
               <div className="flex flex-col items-center mt-4">
-                <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
-                <label htmlFor={name} className="mt-2 cursor-pointer">
-                  <span
-                    className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 ${
-                      isImageRequired
-                        ? "bg-purple-600 hover:bg-purple-700"
-                        : "bg-blue-600 hover:bg-blue-700"
-                    }`}
-                  >
-                    เลือกไฟล์
-                  </span>
-                  <input
-                    id={name}
-                    name={name}
-                    type="file"
-                    accept={isImageRequired ? ".jpg,.jpeg,.png" : ".pdf,.jpg,.jpeg,.png"}
-                    onChange={handleSingleFileChange}
-                    className="hidden"
-                  />
-                </label>
-                <p className="mt-2 text-xs text-gray-500">
-                  {isImageRequired
-                    ? "รองรับไฟล์ JPG, JPEG, PNG ขนาดไม่เกิน 5MB"
-                    : "รองรับไฟล์: PDF, JPG, PNG (ขนาดไม่เกิน 10MB)"}
+                <p className={`text-sm ${disabled ? "text-gray-400" : "text-gray-500"}`}>
+                  {disabled ? "ไม่สามารถอัปโหลดได้ (กรุณาลบไฟล์อีกตัวเลือกก่อน)" : "ลากไฟล์มาวางที่นี่ หรือ"}
                 </p>
+                {!disabled && (
+                  <>
+                    <label htmlFor={name} className="mt-2 cursor-pointer">
+                      <span
+                        className={`px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors duration-200 ${
+                          isImageRequired
+                            ? "bg-purple-600 hover:bg-purple-700"
+                            : "bg-blue-600 hover:bg-blue-700"
+                        }`}
+                      >
+                        เลือกไฟล์
+                      </span>
+                      <input
+                        id={name}
+                        name={name}
+                        type="file"
+                        accept={isImageRequired ? ".jpg,.jpeg,.png" : ".pdf,.jpg,.jpeg,.png"}
+                        onChange={handleSingleFileChange}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="mt-2 text-xs text-gray-500">
+                      {isImageRequired
+                        ? "รองรับไฟล์ JPG, JPEG, PNG ขนาดไม่เกิน 5MB"
+                        : "รองรับไฟล์: PDF, JPG, PNG (ขนาดไม่เกิน 10MB)"}
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           ) : (
@@ -665,6 +676,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     description="รง.4 - เอกสารใบอนุญาตประกอบกิจการโรงงานที่ออกโดยกรมโรงงานอุตสาหกรรม"
                     name="factoryLicense"
                     file={selectedFiles.factoryLicense}
+                    disabled={hasFile(selectedFiles.industrialEstateLicense)}
                     icon={
                       <svg
                         className="w-8 h-8 text-blue-600"
@@ -702,6 +714,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     description="กนอ. - เอกสารใบอนุญาตที่ออกโดยการนิคมอุตสาหกรรมแห่งประเทศไทย"
                     name="industrialEstateLicense"
                     file={selectedFiles.industrialEstateLicense}
+                    disabled={hasFile(selectedFiles.factoryLicense)}
                     icon={
                       <svg
                         className="w-8 h-8 text-green-600"
@@ -867,7 +880,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
             <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
               <h3 className="text-lg font-semibold text-gray-800 mb-2">ข้อมูลผู้มีอำนาจลงนาม</h3>
               <p className="text-sm text-gray-600 mb-4">
-                กรุณากรอกชื่อ-นามสกุลของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
+                กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
               </p>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Prename Thai */}
@@ -949,7 +962,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                <div className="md:col-span-2">
+                <div>
                   <label
                     htmlFor="authorizedSignatoryLastNameTh"
                     className="block text-sm font-medium text-gray-700"
@@ -975,6 +988,36 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     <p className="mt-1 text-xs text-red-600 flex items-center">
                       <span className="mr-1">*</span>
                       {errors.authorizedSignatoryLastNameTh}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label
+                    htmlFor="authorizedSignatoryPositionTh"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    ตำแหน่ง (ภาษาไทย) <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    id="authorizedSignatoryPositionTh"
+                    name="authorizedSignatoryPositionTh"
+                    type="text"
+                    value={formData.authorizedSignatoryPositionTh || ""}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        authorizedSignatoryPositionTh: e.target.value,
+                      }))
+                    }
+                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${(showErrors && !formData.authorizedSignatoryPositionTh) || errors?.authorizedSignatoryPositionTh ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
+                    placeholder="เช่น กรรมการผู้จัดการ"
+                  />
+                  {((showErrors && !formData.authorizedSignatoryPositionTh) ||
+                    errors?.authorizedSignatoryPositionTh) && (
+                    <p className="mt-1 text-xs text-red-600 flex items-center">
+                      <span className="mr-1">*</span>
+                      {errors?.authorizedSignatoryPositionTh ||
+                        "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย)"}
                     </p>
                   )}
                 </div>
@@ -1055,12 +1098,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                <div className="md:col-span-2">
+                <div>
                   <label
                     htmlFor="authorizedSignatoryLastNameEn"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    นามสกุล (อังกฤษ)
+                    Last Name (EN)
                   </label>
                   <input
                     id="authorizedSignatoryLastNameEn"
@@ -1085,40 +1128,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                 </div>
                 <div>
                   <label
-                    htmlFor="authorizedSignatoryPositionTh"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    ตำแหน่ง (ภาษาไทย) <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    id="authorizedSignatoryPositionTh"
-                    name="authorizedSignatoryPositionTh"
-                    type="text"
-                    value={formData.authorizedSignatoryPositionTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPositionTh: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${(showErrors && !formData.authorizedSignatoryPositionTh) || errors?.authorizedSignatoryPositionTh ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="เช่น กรรมการผู้จัดการ"
-                  />
-                  {((showErrors && !formData.authorizedSignatoryPositionTh) ||
-                    errors?.authorizedSignatoryPositionTh) && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors?.authorizedSignatoryPositionTh ||
-                        "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย)"}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
                     htmlFor="authorizedSignatoryPositionEn"
                     className="block text-sm font-medium text-gray-700"
                   >
-                    ตำแหน่ง (อังกฤษ)
+                    Position (EN)
                   </label>
                   <input
                     id="authorizedSignatoryPositionEn"
@@ -1199,23 +1212,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
           </div>
 
           {/* Empty State */}
-          {!factoryType && (
-            <div className="text-center py-16">
-              <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">เลือกประเภทโรงงาน</h3>
-              <p className="text-gray-600 max-w-md mx-auto">
-                กรุณาเลือกประเภทโรงงานด้านบนเพื่อดำเนินการอัปโหลดเอกสาร
-              </p>
-            </div>
-          )}
+        
         </div>
       </div>
 

@@ -4,10 +4,11 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 import MembershipSuccessModal from "@/app/components/MembershipSuccessModal";
+import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 
 // Import components
 import CompanyInfoSection from "./CompanyInfoSection";
-import RepresentativeSection from "./RepresentativeInfoSection";
+import RepresentativeInfoSection from "../../components/RepresentativeInfoSection";
 import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
@@ -336,22 +337,6 @@ export default function OCMembershipForm({
         return;
       }
 
-      // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
-      if (!consentAgreed) {
-        toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
-          duration: 4000,
-          position: "top-center",
-        });
-        // เลื่อนไปที่กล่อง consent
-        setTimeout(() => {
-          const consentBox = document.querySelector('[data-consent-box]');
-          if (consentBox) {
-            consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 100);
-        return;
-      }
-
       // Clean up empty contact persons before submission (except the main contact person)
       let updatedFormData = { ...formData };
       if (formData.contactPersons && formData.contactPersons.length > 1) {
@@ -392,19 +377,54 @@ export default function OCMembershipForm({
         // Set showErrors to true to trigger error UI in child components
         setShowErrors(true);
 
-        // แสดง error message ที่ละเอียดขึ้น
-        const errorCount = Object.keys(formErrors).length;
-        const errorFields = Object.keys(formErrors).map(key => {
-          const fieldName = key.split('.').pop();
-          return fieldName;
-        }).slice(0, 3).join(', ');
-        
-        toast.error(
-          `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน${errorCount > 3 ? ' และอื่นๆ' : ''}`,
-          { duration: 5000 }
-        );
-        
         console.log("❌ Validation errors:", formErrors);
+        
+        // สร้าง error message ที่ละเอียดสำหรับ representatives
+        let errorMessage = '';
+        let errorCount = 0;
+        
+        if (formErrors.representativeErrors && Array.isArray(formErrors.representativeErrors)) {
+          const repErrors = formErrors.representativeErrors;
+          const repErrorDetails = [];
+          
+          repErrors.forEach((repError, index) => {
+            if (repError && Object.keys(repError).length > 0) {
+              const fieldNames = Object.keys(repError).map(key => {
+                const fieldMap = {
+                  'prename_th': 'คำนำหน้าชื่อ (ไทย)',
+                  'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
+                  'firstNameThai': 'ชื่อ (ไทย)',
+                  'lastNameThai': 'นามสกุล (ไทย)',
+                  'firstNameEnglish': 'ชื่อ (อังกฤษ)',
+                  'lastNameEnglish': 'นามสกุล (อังกฤษ)',
+                  'email': 'อีเมล',
+                  'phone': 'เบอร์โทรศัพท์',
+                  'position': 'ตำแหน่ง'
+                };
+                return fieldMap[key] || key;
+              }).join(', ');
+              
+              repErrorDetails.push(`ผู้แทนคนที่ ${index + 1}: ${fieldNames}`);
+              errorCount += Object.keys(repError).length;
+            }
+          });
+          
+          if (repErrorDetails.length > 0) {
+            errorMessage = `ข้อมูลผู้แทนไม่ครบถ้วน:\n${repErrorDetails.join('\n')}`;
+          }
+        }
+        
+        // นับ errors อื่นๆ ที่ไม่ใช่ representativeErrors
+        const otherErrorCount = Object.keys(formErrors).filter(key => key !== 'representativeErrors').length;
+        errorCount += otherErrorCount;
+        
+        if (!errorMessage) {
+          errorMessage = `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
+        } else if (otherErrorCount > 0) {
+          errorMessage += `\n\nและข้อผิดพลาดอื่นๆ อีก ${otherErrorCount} รายการ`;
+        }
+        
+        toast.error(errorMessage, { duration: 7000 });
         
         // Optionally, navigate to the first step with an error
         const firstErrorStep = STEPS.find(
@@ -416,18 +436,30 @@ export default function OCMembershipForm({
         return;
       }
 
-      // Show warning toast and set submitting state
-      toast.loading("กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้", {
-        id: "submitting",
-        duration: Infinity,
-      });
+      // ✅ ตรวจสอบ consent หลังจาก validation ผ่านแล้ว
+      console.log("🔍 Checking consent:", { consentAgreed, type: typeof consentAgreed });
+      if (!consentAgreed) {
+        console.log("❌ Consent not agreed!");
+        toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
+          duration: 4000,
+        });
+        // เลื่อนไปที่กล่อง consent
+        setTimeout(() => {
+          const consentBox = document.querySelector('[data-consent-box]');
+          if (consentBox) {
+            consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 100);
+        setIsSubmitting(false);
+        return;
+      }
+      console.log("✅ Consent agreed, proceeding with submission");
+
+      // Set submitting state (LoadingOverlay will show automatically)
       setIsSubmitting(true);
 
       try {
         const result = await submitOCMembershipForm(formData);
-
-        // Dismiss loading toast
-        toast.dismiss("submitting");
 
         if (result.success) {
           // ลบ draft หลังจากสมัครสำเร็จ
@@ -446,7 +478,7 @@ export default function OCMembershipForm({
         setIsSubmitting(false);
       }
     },
-    [formData, router, setCurrentStep, currentStep],
+    [formData, router, setCurrentStep, currentStep, consentAgreed],
   );
 
   // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
@@ -496,6 +528,18 @@ export default function OCMembershipForm({
       if (Object.keys(formErrors).length > 0) {
         // Set showErrors to true to trigger error UI in child components
         setShowErrors(true);
+
+        // If representative step has errors, let the child component handle scroll AND toast (avoid duplicate)
+        if (currentStep === 2 && formErrors.representativeErrors) {
+          // Child component (RepresentativeInfoSection) will handle both scroll and toast
+          return;
+        }
+
+        // If business info step has errors, let the child component handle scroll AND toast (avoid duplicate)
+        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
+          // Child component (BusinessInfoSection) will handle both scroll and toast
+          return;
+        }
 
         // Show a specific message for the first error and scroll to the field
         const [firstKey, firstValue] = Object.entries(formErrors)[0] || [];
@@ -709,7 +753,25 @@ export default function OCMembershipForm({
           taxIdValidating={taxIdValidating}
         />
       ),
-      2: <RepresentativeSection {...commonProps} />,
+      2: <RepresentativeInfoSection 
+        mode="multiple"
+        formData={formData}
+        setFormData={setFormData}
+        errors={errors}
+        config={{
+          headerTitle: "ข้อมูลผู้แทนนิติบุคคล",
+          headerSubtitle: "ข้อมูลผู้มีอำนาจลงนามแทนนิติบุคคล",
+          positionPlaceholder: "ตำแหน่งในบริษัท",
+          infoMessage: "สามารถเพิ่มผู้แทนได้สูงสุด 3 ท่าน ควรเป็นผู้มีอำนาจลงนามแทนนิติบุคคลตามหนังสือรับรอง",
+          toastId: "oc-representative-errors",
+          fieldNames: {
+            firstNameTh: "firstNameThai",
+            lastNameTh: "lastNameThai",
+            firstNameEn: "firstNameEnglish",
+            lastNameEn: "lastNameEnglish",
+          },
+        }}
+      />,
       3: (
         <BusinessInfoSection
           {...commonProps}
@@ -998,6 +1060,12 @@ export default function OCMembershipForm({
         onClose={() => setShowDraftSavePopup(false)}
         taxId={formData.taxId}
         companyName={formData.companyName}
+      />
+
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isVisible={isSubmitting}
+        message="กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้"
       />
 
       {/* Success Modal */}

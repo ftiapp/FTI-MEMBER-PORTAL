@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
-import SearchableAddressDropdown from "./SearchableAddressDropdown";
-import AddressSection from "./AddressSection";
-import IndustrialGroupSection from "./IndustrialGroupSection";
+import { AddressSection } from "../../shared/address";
+import IndustrialGroupSection from "../../components/IndustrialGroupSection";
 import { validateThaiIDCard } from "./ICFormValidation";
 
 // Add custom CSS for animations
@@ -767,7 +766,8 @@ export default function ApplicantInfoSection({
           formData={formData}
           setFormData={setFormData}
           errors={errors}
-          isLoading={isLoading}
+          title="ที่อยู่"
+          subtitle="ข้อมูลที่อยู่และการติดต่อ"
         />
 
         {/* Industrial Group and Provincial Chapter */}

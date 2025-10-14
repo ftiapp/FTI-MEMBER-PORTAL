@@ -82,6 +82,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
   const memberCountRef = useRef(null);
   const employeeCountRef = useRef(null);
   const productsRef = useRef(null);
+  const lastScrolledErrorRef = useRef(null);
 
   // Effect for scrolling to first error when showErrors is true
   useEffect(() => {
@@ -99,12 +100,43 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
       const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
 
       if (firstErrorField) {
-        // Scroll to the first error field
-        firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        // Create detailed error message
+        const fieldMap = {
+          businessTypes: 'ประเภทธุรกิจ',
+          otherBusinessTypeDetail: 'รายละเอียดประเภทธุรกิจอื่นๆ',
+          memberCount: 'จำนวนสมาชิก',
+          numberOfEmployees: 'จำนวนพนักงาน',
+          products: 'สินค้า/บริการ'
+        };
+        
+        const errorFieldNames = errorFields
+          .filter(field => field.error)
+          .map(field => {
+            const key = Object.keys(errors).find(k => errors[k] === field.error);
+            return fieldMap[key] || key;
+          })
+          .join(', ');
 
-        // Show toast notification (standardized with react-hot-toast)
-        toast.error("กรุณาตรวจสอบข้อมูลที่กรอกให้ถูกต้องครบถ้วน", { id: "am-business-errors" });
+        // Create a unique key for current errors to prevent duplicate scrolling
+        const errorKey = errorFieldNames;
+        
+        // Only scroll if errors are different from the last scroll
+        if (errorKey !== lastScrolledErrorRef.current) {
+          lastScrolledErrorRef.current = errorKey;
+          
+          // Scroll to the first error field
+          firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+
+          // Show toast notification with specific fields
+          toast.error(`กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`, { 
+            id: "am-business-errors",
+            duration: 5000 
+          });
+        }
       }
+    } else {
+      // Reset the scroll tracker when showErrors is false
+      lastScrolledErrorRef.current = null;
     }
   }, [showErrors, errors]);
 
@@ -231,7 +263,10 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
+    <div 
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10"
+      data-section="business-info"
+    >
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
         <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ</h2>

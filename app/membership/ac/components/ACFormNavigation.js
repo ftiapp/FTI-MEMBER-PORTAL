@@ -67,10 +67,53 @@ export const useACFormNavigation = (
     setErrors(errors);
 
     if (Object.keys(errors).length > 0) {
-      const [firstKey, firstValue] = Object.entries(errors)[0] || [];
-      const firstMessage =
-        typeof firstValue === "string" ? firstValue : "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
-      toast.error(firstMessage);
+      // สร้าง error message ที่ละเอียดสำหรับ representatives
+      let errorMessage = '';
+      let errorCount = 0;
+      
+      if (errors.representativeErrors && Array.isArray(errors.representativeErrors)) {
+        const repErrors = errors.representativeErrors;
+        const repErrorDetails = [];
+        
+        repErrors.forEach((repError, index) => {
+          if (repError && Object.keys(repError).length > 0) {
+            const fieldNames = Object.keys(repError).map(key => {
+              const fieldMap = {
+                'prename_th': 'คำนำหน้าชื่อ (ไทย)',
+                'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
+                'firstNameThai': 'ชื่อ (ไทย)',
+                'lastNameThai': 'นามสกุล (ไทย)',
+                'firstNameEnglish': 'ชื่อ (อังกฤษ)',
+                'lastNameEnglish': 'นามสกุล (อังกฤษ)',
+                'email': 'อีเมล',
+                'phone': 'เบอร์โทรศัพท์',
+                'position': 'ตำแหน่ง'
+              };
+              return fieldMap[key] || key;
+            }).join(', ');
+            
+            repErrorDetails.push(`ผู้แทนคนที่ ${index + 1}: ${fieldNames}`);
+            errorCount += Object.keys(repError).length;
+          }
+        });
+        
+        if (repErrorDetails.length > 0) {
+          errorMessage = `ข้อมูลผู้แทนไม่ครบถ้วน:\n${repErrorDetails.join('\n')}`;
+        }
+      }
+      
+      // นับ errors อื่นๆ ที่ไม่ใช่ representativeErrors
+      const otherErrorCount = Object.keys(errors).filter(key => key !== 'representativeErrors').length;
+      errorCount += otherErrorCount;
+      
+      if (!errorMessage) {
+        const [firstKey, firstValue] = Object.entries(errors)[0] || [];
+        errorMessage = typeof firstValue === "string" ? firstValue : `พบข้อผิดพลาด ${errorCount} รายการ: กรุณากรอกข้อมูลให้ครบถ้วน`;
+      } else if (otherErrorCount > 0) {
+        errorMessage += `\n\nและข้อผิดพลาดอื่นๆ อีก ${otherErrorCount} รายการ`;
+      }
+      
+      toast.error(errorMessage, { duration: 7000 });
       return;
     }
 

@@ -5,6 +5,7 @@ import {
   executeQuery,
   commitTransaction,
   rollbackTransaction,
+  executeQueryWithoutTransaction,
 } from "@/app/lib/db";
 import { uploadToCloudinary } from "@/app/lib/cloudinary";
 import { sendMembershipConfirmationEmail } from "@/app/lib/postmark";
@@ -656,11 +657,16 @@ export async function POST(request) {
 
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
-      const userEmail = data.email;
-      const userName = `${data.firstNameTh || ""} ${data.lastNameTh || ""}`.trim() || "ผู้สมัคร";
-      const applicantName = userName; // IC เป็นบุคคลธรรมดา ใช้ชื่อผู้สมัครแทนชื่อบริษัท
+      // ดึงข้อมูล user จาก users table
+      const userQuery = `SELECT firstname, lastname, email FROM users WHERE id = ?`;
+      const userResult = await executeQueryWithoutTransaction(userQuery, [userId]);
+      
+      if (userResult && userResult.length > 0) {
+        const user = userResult[0];
+        const userEmail = user.email;
+        const userName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
+        const applicantName = userName; // IC เป็นบุคคลธรรมดา ใช้ชื่อผู้สมัครแทนชื่อบริษัท
 
-      if (userEmail) {
         await sendMembershipConfirmationEmail(userEmail, userName, "IC", applicantName);
         console.log("✅ [IC] Membership confirmation email sent to:", userEmail);
       }

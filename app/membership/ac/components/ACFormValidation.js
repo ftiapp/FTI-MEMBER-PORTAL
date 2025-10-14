@@ -244,16 +244,26 @@ export const validateACForm = (formData, step) => {
           repError.lastNameEn = "กรุณากรอกเฉพาะภาษาอังกฤษเท่านั้น";
         }
 
-        // ตรวจสอบอีเมล - ไม่บังคับ กรอกเมื่อมีแล้วตรวจรูปแบบเท่านั้น
-        if (rep.email && rep.email.trim() !== "" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rep.email)) {
+        // ตรวจสอบตำแหน่ง (บังคับกรอก)
+        if (!rep.position || rep.position.trim() === "") {
+          repError.position = "กรุณากรอกตำแหน่ง";
+        }
+
+        // ตรวจสอบอีเมล (บังคับกรอก)
+        if (!rep.email || rep.email.trim() === "") {
+          repError.email = "กรุณากรอกอีเมล";
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rep.email)) {
           repError.email = "รูปแบบอีเมลไม่ถูกต้อง";
         }
 
-        // ตรวจสอบเบอร์โทรศัพท์ (รองรับ 9-10 หลัก)
+        // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก, อนุญาตให้มี - และช่องว่าง)
         if (!rep.phone || rep.phone.trim() === "") {
           repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
-        } else if (!/^\d{9,10}$/.test(rep.phone.replace(/[-\s]/g, ""))) {
-          repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
+        } else {
+          const cleanPhone = rep.phone.replace(/[-\s]/g, "");
+          if (!/^\d{9,10}$/.test(cleanPhone)) {
+            repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (สามารถใส่ - หรือช่องว่างได้)";
+          }
         }
 
         // เพิ่มข้อผิดพลาดของผู้แทนคนนี้เข้าไปใน array

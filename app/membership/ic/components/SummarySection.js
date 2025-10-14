@@ -228,7 +228,6 @@ export default function SummarySection({
   onBack,
   viewMode = false, // เพิ่ม viewMode สำหรับโหมดดูข้อมูล
 }) {
-  const [consentAgreed, setConsentAgreed] = React.useState(false);
   // Get selected business types from database
   const getSelectedBusinessTypes = () => {
     console.log("=== Debug Business Types ===");
@@ -416,17 +415,6 @@ export default function SummarySection({
     if (e) {
       e.preventDefault();
       e.stopPropagation();
-    }
-
-    // ✅ ต้องยอมรับเงื่อนไขก่อนส่ง
-    if (!consentAgreed) {
-      // Use React toast if available, otherwise alert
-      if (typeof window !== 'undefined' && window.toast) {
-        window.toast.error("กรุณายอมรับเงื่อนไขการเก็บ ใช้ และเปิดเผยข้อมูลส่วนบุคคลก่อนส่งใบสมัคร");
-      } else {
-        alert("กรุณายอมรับเงื่อนไขการเก็บ ใช้ และเปิดเผยข้อมูลส่วนบุคคลก่อนส่งใบสมัคร");
-      }
-      return;
     }
 
     if (onSubmit && typeof onSubmit === "function") {
@@ -715,84 +703,7 @@ export default function SummarySection({
                 ปิดหน้าต่าง
               </button>
             </>
-          ) : (
-            // โหมดสมัคร - แสดงปุ่ม Submit
-            <>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">ยืนยันการส่งข้อมูล</h3>
-              <p className="text-sm text-gray-600 mb-6">
-                กรุณาตรวจสอบข้อมูลให้ถูกต้องก่อนกดส่ง หลังจากส่งแล้วจะไม่สามารถแก้ไขได้
-              </p>
-
-              {/* Consent Checkbox */}
-              <div className="mb-6">
-                <label className="flex items-start gap-3 text-sm text-gray-700">
-                  <input
-                    type="checkbox"
-                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded"
-                    checked={consentAgreed}
-                    onChange={(e) => setConsentAgreed(e.target.checked)}
-                  />
-                  <span>
-                    ข้าพเจ้าตกลงและยินยอมให้ สภาอุตสาหกรรมแห่งประเทศไทย เก็บ รวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า เพื่อวัตถุประสงค์ในการ [เช่น การติดต่อสื่อสาร การให้บริการ หรือการทำการตลาด] ทั้งนี้ ข้าพเจ้าสามารถเพิกถอนความยินยอมเมื่อใดก็ได้ ตามช่องทางที่องค์กรกำหนดไว้
-                  </span>
-                </label>
-              </div>
-
-              {/* Navigation Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                {/* Back Button */}
-                {onBack && (
-                  <button
-                    type="button"
-                    onClick={onBack}
-                    disabled={isSubmitting}
-                    className={`px-6 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
-                      isSubmitting
-                        ? "bg-gray-300 cursor-not-allowed text-gray-500"
-                        : "bg-gray-500 hover:bg-gray-600 hover:shadow-lg text-white"
-                    }`}
-                  >
-                    ← ย้อนกลับ
-                  </button>
-                )}
-
-                {/* Submit Button */}
-                {onSubmit && (
-                  <button
-                    type="button"
-                    onClick={handleSubmitClick}
-                    disabled={isSubmitting || !consentAgreed}
-                    className={`px-8 py-3 rounded-xl font-semibold text-base transition-all duration-200 ${
-                      isSubmitting || !consentAgreed
-                        ? "bg-gray-400 cursor-not-allowed text-white"
-                        : "bg-green-600 hover:bg-green-700 hover:shadow-lg text-white"
-                    }`}
-                  >
-                    {isSubmitting ? (
-                      <span className="flex items-center gap-2">
-                        <svg
-                          className="animate-spin w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                          />
-                        </svg>
-                        กำลังส่งข้อมูล...
-                      </span>
-                    ) : (
-                      "✓ ส่งข้อมูลสมัครสมาชิก"
-                    )}
-                  </button>
-                )}
-              </div>
-            </>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 
+/**
+ * Searchable Dropdown Component
+ * คอมโพเนนต์ dropdown ที่สามารถค้นหาได้ พร้อม debounce และ loading state
+ */
 export default function SearchableDropdown({
   label,
   placeholder,
@@ -11,9 +16,11 @@ export default function SearchableDropdown({
   fetchOptions,
   isRequired,
   isReadOnly,
+  disabled,
   error,
   className,
   autoFillNote,
+  containerProps,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -84,8 +91,11 @@ export default function SearchableDropdown({
     };
   }, []);
 
+  const isDisabled = !!disabled || !!isReadOnly;
+
   // Handle input change
   const handleInputChange = (e) => {
+    if (isDisabled) return;
     const newValue = e.target.value;
     setSearchTerm(newValue);
     onChange(newValue);
@@ -98,6 +108,7 @@ export default function SearchableDropdown({
 
   // Handle option selection
   const handleOptionSelect = (option) => {
+    if (isDisabled) return;
     if (!option || option.text === undefined || option.text === null) {
       console.warn("Invalid option selected:", option);
       return;
@@ -111,10 +122,10 @@ export default function SearchableDropdown({
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
+    <div className="relative" ref={dropdownRef} {...containerProps}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          {label} {isRequired && <span className="text-red-500">*</span>}
+        <label className="block text-sm font-medium text-gray-900 mb-2">
+          {label} {isRequired && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
 
@@ -123,15 +134,25 @@ export default function SearchableDropdown({
           type="text"
           value={value || ""}
           onChange={handleInputChange}
-          onFocus={() => searchTerm.length >= 2 && setIsOpen(true)}
+          onFocus={() => {
+            if (isDisabled) return;
+            if (searchTerm.length >= 2) setIsOpen(true);
+          }}
           placeholder={placeholder || ""}
-          className={`w-full px-3 py-2 border rounded-md ${error ? "border-red-500" : "border-gray-300"} ${isReadOnly ? "bg-gray-100" : ""}`}
-          readOnly={isReadOnly}
+          className={`
+            w-full px-4 py-3 text-sm border rounded-lg
+            transition-all duration-200
+            focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
+            ${error ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}
+            ${isReadOnly || disabled ? "bg-gray-100 cursor-not-allowed opacity-90" : "bg-white"}
+          `}
+          readOnly={!!isReadOnly}
+          disabled={!!disabled}
           required={isRequired}
         />
 
         {isLoading && (
-          <div className="absolute right-3 top-2">
+          <div className="absolute right-3 top-3">
             <svg
               className="animate-spin h-5 w-5 text-gray-400"
               xmlns="http://www.w3.org/2000/svg"
@@ -156,9 +177,20 @@ export default function SearchableDropdown({
         )}
       </div>
 
-      {error && <p className="text-red-500 text-xs mt-1 error-message">{error}</p>}
+      {error && (
+        <p className="text-sm text-red-600 flex items-center gap-2 mt-2">
+          <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path
+              fillRule="evenodd"
+              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+              clipRule="evenodd"
+            />
+          </svg>
+          {error}
+        </p>
+      )}
 
-      {autoFillNote && value && <p className="text-xs text-blue-600 mt-1">{autoFillNote}</p>}
+      {autoFillNote && value && <p className="text-xs text-blue-600 mt-2">{autoFillNote}</p>}
 
       {isOpen && options.length > 0 && (
         <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
@@ -185,3 +217,33 @@ export default function SearchableDropdown({
     </div>
   );
 }
+
+SearchableDropdown.propTypes = {
+  label: PropTypes.string,
+  placeholder: PropTypes.string,
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  onSelect: PropTypes.func,
+  fetchOptions: PropTypes.func.isRequired,
+  isRequired: PropTypes.bool,
+  isReadOnly: PropTypes.bool,
+  disabled: PropTypes.bool,
+  error: PropTypes.string,
+  className: PropTypes.string,
+  autoFillNote: PropTypes.string,
+  containerProps: PropTypes.object,
+};
+
+SearchableDropdown.defaultProps = {
+  label: "",
+  placeholder: "",
+  value: "",
+  onSelect: null,
+  isRequired: false,
+  isReadOnly: false,
+  disabled: false,
+  error: "",
+  className: "",
+  autoFillNote: "",
+  containerProps: {},
+};

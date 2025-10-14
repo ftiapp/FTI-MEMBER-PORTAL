@@ -6,6 +6,7 @@ import {
   beginTransaction,
   commitTransaction,
   rollbackTransaction,
+  executeQueryWithoutTransaction,
 } from "@/app/lib/db";
 import { uploadToCloudinary } from "@/app/lib/cloudinary";
 import { sendMembershipConfirmationEmail } from "@/app/lib/postmark";
@@ -776,13 +777,16 @@ export async function POST(request) {
 
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
-      const userEmail = data.contactPersons?.[0]?.email;
-      const userName = data.contactPersons?.[0]
-        ? `${data.contactPersons[0].firstNameTh || ""} ${data.contactPersons[0].lastNameTh || ""}`.trim()
-        : "ผู้สมัคร";
-      const associationName = data.associationName || "สมาคม";
+      // ดึงข้อมูล user จาก users table
+      const userQuery = `SELECT firstname, lastname, email FROM users WHERE id = ?`;
+      const userResult = await executeQueryWithoutTransaction(userQuery, [userId]);
+      
+      if (userResult && userResult.length > 0) {
+        const user = userResult[0];
+        const userEmail = user.email;
+        const userName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
+        const associationName = data.associationName || "สมาคม";
 
-      if (userEmail) {
         await sendMembershipConfirmationEmail(userEmail, userName, "AM", associationName);
         console.log("✅ [AM] Membership confirmation email sent to:", userEmail);
       }
