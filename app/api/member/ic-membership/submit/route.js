@@ -614,15 +614,41 @@ export async function POST(request) {
       }
     }
 
+    // Delete draft before committing transaction
+    try {
+      const idcardFromData = data.idCardNumber;
+
+      if (idcardFromData) {
+        const deleteResult = await executeQuery(
+          trx,
+          "DELETE FROM MemberRegist_IC_Draft WHERE idcard = ? AND user_id = ?",
+          [idcardFromData, userId],
+        );
+        console.log(
+          `✅ Draft deleted by idcard: ${idcardFromData}, affected rows: ${deleteResult.affectedRows || 0}`,
+        );
+      }
+    } catch (draftError) {
+      console.error("❌ Error deleting draft:", draftError.message);
+      // Rollback if draft deletion fails
+      await rollbackTransaction(trx);
+      return NextResponse.json(
+        {
+          error: "เกิดข้อผิดพลาดในการลบข้อมูล Draft",
+          details: draftError.message,
+        },
+        { status: 500 },
+      );
+    }
+
     await commitTransaction(trx);
     console.log("Transaction committed successfully");
 
-    // Record user log
+    // Record user log (outside transaction)
     try {
       const logDetails = `ID CARD: ${data.idCardNumber} - ${data.firstNameTh} ${data.lastNameTh} (TH)`;
 
-      await executeQuery(
-        null,
+      await executeQueryWithoutTransaction(
         "INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)",
         [
           userId,
@@ -635,24 +661,6 @@ export async function POST(request) {
       console.log("User log recorded successfully");
     } catch (logError) {
       console.error("Error recording user log:", logError.message);
-    }
-
-    // Delete draft
-    try {
-      const idcardFromData = data.idCardNumber;
-
-      if (idcardFromData) {
-        const deleteResult = await executeQuery(
-          null,
-          "DELETE FROM MemberRegist_IC_Draft WHERE idcard = ? AND user_id = ?",
-          [idcardFromData, userId],
-        );
-        console.log(
-          `Draft deleted by idcard: ${idcardFromData}, affected rows: ${deleteResult.affectedRows || 0}`,
-        );
-      }
-    } catch (draftError) {
-      console.error("Error deleting draft:", draftError.message);
     }
 
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ

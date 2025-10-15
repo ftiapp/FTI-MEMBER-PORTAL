@@ -6,7 +6,7 @@ import AddressSection from "../../../components/sections/AddressSection";
 import RepresentativesSection from "../../../components/sections/RepresentativesSection";
 import IndustrialGroupsSection from "../../../components/sections/IndustrialGroupsSection";
 import FinancialInfoSection from "../../../components/sections/FinancialInfoSection";
-import BusinessInfoSection from "./BusinessInfoSection";
+import BusinessInfoSection from "../../../components/sections/BusinessInfoSection";
 import DocumentsSection from "../../../components/sections/DocumentsSection";
 import AdminActionsSection from "../../../components/sections/AdminActionsSection";
 
@@ -42,7 +42,13 @@ const DetailView = ({
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update data");
+        const text = await response.text();
+        let msg = `Failed to update data (HTTP ${response.status})`;
+        try {
+          const json = JSON.parse(text || '{}');
+          msg = json.error || json.message || json.details || msg;
+        } catch {}
+        throw new Error(msg);
       }
 
       const result = await response.json();

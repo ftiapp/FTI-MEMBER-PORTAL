@@ -212,12 +212,11 @@ async function updateProducts(applicationId, type, data) {
   if (data.products && data.products.length > 0) {
     for (const product of data.products) {
       await executeQueryWithoutTransaction(
-        `INSERT INTO ${tableName} (main_id, name_th, name_en, description) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO ${tableName} (main_id, name_th, name_en) VALUES (?, ?, ?)`,
         [
           applicationId,
-          product.productNameTh || product.nameTh || "",
-          product.productNameEn || product.nameEn || "",
-          product.description || "",
+          product.productNameTh || product.nameTh || product.name_th || "",
+          product.productNameEn || product.nameEn || product.name_en || "",
         ],
       );
     }
@@ -419,11 +418,18 @@ async function updateContactPersons(applicationId, type, data) {
     for (const contact of data) {
       await executeQueryWithoutTransaction(
         `INSERT INTO ${tableName} (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en,
-          position, email, phone, phone_extension, type_contact_id, type_contact_name, type_contact_other_detail
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          main_id,
+          prename_th, prename_en, prename_other, prename_other_en,
+          first_name_th, last_name_th, first_name_en, last_name_en,
+          position, email, phone, phone_extension,
+          type_contact_id, type_contact_name, type_contact_other_detail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           applicationId,
+          contact.prenameTh || "",
+          contact.prenameEn || "",
+          contact.prenameOther || "",
+          contact.prenameOtherEn || "",
           contact.firstNameTh || "",
           contact.lastNameTh || "",
           contact.firstNameEn || "",

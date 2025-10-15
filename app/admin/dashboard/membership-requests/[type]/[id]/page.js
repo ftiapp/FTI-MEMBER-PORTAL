@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import AdminLayout from "../../../../components/AdminLayout";
 import DetailView from "./components/DetailView";
-import ICDetailView from "./components/ICDetailView";
 import RejectModal from "../../components/modals/RejectModal";
 import SuccessModal from "../../components/modals/SuccessModal";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
@@ -347,7 +346,6 @@ export default function MembershipRequestDetail({ params }) {
   }
 
   const memberType = getMemberTypeInfo(type);
-  const ViewComponent = type === "ic" ? ICDetailView : DetailView;
 
   return (
     <AdminLayout>
@@ -449,7 +447,7 @@ export default function MembershipRequestDetail({ params }) {
         </div>
 
         {/* Main Content */}
-        <ViewComponent
+        <DetailView
           application={application}
           type={type}
           industrialGroups={industrialGroups}

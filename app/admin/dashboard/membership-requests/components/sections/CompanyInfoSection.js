@@ -2,11 +2,20 @@ import React, { useState } from "react";
 import { getFactoryTypeName } from "../../ีutils/dataTransformers";
 
 const CompanyInfoSection = ({ application, type, onUpdate }) => {
+  const isIC = type === "ic";
+  
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    companyNameTh: application?.companyNameTh || "",
-    companyNameEn: application?.companyNameEn || "",
-    taxId: application?.taxId || "",
+    // For IC: use first_name/last_name fields
+    companyNameTh: isIC 
+      ? `${application?.first_name_th || application?.firstNameTh || ""} ${application?.last_name_th || application?.lastNameTh || ""}`.trim()
+      : application?.companyNameTh || "",
+    companyNameEn: isIC
+      ? `${application?.first_name_en || application?.firstNameEn || ""} ${application?.last_name_en || application?.lastNameEn || ""}`.trim()
+      : application?.companyNameEn || "",
+    taxId: isIC 
+      ? application?.id_card_number || application?.idCard || ""
+      : application?.taxId || "",
     numberOfEmployees: application?.numberOfEmployees || "",
     numberOfMembers: application?.numberOfMembers || "",
     factoryType: application?.factoryType || "",
@@ -15,14 +24,20 @@ const CompanyInfoSection = ({ application, type, onUpdate }) => {
     website: application?.website || "",
   });
 
-  if (!application || type === "ic") return null;
+  if (!application) return null;
 
   const handleEdit = () => {
     setIsEditing(true);
     setEditData({
-      companyNameTh: application?.companyNameTh || "",
-      companyNameEn: application?.companyNameEn || "",
-      taxId: application?.taxId || "",
+      companyNameTh: isIC 
+        ? `${application?.first_name_th || application?.firstNameTh || ""} ${application?.last_name_th || application?.lastNameTh || ""}`.trim()
+        : application?.companyNameTh || "",
+      companyNameEn: isIC
+        ? `${application?.first_name_en || application?.firstNameEn || ""} ${application?.last_name_en || application?.lastNameEn || ""}`.trim()
+        : application?.companyNameEn || "",
+      taxId: isIC 
+        ? application?.id_card_number || application?.idCard || ""
+        : application?.taxId || "",
       numberOfEmployees: application?.numberOfEmployees || "",
       numberOfMembers: application?.numberOfMembers || "",
       factoryType: application?.factoryType || "",
@@ -44,9 +59,15 @@ const CompanyInfoSection = ({ application, type, onUpdate }) => {
   const handleCancel = () => {
     setIsEditing(false);
     setEditData({
-      companyNameTh: application?.companyNameTh || "",
-      companyNameEn: application?.companyNameEn || "",
-      taxId: application?.taxId || "",
+      companyNameTh: isIC 
+        ? `${application?.first_name_th || application?.firstNameTh || ""} ${application?.last_name_th || application?.lastNameTh || ""}`.trim()
+        : application?.companyNameTh || "",
+      companyNameEn: isIC
+        ? `${application?.first_name_en || application?.firstNameEn || ""} ${application?.last_name_en || application?.lastNameEn || ""}`.trim()
+        : application?.companyNameEn || "",
+      taxId: isIC 
+        ? application?.id_card_number || application?.idCard || ""
+        : application?.taxId || "",
       numberOfEmployees: application?.numberOfEmployees || "",
       numberOfMembers: application?.numberOfMembers || "",
       factoryType: application?.factoryType || "",
@@ -63,12 +84,12 @@ const CompanyInfoSection = ({ application, type, onUpdate }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
-        <h3 className="text-2xl font-bold text-blue-900">ข้อมูลบริษัท/องค์กร</h3>
+        <h3 className="text-2xl font-bold text-blue-900">{isIC ? "ข้อมูลบุคคล" : "ข้อมูลบริษัท/องค์กร"}</h3>
         {!isEditing ? (
           <button
             onClick={handleEdit}
             className="flex items-center gap-2 px-4 py-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
-            title="แก้ไขข้อมูลบริษัท/องค์กร"
+            title={isIC ? "แก้ไขข้อมูลบุคคล" : "แก้ไขข้อมูลบริษัท/องค์กร"}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -116,46 +137,46 @@ const CompanyInfoSection = ({ application, type, onUpdate }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">{isIC ? "ชื่อ-นามสกุล (ไทย)" : "ชื่อ (ไทย)"}</p>
           {isEditing ? (
             <input
               type="text"
               value={editData.companyNameTh}
               onChange={(e) => updateField("companyNameTh", e.target.value)}
               className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ชื่อบริษัท (ไทย)"
+              placeholder={isIC ? "ชื่อ-นามสกุล (ไทย)" : "ชื่อบริษัท (ไทย)"}
             />
           ) : (
-            <p className="text-lg text-gray-900">{application.companyNameTh || "-"}</p>
+            <p className="text-lg text-gray-900">{isIC ? `${application?.first_name_th || application?.firstNameTh || ""} ${application?.last_name_th || application?.lastNameTh || ""}`.trim() || "-" : application.companyNameTh || "-"}</p>
           )}
         </div>
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">{isIC ? "ชื่อ-นามสกุล (อังกฤษ)" : "ชื่อ (อังกฤษ)"}</p>
           {isEditing ? (
             <input
               type="text"
               value={editData.companyNameEn}
               onChange={(e) => updateField("companyNameEn", e.target.value)}
               className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="ชื่อบริษัท (อังกฤษ)"
+              placeholder={isIC ? "ชื่อ-นามสกุล (อังกฤษ)" : "ชื่อบริษัท (อังกฤษ)"}
             />
           ) : (
-            <p className="text-lg text-gray-900">{application.companyNameEn || "-"}</p>
+            <p className="text-lg text-gray-900">{isIC ? `${application?.first_name_en || application?.firstNameEn || ""} ${application?.last_name_en || application?.lastNameEn || ""}`.trim() || "-" : application.companyNameEn || "-"}</p>
           )}
         </div>
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">เลขทะเบียนนิติบุคคล</p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">{isIC ? "เลขประจำตัวประชาชน" : "เลขทะเบียนนิติบุคคล"}</p>
           {isEditing ? (
             <input
               type="text"
               value={editData.taxId}
               onChange={(e) => updateField("taxId", e.target.value)}
               className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              placeholder="เลขทะเบียนนิติบุคคล"
+              placeholder={isIC ? "เลขประจำตัวประชาชน" : "เลขทะเบียนนิติบุคคล"}
               maxLength="13"
             />
           ) : (
-            <p className="text-lg text-gray-900 font-mono">{application.taxId || "-"}</p>
+            <p className="text-lg text-gray-900 font-mono">{isIC ? application?.id_card_number || application?.idCard || "-" : application.taxId || "-"}</p>
           )}
         </div>
         <div>

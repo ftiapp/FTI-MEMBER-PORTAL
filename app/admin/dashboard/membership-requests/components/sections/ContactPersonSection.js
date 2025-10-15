@@ -157,6 +157,10 @@ const ContactPersonSection = ({ application, onUpdate }) => {
 
       // Transform to API expected keys (camelCase) before sending
       const payload = updatedContactPersons.map((cp) => ({
+        prenameTh: cp.prename_th ?? cp.prenameTh ?? "",
+        prenameEn: cp.prename_en ?? cp.prenameEn ?? "",
+        prenameOther: cp.prename_other ?? cp.prenameOther ?? "",
+        prenameOtherEn: cp.prename_other_en ?? cp.prenameOtherEn ?? "",
         firstNameTh: cp.first_name_th ?? cp.firstNameTh ?? "",
         lastNameTh: cp.last_name_th ?? cp.lastNameTh ?? "",
         firstNameEn: cp.first_name_en ?? cp.firstNameEn ?? "",
@@ -366,6 +370,50 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               </div>
             )}
           </div>
+
+          {/* Full name display (TH/EN) with prename, like signup */}
+          {!isEditing || editingIndex !== index ? (
+            <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล (ไทย)</p>
+                <p className="text-lg text-gray-900">
+                  {(() => {
+                    const prenameTh = resolvePrename(
+                      contact.prename_th || contact.prenameTh,
+                      contact.prename_en || contact.prenameEn,
+                      contact.prename_other || contact.prenameOther,
+                      contact.prename_other_en || contact.prenameOtherEn,
+                      "th"
+                    );
+                    const first = contact.first_name_th || contact.firstNameTh || "";
+                    const last = contact.last_name_th || contact.lastNameTh || "";
+                    const prefix = prenameTh ? prenameTh + " " : "";
+                    const full = `${prefix}${first} ${last}`.trim();
+                    return full || "-";
+                  })()}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ-นามสกุล (อังกฤษ)</p>
+                <p className="text-lg text-gray-900">
+                  {(() => {
+                    const prenameEn = resolvePrename(
+                      contact.prename_th || contact.prenameTh,
+                      contact.prename_en || contact.prenameEn,
+                      contact.prename_other || contact.prenameOther,
+                      contact.prename_other_en || contact.prenameOtherEn,
+                      "en"
+                    );
+                    const first = contact.first_name_en || contact.firstNameEn || "";
+                    const last = contact.last_name_en || contact.lastNameEn || "";
+                    const prefix = prenameEn ? prenameEn + " " : "";
+                    const full = `${prefix}${first} ${last}`.trim();
+                    return full || "-";
+                  })()}
+                </p>
+              </div>
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Contact Type */}

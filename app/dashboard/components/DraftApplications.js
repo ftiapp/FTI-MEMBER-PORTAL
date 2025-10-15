@@ -52,8 +52,15 @@ export default function DraftApplications({
       const fetchedDrafts = data.drafts || [];
       console.log("Fetched drafts count:", fetchedDrafts.length); // Debug log
 
-      setAllDrafts(fetchedDrafts);
-      paginateData(fetchedDrafts);
+      // ✅ เรียงตามวันที่อัปเดตล่าสุด (ล่าสุดขึ้นก่อน)
+      const sortedDrafts = fetchedDrafts.sort((a, b) => {
+        const dateA = new Date(a.updatedAt || a.createdAt);
+        const dateB = new Date(b.updatedAt || b.createdAt);
+        return dateB - dateA; // เรียงจากมากไปน้อย (ล่าสุดก่อน)
+      });
+
+      setAllDrafts(sortedDrafts);
+      paginateData(sortedDrafts);
     } catch (err) {
       console.error("Error fetching drafts:", err);
       setError("ไม่สามารถโหลดเอกสารสมัครสมาชิกที่บันทึกร่างไว้");

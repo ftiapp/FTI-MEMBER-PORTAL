@@ -467,6 +467,8 @@ export default function OCMembershipForm({
           // แสดง Success Modal แทนการ redirect ทันที
           setSubmissionResult(result);
           setShowSuccessModal(true);
+          // ✅ ปิด loading overlay หลังจากสำเร็จ
+          setIsSubmitting(false);
         } else {
           toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล");
           setIsSubmitting(false);

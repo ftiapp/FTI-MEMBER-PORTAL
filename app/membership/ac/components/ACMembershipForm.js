@@ -1040,6 +1040,8 @@ export default function ACMembershipForm({
           // แสดง Success Modal แทนการ redirect ทันที
           setSubmissionResult(result);
           setShowSuccessModal(true);
+          // ✅ ปิด loading overlay หลังจากสำเร็จ
+          setIsSubmitting(false);
         } else {
           console.log("❌ Final submission failed:", result.message);
           setIsSubmitting(false);

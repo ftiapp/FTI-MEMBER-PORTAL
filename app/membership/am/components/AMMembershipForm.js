@@ -608,6 +608,8 @@ export default function AMMembershipForm(props = {}) {
           // เก็บผลลัพธ์และแสดง Success Modal
           setSubmissionResult(result);
           setShowSuccessModal(true);
+          // ✅ ปิด loading overlay หลังจากสำเร็จ
+          setIsSubmitting(false);
         } else {
           setIsSubmitting(false);
           toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล");
