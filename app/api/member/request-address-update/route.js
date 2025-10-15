@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { query } from "../../../lib/db";
 import { cookies } from "next/headers";
@@ -7,8 +7,8 @@ import { sendAddressUpdateRequestEmail } from "../../../lib/postmark";
 
 /**
  * API endpoint to handle address update requests
- * Stores the update request in pending_address_updates table
- * Logs the request in Member_portal_User_log
+ * Stores the update request in FTI_Original_Membership_Pending_Address_Updates table
+ * Logs the request in FTI_Portal_User_Logs
  */
 export async function POST(request) {
   try {
@@ -90,7 +90,7 @@ export async function POST(request) {
     // ดึงค่า COMP_PERSON_CODE และ REGIST_CODE จากฐานข้อมูลโดยตรงทุกครั้ง
     try {
       // ดึงค่า COMP_PERSON_CODE และ REGIST_CODE จากฐานข้อมูลโดยตรงทุกครั้ง
-      const memberDataQuery = `SELECT COMP_PERSON_CODE, REGIST_CODE FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1`;
+      const memberDataQuery = `SELECT COMP_PERSON_CODE, REGIST_CODE FROM FTI_Original_Membership WHERE MEMBER_CODE = ? LIMIT 1`;
       const memberDataResult = await query(memberDataQuery, [memberCodeValue]);
 
       if (memberDataResult && memberDataResult.length > 0) {
@@ -128,7 +128,7 @@ export async function POST(request) {
     // ในอนาคตควรเปิดใช้งานการตรวจสอบสิทธิ์นี้อีกครั้ง
 
     // ตรวจสอบว่าผู้ใช้มีอยู่จริงในระบบ
-    const userQuery = `SELECT id FROM users WHERE id = ? LIMIT 1`;
+    const userQuery = `SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1`;
     const userResult = await query(userQuery, [userId]);
 
     if (userResult.length === 0) {
@@ -152,7 +152,7 @@ export async function POST(request) {
 
     // Check if user already has a pending request for this address
     const pendingCheckQuery = `
-      SELECT id FROM pending_address_updates 
+      SELECT id FROM FTI_Original_Membership_Pending_Address_Updates 
       WHERE user_id = ? 
       AND member_code = ? 
       AND comp_person_code = ?
@@ -223,9 +223,9 @@ export async function POST(request) {
     const oldAddressJson = JSON.stringify(filteredOldAddress);
     const newAddressJson = JSON.stringify(newAddress);
 
-    // Insert into pending_address_updates table
+    // Insert into FTI_Original_Membership_Pending_Address_Updates table
     const insertQuery = `
-      INSERT INTO pending_address_updates (
+      INSERT INTO FTI_Original_Membership_Pending_Address_Updates (
         user_id, 
         member_code,
         comp_person_code,
@@ -260,9 +260,9 @@ export async function POST(request) {
 
     const updateRequestId = insertResult.insertId;
 
-    // Log the action in Member_portal_User_log
+    // Log the action in FTI_Portal_User_Logs
     const logQuery = `
-      INSERT INTO Member_portal_User_log (
+      INSERT INTO FTI_Portal_User_Logs (
         user_id, 
         action, 
         details, 
@@ -312,9 +312,9 @@ export async function POST(request) {
     try {
       // ดึงข้อมูลผู้ใช้และบริษัท
       const userDataQuery = `
-        SELECT u.email, u.first_name, u.last_name, cm.COMP_NAME_TH
-        FROM users u
-        LEFT JOIN companies_Member cm ON cm.MEMBER_CODE = ?
+        SELECT u.email, u.firstname, u.lastname, cm.COMP_NAME_TH
+        FROM FTI_Portal_User u
+        LEFT JOIN FTI_Original_Membership cm ON cm.MEMBER_CODE = ?
         WHERE u.id = ?
         LIMIT 1
       `;
@@ -323,8 +323,8 @@ export async function POST(request) {
       if (userData && userData.length > 0 && userData[0].email) {
         await sendAddressUpdateRequestEmail(
           userData[0].email,
-          userData[0].first_name || "",
-          userData[0].last_name || "",
+          userData[0].firstname || "",
+          userData[0].lastname || "",
           memberCodeValue,
           userData[0].COMP_NAME_TH || "ไม่ระบุ",
           addrCodeValue,

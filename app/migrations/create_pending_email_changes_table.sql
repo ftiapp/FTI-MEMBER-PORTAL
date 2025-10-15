@@ -1,5 +1,5 @@
--- สร้างตาราง pending_email_changes สำหรับเก็บข้อมูลการเปลี่ยนอีเมลที่รอการยืนยัน
-CREATE TABLE IF NOT EXISTS pending_email_changes (
+﻿-- สร้างตาราง FTI_Original_Membership_Pending_Email_Changes สำหรับเก็บข้อมูลการเปลี่ยนอีเมลที่รอการยืนยัน
+CREATE TABLE IF NOT EXISTS FTI_Original_Membership_Pending_Email_Changes (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   old_email VARCHAR(255),
@@ -14,14 +14,14 @@ CREATE TABLE IF NOT EXISTS pending_email_changes (
   admin_note TEXT,
   status ENUM('pending', 'verified', 'cancelled', 'rejected') DEFAULT 'pending',
   updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (token_id) REFERENCES verification_tokens(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
+  FOREIGN KEY (token_id) REFERENCES FTI_Portal_User_Verification_Tokens(id) ON DELETE CASCADE,
   INDEX idx_user_id (user_id),
   INDEX idx_token_id (token_id),
   INDEX idx_new_email (new_email),
   INDEX idx_status (status)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- อัปเดตตาราง verification_tokens เพื่อเพิ่มตัวเลือก 'new_email_verification' ในคอลัมน์ token_type
-ALTER TABLE verification_tokens 
+-- อัปเดตตาราง FTI_Portal_User_Verification_Tokens เพื่อเพิ่มตัวเลือก 'new_email_verification' ในคอลัมน์ token_type
+ALTER TABLE FTI_Portal_User_Verification_Tokens 
 MODIFY COLUMN token_type ENUM('email_verification', 'password_reset', 'change_email', 'new_email_verification') DEFAULT 'email_verification';

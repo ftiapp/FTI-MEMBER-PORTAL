@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getSession } from "../../../lib/session";
 import {
@@ -59,7 +59,7 @@ export async function POST(request) {
     const existingRequests = await dbQuery(
       `
       SELECT COUNT(*) as count
-      FROM pending_product_updates
+      FROM FTI_Original_Membership_Pending_Product_Updates
       WHERE member_code = ? AND status = 'pending'
     `,
       [member_code],
@@ -75,9 +75,9 @@ export async function POST(request) {
       );
     }
 
-    // Create the pending_product_updates table if it doesn't exist
+    // Create the FTI_Original_Membership_Pending_Product_Updates table if it doesn't exist
     await dbQuery(`
-      CREATE TABLE IF NOT EXISTS pending_product_updates (
+      CREATE TABLE IF NOT EXISTS FTI_Original_Membership_Pending_Product_Updates (
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         member_code VARCHAR(20) NOT NULL,
@@ -95,7 +95,7 @@ export async function POST(request) {
         reject_reason TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
         FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
@@ -108,7 +108,7 @@ export async function POST(request) {
       const insertResult = await executeQuery(
         conn,
         `
-        INSERT INTO pending_product_updates
+        INSERT INTO FTI_Original_Membership_Pending_Product_Updates
         (user_id, member_code, company_name, member_type, member_group_code, type_code, old_products_th, new_products_th, old_products_en, new_products_en)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
@@ -150,7 +150,7 @@ export async function POST(request) {
       await executeQuery(
         conn,
         `
-        INSERT INTO Member_portal_User_log
+        INSERT INTO FTI_Portal_User_Logs
         (user_id, action, details, ip_address, user_agent)
         VALUES (?, 'other', ?, ?, ?)
       `,
@@ -177,7 +177,7 @@ export async function POST(request) {
       // ส่งอีเมลแจ้งเตือนผู้ใช้
       try {
         // ดึงข้อมูลผู้ใช้
-        const userData = await dbQuery("SELECT email, firstname, lastname FROM users WHERE id = ?", [userId]);
+        const userData = await dbQuery("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [userId]);
         if (userData && userData.length > 0 && userData[0].email) {
           await sendProductUpdateRequestEmail(
             userData[0].email,

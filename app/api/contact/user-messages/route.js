@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 import { verify } from "jsonwebtoken";
@@ -38,7 +38,7 @@ export async function GET(request) {
     // Fetch user's contact messages
     const messages = await query(
       `SELECT id, subject, message, status, created_at, updated_at
-       FROM contact_messages
+       FROM FTI_Portal_User_Contact_Messages
        WHERE user_id = ?
        ORDER BY created_at DESC`,
       [userId],

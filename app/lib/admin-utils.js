@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { query } from "./db";
 
@@ -13,7 +13,7 @@ export async function verifyAdminPermission(adminId, permission) {
   try {
     // ดึงข้อมูลแอดมินจากฐานข้อมูล
     const admins = await query(
-      "SELECT * FROM admin_users WHERE id = ? AND is_active = TRUE LIMIT 1",
+      "SELECT * FROM FTI_Portal_Admin_Users WHERE id = ? AND is_active = TRUE LIMIT 1",
       [adminId],
     );
 

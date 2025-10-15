@@ -1,4 +1,4 @@
-import { getConnection } from "./db";
+﻿import { getConnection } from "./db";
 import { addComment } from "./membership";
 
 export async function updateICApplication(
@@ -166,7 +166,7 @@ export async function updateICApplication(
 
     // Log user action
     await connection.execute(
-      `INSERT INTO Member_portal_User_log (user_id, action, details) VALUES (?, 'resubmit_membership', ?)`,
+      `INSERT INTO FTI_Portal_User_Logs (user_id, action, details) VALUES (?, 'resubmit_membership', ?)`,
       [userId, JSON.stringify({ membershipType: "ic", membershipId, rejectionId })],
     );
 

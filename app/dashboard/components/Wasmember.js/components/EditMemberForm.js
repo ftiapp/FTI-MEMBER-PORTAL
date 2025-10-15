@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -9,8 +9,8 @@ import Image from "next/image";
 /**
  * EditMemberForm Component
  *
- * This component allows users to edit and resubmit their rejected member verification information.
- * It pre-fills the form with the existing submission data and allows users to make changes.
+ * This component allows FTI_Portal_User to edit and resubmit their rejected member verification information.
+ * It pre-fills the form with the existing submission data and allows FTI_Portal_User to make changes.
  */
 const EditMemberForm = ({ submission, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({

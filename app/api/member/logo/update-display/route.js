@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -52,7 +52,7 @@ export async function POST(request) {
     }
 
     // Get logo information before updating
-    const logoResult = await query("SELECT member_code FROM company_logos WHERE id = ?", [id]);
+    const logoResult = await query("SELECT member_code FROM FTI_Original_Membership_Company_Logos WHERE id = ?", [id]);
 
     if (logoResult.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อมูลโลโก้" }, { status: 404 });
@@ -61,12 +61,12 @@ export async function POST(request) {
     const memberCode = logoResult[0].member_code;
 
     // Update display mode
-    await query("UPDATE company_logos SET display_mode = ?, updated_at = NOW() WHERE id = ?", [
+    await query("UPDATE FTI_Original_Membership_Company_Logos SET display_mode = ?, updated_at = NOW() WHERE id = ?", [
       displayMode,
       id,
     ]);
 
-    // Log the action in Member_portal_User_log
+    // Log the action in FTI_Portal_User_Logs
     try {
       // Get client IP and user agent from headers
       const forwardedFor = request.headers.get("x-forwarded-for");
@@ -74,7 +74,7 @@ export async function POST(request) {
       const userAgent = request.headers.get("user-agent") || "Unknown";
 
       // ตรวจสอบว่า userId มีอยู่จริงในฐานข้อมูล
-      const userCheckQuery = await query("SELECT id FROM users WHERE id = ? LIMIT 1", [userId]);
+      const userCheckQuery = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [userId]);
 
       let validUserId;
 
@@ -86,28 +86,28 @@ export async function POST(request) {
         console.log("User ID not found in database, searching for alternative user");
 
         // ค้นหา user ที่เป็น admin
-        const adminUserQuery = await query('SELECT id FROM users WHERE role = "admin" LIMIT 1');
+        const adminUserQuery = await query('SELECT id FROM FTI_Portal_User WHERE role = "admin" LIMIT 1');
 
         if (adminUserQuery.length > 0) {
           validUserId = adminUserQuery[0].id;
           console.log(`Using admin user ID: ${validUserId}`);
         } else {
           // ค้นหา user คนแรกในระบบ
-          const anyUserQuery = await query("SELECT id FROM users ORDER BY id LIMIT 1");
+          const anyUserQuery = await query("SELECT id FROM FTI_Portal_User ORDER BY id LIMIT 1");
 
           if (anyUserQuery.length > 0) {
             validUserId = anyUserQuery[0].id;
             console.log(`Using first available user ID: ${validUserId}`);
           } else {
             // ถ้าไม่มี user ในระบบเลย ให้ข้ามการบันทึก log
-            console.error("No users found in database, skipping log entry");
-            throw new Error("No users found in database");
+            console.error("No FTI_Portal_User found in database, skipping log entry");
+            throw new Error("No FTI_Portal_User found in database");
           }
         }
       }
 
       await query(
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
          (user_id, action, details, ip_address, user_agent, created_at) 
          VALUES (?, ?, ?, ?, ?, NOW())`,
         [
@@ -119,13 +119,13 @@ export async function POST(request) {
         ],
       );
     } catch (err) {
-      console.error("Error logging action to Member_portal_User_log:", err);
+      console.error("Error logging action to FTI_Portal_User_Logs:", err);
       // Continue anyway, this is not critical
     }
 
     // Fetch the updated logo data
     const updatedLogo = await query(
-      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM company_logos WHERE id = ?",
+      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM FTI_Original_Membership_Company_Logos WHERE id = ?",
       [id],
     );
 

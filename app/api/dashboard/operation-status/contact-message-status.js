@@ -1,4 +1,4 @@
-// API route: /api/dashboard/operation-status/contact-message-status?userId=xxx
+﻿// API route: /api/dashboard/operation-status/contact-message-status?userId=xxx
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
@@ -11,7 +11,7 @@ export async function GET(request) {
     }
     // ดึงเฉพาะข้อความล่าสุดของ user
     const messages = await query(
-      `SELECT id, subject, message, status, admin_response, created_at, updated_at FROM contact_messages WHERE user_id = ? ORDER BY created_at DESC LIMIT 5`,
+      `SELECT id, subject, message, status, admin_response, created_at, updated_at FROM FTI_Portal_User_Contact_Messages WHERE user_id = ? ORDER BY created_at DESC LIMIT 5`,
       [userId],
     );
 

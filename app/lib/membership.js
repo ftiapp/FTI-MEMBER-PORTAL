@@ -1,4 +1,4 @@
-import { getConnection } from "./db";
+﻿import { getConnection } from "./db";
 
 /**
  * ดึงประวัติ comments ทั้งหมดของใบสมัคร
@@ -16,8 +16,8 @@ export async function getApplicationComments(membershipType, membershipId) {
         a.username as admin_username,
         a.name as admin_name
       FROM MemberRegist_Comments c
-      LEFT JOIN users u ON c.user_id = u.id
-      LEFT JOIN admin_users a ON c.admin_id = a.id
+      LEFT JOIN FTI_Portal_User u ON c.user_id = u.id
+      LEFT JOIN FTI_Portal_Admin_Users a ON c.admin_id = a.id
       WHERE c.membership_type = ? AND c.membership_id = ?
       ORDER BY c.created_at ASC
     `,

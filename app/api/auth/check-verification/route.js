@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -11,7 +11,7 @@ export async function GET(request) {
     }
 
     // ค้นหาโทเค็นในฐานข้อมูล (ไม่สนใจว่าหมดอายุหรือถูกใช้แล้ว)
-    const tokens = await query("SELECT * FROM verification_tokens WHERE token = ?", [token]);
+    const tokens = await query("SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ?", [token]);
 
     if (tokens.length === 0) {
       return NextResponse.json({ verified: false, error: "Token not found" }, { status: 404 });
@@ -19,14 +19,14 @@ export async function GET(request) {
 
     // ตรวจสอบว่าผู้ใช้ได้รับการยืนยันแล้วหรือไม่
     const userId = tokens[0].user_id;
-    const users = await query("SELECT * FROM users WHERE id = ?", [userId]);
+    const FTI_Portal_User = await query("SELECT * FROM FTI_Portal_User WHERE id = ?", [userId]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ verified: false, error: "User not found" }, { status: 404 });
     }
 
     // ตรวจสอบสถานะการยืนยันอีเมล
-    const isVerified = users[0].email_verified === 1;
+    const isVerified = FTI_Portal_User[0].email_verified === 1;
 
     return NextResponse.json({
       verified: isVerified,

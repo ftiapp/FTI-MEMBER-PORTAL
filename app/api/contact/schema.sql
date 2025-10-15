@@ -1,5 +1,5 @@
--- Create contact_messages table if it doesn't exist
-CREATE TABLE IF NOT EXISTS contact_messages (
+﻿-- Create FTI_Portal_User_Contact_Messages table if it doesn't exist
+CREATE TABLE IF NOT EXISTS FTI_Portal_User_Contact_Messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   subject VARCHAR(255) NOT NULL,
@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   admin_response TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id)
+  FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add index for faster queries
-CREATE INDEX idx_contact_messages_user_id ON contact_messages(user_id);
-CREATE INDEX idx_contact_messages_status ON contact_messages(status);
+CREATE INDEX idx_contact_messages_user_id ON FTI_Portal_User_Contact_Messages(user_id);
+CREATE INDEX idx_contact_messages_status ON FTI_Portal_User_Contact_Messages(status);

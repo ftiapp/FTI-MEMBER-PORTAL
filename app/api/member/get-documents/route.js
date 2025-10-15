@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 
@@ -30,7 +30,7 @@ export async function GET(request) {
 
     // Verify that the member code belongs to the user
     const memberCheck = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ?`,
+      `SELECT * FROM FTI_Original_Membership WHERE MEMBER_CODE = ? AND user_id = ?`,
       [memberCode, user.id],
     );
 
@@ -43,7 +43,7 @@ export async function GET(request) {
 
     // Fetch documents
     const documents = await query(
-      `SELECT * FROM documents_Member WHERE MEMBER_CODE = ? AND user_id = ? ORDER BY uploaded_at DESC`,
+      `SELECT * FROM FTI_Original_Membership_Documents_Member WHERE MEMBER_CODE = ? AND user_id = ? ORDER BY uploaded_at DESC`,
       [memberCode, user.id],
     );
 

@@ -1,7 +1,7 @@
--- Add 'save_note' to admin_actions_log action_type enum
+﻿-- Add 'save_note' to FTI_Portal_Admin_Actions_Logs action_type enum
 -- This allows logging when admin saves notes on membership requests
 
-ALTER TABLE admin_actions_log 
+ALTER TABLE FTI_Portal_Admin_Actions_Logs 
 MODIFY COLUMN action_type ENUM(
   'login',
   'approve_member',

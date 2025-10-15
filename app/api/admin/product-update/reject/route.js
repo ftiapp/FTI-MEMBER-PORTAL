@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminSession } from "../../../../lib/auth";
 import { pool } from "../../../../lib/db";
@@ -47,8 +47,8 @@ export async function POST(request) {
       const [requests] = await pool.query(
         `
         SELECT p.*, u.firstname, u.lastname, u.email, u.phone 
-        FROM pending_product_updates p
-        LEFT JOIN users u ON p.user_id = u.id
+        FROM FTI_Original_Membership_Pending_Product_Updates p
+        LEFT JOIN FTI_Portal_User u ON p.user_id = u.id
         WHERE p.id = ?
       `,
         [id],
@@ -70,7 +70,7 @@ export async function POST(request) {
       // Update the request status
       await pool.query(
         `
-        UPDATE pending_product_updates
+        UPDATE FTI_Original_Membership_Pending_Product_Updates
         SET status = 'rejected', admin_id = ?, reject_reason = ?, updated_at = NOW()
         WHERE id = ?
       `,
@@ -115,7 +115,7 @@ export async function POST(request) {
 
       await pool.query(
         `
-        INSERT INTO admin_actions_log
+        INSERT INTO FTI_Portal_Admin_Actions_Logs
         (admin_id, action_type, target_id, description, ip_address, user_agent)
         VALUES (?, 'reject_product_update', ?, ?, ?, ?)
       `,

@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { getClientIp } from "@/app/lib/utils";
 import { sendProfileUpdateRequestEmail } from "@/app/lib/postmark";
@@ -12,14 +12,14 @@ export async function POST(request) {
     }
 
     // Check if user exists
-    const users = await query("SELECT * FROM users WHERE id = ?", [userId]);
-    if (users.length === 0) {
+    const FTI_Portal_User = await query("SELECT * FROM FTI_Portal_User WHERE id = ?", [userId]);
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ error: "ไม่พบข้อมูลผู้ใช้" }, { status: 404 });
     }
 
     // Check if there's already a pending request
     const pendingRequests = await query(
-      'SELECT id FROM profile_update_requests WHERE user_id = ? AND status = "pending"',
+      'SELECT id FROM FTI_Portal_User_Profile_Update_Requests WHERE user_id = ? AND status = "pending"',
       [userId],
     );
 
@@ -36,7 +36,7 @@ export async function POST(request) {
 
     // Create profile update request
     const result = await query(
-      `INSERT INTO profile_update_requests 
+      `INSERT INTO FTI_Portal_User_Profile_Update_Requests 
        (user_id, new_firstname, new_lastname, new_email, new_phone, status, created_at) 
        VALUES (?, ?, ?, ?, ?, "pending", NOW())`,
       [userId, firstName, lastName, email, phone],
@@ -46,7 +46,7 @@ export async function POST(request) {
 
     // Log the action
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, NOW())`,
       [

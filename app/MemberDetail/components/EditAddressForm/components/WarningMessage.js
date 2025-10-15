@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { FaExclamationTriangle } from "react-icons/fa";
 
 /**
- * Warning message component to inform users about the approval process
+ * Warning message component to inform FTI_Portal_User about the approval process
  */
 export default function WarningMessage({ itemVariants }) {
   return (

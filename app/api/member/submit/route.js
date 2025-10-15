@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { uploadToCloudinary } from "../../../lib/cloudinary";
 import { mssqlQuery } from "@/app/lib/mssql";
@@ -110,7 +110,7 @@ export async function POST(request) {
     log("env_checked");
     // Check if MEMBER_CODE is already used by another user (only check pending or approved records)
     const existingMemberOtherUser = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id != ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
+      `SELECT * FROM FTI_Original_Membership WHERE MEMBER_CODE = ? AND user_id != ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
       [trimmedMemberNumber, userId],
     );
 
@@ -127,7 +127,7 @@ export async function POST(request) {
 
     // Check if current user has already submitted this MEMBER_CODE (only check pending or approved records)
     const existingMemberSameUser = await query(
-      `SELECT * FROM companies_Member WHERE MEMBER_CODE = ? AND user_id = ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
+      `SELECT * FROM FTI_Original_Membership WHERE MEMBER_CODE = ? AND user_id = ? AND (Admin_Submit = 0 OR Admin_Submit = 1)`,
       [trimmedMemberNumber, userId],
     );
 
@@ -288,7 +288,7 @@ export async function POST(request) {
     // Save company information to database
     log("before_mysql_insert_company");
     const companyResult = await query(
-      `INSERT INTO companies_Member 
+      `INSERT INTO FTI_Original_Membership 
        (user_id, MEMBER_CODE, COMP_PERSON_CODE, REGIST_CODE, MEMBER_DATE, company_name, company_type, tax_id, Admin_Submit) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
@@ -307,7 +307,7 @@ export async function POST(request) {
     // Save document information to database
     log("before_mysql_insert_document");
     await query(
-      `INSERT INTO documents_Member 
+      `INSERT INTO FTI_Original_Membership_Documents_Member 
        (user_id, MEMBER_CODE, document_type, file_name, file_path, status, Admin_Submit) 
        VALUES (?, ?, ?, ?, ?, 'pending', 0)`,
       [userId, trimmedMemberNumber, documentType || "other", fileName, uploadResult.url],
@@ -318,7 +318,7 @@ export async function POST(request) {
     try {
       log("before_user_log");
       await query(
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
          (user_id, action, details, ip_address, user_agent, created_at) 
          VALUES (?, ?, ?, ?, ?, NOW())`,
         [

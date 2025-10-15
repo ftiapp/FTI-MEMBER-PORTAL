@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { query } from "./db";
 
@@ -21,16 +21,16 @@ export async function getUserFromSession() {
     const payload = jwt.verify(token, secretKey);
 
     // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูล
-    const users = await query(
-      "SELECT id, email, firstname, lastname FROM users WHERE id = ? LIMIT 1",
+    const FTI_Portal_User = await query(
+      "SELECT id, email, firstname, lastname FROM FTI_Portal_User WHERE id = ? LIMIT 1",
       [payload.userId],
     );
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return null;
     }
 
-    return users[0];
+    return FTI_Portal_User[0];
   } catch (error) {
     console.error("Error checking user session:", error);
     return null;

@@ -1,4 +1,4 @@
-// ICFormSubmission.js - ไฟล์สำหรับจัดการการส่งข้อมูลสมัครสมาชิก IC
+﻿// ICFormSubmission.js - ไฟล์สำหรับจัดการการส่งข้อมูลสมัครสมาชิก IC
 
 // ฟังก์ชันตรวจสอบเลขบัตรประชาชน
 export const checkIdCard = async (idCardNumber) => {
@@ -476,7 +476,7 @@ export const submitICMembershipForm = async (formData) => {
           `${formData.firstNameEng || formData.firstNameEn || ""} ${formData.lastNameEng || formData.lastNameEn || ""}`.trim(),
       };
 
-      await fetch("/api/notifications/membership", {
+      await fetch("/api/FTI_Portal_User_Notifications/membership", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

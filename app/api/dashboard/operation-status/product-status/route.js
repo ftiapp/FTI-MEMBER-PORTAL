@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { executeQuery, getConnection } from "@/app/lib/db";
@@ -53,12 +53,12 @@ export async function GET(request) {
       );
     }
 
-    // Fetch TSIC updates from the database (pending_tsic_updates table)
+    // Fetch TSIC updates from the database (FTI_Original_Membership_Pending_Tsic_Updates table)
     const query = `
       SELECT p.id, p.member_code, p.tsic_data, p.request_date, p.status, p.admin_comment,
              c.company_name_th as company_name
-      FROM pending_tsic_updates p
-      LEFT JOIN companies_Member c ON p.member_code = c.MEMBER_CODE
+      FROM FTI_Original_Membership_Pending_Tsic_Updates p
+      LEFT JOIN FTI_Original_Membership c ON p.member_code = c.MEMBER_CODE
       WHERE p.user_id = ?
       ORDER BY p.request_date DESC
     `;

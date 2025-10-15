@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Submits the OC membership form data to the server.
  * @param {object} data - The form data object to submit.
  * @returns {Promise<{success: boolean, data: any, error: string | null}>}
@@ -96,7 +96,7 @@ export async function submitOCMembershipForm(data) {
         applicantName: `${data.firstNameTh || ""} ${data.lastNameTh || ""}`.trim(),
       };
 
-      await fetch("/api/notifications/membership", {
+      await fetch("/api/FTI_Portal_User_Notifications/membership", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

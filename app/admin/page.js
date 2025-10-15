@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -9,8 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 /**
  * Admin Login Component
  *
- * This component provides the login interface for admin users.
- * It authenticates users against the admin_users table and redirects
+ * This component provides the login interface for admin FTI_Portal_User.
+ * It authenticates FTI_Portal_User against the FTI_Portal_Admin_Users table and redirects
  * to the appropriate dashboard based on the admin's permission level.
  *
  * - Regular admins (levels 1-4) are redirected to /admin/dashboard

@@ -1,5 +1,5 @@
--- Create admin_settings table
-CREATE TABLE IF NOT EXISTS admin_settings (
+﻿-- Create FTI_Portal_Admin_Settings table
+CREATE TABLE IF NOT EXISTS FTI_Portal_Admin_Settings (
   id INT NOT NULL PRIMARY KEY,
   password_policy JSON,
   session_timeout INT DEFAULT 60,
@@ -34,12 +34,12 @@ CREATE TABLE IF NOT EXISTS admin_settings (
   created_at DATETIME,
   updated_by INT,
   updated_at DATETIME,
-  FOREIGN KEY (created_by) REFERENCES admin_users(id),
-  FOREIGN KEY (updated_by) REFERENCES admin_users(id)
+  FOREIGN KEY (created_by) REFERENCES FTI_Portal_Admin_Users(id),
+  FOREIGN KEY (updated_by) REFERENCES FTI_Portal_Admin_Users(id)
 );
 
 -- Insert default settings if not exists
-INSERT IGNORE INTO admin_settings (
+INSERT IGNORE INTO FTI_Portal_Admin_Settings (
   id, 
   password_policy, 
   notification_types,
@@ -55,6 +55,6 @@ INSERT IGNORE INTO admin_settings (
   NOW()
 );
 
--- Note: The action_type 'update_settings' needs to be added to the enum in admin_actions_log table
+-- Note: The action_type 'update_settings' needs to be added to the enum in FTI_Portal_Admin_Actions_Logs table
 -- This requires an ALTER TABLE statement which should be executed separately:
--- ALTER TABLE admin_actions_log MODIFY COLUMN action_type ENUM('login','approve_member','reject_member','create_admin','update_admin','other','contact_message_response','approve_profile_update','reject_profile_update','approve_address_update','reject_address_update','approve_tsic_update','reject_tsic_update','contact_message_direct_reply','contact_message_read','approve_product_update','reject_product_update','update_settings');
+-- ALTER TABLE FTI_Portal_Admin_Actions_Logs MODIFY COLUMN action_type ENUM('login','approve_member','reject_member','create_admin','update_admin','other','contact_message_response','approve_profile_update','reject_profile_update','approve_address_update','reject_address_update','approve_tsic_update','reject_tsic_update','contact_message_direct_reply','contact_message_read','approve_product_update','reject_product_update','update_settings');

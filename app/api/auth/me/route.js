@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 import { query } from "@/app/lib/db";
@@ -23,16 +23,16 @@ export async function GET() {
     }
 
     // Get user data from database
-    const users = await query(
-      "SELECT id, name, email, phone, role, status, email_verified, created_at, updated_at FROM users WHERE id = ?",
+    const FTI_Portal_User = await query(
+      "SELECT id, name, email, phone, role, status, email_verified, created_at, updated_at FROM FTI_Portal_User WHERE id = ?",
       [decoded.userId],
     );
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ error: "ไม่พบข้อมูลผู้ใช้" }, { status: 404 });
     }
 
-    const user = users[0];
+    const user = FTI_Portal_User[0];
 
     // Return user data
     return NextResponse.json({

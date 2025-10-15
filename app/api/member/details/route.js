@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 
@@ -39,9 +39,9 @@ export async function GET(request) {
         u.lastname,
         u.name
       FROM 
-        companies_Member cm
+        FTI_Original_Membership cm
       JOIN 
-        users u ON cm.user_id = u.id
+        FTI_Portal_User u ON cm.user_id = u.id
       WHERE 
         cm.user_id = ?
       ORDER BY 
@@ -64,7 +64,7 @@ export async function GET(request) {
         Admin_Submit,
         reject_reason
       FROM 
-        documents_Member
+        FTI_Original_Membership_Documents_Member
       WHERE 
         user_id = ?
       ORDER BY 

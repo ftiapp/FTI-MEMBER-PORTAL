@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 /**
@@ -31,7 +31,7 @@ export async function GET(request) {
 
     // Check for pending address update requests
     const pendingCheckQuery = `
-      SELECT id FROM pending_address_updates 
+      SELECT id FROM FTI_Original_Membership_Pending_Address_Updates 
       WHERE user_id = ? 
       AND member_code = ? 
       AND comp_person_code = ?

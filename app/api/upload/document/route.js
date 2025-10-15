@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { uploadToCloudinary } from "../../../lib/cloudinary";
 
@@ -27,7 +27,7 @@ export async function POST(request) {
     }
 
     // Verify user exists
-    const userResult = await query("SELECT id FROM users WHERE id = ? LIMIT 1", [userId]);
+    const userResult = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [userId]);
     if (userResult.length === 0) {
       return NextResponse.json(
         { success: false, message: "ไม่พบข้อมูลผู้ใช้ในระบบ" },

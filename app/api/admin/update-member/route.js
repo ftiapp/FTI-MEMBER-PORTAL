@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession, logAdminAction } from "@/app/lib/adminAuth";
 
@@ -39,7 +39,7 @@ export async function POST(request) {
     }
 
     // Check if member exists
-    const memberCheck = await query("SELECT user_id FROM companies_Member WHERE id = ?", [id]);
+    const memberCheck = await query("SELECT user_id FROM FTI_Original_Membership WHERE id = ?", [id]);
 
     if (memberCheck.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อมูลสมาชิก" }, { status: 404 });
@@ -50,7 +50,7 @@ export async function POST(request) {
     // ถ้ามีการอัพเดตสถานะ (อนุมัติ/ปฏิเสธ) ให้บันทึกข้อมูล admin ด้วย
     if (status === "approved" || status === "rejected") {
       await query(
-        `UPDATE companies_Member SET
+        `UPDATE FTI_Original_Membership SET
           MEMBER_CODE = ?,
           company_name = ?,
           company_type = ?,
@@ -90,7 +90,7 @@ export async function POST(request) {
     } else {
       // อัพเดตข้อมูลทั่วไปโดยไม่เปลี่ยนสถานะ
       await query(
-        `UPDATE companies_Member SET
+        `UPDATE FTI_Original_Membership SET
           MEMBER_CODE = ?,
           company_name = ?,
           company_type = ?,
@@ -132,9 +132,9 @@ export async function POST(request) {
       request,
     );
 
-    // Log in Member_portal_User_log
+    // Log in FTI_Portal_User_Logs
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent) 
        VALUES (?, ?, ?, ?, ?)`,
       [

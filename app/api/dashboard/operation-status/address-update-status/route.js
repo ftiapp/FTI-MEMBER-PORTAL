@@ -1,4 +1,4 @@
-// API route: /api/dashboard/operation-status/address-update-status?userId=xxx
+﻿// API route: /api/dashboard/operation-status/address-update-status?userId=xxx
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
@@ -17,17 +17,17 @@ export async function GET(request) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Check if the pending_address_updates table exists
+    // Check if the FTI_Original_Membership_Pending_Address_Updates table exists
     try {
       const tableExists = await query(
         `SELECT COUNT(*) as count 
         FROM information_schema.tables 
         WHERE table_schema = DATABASE() 
-        AND table_name = 'pending_address_updates'`,
+        AND table_name = 'FTI_Original_Membership_Pending_Address_Updates'`,
       );
 
       if (tableExists[0].count === 0) {
-        console.log("pending_address_updates table does not exist");
+        console.log("FTI_Original_Membership_Pending_Address_Updates table does not exist");
         return NextResponse.json({
           success: true,
           updates: [],
@@ -56,9 +56,9 @@ export async function GET(request) {
         pau.admin_comment,
         cm.COMPANY_NAME as company_name
       FROM 
-        pending_address_updates pau
+        FTI_Original_Membership_Pending_Address_Updates pau
       LEFT JOIN 
-        companies_Member cm ON pau.member_code = cm.MEMBER_CODE
+        FTI_Original_Membership cm ON pau.member_code = cm.MEMBER_CODE
       WHERE 
         pau.user_id = ?
       ORDER BY 

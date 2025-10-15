@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { toast } from "react-hot-toast";
 
@@ -184,7 +184,7 @@ export const submitACMembershipForm = async (data) => {
         applicantName: `${data.firstNameTh || ""} ${data.lastNameTh || ""}`.trim(),
       };
 
-      await fetch("/api/notifications/membership", {
+      await fetch("/api/FTI_Portal_User_Notifications/membership", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

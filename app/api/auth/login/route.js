@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { query } from "@/app/lib/db";
@@ -88,7 +88,7 @@ const rateLimit = {
   },
 };
 
-// Mock users สำหรับการทดสอบ
+// Mock FTI_Portal_User สำหรับการทดสอบ
 const mockUsers = [
   {
     id: 1,
@@ -207,16 +207,16 @@ export async function POST(request) {
     // Log removed as it's now above
 
     // Find user in database
-    const users = await query("SELECT * FROM users WHERE email = ?", [email]);
+    const FTI_Portal_User = await query("SELECT * FROM FTI_Portal_User WHERE email = ?", [email]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       console.log("User not found:", email);
       // Record failed attempt
       rateLimit.fail(rlKey);
       return NextResponse.json({ error: "อีเมลหรือรหัสผ่านไม่ถูกต้อง" }, { status: 401 });
     }
 
-    const user = users[0];
+    const user = FTI_Portal_User[0];
 
     // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);

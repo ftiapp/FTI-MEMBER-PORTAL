@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import mysql from "mysql2/promise";
 import { createNotification } from "@/app/lib/notifications";
 import { getSession } from "@/app/lib/session";

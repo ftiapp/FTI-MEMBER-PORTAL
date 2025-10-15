@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
@@ -28,15 +28,15 @@ export async function getSession() {
     }
 
     // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
-    const users = await query("SELECT id, email, name FROM users WHERE id = ? LIMIT 1", [
+    const FTI_Portal_User = await query("SELECT id, email, name FROM FTI_Portal_User WHERE id = ? LIMIT 1", [
       payload.userId,
     ]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return null;
     }
 
-    return { user: users[0] };
+    return { user: FTI_Portal_User[0] };
   } catch (error) {
     console.error("Error getting user session:", error);
     return null;
@@ -70,13 +70,13 @@ export async function getUserFromSession(request) {
     if (!payload || !payload.userId) return null;
 
     // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
-    const users = await query("SELECT id, email, name FROM users WHERE id = ? LIMIT 1", [
+    const FTI_Portal_User = await query("SELECT id, email, name FROM FTI_Portal_User WHERE id = ? LIMIT 1", [
       payload.userId,
     ]);
 
-    if (users.length === 0) return null;
+    if (FTI_Portal_User.length === 0) return null;
 
-    return users[0];
+    return FTI_Portal_User[0];
   } catch (error) {
     console.error("Error getting user from session:", error);
     return null;
@@ -114,7 +114,7 @@ export async function getServerSession() {
 
     // ดึงข้อมูล admin จากฐานข้อมูล
     const admins = await query(
-      "SELECT id, username, admin_level as level, can_create, can_update FROM admin_users WHERE id = ? AND is_active = 1 LIMIT 1",
+      "SELECT id, username, admin_level as level, can_create, can_update FROM FTI_Portal_Admin_Users WHERE id = ? AND is_active = 1 LIMIT 1",
       [payload.id],
     );
 

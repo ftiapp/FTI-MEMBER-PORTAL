@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -18,7 +18,7 @@ export async function GET(request) {
 
     // Get total count
     const totalResult = await query(`
-      SELECT COUNT(*) as total FROM profile_update_requests
+      SELECT COUNT(*) as total FROM FTI_Portal_User_Profile_Update_Requests
     `);
 
     // Get counts for each status
@@ -27,7 +27,7 @@ export async function GET(request) {
         status,
         COUNT(*) as count
       FROM 
-        profile_update_requests
+        FTI_Portal_User_Profile_Update_Requests
       GROUP BY 
         status
     `);

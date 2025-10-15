@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function POST(request) {
@@ -16,7 +16,7 @@ export async function POST(request) {
 
     // Insert contact message into database
     await query(
-      `INSERT INTO contact_messages 
+      `INSERT INTO FTI_Portal_User_Contact_Messages 
        (user_id, subject, message, name, email, phone, status, created_at) 
        VALUES (?, ?, ?, ?, ?, ?, 'unread', NOW())`,
       [userId, subject, message, name, email, phone],
@@ -24,7 +24,7 @@ export async function POST(request) {
 
     // Log the activity
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, NOW())`,
       [

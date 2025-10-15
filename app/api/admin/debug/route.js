@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import bcrypt from "bcrypt";
 
 export async function GET(request) {
   try {
     // Get admin from database
-    const admins = await query("SELECT * FROM admin_users WHERE username = ? LIMIT 1", [
+    const admins = await query("SELECT * FROM FTI_Portal_Admin_Users WHERE username = ? LIMIT 1", [
       "superadmin",
     ]);
 
@@ -37,7 +37,7 @@ export async function GET(request) {
       },
       storedHash: admin.password,
       newGeneratedHash: newHash,
-      fixSql: `UPDATE admin_users SET password = '${newHash}' WHERE id = ${admin.id};`,
+      fixSql: `UPDATE FTI_Portal_Admin_Users SET password = '${newHash}' WHERE id = ${admin.id};`,
     });
   } catch (error) {
     console.error("Debug error:", error);

@@ -1,4 +1,4 @@
--- สร้างตารางสำหรับเก็บประวัติความเห็นและการแก้ไขของการสมัครสมาชิก
+﻿-- สร้างตารางสำหรับเก็บประวัติความเห็นและการแก้ไขของการสมัครสมาชิก
 CREATE TABLE IF NOT EXISTS MemberRegist_Comments (
     id INT PRIMARY KEY AUTO_INCREMENT,
     membership_type ENUM('oc', 'ac', 'am', 'ic') NOT NULL COMMENT 'ประเภทสมาชิก',
@@ -17,12 +17,12 @@ CREATE TABLE IF NOT EXISTS MemberRegist_Comments (
     INDEX idx_admin (admin_id),
     INDEX idx_created_at (created_at),
     
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
-    FOREIGN KEY (admin_id) REFERENCES admin_users(id) ON DELETE SET NULL
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE SET NULL,
+    FOREIGN KEY (admin_id) REFERENCES FTI_Portal_Admin_Users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ตารางเก็บประวัติความเห็นและการแก้ไขการสมัครสมาชิก';
 
--- เพิ่ม enum ใหม่ใน admin_actions_log
-ALTER TABLE admin_actions_log 
+-- เพิ่ม enum ใหม่ใน FTI_Portal_Admin_Actions_Logs
+ALTER TABLE FTI_Portal_Admin_Actions_Logs 
 MODIFY COLUMN action_type ENUM(
     'approve_membership', 
     'reject_membership', 
@@ -38,8 +38,8 @@ MODIFY COLUMN action_type ENUM(
     'reject_resubmission'
 ) NOT NULL;
 
--- เพิ่ม enum ใหม่ใน Member_portal_User_log
-ALTER TABLE Member_portal_User_log 
+-- เพิ่ม enum ใหม่ใน FTI_Portal_User_Logs
+ALTER TABLE FTI_Portal_User_Logs 
 MODIFY COLUMN action_type ENUM(
     'login', 
     'logout', 

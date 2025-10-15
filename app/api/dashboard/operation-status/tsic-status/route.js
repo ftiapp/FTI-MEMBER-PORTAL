@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 /**
@@ -20,7 +20,7 @@ export async function GET(request) {
     // First, get all member codes associated with this user
     const memberCodesQuery = `
       SELECT MEMBER_CODE 
-      FROM companies_Member 
+      FROM FTI_Original_Membership 
       WHERE USER_ID = ?
     `;
 
@@ -50,9 +50,9 @@ export async function GET(request) {
         t.updated_at,
         c.COMPANY_NAME as company_name
       FROM 
-        member_tsic_codes t
+        FTI_Original_Membership_Member_Tsic_Codes t
       JOIN 
-        companies_Member c ON t.member_code = c.MEMBER_CODE
+        FTI_Original_Membership c ON t.member_code = c.MEMBER_CODE
       WHERE 
         t.member_code IN (${placeholders})
       ORDER BY 

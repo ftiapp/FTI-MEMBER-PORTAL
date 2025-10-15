@@ -1,4 +1,4 @@
-# Address Components
+﻿# Address Components
 
 ระบบจัดการที่อยู่แบบ modular สำหรับใช้ในฟอร์มสมัครสมาชิกทุกประเภท
 
@@ -289,4 +289,4 @@ import { AddressSection } from "@/app/membership/shared/address";
 
 - ต้องมี `SearchableDropdown` component ใน `@/app/membership/shared/SearchableDropdown`
 - ต้องมี API endpoint `/api/thailand-address/search` สำหรับค้นหาข้อมูลที่อยู่
-- ใช้ `react-hot-toast` สำหรับแสดง notifications
+- ใช้ `react-hot-toast` สำหรับแสดง FTI_Portal_User_Notifications

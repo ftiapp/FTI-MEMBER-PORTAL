@@ -45,7 +45,7 @@ export async function GET(request, { params }) {
     let applicantUser = null;
     if (mainData?.user_id) {
       const userRows = await query(
-        "SELECT id, name, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1",
+        "SELECT id, name, firstname, lastname, email, phone FROM FTI_Portal_User WHERE id = ? LIMIT 1",
         [mainData.user_id],
       );
       const u = userRows?.[0] || null;

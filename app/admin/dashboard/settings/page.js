@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { toast, Toaster } from "react-hot-toast";
@@ -115,7 +115,7 @@ export default function SettingsPage() {
       ),
     },
     {
-      id: "notifications",
+      id: "FTI_Portal_User_Notifications",
       title: "การแจ้งเตือน",
       description: "อีเมลและการแจ้งเตือนในระบบ",
       icon: (
@@ -221,7 +221,7 @@ export default function SettingsPage() {
         return (
           <SecuritySettings settings={settings} onSave={handleSaveSettings} isLoading={saving} />
         );
-      case "notifications":
+      case "FTI_Portal_User_Notifications":
         return (
           <NotificationSettings
             settings={settings}

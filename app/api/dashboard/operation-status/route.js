@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -28,7 +28,7 @@ async function fetchOperationStatus(userId) {
       // Member verification status
       query(
         `SELECT id, user_id, MEMBER_CODE, company_name, company_type, Admin_Submit, reject_reason, created_at 
-         FROM companies_Member 
+         FROM FTI_Original_Membership 
          WHERE user_id = ? 
          ORDER BY created_at DESC`,
         [userId],
@@ -36,7 +36,7 @@ async function fetchOperationStatus(userId) {
       // Profile update requests
       query(
         `SELECT id, user_id, new_firstname, new_lastname, status, reject_reason, created_at 
-         FROM profile_update_requests 
+         FROM FTI_Portal_User_Profile_Update_Requests 
          WHERE user_id = ? 
          ORDER BY created_at DESC`,
         [userId],
@@ -44,7 +44,7 @@ async function fetchOperationStatus(userId) {
       // Contact messages
       query(
         `SELECT id, user_id, subject, message, status, created_at 
-         FROM contact_messages 
+         FROM FTI_Portal_User_Contact_Messages 
          WHERE user_id = ? 
          ORDER BY created_at DESC`,
         [userId],
@@ -52,7 +52,7 @@ async function fetchOperationStatus(userId) {
       // Address updates
       query(
         `SELECT id, user_id, member_code, status, created_at 
-         FROM pending_address_updates 
+         FROM FTI_Original_Membership_Pending_Address_Updates 
          WHERE user_id = ? 
          ORDER BY created_at DESC`,
         [userId],
@@ -60,7 +60,7 @@ async function fetchOperationStatus(userId) {
       // Product updates
       query(
         `SELECT id, user_id, member_code, status, created_at 
-         FROM pending_product_updates 
+         FROM FTI_Original_Membership_Pending_Product_Updates 
          WHERE user_id = ? 
          ORDER BY created_at DESC`,
         [userId],
@@ -68,7 +68,7 @@ async function fetchOperationStatus(userId) {
       // Social media updates from log
       query(
         `SELECT id, user_id, action, details, created_at 
-         FROM Member_portal_User_log 
+         FROM FTI_Portal_User_Logs 
          WHERE user_id = ? AND action IN ('social_media_update', 'social_media_add', 'social_media_delete') 
          ORDER BY created_at DESC 
          LIMIT 10`,
@@ -77,7 +77,7 @@ async function fetchOperationStatus(userId) {
       // Logo updates from log
       query(
         `SELECT id, user_id, action, details, created_at 
-         FROM Member_portal_User_log 
+         FROM FTI_Portal_User_Logs 
          WHERE user_id = ? AND action IN ('logo_add', 'logo_update', 'logo_delete') 
          ORDER BY created_at DESC 
          LIMIT 10`,
@@ -86,7 +86,7 @@ async function fetchOperationStatus(userId) {
       // TSIC updates
       query(
         `SELECT id, user_id, member_code, status, created_at 
-         FROM pending_tsic_updates 
+         FROM FTI_Original_Membership_Pending_Tsic_Updates 
          WHERE user_id = ? 
          ORDER BY created_at DESC`,
         [userId],

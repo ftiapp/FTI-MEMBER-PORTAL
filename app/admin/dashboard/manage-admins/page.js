@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -8,12 +8,12 @@ import AdminLayout from "../../components/AdminLayout";
 /**
  * Admin Management Page
  *
- * This component provides functionality for managing admin users including:
+ * This component provides functionality for managing admin FTI_Portal_User including:
  * - Viewing all admin accounts
  * - Creating new admin accounts with specific permission levels
  * - Activating/deactivating existing admin accounts
  *
- * Only accessible to admin users with level 5 (SuperAdmin) permissions.
+ * Only accessible to admin FTI_Portal_User with level 5 (SuperAdmin) permissions.
  */
 
 export default function ManageAdminsPage() {
@@ -36,13 +36,13 @@ export default function ManageAdminsPage() {
     canUpdate: false,
   });
 
-  // Fetch admin users when component mounts
+  // Fetch admin FTI_Portal_User when component mounts
   useEffect(() => {
     fetchAdmins();
   }, []);
 
   /**
-   * Fetches the list of all admin users from the API
+   * Fetches the list of all admin FTI_Portal_User from the API
    * Handles authentication, loading states, and error handling
    */
   const fetchAdmins = async () => {

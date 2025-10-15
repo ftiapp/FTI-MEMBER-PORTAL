@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { createPasswordResetToken } from "@/app/lib/token";
 import { sendPasswordResetEmail } from "@/app/lib/postmark";
@@ -15,14 +15,14 @@ async function checkAndLogResetRequest(email) {
   try {
     // ตรวจสอบว่ามีการขอรีเซ็ตรหัสผ่านในวันนี้หรือไม่
     const logs = await query(
-      "SELECT * FROM password_reset_logs WHERE email = ? AND request_date = CURRENT_DATE",
+      "SELECT * FROM FTI_Portal_User_Password_Reset_Logs WHERE email = ? AND request_date = CURRENT_DATE",
       [email],
     );
 
     if (logs.length === 0) {
       // ถ้าไม่มีบันทึกในวันนี้ ให้สร้างบันทึกใหม่
       await query(
-        "INSERT INTO password_reset_logs (email, request_count, last_request_at, request_date) VALUES (?, 1, NOW(), CURRENT_DATE)",
+        "INSERT INTO FTI_Portal_User_Password_Reset_Logs (email, request_count, last_request_at, request_date) VALUES (?, 1, NOW(), CURRENT_DATE)",
         [email],
       );
       return { allowed: true, remainingAttempts: MAX_RESET_REQUESTS_PER_DAY - 1 };
@@ -37,7 +37,7 @@ async function checkAndLogResetRequest(email) {
 
       // อัปเดตจำนวนครั้งที่ขอรีเซ็ตรหัสผ่าน
       await query(
-        "UPDATE password_reset_logs SET request_count = request_count + 1, last_request_at = NOW() WHERE id = ?",
+        "UPDATE FTI_Portal_User_Password_Reset_Logs SET request_count = request_count + 1, last_request_at = NOW() WHERE id = ?",
         [log.id],
       );
 
@@ -72,16 +72,16 @@ export async function POST(request) {
     }
 
     // Check if user exists
-    const users = await query("SELECT id, name, email FROM users WHERE email = ?", [email]);
+    const FTI_Portal_User = await query("SELECT id, name, email FROM FTI_Portal_User WHERE email = ?", [email]);
 
     // Always return success even if user doesn't exist (for security)
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json({
         message: "หากอีเมลนี้มีอยู่ในระบบ เราจะส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณ",
       });
     }
 
-    const user = users[0];
+    const user = FTI_Portal_User[0];
 
     // Create password reset token
     const resetToken = await createPasswordResetToken(user.id);

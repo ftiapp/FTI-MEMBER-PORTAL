@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 /**
- * API endpoint to get counts of member verifications from companies_Member
+ * API endpoint to get counts of member verifications from FTI_Original_Membership
  * Only counts approved members (Admin_Submit = 2)
  *
  * @returns {Object} Counts of approved members and other actions
@@ -16,25 +16,25 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    // Get count of approved members from companies_Member
+    // Get count of approved members from FTI_Original_Membership
     const memberSql = `
       SELECT 
         COUNT(*) as count 
       FROM 
-        companies_Member 
+        FTI_Original_Membership 
       WHERE 
         Admin_Submit = 1
     `;
 
     const memberResults = await query(memberSql);
 
-    // Get counts for other action types from Member_portal_User_log
+    // Get counts for other action types from FTI_Portal_User_Logs
     const logSql = `
       SELECT 
         action, 
         COUNT(*) as count 
       FROM 
-        Member_portal_User_log 
+        FTI_Portal_User_Logs 
       WHERE 
         action != 'member_verification'
       GROUP BY 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { generateToken } from "@/app/lib/token";
 import { sendNewEmailVerification } from "@/app/lib/postmark";
@@ -20,7 +20,7 @@ export async function POST(request) {
 
     // ตรวจสอบว่าอีเมลใหม่ซ้ำกับผู้ใช้อื่นหรือไม่
     const existingUser = await query(
-      "SELECT id, email_verified FROM users WHERE email = ? AND id != ?",
+      "SELECT id, email_verified FROM FTI_Portal_User WHERE email = ? AND id != ?",
       [newEmail, userId],
     );
 
@@ -42,7 +42,7 @@ export async function POST(request) {
 
     // บันทึก token ลงในฐานข้อมูล
     await query(
-      `INSERT INTO verification_tokens 
+      `INSERT INTO FTI_Portal_User_Verification_Tokens 
        (user_id, token, token_type, expires_at, created_at) 
        VALUES (?, ?, 'new_email_verification', DATE_ADD(NOW(), INTERVAL 1 DAY), NOW())`,
       [userId, verificationToken],
@@ -50,7 +50,7 @@ export async function POST(request) {
 
     // บันทึกอีเมลใหม่ที่ต้องการเปลี่ยนไว้ในฐานข้อมูล
     await query(
-      `INSERT INTO pending_email_changes 
+      `INSERT INTO FTI_Original_Membership_Pending_Email_Changes 
        (user_id, new_email, token_id, created_at) 
        VALUES (?, ?, LAST_INSERT_ID(), NOW())`,
       [userId, newEmail],

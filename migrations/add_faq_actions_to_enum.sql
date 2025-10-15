@@ -1,5 +1,5 @@
--- Modify the action_type column to include all existing values plus the new FAQ-related values
-ALTER TABLE admin_actions_log 
+﻿-- Modify the action_type column to include all existing values plus the new FAQ-related values
+ALTER TABLE FTI_Portal_Admin_Actions_Logs 
 MODIFY COLUMN action_type ENUM(
   'login', 
   'logout',

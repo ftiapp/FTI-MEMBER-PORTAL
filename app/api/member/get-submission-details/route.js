@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 
@@ -32,7 +32,7 @@ export async function GET(request) {
     }
 
     // Fetch submission details
-    const submissions = await query(`SELECT * FROM companies_Member WHERE id = ? AND user_id = ?`, [
+    const submissions = await query(`SELECT * FROM FTI_Original_Membership WHERE id = ? AND user_id = ?`, [
       submissionId,
       user.id,
     ]);

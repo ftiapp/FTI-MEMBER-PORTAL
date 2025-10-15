@@ -1,4 +1,4 @@
-// Utility functions for notifications
+﻿// Utility functions for FTI_Portal_User_Notifications
 
 // Format date to Thai format
 export const formatDate = (dateString) => {
@@ -142,7 +142,7 @@ export const handleNotificationClick = async (notification) => {
   }
   // จัดการกับการแจ้งเตือนประเภทการอัปเดตที่อยู่
   else if (notification.type === "address_update") {
-    // ดึงข้อมูลจากฟิลด์ใหม่ที่เพิ่มในตาราง notifications
+    // ดึงข้อมูลจากฟิลด์ใหม่ที่เพิ่มในตาราง FTI_Portal_User_Notifications
     let addrCode = notification.addr_code;
     let memberCode = notification.member_code;
     let memberType = notification.member_type;

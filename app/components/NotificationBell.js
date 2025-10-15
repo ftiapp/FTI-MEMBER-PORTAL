@@ -12,7 +12,7 @@ import {
 
 export default function NotificationBell() {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState([]);
+  const [FTI_Portal_User_Notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -45,7 +45,7 @@ export default function NotificationBell() {
     try {
       setLoading(true);
       // เพิ่ม credentials: 'include' เพื่อให้ส่ง cookies ไปด้วย
-      const response = await fetch(`/api/notifications/membership?limit=10`, {
+      const response = await fetch(`/api/FTI_Portal_User_Notifications/membership?limit=10`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -55,17 +55,17 @@ export default function NotificationBell() {
 
       if (!response.ok) {
         console.error("Notification response not OK:", response.status, response.statusText);
-        throw new Error("Failed to fetch notifications");
+        throw new Error("Failed to fetch FTI_Portal_User_Notifications");
       }
 
       const data = await response.json();
-      console.log("Notifications data:", data); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
-      setNotifications(data.notifications || []);
+      console.log("FTI_Portal_User_Notifications data:", data); // เพิ่ม log เพื่อดูข้อมูลที่ได้รับ
+      setNotifications(data.FTI_Portal_User_Notifications || []);
 
       // ใช้ unreadCount จาก API response
       setUnreadCount(data.unreadCount || 0);
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      console.error("Error fetching FTI_Portal_User_Notifications:", error);
     } finally {
       setLoading(false);
     }
@@ -76,7 +76,7 @@ export default function NotificationBell() {
     if (!user?.id) return;
 
     try {
-      const response = await fetch("/api/notifications/membership", {
+      const response = await fetch("/api/FTI_Portal_User_Notifications/membership", {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -114,7 +114,7 @@ export default function NotificationBell() {
     if (!user?.id || unreadCount === 0) return;
 
     try {
-      const response = await fetch("/api/notifications/mark-all-read", {
+      const response = await fetch("/api/FTI_Portal_User_Notifications/mark-all-read", {
         method: "POST",
         credentials: "include", // เพิ่ม credentials เพื่อให้ส่ง cookies ไปด้วย
         headers: {
@@ -127,7 +127,7 @@ export default function NotificationBell() {
 
       if (!response.ok) {
         console.error("Mark all as read response not OK:", response.status, response.statusText);
-        throw new Error("Failed to mark all notifications as read");
+        throw new Error("Failed to mark all FTI_Portal_User_Notifications as read");
       }
 
       // อัพเดทสถานะการอ่านในข้อมูลท้องถิ่น
@@ -141,7 +141,7 @@ export default function NotificationBell() {
       // รีเซ็ตจำนวนที่ยังไม่ได้อ่านเป็น 0
       setUnreadCount(0);
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error("Error marking all FTI_Portal_User_Notifications as read:", error);
     }
   };
 
@@ -234,11 +234,11 @@ export default function NotificationBell() {
                   <div className="inline-block h-6 w-6 border-t-2 border-b-2 border-blue-600 rounded-full animate-spin mb-2"></div>
                   <p>กำลังโหลด...</p>
                 </div>
-              ) : notifications.length === 0 ? (
+              ) : FTI_Portal_User_Notifications.length === 0 ? (
                 <div className="p-4 text-center text-gray-500">ไม่มีการแจ้งเตือน</div>
               ) : (
                 <ul>
-                  {notifications.slice(0, 5).map((notification) => (
+                  {FTI_Portal_User_Notifications.slice(0, 5).map((notification) => (
                     <li
                       key={notification.id}
                       className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors ${notification.status === "unread" ? "bg-blue-50" : ""}`}
@@ -284,7 +284,7 @@ export default function NotificationBell() {
 
             <div className="p-2 border-t border-gray-200 text-center">
               <Link
-                href="/dashboard/notifications"
+                href="/dashboard/FTI_Portal_User_Notifications"
                 className="text-xs text-blue-600 hover:text-blue-800"
                 onClick={() => setIsOpen(false)}
               >

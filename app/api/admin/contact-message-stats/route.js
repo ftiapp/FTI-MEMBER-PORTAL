@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -21,7 +21,7 @@ export async function GET() {
         status, 
         COUNT(*) as count 
       FROM 
-        contact_messages 
+        FTI_Portal_User_Contact_Messages 
       GROUP BY 
         status
     `;

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession, logAdminAction } from "../../../lib/adminAuth";
 
@@ -18,7 +18,7 @@ export async function POST(request) {
     }
 
     // Prevent deleting SuperAdmin accounts
-    const rows = await query("SELECT id, username, admin_level FROM admin_users WHERE id = ?", [
+    const rows = await query("SELECT id, username, admin_level FROM FTI_Portal_Admin_Users WHERE id = ?", [
       adminId,
     ]);
     if (rows.length === 0) {
@@ -32,7 +32,7 @@ export async function POST(request) {
       );
     }
 
-    await query("DELETE FROM admin_users WHERE id = ?", [adminId]);
+    await query("DELETE FROM FTI_Portal_Admin_Users WHERE id = ?", [adminId]);
 
     // Log action
     await logAdminAction(admin.id, "delete_admin", adminId, { username: target.username }, request);

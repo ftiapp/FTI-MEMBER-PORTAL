@@ -1,4 +1,4 @@
-// ติดตั้ง: npm install html2pdf.js
+﻿// ติดตั้ง: npm install html2pdf.js
 import html2pdf from "html2pdf.js";
 
 // Format Thai date
@@ -773,7 +773,7 @@ export const generateMembershipPDF = async (
         ? provincialChapterNames.length - MAX_CHAPTERS_DISPLAY
         : 0;
 
-    // Prepare applicant account info (users table fields if present)
+    // Prepare applicant account info (FTI_Portal_User table fields if present)
     const applicantAccount = (() => {
       const u =
         application?.user ||

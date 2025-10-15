@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { query } from "@/app/lib/db";
@@ -29,10 +29,10 @@ export async function POST(request) {
     }
 
     // ทำเครื่องหมายว่าอ่านทั้งหมด
-    console.log("Marking all notifications as read for user:", userId);
+    console.log("Marking all FTI_Portal_User_Notifications as read for user:", userId);
 
     await query(
-      `UPDATE notifications 
+      `UPDATE FTI_Portal_User_Notifications 
        SET read_at = NOW(), updated_at = NOW() 
        WHERE user_id = ? AND read_at IS NULL`,
       [userId],
@@ -40,7 +40,7 @@ export async function POST(request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error marking all notifications as read:", error);
+    console.error("Error marking all FTI_Portal_User_Notifications as read:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

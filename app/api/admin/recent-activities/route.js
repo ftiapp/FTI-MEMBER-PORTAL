@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession } from "../../../lib/adminAuth";
 
@@ -19,7 +19,7 @@ export async function GET(request) {
 
     // Query to get total count of activities (excluding login)
     const countResult = await query(
-      `SELECT COUNT(*) as total FROM admin_actions_log 
+      `SELECT COUNT(*) as total FROM FTI_Portal_Admin_Actions_Logs 
        WHERE action_type NOT IN ('login')`,
     );
     const totalActivities = countResult[0].total;
@@ -37,11 +37,11 @@ export async function GET(request) {
         au.username as admin_name,
         target_admin.username as target_admin_name
       FROM 
-        admin_actions_log aal
+        FTI_Portal_Admin_Actions_Logs aal
       LEFT JOIN 
-        admin_users au ON aal.admin_id = au.id
+        FTI_Portal_Admin_Users au ON aal.admin_id = au.id
       LEFT JOIN
-        admin_users target_admin ON aal.target_id = target_admin.id AND aal.action_type IN ('create_admin', 'update_admin')
+        FTI_Portal_Admin_Users target_admin ON aal.target_id = target_admin.id AND aal.action_type IN ('create_admin', 'update_admin')
       WHERE 
         aal.action_type NOT IN ('login')
       ORDER BY 
@@ -64,17 +64,17 @@ export async function GET(request) {
       }
     });
 
-    // ถ้ามี userId ให้ดึงข้อมูลผู้ใช้จากตาราง users
+    // ถ้ามี userId ให้ดึงข้อมูลผู้ใช้จากตาราง FTI_Portal_User
     let userMap = {};
     if (userIds.size > 0) {
       const userIdsArray = Array.from(userIds);
-      const users = await query(
-        `SELECT id, name, firstname, lastname, email, phone FROM users WHERE id IN (${userIdsArray.map(() => "?").join(",")})`,
+      const FTI_Portal_User = await query(
+        `SELECT id, name, firstname, lastname, email, phone FROM FTI_Portal_User WHERE id IN (${userIdsArray.map(() => "?").join(",")})`,
         userIdsArray,
       );
 
       // สร้าง map ของผู้ใช้
-      users.forEach((user) => {
+      FTI_Portal_User.forEach((user) => {
         userMap[user.id] = user;
       });
     }

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import {
   beginTransaction,
@@ -939,7 +939,7 @@ export async function POST(request) {
       const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
       await executeQuery(
         trx,
-        "INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)",
+        "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)",
         [
           userId,
           "AC_membership_submit",
@@ -981,8 +981,8 @@ export async function POST(request) {
 
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
-      // ดึงข้อมูล user จาก users table
-      const userQuery = `SELECT firstname, lastname, email FROM users WHERE id = ?`;
+      // ดึงข้อมูล user จาก FTI_Portal_User table
+      const userQuery = `SELECT firstname, lastname, email FROM FTI_Portal_User WHERE id = ?`;
       const userResult = await executeQueryWithoutTransaction(userQuery, [userId]);
       
       if (userResult && userResult.length > 0) {

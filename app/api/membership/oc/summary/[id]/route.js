@@ -176,7 +176,7 @@ export async function GET(request, { params }) {
     let applicantUser = null;
     if (ocData?.user_id) {
       const userRows = await query(
-        "SELECT id, firstname, lastname, email, phone FROM users WHERE id = ? LIMIT 1",
+        "SELECT id, firstname, lastname, email, phone FROM FTI_Portal_User WHERE id = ? LIMIT 1",
         [ocData.user_id],
       );
       const normalized = Array.isArray(userRows) ? userRows : userRows ? [userRows] : [];

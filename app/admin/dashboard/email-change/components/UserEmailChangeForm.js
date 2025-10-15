@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { toast } from "react-hot-toast";
@@ -8,7 +8,7 @@ import UserEmailHistory from "./UserEmailHistory";
  * UserEmailChangeForm Component
  *
  * Form for admins to change a user's email address after verifying their identity.
- * This is used when users have lost access to their original email.
+ * This is used when FTI_Portal_User have lost access to their original email.
  */
 export default function UserEmailChangeForm({ user, onBack }) {
   const [formData, setFormData] = useState({

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { sendNewEmailVerification } from "@/app/lib/postmark";
 import { generateToken } from "@/app/lib/token";
@@ -23,7 +23,7 @@ export async function POST(request) {
     }
 
     // ตรวจสอบว่าอีเมลมีอยู่ในระบบหรือไม่
-    const user = await query("SELECT id, email, firstname, lastname FROM users WHERE email = ?", [
+    const user = await query("SELECT id, email, firstname, lastname FROM FTI_Portal_User WHERE email = ?", [
       email,
     ]);
 
@@ -34,9 +34,9 @@ export async function POST(request) {
     const userId = user[0].id;
 
     // ตรวจสอบว่าผู้ใช้เปลี่ยนอีเมลสำเร็จแล้วหรือไม่ใน 7 วันที่ผ่านมา
-    // ตรวจสอบจากประวัติการเปลี่ยนอีเมลที่สำเร็จ (Member_portal_User_log)
+    // ตรวจสอบจากประวัติการเปลี่ยนอีเมลที่สำเร็จ (FTI_Portal_User_Logs)
     const recentSuccessfulChanges = await query(
-      `SELECT * FROM Member_portal_User_log 
+      `SELECT * FROM FTI_Portal_User_Logs 
        WHERE user_id = ? AND action = 'change_email' 
        AND details LIKE '%(ยืนยันแล้ว)%' 
        AND created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)`,
@@ -74,9 +74,9 @@ export async function POST(request) {
     }
 
     // ตรวจสอบการขอ OTP บ่อยเกินไป (ทุก 5 นาที)
-    // ตรวจสอบจากตาราง verification_tokens แทนการใช้ LIKE query
+    // ตรวจสอบจากตาราง FTI_Portal_User_Verification_Tokens แทนการใช้ LIKE query
     const recentOTPRequests = await query(
-      `SELECT * FROM verification_tokens 
+      `SELECT * FROM FTI_Portal_User_Verification_Tokens 
        WHERE user_id = ? AND token_type = 'change_email_cooldown' 
        AND expires_at > NOW()`,
       [userId],
@@ -107,7 +107,7 @@ export async function POST(request) {
 
     // ตรวจสอบว่ามีคำขอที่ยังไม่หมดอายุหรือไม่
     const pendingRequests = await query(
-      `SELECT * FROM verification_tokens 
+      `SELECT * FROM FTI_Portal_User_Verification_Tokens 
        WHERE user_id = ? AND token_type = 'change_email' 
        AND expires_at > NOW() AND used = 0`,
       [userId],
@@ -116,7 +116,7 @@ export async function POST(request) {
     // ถ้ามีคำขอที่ยังไม่หมดอายุ ให้ยกเลิกคำขอเก่าทั้งหมด
     if (pendingRequests && pendingRequests.length > 0) {
       await query(
-        `UPDATE verification_tokens 
+        `UPDATE FTI_Portal_User_Verification_Tokens 
          SET used = 1, otp_verified = 0
          WHERE user_id = ? AND token_type = 'change_email' AND used = 0`,
         [userId],
@@ -131,7 +131,7 @@ export async function POST(request) {
 
     // บันทึก token และ OTP ลงในฐานข้อมูล
     await query(
-      `INSERT INTO verification_tokens 
+      `INSERT INTO FTI_Portal_User_Verification_Tokens 
        (user_id, token, token_type, otp, expires_at, used) 
        VALUES (?, ?, 'change_email', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0)`,
       [userId, token, otp],
@@ -139,7 +139,7 @@ export async function POST(request) {
 
     // บันทึกคูลดาวน์การขอ OTP ใหม่ (5 นาที)
     await query(
-      `INSERT INTO verification_tokens 
+      `INSERT INTO FTI_Portal_User_Verification_Tokens 
        (user_id, token, token_type, otp, expires_at, used) 
        VALUES (?, ?, 'change_email_cooldown', '000000', DATE_ADD(NOW(), INTERVAL 5 MINUTE), 0)`,
       [userId, generateToken()],
@@ -150,7 +150,7 @@ export async function POST(request) {
 
     // บันทึกประวัติการขอเปลี่ยนอีเมล (ใช้ action เดิมแต่แยกด้วยข้อความใน details)
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, 'change_email', ?, ?, ?, NOW())`,
       [

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../lib/db";
 import { cookies } from "next/headers";
 import { verifyToken } from "../../lib/token";
@@ -45,11 +45,11 @@ export async function POST(request) {
 
     // ตรวจสอบว่า user มีอยู่จริงหรือไม่
     if (userIdToUse) {
-      const userResult = await query("SELECT id FROM users WHERE id = ? LIMIT 1", [userIdToUse]);
+      const userResult = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [userIdToUse]);
       if (userResult.length === 0) {
         // ถ้าไม่พบ user ให้ใช้ fallback เป็น admin หรือ user คนแรก
         const fallbackUserResult = await query(
-          'SELECT id FROM users WHERE role = "admin" OR id = 1 LIMIT 1',
+          'SELECT id FROM FTI_Portal_User WHERE role = "admin" OR id = 1 LIMIT 1',
         );
 
         if (fallbackUserResult.length > 0) {
@@ -78,7 +78,7 @@ export async function POST(request) {
     // บันทึก log การอัปโหลดเอกสาร
     if (userIdToUse) {
       await query(
-        `INSERT INTO Member_portal_User_log (
+        `INSERT INTO FTI_Portal_User_Logs (
           user_id, 
           action_type, 
           action_detail, 

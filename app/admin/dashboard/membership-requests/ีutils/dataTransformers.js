@@ -1,4 +1,4 @@
-import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./constants";
+﻿import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./constants";
 
 export const normalizeApplicationData = (application, type) => {
   if (!application) return null;
@@ -25,7 +25,7 @@ export const normalizeApplicationData = (application, type) => {
     status: statusString,
     memberCode: application.member_code || application.memberCode,
 
-    // Personal/Company Info (from users table)
+    // Personal/Company Info (from FTI_Portal_User table)
     firstNameTh: application.first_name_th || application.firstNameTh || application.firstname,
     lastNameTh: application.last_name_th || application.lastNameTh || application.lastname,
     firstNameEn: application.first_name_en || application.firstNameEn,

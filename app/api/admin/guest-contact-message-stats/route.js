@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -15,13 +15,13 @@ export async function GET() {
       SELECT 
         status,
         COUNT(*) as count
-      FROM guest_contact_messages
+      FROM FTI_Portal_Guest_Contact_Messages
       GROUP BY status
     `;
 
     // Query to get total count
     const totalCountQuery = `
-      SELECT COUNT(*) as count FROM guest_contact_messages
+      SELECT COUNT(*) as count FROM FTI_Portal_Guest_Contact_Messages
     `;
 
     const statusCountsResult = await query(statusCountsQuery);

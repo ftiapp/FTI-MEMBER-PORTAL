@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import bcrypt from "bcrypt";
 import { query } from "./db";
@@ -14,7 +14,7 @@ const secretKey = new TextEncoder().encode(
 export async function verifyAdminPassword(username, password) {
   try {
     const admins = await query(
-      "SELECT * FROM admin_users WHERE username = ? AND is_active = TRUE LIMIT 1",
+      "SELECT * FROM FTI_Portal_Admin_Users WHERE username = ? AND is_active = TRUE LIMIT 1",
       [username],
     );
 
@@ -122,7 +122,7 @@ export async function logAdminAction(
     }
 
     await query(
-      `INSERT INTO admin_actions_log 
+      `INSERT INTO FTI_Portal_Admin_Actions_Logs 
        (admin_id, action_type, target_id, description, ip_address, user_agent) 
        VALUES (?, ?, ?, ?, ?, ?)`,
       [

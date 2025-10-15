@@ -1,4 +1,4 @@
-// components/AMFormSubmission.js
+﻿// components/AMFormSubmission.js
 "use client";
 
 /**
@@ -139,7 +139,7 @@ export const submitAMMembershipForm = async (formData) => {
               applicantName: `${formData.firstNameTh || ""} ${formData.lastNameTh || ""}`.trim(),
             };
 
-            await fetch("/api/notifications/membership", {
+            await fetch("/api/FTI_Portal_User_Notifications/membership", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

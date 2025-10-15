@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 
@@ -15,7 +15,7 @@ export async function GET(request) {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
   const result = await query(
-    "SELECT COUNT(*) as count FROM profile_update_requests WHERE user_id = ? AND created_at >= ? AND created_at < ?",
+    "SELECT COUNT(*) as count FROM FTI_Portal_User_Profile_Update_Requests WHERE user_id = ? AND created_at >= ? AND created_at < ?",
     [user.id, today, tomorrow],
   );
   return NextResponse.json({ success: true, count: result[0].count });

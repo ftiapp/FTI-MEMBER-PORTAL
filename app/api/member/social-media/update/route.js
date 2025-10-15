@@ -1,4 +1,4 @@
-import {
+﻿import {
   query,
   beginTransaction,
   executeQuery,
@@ -63,17 +63,17 @@ export async function POST(request) {
     }
 
     // ตรวจสอบว่า userId มีอยู่จริงในฐานข้อมูล
-    const userCheckQuery = "SELECT id FROM users WHERE id = ? LIMIT 1";
+    const userCheckQuery = "SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1";
     const userCheckResult = await query(userCheckQuery, [userId]);
 
     if (userCheckResult.length === 0) {
       // ถ้าไม่พบ userId ในฐานข้อมูล ให้ใช้ค่า default
-      const defaultUserQuery = "SELECT id FROM users ORDER BY id LIMIT 1";
+      const defaultUserQuery = "SELECT id FROM FTI_Portal_User ORDER BY id LIMIT 1";
       const defaultUserResult = await query(defaultUserQuery);
 
       if (defaultUserResult.length === 0) {
         // ถ้าไม่มี user ในระบบเลย ให้แจ้งเตือน
-        console.error("No users found in the database");
+        console.error("No FTI_Portal_User found in the database");
       } else {
         // ใช้ user แรกในฐานข้อมูล
         userId = defaultUserResult[0].id;
@@ -81,10 +81,10 @@ export async function POST(request) {
       }
     }
 
-    // Check if the member_social_media table exists, create if it doesn't
+    // Check if the FTI_Original_Membership_Member_Social_Media table exists, create if it doesn't
     try {
       await query(`
-        CREATE TABLE IF NOT EXISTS member_social_media (
+        CREATE TABLE IF NOT EXISTS FTI_Original_Membership_Member_Social_Media (
           id int(11) NOT NULL AUTO_INCREMENT,
           member_code varchar(20) NOT NULL COMMENT 'รหัสสมาชิก',
           platform varchar(50) NOT NULL COMMENT 'ชื่อแพลตฟอร์ม เช่น Facebook, Line, YouTube',
@@ -97,7 +97,7 @@ export async function POST(request) {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
       `);
     } catch (err) {
-      console.error("Error creating member_social_media table:", err);
+      console.error("Error creating FTI_Original_Membership_Member_Social_Media table:", err);
       // Continue anyway, the table might already exist
     }
 
@@ -105,7 +105,7 @@ export async function POST(request) {
     connection = await beginTransaction();
 
     // Delete existing social media entries for this member
-    await executeQuery(connection, "DELETE FROM member_social_media WHERE member_code = ?", [
+    await executeQuery(connection, "DELETE FROM FTI_Original_Membership_Member_Social_Media WHERE member_code = ?", [
       memberCode,
     ]);
 
@@ -115,7 +115,7 @@ export async function POST(request) {
 
       return executeQuery(
         connection,
-        "INSERT INTO member_social_media (member_code, platform, url, display_name) VALUES (?, ?, ?, ?)",
+        "INSERT INTO FTI_Original_Membership_Member_Social_Media (member_code, platform, url, display_name) VALUES (?, ?, ?, ?)",
         [memberCode, item.platform, item.url, item.display_name || null],
       );
     });
@@ -123,7 +123,7 @@ export async function POST(request) {
     // Filter out null promises and execute all valid ones
     await Promise.all(insertPromises.filter((p) => p !== null));
 
-    // Log the action in Member_portal_User_log
+    // Log the action in FTI_Portal_User_Logs
     try {
       // Determine the action type based on what happened
       let action = "social_media_update";
@@ -132,7 +132,7 @@ export async function POST(request) {
       // Get existing social media entries before deletion
       const existingEntries = await executeQuery(
         connection,
-        "SELECT id, platform FROM member_social_media WHERE member_code = ?",
+        "SELECT id, platform FROM FTI_Original_Membership_Member_Social_Media WHERE member_code = ?",
         [memberCode],
       );
 
@@ -168,7 +168,7 @@ export async function POST(request) {
           // First try to find if the provided user ID exists in the database
           const userCheck = await executeQuery(
             connection,
-            "SELECT id FROM users WHERE id = ? LIMIT 1",
+            "SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1",
             [userId],
           );
 
@@ -178,7 +178,7 @@ export async function POST(request) {
             // Try to find an admin user
             const adminUser = await executeQuery(
               connection,
-              'SELECT id FROM users WHERE role = "admin" AND status = "active" LIMIT 1',
+              'SELECT id FROM FTI_Portal_User WHERE role = "admin" AND status = "active" LIMIT 1',
             );
 
             if (adminUser.length > 0) {
@@ -188,7 +188,7 @@ export async function POST(request) {
               // Try to find any active user
               const anyUser = await executeQuery(
                 connection,
-                'SELECT id FROM users WHERE status = "active" LIMIT 1',
+                'SELECT id FROM FTI_Portal_User WHERE status = "active" LIMIT 1',
               );
 
               if (anyUser.length > 0) {
@@ -212,13 +212,13 @@ export async function POST(request) {
       // Insert log entry with the valid user ID
       await executeQuery(
         connection,
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
          (user_id, action, details, ip_address, user_agent, created_at) 
          VALUES (?, ?, ?, ?, ?, NOW())`,
         [validUserId, action, details, ip, userAgent],
       );
     } catch (err) {
-      console.error("Error logging action to Member_portal_User_log:", err);
+      console.error("Error logging action to FTI_Portal_User_Logs:", err);
       // Continue anyway, this is not critical
     }
 
@@ -228,7 +228,7 @@ export async function POST(request) {
 
     // Fetch the updated social media data
     const updatedData = await query(
-      "SELECT id, member_code, platform, url, display_name, created_at, updated_at FROM member_social_media WHERE member_code = ?",
+      "SELECT id, member_code, platform, url, display_name, created_at, updated_at FROM FTI_Original_Membership_Member_Social_Media WHERE member_code = ?",
       [memberCode],
     );
 

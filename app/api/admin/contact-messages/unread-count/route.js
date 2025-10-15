@@ -1,4 +1,4 @@
-// API route: /api/admin/contact-messages/unread-count
+﻿// API route: /api/admin/contact-messages/unread-count
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
@@ -9,7 +9,7 @@ export async function GET(request) {
 
     // Query DB directly
     const result = await query(
-      "SELECT COUNT(*) AS unread FROM contact_messages WHERE status = 'unread'",
+      "SELECT COUNT(*) AS unread FROM FTI_Portal_User_Contact_Messages WHERE status = 'unread'",
     );
     const unread = result?.[0]?.unread ?? 0;
 

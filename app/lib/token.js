@@ -1,4 +1,4 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import { query } from "./db";
 import bcrypt from "bcryptjs";
 
@@ -21,7 +21,7 @@ export async function createVerificationToken(userId) {
   expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
 
   // Store token in database
-  await query("INSERT INTO verification_tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
+  await query("INSERT INTO FTI_Portal_User_Verification_Tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
     userId,
     token,
     expiresAt,
@@ -41,7 +41,7 @@ export async function createPasswordResetToken(userId) {
   expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
 
   // Store token in database
-  await query("INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
+  await query("INSERT INTO FTI_Portal_User_Password_Reset_Tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
     userId,
     token,
     expiresAt,
@@ -59,7 +59,7 @@ export async function verifyToken(token) {
   try {
     // Find the token in the database
     const tokens = await query(
-      "SELECT * FROM verification_tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
+      "SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
       [token],
     );
 
@@ -70,10 +70,10 @@ export async function verifyToken(token) {
     const verificationToken = tokens[0];
 
     // Mark the token as used
-    await query("UPDATE verification_tokens SET used = 1 WHERE id = ?", [verificationToken.id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [verificationToken.id]);
 
     // Update user status to verified
-    await query("UPDATE users SET email_verified = 1 WHERE id = ?", [verificationToken.user_id]);
+    await query("UPDATE FTI_Portal_User SET email_verified = 1 WHERE id = ?", [verificationToken.user_id]);
 
     return true;
   } catch (error) {
@@ -91,7 +91,7 @@ export async function verifyPasswordResetToken(token) {
   try {
     // Find the token in the database
     const tokens = await query(
-      "SELECT * FROM password_reset_tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
+      "SELECT * FROM FTI_Portal_User_Password_Reset_Tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
       [token],
     );
 
@@ -123,10 +123,10 @@ export async function resetPassword(tokenId, userId, newPassword) {
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     // Update user password
-    await query("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, userId]);
+    await query("UPDATE FTI_Portal_User SET password = ? WHERE id = ?", [hashedPassword, userId]);
 
     // Mark the token as used
-    await query("UPDATE password_reset_tokens SET used = 1 WHERE id = ?", [tokenId]);
+    await query("UPDATE FTI_Portal_User_Password_Reset_Tokens SET used = 1 WHERE id = ?", [tokenId]);
 
     return true;
   } catch (error) {

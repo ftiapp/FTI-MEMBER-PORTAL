@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -52,25 +52,25 @@ export async function GET(request) {
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     // Get total count of messages matching criteria
-    const countQuery = `SELECT COUNT(*) as total FROM contact_messages cm ${whereClause}`;
+    const countQuery = `SELECT COUNT(*) as total FROM FTI_Portal_User_Contact_Messages cm ${whereClause}`;
     const countResult = await query(countQuery, conditionParams);
 
     const total = countResult[0].total;
 
-    // ตรวจสอบว่ามีตาราง contact_message_responses หรือไม่
+    // ตรวจสอบว่ามีตาราง FTI_Portal_User_Contact_Message_Responses หรือไม่
     try {
       await query(
-        `CREATE TABLE IF NOT EXISTS contact_message_responses (
+        `CREATE TABLE IF NOT EXISTS FTI_Portal_User_Contact_Message_Responses (
           id INT AUTO_INCREMENT PRIMARY KEY,
           message_id INT NOT NULL,
           admin_id INT NOT NULL,
           response_text TEXT NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          FOREIGN KEY (message_id) REFERENCES contact_messages(id)
+          FOREIGN KEY (message_id) REFERENCES FTI_Portal_User_Contact_Messages(id)
         )`,
       );
     } catch (error) {
-      console.error("Error creating contact_message_responses table:", error);
+      console.error("Error creating FTI_Portal_User_Contact_Message_Responses table:", error);
       // ไม่ต้อง throw error เพราะถ้าตารางมีอยู่แล้วก็ไม่เป็นไร
     }
 
@@ -91,15 +91,15 @@ export async function GET(request) {
       cm.replied_by_admin_id,
       cm.read_at,
       cm.replied_at,
-      (SELECT response_text FROM contact_message_responses WHERE message_id = cm.id ORDER BY created_at DESC LIMIT 1) as response_text,
+      (SELECT response_text FROM FTI_Portal_User_Contact_Message_Responses WHERE message_id = cm.id ORDER BY created_at DESC LIMIT 1) as response_text,
       read_admin.name as read_by_admin_name,
       reply_admin.name as replied_by_admin_name
     FROM 
-      contact_messages cm
+      FTI_Portal_User_Contact_Messages cm
     LEFT JOIN
-      admin_users read_admin ON cm.read_by_admin_id = read_admin.id
+      FTI_Portal_Admin_Users read_admin ON cm.read_by_admin_id = read_admin.id
     LEFT JOIN
-      admin_users reply_admin ON cm.replied_by_admin_id = reply_admin.id
+      FTI_Portal_Admin_Users reply_admin ON cm.replied_by_admin_id = reply_admin.id
     ${whereClause}
     ORDER BY 
       CASE 

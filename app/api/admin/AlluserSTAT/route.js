@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -16,25 +16,25 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
-    // Get total users
+    // Get total FTI_Portal_User
     const totalUsersQuery = `
-      SELECT COUNT(*) as total FROM users
+      SELECT COUNT(*) as total FROM FTI_Portal_User
     `;
     const totalUsersResult = await query(totalUsersQuery);
     const totalUsers = parseInt(totalUsersResult[0]?.total) || 0;
 
-    // Get users by status
+    // Get FTI_Portal_User by status
     const usersByStatusQuery = `
       SELECT status, COUNT(*) as count
-      FROM users
+      FROM FTI_Portal_User
       GROUP BY status
     `;
     const usersByStatusResult = await query(usersByStatusQuery);
 
-    // Get users by role
+    // Get FTI_Portal_User by role
     const usersByRoleQuery = `
       SELECT role, COUNT(*) as count
-      FROM users
+      FROM FTI_Portal_User
       GROUP BY role
     `;
     const usersByRoleResult = await query(usersByRoleQuery);
@@ -42,7 +42,7 @@ export async function GET(request) {
     // Get total login count
     const totalLoginsQuery = `
       SELECT SUM(login_count) as total_logins
-      FROM users
+      FROM FTI_Portal_User
     `;
     const totalLoginsResult = await query(totalLoginsQuery);
     const totalLogins = parseInt(totalLoginsResult[0]?.total_logins) || 0;
@@ -50,25 +50,25 @@ export async function GET(request) {
     // Get average login count
     const avgLoginsQuery = `
       SELECT AVG(login_count) as avg_logins
-      FROM users
+      FROM FTI_Portal_User
       WHERE login_count > 0
     `;
     const avgLoginsResult = await query(avgLoginsQuery);
     const avgLogins = parseFloat(avgLoginsResult[0]?.avg_logins) || 0;
 
-    // Get most active users (top 5 by login count)
+    // Get most active FTI_Portal_User (top 5 by login count)
     const mostActiveUsersQuery = `
       SELECT id, name, email, login_count
-      FROM users
+      FROM FTI_Portal_User
       ORDER BY login_count DESC
       LIMIT 5
     `;
     const mostActiveUsersResult = await query(mostActiveUsersQuery);
 
-    // Get users who never logged in
+    // Get FTI_Portal_User who never logged in
     const neverLoggedInQuery = `
       SELECT COUNT(*) as count
-      FROM users
+      FROM FTI_Portal_User
       WHERE login_count = 0
     `;
     const neverLoggedInResult = await query(neverLoggedInQuery);

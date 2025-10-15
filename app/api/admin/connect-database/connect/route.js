@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { connectDB } from "../../../../lib/db";
 import { connectMSSQL } from "../../../../lib/mssql";
@@ -84,7 +84,7 @@ export async function POST(request) {
 
       await mysqlConnection.execute(updateTableQuery, [memberCode, memberId]);
 
-      // ดึงข้อมูลสมาชิกเพื่อใส่ใน companies_Member
+      // ดึงข้อมูลสมาชิกเพื่อใส่ใน FTI_Original_Membership
       const getMemberQuery = `
         SELECT * FROM MemberRegist_${memberType}_Main WHERE id = ?
       `;
@@ -97,9 +97,9 @@ export async function POST(request) {
 
       const member = memberRows[0];
 
-      // ตรวจสอบว่ามีข้อมูลใน companies_Member แล้วหรือไม่
+      // ตรวจสอบว่ามีข้อมูลใน FTI_Original_Membership แล้วหรือไม่
       const checkExistingQuery = `
-        SELECT id FROM companies_Member 
+        SELECT id FROM FTI_Original_Membership 
         WHERE MEMBER_CODE = ? OR tax_id = ?
       `;
 
@@ -125,9 +125,9 @@ export async function POST(request) {
             thaiMemberType = memberType || "";
         }
 
-        // เพิ่มข้อมูลใหม่ใน companies_Member
+        // เพิ่มข้อมูลใหม่ใน FTI_Original_Membership
         const insertCompanyQuery = `
-          INSERT INTO companies_Member (
+          INSERT INTO FTI_Original_Membership (
             user_id, MEMBER_CODE, COMP_PERSON_CODE, REGIST_CODE, MEMBER_DATE,
             company_name, company_type, tax_id, Admin_Submit,
             admin_id, admin_name, created_at, updated_at
@@ -168,7 +168,7 @@ export async function POST(request) {
 
         // อัปเดตข้อมูลที่มีอยู่แล้ว
         const updateCompanyQuery = `
-          UPDATE companies_Member 
+          UPDATE FTI_Original_Membership 
           SET MEMBER_CODE = ?, COMP_PERSON_CODE = ?, REGIST_CODE = ?,
               MEMBER_DATE = IFNULL(MEMBER_DATE, ?),
               company_type = ?, Admin_Submit = 1, admin_id = ?, admin_name = ?, updated_at = NOW()
@@ -189,7 +189,7 @@ export async function POST(request) {
 
       // บันทึก log การดำเนินการ
       const logQuery = `
-        INSERT INTO admin_actions_log (
+        INSERT INTO FTI_Portal_Admin_Actions_Logs (
           admin_id, action_type, target_id, description, 
           ip_address, user_agent, created_at
         ) VALUES (?, 'other', ?, ?, ?, ?, NOW())
@@ -220,7 +220,7 @@ export async function POST(request) {
       try {
         if (member.user_id) {
           const promoteRoleQuery = `
-            UPDATE users
+            UPDATE FTI_Portal_User
             SET role = 'member', updated_at = NOW()
             WHERE id = ? AND role = 'default_user'
           `;
@@ -236,8 +236,8 @@ export async function POST(request) {
       // ส่งอีเมลแจ้งเตือนและสร้างการแจ้งเตือนในระบบหลังจากเชื่อมต่อสำเร็จ
       try {
         if (member.user_id) {
-          // ดึงข้อมูลผู้ใช้จากตาราง users
-          const getUserQuery = `SELECT email, firstname, lastname FROM users WHERE id = ?`;
+          // ดึงข้อมูลผู้ใช้จากตาราง FTI_Portal_User
+          const getUserQuery = `SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?`;
           const [userRows] = await mysqlConnection.execute(getUserQuery, [member.user_id]);
 
           if (userRows.length > 0) {
@@ -262,7 +262,7 @@ export async function POST(request) {
               member.company_name_th || member.company_name_en || memberData.COMPANY_NAME || "";
             const notificationMessage = `หมายเลขสมาชิก ${memberCode} ${companyName} เป็นสมาชิกสภาอุตสาหกรรมแห่งประเทศไทยเรียบร้อยแล้ว`;
             const insertNotificationQuery = `
-              INSERT INTO notifications (user_id, type, message, member_code, link, status, created_at, updated_at)
+              INSERT INTO FTI_Portal_User_Notifications (user_id, type, message, member_code, link, status, created_at, updated_at)
               VALUES (?, 'member_connection', ?, ?, ?, 'approved', NOW(), NOW())
             `;
 

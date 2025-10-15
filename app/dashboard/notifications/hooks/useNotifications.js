@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 
 export const useNotifications = (user) => {
-  const [notifications, setNotifications] = useState([]);
+  const [FTI_Portal_User_Notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -11,7 +11,7 @@ export const useNotifications = (user) => {
 
       try {
         setLoading(true);
-        const response = await fetch(`/api/notifications?userId=${user.id}`, {
+        const response = await fetch(`/api/FTI_Portal_User_Notifications?userId=${user.id}`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -20,13 +20,13 @@ export const useNotifications = (user) => {
         });
 
         if (!response.ok) {
-          throw new Error("Failed to fetch notifications");
+          throw new Error("Failed to fetch FTI_Portal_User_Notifications");
         }
 
         const data = await response.json();
-        setNotifications(data.notifications || []);
+        setNotifications(data.FTI_Portal_User_Notifications || []);
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("Error fetching FTI_Portal_User_Notifications:", error);
         setError("ไม่สามารถโหลดการแจ้งเตือนได้ กรุณาลองใหม่อีกครั้ง");
       } finally {
         setLoading(false);
@@ -40,7 +40,7 @@ export const useNotifications = (user) => {
     if (!user?.id) return;
 
     try {
-      const response = await fetch("/api/notifications/mark-read", {
+      const response = await fetch("/api/FTI_Portal_User_Notifications/mark-read", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -72,7 +72,7 @@ export const useNotifications = (user) => {
     if (!user?.id) return;
 
     try {
-      const response = await fetch("/api/notifications/mark-all-read", {
+      const response = await fetch("/api/FTI_Portal_User_Notifications/mark-all-read", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -84,7 +84,7 @@ export const useNotifications = (user) => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to mark all notifications as read");
+        throw new Error("Failed to mark all FTI_Portal_User_Notifications as read");
       }
 
       const now = new Date().toISOString();
@@ -94,12 +94,12 @@ export const useNotifications = (user) => {
         ),
       );
     } catch (error) {
-      console.error("Error marking all notifications as read:", error);
+      console.error("Error marking all FTI_Portal_User_Notifications as read:", error);
     }
   };
 
   return {
-    notifications,
+    FTI_Portal_User_Notifications,
     loading,
     error,
     markAsRead,

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import jwt from "jsonwebtoken";
 
@@ -65,12 +65,12 @@ export async function GET(request) {
       });
     }
 
-    // For regular users, check if they own the member
+    // For regular FTI_Portal_User, check if they own the member
     const userId = decoded.userId;
 
-    // First check in companies_Member table
+    // First check in FTI_Original_Membership table
     const companiesResult = await query(
-      `SELECT id FROM companies_Member WHERE user_id = ? AND MEMBER_CODE = ?`,
+      `SELECT id FROM FTI_Original_Membership WHERE user_id = ? AND MEMBER_CODE = ?`,
       [userId, memberCode],
     );
 
@@ -82,7 +82,7 @@ export async function GET(request) {
       });
     }
 
-    // If we can't find the member in companies_Member, deny access
+    // If we can't find the member in FTI_Original_Membership, deny access
     return NextResponse.json(
       {
         success: false,

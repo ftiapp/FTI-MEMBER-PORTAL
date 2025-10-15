@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { executeQuery } from "@/app/lib/db";
@@ -95,7 +95,7 @@ export async function POST(request) {
     if (!memberData.memberCode || !memberData.companyName) {
       const query = `
         SELECT cm.MEMBER_CODE, cm.company_name, cm.company_type, cm.JOIN_DATE
-        FROM companies_Member cm
+        FROM FTI_Original_Membership cm
         WHERE cm.user_id = ?
       `;
 
@@ -142,7 +142,7 @@ export async function POST(request) {
     // Log the certificate download
     try {
       await executeQuery(
-        "INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
+        "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
         [userId, "certificate_download", `Downloaded ${language} certificate`],
       );
     } catch (error) {

@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import NotificationItem from "./NotificationItem";
 import PaginationControls from "./PaginationControls";
 
@@ -13,7 +13,7 @@ const staggerContainer = {
 };
 
 const NotificationList = ({
-  notifications,
+  FTI_Portal_User_Notifications,
   currentPage,
   totalPages,
   handlePageChange,
@@ -27,7 +27,7 @@ const NotificationList = ({
         animate="visible"
         className="space-y-4"
       >
-        {notifications.map((notification) => (
+        {FTI_Portal_User_Notifications.map((notification) => (
           <NotificationItem
             key={notification.id}
             notification={notification}

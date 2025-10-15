@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 import { writeFile } from "fs/promises";
@@ -8,8 +8,8 @@ import { v4 as uuidv4 } from "uuid";
 /**
  * POST handler for editing a member verification submission
  *
- * This endpoint allows users to edit and resubmit their rejected member verification submissions.
- * It also logs the edit action in the Member_portal_User_log table.
+ * This endpoint allows FTI_Portal_User to edit and resubmit their rejected member verification submissions.
+ * It also logs the edit action in the FTI_Portal_User_Logs table.
  */
 export async function POST(request) {
   try {
@@ -43,7 +43,7 @@ export async function POST(request) {
 
     // Check if the submission exists and is rejected
     const submissionCheck = await query(
-      `SELECT * FROM companies_Member WHERE id = ? AND user_id = ? AND Admin_Submit = 2`,
+      `SELECT * FROM FTI_Original_Membership WHERE id = ? AND user_id = ? AND Admin_Submit = 2`,
       [submissionId, userId],
     );
 
@@ -68,7 +68,7 @@ export async function POST(request) {
 
     // Update the submission status back to pending
     await query(
-      `UPDATE companies_Member 
+      `UPDATE FTI_Original_Membership 
        SET MEMBER_CODE = ?, 
            MEMBER_TYPE = ?, 
            company_name = ?, 
@@ -83,7 +83,7 @@ export async function POST(request) {
     // Add new document
     if (filePath) {
       await query(
-        `INSERT INTO documents_Member (user_id, MEMBER_CODE, file_name, file_path, status, uploaded_at) 
+        `INSERT INTO FTI_Original_Membership_Documents_Member (user_id, MEMBER_CODE, file_name, file_path, status, uploaded_at) 
          VALUES (?, ?, ?, ?, 'pending', NOW())`,
         [userId, memberNumber, documentFile.name, filePath],
       );
@@ -95,7 +95,7 @@ export async function POST(request) {
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     await query(
-      `INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) 
+      `INSERT INTO FTI_Portal_User_Logs (user_id, action, details, ip_address, user_agent) 
        VALUES (?, ?, ?, ?, ?)`,
       [
         userId,

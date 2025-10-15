@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { createVerificationToken } from "@/app/lib/token";
 import { sendVerificationEmail } from "@/app/lib/postmark";
 
 /**
  * POST handler for resending verification email
- * This endpoint allows users to request a new verification token if their previous one expired
+ * This endpoint allows FTI_Portal_User to request a new verification token if their previous one expired
  */
 export async function POST(request) {
   try {
@@ -16,15 +16,15 @@ export async function POST(request) {
     }
 
     // Check if user exists and is not verified
-    const users = await query("SELECT id, name, email, email_verified FROM users WHERE email = ?", [
+    const FTI_Portal_User = await query("SELECT id, name, email, email_verified FROM FTI_Portal_User WHERE email = ?", [
       email,
     ]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบอีเมลนี้ในระบบ" }, { status: 404 });
     }
 
-    const user = users[0];
+    const user = FTI_Portal_User[0];
 
     // If user is already verified, no need to send a new token
     if (user.email_verified === 1) {
@@ -35,7 +35,7 @@ export async function POST(request) {
     }
 
     // Invalidate any existing tokens for this user
-    await query("UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND used = 0", [
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE user_id = ? AND used = 0", [
       user.id,
     ]);
 

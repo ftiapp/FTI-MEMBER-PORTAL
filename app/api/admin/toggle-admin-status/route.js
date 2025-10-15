@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession, logAdminAction } from "@/app/lib/adminAuth";
 
@@ -21,7 +21,7 @@ export async function POST(request) {
     }
 
     // Check if trying to modify a SuperAdmin
-    const targetAdmin = await query(`SELECT admin_level FROM admin_users WHERE id = ?`, [adminId]);
+    const targetAdmin = await query(`SELECT admin_level FROM FTI_Portal_Admin_Users WHERE id = ?`, [adminId]);
 
     if (targetAdmin.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบผู้ดูแลระบบ" }, { status: 404 });
@@ -35,7 +35,7 @@ export async function POST(request) {
     }
 
     // Update admin status
-    await query(`UPDATE admin_users SET is_active = ? WHERE id = ?`, [isActive ? 1 : 0, adminId]);
+    await query(`UPDATE FTI_Portal_Admin_Users SET is_active = ? WHERE id = ?`, [isActive ? 1 : 0, adminId]);
 
     // Log admin action
     await logAdminAction(

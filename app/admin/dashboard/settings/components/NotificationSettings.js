@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -19,7 +19,7 @@ export default function NotificationSettings({ settings, onSave, isLoading }) {
     },
   };
 
-  const currentSettings = settings?.notifications || defaultSettings;
+  const currentSettings = settings?.FTI_Portal_User_Notifications || defaultSettings;
 
   const [formData, setFormData] = useState({
     emailNotifications: currentSettings.emailNotifications,
@@ -37,18 +37,18 @@ export default function NotificationSettings({ settings, onSave, isLoading }) {
 
   // Update formData when settings change
   useEffect(() => {
-    if (settings?.notifications) {
+    if (settings?.FTI_Portal_User_Notifications) {
       setFormData({
-        emailNotifications: settings.notifications.emailNotifications,
-        adminAlerts: settings.notifications.adminAlerts,
-        dailyDigest: settings.notifications.dailyDigest,
+        emailNotifications: settings.FTI_Portal_User_Notifications.emailNotifications,
+        adminAlerts: settings.FTI_Portal_User_Notifications.adminAlerts,
+        dailyDigest: settings.FTI_Portal_User_Notifications.dailyDigest,
         notificationTypes: {
-          newMembers: settings.notifications.notificationTypes.newMembers,
-          verificationRequests: settings.notifications.notificationTypes.verificationRequests,
-          profileUpdates: settings.notifications.notificationTypes.profileUpdates,
-          addressUpdates: settings.notifications.notificationTypes.addressUpdates,
-          productUpdates: settings.notifications.notificationTypes.productUpdates,
-          contactMessages: settings.notifications.notificationTypes.contactMessages,
+          newMembers: settings.FTI_Portal_User_Notifications.notificationTypes.newMembers,
+          verificationRequests: settings.FTI_Portal_User_Notifications.notificationTypes.verificationRequests,
+          profileUpdates: settings.FTI_Portal_User_Notifications.notificationTypes.profileUpdates,
+          addressUpdates: settings.FTI_Portal_User_Notifications.notificationTypes.addressUpdates,
+          productUpdates: settings.FTI_Portal_User_Notifications.notificationTypes.productUpdates,
+          contactMessages: settings.FTI_Portal_User_Notifications.notificationTypes.contactMessages,
         },
       });
     }
@@ -77,10 +77,10 @@ export default function NotificationSettings({ settings, onSave, isLoading }) {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Send updated settings with notifications section
+    // Send updated settings with FTI_Portal_User_Notifications section
     const updatedSettings = {
       ...settings,
-      notifications: formData,
+      FTI_Portal_User_Notifications: formData,
     };
 
     onSave(updatedSettings);

@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
 /**
- * GET /api/admin/users/search
+ * GET /api/admin/FTI_Portal_User/search
  *
- * Searches for users based on the provided search term.
+ * Searches for FTI_Portal_User based on the provided search term.
  * Searches in name, email, and phone fields.
  * Requires admin authentication.
  */
@@ -28,24 +28,24 @@ export async function GET(request) {
     // Create search pattern
     const searchPattern = `%${searchTerm}%`;
 
-    // Query to search users
+    // Query to search FTI_Portal_User
     const searchQuery = `
       SELECT id, name, firstname, lastname, email, phone, status, email_verified, created_at, updated_at
-      FROM users
+      FROM FTI_Portal_User
       WHERE name LIKE ? OR email LIKE ? OR phone LIKE ?
       ORDER BY id DESC
       LIMIT 50
     `;
 
-    const users = await query(searchQuery, [searchPattern, searchPattern, searchPattern]);
+    const FTI_Portal_User = await query(searchQuery, [searchPattern, searchPattern, searchPattern]);
 
     return NextResponse.json({
       success: true,
-      users,
-      total: users.length,
+      FTI_Portal_User,
+      total: FTI_Portal_User.length,
     });
   } catch (error) {
-    console.error("Error searching users:", error);
+    console.error("Error searching FTI_Portal_User:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการค้นหาผู้ใช้" },
       { status: 500 },

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { deleteFromCloudinary } from "@/app/lib/cloudinary";
 
@@ -17,7 +17,7 @@ export async function DELETE(request) {
 
     // Get document information before deleting
     const documentResult = await query(
-      `SELECT file_path FROM documents_Member WHERE id = ? AND user_id = ?`,
+      `SELECT file_path FROM FTI_Original_Membership_Documents_Member WHERE id = ? AND user_id = ?`,
       [documentId, userId],
     );
 
@@ -39,11 +39,11 @@ export async function DELETE(request) {
     }
 
     // Delete document record from database
-    await query(`DELETE FROM documents_Member WHERE id = ? AND user_id = ?`, [documentId, userId]);
+    await query(`DELETE FROM FTI_Original_Membership_Documents_Member WHERE id = ? AND user_id = ?`, [documentId, userId]);
 
     // Log the activity
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, NOW())`,
       [

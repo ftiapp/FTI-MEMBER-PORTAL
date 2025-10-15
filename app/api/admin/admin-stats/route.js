@@ -1,4 +1,4 @@
-import { getAdminFromSession } from "../../../lib/adminAuth";
+﻿import { getAdminFromSession } from "../../../lib/adminAuth";
 import { query } from "../../../lib/db";
 
 export async function GET(request) {
@@ -27,7 +27,7 @@ export async function GET(request) {
         SUM(CASE WHEN can_create = 1 THEN 1 ELSE 0 END) AS create_admins,
         SUM(CASE WHEN can_update = 1 THEN 1 ELSE 0 END) AS update_admins,
         MAX(created_at) AS latest_admin_created
-      FROM admin_users
+      FROM FTI_Portal_Admin_Users
     `;
 
     const [adminStats] = await query(adminStatsQuery);
@@ -39,7 +39,7 @@ export async function GET(request) {
         SELECT 
           id, username, name, admin_level, is_active, can_create, can_update, 
           created_at, updated_at, created_by
-        FROM admin_users
+        FROM FTI_Portal_Admin_Users
         ORDER BY created_at DESC
         LIMIT 5
       `;

@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
   try {
     // Check if the table exists
-    const tableExists = await checkTableExists("pending_address_updates");
+    const tableExists = await checkTableExists("FTI_Original_Membership_Pending_Address_Updates");
     if (!tableExists) {
       return NextResponse.json({
         success: false,
-        message: "Table pending_address_updates does not exist",
+        message: "Table FTI_Original_Membership_Pending_Address_Updates does not exist",
       });
     }
 
@@ -69,7 +69,7 @@ export async function GET(request) {
 
     // Check if a test record already exists
     const [existingRecords] = await query(
-      "SELECT id FROM pending_address_updates WHERE member_code = ? AND type_code = ? AND addr_code = ? AND status = ?",
+      "SELECT id FROM FTI_Original_Membership_Pending_Address_Updates WHERE member_code = ? AND type_code = ? AND addr_code = ? AND status = ?",
       ["TEST001", "000", "001", "pending"],
     );
 
@@ -81,7 +81,7 @@ export async function GET(request) {
     } else {
       // Insert a test record
       const insertResult = await query(
-        `INSERT INTO pending_address_updates (
+        `INSERT INTO FTI_Original_Membership_Pending_Address_Updates (
           user_id, 
           member_code, 
           member_type,
@@ -110,7 +110,7 @@ export async function GET(request) {
     }
 
     // Fetch all records to confirm
-    const [allRecords] = await query("SELECT * FROM pending_address_updates");
+    const [allRecords] = await query("SELECT * FROM FTI_Original_Membership_Pending_Address_Updates");
 
     return NextResponse.json({
       success: true,

@@ -1,4 +1,4 @@
-// app/api/contact/not-user-message/route.js
+﻿// app/api/contact/not-user-message/route.js
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
@@ -34,7 +34,7 @@ export async function POST(request) {
 
     // Insert guest contact message into database
     await query(
-      `INSERT INTO guest_contact_messages 
+      `INSERT INTO FTI_Portal_Guest_Contact_Messages 
        (name, email, phone, subject, message, status, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, 'unread', ?, ?, NOW())`,
       [

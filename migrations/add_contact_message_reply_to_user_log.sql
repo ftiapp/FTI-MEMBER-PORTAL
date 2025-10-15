@@ -1,5 +1,5 @@
--- Add 'contact_message_reply' to the action ENUM in Member_portal_User_log table
-ALTER TABLE Member_portal_User_log 
+﻿-- Add 'contact_message_reply' to the action ENUM in FTI_Portal_User_Logs table
+ALTER TABLE FTI_Portal_User_Logs 
 MODIFY COLUMN action ENUM(
     'member_verification',
     'document_upload',

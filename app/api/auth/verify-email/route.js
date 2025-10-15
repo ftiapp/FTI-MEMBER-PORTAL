@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { verifyToken } from "@/app/lib/token";
 import { query } from "@/app/lib/db";
 
@@ -13,7 +13,7 @@ export async function GET(request) {
     }
 
     // ค้นหาโทเค็นในฐานข้อมูลโดยไม่สนใจว่าใช้แล้วหรือไม่
-    const allTokens = await query("SELECT * FROM verification_tokens WHERE token = ?", [token]);
+    const allTokens = await query("SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ?", [token]);
 
     // ถ้าไม่พบโทเค็นเลย
     if (allTokens.length === 0) {
@@ -23,16 +23,16 @@ export async function GET(request) {
     // ตรวจสอบว่าโทเค็นถูกใช้ไปแล้วหรือไม่
     if (allTokens[0].used === 1) {
       // ดึงข้อมูลผู้ใช้
-      const users = await query("SELECT email, email_verified FROM users WHERE id = ?", [
+      const FTI_Portal_User = await query("SELECT email, email_verified FROM FTI_Portal_User WHERE id = ?", [
         allTokens[0].user_id,
       ]);
 
-      if (users.length > 0 && users[0].email_verified === 1) {
+      if (FTI_Portal_User.length > 0 && FTI_Portal_User[0].email_verified === 1) {
         return NextResponse.json(
           {
             error: "อีเมลนี้ได้รับการยืนยันแล้ว",
             alreadyVerified: true,
-            email: users[0].email,
+            email: FTI_Portal_User[0].email,
           },
           { status: 400 },
         );
@@ -46,7 +46,7 @@ export async function GET(request) {
 
     // ตรวจสอบว่าโทเค็นหมดอายุหรือไม่
     const validTokens = await query(
-      "SELECT * FROM verification_tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
+      "SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ? AND expires_at > NOW() AND used = 0",
       [token],
     );
 
@@ -61,21 +61,21 @@ export async function GET(request) {
     }
 
     // อัปเดตสถานะโทเค็นเป็นใช้แล้ว
-    await query("UPDATE verification_tokens SET used = 1 WHERE id = ?", [validTokens[0].id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [validTokens[0].id]);
 
     // อัปเดตสถานะการยืนยันอีเมลของผู้ใช้
-    await query("UPDATE users SET email_verified = 1 WHERE id = ?", [validTokens[0].user_id]);
+    await query("UPDATE FTI_Portal_User SET email_verified = 1 WHERE id = ?", [validTokens[0].user_id]);
 
     // ดึงข้อมูลผู้ใช้เพื่อส่งกลับไปยังหน้าเว็บ
-    const users = await query("SELECT email FROM users WHERE id = ?", [validTokens[0].user_id]);
+    const FTI_Portal_User = await query("SELECT email FROM FTI_Portal_User WHERE id = ?", [validTokens[0].user_id]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
     }
 
     return NextResponse.json({
       message: "ยืนยันอีเมลสำเร็จ",
-      email: users[0].email,
+      email: FTI_Portal_User[0].email,
     });
   } catch (error) {
     console.error("Email verification error:", error);

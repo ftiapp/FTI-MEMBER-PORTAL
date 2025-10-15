@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminSession } from "@/app/lib/auth";
 import { pool } from "@/app/lib/db";
@@ -46,7 +46,7 @@ export async function POST(request) {
       // Get the request details
       const [requests] = await pool.query(
         `
-        SELECT * FROM pending_product_updates WHERE id = ?
+        SELECT * FROM FTI_Original_Membership_Pending_Product_Updates WHERE id = ?
       `,
         [id],
       );
@@ -67,7 +67,7 @@ export async function POST(request) {
       // Update the request status
       await pool.query(
         `
-        UPDATE pending_product_updates
+        UPDATE FTI_Original_Membership_Pending_Product_Updates
         SET status = 'approved', admin_id = ?, admin_notes = ?, updated_at = NOW()
         WHERE id = ?
       `,
@@ -89,7 +89,7 @@ export async function POST(request) {
 
       await pool.query(
         `
-        INSERT INTO admin_actions_log
+        INSERT INTO FTI_Portal_Admin_Actions_Logs
         (admin_id, action_type, target_id, description, ip_address, user_agent)
         VALUES (?, 'approve_product_update', ?, ?, ?, ?)
       `,
@@ -115,7 +115,7 @@ export async function POST(request) {
       try {
         // ดึงข้อมูลผู้ใช้
         const [userData] = await pool.query(
-          "SELECT email, firstname, lastname FROM users WHERE id = ?",
+          "SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?",
           [productUpdateRequest.user_id]
         );
         if (userData && userData.length > 0 && userData[0].email) {

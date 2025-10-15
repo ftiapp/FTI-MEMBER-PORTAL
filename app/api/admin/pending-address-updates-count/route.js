@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -24,7 +24,7 @@ export async function GET(request) {
 
     // Get count of pending address update requests
     const countQuery = `
-      SELECT COUNT(*) as count FROM pending_address_updates WHERE status = 'pending'
+      SELECT COUNT(*) as count FROM FTI_Original_Membership_Pending_Address_Updates WHERE status = 'pending'
     `;
 
     const countResult = await query(countQuery);

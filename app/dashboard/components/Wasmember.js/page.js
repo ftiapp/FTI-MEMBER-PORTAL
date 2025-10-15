@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -347,7 +347,7 @@ export default function WasMember() {
       try {
         console.log("Fetching submissions for user ID:", user.id);
 
-        // Directly fetch from companies_Member table instead of using the API endpoint
+        // Directly fetch from FTI_Original_Membership table instead of using the API endpoint
         // This is a temporary solution until we fix the API endpoint
         const response = await fetch(`/api/member/verification-status?userId=${user.id}`);
         if (!response.ok) {
@@ -446,7 +446,7 @@ export default function WasMember() {
                 }
               });
 
-              // Merge with global non-selectable (pending/approved across ALL users)
+              // Merge with global non-selectable (pending/approved across ALL FTI_Portal_User)
               try {
                 const globalRes = await fetch("/api/member/global-nonselectable");
                 let mergedMap = { ...nonSelectableCompaniesWithStatus };

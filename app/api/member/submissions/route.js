@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -31,8 +31,8 @@ export async function GET(request) {
          d.status AS document_status,
          d.Admin_Submit AS document_admin_submit,
          d.reject_reason AS document_reject_reason
-       FROM companies_Member c
-       LEFT JOIN documents_Member d ON c.user_id = d.user_id AND c.MEMBER_CODE = d.MEMBER_CODE
+       FROM FTI_Original_Membership c
+       LEFT JOIN FTI_Original_Membership_Documents_Member d ON c.user_id = d.user_id AND c.MEMBER_CODE = d.MEMBER_CODE
        WHERE c.user_id = ? 
        ORDER BY c.created_at DESC`,
       [userId],

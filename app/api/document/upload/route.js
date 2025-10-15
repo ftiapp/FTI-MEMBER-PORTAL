@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { writeFile } from "fs/promises";
 import path from "path";
@@ -49,14 +49,14 @@ export async function POST(request) {
     // บันทึกข้อมูลลงฐานข้อมูล
     const fileUrl = `/uploads/${fileName}`;
     const result = await query(
-      `INSERT INTO documents_Member (user_id, document_type, file_name, file_path, original_name, status, created_at)
+      `INSERT INTO FTI_Original_Membership_Documents_Member (user_id, document_type, file_name, file_path, original_name, status, created_at)
        VALUES (?, ?, ?, ?, ?, 'pending', NOW())`,
       [userId, documentType, fileName, fileUrl, file.name],
     );
 
     // บันทึกประวัติการอัพโหลดเอกสาร
     await query(
-      `INSERT INTO Member_portal_User_log (user_id, action, details, created_at)
+      `INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at)
        VALUES (?, 'document_upload', ?, NOW())`,
       [userId, `อัพโหลดเอกสาร: ${file.name}`],
     );

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { executeQueryWithoutTransaction } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -171,7 +171,7 @@ async function updateBusinessTypes(applicationId, type, data) {
 
       // บันทึก log การแก้ไข
       await executeQueryWithoutTransaction(
-        `INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO FTI_Portal_Admin_Actions_Logs (admin_id, action_type, target_id, description, ip_address, user_agent) VALUES (?, ?, ?, ?, ?, ?)`,
         [
           admin.id,
           "Admin_Update_MemberRegist", // ใช้ ENUM ใหม่ที่เพิ่มเข้าไปในตาราง

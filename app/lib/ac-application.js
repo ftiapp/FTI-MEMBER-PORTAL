@@ -1,4 +1,4 @@
-import { getConnection } from "./db";
+﻿import { getConnection } from "./db";
 import { addComment } from "./membership";
 
 /**
@@ -91,7 +91,7 @@ export async function updateACApplication(
     // 12. บันทึก log ของผู้ใช้
     await connection.execute(
       `
-      INSERT INTO Member_portal_User_log (user_id, action, details, created_at)
+      INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at)
       VALUES (?, 'resubmit_membership', ?, NOW())
     `,
       [userId, JSON.stringify({ membershipType: "ac", membershipId, rejectionId })],

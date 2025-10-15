@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { toast } from "react-hot-toast";
@@ -751,7 +751,7 @@ export default function ICMembershipForm({
           return;
         }
 
-        // Use the enhanced scrollToFirstError function which handles toast notifications
+        // Use the enhanced scrollToFirstError function which handles toast FTI_Portal_User_Notifications
         scrollToFirstError(filteredErrors);
         return;
       }

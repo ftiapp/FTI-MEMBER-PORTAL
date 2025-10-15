@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import {
   sendEmailChangeNotificationToOld,
@@ -13,9 +13,9 @@ export async function POST(request) {
       return NextResponse.json({ error: "กรุณาระบุข้อมูลให้ครบถ้วน" }, { status: 400 });
     }
 
-    // ตรวจสอบ OTP ใน pending_email_changes
+    // ตรวจสอบ OTP ใน FTI_Original_Membership_Pending_Email_Changes
     const pending = await query(
-      `SELECT * FROM pending_email_changes WHERE user_id = ? AND otp = ? AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1`,
+      `SELECT * FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ? AND otp = ? AND expires_at > NOW() ORDER BY created_at DESC LIMIT 1`,
       [userId, otp],
     );
 
@@ -26,7 +26,7 @@ export async function POST(request) {
     const newEmail = pending[0].new_email;
 
     // ตรวจสอบว่าอีเมลนี้ถูกใช้โดย user อื่นที่ verified แล้วหรือไม่
-    const existingUser = await query("SELECT id FROM users WHERE email = ? AND id != ?", [
+    const existingUser = await query("SELECT id FROM FTI_Portal_User WHERE email = ? AND id != ?", [
       newEmail,
       userId,
     ]);
@@ -35,7 +35,7 @@ export async function POST(request) {
     }
 
     // ดึงข้อมูลอีเมลเดิมของผู้ใช้
-    const userData = await query("SELECT email, firstname, lastname FROM users WHERE id = ?", [
+    const userData = await query("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [
       userId,
     ]);
 
@@ -47,18 +47,18 @@ export async function POST(request) {
     const firstname = userData[0].firstname;
     const lastname = userData[0].lastname;
 
-    // อัปเดต users: เปลี่ยน email และ set email_verified = 1
-    await query("UPDATE users SET email = ?, email_verified = 1, updated_at = NOW() WHERE id = ?", [
+    // อัปเดต FTI_Portal_User: เปลี่ยน email และ set email_verified = 1
+    await query("UPDATE FTI_Portal_User SET email = ?, email_verified = 1, updated_at = NOW() WHERE id = ?", [
       newEmail,
       userId,
     ]);
 
-    // ลบ pending_email_changes
-    await query("DELETE FROM pending_email_changes WHERE id = ?", [pending[0].id]);
+    // ลบ FTI_Original_Membership_Pending_Email_Changes
+    await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE id = ?", [pending[0].id]);
 
     // บันทึกประวัติการเปลี่ยนอีเมล (ใช้ action เดิมแต่แยกด้วยข้อความใน details)
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, 'change_email', ?, ?, ?, NOW())`,
       [

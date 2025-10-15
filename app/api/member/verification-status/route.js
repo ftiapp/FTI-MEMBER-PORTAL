@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -11,11 +11,11 @@ export async function GET(request) {
     }
 
     // Get user role information
-    const userResults = await query(`SELECT role FROM users WHERE id = ?`, [userId]);
+    const userResults = await query(`SELECT role FROM FTI_Portal_User WHERE id = ?`, [userId]);
 
     const userRole = userResults.length > 0 ? userResults[0].role : "default_user";
 
-    // Get verification status from companies_Member table with full member data
+    // Get verification status from FTI_Original_Membership table with full member data
     const companyResults = await query(
       `SELECT 
          id,
@@ -29,14 +29,14 @@ export async function GET(request) {
          admin_comment,
          created_at,
          updated_at
-       FROM companies_Member 
+       FROM FTI_Original_Membership 
        WHERE user_id = ? 
        ORDER BY id DESC 
        LIMIT 1`,
       [userId],
     );
 
-    // Get verification status from documents_Member table for the same MEMBER_CODE
+    // Get verification status from FTI_Original_Membership_Documents_Member table for the same MEMBER_CODE
     let documentResults = [];
 
     if (companyResults.length > 0) {
@@ -53,7 +53,7 @@ export async function GET(request) {
            status,
            Admin_Submit,
            reject_reason
-         FROM documents_Member 
+         FROM FTI_Original_Membership_Documents_Member 
          WHERE user_id = ? AND MEMBER_CODE = ? 
          ORDER BY id DESC`,
         [userId, memberCode],
@@ -66,7 +66,7 @@ export async function GET(request) {
            status,
            Admin_Submit,
            reject_reason
-         FROM documents_Member 
+         FROM FTI_Original_Membership_Documents_Member 
          WHERE user_id = ? 
          ORDER BY id DESC 
          LIMIT 1`,

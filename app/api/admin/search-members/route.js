@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -31,8 +31,8 @@ export async function GET(request) {
     // Search for members
     const membersResult = await query(
       `SELECT cm.id, cm.MEMBER_CODE, cm.company_name, cm.Admin_Submit, u.email
-       FROM companies_Member cm
-       JOIN users u ON cm.user_id = u.id
+       FROM FTI_Original_Membership cm
+       JOIN FTI_Portal_User u ON cm.user_id = u.id
        WHERE cm.company_name LIKE ? 
           OR cm.MEMBER_CODE LIKE ? 
           OR u.email LIKE ?

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { query } from "../../../../lib/db";
 import { mssqlQuery } from "../../../../lib/mssql";
@@ -24,7 +24,7 @@ export async function POST(request) {
 
     // ดึงข้อมูลคำขอแก้ไขที่อยู่
     const addressUpdates = await query(
-      'SELECT * FROM pending_address_updates WHERE id = ? AND status = "pending"',
+      'SELECT * FROM FTI_Original_Membership_Pending_Address_Updates WHERE id = ? AND status = "pending"',
       [id],
     );
 
@@ -298,14 +298,14 @@ export async function POST(request) {
 
       // 3. อัปเดตสถานะคำขอเป็น 'approved' ใน MySQL
       await query(
-        'UPDATE pending_address_updates SET status = "approved", processed_date = NOW(), admin_notes = ? WHERE id = ?',
+        'UPDATE FTI_Original_Membership_Pending_Address_Updates SET status = "approved", processed_date = NOW(), admin_notes = ? WHERE id = ?',
         [admin_notes || "", id],
       );
 
-      // 4. ตรวจสอบโครงสร้างตาราง companies_Member ก่อนที่จะพยายามอัปเดตข้อมูล
+      // 4. ตรวจสอบโครงสร้างตาราง FTI_Original_Membership ก่อนที่จะพยายามอัปเดตข้อมูล
       try {
         // ตรวจสอบว่ามีคอลัมน์ที่ต้องการอัปเดตหรือไม่
-        const tableInfo = await query("DESCRIBE companies_Member");
+        const tableInfo = await query("DESCRIBE FTI_Original_Membership");
         console.log("Table structure:", JSON.stringify(tableInfo));
 
         // สร้างชุดคอลัมน์ที่มีอยู่ในตาราง
@@ -323,7 +323,7 @@ export async function POST(request) {
             } else if (columns.includes("ADDR_EN")) {
               fieldName = "ADDR_EN";
             } else {
-              console.log("No suitable English address field found in companies_Member table");
+              console.log("No suitable English address field found in FTI_Original_Membership table");
               throw new Error("No suitable English address field found");
             }
           } else {
@@ -333,7 +333,7 @@ export async function POST(request) {
             } else if (columns.includes("ADDR")) {
               fieldName = "ADDR";
             } else {
-              console.log("No suitable Thai address field found in companies_Member table");
+              console.log("No suitable Thai address field found in FTI_Original_Membership table");
               throw new Error("No suitable Thai address field found");
             }
           }
@@ -346,7 +346,7 @@ export async function POST(request) {
               fieldName = "FACTORY_ADDR_EN";
             } else {
               console.log(
-                "No suitable English factory address field found in companies_Member table",
+                "No suitable English factory address field found in FTI_Original_Membership table",
               );
               throw new Error("No suitable English factory address field found");
             }
@@ -357,7 +357,7 @@ export async function POST(request) {
             } else if (columns.includes("FACTORY_ADDR")) {
               fieldName = "FACTORY_ADDR";
             } else {
-              console.log("No suitable Thai factory address field found in companies_Member table");
+              console.log("No suitable Thai factory address field found in FTI_Original_Membership table");
               throw new Error("No suitable Thai factory address field found");
             }
           }
@@ -366,15 +366,15 @@ export async function POST(request) {
           throw new Error(`Unsupported address type: ${addr_code}`);
         }
 
-        // อัปเดตข้อมูลในตาราง companies_Member
-        const mysqlUpdateQuery = `UPDATE companies_Member SET ${fieldName} = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?`;
+        // อัปเดตข้อมูลในตาราง FTI_Original_Membership
+        const mysqlUpdateQuery = `UPDATE FTI_Original_Membership SET ${fieldName} = ? WHERE MEMBER_CODE = ? AND COMP_PERSON_CODE = ?`;
         const mysqlUpdateParams = [JSON.stringify(newAddressObj), member_code, comp_person_code];
 
         await query(mysqlUpdateQuery, mysqlUpdateParams);
-        console.log(`Successfully updated ${fieldName} in companies_Member table`);
+        console.log(`Successfully updated ${fieldName} in FTI_Original_Membership table`);
       } catch (mysqlError) {
-        // ถ้าไม่สามารถอัปเดตข้อมูลในตาราง companies_Member ได้ ให้บันทึกข้อผิดพลาดและดำเนินการต่อ
-        console.error("Error updating companies_Member table:", mysqlError.message);
+        // ถ้าไม่สามารถอัปเดตข้อมูลในตาราง FTI_Original_Membership ได้ ให้บันทึกข้อผิดพลาดและดำเนินการต่อ
+        console.error("Error updating FTI_Original_Membership table:", mysqlError.message);
         console.log("Continuing with approval process despite MySQL update error");
       }
 
@@ -382,14 +382,14 @@ export async function POST(request) {
       try {
         // Get company name for logging
         const companyResult = await query(
-          "SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1",
+          "SELECT company_name FROM FTI_Original_Membership WHERE MEMBER_CODE = ? LIMIT 1",
           [member_code],
         );
         const company_name =
           companyResult.length > 0 ? companyResult[0].company_name : "Unknown Company";
 
         await query(
-          "INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, created_at) VALUES (?, ?, ?, ?, NOW())",
+          "INSERT INTO FTI_Portal_Admin_Actions_Logs (admin_id, action_type, target_id, description, created_at) VALUES (?, ?, ?, ?, NOW())",
           [
             admin.id,
             "approve_address_update",
@@ -402,7 +402,7 @@ export async function POST(request) {
         console.log("Continuing with approval process despite logging error");
       }
 
-      // 6. บันทึกใน Member_portal_User_log (ถ้ามี user_id)
+      // 6. บันทึกใน FTI_Portal_User_Logs (ถ้ามี user_id)
       if (user_id) {
         try {
           // กำหนดข้อความสั้นๆ สำหรับการอนุมัติ
@@ -411,7 +411,7 @@ export async function POST(request) {
 
           // Get company name for logging
           const companyResult = await query(
-            "SELECT company_name FROM companies_Member WHERE MEMBER_CODE = ? LIMIT 1",
+            "SELECT company_name FROM FTI_Original_Membership WHERE MEMBER_CODE = ? LIMIT 1",
             [member_code],
           );
           const company_name =
@@ -420,7 +420,7 @@ export async function POST(request) {
           const detailsText = `อนุมัติคำขอแก้ไขที่อยู่${addrTypeText}${langText} - รหัสสมาชิก: ${member_code}, บริษัท: ${company_name}`;
 
           await query(
-            "INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
+            "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
             [user_id, "approve_address_update", detailsText],
           );
         } catch (userLogError) {
@@ -439,8 +439,8 @@ export async function POST(request) {
         // ดึงข้อมูลผู้ใช้และข้อมูลบริษัทเพื่อส่งอีเมล
         const [user] = await query(
           `SELECT u.email, u.firstname, u.lastname, c.company_name 
-           FROM users u 
-           LEFT JOIN companies_Member c ON c.MEMBER_CODE = ? 
+           FROM FTI_Portal_User u 
+           LEFT JOIN FTI_Original_Membership c ON c.MEMBER_CODE = ? 
            WHERE u.id = ?`,
           [member_code, user_id],
         );

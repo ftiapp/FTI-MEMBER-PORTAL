@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -40,18 +40,18 @@ export async function GET(request) {
       );
     }
 
-    // Check if the member_social_media table exists
+    // Check if the FTI_Original_Membership_Member_Social_Media table exists
     try {
-      await query("SELECT 1 FROM member_social_media LIMIT 1");
+      await query("SELECT 1 FROM FTI_Original_Membership_Member_Social_Media LIMIT 1");
     } catch (err) {
       // If the table doesn't exist, return an empty array
-      console.log("member_social_media table does not exist:", err.message);
+      console.log("FTI_Original_Membership_Member_Social_Media table does not exist:", err.message);
       return NextResponse.json({ success: true, data: [] });
     }
 
     // Fetch social media data for the member
     const socialMediaData = await query(
-      "SELECT id, member_code, platform, url, display_name, created_at, updated_at FROM member_social_media WHERE member_code = ?",
+      "SELECT id, member_code, platform, url, display_name, created_at, updated_at FROM FTI_Original_Membership_Member_Social_Media WHERE member_code = ?",
       [memberCode],
     );
 

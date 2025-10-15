@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminSession } from "../../../lib/auth";
 import { pool } from "../../../lib/db";
@@ -29,7 +29,7 @@ export async function GET(request) {
       SELECT COUNT(*) as count
       FROM information_schema.tables
       WHERE table_schema = DATABASE()
-      AND table_name = 'pending_product_updates'
+      AND table_name = 'FTI_Original_Membership_Pending_Product_Updates'
     `);
 
     if (tableExists[0].count === 0) {
@@ -43,7 +43,7 @@ export async function GET(request) {
     // Count pending product update requests
     const [result] = await pool.query(`
       SELECT COUNT(*) as count
-      FROM pending_product_updates
+      FROM FTI_Original_Membership_Pending_Product_Updates
       WHERE status = 'pending'
     `);
 

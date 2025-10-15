@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function POST(request) {
@@ -30,7 +30,7 @@ export async function POST(request) {
     }
 
     // Get user's email for logging
-    const userData = await query("SELECT email FROM users WHERE id = ?", [userId]);
+    const userData = await query("SELECT email FROM FTI_Portal_User WHERE id = ?", [userId]);
 
     if (!userData || userData.length === 0) {
       return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
@@ -40,13 +40,13 @@ export async function POST(request) {
 
     // Check for existing pending requests for this member
     const existingRequests = await query(
-      "SELECT id FROM pending_tsic_updates WHERE member_code = ? AND status = ?",
+      "SELECT id FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE member_code = ? AND status = ?",
       [memberCode, "pending"],
     );
 
     // If there are existing pending requests, delete them
     if (existingRequests && existingRequests.length > 0) {
-      await query("DELETE FROM pending_tsic_updates WHERE member_code = ? AND status = ?", [
+      await query("DELETE FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE member_code = ? AND status = ?", [
         memberCode,
         "pending",
       ]);
@@ -56,7 +56,7 @@ export async function POST(request) {
       const userAgent = request.headers.get("user-agent") || "unknown";
 
       await query(
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
         (user_id, action, details, ip_address, user_agent, created_at)
         VALUES (?, ?, ?, ?, ?, NOW())`,
         [
@@ -75,9 +75,9 @@ export async function POST(request) {
       requestedAt: new Date().toISOString(),
     });
 
-    // Insert into pending_tsic_updates table
+    // Insert into FTI_Original_Membership_Pending_Tsic_Updates table
     const insertQuery = `
-      INSERT INTO pending_tsic_updates 
+      INSERT INTO FTI_Original_Membership_Pending_Tsic_Updates 
       (user_id, member_code, tsic_data, status, request_date, created_at, updated_at)
       VALUES (?, ?, ?, 'pending', NOW(), NOW(), NOW())
     `;
@@ -89,7 +89,7 @@ export async function POST(request) {
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
       (user_id, action, details, ip_address, user_agent, created_at)
       VALUES (?, ?, ?, ?, ?, NOW())`,
       [

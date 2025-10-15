@@ -1,4 +1,4 @@
--- สร้างตาราง member_INFO_existing เพื่อเก็บข้อมูลสมาชิกเดิมที่ยืนยันแล้ว
+﻿-- สร้างตาราง member_INFO_existing เพื่อเก็บข้อมูลสมาชิกเดิมที่ยืนยันแล้ว
 CREATE TABLE IF NOT EXISTS member_INFO_existing (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS member_INFO_existing (
   admin_username VARCHAR(100),
   verification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id),
-  FOREIGN KEY (admin_id) REFERENCES admin_users(id)
+  FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id),
+  FOREIGN KEY (admin_id) REFERENCES FTI_Portal_Admin_Users(id)
 );
 
 -- สร้าง index เพื่อเพิ่มประสิทธิภาพในการค้นหา

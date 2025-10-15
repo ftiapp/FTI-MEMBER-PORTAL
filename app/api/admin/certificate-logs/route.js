@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -58,7 +58,7 @@ export async function GET(request) {
               DATE_FORMAT(cl.first_created_at, '%Y-%m-%d %H:%i:%s') as first_created_at_formatted,
               DATE_FORMAT(cl.last_updated_at, '%Y-%m-%d %H:%i:%s') as last_updated_at_formatted
        FROM certificate_logs_count cl
-       LEFT JOIN users u ON cl.user_id = u.id
+       LEFT JOIN FTI_Portal_User u ON cl.user_id = u.id
        ${whereClause}
        ORDER BY cl.last_updated_at DESC
        LIMIT ? OFFSET ?`,

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession } from "../../../lib/adminAuth";
 
@@ -27,7 +27,7 @@ export async function GET(request) {
         created_at, 
         updated_at 
       FROM 
-        admin_users 
+        FTI_Portal_Admin_Users 
       ORDER BY 
         created_at DESC`,
     );

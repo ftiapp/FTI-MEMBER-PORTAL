@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
@@ -6,7 +6,7 @@ import { checkAdminSession } from "@/app/lib/auth";
  * GET /api/admin/user-stats
  *
  * Fetches user statistics for the admin dashboard.
- * Includes counts of active, inactive, and pending users,
+ * Includes counts of active, inactive, and pending FTI_Portal_User,
  * average login count, and the most active user.
  * Requires admin authentication.
  */
@@ -25,14 +25,14 @@ export async function GET() {
         SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as totalInactiveUsers,
         SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as totalPendingUsers,
         COUNT(*) as totalUsers
-      FROM users
+      FROM FTI_Portal_User
     `;
     const statusCounts = await query(statusCountsQuery);
 
     // Query to get average login count
     const avgLoginQuery = `
       SELECT AVG(login_count) as averageLoginCount
-      FROM users
+      FROM FTI_Portal_User
       WHERE login_count IS NOT NULL
     `;
     const avgLoginResult = await query(avgLoginQuery);
@@ -40,7 +40,7 @@ export async function GET() {
     // Query to get most active user
     const mostActiveUserQuery = `
       SELECT id, name, firstname, lastname, email, login_count
-      FROM users
+      FROM FTI_Portal_User
       WHERE login_count IS NOT NULL
       ORDER BY login_count DESC
       LIMIT 1

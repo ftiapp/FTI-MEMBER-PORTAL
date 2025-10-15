@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
 /**
- * GET /api/admin/users
+ * GET /api/admin/FTI_Portal_User
  *
- * Fetches a paginated list of users for admin management.
+ * Fetches a paginated list of FTI_Portal_User for admin management.
  * Requires admin authentication.
  */
 export async function GET(request) {
@@ -33,30 +33,30 @@ export async function GET(request) {
     }
 
     // Query to get total count
-    const countQuery = `SELECT COUNT(*) as total FROM users ${searchCondition}`;
+    const countQuery = `SELECT COUNT(*) as total FROM FTI_Portal_User ${searchCondition}`;
     const countResult = await query(countQuery, queryParams);
     const total = countResult[0].total;
 
-    // Query to get paginated users
+    // Query to get paginated FTI_Portal_User
     const usersQuery = `
       SELECT id, name, firstname, lastname, email, phone, status, email_verified, created_at, updated_at, login_count
-      FROM users
+      FROM FTI_Portal_User
       ${searchCondition}
       ORDER BY id DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
-    const users = await query(usersQuery, queryParams);
+    const FTI_Portal_User = await query(usersQuery, queryParams);
 
     return NextResponse.json({
       success: true,
-      users,
+      FTI_Portal_User,
       total,
       page,
       limit,
       totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
-    console.error("Error fetching users:", error);
+    console.error("Error fetching FTI_Portal_User:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้" },
       { status: 500 },

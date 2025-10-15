@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -26,7 +26,7 @@ async function fetchUserActivities(userId) {
     // Fetch contact messages
     const contactMessages = await query(
       `SELECT id, user_id, subject, message, status, created_at 
-       FROM contact_messages 
+       FROM FTI_Portal_User_Contact_Messages 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 10`,
@@ -36,7 +36,7 @@ async function fetchUserActivities(userId) {
     // Fetch company member information
     const companyMembers = await query(
       `SELECT id, user_id, MEMBER_CODE, company_name, company_type, Admin_Submit, created_at 
-       FROM companies_Member 
+       FROM FTI_Original_Membership 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 5`,
@@ -46,7 +46,7 @@ async function fetchUserActivities(userId) {
     // Fetch user logs
     const userLogs = await query(
       `SELECT id, user_id, action, details, created_at 
-       FROM Member_portal_User_log 
+       FROM FTI_Portal_User_Logs 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 15`,
@@ -57,7 +57,7 @@ async function fetchUserActivities(userId) {
     const profileUpdates = await query(
       `SELECT id, user_id, new_firstname, new_lastname, new_email, new_phone, 
               status, reject_reason, created_at, updated_at 
-       FROM profile_update_requests 
+       FROM FTI_Portal_User_Profile_Update_Requests 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 5`,

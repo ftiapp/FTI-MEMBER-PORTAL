@@ -1,5 +1,5 @@
--- Add 'contact_message_read' to the action_type ENUM in admin_actions_log table
-ALTER TABLE admin_actions_log 
+﻿-- Add 'contact_message_read' to the action_type ENUM in FTI_Portal_Admin_Actions_Logs table
+ALTER TABLE FTI_Portal_Admin_Actions_Logs 
 MODIFY COLUMN action_type ENUM(
   'login',
   'approve_member',

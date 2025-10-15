@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -11,7 +11,7 @@ export async function GET() {
     }
 
     // Check if there are already messages
-    const checkQuery = "SELECT COUNT(*) as count FROM guest_contact_messages";
+    const checkQuery = "SELECT COUNT(*) as count FROM FTI_Portal_Guest_Contact_Messages";
     const checkResult = await query(checkQuery);
 
     if (checkResult[0].count > 0) {
@@ -98,7 +98,7 @@ export async function GET() {
     // Insert sample data
     for (const message of sampleMessages) {
       const insertQuery = `
-        INSERT INTO guest_contact_messages 
+        INSERT INTO FTI_Portal_Guest_Contact_Messages 
         (name, email, phone, subject, message, status, priority, replied_at, reply_message, closed_at, assigned_to, ip_address, user_agent, created_at, updated_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
       `;

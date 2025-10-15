@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { mssqlQuery } from "@/app/lib/mssql";
 import { jwtVerify } from "jose";
@@ -30,8 +30,8 @@ export async function GET(request) {
          d.file_name,
          c.COMP_PERSON_CODE,
          c.REGIST_CODE
-       FROM companies_Member c
-       LEFT JOIN documents_Member d ON c.MEMBER_CODE = d.MEMBER_CODE AND d.Admin_Submit = 1
+       FROM FTI_Original_Membership c
+       LEFT JOIN FTI_Original_Membership_Documents_Member d ON c.MEMBER_CODE = d.MEMBER_CODE AND d.Admin_Submit = 1
        WHERE c.user_id = ? AND c.Admin_Submit = 1
        ORDER BY c.updated_at DESC`,
       [userId],

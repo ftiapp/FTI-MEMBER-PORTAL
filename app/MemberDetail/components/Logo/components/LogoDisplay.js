@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { motion } from "framer-motion";
@@ -27,7 +27,7 @@ export default function LogoDisplay({ logoData, onDelete }) {
         // Handle full Cloudinary URL with folder structure
         const pathParts = urlParts.slice(uploadIndex + 1);
         const versionFolder = pathParts[0]; // v1234567890
-        const folderAndFile = pathParts.slice(1).join("/"); // company_logos/filename
+        const folderAndFile = pathParts.slice(1).join("/"); // FTI_Original_Membership_Company_Logos/filename
         publicId = folderAndFile.split(".")[0]; // Remove file extension
       } else {
         // Handle simple public ID

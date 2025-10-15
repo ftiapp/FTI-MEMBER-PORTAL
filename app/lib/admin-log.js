@@ -1,7 +1,7 @@
-import { query } from "./db";
+﻿import { query } from "./db";
 
 /**
- * Logs an admin action to the admin_actions_log table
+ * Logs an admin action to the FTI_Portal_Admin_Actions_Logs table
  *
  * @param {Object} params - Log parameters
  * @param {number} params.adminId - ID of the admin performing the action
@@ -22,7 +22,7 @@ export async function logAdminAction({
 }) {
   try {
     const insertQuery = `
-      INSERT INTO admin_actions_log (
+      INSERT INTO FTI_Portal_Admin_Actions_Logs (
         admin_id,
         action_type,
         target_id,

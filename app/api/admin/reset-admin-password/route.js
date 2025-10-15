@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession, logAdminAction } from "../../../lib/adminAuth";
 import { generateToken } from "../../../lib/token";
@@ -21,7 +21,7 @@ export async function POST(request) {
 
     // Get target admin
     const rows = await query(
-      "SELECT id, username, admin_level, can_create, can_update FROM admin_users WHERE id = ?",
+      "SELECT id, username, admin_level, can_create, can_update FROM FTI_Portal_Admin_Users WHERE id = ?",
       [adminId],
     );
     if (rows.length === 0) {
@@ -38,11 +38,11 @@ export async function POST(request) {
     const email = target.username;
 
     // Delete the admin account
-    await query("DELETE FROM admin_users WHERE id = ?", [adminId]);
+    await query("DELETE FROM FTI_Portal_Admin_Users WHERE id = ?", [adminId]);
 
     // Invalidate previous invites
     await query(
-      "UPDATE admin_invitation_tokens SET used = 1, used_at = NOW() WHERE email = ? AND used = 0",
+      "UPDATE FTI_Portal_Admin_Invitation_Tokens SET used = 1, used_at = NOW() WHERE email = ? AND used = 0",
       [email],
     );
 
@@ -50,7 +50,7 @@ export async function POST(request) {
     const token = generateToken();
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
     await query(
-      `INSERT INTO admin_invitation_tokens (email, token, inviter_id, admin_level, can_create, can_update, expires_at)
+      `INSERT INTO FTI_Portal_Admin_Invitation_Tokens (email, token, inviter_id, admin_level, can_create, can_update, expires_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         email,

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { executeQuery, getConnection } from "@/app/lib/db";
@@ -56,7 +56,7 @@ export async function GET(request) {
     // First, get member codes associated with this user
     const memberQuery = `
       SELECT MEMBER_CODE 
-      FROM companies_Member 
+      FROM FTI_Original_Membership 
       WHERE user_id = ?
     `;
 
@@ -88,8 +88,8 @@ export async function GET(request) {
     const logoQuery = `
       SELECT l.id, l.member_code, l.logo_url, l.display_mode, l.created_at, 
              c.COMPANY_NAME as company_name
-      FROM company_logos l
-      LEFT JOIN companies_Member c ON l.member_code = c.MEMBER_CODE
+      FROM FTI_Original_Membership_Company_Logos l
+      LEFT JOIN FTI_Original_Membership c ON l.member_code = c.MEMBER_CODE
       WHERE l.member_code IN (${placeholders})
       ORDER BY l.created_at DESC
     `;

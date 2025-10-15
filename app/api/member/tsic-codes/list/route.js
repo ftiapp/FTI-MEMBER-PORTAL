@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../../lib/db";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -39,7 +39,7 @@ export async function GET(request) {
 
     // เนื่องจากมีปัญหา collation ที่แตกต่างกัน เราจะดึงข้อมูลแยกกันและรวมข้อมูลในโค้ด
     let sql = `
-      SELECT * FROM member_tsic_codes
+      SELECT * FROM FTI_Original_Membership_Member_Tsic_Codes
       WHERE member_code = ?
     `;
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -6,11 +6,11 @@ import { toast } from "react-hot-toast";
 /**
  * UserList Component
  *
- * Displays a list of users with search functionality for admins to select
+ * Displays a list of FTI_Portal_User with search functionality for admins to select
  * a user for email change.
  */
 export default function UserList({ onSelectUser }) {
-  const [users, setUsers] = useState([]);
+  const [FTI_Portal_User, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -18,27 +18,27 @@ export default function UserList({ onSelectUser }) {
   const [totalPages, setTotalPages] = useState(1);
   const usersPerPage = 10;
 
-  // Fetch users on component mount
+  // Fetch FTI_Portal_User on component mount
   useEffect(() => {
     fetchUsers();
   }, [currentPage]);
 
-  // Fetch users from the API
+  // Fetch FTI_Portal_User from the API
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/users?page=${currentPage}&limit=${usersPerPage}`);
+      const response = await fetch(`/api/admin/FTI_Portal_User?page=${currentPage}&limit=${usersPerPage}`);
       const data = await response.json();
 
       if (data.success) {
-        setUsers(data.users);
-        setFilteredUsers(data.users);
+        setUsers(data.FTI_Portal_User);
+        setFilteredUsers(data.FTI_Portal_User);
         setTotalPages(Math.ceil(data.total / usersPerPage));
       } else {
         toast.error(data.message || "ไม่สามารถดึงข้อมูลผู้ใช้ได้");
       }
     } catch (error) {
-      console.error("Error fetching users:", error);
+      console.error("Error fetching FTI_Portal_User:", error);
       toast.error("เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้");
     } finally {
       setLoading(false);
@@ -51,9 +51,9 @@ export default function UserList({ onSelectUser }) {
     setSearchTerm(value);
 
     if (value.trim() === "") {
-      setFilteredUsers(users);
+      setFilteredUsers(FTI_Portal_User);
     } else {
-      const filtered = users.filter(
+      const filtered = FTI_Portal_User.filter(
         (user) =>
           user.name?.toLowerCase().includes(value.toLowerCase()) ||
           user.email?.toLowerCase().includes(value.toLowerCase()) ||
@@ -75,18 +75,18 @@ export default function UserList({ onSelectUser }) {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/admin/users/search?term=${encodeURIComponent(searchTerm)}`,
+        `/api/admin/FTI_Portal_User/search?term=${encodeURIComponent(searchTerm)}`,
       );
       const data = await response.json();
 
       if (data.success) {
-        setFilteredUsers(data.users);
+        setFilteredUsers(data.FTI_Portal_User);
         setTotalPages(Math.ceil(data.total / usersPerPage));
       } else {
         toast.error(data.message || "ไม่พบผู้ใช้ที่ตรงกับคำค้นหา");
       }
     } catch (error) {
-      console.error("Error searching users:", error);
+      console.error("Error searching FTI_Portal_User:", error);
       toast.error("เกิดข้อผิดพลาดในการค้นหาผู้ใช้");
     } finally {
       setLoading(false);
@@ -121,7 +121,7 @@ export default function UserList({ onSelectUser }) {
         </button>
       </form>
 
-      {/* Users Table */}
+      {/* FTI_Portal_User Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

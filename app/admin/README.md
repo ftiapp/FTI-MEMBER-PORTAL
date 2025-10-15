@@ -1,4 +1,4 @@
-# Admin Area Documentation
+﻿# Admin Area Documentation
 
 This document explains the key components and behaviors in the admin area under `app/admin/` focusing on document preview/download, applicant account info fallbacks, and filter persistence for membership requests.
 
@@ -47,7 +47,7 @@ There are two main places with document preview behavior:
 
 ### Why no new tabs?
 
-- We removed `target="_blank"` and `rel="noopener noreferrer"` from download links and replaced with `download` to keep users in the same tab and provide a consistent UX.
+- We removed `target="_blank"` and `rel="noopener noreferrer"` from download links and replaced with `download` to keep FTI_Portal_User in the same tab and provide a consistent UX.
 
 ---
 
@@ -143,8 +143,8 @@ Adding custom document labels:
 
 - Some storage providers generate signed URLs without file extensions; type detection by extension may fail.
   - Workaround: if your API can provide a `mimeType`, pass it through and update detection logic to use MIME when available.
-- Browser PDF handling depends on user settings. Some users might download instead of rendering inline.
-- If a document fails to preview, the modal shows a fallback message and users can click "ดาวน์โหลด".
+- Browser PDF handling depends on user settings. Some FTI_Portal_User might download instead of rendering inline.
+- If a document fails to preview, the modal shows a fallback message and FTI_Portal_User can click "ดาวน์โหลด".
 
 ---
 
@@ -236,7 +236,7 @@ Suggested UX
 
 Pages
 
-- `dashboard/manage-admins/`: CRUD for admin users.
+- `dashboard/manage-admins/`: CRUD for admin FTI_Portal_User.
 - `dashboard/admin-permissions/`: assign roles/permissions.
 
 Tips

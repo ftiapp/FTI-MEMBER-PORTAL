@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -17,9 +17,9 @@ export async function GET(request) {
     const requests = await query(
       `SELECT pr.*, u.name, u.firstname, u.lastname, u.email, u.phone,
        au.name as admin_name
-       FROM profile_update_requests pr
-       JOIN users u ON pr.user_id = u.id
-       LEFT JOIN admin_users au ON pr.admin_id = au.id
+       FROM FTI_Portal_User_Profile_Update_Requests pr
+       JOIN FTI_Portal_User u ON pr.user_id = u.id
+       LEFT JOIN FTI_Portal_Admin_Users au ON pr.admin_id = au.id
        WHERE pr.status = ?
        ORDER BY pr.created_at DESC`,
       [status],

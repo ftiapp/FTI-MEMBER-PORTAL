@@ -249,7 +249,7 @@ export async function GET(request, { params }) {
             u.phone AS user_phone
           FROM MemberRegist_OC_Main m
           LEFT JOIN MemberRegist_OC_Address a ON m.id = a.main_id
-          LEFT JOIN users u ON m.user_id = u.id
+          LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -276,7 +276,7 @@ export async function GET(request, { params }) {
             u.phone AS user_phone
           FROM MemberRegist_AM_Main m
           LEFT JOIN MemberRegist_AM_Address a ON m.id = a.main_id
-          LEFT JOIN users u ON m.user_id = u.id
+          LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -303,7 +303,7 @@ export async function GET(request, { params }) {
             u.phone AS user_phone
           FROM MemberRegist_AC_Main m
           LEFT JOIN MemberRegist_AC_Address a ON m.id = a.main_id
-          LEFT JOIN users u ON m.user_id = u.id
+          LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
           WHERE m.id = ?
         `;
         [result] = await connection.execute(query, [id]);
@@ -330,7 +330,7 @@ export async function GET(request, { params }) {
             u.phone AS user_phone
           FROM MemberRegist_IC_Main i
           LEFT JOIN MemberRegist_IC_Address a ON i.id = a.main_id
-          LEFT JOIN users u ON i.user_id = u.id
+          LEFT JOIN FTI_Portal_User u ON i.user_id = u.id
           WHERE i.id = ?
         `;
         [result] = await connection.execute(query, [id]);

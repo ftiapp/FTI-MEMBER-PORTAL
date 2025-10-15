@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createVerificationToken } from "@/app/lib/token";
@@ -9,7 +9,7 @@ export async function POST(request) {
     const { name, firstName, lastName, email, phone, password } = await request.json();
 
     // Check if user already exists and if email is verified
-    const existingUser = await query("SELECT id, name, email_verified FROM users WHERE email = ?", [
+    const existingUser = await query("SELECT id, name, email_verified FROM FTI_Portal_User WHERE email = ?", [
       email,
     ]);
 
@@ -17,7 +17,7 @@ export async function POST(request) {
       // If email exists but is not verified, send a new verification token
       if (existingUser[0].email_verified === 0) {
         // Invalidate any existing tokens for this user
-        await query("UPDATE verification_tokens SET used = 1 WHERE user_id = ? AND used = 0", [
+        await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE user_id = ? AND used = 0", [
           existingUser[0].id,
         ]);
 
@@ -43,7 +43,7 @@ export async function POST(request) {
 
     // Create user with email_verified set to false and role set to default_user
     const result = await query(
-      "INSERT INTO users (name, firstname, lastname, email, phone, password, email_verified, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO FTI_Portal_User (name, firstname, lastname, email, phone, password, email_verified, role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
       [name, firstName, lastName, email, phone, hashedPassword, 0, "default_user"],
     );
 

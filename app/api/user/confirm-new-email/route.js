@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import {
   sendEmailChangeNotificationToOld,
@@ -28,7 +28,7 @@ export async function POST(request) {
 
     // ตรวจสอบว่าอีเมลใหม่ซ้ำกับผู้ใช้อื่นหรือไม่
     const existingUser = await query(
-      "SELECT id, email_verified FROM users WHERE email = ? AND id != ?",
+      "SELECT id, email_verified FROM FTI_Portal_User WHERE email = ? AND id != ?",
       [newEmail, userId],
     );
 
@@ -47,7 +47,7 @@ export async function POST(request) {
 
     // ตรวจสอบว่ามี token ที่ยืนยัน OTP แล้วหรือไม่
     const verificationToken = await query(
-      `SELECT * FROM verification_tokens 
+      `SELECT * FROM FTI_Portal_User_Verification_Tokens 
        WHERE user_id = ? AND token_type = 'change_email' 
        AND otp_verified = 1 AND used = 0
        AND expires_at > NOW()
@@ -62,13 +62,13 @@ export async function POST(request) {
       );
     }
 
-    // ดึงชื่อและนามสกุลจาก users
+    // ดึงชื่อและนามสกุลจาก FTI_Portal_User
     let firstname = null;
     let lastname = null;
     let oldEmail = null;
 
-    // ดึงข้อมูลจาก users table
-    const user = await query("SELECT email, firstname, lastname FROM users WHERE id = ?", [userId]);
+    // ดึงข้อมูลจาก FTI_Portal_User table
+    const user = await query("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [userId]);
     if (user && user.length > 0) {
       firstname = user[0].firstname;
       lastname = user[0].lastname;
@@ -78,11 +78,11 @@ export async function POST(request) {
     }
 
     // อัปเดตสถานะ token เป็นใช้งานแล้ว (OTP ของ email ปัจจุบัน)
-    await query("UPDATE verification_tokens SET used = 1 WHERE id = ?", [verificationToken[0].id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [verificationToken[0].id]);
 
-    // ลบข้อมูล OTP เก่าใน verification_tokens ที่อาจมีอยู่สำหรับผู้ใช้นี้
+    // ลบข้อมูล OTP เก่าใน FTI_Portal_User_Verification_Tokens ที่อาจมีอยู่สำหรับผู้ใช้นี้
     await query(
-      `UPDATE verification_tokens SET used = 1 
+      `UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 
        WHERE user_id = ? AND token_type = 'new_email_verification' AND used = 0`,
       [userId],
     );
@@ -92,21 +92,21 @@ export async function POST(request) {
     const expiresInMinutes = 15;
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60000);
 
-    // ลบ pending_email_changes เดิม (ถ้ามี)
-    await query("DELETE FROM pending_email_changes WHERE user_id = ?", [userId]);
+    // ลบ FTI_Original_Membership_Pending_Email_Changes เดิม (ถ้ามี)
+    await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?", [userId]);
 
-    // สร้าง pending_email_changes ใหม่
+    // สร้าง FTI_Original_Membership_Pending_Email_Changes ใหม่
     await query(
-      `INSERT INTO pending_email_changes (user_id, new_email, otp, expires_at, created_at) VALUES (?, ?, ?, ?, NOW())`,
+      `INSERT INTO FTI_Original_Membership_Pending_Email_Changes (user_id, new_email, otp, expires_at, created_at) VALUES (?, ?, ?, ?, NOW())`,
       [userId, newEmail, otp, expiresAt],
     );
 
-    // อัปเดตสถานะ email_verified เป็น 0 ในตาราง users
-    await query("UPDATE users SET email_verified = 0 WHERE id = ?", [userId]);
+    // อัปเดตสถานะ email_verified เป็น 0 ในตาราง FTI_Portal_User
+    await query("UPDATE FTI_Portal_User SET email_verified = 0 WHERE id = ?", [userId]);
 
     // บันทึกประวัติการขอเปลี่ยนอีเมล
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, 'change_email', ?, ?, ?, NOW())`,
       [

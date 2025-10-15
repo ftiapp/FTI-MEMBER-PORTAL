@@ -1,12 +1,12 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 
 /**
  * POST handler for deleting a member verification submission
  *
- * This endpoint allows users to delete their rejected member verification submissions.
- * It also logs the deletion action in the Member_portal_User_log table.
+ * This endpoint allows FTI_Portal_User to delete their rejected member verification submissions.
+ * It also logs the deletion action in the FTI_Portal_User_Logs table.
  */
 export async function POST(request) {
   try {
@@ -34,7 +34,7 @@ export async function POST(request) {
 
     // Check if the submission exists and is rejected
     const submissionCheck = await query(
-      `SELECT * FROM companies_Member WHERE id = ? AND user_id = ? AND Admin_Submit = 2`,
+      `SELECT * FROM FTI_Original_Membership WHERE id = ? AND user_id = ? AND Admin_Submit = 2`,
       [submissionId, userId],
     );
 
@@ -46,13 +46,13 @@ export async function POST(request) {
     }
 
     // Delete the submission
-    await query(`DELETE FROM companies_Member WHERE id = ? AND user_id = ?`, [
+    await query(`DELETE FROM FTI_Original_Membership WHERE id = ? AND user_id = ?`, [
       submissionId,
       userId,
     ]);
 
     // Delete associated documents
-    await query(`DELETE FROM documents_Member WHERE user_id = ? AND MEMBER_CODE = ?`, [
+    await query(`DELETE FROM FTI_Original_Membership_Documents_Member WHERE user_id = ? AND MEMBER_CODE = ?`, [
       userId,
       memberNumber,
     ]);
@@ -63,7 +63,7 @@ export async function POST(request) {
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     await query(
-      `INSERT INTO Member_portal_User_log (user_id, action, details, ip_address, user_agent) 
+      `INSERT INTO FTI_Portal_User_Logs (user_id, action, details, ip_address, user_agent) 
        VALUES (?, ?, ?, ?, ?)`,
       [
         userId,

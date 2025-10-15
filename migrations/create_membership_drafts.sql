@@ -1,4 +1,4 @@
--- Migration สำหรับระบบบันทึก Draft การสมัครสมาชิก
+﻿-- Migration สำหรับระบบบันทึก Draft การสมัครสมาชิก
 -- สร้างตารางสำหรับเก็บข้อมูล draft ของแต่ละประเภทสมาชิก
 
 -- ตาราง OC Draft
@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS MemberRegist_OC_Draft (
     status INT DEFAULT 3, -- 3 = draft
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
     INDEX idx_user_status (user_id, status),
     INDEX idx_updated (updated_at)
 );
@@ -24,7 +24,7 @@ CREATE TABLE IF NOT EXISTS MemberRegist_IC_Draft (
     status INT DEFAULT 3, -- 3 = draft
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
     INDEX idx_user_status (user_id, status),
     INDEX idx_updated (updated_at)
 );
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS MemberRegist_AM_Draft (
     status INT DEFAULT 3, -- 3 = draft
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
     INDEX idx_user_status (user_id, status),
     INDEX idx_updated (updated_at)
 );
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS MemberRegist_AC_Draft (
     status INT DEFAULT 3, -- 3 = draft
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
     INDEX idx_user_status (user_id, status),
     INDEX idx_updated (updated_at)
 );

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -22,7 +22,7 @@ export async function GET(request) {
 
     // Simple approach: Get all messages first
     try {
-      let allMessagesQuery = "SELECT * FROM guest_contact_messages";
+      let allMessagesQuery = "SELECT * FROM FTI_Portal_Guest_Contact_Messages";
 
       // Add simple WHERE clause if needed
       if (status !== "all") {

@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+﻿import { cookies } from "next/headers";
 import { jwtVerify } from "jose";
 import { query } from "./db";
 
@@ -26,7 +26,7 @@ export async function checkAdminSession() {
 
     // ตรวจสอบว่า admin ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
     const admins = await query(
-      "SELECT * FROM admin_users WHERE id = ? AND is_active = TRUE LIMIT 1",
+      "SELECT * FROM FTI_Portal_Admin_Users WHERE id = ? AND is_active = TRUE LIMIT 1",
       [payload.id],
     );
 
@@ -95,16 +95,16 @@ export async function checkUserSession(cookieStore) {
     const payload = verified.payload;
 
     // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
-    const users = await query("SELECT * FROM users WHERE id = ? AND is_active = TRUE LIMIT 1", [
+    const FTI_Portal_User = await query("SELECT * FROM FTI_Portal_User WHERE id = ? AND is_active = TRUE LIMIT 1", [
       payload.userId,
     ]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return null;
     }
 
     // ส่งคืนข้อมูลผู้ใช้จากฐานข้อมูล
-    const user = users[0];
+    const user = FTI_Portal_User[0];
     return {
       id: user.id,
       username: user.username,

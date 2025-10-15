@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { connectDB } from "../../../../lib/db";
 
@@ -61,7 +61,7 @@ export async function GET(request) {
 
     // Count total
     const [countRows] = await connection.query(
-      `SELECT COUNT(*) AS total FROM ${unionSubquery} LEFT JOIN users u ON u.id = m.user_id ${whereSql}`,
+      `SELECT COUNT(*) AS total FROM ${unionSubquery} LEFT JOIN FTI_Portal_User u ON u.id = m.user_id ${whereSql}`,
       params,
     );
     const total = countRows?.[0]?.total || 0;
@@ -81,7 +81,7 @@ export async function GET(request) {
          u.lastname,
          u.name AS username
        FROM ${unionSubquery}
-       LEFT JOIN users u ON u.id = m.user_id
+       LEFT JOIN FTI_Portal_User u ON u.id = m.user_id
        ${whereSql}
        ORDER BY m.connected_at DESC
        LIMIT ? OFFSET ?`,

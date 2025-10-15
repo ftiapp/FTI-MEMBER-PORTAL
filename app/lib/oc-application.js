@@ -1,4 +1,4 @@
-import { getConnection } from "./db";
+﻿import { getConnection } from "./db";
 
 /**
  * อัปเดตข้อมูลการสมัครสมาชิก OC ทั้งหมด
@@ -90,7 +90,7 @@ export async function updateOCApplication(
     // บันทึก log ของผู้ใช้
     await connection.execute(
       `
-      INSERT INTO Member_portal_User_log (user_id, action_type, details, created_at)
+      INSERT INTO FTI_Portal_User_Logs (user_id, action_type, details, created_at)
       VALUES (?, 'resubmit_membership', ?, NOW())
     `,
       [userId, JSON.stringify({ membershipType: "oc", membershipId, rejectionId })],

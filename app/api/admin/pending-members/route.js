@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -49,11 +49,11 @@ export async function GET(request) {
         u.firstname,
         u.lastname
       FROM 
-        companies_Member c
+        FTI_Original_Membership c
       JOIN 
-        documents_Member d ON c.user_id = d.user_id
+        FTI_Original_Membership_Documents_Member d ON c.user_id = d.user_id
       JOIN
-        users u ON c.user_id = u.id
+        FTI_Portal_User u ON c.user_id = u.id
       WHERE 
         c.Admin_Submit = 0
       ORDER BY 
@@ -63,7 +63,7 @@ export async function GET(request) {
 
     // Get total count for pagination
     const countResult = await query(
-      `SELECT COUNT(*) as total FROM companies_Member WHERE Admin_Submit = 0`,
+      `SELECT COUNT(*) as total FROM FTI_Original_Membership WHERE Admin_Submit = 0`,
     );
 
     const total = countResult[0].total;

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { memo } from "react";
 import { toast } from "react-hot-toast";
@@ -14,7 +14,7 @@ import useAdminActivities from "./hooks/useAdminActivities";
  * - Address update approval/rejection actions
  * - Admin user management actions
  *
- * Only accessible to admin users with level 5 (SuperAdmin) permissions.
+ * Only accessible to admin FTI_Portal_User with level 5 (SuperAdmin) permissions.
  *
  * Performance optimizations:
  * - Uses client-side caching with TTL to reduce API calls

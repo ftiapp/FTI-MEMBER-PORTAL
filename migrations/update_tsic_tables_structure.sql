@@ -1,21 +1,21 @@
--- Migration: update_tsic_tables_structure.sql
--- Description: Update pending_tsic_updates to store TSIC codes directly
+﻿-- Migration: update_tsic_tables_structure.sql
+-- Description: Update FTI_Original_Membership_Pending_Tsic_Updates to store TSIC codes directly
 -- Date: 2025-05-16
 
--- Update the pending_tsic_updates table to store TSIC codes directly
+-- Update the FTI_Original_Membership_Pending_Tsic_Updates table to store TSIC codes directly
 -- First, modify the tsic_data column if it exists
-ALTER TABLE pending_tsic_updates 
+ALTER TABLE FTI_Original_Membership_Pending_Tsic_Updates 
 MODIFY COLUMN tsic_data JSON NULL;
 
 -- Add columns only if they don't exist
 SET @dbname = DATABASE();
-SET @tablename = 'pending_tsic_updates';
+SET @tablename = 'FTI_Original_Membership_Pending_Tsic_Updates';
 SET @preparedStatement = (SELECT IF(
   (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS 
    WHERE TABLE_SCHEMA = @dbname 
    AND TABLE_NAME = @tablename 
    AND COLUMN_NAME = 'category_code') = 0,
-  'ALTER TABLE pending_tsic_updates ADD COLUMN category_code CHAR(1) AFTER member_code',
+  'ALTER TABLE FTI_Original_Membership_Pending_Tsic_Updates ADD COLUMN category_code CHAR(1) AFTER member_code',
   'SELECT 1'
 ));
 
@@ -58,16 +58,16 @@ END //
 DELIMITER ;
 
 -- Add foreign key to tsic_categories
-ALTER TABLE pending_tsic_updates
+ALTER TABLE FTI_Original_Membership_Pending_Tsic_Updates
 ADD CONSTRAINT fk_tsic_category 
 FOREIGN KEY (tsic_code) REFERENCES tsic_categories(tsic_code);
 
 -- Add index for better query performance
-CREATE INDEX idx_pending_tsic_member ON pending_tsic_updates(member_code);
-CREATE INDEX idx_pending_tsic_code ON pending_tsic_updates(tsic_code);
+CREATE INDEX idx_pending_tsic_member ON FTI_Original_Membership_Pending_Tsic_Updates(member_code);
+CREATE INDEX idx_pending_tsic_code ON FTI_Original_Membership_Pending_Tsic_Updates(tsic_code);
 
 -- Add comment to explain the changes
-ALTER TABLE pending_tsic_updates 
+ALTER TABLE FTI_Original_Membership_Pending_Tsic_Updates 
 COMMENT 'Stores TSIC code update requests. Each row represents one TSIC code for a member.';
 
 -- Create a view to get member's approved TSIC codes with explicit collation
@@ -81,7 +81,7 @@ SELECT
   d.category_name,
   p.created_at,
   p.updated_at
-FROM pending_tsic_updates p
+FROM FTI_Original_Membership_Pending_Tsic_Updates p
 JOIN tsic_categories c ON p.tsic_code COLLATE utf8mb4_unicode_ci = c.tsic_code COLLATE utf8mb4_unicode_ci
 JOIN tsic_description d ON c.category_order COLLATE utf8mb4_unicode_ci = d.category_code COLLATE utf8mb4_unicode_ci
 WHERE p.status = 'approved';

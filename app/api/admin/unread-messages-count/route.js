@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -12,7 +12,7 @@ export async function GET(request) {
 
     // Count unread messages
     const result = await query(
-      'SELECT COUNT(*) as count FROM contact_messages WHERE status = "unread"',
+      'SELECT COUNT(*) as count FROM FTI_Portal_User_Contact_Messages WHERE status = "unread"',
     );
 
     return NextResponse.json({ count: result[0].count });

@@ -1,5 +1,5 @@
--- Create separate table for rejection data to store complete application data for resubmission
--- This allows users to edit and resubmit rejected applications
+﻿-- Create separate table for rejection data to store complete application data for resubmission
+-- This allows FTI_Portal_User to edit and resubmit rejected applications
 
 CREATE TABLE MemberRegist_Reject_DATA (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -15,8 +15,8 @@ CREATE TABLE MemberRegist_Reject_DATA (
   is_active BOOLEAN DEFAULT TRUE COMMENT 'Whether this rejection data is still active (not resubmitted)',
   
   -- Foreign key constraints
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-  FOREIGN KEY (admin_note_by) REFERENCES admin_users(id) ON DELETE SET NULL,
+  FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE,
+  FOREIGN KEY (admin_note_by) REFERENCES FTI_Portal_Admin_Users(id) ON DELETE SET NULL,
   
   -- Indexes for better performance
   INDEX idx_membership_rejection_user_type (user_id, membership_type, is_active),

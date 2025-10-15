@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { query } from "@/app/lib/db";
@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export async function GET(request) {
   try {
-    console.log("Notifications API called");
+    console.log("FTI_Portal_User_Notifications API called");
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value;
 
@@ -45,20 +45,20 @@ export async function GET(request) {
 
     // ดึงข้อมูลการแจ้งเตือน
     try {
-      console.log("Querying database for notifications, userId:", userId);
-      const notifications = await query(
-        `SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`,
+      console.log("Querying database for FTI_Portal_User_Notifications, userId:", userId);
+      const FTI_Portal_User_Notifications = await query(
+        `SELECT * FROM FTI_Portal_User_Notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20`,
         [userId],
       );
 
-      console.log("Notifications found:", notifications ? notifications.length : 0);
-      return NextResponse.json({ success: true, notifications });
+      console.log("FTI_Portal_User_Notifications found:", FTI_Portal_User_Notifications ? FTI_Portal_User_Notifications.length : 0);
+      return NextResponse.json({ success: true, FTI_Portal_User_Notifications });
     } catch (dbError) {
       console.error("Database query error:", dbError);
       return NextResponse.json({ success: false, message: "Database Error" }, { status: 500 });
     }
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    console.error("Error fetching FTI_Portal_User_Notifications:", error);
     return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

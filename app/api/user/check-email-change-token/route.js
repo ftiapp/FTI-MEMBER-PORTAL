@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { headers } from "next/headers";
 
@@ -46,7 +46,7 @@ export async function GET(request) {
 
     // ตรวจสอบว่ามี token ที่ยืนยัน OTP แล้วหรือไม่
     const verificationToken = await query(
-      `SELECT * FROM verification_tokens 
+      `SELECT * FROM FTI_Portal_User_Verification_Tokens 
        WHERE user_id = ? AND token_type = 'change_email' 
        AND otp_verified = 1 AND used = 0
        AND expires_at > NOW()

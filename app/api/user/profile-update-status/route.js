@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 
 export async function GET(request) {
@@ -13,7 +13,7 @@ export async function GET(request) {
     // Check for pending profile update requests
     const pendingRequests = await query(
       `SELECT id, status, reject_reason, created_at 
-       FROM profile_update_requests 
+       FROM FTI_Portal_User_Profile_Update_Requests 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT 1`,

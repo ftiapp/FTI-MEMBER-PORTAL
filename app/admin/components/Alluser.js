@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -6,11 +6,11 @@ import { toast } from "react-hot-toast";
 /**
  * Alluser Component
  *
- * Displays a paginated table of all users with their login statistics
- * Shows name, email, phone, and login count with 5 users per page
+ * Displays a paginated table of all FTI_Portal_User with their login statistics
+ * Shows name, email, phone, and login count with 5 FTI_Portal_User per page
  */
 export default function Alluser() {
-  const [users, setUsers] = useState([]);
+  const [FTI_Portal_User, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,7 +40,7 @@ export default function Alluser() {
   const fetchUsers = async (page, search = "") => {
     try {
       setLoading(true);
-      let url = `/api/admin/users?page=${page}&limit=${usersPerPage}`;
+      let url = `/api/admin/FTI_Portal_User?page=${page}&limit=${usersPerPage}`;
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
       }
@@ -48,16 +48,16 @@ export default function Alluser() {
       const response = await fetch(url);
 
       if (!response.ok) {
-        throw new Error("Failed to fetch users");
+        throw new Error("Failed to fetch FTI_Portal_User");
       }
 
       const data = await response.json();
-      setUsers(data.users);
+      setUsers(data.FTI_Portal_User);
       setTotalPages(data.totalPages);
       setTotalUsers(data.totalUsers);
       setLoading(false);
     } catch (err) {
-      console.error("Error fetching users:", err);
+      console.error("Error fetching FTI_Portal_User:", err);
       setError("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
       setLoading(false);
       toast.error("ไม่สามารถโหลดข้อมูลผู้ใช้ได้");
@@ -408,8 +408,8 @@ export default function Alluser() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {users.length > 0 ? (
-                    users.map((user, index) => (
+                  {FTI_Portal_User.length > 0 ? (
+                    FTI_Portal_User.map((user, index) => (
                       <tr
                         key={user.id}
                         className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50`}
@@ -465,7 +465,7 @@ export default function Alluser() {
             </div>
           </div>
 
-          {users.length > 0 && renderPagination()}
+          {FTI_Portal_User.length > 0 && renderPagination()}
         </>
       )}
     </div>

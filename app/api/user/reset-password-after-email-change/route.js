@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import bcrypt from "bcryptjs";
 
@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
  * POST /api/user/reset-password-after-email-change
  *
  * Resets a user's password after email change verification.
- * This is used when users have lost access to their original email and an admin has changed it.
+ * This is used when FTI_Portal_User have lost access to their original email and an admin has changed it.
  *
  * Required parameters:
  * - userId: The ID of the user
@@ -54,8 +54,8 @@ export async function POST(request) {
     try {
       const tokenQuery = `
         SELECT vt.*, pec.id as pending_id 
-        FROM verification_tokens vt
-        JOIN pending_email_changes pec ON vt.id = pec.token_id
+        FROM FTI_Portal_User_Verification_Tokens vt
+        JOIN FTI_Original_Membership_Pending_Email_Changes pec ON vt.id = pec.token_id
         WHERE vt.token = ? 
           AND vt.user_id = ? 
           AND vt.token_type = 'new_email_verification' 
@@ -70,8 +70,8 @@ export async function POST(request) {
 
         const alternativeQuery = `
           SELECT vt.*, pec.id as pending_id 
-          FROM verification_tokens vt
-          JOIN pending_email_changes pec ON vt.user_id = pec.user_id
+          FROM FTI_Portal_User_Verification_Tokens vt
+          JOIN FTI_Original_Membership_Pending_Email_Changes pec ON vt.user_id = pec.user_id
           WHERE vt.token = ? 
             AND vt.user_id = ? 
             AND vt.token_type = 'new_email_verification' 
@@ -100,7 +100,7 @@ export async function POST(request) {
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
     // Update the user's password
-    await query("UPDATE users SET password = ?, updated_at = NOW() WHERE id = ?", [
+    await query("UPDATE FTI_Portal_User SET password = ?, updated_at = NOW() WHERE id = ?", [
       hashedPassword,
       userId,
     ]);
@@ -108,7 +108,7 @@ export async function POST(request) {
     // Log the password reset using the 'change_email' action since we know it exists
     // We'll use a detailed description that explains both the email change and password reset
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, 'change_email', ?, ?, ?, NOW())`,
       [

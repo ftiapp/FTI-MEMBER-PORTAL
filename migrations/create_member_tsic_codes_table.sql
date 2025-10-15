@@ -1,5 +1,5 @@
--- Create member_tsic_codes table
-CREATE TABLE IF NOT EXISTS `member_tsic_codes` (
+﻿-- Create FTI_Original_Membership_Member_Tsic_Codes table
+CREATE TABLE IF NOT EXISTS `FTI_Original_Membership_Member_Tsic_Codes` (
   `id` int NOT NULL AUTO_INCREMENT,
   `user_id` int NOT NULL,
   `member_code` varchar(20) NOT NULL,
@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS `member_tsic_codes` (
   KEY `idx_member_tsic_member` (`member_code`),
   KEY `idx_member_tsic_category` (`category_code`),
   KEY `idx_member_tsic_code` (`tsic_code`),
-  CONSTRAINT `fk_member_tsic_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `fk_member_tsic_user` FOREIGN KEY (`user_id`) REFERENCES `FTI_Portal_User` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- Add 'tsic_code_update' to the action enum in Member_portal_User_log table if it doesn't exist
-ALTER TABLE `Member_portal_User_log` 
+-- Add 'tsic_code_update' to the action enum in FTI_Portal_User_Logs table if it doesn't exist
+ALTER TABLE `FTI_Portal_User_Logs` 
 MODIFY COLUMN `action` enum('member_verification','document_upload','profile_update','other','contact_message','profile_update_request','change_email','password_reset','address_update_request','tsic_update_request','tsic_code_update') NOT NULL;

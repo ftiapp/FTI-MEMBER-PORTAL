@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import { executeQueryWithoutTransaction } from "@/app/lib/db";
 
@@ -44,7 +44,7 @@ export async function POST(request) {
       : `/membership/${pathType}/summary`;
 
     await executeQueryWithoutTransaction(
-      `INSERT INTO notifications (
+      `INSERT INTO FTI_Portal_User_Notifications (
         user_id, type, message, link, created_at, status, member_code, member_type
       ) VALUES (?, ?, ?, ?, NOW(), 'unread', ?, ?)`,
       [userId, "membership_submission", message, link, memberId || null, pathType],
@@ -75,10 +75,10 @@ export async function GET(request) {
     const limit = parseInt(url.searchParams.get("limit")) || 20;
     const offset = parseInt(url.searchParams.get("offset")) || 0;
 
-    // Get notifications for the user
-    const notifications = await executeQueryWithoutTransaction(
+    // Get FTI_Portal_User_Notifications for the user
+    const FTI_Portal_User_Notifications = await executeQueryWithoutTransaction(
       `SELECT id, type, message, link, read_at, created_at, status, member_code, member_type
-       FROM notifications 
+       FROM FTI_Portal_User_Notifications 
        WHERE user_id = ? 
        ORDER BY created_at DESC 
        LIMIT ? OFFSET ?`,
@@ -87,7 +87,7 @@ export async function GET(request) {
 
     // Get unread count
     const unreadResult = await executeQueryWithoutTransaction(
-      `SELECT COUNT(*) as count FROM notifications 
+      `SELECT COUNT(*) as count FROM FTI_Portal_User_Notifications 
        WHERE user_id = ? AND status = 'unread'`,
       [userId],
     );
@@ -96,12 +96,12 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      notifications: notifications || [],
+      FTI_Portal_User_Notifications: FTI_Portal_User_Notifications || [],
       unreadCount,
-      hasMore: notifications?.length === limit,
+      hasMore: FTI_Portal_User_Notifications?.length === limit,
     });
   } catch (error) {
-    console.error("Error fetching notifications:", error);
+    console.error("Error fetching FTI_Portal_User_Notifications:", error);
     return NextResponse.json(
       {
         error: "เกิดข้อผิดพลาดในการดึงข้อมูลการแจ้งเตือน",
@@ -125,7 +125,7 @@ export async function PATCH(request) {
     if (markAsRead) {
       // Mark notification as read
       await executeQueryWithoutTransaction(
-        `UPDATE notifications 
+        `UPDATE FTI_Portal_User_Notifications 
          SET status = 'read', read_at = NOW() 
          WHERE id = ? AND user_id = ?`,
         [notificationId, userId],

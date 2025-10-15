@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { connectDB } from "../../../../lib/db";
 
@@ -14,31 +14,31 @@ export async function GET() {
 
     // ดึงข้อมูลสมาชิกที่ได้รับการอนุมัติแล้วแต่ยังไม่มี member_code
     const queries = [
-      // OC Members (join users)
+      // OC Members (join FTI_Portal_User)
       `SELECT 
         m.id, 'OC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_OC_Main m
-       LEFT JOIN users u ON m.user_id = u.id
+       LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
        WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
 
-      // AC Members  (join users)
+      // AC Members  (join FTI_Portal_User)
       `SELECT 
         m.id, 'AC' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_AC_Main m
-       LEFT JOIN users u ON m.user_id = u.id
+       LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
        WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
 
-      // AM Members (join users)
+      // AM Members (join FTI_Portal_User)
       `SELECT 
         m.id, 'AM' as member_type, m.company_name_th, m.company_name_en, m.tax_id, m.approved_at, m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_AM_Main m
-       LEFT JOIN users u ON m.user_id = u.id
+       LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
        WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
 
-      // IC Members (join users). Alias full name as company_name_*; IC has no tax_id.
+      // IC Members (join FTI_Portal_User). Alias full name as company_name_*; IC has no tax_id.
       `SELECT 
         m.id, 'IC' as member_type,
         CONCAT(m.first_name_th, ' ', m.last_name_th) AS company_name_th,
@@ -48,7 +48,7 @@ export async function GET() {
         m.updated_at,
         u.firstname, u.lastname, u.email AS user_email, u.phone AS user_phone, u.name AS username
        FROM MemberRegist_IC_Main m
-       LEFT JOIN users u ON m.user_id = u.id
+       LEFT JOIN FTI_Portal_User u ON m.user_id = u.id
        WHERE m.status = 1 AND (m.member_code IS NULL OR m.member_code = '')`,
     ];
 

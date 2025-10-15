@@ -1,9 +1,9 @@
--- Migration: create_pending_tsic_updates_table.sql
--- Description: Create pending_tsic_updates table and update log tables with new ENUM values
+﻿-- Migration: create_pending_tsic_updates_table.sql
+-- Description: Create FTI_Original_Membership_Pending_Tsic_Updates table and update log tables with new ENUM values
 -- Date: 2025-05-14
 
--- Create pending_tsic_updates table
-CREATE TABLE IF NOT EXISTS pending_tsic_updates (
+-- Create FTI_Original_Membership_Pending_Tsic_Updates table
+CREATE TABLE IF NOT EXISTS FTI_Original_Membership_Pending_Tsic_Updates (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
   member_code VARCHAR(20) NOT NULL,
@@ -15,11 +15,11 @@ CREATE TABLE IF NOT EXISTS pending_tsic_updates (
   processed_date DATETIME DEFAULT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id) ON DELETE CASCADE
 );
 
--- Add new action to Member_portal_User_log
-ALTER TABLE Member_portal_User_log 
+-- Add new action to FTI_Portal_User_Logs
+ALTER TABLE FTI_Portal_User_Logs 
 MODIFY COLUMN action ENUM(
   'member_verification',
   'document_upload',
@@ -33,8 +33,8 @@ MODIFY COLUMN action ENUM(
   'tsic_update_request'
 );
 
--- Add new action types to admin_actions_log
-ALTER TABLE admin_actions_log 
+-- Add new action types to FTI_Portal_Admin_Actions_Logs
+ALTER TABLE FTI_Portal_Admin_Actions_Logs 
 MODIFY COLUMN action_type ENUM(
   'login',
   'approve_member',

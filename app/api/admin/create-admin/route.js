@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession, logAdminAction } from "../../../lib/adminAuth";
 import bcrypt from "bcrypt";
@@ -30,7 +30,7 @@ export async function POST(request) {
     }
 
     // Check if username already exists
-    const existingAdmin = await query("SELECT id FROM admin_users WHERE username = ?", [username]);
+    const existingAdmin = await query("SELECT id FROM FTI_Portal_Admin_Users WHERE username = ?", [username]);
 
     if (existingAdmin.length > 0) {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function POST(request) {
 
     // Create new admin
     const result = await query(
-      `INSERT INTO admin_users 
+      `INSERT INTO FTI_Portal_Admin_Users 
        (username, password, admin_level, is_active, can_create, can_update, created_by) 
        VALUES (?, ?, ?, TRUE, ?, ?, ?)`,
       [username, hashedPassword, adminLevel, canCreate ? 1 : 0, canUpdate ? 1 : 0, admin.id],

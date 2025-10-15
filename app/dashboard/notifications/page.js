@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/app/contexts/AuthContext";
@@ -18,26 +18,26 @@ import { useNotifications } from "./hooks/useNotifications";
 
 const NotificationsPage = () => {
   const { user } = useAuth();
-  const { notifications, loading, error, markAsRead, markAllAsRead } = useNotifications(user);
+  const { FTI_Portal_User_Notifications, loading, error, markAsRead, markAllAsRead } = useNotifications(user);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   // Pagination calculations
-  const totalPages = Math.ceil(notifications.length / itemsPerPage);
+  const totalPages = Math.ceil(FTI_Portal_User_Notifications.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentNotifications = notifications.slice(startIndex, endIndex);
+  const currentNotifications = FTI_Portal_User_Notifications.slice(startIndex, endIndex);
 
-  // Reset to first page when notifications change
+  // Reset to first page when FTI_Portal_User_Notifications change
   useEffect(() => {
     setCurrentPage(1);
-  }, [notifications.length]);
+  }, [FTI_Portal_User_Notifications.length]);
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
-    // Scroll to top of notifications list
+    // Scroll to top of FTI_Portal_User_Notifications list
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -51,7 +51,7 @@ const NotificationsPage = () => {
         <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-8">
           {/* Dashboard Header */}
           <NotificationsHeader
-            notifications={notifications}
+            FTI_Portal_User_Notifications={FTI_Portal_User_Notifications}
             markAllAsRead={markAllAsRead}
             startIndex={startIndex}
             endIndex={endIndex}
@@ -62,11 +62,11 @@ const NotificationsPage = () => {
               <LoadingState />
             ) : error ? (
               <ErrorState error={error} />
-            ) : notifications.length === 0 ? (
+            ) : FTI_Portal_User_Notifications.length === 0 ? (
               <EmptyState />
             ) : (
               <NotificationList
-                notifications={currentNotifications}
+                FTI_Portal_User_Notifications={currentNotifications}
                 currentPage={currentPage}
                 totalPages={totalPages}
                 handlePageChange={handlePageChange}

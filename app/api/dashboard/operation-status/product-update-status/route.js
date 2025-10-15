@@ -1,4 +1,4 @@
-// API route: /api/dashboard/operation-status/product-update-status?userId=xxx
+﻿// API route: /api/dashboard/operation-status/product-update-status?userId=xxx
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
@@ -17,17 +17,17 @@ export async function GET(request) {
       return NextResponse.json({ error: "User ID is required" }, { status: 400 });
     }
 
-    // Check if the pending_product_updates table exists
+    // Check if the FTI_Original_Membership_Pending_Product_Updates table exists
     try {
       const tableExists = await query(
         `SELECT COUNT(*) as count 
         FROM information_schema.tables 
         WHERE table_schema = DATABASE() 
-        AND table_name = 'pending_product_updates'`,
+        AND table_name = 'FTI_Original_Membership_Pending_Product_Updates'`,
       );
 
       if (tableExists[0].count === 0) {
-        console.log("pending_product_updates table does not exist");
+        console.log("FTI_Original_Membership_Pending_Product_Updates table does not exist");
         return NextResponse.json({
           success: true,
           updates: [],
@@ -61,7 +61,7 @@ export async function GET(request) {
         ppu.created_at,
         ppu.updated_at
       FROM 
-        pending_product_updates ppu
+        FTI_Original_Membership_Pending_Product_Updates ppu
       WHERE 
         ppu.user_id = ?
       ORDER BY 

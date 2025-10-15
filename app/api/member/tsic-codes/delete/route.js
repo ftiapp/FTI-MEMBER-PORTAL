@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import {
   executeQuery,
   beginTransaction,
@@ -42,7 +42,7 @@ export async function POST(request) {
 
     // Check if the TSIC code exists for this member
     const checkSql = `
-      SELECT id FROM member_tsic_codes 
+      SELECT id FROM FTI_Original_Membership_Member_Tsic_Codes 
       WHERE member_code = ? AND tsic_code = ?
     `;
     const checkParams = [memberCode, tsicCode];
@@ -58,7 +58,7 @@ export async function POST(request) {
 
     // Delete the TSIC code
     const deleteSql = `
-      DELETE FROM member_tsic_codes 
+      DELETE FROM FTI_Original_Membership_Member_Tsic_Codes 
       WHERE member_code = ? AND tsic_code = ?
     `;
     const deleteParams = [memberCode, tsicCode];
@@ -66,7 +66,7 @@ export async function POST(request) {
 
     // Log the action
     const logSql = `
-      INSERT INTO Member_portal_User_log (
+      INSERT INTO FTI_Portal_User_Logs (
         user_id, action, details, created_at
       ) VALUES (?, ?, ?, NOW())
     `;

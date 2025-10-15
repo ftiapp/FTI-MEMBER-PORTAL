@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminSession } from "../../../../lib/auth";
 import { query as dbQuery } from "../../../../lib/db";
@@ -33,7 +33,7 @@ export async function GET(request) {
     const offset = (page - 1) * limit;
 
     // Check if the table exists without using information_schema (avoid permission issues)
-    const tables = await dbQuery("SHOW TABLES LIKE ?", ["pending_product_updates"]);
+    const tables = await dbQuery("SHOW TABLES LIKE ?", ["FTI_Original_Membership_Pending_Product_Updates"]);
 
     if (!tables || tables.length === 0) {
       // Table doesn't exist yet, so there are no requests
@@ -52,8 +52,8 @@ export async function GET(request) {
     // Build the query based on status and search parameters
     let sql = `
       SELECT p.*, u.name as user_name, u.email as user_email
-      FROM pending_product_updates p
-      LEFT JOIN users u ON p.user_id = u.id
+      FROM FTI_Original_Membership_Pending_Product_Updates p
+      LEFT JOIN FTI_Portal_User u ON p.user_id = u.id
       WHERE 1=1
     `;
 

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 /**
  * Fetch TSIC codes for a member
@@ -14,7 +14,7 @@ export async function fetchTsicCodes(memberCode) {
   try {
     console.log(`Fetching TSIC codes for member: ${memberCode}`);
 
-    // ใช้ endpoint ที่เราสร้างขึ้นใหม่เพื่อดึงข้อมูลจากตาราง member_tsic_codes โดยตรง
+    // ใช้ endpoint ที่เราสร้างขึ้นใหม่เพื่อดึงข้อมูลจากตาราง FTI_Original_Membership_Member_Tsic_Codes โดยตรง
     const response = await fetch(
       `/api/member/tsic-codes/list?member_code=${encodeURIComponent(memberCode)}`,
       {
@@ -387,7 +387,7 @@ export async function deleteTsicCode(memberCode, tsicCode) {
 }
 
 /**
- * Submit TSIC update directly to member_tsic_codes table without admin approval
+ * Submit TSIC update directly to FTI_Original_Membership_Member_Tsic_Codes table without admin approval
  * @param {string} email - User email (not used, but kept for backward compatibility)
  * @param {string} memberCode - Member code
  * @param {Array} tsicCodes - Array of TSIC codes

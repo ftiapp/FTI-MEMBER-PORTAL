@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 
 /**
  * ActionCounts Component
  *
- * Displays counts of each action type from Member_portal_User_log as cards
+ * Displays counts of each action type from FTI_Portal_User_Logs as cards
  */
 export default function ActionCounts({ title }) {
   const [actionCounts, setActionCounts] = useState({});

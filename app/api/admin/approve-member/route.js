@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession, logAdminAction } from "../../../lib/adminAuth";
 import { sendApprovalEmail, sendRejectionEmail } from "../../../lib/postmark";
@@ -14,7 +14,7 @@ export async function POST(request) {
     }
 
     // Fetch admin details from database to get the name
-    const adminDetails = await query("SELECT name FROM admin_users WHERE id = ? LIMIT 1", [
+    const adminDetails = await query("SELECT name FROM FTI_Portal_Admin_Users WHERE id = ? LIMIT 1", [
       admin.id,
     ]);
 
@@ -39,7 +39,7 @@ export async function POST(request) {
     else if (action === "delete") adminSubmitValue = 3;
 
     await query(
-      `UPDATE companies_Member SET Admin_Submit = ?, reject_reason = ?, admin_comment = ?, admin_id = ?, admin_name = ? WHERE id = ?`,
+      `UPDATE FTI_Original_Membership SET Admin_Submit = ?, reject_reason = ?, admin_comment = ?, admin_id = ?, admin_name = ? WHERE id = ?`,
       [
         adminSubmitValue,
         action === "reject" ? reason : null,
@@ -52,7 +52,7 @@ export async function POST(request) {
 
     // If approving, get the user_id to update their role to 'member'
     if (action === "approve") {
-      const userResult = await query(`SELECT user_id FROM companies_Member WHERE id = ?`, [
+      const userResult = await query(`SELECT user_id FROM FTI_Original_Membership WHERE id = ?`, [
         memberId,
       ]);
 
@@ -60,7 +60,7 @@ export async function POST(request) {
         const userId = userResult[0].user_id;
 
         // Update user role from 'default_user' to 'member'
-        await query(`UPDATE users SET role = 'member' WHERE id = ? AND role = 'default_user'`, [
+        await query(`UPDATE FTI_Portal_User SET role = 'member' WHERE id = ? AND role = 'default_user'`, [
           userId,
         ]);
       }
@@ -83,7 +83,7 @@ export async function POST(request) {
     }
 
     await query(
-      `UPDATE documents_Member SET 
+      `UPDATE FTI_Original_Membership_Documents_Member SET 
         status = ?, 
         Admin_Submit = ?,
         reject_reason = ?,
@@ -103,8 +103,8 @@ export async function POST(request) {
     // Get user info for logging and email notification
     const companyResult = await query(
       `SELECT c.user_id, c.company_name, c.MEMBER_CODE, u.email, u.firstname, u.lastname, u.name 
-       FROM companies_Member c
-       JOIN users u ON c.user_id = u.id
+       FROM FTI_Original_Membership c
+       JOIN FTI_Portal_User u ON c.user_id = u.id
        WHERE c.id = ?`,
       [memberId],
     );
@@ -168,7 +168,7 @@ export async function POST(request) {
 
       await logAdminAction(admin.id, actionType, memberId, actionDetails, request);
 
-      // Log in Member_portal_User_log
+      // Log in FTI_Portal_User_Logs
       let logDetails = "";
 
       if (action === "approve") {
@@ -180,7 +180,7 @@ export async function POST(request) {
       }
 
       await query(
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
          (user_id, action, details, ip_address, user_agent) 
          VALUES (?, ?, ?, ?, ?)`,
         [

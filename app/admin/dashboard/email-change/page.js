@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,7 +9,7 @@ import UserEmailChangeForm from "./components/UserEmailChangeForm";
 /**
  * Admin Email Change Management
  *
- * This component allows admins to change emails for users who have lost access
+ * This component allows admins to change emails for FTI_Portal_User who have lost access
  * to their original email address after verifying their identity through external means.
  */
 export default function AdminEmailChange() {
@@ -30,7 +30,7 @@ export default function AdminEmailChange() {
   const fetchUserDetails = async (id) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/users/${id}`);
+      const response = await fetch(`/api/admin/FTI_Portal_User/${id}`);
       const data = await response.json();
 
       if (data.success) {

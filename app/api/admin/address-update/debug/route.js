@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 import { query } from "@/app/lib/db";
 
@@ -10,30 +10,30 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    // ตรวจสอบว่ามีตาราง pending_address_updates หรือไม่
-    const tableExists = await checkTableExists("pending_address_updates");
+    // ตรวจสอบว่ามีตาราง FTI_Original_Membership_Pending_Address_Updates หรือไม่
+    const tableExists = await checkTableExists("FTI_Original_Membership_Pending_Address_Updates");
     if (!tableExists) {
-      console.log("Table pending_address_updates does not exist");
+      console.log("Table FTI_Original_Membership_Pending_Address_Updates does not exist");
       return NextResponse.json({
         success: false,
-        message: "Table pending_address_updates does not exist",
+        message: "Table FTI_Original_Membership_Pending_Address_Updates does not exist",
       });
     }
 
-    // ดึงข้อมูลทั้งหมดจากตาราง pending_address_updates
+    // ดึงข้อมูลทั้งหมดจากตาราง FTI_Original_Membership_Pending_Address_Updates
     const [allRecords] = await query(`
-      SELECT * FROM pending_address_updates
+      SELECT * FROM FTI_Original_Membership_Pending_Address_Updates
     `);
 
     // ดึงข้อมูลโครงสร้างตาราง
     const [tableStructure] = await query(`
-      DESCRIBE pending_address_updates
+      DESCRIBE FTI_Original_Membership_Pending_Address_Updates
     `);
 
     // ตรวจสอบจำนวนรายการตามสถานะ
     const [statusCounts] = await query(`
       SELECT status, COUNT(*) as count 
-      FROM pending_address_updates 
+      FROM FTI_Original_Membership_Pending_Address_Updates 
       GROUP BY status
     `);
 
@@ -41,7 +41,7 @@ export async function GET(request) {
     const recentRecords = await query(`
       SELECT id, user_id, member_code, member_type, member_group_code, 
              type_code, addr_code, request_date, status, document_url
-      FROM pending_address_updates
+      FROM FTI_Original_Membership_Pending_Address_Updates
       ORDER BY request_date DESC
       LIMIT 5
     `);

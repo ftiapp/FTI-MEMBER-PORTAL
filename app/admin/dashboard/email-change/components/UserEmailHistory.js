@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -15,7 +15,7 @@ const UserEmailHistory = ({ userId }) => {
     const fetchEmailHistory = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`/api/admin/users/email-history/${userId}`);
+        const response = await fetch(`/api/admin/FTI_Portal_User/email-history/${userId}`);
 
         if (!response.ok) {
           const errorData = await response.json();

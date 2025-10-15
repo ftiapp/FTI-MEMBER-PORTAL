@@ -21,7 +21,7 @@ export async function GET(request, { params }) {
     // Query to get user by ID
     const userQuery = `
       SELECT id, name, firstname, lastname, email, phone, status, email_verified, created_at, updated_at
-      FROM users
+      FROM FTI_Portal_User
       WHERE id = ?
     `;
 

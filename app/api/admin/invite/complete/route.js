@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import {
   beginTransaction,
@@ -56,7 +56,7 @@ export async function POST(request) {
     // Lock the invite row
     const [invite] = await executeQuery(
       connection,
-      `SELECT * FROM admin_invitation_tokens WHERE token = ? FOR UPDATE`,
+      `SELECT * FROM FTI_Portal_Admin_Invitation_Tokens WHERE token = ? FOR UPDATE`,
       [token],
     );
 
@@ -80,7 +80,7 @@ export async function POST(request) {
     // Prevent duplicate admin creation
     const [existingAdmin] = await executeQuery(
       connection,
-      "SELECT id FROM admin_users WHERE username = ? LIMIT 1",
+      "SELECT id FROM FTI_Portal_Admin_Users WHERE username = ? LIMIT 1",
       [email],
     );
     if (existingAdmin) {
@@ -96,7 +96,7 @@ export async function POST(request) {
     // Create admin user (store name)
     const insertRes = await executeQuery(
       connection,
-      `INSERT INTO admin_users (username, name, password, admin_level, is_active, can_create, can_update, created_by)
+      `INSERT INTO FTI_Portal_Admin_Users (username, name, password, admin_level, is_active, can_create, can_update, created_by)
        VALUES (?, ?, ?, ?, TRUE, ?, ?, ?)`,
       [
         email,
@@ -114,7 +114,7 @@ export async function POST(request) {
     // Mark token used
     await executeQuery(
       connection,
-      "UPDATE admin_invitation_tokens SET used = 1, used_at = NOW() WHERE id = ?",
+      "UPDATE FTI_Portal_Admin_Invitation_Tokens SET used = 1, used_at = NOW() WHERE id = ?",
       [invite.id],
     );
 

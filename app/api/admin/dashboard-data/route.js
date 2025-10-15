@@ -1,4 +1,4 @@
-import { getAdminFromSession } from "../../../lib/adminAuth";
+﻿import { getAdminFromSession } from "../../../lib/adminAuth";
 import { query } from "../../../lib/db";
 
 export async function GET(request) {
@@ -21,11 +21,11 @@ export async function GET(request) {
     // Get all counts in a single database query using subqueries
     const countsQuery = `
       SELECT
-        (SELECT COUNT(*) FROM companies_Member WHERE Admin_Submit = 0) AS verifications_count,
-        (SELECT COUNT(*) FROM profile_update_requests WHERE status = 'pending') AS profile_updates_count,
-        (SELECT COUNT(*) FROM pending_address_updates WHERE status = 'pending') AS address_updates_count,
-        (SELECT COUNT(*) FROM guest_contact_messages WHERE status = 'unread') AS guest_messages_count,
-        (SELECT COUNT(*) FROM pending_product_updates WHERE status = 'pending') AS product_updates_count,
+        (SELECT COUNT(*) FROM FTI_Original_Membership WHERE Admin_Submit = 0) AS verifications_count,
+        (SELECT COUNT(*) FROM FTI_Portal_User_Profile_Update_Requests WHERE status = 'pending') AS profile_updates_count,
+        (SELECT COUNT(*) FROM FTI_Original_Membership_Pending_Address_Updates WHERE status = 'pending') AS address_updates_count,
+        (SELECT COUNT(*) FROM FTI_Portal_Guest_Contact_Messages WHERE status = 'unread') AS guest_messages_count,
+        (SELECT COUNT(*) FROM FTI_Original_Membership_Pending_Product_Updates WHERE status = 'pending') AS product_updates_count,
         (
           (SELECT COUNT(*) FROM MemberRegist_OC_Main WHERE status = 0) +
           (SELECT COUNT(*) FROM MemberRegist_AM_Main WHERE status = 0) +

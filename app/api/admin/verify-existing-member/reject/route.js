@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 import { logAdminAction } from "@/app/lib/adminAuth";
@@ -30,7 +30,7 @@ export async function POST(request) {
 
     // ตรวจสอบว่า company มีอยู่จริงและยังไม่ได้รับการยืนยัน
     const companyResult = await query(
-      "SELECT * FROM companies_Member WHERE id = ? AND user_id = ? AND MEMBER_CODE = ? AND Admin_Submit = 0",
+      "SELECT * FROM FTI_Original_Membership WHERE id = ? AND user_id = ? AND MEMBER_CODE = ? AND Admin_Submit = 0",
       [companyId, userId, memberCode],
     );
 
@@ -45,7 +45,7 @@ export async function POST(request) {
 
     // ดึงข้อมูลผู้ใช้
     const userResult = await query(
-      "SELECT name, firstname, lastname, email FROM users WHERE id = ?",
+      "SELECT name, firstname, lastname, email FROM FTI_Portal_User WHERE id = ?",
       [userId],
     );
 
@@ -59,9 +59,9 @@ export async function POST(request) {
     await query("START TRANSACTION");
 
     try {
-      // อัปเดตสถานะใน companies_Member เป็นปฏิเสธ (Admin_Submit = 2)
+      // อัปเดตสถานะใน FTI_Original_Membership เป็นปฏิเสธ (Admin_Submit = 2)
       await query(
-        "UPDATE companies_Member SET Admin_Submit = 2, reject_reason = ?, updated_at = NOW() WHERE id = ?",
+        "UPDATE FTI_Original_Membership SET Admin_Submit = 2, reject_reason = ?, updated_at = NOW() WHERE id = ?",
         [reason, companyId],
       );
 

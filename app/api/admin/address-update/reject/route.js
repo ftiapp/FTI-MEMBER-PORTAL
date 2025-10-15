@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { query as dbQuery } from "../../../../lib/db";
 import { sendAddressRejectionEmail } from "@/app/lib/postmark";
@@ -30,7 +30,7 @@ export async function POST(request) {
 
     // ดึงข้อมูลคำขอแก้ไขที่อยู่
     const result = await dbQuery(
-      'SELECT * FROM pending_address_updates WHERE id = ? AND status = "pending"',
+      'SELECT * FROM FTI_Original_Membership_Pending_Address_Updates WHERE id = ? AND status = "pending"',
       [id],
     );
 
@@ -64,13 +64,13 @@ export async function POST(request) {
     try {
       // อัปเดตสถานะคำขอเป็น 'rejected' พร้อมเหตุผล
       await dbQuery(
-        'UPDATE pending_address_updates SET status = "rejected", processed_date = NOW(), admin_comment = ?, admin_notes = ? WHERE id = ?',
+        'UPDATE FTI_Original_Membership_Pending_Address_Updates SET status = "rejected", processed_date = NOW(), admin_comment = ?, admin_notes = ? WHERE id = ?',
         [reason, admin_notes || "", id],
       );
 
       // ดึงข้อมูลบริษัทและข้อมูลผู้ใช้เพื่อใช้ในการบันทึก log
       const companyResult = await dbQuery(
-        "SELECT c.company_name, u.firstname, u.lastname, u.email, u.phone FROM companies_Member c LEFT JOIN users u ON c.user_id = u.id WHERE c.MEMBER_CODE = ? LIMIT 1",
+        "SELECT c.company_name, u.firstname, u.lastname, u.email, u.phone FROM FTI_Original_Membership c LEFT JOIN FTI_Portal_User u ON c.user_id = u.id WHERE c.MEMBER_CODE = ? LIMIT 1",
         [addressUpdate.member_code || ""],
       );
       const company_name =
@@ -100,7 +100,7 @@ export async function POST(request) {
       });
 
       await dbQuery(
-        "INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
+        "INSERT INTO FTI_Portal_Admin_Actions_Logs (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, NOW())",
         [
           admin.id,
           "reject_address_update",
@@ -111,7 +111,7 @@ export async function POST(request) {
         ],
       );
 
-      // บันทึกใน Member_portal_User_log (ถ้ามี user_id)
+      // บันทึกใน FTI_Portal_User_Logs (ถ้ามี user_id)
       if (addressUpdate.user_id) {
         try {
           // กำหนดข้อความสั้นๆ สำหรับการปฏิเสธ
@@ -119,7 +119,7 @@ export async function POST(request) {
           const langText = addressUpdate.addr_lang === "en" ? "ภาษาอังกฤษ" : "ภาษาไทย";
 
           await dbQuery(
-            "INSERT INTO Member_portal_User_log (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
+            "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
             [
               addressUpdate.user_id,
               "reject_address_update",
@@ -137,8 +137,8 @@ export async function POST(request) {
         // ดึงข้อมูลผู้ใช้และข้อมูลบริษัทเพื่อส่งอีเมล
         const [user] = await dbQuery(
           `SELECT u.email, u.firstname, u.lastname, c.company_name 
-           FROM users u 
-           LEFT JOIN companies_Member c ON c.MEMBER_CODE = ? 
+           FROM FTI_Portal_User u 
+           LEFT JOIN FTI_Original_Membership c ON c.MEMBER_CODE = ? 
            WHERE u.id = ?`,
           [addressUpdate.member_code, addressUpdate.user_id],
         );

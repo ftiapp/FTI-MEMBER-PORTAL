@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../../lib/db";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
 /**
  * API endpoint to directly update TSIC codes without admin approval
- * This endpoint bypasses the pending_tsic_updates table and writes directly to member_tsic_codes
+ * This endpoint bypasses the FTI_Original_Membership_Pending_Tsic_Updates table and writes directly to FTI_Original_Membership_Member_Tsic_Codes
  */
 export async function POST(request) {
   try {
@@ -63,18 +63,18 @@ export async function POST(request) {
     }
 
     // Validate user ID
-    const userResult = await query("SELECT id, email FROM users WHERE id = ?", [userId]);
+    const userResult = await query("SELECT id, email FROM FTI_Portal_User WHERE id = ?", [userId]);
 
     if (!userResult || userResult.length === 0) {
       // Try to find an admin user as fallback
-      const adminResult = await query("SELECT id, email FROM users WHERE is_admin = 1 LIMIT 1");
+      const adminResult = await query("SELECT id, email FROM FTI_Portal_User WHERE is_admin = 1 LIMIT 1");
 
       if (adminResult && adminResult.length > 0) {
         userId = adminResult[0].id;
         console.log(`Using admin user (ID: ${userId}) as fallback`);
       } else {
         // Last resort: try user ID 1 (system user)
-        const systemUserResult = await query("SELECT id FROM users WHERE id = 1 LIMIT 1");
+        const systemUserResult = await query("SELECT id FROM FTI_Portal_User WHERE id = 1 LIMIT 1");
 
         if (systemUserResult && systemUserResult.length > 0) {
           userId = 1;
@@ -102,7 +102,7 @@ export async function POST(request) {
       // ลบข้อมูลเดิมทั้งหมดก่อนบันทึกข้อมูลใหม่
       console.log(`Deleting all existing TSIC codes for member: ${memberCode}`);
       const deleteQuery = `
-        DELETE FROM member_tsic_codes 
+        DELETE FROM FTI_Original_Membership_Member_Tsic_Codes 
         WHERE member_code = ?
       `;
 
@@ -121,7 +121,7 @@ export async function POST(request) {
         .join(",");
 
       const insertQuery = `
-        INSERT INTO member_tsic_codes 
+        INSERT INTO FTI_Original_Membership_Member_Tsic_Codes 
         (user_id, member_code, category_code, tsic_code, status, created_at, updated_at) 
         VALUES ${insertValues}
       `;
@@ -134,7 +134,7 @@ export async function POST(request) {
       const userAgent = request.headers.get("user-agent") || "unknown";
 
       await query(
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
         (user_id, action, details, ip_address, user_agent, created_at) 
         VALUES (?, ?, ?, ?, ?, NOW())`,
         [

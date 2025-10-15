@@ -1,4 +1,4 @@
-import { query } from "../../../../../lib/db";
+﻿import { query } from "../../../../../lib/db";
 import { getAdminFromSession } from "../../../../../lib/adminAuth";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -69,7 +69,7 @@ export async function DELETE(request) {
 
     // Log action
     await query(
-      `INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, created_at)
+      `INSERT INTO FTI_Portal_Admin_Actions_Logs (admin_id, action_type, target_id, description, created_at)
        VALUES (?, 'Admin_Update_MemberRegist', ?, ?, NOW())`,
       [
         admin.id,

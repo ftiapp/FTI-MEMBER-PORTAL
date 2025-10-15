@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession, logAdminAction } from "../../../lib/adminAuth";
 import { generateToken } from "../../../lib/token";
@@ -25,7 +25,7 @@ export async function POST(request) {
     }
 
     // If admin user with this email already exists, block
-    const existing = await query("SELECT id FROM admin_users WHERE username = ?", [email]);
+    const existing = await query("SELECT id FROM FTI_Portal_Admin_Users WHERE username = ?", [email]);
     if (existing.length > 0) {
       return NextResponse.json(
         { success: false, message: "อีเมลนี้ถูกใช้เป็นผู้ดูแลระบบแล้ว" },
@@ -35,7 +35,7 @@ export async function POST(request) {
 
     // Invalidate any previous active invites for this email
     await query(
-      "UPDATE admin_invitation_tokens SET used = 1, used_at = NOW() WHERE email = ? AND used = 0",
+      "UPDATE FTI_Portal_Admin_Invitation_Tokens SET used = 1, used_at = NOW() WHERE email = ? AND used = 0",
       [email],
     );
 
@@ -44,7 +44,7 @@ export async function POST(request) {
     const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     await query(
-      `INSERT INTO admin_invitation_tokens (email, token, inviter_id, admin_level, can_create, can_update, expires_at)
+      `INSERT INTO FTI_Portal_Admin_Invitation_Tokens (email, token, inviter_id, admin_level, can_create, can_update, expires_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [email, token, admin.id, adminLevel, canCreate ? 1 : 0, canUpdate ? 1 : 0, expiresAt],
     );

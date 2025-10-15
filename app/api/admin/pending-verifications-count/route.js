@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession } from "../../../lib/adminAuth";
 
@@ -13,7 +13,7 @@ export async function GET(request) {
 
     // Query to count pending verifications (Admin_Submit = 0)
     const results = await query(
-      `SELECT COUNT(*) as count FROM companies_Member WHERE Admin_Submit = 0`,
+      `SELECT COUNT(*) as count FROM FTI_Original_Membership WHERE Admin_Submit = 0`,
     );
 
     // The query function returns results directly, not wrapped in an array

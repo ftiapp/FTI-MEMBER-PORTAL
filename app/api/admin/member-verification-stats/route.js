@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -18,7 +18,7 @@ export async function GET(request) {
 
     // Get total count
     const totalResult = await query(`
-      SELECT COUNT(*) as total FROM companies_Member
+      SELECT COUNT(*) as total FROM FTI_Original_Membership
     `);
 
     // Get counts for each verification status with explicit type casting
@@ -28,7 +28,7 @@ export async function GET(request) {
         CAST(Admin_Submit AS SIGNED) as status,
         COUNT(*) as count
       FROM 
-        companies_Member
+        FTI_Original_Membership
       WHERE
         Admin_Submit IS NOT NULL
       GROUP BY 

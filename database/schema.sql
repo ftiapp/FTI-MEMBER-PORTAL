@@ -1,5 +1,5 @@
--- Create users table
-CREATE TABLE users (
+﻿-- Create FTI_Portal_User table
+CREATE TABLE FTI_Portal_User (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -26,7 +26,7 @@ CREATE TABLE companies (
     website VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id)
 );
 
 -- Create documents table
@@ -39,7 +39,7 @@ CREATE TABLE documents (
     status ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id)
 );
 
 -- Create member_types table
@@ -62,7 +62,7 @@ CREATE TABLE memberships (
     payment_status ENUM('pending', 'paid', 'failed') DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (user_id) REFERENCES FTI_Portal_User(id),
     FOREIGN KEY (member_type_id) REFERENCES member_types(id)
 );
 

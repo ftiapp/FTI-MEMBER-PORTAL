@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 import { generateToken } from "@/app/lib/token";
@@ -11,7 +11,7 @@ import {
  * POST /api/admin/change-user-email
  *
  * Initiates the email change process for a user by an admin.
- * This is used when users have lost access to their original email.
+ * This is used when FTI_Portal_User have lost access to their original email.
  *
  * The process:
  * 1. Admin verifies user identity through external means
@@ -45,10 +45,10 @@ export async function POST(request) {
     }
 
     // Check if user exists
-    const userQuery = "SELECT * FROM users WHERE id = ?";
-    const users = await query(userQuery, [userId]);
+    const userQuery = "SELECT * FROM FTI_Portal_User WHERE id = ?";
+    const FTI_Portal_User = await query(userQuery, [userId]);
 
-    if (users.length === 0) {
+    if (FTI_Portal_User.length === 0) {
       return NextResponse.json(
         {
           success: false,
@@ -58,7 +58,7 @@ export async function POST(request) {
       );
     }
 
-    const user = users[0];
+    const user = FTI_Portal_User[0];
 
     if (user.email !== oldEmail) {
       return NextResponse.json(
@@ -71,7 +71,7 @@ export async function POST(request) {
     }
 
     // Check if new email is already in use
-    const emailCheckQuery = "SELECT id FROM users WHERE email = ? AND id != ?";
+    const emailCheckQuery = "SELECT id FROM FTI_Portal_User WHERE email = ? AND id != ?";
     const existingEmails = await query(emailCheckQuery, [newEmail, userId]);
 
     if (existingEmails.length > 0) {
@@ -87,13 +87,13 @@ export async function POST(request) {
     // Check for any pending email changes - handle both with and without status column
     try {
       const pendingCheckQuery =
-        'SELECT id FROM pending_email_changes WHERE user_id = ? AND status = "pending"';
+        'SELECT id FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ? AND status = "pending"';
       const pendingChanges = await query(pendingCheckQuery, [userId]);
 
       if (pendingChanges.length > 0) {
         // Cancel previous pending changes
         await query(
-          'UPDATE pending_email_changes SET status = "cancelled", updated_at = NOW() WHERE user_id = ? AND status = "pending"',
+          'UPDATE FTI_Original_Membership_Pending_Email_Changes SET status = "cancelled", updated_at = NOW() WHERE user_id = ? AND status = "pending"',
           [userId],
         );
       }
@@ -103,12 +103,12 @@ export async function POST(request) {
         error.code === "ER_BAD_FIELD_ERROR" &&
         error.sqlMessage.includes("Unknown column 'status'")
       ) {
-        const pendingCheckQuery = "SELECT id FROM pending_email_changes WHERE user_id = ?";
+        const pendingCheckQuery = "SELECT id FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?";
         const pendingChanges = await query(pendingCheckQuery, [userId]);
 
         if (pendingChanges.length > 0) {
           // Delete previous pending changes since we can't update status
-          await query("DELETE FROM pending_email_changes WHERE user_id = ?", [userId]);
+          await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?", [userId]);
         }
       } else {
         // Re-throw other errors
@@ -129,9 +129,9 @@ export async function POST(request) {
         // Generate a random OTP (it won't be used for admin flow)
         const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
-        // Insert into pending_email_changes table with all columns including otp
+        // Insert into FTI_Original_Membership_Pending_Email_Changes table with all columns including otp
         const insertChangeQuery = `
-          INSERT INTO pending_email_changes (
+          INSERT INTO FTI_Original_Membership_Pending_Email_Changes (
             user_id, old_email, new_email, admin_id, admin_note, status, otp, expires_at, created_at, updated_at
           ) VALUES (?, ?, ?, ?, ?, 'pending', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW(), NOW())
         `;
@@ -153,33 +153,33 @@ export async function POST(request) {
             // Try to add each column individually and catch errors if they already exist
             try {
               await query(
-                `ALTER TABLE pending_email_changes ADD COLUMN status ENUM('pending', 'verified', 'cancelled', 'rejected') DEFAULT 'pending'`,
+                `ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN status ENUM('pending', 'verified', 'cancelled', 'rejected') DEFAULT 'pending'`,
               );
             } catch (e) {
               /* Column might already exist */
             }
 
             try {
-              await query(`ALTER TABLE pending_email_changes ADD COLUMN old_email VARCHAR(255)`);
+              await query(`ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN old_email VARCHAR(255)`);
             } catch (e) {
               /* Column might already exist */
             }
 
             try {
-              await query(`ALTER TABLE pending_email_changes ADD COLUMN admin_id INT`);
+              await query(`ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN admin_id INT`);
             } catch (e) {
               /* Column might already exist */
             }
 
             try {
-              await query(`ALTER TABLE pending_email_changes ADD COLUMN admin_note TEXT`);
+              await query(`ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN admin_note TEXT`);
             } catch (e) {
               /* Column might already exist */
             }
 
             try {
               await query(
-                `ALTER TABLE pending_email_changes ADD COLUMN updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP`,
+                `ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN updated_at TIMESTAMP NULL ON UPDATE CURRENT_TIMESTAMP`,
               );
             } catch (e) {
               /* Column might already exist */
@@ -191,7 +191,7 @@ export async function POST(request) {
             const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
             const insertChangeQuery = `
-              INSERT INTO pending_email_changes (
+              INSERT INTO FTI_Original_Membership_Pending_Email_Changes (
                 user_id, old_email, new_email, admin_id, admin_note, status, otp, expires_at, created_at, updated_at
               ) VALUES (?, ?, ?, ?, ?, 'pending', ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW(), NOW())
             `;
@@ -212,7 +212,7 @@ export async function POST(request) {
             const randomOtp = Math.floor(100000 + Math.random() * 900000).toString();
 
             const basicInsertQuery = `
-              INSERT INTO pending_email_changes (
+              INSERT INTO FTI_Original_Membership_Pending_Email_Changes (
                 user_id, new_email, otp, expires_at, created_at
               ) VALUES (?, ?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE), NOW())
             `;
@@ -227,18 +227,18 @@ export async function POST(request) {
 
       const changeId = changeResult.insertId;
 
-      // Insert into verification_tokens table
+      // Insert into FTI_Portal_User_Verification_Tokens table
       const insertTokenQuery = `
-        INSERT INTO verification_tokens (
+        INSERT INTO FTI_Portal_User_Verification_Tokens (
           token, user_id, token_type, otp, otp_verified, expires_at, used, created_at
         ) VALUES (?, ?, 'new_email_verification', NULL, 0, DATE_ADD(NOW(), INTERVAL 15 MINUTE), 0, NOW())
       `;
 
       await query(insertTokenQuery, [token, userId]);
 
-      // Log the action in Member_portal_User_log
+      // Log the action in FTI_Portal_User_Logs
       const logQuery = `
-        INSERT INTO Member_portal_User_log (
+        INSERT INTO FTI_Portal_User_Logs (
           user_id, action, details, created_at
         ) VALUES (?, 'change_email', ?, NOW())
       `;
@@ -254,7 +254,7 @@ export async function POST(request) {
       await query(logQuery, [userId, logDetails]);
 
       // Mark the email as unverified
-      await query("UPDATE users SET email_verified = 0, updated_at = NOW() WHERE id = ?", [userId]);
+      await query("UPDATE FTI_Portal_User SET email_verified = 0, updated_at = NOW() WHERE id = ?", [userId]);
 
       // Send verification email to the new email address
       await sendAdminEmailChangeVerification(newEmail, user.name, token);

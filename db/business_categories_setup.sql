@@ -1,5 +1,5 @@
--- สร้างตาราง business_categories
-CREATE TABLE IF NOT EXISTS business_categories (
+﻿-- สร้างตาราง MemberRegist_Business_Categories
+CREATE TABLE IF NOT EXISTS MemberRegist_Business_Categories (
   id VARCHAR(50) PRIMARY KEY,
   name_thai VARCHAR(255) NOT NULL,
   name_english VARCHAR(255),
@@ -8,10 +8,10 @@ CREATE TABLE IF NOT EXISTS business_categories (
 );
 
 -- ลบข้อมูลเก่า (ถ้ามี)
-TRUNCATE TABLE business_categories;
+TRUNCATE TABLE MemberRegist_Business_Categories;
 
 -- เพิ่มข้อมูลประเภทธุรกิจ
-INSERT INTO business_categories (id, name_thai, name_english) VALUES
+INSERT INTO MemberRegist_Business_Categories (id, name_thai, name_english) VALUES
 ('manufacturer', 'ผู้ผลิต', 'Manufacturer'),
 ('distributor', 'ผู้จัดจำหน่าย', 'Distributor'),
 ('importer', 'ผู้นำเข้า', 'Importer'),

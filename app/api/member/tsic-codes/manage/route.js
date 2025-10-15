@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../../lib/db";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -81,13 +81,13 @@ export async function POST(request) {
     let userEmail = "";
 
     // Try to find the user with the provided ID
-    const userResult = await query("SELECT id, email FROM users WHERE id = ?", [userId]);
+    const userResult = await query("SELECT id, email FROM FTI_Portal_User WHERE id = ?", [userId]);
 
     if (!userResult || userResult.length === 0) {
       console.log(`User ID ${userId} not found, looking for fallback...`);
 
       // Try to find an admin user as fallback
-      const adminResult = await query("SELECT id, email FROM users WHERE is_admin = 1 LIMIT 1");
+      const adminResult = await query("SELECT id, email FROM FTI_Portal_User WHERE is_admin = 1 LIMIT 1");
 
       if (adminResult && adminResult.length > 0) {
         validUserId = adminResult[0].id;
@@ -95,7 +95,7 @@ export async function POST(request) {
         console.log(`Using admin user (ID: ${validUserId}) as fallback`);
       } else {
         // Try to find any active user as fallback
-        const anyUserResult = await query("SELECT id, email FROM users WHERE active = 1 LIMIT 1");
+        const anyUserResult = await query("SELECT id, email FROM FTI_Portal_User WHERE active = 1 LIMIT 1");
 
         if (anyUserResult && anyUserResult.length > 0) {
           validUserId = anyUserResult[0].id;
@@ -103,7 +103,7 @@ export async function POST(request) {
           console.log(`Using active user (ID: ${validUserId}) as fallback`);
         } else {
           // Last resort: try user ID 1 (system user)
-          const systemUserResult = await query("SELECT id, email FROM users WHERE id = 1 LIMIT 1");
+          const systemUserResult = await query("SELECT id, email FROM FTI_Portal_User WHERE id = 1 LIMIT 1");
 
           if (systemUserResult && systemUserResult.length > 0) {
             validUserId = 1;
@@ -159,7 +159,7 @@ export async function POST(request) {
             const placeholders = validTsicCodes.map(() => "?").join(",");
 
             const existingCodesQuery = `
-              SELECT tsic_code FROM member_tsic_codes 
+              SELECT tsic_code FROM FTI_Original_Membership_Member_Tsic_Codes 
               WHERE member_code = ? AND tsic_code IN (${placeholders})
             `;
 
@@ -218,7 +218,7 @@ export async function POST(request) {
               .join(",");
 
             const insertQuery = `
-              INSERT INTO member_tsic_codes 
+              INSERT INTO FTI_Original_Membership_Member_Tsic_Codes 
               (user_id, member_code, category_code, tsic_code, status, created_at, updated_at) 
               VALUES ${insertValues}
             `;
@@ -235,7 +235,7 @@ export async function POST(request) {
           const logDetails = `User ${userEmail} added ${newCodes.length} TSIC codes for member ${memberCode}: ${newCodes.map((c) => c.tsic_code).join(", ")}`;
 
           await query(
-            `INSERT INTO Member_portal_User_log 
+            `INSERT INTO FTI_Portal_User_Logs 
             (user_id, action, details, ip_address, user_agent, created_at)
             VALUES (?, ?, ?, ?, ?, NOW())`,
             [validUserId, "tsic_code_update", logDetails, ipAddress, userAgent],
@@ -268,7 +268,7 @@ export async function POST(request) {
 
         // Check if the TSIC code already exists for this member
         const existingCode = await query(
-          "SELECT id FROM member_tsic_codes WHERE member_code = ? AND tsic_code = ?",
+          "SELECT id FROM FTI_Original_Membership_Member_Tsic_Codes WHERE member_code = ? AND tsic_code = ?",
           [memberCode, tsicCode],
         );
 
@@ -281,7 +281,7 @@ export async function POST(request) {
 
         // Add new TSIC code
         await query(
-          `INSERT INTO member_tsic_codes 
+          `INSERT INTO FTI_Original_Membership_Member_Tsic_Codes 
           (user_id, member_code, category_code, tsic_code, status, created_at, updated_at) 
           VALUES (?, ?, ?, ?, ?, NOW(), NOW())`,
           [validUserId, memberCode, categoryCode, tsicCode, status !== undefined ? status : 1],
@@ -289,7 +289,7 @@ export async function POST(request) {
 
         // Log the action
         await query(
-          `INSERT INTO Member_portal_User_log 
+          `INSERT INTO FTI_Portal_User_Logs 
           (user_id, action, details, ip_address, user_agent, created_at)
           VALUES (?, ?, ?, ?, ?, NOW())`,
           [
@@ -322,7 +322,7 @@ export async function POST(request) {
 
         // Check if the TSIC code exists
         const codeToUpdate = await query(
-          "SELECT id FROM member_tsic_codes WHERE member_code = ? AND tsic_code = ?",
+          "SELECT id FROM FTI_Original_Membership_Member_Tsic_Codes WHERE member_code = ? AND tsic_code = ?",
           [memberCode, tsicCode],
         );
 
@@ -335,13 +335,13 @@ export async function POST(request) {
 
         // Update TSIC code status
         await query(
-          "UPDATE member_tsic_codes SET status = ?, updated_at = NOW() WHERE member_code = ? AND tsic_code = ?",
+          "UPDATE FTI_Original_Membership_Member_Tsic_Codes SET status = ?, updated_at = NOW() WHERE member_code = ? AND tsic_code = ?",
           [status, memberCode, tsicCode],
         );
 
         // Log the action
         await query(
-          `INSERT INTO Member_portal_User_log 
+          `INSERT INTO FTI_Portal_User_Logs 
           (user_id, action, details, ip_address, user_agent, created_at)
           VALUES (?, ?, ?, ?, ?, NOW())`,
           [
@@ -370,7 +370,7 @@ export async function POST(request) {
 
         // Check if the TSIC code exists
         const codeToDelete = await query(
-          "SELECT id FROM member_tsic_codes WHERE member_code = ? AND tsic_code = ?",
+          "SELECT id FROM FTI_Original_Membership_Member_Tsic_Codes WHERE member_code = ? AND tsic_code = ?",
           [memberCode, tsicCode],
         );
 
@@ -382,14 +382,14 @@ export async function POST(request) {
         }
 
         // Delete TSIC code
-        await query("DELETE FROM member_tsic_codes WHERE member_code = ? AND tsic_code = ?", [
+        await query("DELETE FROM FTI_Original_Membership_Member_Tsic_Codes WHERE member_code = ? AND tsic_code = ?", [
           memberCode,
           tsicCode,
         ]);
 
         // Log the action
         await query(
-          `INSERT INTO Member_portal_User_log 
+          `INSERT INTO FTI_Portal_User_Logs 
           (user_id, action, details, ip_address, user_agent, created_at)
           VALUES (?, ?, ?, ?, ?, NOW())`,
           [

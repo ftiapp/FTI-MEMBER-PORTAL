@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
@@ -76,15 +76,15 @@ export async function GET(request) {
           ${tableName}.status, 
           ${tableName}.created_at as createdAt,
           ${tableName}.user_id,
-          users.firstname,
-          users.lastname,
-          users.email,
-          users.phone
+          FTI_Portal_User.firstname,
+          FTI_Portal_User.lastname,
+          FTI_Portal_User.email,
+          FTI_Portal_User.phone
         FROM ${tableName} 
-        LEFT JOIN users ON ${tableName}.user_id = users.id
+        LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id
         WHERE 1=1`;
 
-        let countQuery = `SELECT COUNT(*) as count FROM ${tableName} LEFT JOIN users ON ${tableName}.user_id = users.id WHERE 1=1`;
+        let countQuery = `SELECT COUNT(*) as count FROM ${tableName} LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id WHERE 1=1`;
 
         let queryParams = [];
         let countQueryParams = [];
@@ -99,8 +99,8 @@ export async function GET(request) {
 
         // Add search filter if specified (also search by applicant email/phone)
         if (search) {
-          query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ? OR users.phone LIKE ?)`;
-          countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR users.email LIKE ? OR users.phone LIKE ?)`;
+          query += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR FTI_Portal_User.email LIKE ? OR FTI_Portal_User.phone LIKE ?)`;
+          countQuery += ` AND (${nameThField} LIKE ? OR ${nameEnField} LIKE ? OR ${idTypeField} LIKE ? OR FTI_Portal_User.email LIKE ? OR FTI_Portal_User.phone LIKE ?)`;
           const searchPattern = `%${search}%`;
           queryParams.push(
             searchPattern,
@@ -138,15 +138,15 @@ export async function GET(request) {
           MemberRegist_IC_Main.status, 
           MemberRegist_IC_Main.created_at as createdAt,
           MemberRegist_IC_Main.user_id,
-          users.firstname,
-          users.lastname,
-          users.email,
-          users.phone
+          FTI_Portal_User.firstname,
+          FTI_Portal_User.lastname,
+          FTI_Portal_User.email,
+          FTI_Portal_User.phone
         FROM MemberRegist_IC_Main 
-        LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id
+        LEFT JOIN FTI_Portal_User ON MemberRegist_IC_Main.user_id = FTI_Portal_User.id
         WHERE 1=1`;
 
-        let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main LEFT JOIN users ON MemberRegist_IC_Main.user_id = users.id WHERE 1=1`;
+        let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main LEFT JOIN FTI_Portal_User ON MemberRegist_IC_Main.user_id = FTI_Portal_User.id WHERE 1=1`;
 
         let queryParams = [];
         let countQueryParams = [];
@@ -161,8 +161,8 @@ export async function GET(request) {
 
         // Add search filter if specified (also search by applicant email/phone)
         if (search) {
-          query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ? OR users.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
-          countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR users.email LIKE ? OR users.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
+          query += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR FTI_Portal_User.email LIKE ? OR FTI_Portal_User.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
+          countQuery += ` AND (first_name_th LIKE ? OR last_name_th LIKE ? OR first_name_en LIKE ? OR last_name_en LIKE ? OR id_card_number LIKE ? OR FTI_Portal_User.email LIKE ? OR FTI_Portal_User.phone LIKE ? OR MemberRegist_IC_Main.phone LIKE ?)`;
           const searchPattern = `%${search}%`;
           queryParams.push(
             searchPattern,

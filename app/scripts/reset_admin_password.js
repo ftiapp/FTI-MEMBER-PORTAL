@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import bcrypt from "bcrypt";
 import { query } from "../lib/db";
@@ -15,7 +15,7 @@ export async function resetSuperAdminPassword() {
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // อัปเดตรหัสผ่านสำหรับ admin ที่มี admin_level = 5
-    const result = await query("UPDATE admin_users SET password = ? WHERE admin_level = 5", [
+    const result = await query("UPDATE FTI_Portal_Admin_Users SET password = ? WHERE admin_level = 5", [
       hashedPassword,
     ]);
 

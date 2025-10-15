@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { query } from "@/app/lib/db";
@@ -32,7 +32,7 @@ export async function POST(request) {
     console.log("Marking notification as read:", { notificationId, userId });
 
     await query(
-      `UPDATE notifications 
+      `UPDATE FTI_Portal_User_Notifications 
        SET read_at = NOW(), updated_at = NOW() 
        WHERE id = ? AND user_id = ? AND read_at IS NULL`,
       [notificationId, userId],

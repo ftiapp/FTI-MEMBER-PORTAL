@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import * as db from "../../../lib/db";
 
 export async function POST(req) {
@@ -21,7 +21,7 @@ export async function POST(req) {
       console.log("[log-login] Logging LOGIN event");
       try {
         const result = await db.query(
-          "INSERT INTO user_login_logs (user_id, event_type, ip_address, user_agent, session_id, login_time) VALUES (?, ?, ?, ?, ?, NOW())",
+          "INSERT INTO FTI_Portal_User_Login_Logs (user_id, event_type, ip_address, user_agent, session_id, login_time) VALUES (?, ?, ?, ?, ?, NOW())",
           [user_id, "login", ip_address, user_agent, session_id],
         );
         if (!result || (result.affectedRows !== undefined && result.affectedRows === 0)) {
@@ -36,7 +36,7 @@ export async function POST(req) {
     } else if (event_type === "logout" || event_type === "timeout") {
       console.log(`[log-login] Logging ${event_type.toUpperCase()} event`);
       await db.query(
-        `UPDATE user_login_logs SET logout_time = NOW(), event_type = ? WHERE user_id = ? AND session_id = ? AND logout_time IS NULL`,
+        `UPDATE FTI_Portal_User_Login_Logs SET logout_time = NOW(), event_type = ? WHERE user_id = ? AND session_id = ? AND logout_time IS NULL`,
         [event_type, user_id, session_id],
       );
       console.log(`[log-login] ${event_type.toUpperCase()} event logged`);

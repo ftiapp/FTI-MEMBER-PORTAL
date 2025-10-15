@@ -1,5 +1,5 @@
--- Create table for admin invitation tokens
-CREATE TABLE IF NOT EXISTS admin_invitation_tokens (
+﻿-- Create table for admin invitation tokens
+CREATE TABLE IF NOT EXISTS FTI_Portal_Admin_Invitation_Tokens (
   id INT AUTO_INCREMENT PRIMARY KEY,
   email VARCHAR(255) NOT NULL,
   token VARCHAR(128) NOT NULL UNIQUE,
@@ -11,8 +11,8 @@ CREATE TABLE IF NOT EXISTS admin_invitation_tokens (
   used TINYINT(1) NOT NULL DEFAULT 0,
   used_at DATETIME NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT fk_admin_inviter FOREIGN KEY (inviter_id) REFERENCES admin_users(id)
+  CONSTRAINT fk_admin_inviter FOREIGN KEY (inviter_id) REFERENCES FTI_Portal_Admin_Users(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE INDEX idx_admin_invitation_email ON admin_invitation_tokens(email);
-CREATE INDEX idx_admin_invitation_expires_used ON admin_invitation_tokens(expires_at, used);
+CREATE INDEX idx_admin_invitation_email ON FTI_Portal_Admin_Invitation_Tokens(email);
+CREATE INDEX idx_admin_invitation_expires_used ON FTI_Portal_Admin_Invitation_Tokens(expires_at, used);

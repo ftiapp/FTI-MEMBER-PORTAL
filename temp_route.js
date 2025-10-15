@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -19,15 +19,15 @@ export async function GET() {
 
     console.log("Admin authenticated:", admin.username);
 
-    // ตรวจสอบว่ามีตาราง pending_address_updates หรือไม่
+    // ตรวจสอบว่ามีตาราง FTI_Original_Membership_Pending_Address_Updates หรือไม่
     try {
       // ตรวจสอบว่ามีตารางหรือไม่
       const tableCheck = await query(
-        "SELECT COUNT(*) as table_exists FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'pending_address_updates'",
+        "SELECT COUNT(*) as table_exists FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'FTI_Original_Membership_Pending_Address_Updates'",
       );
 
       if (!tableCheck || !tableCheck[0] || tableCheck[0].table_exists === 0) {
-        console.log("Table pending_address_updates does not exist");
+        console.log("Table FTI_Original_Membership_Pending_Address_Updates does not exist");
         // สร้างข้อมูลจำลองสำหรับการทดสอบ
         return NextResponse.json({
           success: true,
@@ -47,9 +47,9 @@ export async function GET() {
           pau.status,
           c.company_name
         FROM 
-          pending_address_updates pau
+          FTI_Original_Membership_Pending_Address_Updates pau
         LEFT JOIN 
-          companies_Member c ON pau.member_code = c.MEMBER_CODE
+          FTI_Original_Membership c ON pau.member_code = c.MEMBER_CODE
         WHERE 
           pau.status = 'pending'
         ORDER BY 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
@@ -40,15 +40,15 @@ export async function GET(request) {
       );
     }
 
-    // Check if the company_logos table exists
+    // Check if the FTI_Original_Membership_Company_Logos table exists
     try {
-      await query("SELECT 1 FROM company_logos LIMIT 1");
+      await query("SELECT 1 FROM FTI_Original_Membership_Company_Logos LIMIT 1");
     } catch (err) {
       // If the table doesn't exist, create it
-      console.log("company_logos table does not exist, creating it:", err.message);
+      console.log("FTI_Original_Membership_Company_Logos table does not exist, creating it:", err.message);
       try {
         await query(`
-          CREATE TABLE IF NOT EXISTS company_logos (
+          CREATE TABLE IF NOT EXISTS FTI_Original_Membership_Company_Logos (
             id int(11) NOT NULL AUTO_INCREMENT,
             member_code varchar(20) NOT NULL COMMENT 'รหัสสมาชิก',
             logo_url text NOT NULL COMMENT 'URL ของโลโก้บน Cloudinary',
@@ -62,9 +62,9 @@ export async function GET(request) {
         `);
         return NextResponse.json({ success: true, data: null });
       } catch (createErr) {
-        console.error("Error creating company_logos table:", createErr);
+        console.error("Error creating FTI_Original_Membership_Company_Logos table:", createErr);
         return NextResponse.json(
-          { success: false, error: "เกิดข้อผิดพลาดในการสร้างตาราง company_logos" },
+          { success: false, error: "เกิดข้อผิดพลาดในการสร้างตาราง FTI_Original_Membership_Company_Logos" },
           { status: 500 },
         );
       }
@@ -72,7 +72,7 @@ export async function GET(request) {
 
     // Fetch logo data for the member
     const logoData = await query(
-      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM company_logos WHERE member_code = ?",
+      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM FTI_Original_Membership_Company_Logos WHERE member_code = ?",
       [memberCode],
     );
 

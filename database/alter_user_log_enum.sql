@@ -1,8 +1,8 @@
--- ALTER TABLE to add new membership submission actions to Member_portal_User_log
+﻿-- ALTER TABLE to add new membership submission actions to FTI_Portal_User_Logs
 -- This script adds new action values for membership submissions
 
 -- Add new action values for membership submissions
-ALTER TABLE Member_portal_User_log 
+ALTER TABLE FTI_Portal_User_Logs 
 MODIFY COLUMN action ENUM(
   'member_verification',
   'document_upload', 

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 import { verify } from "jsonwebtoken";
@@ -44,7 +44,7 @@ export async function POST(request) {
     }
 
     // Verify the message exists and belongs to this user
-    const messages = await query(`SELECT * FROM contact_messages WHERE id = ? AND user_id = ?`, [
+    const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ? AND user_id = ?`, [
       messageId,
       userId,
     ]);
@@ -61,7 +61,7 @@ export async function POST(request) {
     // Insert user reply into database
     try {
       await query(
-        `INSERT INTO contact_message_replies 
+        `INSERT INTO FTI_Portal_User_Contact_Message_Replies 
          (message_id, regular_user_id, reply_type, reply_text) 
          VALUES (?, ?, 'user', ?)`,
         [messageId, userId, replyText],
@@ -76,7 +76,7 @@ export async function POST(request) {
 
     // Update the status of the original message to 'user_replied'
     await query(
-      `UPDATE contact_messages 
+      `UPDATE FTI_Portal_User_Contact_Messages 
        SET status = 'user_replied', updated_at = NOW() 
        WHERE id = ?`,
       [messageId],
@@ -84,7 +84,7 @@ export async function POST(request) {
 
     // Log the activity
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
        (user_id, action, details, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, NOW())`,
       [
@@ -105,7 +105,7 @@ export async function POST(request) {
       // We don't have a specific admin ID to notify, so we'll create a system notification
       // that will be visible to all admins when they view the contact messages
       await query(
-        `UPDATE contact_messages 
+        `UPDATE FTI_Portal_User_Contact_Messages 
          SET has_new_reply = 1 
          WHERE id = ?`,
         [messageId],

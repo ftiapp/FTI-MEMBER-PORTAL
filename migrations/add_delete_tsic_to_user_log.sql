@@ -1,5 +1,5 @@
--- เพิ่ม delete_tsic เข้าไปในคอลัมน์ action ของตาราง Member_portal_User_log
-ALTER TABLE Member_portal_User_log 
+﻿-- เพิ่ม delete_tsic เข้าไปในคอลัมน์ action ของตาราง FTI_Portal_User_Logs
+ALTER TABLE FTI_Portal_User_Logs 
 MODIFY COLUMN action ENUM(
   'member_verification',
   'document_upload',

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 import { query as dbQuery } from "@/app/lib/db";
 
@@ -44,9 +44,9 @@ export async function GET(request) {
     // นับจำนวนรายการทั้งหมด
     let countSQL = `
       SELECT COUNT(*) as total 
-      FROM pending_address_updates pau 
-      LEFT JOIN companies_Member cm ON pau.member_code = cm.MEMBER_CODE 
-      LEFT JOIN users u ON pau.user_id = u.id 
+      FROM FTI_Original_Membership_Pending_Address_Updates pau 
+      LEFT JOIN FTI_Original_Membership cm ON pau.member_code = cm.MEMBER_CODE 
+      LEFT JOIN FTI_Portal_User u ON pau.user_id = u.id 
       ${whereSQL}
     `;
 
@@ -80,9 +80,9 @@ export async function GET(request) {
         u.lastname,
         u.email,
         u.phone
-      FROM pending_address_updates pau
-      LEFT JOIN companies_Member cm ON pau.member_code = cm.MEMBER_CODE
-      LEFT JOIN users u ON pau.user_id = u.id
+      FROM FTI_Original_Membership_Pending_Address_Updates pau
+      LEFT JOIN FTI_Original_Membership cm ON pau.member_code = cm.MEMBER_CODE
+      LEFT JOIN FTI_Portal_User u ON pau.user_id = u.id
       ${whereSQL}
       ORDER BY pau.request_date DESC
       LIMIT ?

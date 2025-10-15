@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import {
   query,
   beginTransaction,
@@ -60,7 +60,7 @@ export async function DELETE(request) {
     // Get logo information before deleting
     const logoResult = await executeQuery(
       connection,
-      "SELECT member_code, public_id FROM company_logos WHERE id = ?",
+      "SELECT member_code, public_id FROM FTI_Original_Membership_Company_Logos WHERE id = ?",
       [logoId],
     );
 
@@ -86,9 +86,9 @@ export async function DELETE(request) {
     }
 
     // Delete logo record from database
-    await executeQuery(connection, "DELETE FROM company_logos WHERE id = ?", [logoId]);
+    await executeQuery(connection, "DELETE FROM FTI_Original_Membership_Company_Logos WHERE id = ?", [logoId]);
 
-    // Log the action in Member_portal_User_log
+    // Log the action in FTI_Portal_User_Logs
     try {
       // Get client IP and user agent from headers
       const forwardedFor = request.headers.get("x-forwarded-for");
@@ -101,7 +101,7 @@ export async function DELETE(request) {
         // ตรวจสอบว่า userId มีอยู่จริงในฐานข้อมูล (เฉพาะเมื่อ userId มีค่า)
         const userCheckQuery = await executeQuery(
           connection,
-          "SELECT id FROM users WHERE id = ? LIMIT 1",
+          "SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1",
           [userId],
         );
 
@@ -117,7 +117,7 @@ export async function DELETE(request) {
         // ค้นหา user ที่เป็น admin
         const adminUserQuery = await executeQuery(
           connection,
-          'SELECT id FROM users WHERE role = "admin" LIMIT 1',
+          'SELECT id FROM FTI_Portal_User WHERE role = "admin" LIMIT 1',
         );
 
         if (adminUserQuery.length > 0) {
@@ -127,7 +127,7 @@ export async function DELETE(request) {
           // ค้นหา user คนแรกในระบบ
           const anyUserQuery = await executeQuery(
             connection,
-            "SELECT id FROM users ORDER BY id LIMIT 1",
+            "SELECT id FROM FTI_Portal_User ORDER BY id LIMIT 1",
           );
 
           if (anyUserQuery.length > 0) {
@@ -135,15 +135,15 @@ export async function DELETE(request) {
             console.log(`Using first available user ID: ${validUserId}`);
           } else {
             // ถ้าไม่มี user ในระบบเลย ให้ข้ามการบันทึก log
-            console.error("No users found in database, skipping log entry");
-            throw new Error("No users found in database");
+            console.error("No FTI_Portal_User found in database, skipping log entry");
+            throw new Error("No FTI_Portal_User found in database");
           }
         }
       }
 
       await executeQuery(
         connection,
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
          (user_id, action, details, ip_address, user_agent, created_at) 
          VALUES (?, ?, ?, ?, ?, NOW())`,
         [
@@ -155,7 +155,7 @@ export async function DELETE(request) {
         ],
       );
     } catch (err) {
-      console.error("Error logging action to Member_portal_User_log:", err);
+      console.error("Error logging action to FTI_Portal_User_Logs:", err);
       // Continue anyway, this is not critical
     }
 

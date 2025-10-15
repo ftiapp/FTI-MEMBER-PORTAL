@@ -1,4 +1,4 @@
-// /api/admin/settings/route.js
+﻿// /api/admin/settings/route.js
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 
@@ -15,7 +15,7 @@ const defaultSettings = {
     maxLoginAttempts: 5,
     twoFactorAuth: false,
   },
-  notifications: {
+  FTI_Portal_User_Notifications: {
     emailNotifications: true,
     adminAlerts: true,
     dailyDigest: false,

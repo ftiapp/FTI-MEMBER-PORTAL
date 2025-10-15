@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import {
   query,
   beginTransaction,
@@ -98,7 +98,7 @@ export async function POST(request) {
     );
 
     // Upload to Cloudinary
-    const uploadResult = await uploadToCloudinary(fileBuffer, fileName, "company_logos");
+    const uploadResult = await uploadToCloudinary(fileBuffer, fileName, "FTI_Original_Membership_Company_Logos");
 
     // Check if upload was successful
     if (!uploadResult.success) {
@@ -129,7 +129,7 @@ export async function POST(request) {
     // Check if there's an existing logo for this member
     const existingLogo = await executeQuery(
       connection,
-      "SELECT id, public_id FROM company_logos WHERE member_code = ?",
+      "SELECT id, public_id FROM FTI_Original_Membership_Company_Logos WHERE member_code = ?",
       [memberCode],
     );
 
@@ -151,18 +151,18 @@ export async function POST(request) {
     if (existingLogo.length > 0) {
       await executeQuery(
         connection,
-        "UPDATE company_logos SET logo_url = ?, public_id = ?, display_mode = ?, updated_at = NOW() WHERE member_code = ?",
+        "UPDATE FTI_Original_Membership_Company_Logos SET logo_url = ?, public_id = ?, display_mode = ?, updated_at = NOW() WHERE member_code = ?",
         [uploadResult.url, uploadResult.public_id, displayMode, memberCode],
       );
     } else {
       await executeQuery(
         connection,
-        "INSERT INTO company_logos (member_code, logo_url, public_id, display_mode) VALUES (?, ?, ?, ?)",
+        "INSERT INTO FTI_Original_Membership_Company_Logos (member_code, logo_url, public_id, display_mode) VALUES (?, ?, ?, ?)",
         [memberCode, uploadResult.url, uploadResult.public_id, displayMode],
       );
     }
 
-    // Log the action in Member_portal_User_log
+    // Log the action in FTI_Portal_User_Logs
     try {
       // Get client IP and user agent from headers
       const forwardedFor = request.headers.get("x-forwarded-for");
@@ -178,7 +178,7 @@ export async function POST(request) {
       // ตรวจสอบว่า userId มีอยู่จริงในฐานข้อมูล
       const userCheckQuery = await executeQuery(
         connection,
-        "SELECT id FROM users WHERE id = ? LIMIT 1",
+        "SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1",
         [userId],
       );
 
@@ -194,7 +194,7 @@ export async function POST(request) {
         // ค้นหา user ที่เป็น admin
         const adminUserQuery = await executeQuery(
           connection,
-          'SELECT id FROM users WHERE role = "admin" LIMIT 1',
+          'SELECT id FROM FTI_Portal_User WHERE role = "admin" LIMIT 1',
         );
 
         if (adminUserQuery.length > 0) {
@@ -204,7 +204,7 @@ export async function POST(request) {
           // ค้นหา user คนแรกในระบบ
           const anyUserQuery = await executeQuery(
             connection,
-            "SELECT id FROM users ORDER BY id LIMIT 1",
+            "SELECT id FROM FTI_Portal_User ORDER BY id LIMIT 1",
           );
 
           if (anyUserQuery.length > 0) {
@@ -212,21 +212,42 @@ export async function POST(request) {
             console.log(`Using first available user ID: ${validUserId}`);
           } else {
             // ถ้าไม่มี user ในระบบเลย ให้ข้ามการบันทึก log
-            console.error("No users found in database, skipping log entry");
-            throw new Error("No users found in database");
+            console.error("No FTI_Portal_User found in database, skipping log entry");
+            throw new Error("No FTI_Portal_User found in database");
           }
         }
       }
 
+      // ตรวจสอบว่าทุกค่าไม่เป็น undefined ก่อนบันทึก
+      const logParams = [
+        validUserId || null,
+        action || null,
+        details || null,
+        ip || null,
+        userAgent || null,
+      ];
+
+      // ตรวจสอบว่ามี undefined หรือไม่
+      if (logParams.some(param => param === undefined)) {
+        console.error("Found undefined in log parameters:", {
+          validUserId,
+          action,
+          details,
+          ip,
+          userAgent,
+        });
+        throw new Error("Cannot log with undefined parameters");
+      }
+
       await executeQuery(
         connection,
-        `INSERT INTO Member_portal_User_log 
+        `INSERT INTO FTI_Portal_User_Logs 
          (user_id, action, details, ip_address, user_agent, created_at) 
          VALUES (?, ?, ?, ?, ?, NOW())`,
-        [validUserId, action, details, ip, userAgent],
+        logParams,
       );
     } catch (err) {
-      console.error("Error logging action to Member_portal_User_log:", err);
+      console.error("Error logging action to FTI_Portal_User_Logs:", err);
       // Continue anyway, this is not critical
     }
 
@@ -236,7 +257,7 @@ export async function POST(request) {
 
     // Fetch the updated logo data
     const updatedLogo = await query(
-      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM company_logos WHERE member_code = ?",
+      "SELECT id, member_code, logo_url, public_id, display_mode, created_at, updated_at FROM FTI_Original_Membership_Company_Logos WHERE member_code = ?",
       [memberCode],
     );
 

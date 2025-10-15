@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function POST(request) {
@@ -26,7 +26,7 @@ export async function POST(request) {
     }
 
     // Get user by email
-    const userData = await query("SELECT id, email FROM users WHERE email = ?", [email]);
+    const userData = await query("SELECT id, email FROM FTI_Portal_User WHERE email = ?", [email]);
 
     if (!userData || userData.length === 0) {
       return NextResponse.json({ success: false, message: "User not found" }, { status: 404 });
@@ -37,19 +37,19 @@ export async function POST(request) {
 
     // Check for existing pending requests
     const existingRequests = await query(
-      'SELECT id FROM pending_tsic_updates WHERE user_id = ? AND member_code = ? AND status = "pending"',
+      'SELECT id FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE user_id = ? AND member_code = ? AND status = "pending"',
       [userId, memberCode],
     );
 
     // If there's an existing pending request, delete it
     if (existingRequests && existingRequests.length > 0) {
-      await query("DELETE FROM pending_tsic_updates WHERE id = ?", [existingRequests[0].id]);
+      await query("DELETE FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE id = ?", [existingRequests[0].id]);
     }
 
-    // Insert new TSIC request into pending_tsic_updates
+    // Insert new TSIC request into FTI_Original_Membership_Pending_Tsic_Updates
     const tsicData = JSON.stringify(selectedTsicCodes);
     await query(
-      `INSERT INTO pending_tsic_updates 
+      `INSERT INTO FTI_Original_Membership_Pending_Tsic_Updates 
       (user_id, member_code, tsic_data, request_date, status, created_at, updated_at) 
       VALUES (?, ?, ?, NOW(), 'pending', NOW(), NOW())`,
       [userId, memberCode, tsicData],
@@ -60,7 +60,7 @@ export async function POST(request) {
     const userAgent = request.headers.get("user-agent") || "unknown";
 
     await query(
-      `INSERT INTO Member_portal_User_log 
+      `INSERT INTO FTI_Portal_User_Logs 
       (user_id, action, details, ip_address, user_agent, created_at)
       VALUES (?, ?, ?, ?, ?, NOW())`,
       [

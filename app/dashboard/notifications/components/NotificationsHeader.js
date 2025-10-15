@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import Link from "next/link";
 import { FaArrowLeft, FaCheck } from "react-icons/fa";
 
@@ -14,7 +14,7 @@ const fadeInUp = {
   },
 };
 
-const NotificationsHeader = ({ notifications, markAllAsRead, startIndex, endIndex }) => {
+const NotificationsHeader = ({ FTI_Portal_User_Notifications, markAllAsRead, startIndex, endIndex }) => {
   return (
     <motion.div
       className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 relative z-[100]"
@@ -35,7 +35,7 @@ const NotificationsHeader = ({ notifications, markAllAsRead, startIndex, endInde
             การแจ้งเตือนทั้งหมด
           </h2>
         </div>
-        {notifications.length > 0 && (
+        {FTI_Portal_User_Notifications.length > 0 && (
           <button
             onClick={markAllAsRead}
             className="text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 px-3 py-1 rounded-full flex items-center gap-1 transition-colors"
@@ -48,10 +48,10 @@ const NotificationsHeader = ({ notifications, markAllAsRead, startIndex, endInde
       </div>
 
       {/* Pagination Info */}
-      {notifications.length > 0 && (
+      {FTI_Portal_User_Notifications.length > 0 && (
         <div className="text-sm text-gray-600">
-          แสดงผล {startIndex + 1}-{Math.min(endIndex, notifications.length)} จาก{" "}
-          {notifications.length} รายการ
+          แสดงผล {startIndex + 1}-{Math.min(endIndex, FTI_Portal_User_Notifications.length)} จาก{" "}
+          {FTI_Portal_User_Notifications.length} รายการ
         </div>
       )}
     </motion.div>

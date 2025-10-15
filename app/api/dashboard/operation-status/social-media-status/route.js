@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { executeQuery, getConnection } from "@/app/lib/db";
@@ -56,7 +56,7 @@ export async function GET(request) {
     // First, get member codes associated with this user
     const memberQuery = `
       SELECT MEMBER_CODE 
-      FROM companies_Member 
+      FROM FTI_Original_Membership 
       WHERE user_id = ?
     `;
 
@@ -88,8 +88,8 @@ export async function GET(request) {
     const socialMediaQuery = `
       SELECT sm.id, sm.member_code, sm.platform, sm.url, sm.display_name, sm.created_at, 
              c.COMPANY_NAME as company_name
-      FROM member_social_media sm
-      LEFT JOIN companies_Member c ON sm.member_code = c.MEMBER_CODE
+      FROM FTI_Original_Membership_Member_Social_Media sm
+      LEFT JOIN FTI_Original_Membership c ON sm.member_code = c.MEMBER_CODE
       WHERE sm.member_code IN (${placeholders})
       ORDER BY sm.created_at DESC
     `;

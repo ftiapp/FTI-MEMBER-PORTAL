@@ -1,11 +1,11 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
-// Returns all MEMBER_CODE with Admin_Submit 0 (pending) or 1 (approved) across all users
+// Returns all MEMBER_CODE with Admin_Submit 0 (pending) or 1 (approved) across all FTI_Portal_User
 export async function GET() {
   try {
     const rows = await query(
-      `SELECT MEMBER_CODE, Admin_Submit FROM companies_Member WHERE Admin_Submit IN (0, 1)`,
+      `SELECT MEMBER_CODE, Admin_Submit FROM FTI_Original_Membership WHERE Admin_Submit IN (0, 1)`,
     );
 
     const map = {};

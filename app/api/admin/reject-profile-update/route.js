@@ -1,4 +1,4 @@
-import { query } from "../../../lib/db";
+﻿import { query } from "../../../lib/db";
 import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../lib/adminAuth";
 import { getClientIp } from "../../../lib/utils";
@@ -21,7 +21,7 @@ export async function POST(request) {
 
     // Get request details
     const requests = await query(
-      'SELECT * FROM profile_update_requests WHERE id = ? AND status = "pending"',
+      'SELECT * FROM FTI_Portal_User_Profile_Update_Requests WHERE id = ? AND status = "pending"',
       [requestId],
     );
 
@@ -34,7 +34,7 @@ export async function POST(request) {
 
     // Update request status
     await query(
-      `UPDATE profile_update_requests 
+      `UPDATE FTI_Portal_User_Profile_Update_Requests 
        SET status = "rejected", reject_reason = ?, admin_id = ?, admin_comment = ?, updated_at = NOW() 
        WHERE id = ?`,
       [reason, admin.id, comment || null, requestId],
@@ -46,7 +46,7 @@ export async function POST(request) {
 
     // Log admin action
     await query(
-      `INSERT INTO admin_actions_log 
+      `INSERT INTO FTI_Portal_Admin_Actions_Logs 
        (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
@@ -81,7 +81,7 @@ export async function POST(request) {
     // ส่งอีเมลแจ้งเตือนผู้ใช้
     try {
       // ดึงข้อมูลผู้ใช้
-      const userData = await query("SELECT email, firstname, lastname FROM users WHERE id = ?", [userId]);
+      const userData = await query("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [userId]);
       if (userData && userData.length > 0 && userData[0].email) {
         await sendProfileUpdateRejectionEmail(
           userData[0].email,

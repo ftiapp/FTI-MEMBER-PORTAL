@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { sendExistingMemberVerificationEmail } from "../../../lib/postmark";
 
@@ -23,7 +23,7 @@ export async function POST(request) {
 
     // Get user information from database
     const userResult = await query(
-      `SELECT id, firstname, lastname, email FROM users WHERE id = ?`,
+      `SELECT id, firstname, lastname, email FROM FTI_Portal_User WHERE id = ?`,
       [userId],
     );
 

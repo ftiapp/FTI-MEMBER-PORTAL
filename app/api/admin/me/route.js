@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../lib/adminAuth";
 import { query } from "../../../lib/db";
 
@@ -14,7 +14,7 @@ export async function GET() {
     // Fetch additional admin details from database if needed
     const admins = await query(
       `SELECT id, username, admin_level, is_active, can_create, can_update 
-       FROM admin_users 
+       FROM FTI_Portal_Admin_Users 
        WHERE id = ? AND is_active = TRUE 
        LIMIT 1`,
       [adminSession.id],

@@ -248,7 +248,7 @@ export async function GET(request, { params }) {
                CONCAT(m.first_name_th, ' ', m.last_name_th) AS company_name,
                m.id_card_number AS tax_id
         FROM MemberRegist_IC_Main m
-        INNER JOIN users u ON u.id = m.user_id
+        INNER JOIN FTI_Portal_User u ON u.id = m.user_id
         WHERE m.id = ?`;
     } else {
       const tableMap = {
@@ -264,7 +264,7 @@ export async function GET(request, { params }) {
                m.company_name_th AS company_name,
                m.tax_id AS tax_id
         FROM ${table} m
-        INNER JOIN users u ON u.id = m.user_id
+        INNER JOIN FTI_Portal_User u ON u.id = m.user_id
         WHERE m.id = ?`;
     }
 
@@ -425,7 +425,7 @@ export async function POST(request, { params }) {
                    NULL AS member_code,
                    m.id_card_number AS tax_id
             FROM MemberRegist_IC_Main m
-            INNER JOIN users u ON u.id = m.user_id
+            INNER JOIN FTI_Portal_User u ON u.id = m.user_id
             WHERE m.id = ?`;
         } else {
           // For OC, AM, AC: send to users.email by user_id
@@ -443,7 +443,7 @@ export async function POST(request, { params }) {
                    m.member_code AS member_code,
                    m.tax_id AS tax_id
             FROM ${table} m
-            INNER JOIN users u ON u.id = m.user_id
+            INNER JOIN FTI_Portal_User u ON u.id = m.user_id
             WHERE m.id = ?`;
         }
 

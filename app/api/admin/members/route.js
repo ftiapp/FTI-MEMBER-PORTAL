@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -72,8 +72,8 @@ export async function GET(request) {
     // Get total count for pagination
     const countResult = await query(
       `SELECT COUNT(*) as total
-       FROM companies_Member cm
-       JOIN users u ON cm.user_id = u.id
+       FROM FTI_Original_Membership cm
+       JOIN FTI_Portal_User u ON cm.user_id = u.id
        ${whereSql}`,
       whereParams,
     );
@@ -85,8 +85,8 @@ export async function GET(request) {
     // Convert limit and offset to numbers to avoid MySQL prepared statement issues
     const membersResult = await query(
       `SELECT cm.*, u.email, u.name, u.firstname, u.lastname, u.phone
-       FROM companies_Member cm
-       JOIN users u ON cm.user_id = u.id
+       FROM FTI_Original_Membership cm
+       JOIN FTI_Portal_User u ON cm.user_id = u.id
        ${whereSql}
        ORDER BY ${sortFieldSql} ${sortOrderParam}
        LIMIT ${parseInt(limit)} OFFSET ${parseInt(offset)}`,
@@ -98,7 +98,7 @@ export async function GET(request) {
       membersResult.map(async (member) => {
         const documents = await query(
           `SELECT id, MEMBER_CODE, file_name, file_path, status, Admin_Submit, reject_reason, uploaded_at, updated_at
-           FROM documents_Member
+           FROM FTI_Original_Membership_Documents_Member
            WHERE user_id = ? AND MEMBER_CODE = ?
            ORDER BY uploaded_at DESC`,
           [member.user_id, member.MEMBER_CODE],

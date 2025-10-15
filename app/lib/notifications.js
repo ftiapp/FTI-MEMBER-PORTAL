@@ -1,4 +1,4 @@
-import { query } from "@/app/lib/db";
+﻿import { query } from "@/app/lib/db";
 
 /**
  * สร้างการแจ้งเตือนใหม่
@@ -117,7 +117,7 @@ export async function createNotification(
 
     // สร้างการแจ้งเตือนใหม่
     const result = await query(
-      `INSERT INTO notifications (user_id, type, message, link, status, member_code, member_type, member_group_code, type_code, addr_code, addr_lang, created_at, updated_at)
+      `INSERT INTO FTI_Portal_User_Notifications (user_id, type, message, link, status, member_code, member_type, member_group_code, type_code, addr_code, addr_lang, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
         userIdNum,
