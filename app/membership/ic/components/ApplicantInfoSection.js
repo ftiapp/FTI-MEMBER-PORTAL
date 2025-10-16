@@ -393,8 +393,8 @@ export default function ApplicantInfoSection({
     >
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
-        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลผู้สมัคร</h2>
-        <p className="text-blue-100 text-sm mt-1">ข้อมูลส่วนตัวและที่อยู่</p>
+        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลผู้สมัคร / Applicant Information</h2>
+        <p className="text-blue-100 text-sm mt-1">ข้อมูลส่วนตัวและที่อยู่ / Personal information and address</p>
       </div>
 
       {/* Content */}

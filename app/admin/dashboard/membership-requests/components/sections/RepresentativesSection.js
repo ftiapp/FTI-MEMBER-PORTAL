@@ -152,7 +152,7 @@ const RepresentativesSection = ({ application, onUpdate }) => {
                           rep.prename_other || rep.prenameOther,
                           "th",
                         ),
-                        rep.firstNameTh,
+                        rep.firstNameTh || rep.first_name_th,
                       ]
                         .filter(Boolean)
                         .join(" ") || "-"}
@@ -160,7 +160,7 @@ const RepresentativesSection = ({ application, onUpdate }) => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
-                    <p className="text-sm text-gray-900">{rep.lastNameTh || "-"}</p>
+                    <p className="text-sm text-gray-900">{rep.lastNameTh || rep.last_name_th || "-"}</p>
                   </div>
                 </div>
 
@@ -175,7 +175,7 @@ const RepresentativesSection = ({ application, onUpdate }) => {
                           rep.prename_other || rep.prenameOther,
                           "en",
                         ),
-                        rep.firstNameEn,
+                        rep.firstNameEn || rep.first_name_en,
                       ]
                         .filter(Boolean)
                         .join(" ") || "-"}
@@ -183,7 +183,7 @@ const RepresentativesSection = ({ application, onUpdate }) => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
-                    <p className="text-sm text-gray-900">{rep.lastNameEn || "-"}</p>
+                    <p className="text-sm text-gray-900">{rep.lastNameEn || rep.last_name_en || "-"}</p>
                   </div>
                 </div>
 
@@ -197,7 +197,7 @@ const RepresentativesSection = ({ application, onUpdate }) => {
                     <p className="text-sm font-semibold text-blue-700 mb-1">เบอร์โทรศัพท์</p>
                     <p className="text-sm text-gray-900">
                       {rep.phone || "-"}
-                      {rep.phoneExtension && ` ต่อ ${rep.phoneExtension}`}
+                      {(rep.phoneExtension || rep.phone_extension) && ` ต่อ ${rep.phoneExtension || rep.phone_extension}`}
                     </p>
                   </div>
                   <div>
@@ -230,39 +230,57 @@ const RepresentativesSection = ({ application, onUpdate }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-semibold mb-1">คำนำหน้า (ไทย)</label>
-                  <input 
+                  <select 
                     className="w-full px-3 py-2 border rounded-lg" 
                     value={rep.prenameTh || rep.prename_th || ""} 
-                    onChange={(e) => updateRep(idx, "prenameTh", e.target.value)}
-                    placeholder="นาย, นาง, นางสาว, ฯลฯ"
-                  />
+                    onChange={(e) => {
+                      updateRep(idx, "prenameTh", e.target.value);
+                      if (e.target.value !== "อื่นๆ") {
+                        updateRep(idx, "prenameOther", "");
+                      }
+                    }}
+                  >
+                    <option value="">-- เลือกคำนำหน้า --</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  {(rep.prenameTh === "อื่นๆ" || rep.prename_th === "อื่นๆ") && (
+                    <input 
+                      className="w-full px-3 py-2 border rounded-lg mt-2" 
+                      value={rep.prenameOther || rep.prename_other || ""} 
+                      onChange={(e) => updateRep(idx, "prenameOther", e.target.value)}
+                      placeholder="ระบุคำนำหน้าอื่นๆ (เช่น ดร., ศ., ผศ.)"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">คำนำหน้า (อังกฤษ)</label>
-                  <input 
+                  <select 
                     className="w-full px-3 py-2 border rounded-lg" 
                     value={rep.prenameEn || rep.prename_en || ""} 
-                    onChange={(e) => updateRep(idx, "prenameEn", e.target.value)}
-                    placeholder="Mr., Mrs., Ms., etc."
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">คำนำหน้าอื่นๆ (ไทย)</label>
-                  <input 
-                    className="w-full px-3 py-2 border rounded-lg" 
-                    value={rep.prenameOther || rep.prename_other || ""} 
-                    onChange={(e) => updateRep(idx, "prenameOther", e.target.value)}
-                    placeholder="ดร., ศ., ผศ., ฯลฯ"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold mb-1">คำนำหน้าอื่นๆ (อังกฤษ)</label>
-                  <input 
-                    className="w-full px-3 py-2 border rounded-lg" 
-                    value={rep.prenameOtherEn || rep.prename_other_en || ""} 
-                    onChange={(e) => updateRep(idx, "prenameOtherEn", e.target.value)}
-                    placeholder="Dr., Prof., etc."
-                  />
+                    onChange={(e) => {
+                      updateRep(idx, "prenameEn", e.target.value);
+                      if (e.target.value !== "Other") {
+                        updateRep(idx, "prenameOtherEn", "");
+                      }
+                    }}
+                  >
+                    <option value="">-- Select Title --</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Ms.">Ms.</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {(rep.prenameEn === "Other" || rep.prename_en === "Other") && (
+                    <input 
+                      className="w-full px-3 py-2 border rounded-lg mt-2" 
+                      value={rep.prenameOtherEn || rep.prename_other_en || ""} 
+                      onChange={(e) => updateRep(idx, "prenameOtherEn", e.target.value)}
+                      placeholder="Specify other title (e.g., Dr., Prof.)"
+                    />
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-semibold mb-1">ชื่อต้น (TH)</label>

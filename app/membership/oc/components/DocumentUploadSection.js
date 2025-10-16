@@ -634,8 +634,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
         {/* Header Section */}
         <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารใบอนุญาต</h2>
-          <p className="text-blue-100 text-sm mt-1">เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ</p>
+          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารใบอนุญาต / License Documents</h2>
+          <p className="text-blue-100 text-sm mt-1">เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ / Select factory type and upload supporting documents</p>
         </div>
 
         {/* Content Section */}

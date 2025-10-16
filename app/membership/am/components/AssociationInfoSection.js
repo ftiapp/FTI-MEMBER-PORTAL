@@ -9,7 +9,6 @@ import { useIndustrialGroups } from "../../hooks/useIndustrialGroups";
 
 export default function AssociationInfoSection({ formData, setFormData, errors, setErrors }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isAutofill, setIsAutofill] = useState(true); // เริ่มต้นด้วยโหมด autofill
   const [isCheckingTaxId, setIsCheckingTaxId] = useState(false);
   
   // Fetch industrial groups and provincial chapters from MSSQL
@@ -33,8 +32,6 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
         setFormData={setFormData}
         errors={errors}
         setErrors={setErrors}
-        isAutofill={isAutofill}
-        setIsAutofill={setIsAutofill}
         isLoading={isLoading}
         isCheckingTaxId={isCheckingTaxId}
         setIsCheckingTaxId={setIsCheckingTaxId}
@@ -45,7 +42,6 @@ export default function AssociationInfoSection({ formData, setFormData, errors, 
         formData={formData}
         setFormData={setFormData}
         errors={errors}
-        isAutofill={isAutofill}
         title="ที่อยู่สมาคม"
         subtitle="ข้อมูลที่อยู่และการติดต่อของสมาคม"
       />

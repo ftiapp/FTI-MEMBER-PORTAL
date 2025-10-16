@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import {
   query,
@@ -425,8 +425,8 @@ export async function POST(request) {
           trx,
           `INSERT INTO MemberRegist_AM_Representatives (
             main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en,
-            position, email, phone, rep_order, is_primary, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+            position, email, phone, phone_extension, rep_order, is_primary, created_at
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             mainId,
             toNull(rep.prenameTh),
@@ -440,6 +440,7 @@ export async function POST(request) {
             toNull(position),
             toNull(email),
             toNull(phone),
+            toNull(rep.phoneExtension),
             i,
             isPrimary,
           ],
@@ -785,9 +786,9 @@ export async function POST(request) {
         const user = userResult[0];
         const userEmail = user.email;
         const userName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
-        const associationName = data.associationName || "สมาคม";
+        const associationNameForEmail = associationName || "สมาคม";
 
-        await sendMembershipConfirmationEmail(userEmail, userName, "AM", associationName);
+        await sendMembershipConfirmationEmail(userEmail, userName, "AM", associationNameForEmail);
         console.log("✅ [AM] Membership confirmation email sent to:", userEmail);
       }
     } catch (emailError) {

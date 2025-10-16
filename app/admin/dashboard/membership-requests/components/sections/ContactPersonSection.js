@@ -473,87 +473,8 @@ const ContactPersonSection = ({ application, onUpdate }) => {
             </div>
             {/* Prename fields temporarily removed as requested */}
             {/* First Name Thai */}
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
-              {isEditing && editingIndex === index ? (
-                <input
-                  type="text"
-                  value={editData.firstNameTh || editData.first_name_th || ""}
-                  onChange={(e) =>
-                    updateField(
-                      contact.first_name_th !== undefined ? "first_name_th" : "firstNameTh",
-                      e.target.value,
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="ชื่อ (ไทย)"
-                />
-              ) : (
-                <p className="text-lg text-gray-900">{contact.first_name_th || contact.firstNameTh || "-"}</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
-              {isEditing && editingIndex === index ? (
-                <input
-                  type="text"
-                  value={editData.lastNameTh || editData.last_name_th || ""}
-                  onChange={(e) =>
-                    updateField(
-                      contact.last_name_th !== undefined ? "last_name_th" : "lastNameTh",
-                      e.target.value,
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="นามสกุล (ไทย)"
-                />
-              ) : (
-                <p className="text-lg text-gray-900">
-                  {contact.last_name_th || contact.lastNameTh || "-"}
-                </p>
-              )}
-            </div>
-            {/* First Name English */}
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
-              {isEditing && editingIndex === index ? (
-                <input
-                  type="text"
-                  value={editData.firstNameEn || editData.first_name_en || ""}
-                  onChange={(e) =>
-                    updateField(
-                      contact.first_name_en !== undefined ? "first_name_en" : "firstNameEn",
-                      e.target.value,
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="ชื่อ (อังกฤษ)"
-                />
-              ) : (
-                <p className="text-lg text-gray-900">{contact.first_name_en || contact.firstNameEn || "-"}</p>
-              )}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
-              {isEditing && editingIndex === index ? (
-                <input
-                  type="text"
-                  value={editData.lastNameEn || editData.last_name_en || ""}
-                  onChange={(e) =>
-                    updateField(
-                      contact.last_name_en !== undefined ? "last_name_en" : "lastNameEn",
-                      e.target.value,
-                    )
-                  }
-                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="นามสกุล (อังกฤษ)"
-                />
-              ) : (
-                <p className="text-lg text-gray-900">
-                  {contact.last_name_en || contact.lastNameEn || "-"}
-                </p>
-              )}
-            </div>
+            
+          
             <div>
               <p className="text-sm font-semibold text-blue-700 mb-1">ตำแหน่ง</p>
               {isEditing && editingIndex === index ? (

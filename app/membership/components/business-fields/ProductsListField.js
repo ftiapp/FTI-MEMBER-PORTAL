@@ -61,13 +61,13 @@ const ProductsListField = forwardRef(({
     <div ref={ref} className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="mb-6">
         <h4 className="text-base font-medium text-gray-900 mb-2">
-          ผลิตภัณฑ์/บริการ
+          ผลิตภัณฑ์/บริการ / Products/Services
           {required && <span className="text-red-500 ml-1">*</span>}
         </h4>
         <p className="text-sm text-gray-600">
           {required 
-            ? "ระบุผลิตภัณฑ์หรือบริการของท่าน (อย่างน้อย 1 รายการ)"
-            : "ระบุผลิตภัณฑ์หรือบริการของท่าน (ถ้ามี)"}
+            ? "ระบุผลิตภัณฑ์หรือบริการของท่าน (อย่างน้อย 1 รายการ) / Specify your products or services (at least 1 item)"
+            : "ระบุผลิตภัณฑ์หรือบริการของท่าน / Specify your products or services "}
         </p>
       </div>
 
@@ -75,7 +75,7 @@ const ProductsListField = forwardRef(({
         {products.map((product, index) => (
           <div key={product.key} className="bg-gray-50 border border-gray-200 rounded-lg p-6">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-700">รายการที่ {index + 1}</span>
+              <span className="text-sm font-medium text-gray-700">รายการที่ / Item {index + 1}</span>
               {products.length > 1 && (
                 <button
                   type="button"
@@ -94,7 +94,7 @@ const ProductsListField = forwardRef(({
                   htmlFor={`product-th-${product.key}`}
                   className="block text-sm font-medium text-gray-900"
                 >
-                  ชื่อผลิตภัณฑ์/บริการ (ภาษาไทย)
+                  ชื่อผลิตภัณฑ์/บริการ 
                   {required && <span className="text-red-500 ml-1">*</span>}
                 </label>
                 <input
@@ -112,7 +112,7 @@ const ProductsListField = forwardRef(({
                   htmlFor={`product-en-${product.key}`}
                   className="block text-sm font-medium text-gray-900"
                 >
-                  ชื่อผลิตภัณฑ์/บริการ (ภาษาอังกฤษ)
+                  Product/Service Name
                 </label>
                 <input
                   type="text"
@@ -137,7 +137,7 @@ const ProductsListField = forwardRef(({
           >
             {PlusIcon}
             <span className="text-sm font-medium text-gray-600">
-              เพิ่มผลิตภัณฑ์/บริการ ({products.length} / {maxProducts})
+              เพิ่มผลิตภัณฑ์/บริการ / Add Product/Service ({products.length} / {maxProducts})
             </span>
           </button>
         </div>

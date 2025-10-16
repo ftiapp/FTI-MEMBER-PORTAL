@@ -23,7 +23,7 @@ export async function PUT(request, { params }) {
 
     // Update message status to read and store admin info
     await query(
-      `UPDATE contact_messages 
+      `UPDATE FTI_Portal_User_Contact_Messages 
        SET status = 'read', 
            read_by_admin_id = ?, 
            read_at = NOW() 

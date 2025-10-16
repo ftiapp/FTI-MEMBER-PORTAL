@@ -45,7 +45,7 @@ export default function NotificationBell() {
     try {
       setLoading(true);
       // เพิ่ม credentials: 'include' เพื่อให้ส่ง cookies ไปด้วย
-      const response = await fetch(`/api/FTI_Portal_User_Notifications/membership?limit=10`, {
+      const response = await fetch(`/api/notifications/membership?limit=10`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -76,7 +76,7 @@ export default function NotificationBell() {
     if (!user?.id) return;
 
     try {
-      const response = await fetch("/api/FTI_Portal_User_Notifications/membership", {
+      const response = await fetch("/api/notifications/membership", {
         method: "PATCH",
         credentials: "include",
         headers: {
@@ -114,7 +114,7 @@ export default function NotificationBell() {
     if (!user?.id || unreadCount === 0) return;
 
     try {
-      const response = await fetch("/api/FTI_Portal_User_Notifications/mark-all-read", {
+      const response = await fetch("/api/notifications/mark-all-read", {
         method: "POST",
         credentials: "include", // เพิ่ม credentials เพื่อให้ส่ง cookies ไปด้วย
         headers: {

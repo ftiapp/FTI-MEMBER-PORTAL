@@ -19,7 +19,7 @@ export default function AddressFields({
       {/* Address Number */}
       <div className="space-y-2">
         <label htmlFor="addressNumber" className="block text-sm font-medium text-gray-900">
-          เลขที่
+          เลขที่ / Address No.
           <span className="text-red-500 ml-1">*</span>
         </label>
         <input
@@ -79,7 +79,7 @@ export default function AddressFields({
       {/* Building */}
       <div className="space-y-2">
         <label htmlFor="building" className="block text-sm font-medium text-gray-900">
-          อาคาร/หมู่บ้าน
+          อาคาร/หมู่บ้าน / Building/Village
         </label>
         <input
           type="text"
@@ -119,7 +119,7 @@ export default function AddressFields({
       {/* Moo */}
       <div className="space-y-2">
         <label htmlFor="moo" className="block text-sm font-medium text-gray-900">
-          หมู่
+          หมู่ / Moo
         </label>
         <input
           type="text"
@@ -159,7 +159,7 @@ export default function AddressFields({
       {/* Soi */}
       <div className="space-y-2">
         <label htmlFor="soi" className="block text-sm font-medium text-gray-900">
-          ซอย
+          ซอย / Soi
         </label>
         <input
           type="text"
@@ -199,7 +199,7 @@ export default function AddressFields({
       {/* Street/Road */}
       <div className="space-y-2">
         <label htmlFor="street" className="block text-sm font-medium text-gray-900">
-          ถนน
+          ถนน / Street
         </label>
         <input
           type="text"

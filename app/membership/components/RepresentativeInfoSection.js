@@ -27,10 +27,10 @@ export default function RepresentativeInfoSection({
   const defaultConfig = {
     maxRepresentatives: 3,
     showPosition: true,
-    positionPlaceholder: mode === "multiple" ? "ประธาน, รองประธาน..." : "ตำแหน่ง",
-    headerTitle: mode === "single" ? "ข้อมูลผู้แทน" : "ข้อมูลผู้แทนสมาคม",
+    positionPlaceholder: mode === "multiple" ? "ประธาน, รองประธาน... / President, Vice President..." : "ตำแหน่ง / Position",
+    headerTitle: mode === "single" ? "ข้อมูลผู้แทน / Representative Information" : "ข้อมูลผู้แทน / Association Representative Information",
     headerSubtitle:
-      mode === "single" ? "ข้อมูลผู้แทนที่สามารถติดต่อได้" : "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม",
+      mode === "single" ? "ข้อมูลผู้แทนที่สามารถติดต่อได้ / Contact representative information" : "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม / Authorized signatory representative information",
     infoMessage: "สามารถเพิ่มผู้แทนได้สูงสุด 3 ท่าน ควรเป็นผู้มีอำนาจลงนามตามหนังสือรับรอง",
     toastId: "representative-errors",
     fieldNames: {

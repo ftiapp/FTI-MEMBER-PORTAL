@@ -6,9 +6,9 @@
  * คอนฟิกประเภทที่อยู่
  */
 export const ADDRESS_TYPES = {
-  1: { label: "ที่อยู่สำนักงาน", color: "blue", description: "ที่อยู่สำนักงานหลัก" },
-  2: { label: "ที่อยู่จัดส่งเอกสาร", color: "blue", description: "ที่อยู่สำหรับการจัดส่งเอกสาร" },
-  3: { label: "ที่อยู่ใบกำกับภาษี", color: "blue", description: "ที่อยู่ตามใบกำกับภาษี" },
+  1: { label: "ที่อยู่สำนักงาน / Office Address", color: "blue", description: "ที่อยู่สำนักงานหลัก / Main office address" },
+  2: { label: "ที่อยู่จัดส่งเอกสาร / Mailing Address", color: "blue", description: "ที่อยู่สำหรับการจัดส่งเอกสาร / Address for document delivery" },
+  3: { label: "ที่อยู่ใบกำกับภาษี / Tax Invoice Address", color: "blue", description: "ที่อยู่ตามใบกำกับภาษี / Address on tax invoice" },
 };
 
 /**

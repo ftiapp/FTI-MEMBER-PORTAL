@@ -11,7 +11,7 @@ export async function POST(request, { params }) {
     }
 
     // Get message details
-    const messages = await query(`SELECT * FROM contact_messages WHERE id = ?`, [id]);
+    const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ?`, [id]);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อความติดต่อ" }, { status: 404 });
@@ -21,7 +21,7 @@ export async function POST(request, { params }) {
 
     // Update message status to replied
     await query(
-      `UPDATE contact_messages 
+      `UPDATE FTI_Portal_User_Contact_Messages 
        SET status = 'replied', admin_response = TRUE, updated_at = NOW() 
        WHERE id = ?`,
       [id],
@@ -29,7 +29,7 @@ export async function POST(request, { params }) {
 
     // Log admin action
     await query(
-      `INSERT INTO admin_actions_log 
+      `INSERT INTO FTI_Portal_Admin_Actions_Logs 
        (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
        VALUES (?, 'contact_message_response', ?, ?, ?, ?, NOW())`,
       [

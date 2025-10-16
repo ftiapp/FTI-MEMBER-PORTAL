@@ -26,13 +26,13 @@ export default function FinancialInfoFields({
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-        ข้อมูลทางการเงิน <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+        ข้อมูลทางการเงิน / Financial Information <span className="text-gray-500 text-xs"></span>
       </h4>
 
       {/* Registered Capital */}
       <div className="space-y-2 mb-6">
         <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
-          ทุนจดทะเบียน (บาท) <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+          ทุนจดทะเบียน / Registered Capital (บาท / THB) <span className="text-gray-500 text-xs"></span>
         </label>
         <input
           type="text"
@@ -50,8 +50,8 @@ export default function FinancialInfoFields({
       {/* Revenue (Optional) */}
       <div className="space-y-2 mb-6">
         <label className="block text-sm font-medium text-gray-900 mb-3">
-          รายได้รวมก่อนหักค่าใช้จ่าย (ย้อนหลัง 2 ปี){" "}
-          <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+          รายได้รวมก่อนหักค่าใช้จ่าย / Total Revenue Before Expenses (ย้อนหลัง 2 ปี / Last 2 Years){" "}
+          <span className="text-gray-500 text-xs"></span>
         </label>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -59,7 +59,7 @@ export default function FinancialInfoFields({
               htmlFor="revenueLastYear"
               className="block text-sm font-medium text-gray-700"
             >
-              ปีล่าสุด (บาท)
+              ปีล่าสุด / Last Year (บาท / THB)
             </label>
             <input
               type="text"
@@ -78,7 +78,7 @@ export default function FinancialInfoFields({
               htmlFor="revenuePreviousYear"
               className="block text-sm font-medium text-gray-700"
             >
-              ปีก่อนหน้า (บาท)
+              ปีก่อนหน้า / Previous Year (บาท / THB)
             </label>
             <input
               type="text"
@@ -98,7 +98,7 @@ export default function FinancialInfoFields({
       {/* Production Capacity */}
       <div className="space-y-2 mb-6">
         <label className="block text-sm font-medium text-gray-900 mb-3">
-          กำลังการผลิต (ต่อปี)
+          กำลังการผลิต / Production Capacity (ต่อปี / Per Year)
         </label>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -106,7 +106,7 @@ export default function FinancialInfoFields({
               htmlFor="productionCapacityValue"
               className="block text-sm font-medium text-gray-700"
             >
-              ปริมาณ
+              ปริมาณ / Quantity
             </label>
             <input
               type="text"
@@ -125,7 +125,7 @@ export default function FinancialInfoFields({
               htmlFor="productionCapacityUnit"
               className="block text-sm font-medium text-gray-700"
             >
-              หน่วย
+              หน่วย / Unit
             </label>
             <input
               type="text"
@@ -142,11 +142,11 @@ export default function FinancialInfoFields({
 
       {/* Sales Information */}
       <div className="space-y-2 mb-6">
-        <label className="block text-sm font-medium text-gray-900 mb-3">ยอดจำหน่าย (%)</label>
+        <label className="block text-sm font-medium text-gray-900 mb-3">ยอดจำหน่าย / Sales Volume (%)</label>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="salesDomestic" className="block text-sm font-medium text-gray-700">
-              ในประเทศไทย
+              ในประเทศไทย / Domestic
             </label>
             <input
               type="text"
@@ -162,7 +162,7 @@ export default function FinancialInfoFields({
           </div>
           <div className="space-y-2">
             <label htmlFor="salesExport" className="block text-sm font-medium text-gray-700">
-              ส่งออก
+              ส่งออก / Export
             </label>
             <input
               type="text"
@@ -182,7 +182,7 @@ export default function FinancialInfoFields({
       {/* Shareholder Information */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-900 mb-3">
-          สัดส่วนผู้ถือหุ้น (%)
+          สัดส่วนผู้ถือหุ้น / Shareholder Proportion (%)
         </label>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -190,7 +190,7 @@ export default function FinancialInfoFields({
               htmlFor="shareholderThaiPercent"
               className="block text-sm font-medium text-gray-700"
             >
-              ผู้ถือหุ้นไทย
+              ผู้ถือหุ้นไทย / Thai Shareholders
             </label>
             <input
               type="text"
@@ -209,7 +209,7 @@ export default function FinancialInfoFields({
               htmlFor="shareholderForeignPercent"
               className="block text-sm font-medium text-gray-700"
             >
-              ผู้ถือหุ้นต่างประเทศ
+              ผู้ถือหุ้นต่างประเทศ / Foreign Shareholders
             </label>
             <input
               type="text"

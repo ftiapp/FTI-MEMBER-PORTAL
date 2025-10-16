@@ -624,15 +624,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-base font-semibold text-blue-800">เอกสารรับรอง *</span>
+                <span className="text-base font-semibold text-blue-800">เอกสารรับรอง / Certification Documents *</span>
               </div>
             </div>
 
             {/* Association Certificate Upload */}
             <div data-error-key="associationCertificate">
               <SingleFileUploadZone
-                title="สำเนาหนังสือรับรองการจดทะเบียนเป็นสมาคมการค้า *"
-                description="เอกสารรับรองการจดทะเบียนสมาคมการค้าที่ออกโดยหน่วยงานราชการ พร้อมลายเซ็นสำเนาถูกต้อง"
+                title="สำเนาหนังสือรับรองการจดทะเบียนเป็นสมาคมการค้า / Association Registration Certificate *"
+                description="เอกสารรับรองการจดทะเบียนสมาคมการค้าที่ออกโดยหน่วยงานราชการ พร้อมลายเซ็นสำเนาถูกต้อง "
                 name="associationCertificate"
                 file={selectedFiles.associationCertificate}
                 icon={
@@ -659,7 +659,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             {/* Member List Upload */}
             <div data-error-key="memberList">
               <SingleFileUploadZone
-                title="รายชื่อสมาชิกสมาคม *"
+                title="รายชื่อสมาชิกสมาคม / Association Member List *"
                 description="เอกสารแสดงรายชื่อสมาชิกของสมาคมการค้า พร้อมลายเซ็นสำเนาถูกต้อง"
                 name="memberList"
                 file={selectedFiles.memberList}
@@ -705,7 +705,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                   />
                 </svg>
-                <span className="text-base font-semibold text-blue-800">ตราประทับและลายเซ็น</span>
+                <span className="text-base font-semibold text-blue-800">ตราประทับและลายเซ็น / Stamp and Signature</span>
               </div>
             </div>
 
@@ -724,8 +724,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             {/* Company Stamp Upload - Required */}
             <div className="space-y-3" data-error-key="companyStamp">
               <SingleFileUploadZone
-                title="รูปตราประทับสมาคม *"
-                description="รูปถ่ายตราประทับของสมาคม หรือรูปลายเซ็นหากไม่มีตราประทับ (จำเป็น)"
+                title="รูปตราประทับสมาคม / Association Stamp Image *"
+                description="รูปถ่ายตราประทับของสมาคม หรือรูปลายเซ็นหากไม่มีตราประทับ (จำเป็น) / Photo of association stamp or signature image if no stamp available (required)"
                 name="companyStamp"
                 file={selectedFiles.companyStamp}
                 icon={
@@ -800,9 +800,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้มีอำนาจลงนาม</h3>
+                <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้มีอำนาจลงนาม / Authorized Signatory Information</h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
+                  กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ / Please enter name and position of authorized signatory in both Thai and English
                 </p>
               </div>
 
@@ -810,7 +810,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 {/* คำนำหน้า (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    คำนำหน้า (ไทย) <span className="text-red-500">*</span>
+                    คำนำหน้า <span className="text-red-500">*</span>
                   </label>
                   <select
                     value={formData.authorizedSignatoryPrenameTh || ""}
@@ -855,7 +855,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 {/* ชื่อ (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
+                    ชื่อ  <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -881,7 +881,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 {/* นามสกุล (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
+                    นามสกุล  <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -907,7 +907,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 {/* ตำแหน่ง (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ตำแหน่ง (ภาษาไทย) <span className="text-red-500">*</span>
+                    ตำแหน่ง  <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -1142,51 +1142,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             </div>
           </div>
 
-          {/* Additional Information */}
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mt-1">
-                <svg
-                  className="w-4 h-4 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <h4 className="font-semibold text-blue-900 mb-3 text-lg">หมายเหตุสำคัญ</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-blue-800">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span>เอกสารต้องชัดเจน อ่านได้ทุกตัวอักษร</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span>ไฟล์ต้องมีขนาดไม่เกิน 5MB</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span>รองรับไฟล์นามสกุล PDF, JPG, PNG เท่านั้น</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span>สำเนาเอกสารต้องมีลายเซ็นรับรองสำเนาถูกต้อง</span>
-                  </div>
-                  <div className="flex items-center gap-2 md:col-span-2">
-                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                    <span className="font-medium">กรุณาแนบเอกสารทั้ง 4 รายการที่จำเป็น</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+        
         </div>
       </div>
 

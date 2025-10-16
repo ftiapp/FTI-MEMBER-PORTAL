@@ -9,8 +9,6 @@ export default function AssociationBasicInfo({
   setFormData,
   errors,
   setErrors,
-  isAutofill,
-  setIsAutofill,
   isLoading,
   isCheckingTaxId,
   setIsCheckingTaxId,
@@ -113,11 +111,7 @@ export default function AssociationBasicInfo({
 
     if (numericValue.length === 13) {
       taxIdTimeoutRef.current = setTimeout(() => {
-        checkTaxIdUniqueness(numericValue).then((isValid) => {
-          if (isValid && isAutofill) {
-            fetchAssociationInfo(numericValue);
-          }
-        });
+        checkTaxIdUniqueness(numericValue).then(() => {});
       }, 500);
     }
   };
@@ -300,22 +294,7 @@ export default function AssociationBasicInfo({
     }
   };
 
-  const toggleAutofill = () => {
-    const newIsAutofill = !isAutofill;
-    setIsAutofill(newIsAutofill);
-
-    // If switching to manual mode, clear related fields and stop any pending validation
-    if (!newIsAutofill) {
-      if (taxIdTimeoutRef.current) {
-        clearTimeout(taxIdTimeoutRef.current);
-      }
-      setValidationStatus({ status: "idle", message: "" });
-      setErrors((prev) => ({ ...prev, taxId: undefined }));
-      // Clear fields that were auto-filled
-      clearAutofilledFields();
-      toast("โหมดกรอกข้อมูลเอง: กรุณากรอกข้อมูลสมาคมด้วยตนเอง");
-    }
-  };
+  // Enforce manual-only mode for AM: no autofill toggle
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -335,63 +314,25 @@ export default function AssociationBasicInfo({
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header Section */}
       <div className="bg-blue-600 px-8 py-6">
-        <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลสมาคม</h3>
-        <p className="text-blue-100 text-sm mt-1">กรอกข้อมูลพื้นฐานของสมาคม</p>
+        <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลสมาคม / Association Information</h3>
+        <p className="text-blue-100 text-sm mt-1">กรอกข้อมูลพื้นฐานของสมาคม / Enter basic association information</p>
       </div>
 
       {/* Content Section */}
       <div className="px-8 py-8 space-y-8">
-        {/* Mode Selection Section */}
-        <div className="bg-gray-50 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-4">วิธีการกรอกข้อมูล</h4>
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <input
-                type="radio"
-                id="autofill"
-                name="fillMode"
-                checked={isAutofill}
-                onChange={toggleAutofill}
-                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-              />
-              <label
-                htmlFor="autofill"
-                className="text-sm font-medium text-gray-700 cursor-pointer select-none"
-              >
-                ดึงข้อมูลอัตโนมัติ
-              </label>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <input
-                type="radio"
-                id="manual"
-                name="fillMode"
-                checked={!isAutofill}
-                onChange={toggleAutofill}
-                className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 focus:ring-2"
-              />
-              <label
-                htmlFor="manual"
-                className="text-sm font-medium text-gray-700 cursor-pointer select-none"
-              >
-                กรอกข้อมูลเอง
-              </label>
-            </div>
-          </div>
-        </div>
+        {/* Manual-only mode: autofill selection removed */}
 
         {/* Association Information Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            ข้อมูลพื้นฐาน
+            ข้อมูลพื้นฐาน / Basic Information
           </h4>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Tax ID Field */}
             <div className="space-y-2">
               <label htmlFor="taxId" className="block text-sm font-medium text-gray-900">
-                เลขประจำตัวผู้เสียภาษี
+                เลขประจำตัวผู้เสียภาษี / Tax ID
                 <span className="text-red-500 ml-1">*</span>
               </label>
 
@@ -419,7 +360,7 @@ export default function AssociationBasicInfo({
                           ? "border-green-300 bg-green-50"
                           : "border-gray-300 hover:border-gray-400"
                     }
-                    ${isAutofill || validationStatus.status === "checking" ? "pr-28" : ""}
+                    ${validationStatus.status === "checking" ? "pr-28" : ""}
                   `}
                   disabled={validationStatus.status === "checking"}
                 />
@@ -481,26 +422,6 @@ export default function AssociationBasicInfo({
                     </svg>
                     ผ่าน
                   </div>
-                ) : isAutofill ? (
-                  <button
-                    type="button"
-                    onClick={() => fetchAssociationInfo(formData.taxId)}
-                    disabled={
-                      isLoading || !formData.taxId || formData.taxId.length !== 13 || isThrottled
-                    }
-                    className="
-                      absolute right-2 top-2 
-                      px-3 py-1.5 
-                      bg-blue-600 hover:bg-blue-700 
-                      text-white text-xs font-medium
-                      rounded-md
-                      transition-all duration-200
-                      disabled:opacity-50 disabled:cursor-not-allowed
-                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
-                    "
-                  >
-                    {isLoading ? "กำลังดึง..." : isThrottled ? "รอสักครู่..." : "ดึงข้อมูล"}
-                  </button>
                 ) : null}
               </div>
 
@@ -563,7 +484,7 @@ export default function AssociationBasicInfo({
             {/* Association Name Field */}
             <div className="space-y-2">
               <label htmlFor="associationName" className="block text-sm font-medium text-gray-900">
-                ชื่อสมาคม
+                ชื่อสมาคม / Association Name (Thai)
                 <span className="text-red-500 ml-1">*</span>
               </label>
 
@@ -574,23 +495,15 @@ export default function AssociationBasicInfo({
                 value={formData.associationName || ""}
                 onChange={handleInputChange}
                 required
-                disabled={isAutofill}
                 placeholder="ชื่อสมาคม"
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
                   transition-all duration-200
                   ${
-                    isAutofill
-                      ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-200"
-                      : "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  }
-                  ${
                     errors.associationName
                       ? "border-red-300 bg-red-50"
-                      : isAutofill
-                        ? "border-gray-200"
-                        : "border-gray-300 hover:border-gray-400 bg-white"
+                      : "border-gray-300 hover:border-gray-400 bg-white"
                   }
                 `}
               />
@@ -607,19 +520,6 @@ export default function AssociationBasicInfo({
                   {errors.associationName}
                 </p>
               )}
-
-              {isAutofill && (
-                <p className="text-xs text-gray-500 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 616 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  ฟิลด์นี้จะถูกดึงข้อมูลอัตโนมัติ
-                </p>
-              )}
             </div>
 
             {/* Association Name English Field */}
@@ -628,7 +528,7 @@ export default function AssociationBasicInfo({
                 htmlFor="associationNameEng"
                 className="block text-sm font-medium text-gray-900"
               >
-                ชื่อสมาคมภาษาอังกฤษ
+                ชื่อสมาคมภาษาอังกฤษ / Association Name (English)
                 <span className="text-red-500 ml-1">*</span>
               </label>
 
@@ -639,23 +539,15 @@ export default function AssociationBasicInfo({
                 value={formData.associationNameEng || ""}
                 onChange={handleInputChange}
                 required
-                disabled={isAutofill}
                 placeholder="Association Name in English"
                 className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
                   transition-all duration-200
                   ${
-                    isAutofill
-                      ? "bg-gray-100 text-gray-600 cursor-not-allowed border-gray-200"
-                      : "focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  }
-                  ${
                     errors.associationNameEng
                       ? "border-red-300 bg-red-50"
-                      : isAutofill
-                        ? "border-gray-200"
-                        : "border-gray-300 hover:border-gray-400 bg-white"
+                      : "border-gray-300 hover:border-gray-400 bg-white"
                   }
                 `}
               />
@@ -670,19 +562,6 @@ export default function AssociationBasicInfo({
                     />
                   </svg>
                   {errors.associationNameEng}
-                </p>
-              )}
-
-              {isAutofill && (
-                <p className="text-xs text-gray-500 flex items-center gap-2">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 616 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  ฟิลด์นี้จะถูกดึงข้อมูลอัตโนมัติ
                 </p>
               )}
             </div>

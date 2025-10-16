@@ -64,8 +64,8 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
     >
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
-        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ</h2>
-        <p className="text-blue-100 text-sm mt-1">ประเภทธุรกิจและข้อมูลผลิตภัณฑ์/บริการ</p>
+        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ / Business Information</h2>
+        <p className="text-blue-100 text-sm mt-1">ประเภทธุรกิจและข้อมูลผลิตภัณฑ์/บริการ / Business type and product/service information</p>
       </div>
 
       <div className="px-8 py-8 space-y-8">

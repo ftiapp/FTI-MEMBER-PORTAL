@@ -14,7 +14,7 @@ export async function PUT(request, { params }) {
 
     // Update message status to 'read'
     const updateQuery = `
-      UPDATE guest_contact_messages
+      UPDATE FTI_Portal_Guest_Contact_Messages
       SET status = 'read', read_by_admin_id = ?
       WHERE id = ? AND status = 'unread'
     `;
@@ -23,7 +23,7 @@ export async function PUT(request, { params }) {
 
     // Log the action
     const logQuery = `
-      INSERT INTO admin_actions_log 
+      INSERT INTO FTI_Portal_Admin_Actions_Logs 
       (admin_id, action_type, target_id, description, ip_address, user_agent, created_at)
       VALUES (?, 'contact_message_response', ?, 'Read guest contact message', ?, ?, NOW())
     `;

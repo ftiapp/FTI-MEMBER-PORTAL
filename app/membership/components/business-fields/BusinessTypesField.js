@@ -59,10 +59,10 @@ const BusinessTypesField = forwardRef(({
     <div ref={ref} className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="mb-6">
         <h3 className="text-base font-medium text-gray-900 mb-2">
-          ประเภทธุรกิจ<span className="text-red-500 ml-1">*</span>
+          ประเภทธุรกิจ / Business Type<span className="text-red-500 ml-1">*</span>
         </h3>
         <p className="text-sm text-gray-600">
-          เลือกประเภทธุรกิจที่เกี่ยวข้อง (เลือกได้มากกว่า 1 ข้อ)
+          เลือกประเภทธุรกิจที่เกี่ยวข้อง (เลือกได้มากกว่า 1 ข้อ) / Select related business types (can select more than 1)
         </p>
       </div>
 
@@ -90,7 +90,7 @@ const BusinessTypesField = forwardRef(({
             htmlFor="otherBusinessTypeDetail"
             className="block text-sm font-medium text-gray-900 mb-2"
           >
-            โปรดระบุประเภทธุรกิจอื่นๆ<span className="text-red-500 ml-1">*</span>
+            โปรดระบุประเภทธุรกิจอื่นๆ / Please specify other business type<span className="text-red-500 ml-1">*</span>
           </label>
           <input
             type="text"

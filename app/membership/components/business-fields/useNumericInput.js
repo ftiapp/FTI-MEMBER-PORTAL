@@ -26,7 +26,13 @@ export function useNumericInput(formData, setFormData) {
   const handleNumericChange = useCallback(
     (e) => {
       const { name, value } = e.target;
-      const raw = sanitizeNumberInput(value);
+      let raw = sanitizeNumberInput(value);
+      
+      // จำกัดจำนวนสมาชิกสมาคมไม่เกิน 7 หลัก
+      if (name === "memberCount" && raw.length > 7) {
+        raw = raw.slice(0, 7);
+      }
+      
       setFormData((prev) => ({ ...prev, [name]: raw }));
     },
     [sanitizeNumberInput, setFormData],

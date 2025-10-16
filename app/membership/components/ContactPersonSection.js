@@ -229,7 +229,7 @@ const ContactPersonSection = ({
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center">
           <User className="h-6 w-6 text-blue-600 mr-3" />
-          <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ติดต่อ</h3>
+          <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ติดต่อ / Contact Person Information</h3>
           <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
             {contactPersons.length}/4
           </span>
@@ -329,7 +329,7 @@ const ContactPersonSection = ({
                       {/* Contact Type */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ประเภทผู้ติดต่อ
+                          ประเภทผู้ติดต่อ / Contact Type
                         </label>
                         <select
                           id={`contactPerson${index}TypeContactId`}
@@ -383,7 +383,7 @@ const ContactPersonSection = ({
                           ?.type_code === "OTHER" && (
                           <div className="lg:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              รายละเอียดประเภทอื่นๆ
+                              รายละเอียดประเภทอื่นๆ / Other Type Details
                             </label>
                             <input
                               type="text"
@@ -403,13 +403,13 @@ const ContactPersonSection = ({
                       {/* Thai Names with Prename */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ชื่อ-นามสกุล (ภาษาไทย)
+                          ชื่อ-นามสกุล / Name (Thai)
                         </label>
                         <div className="grid grid-cols-4 gap-2">
                           {/* Prename Thai */}
                           <div>
                             <div className="text-xs text-gray-700 mb-1">
-                              คำนำหน้า {isMain && <span className="text-red-500">*</span>}
+                              คำนำหน้า / Prefix {isMain && <span className="text-red-500">*</span>}
                             </div>
                             <select
                               value={contact.prenameTh || ""}
@@ -445,7 +445,7 @@ const ContactPersonSection = ({
                           {/* First Name Thai */}
                           <div>
                             <div className="text-xs text-gray-700 mb-1">
-                              ชื่อ {isMain && <span className="text-red-500">*</span>}
+                              ชื่อ / First Name {isMain && <span className="text-red-500">*</span>}
                             </div>
                             <input
                               type="text"
@@ -465,7 +465,7 @@ const ContactPersonSection = ({
                           {/* Last Name Thai */}
                           <div className="col-span-2">
                             <div className="text-xs text-gray-700 mb-1">
-                              นามสกุล {isMain && <span className="text-red-500">*</span>}
+                              นามสกุล / Last Name {isMain && <span className="text-red-500">*</span>}
                             </div>
                             <input
                               type="text"
@@ -589,7 +589,7 @@ const ContactPersonSection = ({
                       {/* Position and Email */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ตำแหน่ง {isMain && <span className="text-red-500">*</span>}
+                          ตำแหน่ง / Position {isMain && <span className="text-red-500">*</span>}
                         </label>
                         <input
                           type="text"
@@ -610,7 +610,7 @@ const ContactPersonSection = ({
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          อีเมล
+                          อีเมล / Email
                         </label>
                         <input
                           type="email"
@@ -632,7 +632,7 @@ const ContactPersonSection = ({
                       {/* Phone */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          โทรศัพท์ / โทรศัพท์มือถือ {isMain && <span className="text-red-500">*</span>}
+                          โทรศัพท์ / โทรศัพท์มือถือ / Phone / Mobile {isMain && <span className="text-red-500">*</span>}
                         </label>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           <div className="lg:col-span-2">

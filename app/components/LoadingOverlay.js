@@ -15,40 +15,21 @@ export default function LoadingOverlay() {
         transition={{ duration: 0.3 }}
       >
         {/* Rotating Logo */}
-        <div className="relative">
-          <motion.div
-            className="relative w-16 h-16"
-            animate={{ rotateY: 360 }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "linear",
-            }}
-          >
-            <img
-              src="/images/Logo_FTI.webp"
-              alt="FTI Logo"
-              className="w-full h-full object-contain drop-shadow-xl"
-            />
-          </motion.div>
-          
-          {/* Shine Effect */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
-            animate={{
-              x: [-100, 100],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              repeatDelay: 0.5,
-              ease: "easeInOut",
-            }}
-            style={{
-              clipPath: "polygon(20% 0%, 40% 0%, 60% 100%, 40% 100%)",
-            }}
+        <motion.div
+          className="relative w-16 h-16"
+          animate={{ rotateY: 360 }}
+          transition={{
+            duration: 3,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        >
+          <img
+            src="/images/Logo_FTI.webp"
+            alt="FTI Logo"
+            className="w-full h-full object-contain drop-shadow-xl"
           />
-        </div>
+        </motion.div>
 
         {/* Loading Message */}
         <motion.div

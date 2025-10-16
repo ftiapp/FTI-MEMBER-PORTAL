@@ -45,7 +45,7 @@ export async function POST(request, { params }) {
     }
 
     // Get message details
-    const messages = await query(`SELECT * FROM contact_messages WHERE id = ?`, [id]);
+    const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ?`, [id]);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อความติดต่อ" }, { status: 404 });
@@ -58,7 +58,7 @@ export async function POST(request, { params }) {
     // บันทึกข้อความตอบกลับโดยตรงในตาราง contact_message_replies
     try {
       await query(
-        `INSERT INTO contact_message_replies (message_id, user_id, reply_text) VALUES (?, ?, ?)`,
+        `INSERT INTO FTI_Portal_User_Contact_Message_Replies (message_id, user_id, reply_text) VALUES (?, ?, ?)`,
         [id, adminId, reply_message],
       );
     } catch (error) {
@@ -80,7 +80,7 @@ export async function POST(request, { params }) {
 
       if (tableExists && tableExists.count > 0) {
         await query(
-          `INSERT INTO contact_message_responses (message_id, admin_id, response_text) VALUES (?, ?, ?)`,
+          `INSERT INTO FTI_Portal_User_Contact_Message_Responses (message_id, admin_id, response_text) VALUES (?, ?, ?)`,
           [
             id,
             adminId,
@@ -96,7 +96,7 @@ export async function POST(request, { params }) {
 
     // อัปเดตสถานะของข้อความเป็น 'replied' และตั้งค่า admin_response เป็น 1
     await query(
-      `UPDATE contact_messages 
+      `UPDATE FTI_Portal_User_Contact_Messages 
        SET status = 'replied', 
            admin_response = 1, 
            replied_by_admin_id = ?, 
@@ -108,7 +108,7 @@ export async function POST(request, { params }) {
 
     // Log admin action
     await query(
-      `INSERT INTO admin_actions_log 
+      `INSERT INTO FTI_Portal_Admin_Actions_Logs 
        (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
        VALUES (?, 'contact_message_direct_reply', ?, ?, ?, ?, NOW())`,
       [

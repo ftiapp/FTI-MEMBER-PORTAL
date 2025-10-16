@@ -591,9 +591,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
         {/* Header Section */}
         <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารประกอบการสมัคร</h2>
+          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารประกอบการสมัคร / Application Documents</h2>
           <p className="text-blue-100 text-sm mt-1">
-            กรุณาอัพโหลดเอกสารที่จำเป็นสำหรับการสมัครสมาชิกประเภทสมทบ-นิติบุคคล (ทน)
+            กรุณาอัพโหลดเอกสารที่จำเป็นสำหรับการสมัครสมาชิกประเภทสมทบ-นิติบุคคล (ทน) / Please upload required documents for Associate Corporate membership application
           </p>
         </div>
 

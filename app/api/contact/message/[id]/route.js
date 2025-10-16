@@ -27,7 +27,7 @@ export async function GET(request, { params }) {
     // Fetch the specific contact message
     const messages = await query(
       `SELECT id, user_id, subject, message, name, email, phone, status, created_at, updated_at
-       FROM contact_messages
+       FROM FTI_Portal_User_Contact_Messages
        WHERE id = ?`,
       [messageId],
     );

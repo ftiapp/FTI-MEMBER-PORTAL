@@ -44,7 +44,7 @@ export async function GET(request, { params }) {
       SELECT 
         c.id, c.comment_type, c.comment_text, c.created_at, a.name as admin_name
       FROM MemberRegist_Comments c
-      LEFT JOIN admin_users a ON c.admin_id = a.id
+      LEFT JOIN FTI_Portal_Admin_Users a ON c.admin_id = a.id
       WHERE c.membership_type = ? 
         AND c.membership_id = ? 
         AND c.comment_type != 'admin_note'

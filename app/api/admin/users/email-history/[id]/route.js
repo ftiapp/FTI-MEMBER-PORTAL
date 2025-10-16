@@ -38,7 +38,7 @@ export async function GET(request, { params }) {
       FROM 
         pending_email_changes pec
       LEFT JOIN 
-        admin_users au ON pec.admin_id = au.id
+        FTI_Portal_Admin_Users au ON pec.admin_id = au.id
       WHERE 
         pec.user_id = ?
       ORDER BY 

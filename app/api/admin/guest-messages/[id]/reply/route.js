@@ -25,23 +25,23 @@ export async function POST(request, { params }) {
 
     // Update message with remark
     const updateQuery = `
-      UPDATE guest_contact_messages
+      UPDATE FTI_Portal_Guest_Contact_Messages
       SET 
         status = 'replied', 
         replied_at = NOW(), 
-        reply_message = ?
+        remark = ?
       WHERE id = ?
     `;
 
     try {
       // First check if message is already assigned
-      const checkQuery = `SELECT assigned_to FROM guest_contact_messages WHERE id = ?`;
+      const checkQuery = `SELECT assigned_to FROM FTI_Portal_Guest_Contact_Messages WHERE id = ?`;
       const checkResult = await query(checkQuery, [id]);
 
       if (checkResult && checkResult.length > 0) {
         // If not assigned, assign it
         if (!checkResult[0].assigned_to) {
-          const assignQuery = `UPDATE guest_contact_messages SET assigned_to = ? WHERE id = ?`;
+          const assignQuery = `UPDATE FTI_Portal_Guest_Contact_Messages SET assigned_to = ? WHERE id = ?`;
           await query(assignQuery, [admin.name || "Unknown admin", id]);
         }
       }
@@ -58,7 +58,7 @@ export async function POST(request, { params }) {
 
     // Log the action
     const logQuery = `
-      INSERT INTO admin_actions_log 
+      INSERT INTO FTI_Portal_Admin_Actions_Logs 
       (admin_id, action_type, target_id, description, ip_address, user_agent, created_at)
       VALUES (?, 'contact_message_response', ?, ?, ?, ?, NOW())
     `;

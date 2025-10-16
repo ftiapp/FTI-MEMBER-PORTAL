@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { query } from "@/app/lib/db";
@@ -163,9 +163,24 @@ export async function POST(request) {
     // ตรวจสอบว่ามี draft อยู่แล้วหรือไม่ (ใช้ tax_id/idcard เป็น unique identifier)
     const checkQuery =
       memberType.toLowerCase() === "ic"
-        ? `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
-        : `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
+        ? `SELECT id, user_id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
+        : `SELECT id, user_id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
     const existingDraft = await query(checkQuery, [uniqueId]);
+
+    // ตรวจสอบว่า draft ที่มีอยู่เป็นของ user คนอื่นหรือไม่
+    if (existingDraft && existingDraft.length > 0) {
+      const draftOwnerId = existingDraft[0].user_id;
+      if (draftOwnerId !== userId) {
+        const idFieldName = memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
+        return NextResponse.json(
+          {
+            success: false,
+            message: `${idFieldName} ${uniqueId} มีการบันทึกร่างโดยผู้ใช้อื่นอยู่แล้ว กรุณาใช้${idFieldName}อื่น หรือติดต่อเจ้าหน้าที่`,
+          },
+          { status: 409 },
+        );
+      }
+    }
 
     let result;
     if (existingDraft && existingDraft.length > 0) {

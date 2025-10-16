@@ -26,10 +26,50 @@ export const useAMFormNavigation = (validateForm) => {
           setCurrentStep((prev) => prev + 1);
           window.scrollTo(0, 0);
         }
+      } else {
+        // มี error - scroll ไปหา field แรกที่มี error
+        scrollToFirstError(formErrors);
       }
     },
     [currentStep, validateForm],
   );
+
+  // ฟังก์ชัน scroll ไปหา field แรกที่มี error
+  const scrollToFirstError = (errors) => {
+    const errorKeys = Object.keys(errors);
+    if (errorKeys.length === 0) return;
+
+    // หา element แรกที่มี error
+    setTimeout(() => {
+      for (const key of errorKeys) {
+        // ลองหา element หลายรูปแบบ
+        const selectors = [
+          `[name="${key}"]`,
+          `[id="${key}"]`,
+          `[data-error-key="${key}"]`,
+          `.error-${key}`,
+        ];
+
+        for (const selector of selectors) {
+          const element = document.querySelector(selector);
+          if (element) {
+            element.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Focus ถ้าเป็น input field
+            if (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.tagName === "SELECT") {
+              element.focus();
+            }
+            return;
+          }
+        }
+      }
+
+      // ถ้าหาไม่เจอ ลอง scroll ไปหา error message แรก
+      const firstErrorMessage = document.querySelector(".text-red-600, .text-red-500, .border-red-300");
+      if (firstErrorMessage) {
+        firstErrorMessage.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  };
 
   // ฟังก์ชันสำหรับกลับไปยังขั้นตอนก่อนหน้า
   const handlePrevStep = useCallback(() => {

@@ -18,14 +18,14 @@ export default function IndustrialGroupSection({
 }) {
   // Default configuration
   const defaultConfig = {
-    title: "กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด",
-    subtitle: "เลือกกลุ่มอุตสาหกรรมและสภาจังหวัดที่เกี่ยวข้อง",
+    title: "กลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัด / Industrial Groups and Provincial Chapters",
+    subtitle: "เลือกกลุ่มอุตสาหกรรมและสภาจังหวัดที่เกี่ยวข้อง / Select related industrial groups and provincial chapters",
     infoTitle: "การเลือกกลุ่มอุตสาหกรรม",
     infoMessage: "สามารถเลือกได้มากกว่า 1 รายการ เพื่อระบุกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัดที่บริษัทมีส่วนเกี่ยวข้อง",
-    industrialGroupLabel: "กลุ่มอุตสาหกรรม",
-    industrialGroupPlaceholder: "-- เลือกกลุ่มอุตสาหกรรม --",
-    provincialChapterLabel: "สภาอุตสาหกรรมจังหวัด",
-    provincialChapterPlaceholder: "-- เลือกสภาอุตสาหกรรมจังหวัด --",
+    industrialGroupLabel: "กลุ่มอุตสาหกรรม / Industrial Groups",
+    industrialGroupPlaceholder: "-- เลือกกลุ่มอุตสาหกรรม / Select Industrial Groups --",
+    provincialChapterLabel: "สภาอุตสาหกรรมจังหวัด / Provincial Chapters",
+    provincialChapterPlaceholder: "-- เลือกสภาอุตสาหกรรมจังหวัด / Select Provincial Chapters --",
     industrialGroupFieldName: "industrialGroupIds",
     provincialChapterFieldName: "provincialChapterIds",
     showSelectedItems: true,

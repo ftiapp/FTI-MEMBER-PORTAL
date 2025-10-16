@@ -132,7 +132,7 @@ export async function POST(request, { params }) {
 
         // Log admin action
         await mysqlConnection.execute(
-          `INSERT INTO admin_actions_log 
+          `INSERT INTO FTI_Portal_Admin_Actions_Logs 
            (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
            VALUES (?, ?, ?, ?, ?, ?, NOW())`,
           [

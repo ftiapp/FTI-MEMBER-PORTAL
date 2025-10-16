@@ -20,7 +20,7 @@ export default function AddressContactFields({
       {/* Company Phone */}
       <div className="lg:col-span-2 space-y-2">
         <label htmlFor="phone" className="block text-sm font-medium text-gray-900">
-          โทรศัพท์ / โทรศัพท์มือถือ
+          โทรศัพท์ / โทรศัพท์มือถือ / Phone / Mobile
           <span className="text-red-500 ml-1">*</span>
         </label>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -29,6 +29,7 @@ export default function AddressContactFields({
               type="tel"
               id={`phone-${activeTab}`}
               name={`phone-${activeTab}`}
+              data-error-key={`address_${activeTab}_phone`}
               value={currentAddress?.[`phone-${activeTab}`] || currentAddress?.phone || ""}
               onChange={(e) => onInputChange(`phone-${activeTab}`, e.target.value)}
               placeholder="02-123-4567"
@@ -61,7 +62,7 @@ export default function AddressContactFields({
                 ""
               }
               onChange={(e) => onInputChange(`phoneExtension-${activeTab}`, e.target.value)}
-              placeholder="ต่อ (ถ้ามี)"
+              placeholder="ต่อ / Ext. (ถ้ามี / if any)"
               disabled={isLoading}
               className="w-full px-4 py-3 text-sm border rounded-lg bg-white placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 border-gray-300 hover:border-gray-400"
             />
@@ -92,7 +93,7 @@ export default function AddressContactFields({
             htmlFor={`email-${activeTab}`}
             className="block text-sm font-medium text-gray-900"
           >
-            อีเมล {activeTab === "1" ? "(ถ้ามี)" : ""}
+            อีเมล / Email {activeTab === "1" ? "(ถ้ามี / if any)" : ""}
           </label>
           <input
             type="email"
@@ -144,7 +145,7 @@ export default function AddressContactFields({
             htmlFor={`website-${activeTab}`}
             className="block text-sm font-medium text-gray-900"
           >
-            เว็บไซต์
+            เว็บไซต์ / Website
           </label>
           <input
             type="url"

@@ -30,9 +30,9 @@ export async function GET(request, { params }) {
       `SELECT cm.*, 
               a1.username as read_by_admin_name, 
               a2.username as replied_by_admin_name 
-       FROM contact_messages cm
-       LEFT JOIN admin_users a1 ON cm.read_by_admin_id = a1.id
-       LEFT JOIN admin_users a2 ON cm.replied_by_admin_id = a2.id
+       FROM FTI_Portal_User_Contact_Messages cm
+       LEFT JOIN FTI_Portal_Admin_Users a1 ON cm.read_by_admin_id = a1.id
+       LEFT JOIN FTI_Portal_Admin_Users a2 ON cm.replied_by_admin_id = a2.id
        WHERE cm.id = ?`,
       [id],
     );
@@ -49,8 +49,8 @@ export async function GET(request, { params }) {
       // Try to fetch admin responses from the contact_message_responses table
       adminResponses = await query(
         `SELECT cmr.id, cmr.admin_id, cmr.response_text, cmr.created_at, au.username as admin_name
-         FROM contact_message_responses cmr
-         LEFT JOIN admin_users au ON cmr.admin_id = au.id
+         FROM FTI_Portal_User_Contact_Message_Responses cmr
+         LEFT JOIN FTI_Portal_Admin_Users au ON cmr.admin_id = au.id
          WHERE cmr.message_id = ?
          ORDER BY cmr.created_at ASC`,
         [id],
@@ -66,7 +66,7 @@ export async function GET(request, { params }) {
       // Try to fetch user replies from the contact_message_replies table
       userReplies = await query(
         `SELECT id, user_id, reply_text, created_at
-         FROM contact_message_replies
+         FROM FTI_Portal_User_Contact_Message_Replies
          WHERE message_id = ?
          ORDER BY created_at ASC`,
         [id],
@@ -135,7 +135,7 @@ export async function GET(request, { params }) {
     // If message is unread, mark it as read
     if (message.status === "unread") {
       await query(
-        `UPDATE contact_messages 
+        `UPDATE FTI_Portal_User_Contact_Messages 
          SET status = 'read', 
              read_by_admin_id = ?, 
              read_at = NOW(), 
@@ -146,7 +146,7 @@ export async function GET(request, { params }) {
 
       // Log admin action
       await query(
-        `INSERT INTO admin_actions_log 
+        `INSERT INTO FTI_Portal_Admin_Actions_Logs 
          (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
          VALUES (?, 'contact_message_read', ?, ?, ?, ?, NOW())`,
         [

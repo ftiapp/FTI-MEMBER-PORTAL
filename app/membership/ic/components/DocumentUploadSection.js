@@ -401,8 +401,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         data-section="documents"
       >
         <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารแนบ</h2>
-          <p className="text-blue-100 text-sm mt-1">อัพโหลดสำเนาบัตรประชาชนและลายเซ็น</p>
+          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารแนบ / Attached Documents</h2>
+          <p className="text-blue-100 text-sm mt-1">อัพโหลดสำเนาบัตรประชาชนและลายเซ็น / Upload ID card copy and signature</p>
         </div>
 
         <div className="px-8 py-8">

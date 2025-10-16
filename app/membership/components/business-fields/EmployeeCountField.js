@@ -20,11 +20,11 @@ const EmployeeCountField = forwardRef(({
   return (
     <div ref={ref} className="bg-white border border-gray-200 rounded-lg p-6">
       <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-        ข้อมูลพนักงาน
+        ข้อมูลพนักงาน / Employee Information
       </h4>
       <div className="space-y-2">
         <label htmlFor="numberOfEmployees" className="block text-sm font-medium text-gray-900">
-          จำนวนพนักงาน<span className="text-red-500 ml-1">*</span>
+          จำนวนพนักงาน (ราย) / Number of Employees<span className="text-red-500 ml-1">*</span>
         </label>
         <input
           type="text"

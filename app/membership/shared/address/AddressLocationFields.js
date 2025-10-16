@@ -21,8 +21,8 @@ export default function AddressLocationFields({
       {/* Sub District */}
       <div className="space-y-2">
         <SearchableDropdown
-          label="ตำบล/แขวง"
-          placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง หรือเติมข้อมูลอัตโนมัติ"
+          label="ตำบล/แขวง / Sub-district"
+          placeholder="พิมพ์เพื่อค้นหาตำบล/แขวง / Type to search sub-district"
           value={currentAddress?.subDistrict || ""}
           onChange={handlers.handleSubDistrictChange}
           onSelect={handlers.handleSubDistrictSelect}
@@ -43,8 +43,8 @@ export default function AddressLocationFields({
       {/* District */}
       <div className="space-y-2">
         <SearchableDropdown
-          label="อำเภอ/เขต"
-          placeholder="ระบบจะเติมอัตโนมัติจาก ตำบล/รหัสไปรษณีย์"
+          label="อำเภอ/เขต / District"
+          placeholder="ระบบจะเติมอัตโนมัติ / Auto-filled from sub-district"
           value={currentAddress?.district || ""}
           onChange={handlers.handleDistrictChange}
           onSelect={handlers.handleDistrictSelect}
@@ -64,8 +64,8 @@ export default function AddressLocationFields({
       {/* Province */}
       <div className="space-y-2">
         <SearchableDropdown
-          label="จังหวัด"
-          placeholder="ระบบจะเติมอัตโนมัติจาก ตำบล/รหัสไปรษณีย์"
+          label="จังหวัด / Province"
+          placeholder="ระบบจะเติมอัตโนมัติ / Auto-filled from sub-district"
           value={currentAddress?.province || ""}
           onChange={handlers.handleProvinceChange}
           onSelect={handlers.handleProvinceSelect}
@@ -85,8 +85,8 @@ export default function AddressLocationFields({
       {/* Postal Code */}
       <div className="space-y-2">
         <SearchableDropdown
-          label="รหัสไปรษณีย์"
-          placeholder="พิมพ์เพื่อค้นหารหัสไปรษณีย์"
+          label="รหัสไปรษณีย์ / Postal Code"
+          placeholder="พิมพ์เพื่อค้นหา / Type to search postal code"
           value={currentAddress?.postalCode || ""}
           onChange={handlers.handlePostalCodeChange}
           onSelect={handlers.handlePostalCodeSelect}

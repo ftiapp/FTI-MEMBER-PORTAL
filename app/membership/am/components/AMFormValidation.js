@@ -187,18 +187,20 @@ const validateAssociationInfo = (formData, errors) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมล (บังคับกรอก)
-      if (!address.email) {
-        errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+      // ตรวจสอบอีเมล (ไม่บังคับ - ตรวจสอบเฉพาะรูปแบบถ้ามีการกรอก)
+      if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
       // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
-      if (!address.phone) {
+      const phoneValue = address[`phone-${type}`] || address.phone;
+      if (!phoneValue) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-      } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ""))) {
-        errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
+      } else {
+        const cleanPhone = phoneValue.replace(/[-\s()]/g, "");
+        if (!/^0?\d{8,10}$/.test(cleanPhone)) {
+          errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
+        }
       }
     });
   } else {
@@ -302,13 +304,17 @@ const validateRepresentatives = (formData, errors) => {
       repError.email = "รูปแบบอีเมลไม่ถูกต้อง";
     }
     
-    // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก, อนุญาตให้มี - และช่องว่าง)
+    // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
     if (!rep.phone || rep.phone.trim() === "") {
       repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
     } else {
-      const cleanPhone = rep.phone.replace(/[-\s]/g, "");
-      if (!/^\d{9,10}$/.test(cleanPhone)) {
-        repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (สามารถใส่ - หรือช่องว่างได้)";
+      const cleanPhone = rep.phone.replace(/[-\s()]/g, "");
+      // ตรวจสอบรูปแบบเฉพาะเมื่อมีความยาวมากพอ (8+ ตัว)
+      if (cleanPhone.length >= 8) {
+        // รองรับ 9-10 หลัก (เลข 0 นำหน้าหรือไม่ก็ได้)
+        if (!/^0?\d{8,10}$/.test(cleanPhone) || cleanPhone.length < 9 || cleanPhone.length > 11) {
+          repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
+        }
       }
     }
 

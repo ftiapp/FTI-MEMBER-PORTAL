@@ -365,8 +365,8 @@ export default function CompanyBasicInfo({
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       {/* Header Section */}
       <div className="bg-blue-600 px-8 py-6">
-        <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลบริษัท</h3>
-        <p className="text-blue-100 text-sm mt-1">กรอกข้อมูลพื้นฐานของบริษัท</p>
+        <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลบริษัท / Company Information</h3>
+        <p className="text-blue-100 text-sm mt-1">กรอกข้อมูลพื้นฐานของบริษัท / Enter basic company information</p>
       </div>
 
       {/* Content Section */}

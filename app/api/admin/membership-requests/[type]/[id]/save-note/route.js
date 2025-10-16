@@ -100,7 +100,7 @@ export async function POST(request, { params }) {
 
     // Log admin action
     await connection.execute(
-      `INSERT INTO admin_actions_log (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
+      `INSERT INTO FTI_Portal_Admin_Actions_Logs (admin_id, action_type, target_id, description, ip_address, user_agent, created_at) 
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
         adminData.id,
