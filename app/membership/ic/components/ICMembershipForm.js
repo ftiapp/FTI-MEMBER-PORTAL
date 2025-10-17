@@ -1,344 +1,73 @@
-﻿"use client";
+"use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { toast } from "react-hot-toast";
 import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
-import ApplicantInfoSection from "./ApplicantInfoSection";
-import RepresentativeInfoSection from "../../components/RepresentativeInfoSection";
-import BusinessInfoSection from "./BusinessInfoSection";
-import DocumentUploadSection from "./DocumentUploadSection";
-import SummarySection from "./SummarySection";
+import { useRouter } from "next/navigation";
+import MembershipSuccessModal from "@/app/components/MembershipSuccessModal";
 import DraftSavePopup from "../../components/DraftSavePopup";
-import MembershipSuccessModal from "../../../components/MembershipSuccessModal";
+
+// Import shared components
+import { FormDataLoader } from "../../components/FormLoadingStates";
+import { FormErrorBox } from "../../components/FormErrorDisplay";
+import { ConsentCheckbox } from "../../utils/consentHelpers";
+
+// Import form modules
 import { validateCurrentStep } from "./ICFormValidation";
-import { submitICMembershipForm, saveDraft } from "./ICFormSubmission";
+import { submitICMembershipForm } from "./ICFormSubmission";
+import { useICFormNavigation } from "./ICFormNavigation";
+import { useApiData } from "../../hooks/useApiData";
 
-// Constants
-const STEPS = [
-  { id: 1, name: "ข้อมูลผู้สมัคร" },
-  { id: 2, name: "ข้อมูลผู้แทน" },
-  { id: 3, name: "ข้อมูลธุรกิจ" },
-  { id: 4, name: "อัพโหลดเอกสาร" },
-  { id: 5, name: "ยืนยันข้อมูล" },
-];
+// Import extracted modules from ICMembershipForm folder
+import { 
+  STEPS, 
+  INITIAL_FORM_DATA,
+  scrollToErrorField, 
+  scrollToTop, 
+  scrollToConsentBox,
+  getFirstErrorKey,
+  checkIdCardUniqueness,
+  saveDraft,
+  deleteDraft,
+  loadDraftFromUrl,
+  buildRepresentativeErrorMessage,
+  buildErrorToastMessage,
+  renderStepComponent,
+  renderNavigationButtons,
+  renderDocumentHint,
+  renderErrorMessage
+} from "./ICMembershipForm/index";
 
-const INITIAL_FORM_DATA = {
-  // Applicant info
-  idCardNumber: "",
-  // Prename fields (applicant)
-  prenameTh: "",
-  prenameEn: "",
-  prenameOther: "",
-  prenameOtherEn: "",
-  firstNameThai: "",
-  lastNameThai: "",
-  firstNameEng: "",
-  lastNameEng: "",
-  phone: "",
-  email: "",
-
-  // Address
-  addressNumber: "",
-  moo: "",
-  soi: "",
-  road: "",
-  subDistrict: "",
-  district: "",
-  province: "",
-  postalCode: "",
-  website: "",
-
-  // Industrial group and provincial chapter
-  industrialGroupId: "",
-  provincialChapterId: "",
-
-  // Representative info (only one allowed)
-  representative: {
-    prenameTh: "",
-    prenameEn: "",
-    prenameOther: "",
-    prenameOtherEn: "",
-    firstNameThai: "",
-    lastNameThai: "",
-    firstNameEng: "",
-    lastNameEng: "",
-    email: "",
-    phone: "",
-    phoneExtension: "",
-  },
-
-  // Business info
-  businessTypes: {},
-  otherBusinessTypeDetail: "",
-  products: [{ id: 1, nameTh: "", nameEn: "" }],
-
-  // Document
-  idCardDocument: null,
-
-  // เอกสารที่จำเป็น (บังคับทุกกรณี)
-  authorizedSignature: null,
-
-  // Authorized signatory name fields
-  authorizedSignatoryPrenameTh: "",
-  authorizedSignatoryPrenameEn: "",
-  authorizedSignatoryPrenameOther: "",
-  authorizedSignatoryPrenameOtherEn: "",
-  authorizedSignatoryFirstNameTh: "",
-  authorizedSignatoryLastNameTh: "",
-  authorizedSignatoryFirstNameEn: "",
-  authorizedSignatoryLastNameEn: "",
-};
-
-// Helper: Determine first error field deterministically for IC form
-// Priority: Applicant core fields -> Address fields (type 1->2->3) -> Business -> Documents
-const getFirstFieldError = (errors = {}) => {
-  if (!errors || typeof errors !== "object") return null;
-
-  // 1) Applicant core fields
-  const applicantPriority = [
-    "idCardNumber",
-    "prename_th",
-    "prename_en",
-    "prename_other",
-    "prename_other_en",
-    "firstNameThai",
-    "lastNameThai",
-    "firstNameEng",
-    "lastNameEng",
-    "phone",
-    "phoneExtension",
-    "email",
-  ];
-  for (const key of applicantPriority) {
-    if (errors[key]) return key;
-  }
-
-  // 2) Address fields by type and field priority
-  const addressFieldPriority = [
-    "addressNumber",
-    "subDistrict",
-    "district",
-    "province",
-    "postalCode",
-    "email",
-    "phone",
-    "website",
-  ];
-  const addressTypes = ["1", "2", "3"];
-  for (const type of addressTypes) {
-    const missingKey = `address_${type}`;
-    if (errors[missingKey]) return missingKey;
-    for (const f of addressFieldPriority) {
-      const k = `address_${type}_${f}`;
-      if (errors[k]) return k;
-    }
-  }
-
-  // 3) Business info
-  const businessPriority = ["businessTypes", "otherBusinessTypeDetail", "products"];
-  for (const key of businessPriority) {
-    if (errors[key]) return key;
-  }
-  // If productErrors exist (nested errors), scroll to products container
-  if (errors.productErrors) return "products";
-
-  // 4) Documents and authorized signatory fields
-  const documentPriority = [
-    "idCardDocument",
-    "authorizedSignature",
-    "authorizedSignatoryFirstNameTh",
-    "authorizedSignatoryLastNameTh",
-    "authorizedSignatoryFirstNameEn",
-    "authorizedSignatoryLastNameEn",
-  ];
-  for (const key of documentPriority) {
-    if (errors[key]) return key;
-  }
-
-  // 5) Representative errors are grouped under representativeErrors; use section scroll
-  if (errors.representative || errors.representativeErrors) {
-    const repPriority = [
-      "prename_th",
-      "prename_en",
-      "prename_other",
-      "prename_other_en",
-      "firstNameThai",
-      "lastNameThai",
-      "firstNameEng",
-      "lastNameEng",
-      "phone",
-      "email",
-    ];
-    const repErrors = errors.representativeErrors || {};
-    for (const k of repPriority) {
-      if (repErrors && typeof repErrors === "object" && repErrors[k]) {
-        return `representative.${k}`; // return specific representative field key
-      }
-    }
-    return "representativeErrors";
-  }
-
-  // 6) Fallback: stable alphabetical key
-  const keys = Object.keys(errors);
-  return keys.length ? keys.sort()[0] : null;
-};
-
-// Custom hook for API data with better error handling
-const useApiData = () => {
-  const [data, setData] = useState({
-    businessTypes: [],
-    industrialGroups: [],
-    provincialChapters: [],
-    isLoading: true,
-    error: null,
-  });
-
+export default function ICMembershipForm(props = {}) {
+  const router = useRouter();
   const abortControllerRef = useRef(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      // Cancel previous request if it exists
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-
-      abortControllerRef.current = new AbortController();
-
-      try {
-        setData((prev) => ({ ...prev, isLoading: true, error: null }));
-
-        const [businessTypesRes, industrialGroupsRes, provincialChaptersRes] = await Promise.all([
-          fetch("/api/business-types", { signal: abortControllerRef.current.signal }),
-          fetch("/api/industrial-groups?limit=1000&page=1", {
-            signal: abortControllerRef.current.signal,
-          }),
-          fetch("/api/provincial-chapters?limit=1000&page=1", {
-            signal: abortControllerRef.current.signal,
-          }),
-        ]);
-
-        const businessTypes = businessTypesRes.ok ? await businessTypesRes.json() : [];
-
-        const industrialGroups = industrialGroupsRes.ok ? await industrialGroupsRes.json() : [];
-
-        const provincialChapters = provincialChaptersRes.ok
-          ? (await provincialChaptersRes.json()).data?.map((item) => ({
-              id: item.MEMBER_GROUP_CODE,
-              name_th: item.MEMBER_GROUP_NAME,
-              name_en: item.MEMBER_GROUP_NAME,
-            })) || []
-          : [];
-
-        setData({
-          businessTypes,
-          industrialGroups,
-          provincialChapters,
-          isLoading: false,
-          error: null,
-        });
-      } catch (error) {
-        if (error.name === "AbortError") {
-          return; // Request was cancelled, don't update state
-        }
-
-        console.error("Error fetching data:", error);
-        const errorMessage = "ไม่สามารถโหลดข้อมูลได้ กรุณาลองใหม่อีกครั้ง";
-        toast.error(errorMessage);
-        setData((prev) => ({
-          ...prev,
-          isLoading: false,
-          error: errorMessage,
-        }));
-      }
-    };
-
-    fetchData();
-
-    // Cleanup function
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
-
-  return data;
-};
-
-// Check ID card uniqueness
-// ในไฟล์ ICMembershipForm.js
-// แก้ไข checkIdCard function
-
-const checkIdCard = async (idCardNumber) => {
-  if (!idCardNumber || idCardNumber.length !== 13) {
-    return {
-      valid: false,
-      exists: null,
-      message: "เลขบัตรประจำตัวประชาชนไม่ถูกต้อง",
-    };
-  }
-
-  try {
-    const response = await fetch("/api/member/ic-membership/check-id-card", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ idCardNumber }),
-    });
-
-    const data = await response.json();
-
-    // ส่งค่าตรงตามที่ API ส่งมา
-    return {
-      valid: data.valid, // true = ใช้ได้, false = ใช้ไม่ได้
-      exists: data.exists, // true = มีอยู่แล้ว, false = ไม่มี
-      message: data.message,
-      status: data.status,
-    };
-  } catch (error) {
-    console.error("Error checking ID card:", error);
-    return {
-      valid: false,
-      exists: null,
-      message: "เกิดข้อผิดพลาดในการตรวจสอบเลขบัตรประจำตัวประชาชน",
-    };
-  }
-};
-
-export default function ICMembershipForm({
-  currentStep,
-  setCurrentStep,
-  formData: externalFormData,
-  setFormData: setExternalFormData,
-  totalSteps,
-  rejectionId,
-}) {
+  // State management
   const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [idCardValidating, setIdCardValidating] = useState(false);
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [submissionResult, setSubmissionResult] = useState(null);
   const [consentAgreed, setConsentAgreed] = useState(false);
-  const [representativePhoneTouched, setRepresentativePhoneTouched] = useState(false);
-  const abortControllerRef = useRef(null);
 
-  const isExternal = externalFormData !== undefined;
-  const formData = isExternal ? externalFormData : internalFormData;
-  const setFormData = isExternal ? setExternalFormData : setInternalFormData;
+  // Determine which form data and setters to use
+  const isExternal = props.formData !== undefined;
+  const formData = isExternal ? props.formData : internalFormData;
+  const setFormData = isExternal ? props.setFormData : setInternalFormData;
 
+  // Get showErrors from props or use internal state
+  const showErrors = props.showErrors !== undefined ? props.showErrors : false;
+  const setShowErrors = props.setShowErrors || (() => {});
+
+  // Sync externalFormData with internal state when it changes
   useEffect(() => {
-    if (isExternal && externalFormData && Object.keys(externalFormData).length > 0) {
-      console.log(
-        "IC FORM: External form data received, updating internal state.",
-        externalFormData,
-      );
-      setInternalFormData((prevData) => ({ ...prevData, ...externalFormData }));
+    if (isExternal && props.formData && Object.keys(props.formData).length > 0) {
+      console.log("IC FORM: External form data received, updating internal state.", props.formData);
+      setInternalFormData((prevData) => ({ ...prevData, ...props.formData }));
     }
-  }, [externalFormData, isExternal]);
+  }, [props.formData, isExternal]);
 
   const {
     businessTypes,
@@ -347,6 +76,35 @@ export default function ICMembershipForm({
     isLoading,
     error: apiError,
   } = useApiData();
+
+  const {
+    currentStep: hookCurrentStep,
+    isSubmitting,
+    setIsSubmitting,
+    totalSteps,
+    handleNextStep,
+    handlePrevStep,
+    setCurrentStep: setHookCurrentStep,
+  } = useICFormNavigation((formData, step) => validateCurrentStep(formData, step));
+
+  // Effective step control (prefer parent-controlled if provided)
+  const currentStep = props.currentStep ?? hookCurrentStep;
+  const setCurrentStep = props.setCurrentStep ?? setHookCurrentStep;
+  const effectiveTotalSteps = props.totalSteps ?? totalSteps ?? 5;
+
+  // Debug logging
+  console.log("🎛️ ICMembershipForm Props:", {
+    hasFormDataProp: !!props.formData,
+    hasSetFormDataProp: !!props.setFormData,
+    hasCurrentStepProp: !!props.currentStep,
+    hasSetCurrentStepProp: !!props.setCurrentStep,
+    hasShowErrorsProp: !!props.showErrors,
+    hasSetShowErrorsProp: !!props.setShowErrors,
+    formDataKeys: props.formData ? Object.keys(props.formData) : "none",
+    currentStepValue: currentStep,
+    totalStepsValue: effectiveTotalSteps,
+    showErrorsValue: showErrors,
+  });
 
   // Cleanup on unmount
   useEffect(() => {
@@ -357,356 +115,111 @@ export default function ICMembershipForm({
     };
   }, []);
 
-  // Load draft data on mount - แยกออกจาก useApiData
+  // Load draft data on mount
   useEffect(() => {
-    const loadDraftData = async () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const draftId = urlParams.get("draftId");
-
-      if (draftId) {
-        setIsLoadingDraft(true);
-        try {
-          const response = await fetch(`/api/membership/get-drafts?type=ic`);
-          const data = await response.json();
-
-          if (data.success && data.drafts && data.drafts.length > 0) {
-            const draft = data.drafts.find((d) => d.id === parseInt(draftId));
-            if (draft && draft.draftData) {
-              const draftData = draft.draftData || {};
-              const normalizedDraft = { ...draftData };
-
-              // Normalize applicant prename fields
-              if (normalizedDraft.prenameTh == null && draftData.prename_th != null) {
-                normalizedDraft.prenameTh = draftData.prename_th;
-              }
-              if (normalizedDraft.prenameEn == null && draftData.prename_en != null) {
-                normalizedDraft.prenameEn = draftData.prename_en;
-              }
-              if (normalizedDraft.prenameOther == null && draftData.prename_other != null) {
-                normalizedDraft.prenameOther = draftData.prename_other;
-              }
-              if (normalizedDraft.prenameOtherEn == null && draftData.prename_other_en != null) {
-                normalizedDraft.prenameOtherEn = draftData.prename_other_en;
-              }
-
-              // Normalize authorized signatory prename fields
-              if (
-                normalizedDraft.authorizedSignatoryPrenameTh == null &&
-                draftData.authorized_signatory_prename_th != null
-              ) {
-                normalizedDraft.authorizedSignatoryPrenameTh =
-                  draftData.authorized_signatory_prename_th;
-              }
-              if (
-                normalizedDraft.authorizedSignatoryPrenameEn == null &&
-                draftData.authorized_signatory_prename_en != null
-              ) {
-                normalizedDraft.authorizedSignatoryPrenameEn =
-                  draftData.authorized_signatory_prename_en;
-              }
-              if (
-                normalizedDraft.authorizedSignatoryPrenameOther == null &&
-                draftData.authorized_signatory_prename_other != null
-              ) {
-                normalizedDraft.authorizedSignatoryPrenameOther =
-                  draftData.authorized_signatory_prename_other;
-              }
-              if (
-                normalizedDraft.authorizedSignatoryPrenameOtherEn == null &&
-                draftData.authorized_signatory_prename_other_en != null
-              ) {
-                normalizedDraft.authorizedSignatoryPrenameOtherEn =
-                  draftData.authorized_signatory_prename_other_en;
-              }
-
-              // Merge draft data with initial form data
-              setFormData((prev) => ({ ...prev, ...normalizedDraft }));
-              // ตั้งค่า currentStep ถ้ามี
-              if (setCurrentStep && draft.currentStep) {
-                setCurrentStep(draft.currentStep);
-              }
-              toast.success("โหลดข้อมูลร่างสำเร็จ");
-            }
-          }
-        } catch (error) {
-          console.error("Error loading draft:", error);
-          toast.error("ไม่สามารถโหลดข้อมูลร่างได้");
-        } finally {
-          setIsLoadingDraft(false);
-        }
-      }
+    const loadDraft = async () => {
+      setIsLoadingDraft(true);
+      const success = await loadDraftFromUrl(setFormData, setCurrentStep);
+      setIsLoadingDraft(false);
     };
-
-    loadDraftData();
-  }, []); // dependencies อาจต้องเพิ่ม setCurrentStep, setFormData ถ้าจำเป็น
-
-  // Handle previous step navigation
-  const handlePrevStep = useCallback(() => {
-    if (currentStep <= 1) return;
-    setCurrentStep((prev) => prev - 1);
-    window.scrollTo(0, 0);
-  }, [currentStep, setCurrentStep]);
-
-  // Enhanced: scroll to the first error field (supports snake_case and camelCase)
-  const scrollToFirstError = useCallback((errors) => {
-    if (!errors || Object.keys(errors).length === 0) return;
-    const firstErrorKey = getFirstFieldError(errors);
-    if (!firstErrorKey || typeof document === "undefined") return;
-
-    // Key variant helpers
-    const toCamel = (s) => s.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
-    const toSnake = (s) =>
-      s
-        .replace(/([A-Z])/g, "_$1")
-        .toLowerCase()
-        .replace(/^_/, "");
-
-    const variants = new Set([firstErrorKey]);
-    if (firstErrorKey.includes("_")) variants.add(toCamel(firstErrorKey));
-    if (/[A-Z]/.test(firstErrorKey)) variants.add(toSnake(firstErrorKey));
-    // explicit field mappings for applicant prenames
-    if (firstErrorKey === "prename_th") variants.add("prenameTh");
-    if (firstErrorKey === "prename_en") variants.add("prenameEn");
-    if (firstErrorKey === "prename_other") variants.add("prenameOther");
-    if (firstErrorKey === "prename_other_en") variants.add("prenameOtherEn");
-
-    // Representative: map representative.<field> to actual input IDs and data-fields
-    if (firstErrorKey.startsWith("representative.")) {
-      const field = firstErrorKey.split(".")[1];
-      const fieldSnake = field.includes("_") ? field : toSnake(field);
-      const fieldCamel = field.includes("_") ? toCamel(field) : field;
-      // raw field id/name used in RepresentativeInfoSection
-      variants.add(fieldCamel);
-      variants.add(`representative.${field}`);
-      variants.add(`representative.${fieldSnake}`);
-      // prenames mapping
-      if (fieldSnake === "prename_th") variants.add("prenameTh");
-      if (fieldSnake === "prename_en") variants.add("prenameEn");
-      if (fieldSnake === "prename_other") variants.add("prenameOther");
-      if (fieldSnake === "prename_other_en") variants.add("prenameOtherEn");
-    }
-
-    // Try to locate the element by multiple selectors per variant
-    const selectors = [];
-
-    // Special-case explicit anchors for document uploads
-    if (firstErrorKey === "idCardDocument") {
-      selectors.push("#idCardUpload");
-    }
-    if (firstErrorKey === "authorizedSignature") {
-      selectors.push("#authorizedSignatureUpload");
-    }
-    for (const k of variants) {
-      selectors.push(
-        `[name="${k}"]`,
-        `#${CSS.escape(k)}`,
-        `.${CSS.escape(k)}`,
-        `[data-error-key="${k}"]`,
-        `[data-field="${k}"]`,
-      );
-    }
-
-    let target = null;
-    for (const sel of selectors) {
-      const el = document.querySelector(sel);
-      if (el) {
-        target = el;
-        break;
-      }
-    }
-
-    if (target) {
-      const stickyOffset = 120;
-      const rect = target.getBoundingClientRect();
-      const absoluteTop = rect.top + window.pageYOffset;
-      window.scrollTo({ top: absoluteTop - stickyOffset, behavior: "smooth" });
-      if (typeof target.focus === "function") {
-        setTimeout(() => target.focus({ preventScroll: true }), 250);
-      }
-    } else {
-      // Section-level fallbacks
-      if (firstErrorKey.startsWith("address_")) {
-        const section = document.querySelector(
-          '[data-section="addresses"], [data-section="address-section"]',
-        );
-        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (
-        [
-          "idCardNumber",
-          "prename_th",
-          "prename_en",
-          "prename_other",
-          "firstNameThai",
-          "lastNameThai",
-          "firstNameEng",
-          "lastNameEng",
-          "phone",
-          "phoneExtension",
-          "email",
-        ].includes(firstErrorKey)
-      ) {
-        const section = document.querySelector(
-          '[data-section="applicant"], [data-section="applicant-section"]',
-        );
-        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (
-        firstErrorKey === "representativeErrors" ||
-        firstErrorKey.startsWith("representative")
-      ) {
-        const section = document.querySelector(
-          '[data-section="representatives"], [data-section="representative-section"], [data-section="representative-info"]',
-        );
-        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (["businessTypes", "otherBusinessTypeDetail", "products"].includes(firstErrorKey)) {
-        const section = document.querySelector(
-          '[data-section="business"], [data-section="business-section"]',
-        );
-        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else if (
-        [
-          "idCardDocument",
-          "authorizedSignature",
-          "authorizedSignatoryFirstNameTh",
-          "authorizedSignatoryLastNameTh",
-          "authorizedSignatoryFirstNameEn",
-          "authorizedSignatoryLastNameEn",
-        ].includes(firstErrorKey)
-      ) {
-        const section = document.querySelector(
-          '[data-section="documents"], [data-section="document-section"]',
-        );
-        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-      } else {
-        const formElement = document.querySelector("form");
-        if (formElement) formElement.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }
-
-    // Resolve toast message (handle nested representative errors)
-    let errorMessage = null;
-    if (typeof errors[firstErrorKey] === "string") {
-      errorMessage = errors[firstErrorKey];
-    } else if (firstErrorKey.startsWith("representative.")) {
-      const field = firstErrorKey.split(".")[1];
-      const repErr =
-        (errors.representativeErrors && errors.representativeErrors[field]) ||
-        (errors.representative && errors.representative[field]);
-      if (typeof repErr === "string") errorMessage = repErr;
-    } else if (firstErrorKey === "products" && errors.productErrors) {
-      // Use a specific message for product errors
-      errorMessage = "กรุณากรอกข้อมูลสินค้า/บริการให้ครบถ้วน (อย่างน้อยต้องระบุชื่อภาษาไทย)";
-    }
-    if (!errorMessage) errorMessage = "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
-    toast.error(errorMessage, { position: "top-right", duration: 4000, style: { zIndex: 100000 } });
+    loadDraft();
   }, []);
 
-  // Submit handler (reintroduced)
+  // Wrapped checkIdCardUniqueness with abort controller
+  const checkIdCard = useCallback(async (idCardNumber) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    
+    setIdCardValidating(true);
+    const result = await checkIdCardUniqueness(idCardNumber, abortControllerRef.current);
+    setIdCardValidating(false);
+    return result;
+  }, []);
+
+  // Handle form submission - only for final step (step 5)
   const handleSubmit = useCallback(
     async (e) => {
       if (e) e.preventDefault();
 
-      if (e) {
-        e.preventDefault();
-        e.stopPropagation();
+      // Only allow submit on final step
+      if (currentStep !== 5) {
+        console.log("IC Form submit prevented - not on final step");
+        return;
       }
 
-      // Prevent duplicate submit
-      if (isSubmitting) return;
+      // Re-validate all fields before final submission
+      const formErrors = validateCurrentStep(formData, STEPS.length);
+      setErrors(formErrors);
 
+      if (Object.keys(formErrors).length > 0) {
+        console.log("❌ Validation errors:", formErrors);
+        
+        if (typeof setShowErrors === "function") {
+          setShowErrors(true);
+        }
+
+        // Build error message
+        const firstErrorKey = getFirstErrorKey(formErrors) || "representativeErrors";
+        const errorMessage = buildErrorToastMessage(formErrors, firstErrorKey);
+
+        // Find first error step
+        const firstErrorStep = STEPS.find(
+          (step) => Object.keys(validateCurrentStep(formData, step.id)).length > 0,
+        );
+
+        // Navigate to the step with the error
+        if (firstErrorStep && setCurrentStep) {
+          setCurrentStep(firstErrorStep.id);
+
+          setTimeout(() => {
+            if (firstErrorKey === "representativeErrors") {
+              scrollToErrorField("representativeErrors");
+            } else {
+              scrollToErrorField(firstErrorKey);
+            }
+          }, 100);
+        }
+
+        toast.error(errorMessage, { duration: 7000 });
+        return;
+      }
+
+      // Check consent
+      if (!consentAgreed) {
+        toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
+          duration: 4000,
+        });
+        scrollToConsentBox();
+        return;
+      }
+
+      // Submit form
       setIsSubmitting(true);
 
       try {
-        // Validate all steps except summary
-        let allErrors = {};
-        for (let step = 1; step <= totalSteps - 1; step++) {
-          const stepErrors = validateCurrentStep(step, formData);
-          allErrors = { ...allErrors, ...stepErrors };
-        }
-
-        if (Object.keys(allErrors).length > 0) {
-          setErrors(allErrors);
-          setIsSubmitting(false);
-          // Navigate to first step with errors and scroll
-          for (let step = 1; step <= totalSteps - 1; step++) {
-            const stepErrors = validateCurrentStep(step, formData);
-            if (Object.keys(stepErrors).length > 0) {
-              if (setCurrentStep) {
-                setCurrentStep(step);
-                setTimeout(() => {
-                  scrollToFirstError(allErrors);
-                }, 100);
-              } else {
-                scrollToFirstError(allErrors);
-              }
-              break;
-            }
-          }
-          return;
-        }
-
-        // ✅ ตรวจสอบ consent หลังจาก validation ผ่านแล้ว
-        if (!consentAgreed) {
-          setIsSubmitting(false);
-          toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
-            duration: 4000,
-          });
-          // เลื่อนไปที่กล่อง consent
-          setTimeout(() => {
-            const consentBox = document.querySelector('[data-consent-box]');
-            if (consentBox) {
-              consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 100);
-          setIsSubmitting(false);
-          return;
-        }
-
-        // Re-check ID card before submit
-        const idCardCheckResult = await checkIdCard(formData.idCardNumber);
-        if (!idCardCheckResult.valid) {
-          setIsSubmitting(false);
-          toast.error(idCardCheckResult.message);
-          return;
-        }
-
-        // Prepare submission data; let ICFormSubmission handle transformation
-        let result;
-        if (rejectionId) {
-          const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ updatedData: formData, memberType: "ic" }),
-          });
-          result = await res.json();
-        } else {
-          result = await submitICMembershipForm(formData);
-        }
+        const result = await submitICMembershipForm(formData);
 
         if (result.success) {
-          if (!rejectionId) {
-            await deleteDraft();
-          }
+          await deleteDraft(formData.idCardNumber);
           setSubmissionResult(result);
           setShowSuccessModal(true);
+          setIsSubmitting(false);
         } else {
           setIsSubmitting(false);
-          toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
+          toast.error(result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล");
         }
       } catch (error) {
-        console.error("Error in handleSubmit:", error);
+        console.error("Submission error:", error);
         setIsSubmitting(false);
-        toast.error("เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง");
-      } finally {
-        setIsSubmitting(false);
+        toast.error("เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง");
       }
     },
-    [formData, totalSteps, isSubmitting, rejectionId, setCurrentStep, scrollToFirstError, consentAgreed],
+    [formData, currentStep, router, setCurrentStep, consentAgreed],
   );
 
-  // Handle next step - ป้องกันการ submit โดยไม่ตั้งใจ
-  // ในไฟล์ ICMembershipForm.js
-  // แก้ไข handleNext function
-
+  // Handle next step
   const handleNext = useCallback(
     async (e) => {
       if (e) {
@@ -714,361 +227,118 @@ export default function ICMembershipForm({
         e.stopPropagation();
       }
 
-      console.log("=== DEBUG handleNext ===");
-      console.log("Current Step:", currentStep);
-      console.log("Form Data:", formData);
-
-      const formErrors = validateCurrentStep(currentStep, formData);
-      console.log("Form Errors:", formErrors);
+      const formErrors = validateCurrentStep(formData, currentStep);
       setErrors(formErrors);
 
       if (Object.keys(formErrors).length > 0) {
-        console.log("❌ Validation failed with errors:", formErrors);
-
-        // If business info step has errors, let the child component handle scroll AND toast (avoid duplicate)
-        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
-          // Child component (BusinessInfoSection) will handle both scroll and toast
+        if (typeof setShowErrors === "function") {
           setShowErrors(true);
+        }
+
+        // Let child components handle specific errors
+        if (currentStep === 2 && formErrors.representativeErrors) {
           return;
         }
 
-        // For representative step, filter out phone error if not touched yet
-        let filteredErrors = { ...formErrors };
-        if (currentStep === 2 && !representativePhoneTouched && filteredErrors.representativeErrors?.phone) {
-          const { phone, ...restRepErrors } = filteredErrors.representativeErrors;
-          if (Object.keys(restRepErrors).length > 0) {
-            filteredErrors = { ...filteredErrors, representativeErrors: restRepErrors };
-          } else {
-            // Only phone error exists and it's not touched yet - don't show toast
-            const { representativeErrors, ...otherErrors } = filteredErrors;
-            filteredErrors = otherErrors;
-          }
-        }
-
-        // If all errors were filtered out, don't show toast but keep errors in state for UI
-        if (Object.keys(filteredErrors).length === 0) {
-          setErrors(formErrors);
+        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
           return;
         }
 
-        // Use the enhanced scrollToFirstError function which handles toast FTI_Portal_User_Notifications
-        scrollToFirstError(filteredErrors);
+        // Handle other errors
+        const firstErrorKey = getFirstErrorKey(formErrors) ||
+          (formErrors.representativeErrors ? "representativeErrors" : null);
+
+        console.log("🔍 [handleNext] Form Errors:", formErrors);
+        console.log("🔍 [handleNext] First Error Key:", firstErrorKey);
+
+        if (firstErrorKey) {
+          console.log("⏰ [handleNext] About to scroll to:", firstErrorKey);
+          scrollToErrorField(firstErrorKey);
+        } else {
+          console.log("⚠️ [handleNext] No firstErrorKey found!");
+          // Fallback: scroll to top if no specific error field
+          scrollToTop();
+        }
+
+        const errorMessage =
+          typeof formErrors[firstErrorKey] === "string"
+            ? formErrors[firstErrorKey]
+            : "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
+
+        toast.error(errorMessage);
         return;
       }
 
-      // Additional defensive guard for Applicant step: enforce prename "Other" requirements
-      if (currentStep === 1) {
-        const prenameThVal = formData.prename_th ?? formData.prenameTh;
-        const prenameEnVal = formData.prename_en ?? formData.prenameEn;
-        const prenameOtherVal = formData.prename_other ?? formData.prenameOther;
-        const prenameOtherEnVal = formData.prename_other_en ?? formData.prenameOtherEn;
-
-        const extraErrors = {};
-        if (!prenameThVal || prenameThVal === "") {
-          extraErrors.prename_th = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
-        }
-        if (!prenameEnVal || prenameEnVal === "") {
-          extraErrors.prename_en = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาอังกฤษ)";
-        }
-        if (
-          (prenameThVal === "อื่นๆ" || String(prenameEnVal || "").toLowerCase() === "other") &&
-          !prenameOtherVal
-        ) {
-          extraErrors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
-        }
-        if (String(prenameEnVal || "").toLowerCase() === "other" && !prenameOtherEnVal) {
-          extraErrors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)";
-        }
-        if (Object.keys(extraErrors).length > 0) {
-          const merged = { ...formErrors, ...extraErrors };
-          setErrors(merged);
-          scrollToFirstError(merged);
+      // Special check for ID Card on step 1
+      if (currentStep === 1 && formData.idCardNumber?.length === 13) {
+        const idCardResult = await checkIdCard(formData.idCardNumber);
+        if (!idCardResult.isUnique) {
+          setErrors((prev) => ({ ...prev, idCardNumber: idCardResult.message }));
+          toast.error(idCardResult.message);
           return;
         }
       }
 
-      // ✅ แก้ไขการตรวจสอบ ID Card สำหรับ step 1
-      if (currentStep === 1 && formData.idCardNumber) {
-        // ตรวจสอบจาก _idCardValidation ก่อน
-        const idCardValidation = formData._idCardValidation;
-
-        if (idCardValidation?.isChecking) {
-          toast.error("กรุณารอให้การตรวจสอบเลขบัตรประชาชนเสร็จสิ้น", {
-            position: "top-right",
-            style: { zIndex: 100000 },
-          });
-          return;
-        }
-
-        if (idCardValidation?.isValid === false) {
-          toast.error(idCardValidation.message || "เลขบัตรประชาชนไม่สามารถใช้ได้", {
-            position: "top-right",
-            style: { zIndex: 100000 },
-          });
-          return;
-        }
-
-        // ถ้าไม่มี validation หรือ isValid ไม่ใช่ true ให้เช็คใหม่
-        if (!idCardValidation || idCardValidation.isValid !== true) {
-          const { valid, message } = await checkIdCard(formData.idCardNumber);
-          if (!valid) {
-            toast.error(message, { position: "top-right", style: { zIndex: 100000 } });
-            return;
-          }
-        }
-      }
-
-      setErrorMessage("");
-
-      if (currentStep < totalSteps) {
-        console.log("Moving to next step:", currentStep + 1);
+      if (props.currentStep !== undefined && typeof setCurrentStep === "function") {
         setCurrentStep(currentStep + 1);
-        // Scroll to top for better UX when advancing steps
-        if (typeof window !== "undefined") {
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
+      } else {
+        handleNextStep(formData, setErrors);
       }
+      
+      scrollToTop();
     },
-    [formData, currentStep, setCurrentStep, totalSteps, scrollToFirstError, representativePhoneTouched],
+    [formData, currentStep, checkIdCard, handleNextStep, props.currentStep, setCurrentStep],
   );
 
-  const handleSaveDraft = useCallback(async () => {
-    try {
-      // เตรียมข้อมูลสำหรับบันทึก draft ให้ครบถ้วน
-      const draftDataToSave = {
-        // ข้อมูลผู้สมัคร - ใช้ชื่อฟิลด์ตาม IC form
-        idCardNumber: formData.idCardNumber,
-        prenameTh: formData.prenameTh,
-        prenameEn: formData.prenameEn,
-        prenameOther: formData.prenameOther,
-        prename_other: formData.prenameOther,
-        prenameOtherEn: formData.prenameOtherEn,
-        prename_other_en: formData.prenameOtherEn,
-        firstNameThai: formData.firstNameThai,
-        lastNameThai: formData.lastNameThai,
-        firstNameEng: formData.firstNameEng,
-        lastNameEng: formData.lastNameEng,
-        phone: formData.phone,
-        phoneExtension: formData.phoneExtension,
-        email: formData.email,
-
-        // ที่อยู่ - ใช้โครงสร้างใหม่ตาม AddressSection (addresses แบบแยกตามประเภท 1/2/3)
-        addresses: formData.addresses || {},
-
-        // ข้อมูลบริษัท - ใช้ชื่อฟิลด์ตาม IC form
-        companyNameThai: formData.companyNameThai,
-        companyNameEng: formData.companyNameEng,
-        taxId: formData.taxId,
-        companyEmail: formData.companyEmail,
-        companyPhone: formData.companyPhone,
-        companyWebsite: formData.companyWebsite,
-        // เก็บที่อยู่รูปแบบเดิมของ company ไว้หากมีการใช้งานที่อื่น (ไม่กระทบ AddressSection)
-        street: formData.street,
-        companySubDistrict: formData.companySubDistrict,
-        companyDistrict: formData.companyDistrict,
-        companyProvince: formData.companyProvince,
-        companyPostalCode: formData.companyPostalCode,
-
-        // กลุ่มอุตสาหกรรมและจังหวัด - ใช้ชื่อฟิลด์ตาม IC form
-        industrialGroupId: formData.industrialGroupId,
-        provincialChapterId: formData.provincialChapterId,
-
-        // ข้อมูลผู้แทน
-        representative: formData.representative,
-
-        // ข้อมูลเพิ่มเติม
-        businessTypes: formData.businessTypes,
-        otherBusinessTypeDetail: formData.otherBusinessTypeDetail,
-        products: formData.products,
-        memberCount: formData.memberCount,
-        registeredCapital: formData.registeredCapital,
-
-        // Authorized signatory name fields
-        authorizedSignatoryPrenameTh: formData.authorizedSignatoryPrenameTh || "",
-        authorizedSignatoryPrenameEn: formData.authorizedSignatoryPrenameEn || "",
-        authorizedSignatoryPrenameOther: formData.authorizedSignatoryPrenameOther || "",
-        authorizedSignatoryPrenameOtherEn: formData.authorizedSignatoryPrenameOtherEn || "",
-        authorized_signatory_prename_th: formData.authorizedSignatoryPrenameTh || "",
-        authorized_signatory_prename_en: formData.authorizedSignatoryPrenameEn || "",
-        authorized_signatory_prename_other: formData.authorizedSignatoryPrenameOther || "",
-        authorized_signatory_prename_other_en: formData.authorizedSignatoryPrenameOtherEn || "",
-        authorizedSignatoryFirstNameTh: formData.authorizedSignatoryFirstNameTh || "",
-        authorizedSignatoryLastNameTh: formData.authorizedSignatoryLastNameTh || "",
-        authorizedSignatoryFirstNameEn: formData.authorizedSignatoryFirstNameEn || "",
-        authorizedSignatoryLastNameEn: formData.authorizedSignatoryLastNameEn || "",
-
-        // ข้อมูล validation
-        _idCardValidation: formData._idCardValidation,
-      };
-      // ตรวจสอบเลขบัตรประชาชนก่อนบันทึก
-      if (!formData.idCardNumber || formData.idCardNumber.length !== 13) {
-        toast.error("กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลักก่อนบันทึกร่าง");
-        return;
-      }
-
-      const response = await fetch("/api/membership/save-draft", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          memberType: "ic",
-          draftData: draftDataToSave,
-          currentStep: currentStep,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // แสดง popup แทน toast
-        setShowDraftSavePopup(true);
-      } else {
-        toast.error(result.message || "ไม่สามารถบันทึกร่างได้");
-      }
-    } catch (error) {
-      console.error("Error saving draft:", error);
-      toast.error("เกิดข้อผิดพลาดในการบันทึกร่าง");
-    }
-  }, [formData, currentStep]);
-
-  // ฟังก์ชันสำหรับลบ draft หลังจากสมัครสำเร็จ
-  const deleteDraft = useCallback(async () => {
-    try {
-      // ดึง draft ของ user เพื่อหา draft ที่ตรงกับ ID card number
-      const response = await fetch("/api/membership/get-drafts?type=ic");
-
-      if (!response.ok) {
-        console.error("Failed to fetch drafts for deletion");
-        return;
-      }
-
-      const data = await response.json();
-      const drafts = data?.success ? data.drafts || [] : [];
-
-      const normalize = (v) => String(v ?? "").replace(/\D/g, "");
-      const targetId = normalize(formData.idCardNumber);
-      const draftToDelete = drafts.find(
-        (draft) => normalize(draft.draftData?.idCardNumber) === targetId,
-      );
-
-      if (draftToDelete) {
-        const deleteResponse = await fetch("/api/membership/delete-draft", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            memberType: "ic",
-            draftId: draftToDelete.id,
-          }),
-        });
-
-        const deleteResult = await deleteResponse.json();
-
-        if (deleteResult.success) {
-          console.log("Draft deleted successfully");
-        } else {
-          console.error(
-            "Failed to delete draft:",
-            deleteResult.message || deleteResult.error || "Unknown error",
-          );
-        }
-      }
-    } catch (error) {
-      console.error("Error deleting draft:", error);
-    }
-  }, [formData.idCardNumber]);
-
-  // Handle previous step
-  const handlePrev = useCallback(
+  const handlePrevious = useCallback(
     (e) => {
-      // ✅ ป้องกัน form submission
       if (e) {
         e.preventDefault();
         e.stopPropagation();
       }
 
-      setCurrentStep(currentStep - 1);
+      if (props.currentStep !== undefined && typeof setCurrentStep === "function") {
+        setCurrentStep(Math.max(1, currentStep - 1));
+      } else {
+        handlePrevStep();
+      }
     },
-    [currentStep, setCurrentStep],
+    [handlePrevStep, props.currentStep, setCurrentStep, currentStep],
   );
 
-  // Render current step content
+  const handleSaveDraft = useCallback(async () => {
+    const result = await saveDraft(formData, currentStep);
+    if (result.success) {
+      setShowDraftSavePopup(true);
+    } else if (result.message && result.message !== "Missing ID card number" && result.message !== "Invalid ID card format") {
+      toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message}`);
+    }
+  }, [formData, currentStep]);
+
+  // Render current step component
   const currentStepComponent = useMemo(() => {
-    const commonProps = { formData, setFormData, errors };
-
-    const stepComponents = {
-      1: (
-        <ApplicantInfoSection
-          {...commonProps}
-          industrialGroups={industrialGroups}
-          provincialChapters={provincialChapters}
-          isLoading={isLoading}
-        />
-      ),
-      2: <RepresentativeInfoSection 
-        mode="single"
-        formData={formData}
-        setFormData={setFormData}
-        errors={errors}
-        config={{
-          headerTitle: "ข้อมูลผู้แทน",
-          headerSubtitle: "ข้อมูลผู้แทนที่สามารถติดต่อได้",
-          showPosition: false,
-          toastId: "ic-representative-errors",
-          fieldNames: {
-            firstNameTh: "firstNameThai",
-            lastNameTh: "lastNameThai",
-            firstNameEn: "firstNameEng",
-            lastNameEn: "lastNameEng",
-          },
-        }}
-      />,
-      3: <BusinessInfoSection {...commonProps} />,
-      4: <DocumentUploadSection {...commonProps} />,
-      5: (
-        <SummarySection
-          formData={formData}
-          industrialGroups={industrialGroups}
-          provincialChapters={provincialChapters}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-          onBack={handlePrevStep}
-        />
-      ),
-    };
-
-    return stepComponents[currentStep] || null;
+    return renderStepComponent({
+      currentStep,
+      formData,
+      setFormData,
+      errors,
+      setErrors,
+      idCardValidating,
+      businessTypes,
+      industrialGroups,
+      provincialChapters,
+      showErrors,
+    });
   }, [
     currentStep,
     formData,
-    setFormData,
     errors,
+    businessTypes,
     industrialGroups,
     provincialChapters,
-    isLoading,
-    isSubmitting,
-    handleSubmit,
-    handlePrevStep,
-    representativePhoneTouched,
+    idCardValidating,
+    showErrors,
   ]);
-
-  // Render error message helper
-  const renderErrorMessage = (errorValue, key, index) => {
-    if (typeof errorValue === "object" && errorValue !== null) {
-      return (
-        <li key={`${key}-${index}`} className="text-base">
-          {JSON.stringify(errorValue)}
-        </li>
-      );
-    }
-    return (
-      <li key={`${key}-${index}`} className="text-base">
-        {String(errorValue)}
-      </li>
-    );
-  };
 
   // Show loading state
   if (isLoading || isLoadingDraft) {
@@ -1099,42 +369,14 @@ export default function ICMembershipForm({
 
   return (
     <div className="relative max-w-7xl mx-auto px-6 py-8">
-      {/* Loading Overlay */}
-      {isSubmitting && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex flex-col justify-center items-center z-50">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-white"></div>
-          <p className="mt-4 text-white text-xl font-semibold">กำลังดำเนินการส่งข้อมูล...</p>
-          <p className="mt-2 text-white text-md">กรุณาอย่าปิดหน้าต่างนี้</p>
-        </div>
-      )}
-
-      {/* ✅ ลบ onSubmit ออกจาก form tag เพื่อป้องกันการ submit ที่ไม่พึงประสงค์ */}
-      <LoadingOverlay isLoading={isSubmitting} message="กำลังส่งข้อมูล..." subMessage="กรุณาอย่าปิดหน้าต่างนี้" />
-      <div className="space-y-8">
+      <LoadingOverlay 
+        isVisible={isSubmitting} 
+        message="กำลังส่งข้อมูล..." 
+      />
+      
+      <form onSubmit={handleSubmit} className="space-y-8">
         {/* Error Messages */}
-        {Object.keys(errors).length > 0 && (
-          <div
-            className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl"
-            role="alert"
-          >
-            <strong className="font-bold text-lg">กรุณาแก้ไขข้อมูลให้ถูกต้อง:</strong>
-            <ul className="mt-4 list-disc list-inside space-y-2">
-              {Object.keys(errors)
-                .filter((key) => key !== "representativeErrors")
-                .map((key, index) => renderErrorMessage(errors[key], key, index))}
-            </ul>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {errorMessage && (
-          <div
-            className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl"
-            role="alert"
-          >
-            <strong className="font-bold text-lg">{errorMessage}</strong>
-          </div>
-        )}
+        <FormErrorBox errors={errors} excludeKeys={["representativeErrors"]} />
 
         {/* Form Content */}
         <div className="bg-white rounded-xl p-10 shadow-lg border border-gray-100">
@@ -1142,164 +384,25 @@ export default function ICMembershipForm({
         </div>
 
         {/* Consent Checkbox - Show only on the last step */}
-        {currentStep === totalSteps && (
-          <div data-consent-box className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-6 shadow-md">
-            <div className="flex items-start gap-4">
-              {/* Shield Icon */}
-              <div className="flex-shrink-0 mt-1">
-                <svg
-                  className="w-8 h-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-                  />
-                </svg>
-              </div>
-
-              {/* Content */}
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  การคุ้มครองข้อมูลส่วนบุคคล
-                </h3>
-                <label className="flex items-start gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    className="mt-1.5 h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                    checked={consentAgreed}
-                    onChange={(e) => setConsentAgreed(e.target.checked)}
-                  />
-                  <div className="flex-1">
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      <span className="font-medium text-gray-900">
-                        ข้าพเจ้าตกลงและยินยอมให้{" "}
-                        <span className="text-blue-700 font-semibold">
-                          สภาอุตสาหกรรมแห่งประเทศไทย
-                        </span>
-                      </span>{" "}
-                      เก็บ รวบรวม ใช้ และเปิดเผยข้อมูลส่วนบุคคลของข้าพเจ้า
-                      เพื่อวัตถุประสงค์ในการติดต่อสื่อสาร การให้บริการ
-                      และการดำเนินงานที่เกี่ยวข้องกับการเป็นสมาชิก
-                    </p>
-                    <p className="text-sm text-gray-700 mt-2">
-                      อ่านรายละเอียดฉบับเต็มได้ที่{" "}
-                      <a
-                        href="/Privacy-Notice-ผู้สมัครสมาชิกส.อ.ท_.pdf"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-700 underline hover:text-blue-800"
-                      >
-                        นโยบายความเป็นส่วนตัว (Privacy Notice) สำหรับผู้สมัครสมาชิก
-                      </a>
-                    </p>
-                    <p className="text-xs text-gray-600 mt-2 italic">
-                      ทั้งนี้ ข้าพเจ้าสามารถเพิกถอนความยินยอมได้ตามช่องทางที่องค์กรกำหนด
-                    </p>
-                  </div>
-                </label>
-
-                {!consentAgreed && (
-                  <div className="mt-3 flex items-center gap-2 text-amber-700 bg-amber-50 px-3 py-2 rounded-lg">
-                    <svg
-                      className="w-4 h-4 flex-shrink-0"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="text-xs font-medium">
-                      กรุณายอมรับข้อตกลงเพื่อดำเนินการต่อ
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+        {currentStep === 5 && (
+          <ConsentCheckbox consentAgreed={consentAgreed} setConsentAgreed={setConsentAgreed} />
         )}
 
-        {/* Navigation Buttons - Fixed positioning */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
-          <div className="max-w-7xl mx-auto flex justify-between items-center">
-            <button
-              type="button"
-              onClick={handlePrev}
-              disabled={currentStep === 1}
-              className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                currentStep === 1
-                  ? "bg-gray-400 text-gray-700 cursor-not-allowed opacity-60"
-                  : "bg-gray-600 text-white hover:bg-gray-700 hover:shadow-md"
-              }`}
-            >
-              ← ย้อนกลับ
-            </button>
-
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-50 px-4 py-2 rounded-lg">
-                <span className="text-lg text-blue-700 font-semibold">
-                  ขั้นตอนที่ {currentStep} จาก {totalSteps}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              {currentStep < 5 && currentStep !== 4 && (
-                <button
-                  type="button"
-                  onClick={handleSaveDraft}
-                  className="px-10 py-4 bg-yellow-500 text-white rounded-xl font-semibold text-base hover:bg-yellow-600 transition-all duration-200 hover:shadow-md"
-                >
-                  บันทึกร่าง
-                </button>
-              )}
-              {currentStep < totalSteps ? (
-                <button
-                  type="button"
-                  onClick={handleNext}
-                  className="px-10 py-4 bg-blue-600 text-white rounded-xl font-semibold text-base hover:bg-blue-700 transition-all duration-200 hover:shadow-md"
-                >
-                  ถัดไป →
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={isSubmitting || !consentAgreed}
-                  className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 ${
-                    isSubmitting || !consentAgreed
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-green-600 hover:bg-green-700 hover:shadow-md"
-                  } text-white`}
-                >
-                  {isSubmitting
-                    ? "⏳ กำลังส่ง..."
-                    : rejectionId
-                      ? "✓ ยืนยันการส่งใบสมัครใหม่"
-                      : "✓ ยืนยันการสมัคร"}
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
+        {/* Navigation Buttons */}
+        {renderNavigationButtons({
+          currentStep,
+          effectiveTotalSteps,
+          handlePrevious,
+          handleNext,
+          handleSubmit,
+          handleSaveDraft,
+          isSubmitting,
+          consentAgreed,
+        })}
 
         {/* Document preparation hint */}
-        {currentStep === 1 && (
-          <div className="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <p className="text-yellow-700 text-base">
-              <strong>รายการเอกสารที่ท่านต้องเตรียม:</strong> สำเนาบัตรประจำตัวประชาชน
-              และเอกสารอื่นๆ ที่เกี่ยวข้อง
-            </p>
-          </div>
-        )}
-      </div>
+        {renderDocumentHint(currentStep)}
+      </form>
 
       {/* Draft Save Popup */}
       <DraftSavePopup
@@ -1308,15 +411,9 @@ export default function ICMembershipForm({
         membershipType="IC"
         displayInfo={{
           primaryId: formData.idCardNumber,
-          primaryName: `${formData.firstNameTh || ""} ${formData.lastNameTh || ""}`.trim(),
-          primaryIdLabel: "หมายเลขบัตรประชาชน",
+          primaryName: `${formData.firstNameThai} ${formData.lastNameThai}`,
+          primaryIdLabel: "เลขบัตรประชาชน",
         }}
-      />
-
-      {/* Loading Overlay */}
-      <LoadingOverlay
-        isVisible={isSubmitting}
-        message="กำลังส่งข้อมูล... กรุณาอย่าปิดหน้าต่างนี้"
       />
 
       {/* Success Modal */}
@@ -1324,12 +421,13 @@ export default function ICMembershipForm({
         isOpen={showSuccessModal}
         onClose={() => setShowSuccessModal(false)}
         membershipType="ic"
-        memberData={submissionResult?.memberData}
+        memberData={{
+          idCardNumber: formData.idCardNumber,
+          fullNameTh: `${formData.firstNameThai} ${formData.lastNameThai}`,
+        }}
         onConfirm={() => {
           setShowSuccessModal(false);
-          if (typeof window !== "undefined") {
-            window.location.href = "/dashboard?tab=documents";
-          }
+          router.push("/dashboard?tab=documents");
         }}
       />
     </div>

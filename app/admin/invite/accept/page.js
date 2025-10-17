@@ -97,7 +97,7 @@ export default function AcceptAdminInvitePage() {
         try {
           const emailParam = encodeURIComponent(invite?.email || "");
           setTimeout(() => {
-            window.location.href = `https://ftimemberportal-529sy.kinsta.app/admin?email=${emailParam}`;
+            window.location.href = `${process.env.NEXT_PUBLIC_BASE_URL}/admin?email=${emailParam}`;
           }, 1500);
         } catch (redirectErr) {
           console.error("Redirect error:", redirectErr);

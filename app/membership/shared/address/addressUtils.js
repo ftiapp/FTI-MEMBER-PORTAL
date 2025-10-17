@@ -94,7 +94,16 @@ export const hasAddressErrors = (errors, addressType) => {
 export const findFirstErrorTab = (errors) => {
   if (!errors) return null;
 
-  // ตรวจสอบ flattened keys
+  // ตรวจสอบ IC format: address_1_field, address_2_field
+  const icKeys = Object.keys(errors).filter((key) => /^address_\d+_/.test(key));
+  if (icKeys.length > 0) {
+    const match = icKeys[0].match(/^address_(\d+)_/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  // ตรวจสอบ OC format: addresses.1.field
   const flatKeys = Object.keys(errors).filter((key) => key.startsWith("addresses."));
   if (flatKeys.length > 0) {
     const match = flatKeys[0].match(/addresses\.(\d+)\./);

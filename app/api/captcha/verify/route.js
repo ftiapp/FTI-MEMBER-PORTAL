@@ -68,7 +68,7 @@ export async function POST(req) {
         process.env.RECAPTCHA_EXPECTED_ACTION || "register"
       ).toString();
       const allowedHostnamesEnv = (
-        process.env.RECAPTCHA_ALLOWED_HOSTNAMES || "ftimemberportal-529sy.kinsta.app,localhost"
+        process.env.RECAPTCHA_ALLOWED_HOSTNAMES || "localhost"
       ).toString();
       const allowedHostnames = allowedHostnamesEnv
         .split(",")

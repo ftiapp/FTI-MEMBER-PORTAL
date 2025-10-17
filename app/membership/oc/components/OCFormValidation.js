@@ -117,8 +117,8 @@ export const validateOCForm = (formData, step) => {
         // เบอร์โทรศัพท์บังคับ (รองรับ 9-10 หลัก)
         if (!phoneVal) {
           errors[`addresses.${type}.phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-        } else if (!/^\d{9,10}$/.test(phoneVal)) {
-          errors[`addresses.${type}.phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
+        } else if (phoneVal.length > 50) {
+          errors[`addresses.${type}.phone`] = `เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร (${label})`;
         }
       });
 
@@ -213,8 +213,8 @@ export const validateOCForm = (formData, step) => {
 
         if (!mainContact.phone) {
           errors.contactPerson0Phone = "กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน";
-        } else if (!/^\d{9,10}$/.test(mainContact.phone.replace(/[-\s]/g, ""))) {
-          errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
+        } else if (mainContact.phone.length > 50) {
+          errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
         }
 
         // ตรวจสอบประเภทผู้ติดต่อ
@@ -308,11 +308,8 @@ export const validateOCForm = (formData, step) => {
         // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก, อนุญาตให้มี - และช่องว่าง)
         if (!rep.phone || rep.phone.trim() === "") {
           repError.phone = "กรุณากรอกเบอร์โทรศัพท์";
-        } else {
-          const cleanPhone = rep.phone.replace(/[-\s]/g, "");
-          if (!/^\d{9,10}$/.test(cleanPhone)) {
-            repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (สามารถใส่ - หรือช่องว่างได้)";
-          }
+        } else if (rep.phone.length > 50) {
+          repError.phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
         }
 
         // เพิ่มข้อผิดพลาดของผู้แทนคนนี้เข้าไปใน array
@@ -404,11 +401,18 @@ export const validateOCForm = (formData, step) => {
     }
 
     // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
-    if (!formData.companyStamp) {
+    // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+    const hasCompanyStamp = formData.companyStamp && 
+      (formData.companyStamp.file || formData.companyStamp.url || formData.companyStamp instanceof File);
+    
+    const hasAuthorizedSignature = formData.authorizedSignature && 
+      (formData.authorizedSignature.file || formData.authorizedSignature.url || formData.authorizedSignature instanceof File);
+
+    if (!hasCompanyStamp) {
       errors.companyStamp = "กรุณาอัพโหลดรูปตราประทับบริษัท (หรือรูปลายเซ็นหากไม่มีตราประทับ)";
     }
 
-    if (!formData.authorizedSignature) {
+    if (!hasAuthorizedSignature) {
       errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
     }
 
@@ -434,38 +438,28 @@ export const validateOCForm = (formData, step) => {
     // ตรวจสอบชื่อผู้มีอำนาจลงนาม
     if (!formData.authorizedSignatoryFirstNameTh) {
       errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
-    } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
-      errors.authorizedSignatoryFirstNameTh = "ชื่อภาษาไทยต้องเป็นภาษาไทยและช่องว่างเท่านั้น";
+    } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+      errors.authorizedSignatoryFirstNameTh = "ชื่อภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
     }
 
     if (!formData.authorizedSignatoryLastNameTh) {
       errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)";
-    } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
-      errors.authorizedSignatoryLastNameTh = "นามสกุลภาษาไทยต้องเป็นภาษาไทยและช่องว่างเท่านั้น";
+    } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+      errors.authorizedSignatoryLastNameTh = "นามสกุลภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
     }
 
-    // ชื่อ-นามสกุลภาษาอังกฤษ: ไม่บังคับกรอก แต่ตรวจสอบรูปแบบถ้ามีค่า
-    if (formData.authorizedSignatoryFirstNameEn && !/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
-      errors.authorizedSignatoryFirstNameEn = "ชื่อภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น";
-    }
+    // ชื่อ-นามสกุลภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
+    // Removed validation for English fields
 
-    if (formData.authorizedSignatoryLastNameEn && !/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-      errors.authorizedSignatoryLastNameEn = "นามสกุลภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น";
-    }
-
-    // ตรวจสอบตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับกรอก
+    // ตรวจสอบตำแหน่งผู้มีอำนาจลงนาม (บังคับเฉพาะภาษาไทย)
     if (!formData.authorizedSignatoryPositionTh) {
       errors.authorizedSignatoryPositionTh = "กรุณากรอกตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย)";
+    } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryPositionTh)) {
+      errors.authorizedSignatoryPositionTh = "ตำแหน่งภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
     }
 
-    // ตรวจสอบตำแหน่งผู้มีอำนาจลงนาม (ภาษาอังกฤษ) - ไม่บังคับกรอก แต่ตรวจสอบรูปแบบถ้ามีค่า
-    if (
-      formData.authorizedSignatoryPositionEn &&
-      !/^[A-Za-z\s]+$/.test(formData.authorizedSignatoryPositionEn)
-    ) {
-      errors.authorizedSignatoryPositionEn =
-        "ตำแหน่งภาษาอังกฤษต้องเป็นภาษาอังกฤษและช่องว่างเท่านั้น";
-    }
+    // ตำแหน่งภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
+    // Removed validation for English position
   }
 
   return errors;

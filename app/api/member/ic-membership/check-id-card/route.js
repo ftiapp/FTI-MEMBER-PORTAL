@@ -4,7 +4,40 @@ import { NextResponse } from "next/server";
 export async function POST(request) {
   let connection;
   try {
-    const { idCardNumber } = await request.json();
+    // Handle empty or invalid JSON body
+    let body;
+    try {
+      const text = await request.text();
+      console.log("Raw request body:", text);
+      
+      if (!text || text.trim() === "") {
+        console.log("Empty request body received");
+        return NextResponse.json(
+          {
+            valid: false,
+            exists: null,
+            message: "Empty request body",
+          },
+          { status: 400 },
+        );
+      }
+      
+      body = JSON.parse(text);
+      console.log("Parsed body:", body);
+    } catch (jsonError) {
+      console.error("JSON parse error:", jsonError);
+      return NextResponse.json(
+        {
+          valid: false,
+          exists: null,
+          message: "Invalid request body",
+        },
+        { status: 400 },
+      );
+    }
+
+    const { idCardNumber } = body;
+    console.log("ID Card Number:", idCardNumber);
 
     if (!idCardNumber || idCardNumber.length !== 13) {
       return NextResponse.json(

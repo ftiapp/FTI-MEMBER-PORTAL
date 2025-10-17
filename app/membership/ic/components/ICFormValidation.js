@@ -14,7 +14,7 @@ export const validateThaiIDCard = (id) => {
 };
 
 // Validate the current step of the IC membership form
-export const validateCurrentStep = (step, formData) => {
+export const validateCurrentStep = (formData, step) => {
   let errors = {};
 
   switch (step) {
@@ -68,15 +68,18 @@ const validateApplicantInfo = (formData) => {
     errors.prename_en = "คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  if (
-    (prenameThVal === "อื่นๆ" ||
-      (prenameEnVal && String(prenameEnVal).toLowerCase() === "other")) &&
-    !prenameOtherVal
-  ) {
-    errors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
+  // ตรวจสอบว่าถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
+  if (prenameThVal === "อื่นๆ") {
+    if (!prenameOtherVal || prenameOtherVal.trim() === "") {
+      errors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ) ภาษาไทย";
+    }
   }
-  if (prenameEnVal && String(prenameEnVal).toLowerCase() === "other" && !prenameOtherEnVal) {
-    errors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)";
+  
+  // ตรวจสอบว่าถ้าเลือก "Other" ต้องระบุรายละเอียด
+  if (prenameEnVal && String(prenameEnVal).toLowerCase() === "other") {
+    if (!prenameOtherEnVal || prenameOtherEnVal.trim() === "") {
+      errors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (Other) ภาษาอังกฤษ";
+    }
   }
 
   // Thai name validation
@@ -108,8 +111,8 @@ const validateApplicantInfo = (formData) => {
   // Contact information validation (รองรับ 9-10 หลัก)
   if (!formData.phone) {
     errors.phone = "กรุณากรอกเบอร์โทรศัพท์";
-  } else if (!/^\d{9,10}$/.test(formData.phone.replace(/[-\s]/g, ""))) {
-    errors.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
+  } else if (formData.phone.length > 50) {
+    errors.phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
   }
 
   // Phone extension validation: allow non-numeric characters (commas, parentheses, etc.)
@@ -173,8 +176,8 @@ const validateApplicantInfo = (formData) => {
       // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
       if (!address.phone) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-      } else if (!/^\d{9,10}$/.test(address.phone.replace(/[-\s]/g, ""))) {
-        errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
+      } else if (address.phone.length > 50) {
+        errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร (${label})`;
       }
 
       // ตรวจสอบเว็บไซต์ถ้ามี
@@ -255,15 +258,18 @@ const validateRepresentativeInfo = (formData) => {
     representativeErrors.prename_en = "คำนำหน้าชื่อต้องเป็นภาษาอังกฤษเท่านั้น";
   }
 
-  if (
-    (repPrenameTh === "อื่นๆ" ||
-      (repPrenameEn && String(repPrenameEn).toLowerCase() === "other")) &&
-    !repPrenameOther
-  ) {
-    representativeErrors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
+  // ตรวจสอบว่าถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
+  if (repPrenameTh === "อื่นๆ") {
+    if (!repPrenameOther || repPrenameOther.trim() === "") {
+      representativeErrors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ) ภาษาไทย";
+    }
   }
-  if (repPrenameEn && String(repPrenameEn).toLowerCase() === "other" && !repPrenameOtherEn) {
-    representativeErrors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (ภาษาอังกฤษ)";
+  
+  // ตรวจสอบว่าถ้าเลือก "Other" ต้องระบุรายละเอียด
+  if (repPrenameEn && String(repPrenameEn).toLowerCase() === "other") {
+    if (!repPrenameOtherEn || repPrenameOtherEn.trim() === "") {
+      representativeErrors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (Other) ภาษาอังกฤษ";
+    }
   }
 
   // Thai name validation
@@ -295,11 +301,8 @@ const validateRepresentativeInfo = (formData) => {
   // Contact information validation (รองรับ 9-10 หลัก, อนุญาตให้มี - และช่องว่าง)
   if (!representative.phone) {
     representativeErrors.phone = "กรุณากรอกเบอร์โทรศัพท์";
-  } else {
-    const cleanPhone = representative.phone.replace(/[-\s]/g, "");
-    if (!/^\d{9,10}$/.test(cleanPhone)) {
-      representativeErrors.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (สามารถใส่ - หรือช่องว่างได้)";
-    }
+  } else if (representative.phone.length > 50) {
+    representativeErrors.phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
   }
 
   // Phone extension validation: allow non-numeric characters for representative as well
@@ -365,19 +368,23 @@ const validateDocuments = (formData) => {
     errors.idCardDocument = "กรุณาอัพโหลดสำเนาบัตรประชาชน";
   }
 
-  if (!formData.authorizedSignature) {
+  // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+  const hasAuthorizedSignature = formData.authorizedSignature && 
+    (formData.authorizedSignature.file || formData.authorizedSignature.url || formData.authorizedSignature instanceof File);
+
+  if (!hasAuthorizedSignature) {
     errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
   }
 
   // Authorized signatory name validations (required)
-  // Thai names must be Thai letters/spaces
+  // Thai names must be Thai letters/spaces/dots
   if (
     !formData.authorizedSignatoryFirstNameTh ||
     formData.authorizedSignatoryFirstNameTh.trim() === ""
   ) {
     errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
-  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
-    errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อภาษาไทยเท่านั้น";
+  } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+    errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
   }
 
   if (
@@ -385,28 +392,12 @@ const validateDocuments = (formData) => {
     formData.authorizedSignatoryLastNameTh.trim() === ""
   ) {
     errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)";
-  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
-    errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลภาษาไทยเท่านั้น";
+  } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+    errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
   }
 
-  // English names must be English letters/spaces
-  if (
-    !formData.authorizedSignatoryFirstNameEn ||
-    formData.authorizedSignatoryFirstNameEn.trim() === ""
-  ) {
-    errors.authorizedSignatoryFirstNameEn = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (อังกฤษ)";
-  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
-    errors.authorizedSignatoryFirstNameEn = "กรุณากรอกชื่อภาษาอังกฤษเท่านั้น";
-  }
-
-  if (
-    !formData.authorizedSignatoryLastNameEn ||
-    formData.authorizedSignatoryLastNameEn.trim() === ""
-  ) {
-    errors.authorizedSignatoryLastNameEn = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (อังกฤษ)";
-  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-    errors.authorizedSignatoryLastNameEn = "กรุณากรอกนามสกุลภาษาอังกฤษเท่านั้น";
-  }
+  // English names: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
+  // Removed validation for English fields
 
   return errors;
 };

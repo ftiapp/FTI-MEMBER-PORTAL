@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
-import { ADDRESS_TYPES } from "./addressUtils";
+import { ADDRESS_TYPES, findFirstErrorTab, scrollToAddressSection } from "./addressUtils";
 import AddressTabNavigation from "./AddressTabNavigation";
 import AddressFields from "./AddressFields";
 import AddressLocationFields from "./AddressLocationFields";
@@ -32,6 +33,21 @@ export default function AddressSection({
     handlers,
     fetchFunctions,
   } = useAddressHandlers(formData, setFormData, errors);
+
+  const lastErrorTabRef = useRef(null);
+
+  // Auto-switch to tab with error and scroll
+  useEffect(() => {
+    const errorTab = findFirstErrorTab(errors);
+    
+    if (errorTab && errorTab !== activeTab && errorTab !== lastErrorTabRef.current) {
+      lastErrorTabRef.current = errorTab;
+      setActiveTab(errorTab);
+      
+      // Scroll to address section after tab switch
+      scrollToAddressSection();
+    }
+  }, [errors, activeTab, setActiveTab]);
 
   return (
     <div

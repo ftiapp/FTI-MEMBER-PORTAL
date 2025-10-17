@@ -36,21 +36,21 @@ export const isValidEmail = (email) => {
 };
 
 /**
- * Validate phone number (9-10 digits)
+ * Validate phone number (max 50 characters, allows various formats)
  */
 export const isValidPhone = (phone) => {
   if (!phone || phone.trim() === "") return false;
-  // Remove spaces and hyphens for validation
-  const cleanPhone = phone.replace(/[-\s]/g, "");
-  // Check if it's 9-10 digits only
-  return /^\d{9,10}$/.test(cleanPhone);
+  if (phone.length > 50) return false;
+  return true;
 };
 
 /**
  * Sanitize phone input (allow only digits, spaces, and hyphens)
  */
 export const sanitizePhone = (value) => {
-  return value.replace(/[^\d\s-]/g, "");
+  // Allow any characters; just trim to 50 chars to align with DB column (VARCHAR(50))
+  if (typeof value !== "string") return "";
+  return value.slice(0, 50);
 };
 
 /**

@@ -124,7 +124,7 @@ export async function sendEmailChangeNotificationToNew(newEmail, oldEmail, first
           <p>ยินดีต้อนรับ! อีเมลของคุณได้ถูกเปลี่ยนจาก <strong>${oldEmail}</strong> เป็น <strong>${newEmail}</strong> เรียบร้อยแล้ว</p>
           <p>คุณสามารถใช้อีเมลใหม่นี้ในการเข้าสู่ระบบได้ทันที</p>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="https://ftimemberportal-529sy.kinsta.app/login" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่ระบบ</a>
+            <a href="${process.env.NEXT_PUBLIC_BASE_URL}/login" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่ระบบ</a>
           </div>
           <p>หากคุณไม่ได้ดำเนินการนี้ กรุณาติดต่อเจ้าหน้าที่โดย��่วน</p>
         `,
@@ -138,7 +138,7 @@ export async function sendEmailChangeNotificationToNew(newEmail, oldEmail, first
         
         คุณสามารถใช้อีเมลใหม่นี้ในการเข้าสู่ระบบได้ทันที
         
-        เข้าสู่ระบบ: https://ftimemberportal-529sy.kinsta.app/login
+        เข้าสู่ระบบ: ${process.env.NEXT_PUBLIC_BASE_URL}/login
         
         หากคุณไม่ได้ดำเนินการนี้ กรุณาติดต่อเจ้าหน้าที่โดยด่วน
       `,

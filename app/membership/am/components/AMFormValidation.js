@@ -123,8 +123,8 @@ const validateAssociationInfo = (formData, errors) => {
 
       if (!mainContact.phone) {
         errors.contactPerson0Phone = "กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน";
-      } else if (!/^\d{9,10}$/.test(mainContact.phone.replace(/[-\s]/g, ""))) {
-        errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
+      } else if (mainContact.phone.length > 50) {
+        errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
       }
 
       // ตรวจสอบประเภทผู้ติดต่อ
@@ -196,11 +196,8 @@ const validateAssociationInfo = (formData, errors) => {
       const phoneValue = address[`phone-${type}`] || address.phone;
       if (!phoneValue) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-      } else {
-        const cleanPhone = phoneValue.replace(/[-\s()]/g, "");
-        if (!/^0?\d{8,10}$/.test(cleanPhone)) {
-          errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก (${label})`;
-        }
+      } else if (phoneValue.length > 50) {
+        errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร (${label})`;
       }
     });
   } else {
@@ -310,11 +307,8 @@ const validateRepresentatives = (formData, errors) => {
     } else {
       const cleanPhone = rep.phone.replace(/[-\s()]/g, "");
       // ตรวจสอบรูปแบบเฉพาะเมื่อมีความยาวมากพอ (8+ ตัว)
-      if (cleanPhone.length >= 8) {
-        // รองรับ 9-10 หลัก (เลข 0 นำหน้าหรือไม่ก็ได้)
-        if (!/^0?\d{8,10}$/.test(cleanPhone) || cleanPhone.length < 9 || cleanPhone.length > 11) {
-          repError.phone = "เบอร์โทรศัพท์ต้องเป็นตัวเลข 9-10 หลัก";
-        }
+      if (rep.phone.length > 50) {
+        repError.phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
       }
     }
 
@@ -413,11 +407,18 @@ const validateDocuments = (formData, errors) => {
   }
 
   // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
-  if (!formData.companyStamp) {
+  // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+  const hasCompanyStamp = formData.companyStamp && 
+    (formData.companyStamp.file || formData.companyStamp.url || formData.companyStamp instanceof File);
+  
+  const hasAuthorizedSignature = formData.authorizedSignature && 
+    (formData.authorizedSignature.file || formData.authorizedSignature.url || formData.authorizedSignature instanceof File);
+
+  if (!hasCompanyStamp) {
     errors.companyStamp = "กรุณาอัพโหลดรูปตราประทับสมาคม (หรือรูปลายเซ็นหากไม่มีตราประทับ)";
   }
 
-  if (!formData.authorizedSignature) {
+  if (!hasAuthorizedSignature) {
     errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
   }
 
@@ -443,24 +444,16 @@ const validateDocuments = (formData, errors) => {
   // ตรวจสอบข้อมูลชื่อผู้มีอำนาจลงนาม
   if (!formData.authorizedSignatoryFirstNameTh) {
     errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
-  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
-    errors.authorizedSignatoryFirstNameTh = "ชื่อผู้มีอำนาจลงนามต้องเป็นภาษาไทยเท่านั้น";
+  } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+    errors.authorizedSignatoryFirstNameTh = "ชื่อผู้มีอำนาจลงนามต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
   }
 
   if (!formData.authorizedSignatoryLastNameTh) {
     errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)";
-  } else if (!/^[ก-๙\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
-    errors.authorizedSignatoryLastNameTh = "นามสกุลผู้มีอำนาจลงนามต้องเป็นภาษาไทยเท่านั้น";
+  } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+    errors.authorizedSignatoryLastNameTh = "นามสกุลผู้มีอำนาจลงนามต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
   }
 
-  // ชื่อ-นามสกุลภาษาอังกฤษ: ไม่บังคับกรอก แต่ตรวจสอบรูปแบบถ้ามีค่า
-  if (formData.authorizedSignatoryFirstNameEn && !/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryFirstNameEn)) {
-    errors.authorizedSignatoryFirstNameEn = "ชื่อผู้มีอำนาจลงนามต้องเป็นภาษาอังกฤษเท่านั้น";
-  }
-
-  if (formData.authorizedSignatoryLastNameEn && !/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-    errors.authorizedSignatoryLastNameEn = "นามสกุลผู้มีอำนาจลงนามต้องเป็นภาษาอังกฤษเท่านั้น";
-  } else if (!/^[a-zA-Z\s]+$/.test(formData.authorizedSignatoryLastNameEn)) {
-    errors.authorizedSignatoryLastNameEn = "นามสกุลผู้มีอำนาจลงนามต้องเป็นภาษาอังกฤษเท่านั้น";
-  }
+  // ชื่อ-นามสกุลภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
+  // Removed validation for English fields
 };
