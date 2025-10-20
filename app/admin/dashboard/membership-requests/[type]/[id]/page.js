@@ -26,6 +26,7 @@ export default function MembershipRequestDetail({ params }) {
     useApplicationData(type, id);
 
   const [adminNote, setAdminNote] = useState("");
+  const [initializedAdminNote, setInitializedAdminNote] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
@@ -51,12 +52,13 @@ export default function MembershipRequestDetail({ params }) {
     router.push(`/admin/dashboard/membership-requests?${params.toString()}`);
   };
 
-  // Initialize admin note when application loads
+  // Initialize admin note once when application first loads
   useEffect(() => {
-    if (application?.adminNote) {
-      setAdminNote(application.adminNote);
+    if (!initializedAdminNote && application) {
+      setAdminNote(application.adminNote || "");
+      setInitializedAdminNote(true);
     }
-  }, [application]);
+  }, [application, initializedAdminNote]);
 
   const handleSaveNote = async () => {
     if (isSubmitting) return;
@@ -84,10 +86,13 @@ export default function MembershipRequestDetail({ params }) {
 
       if (data.success) {
         toast.success("บันทึกหมายเหตุเรียบร้อยแล้ว");
+        // อัปเดต application state ให้แสดงเวลาที่บันทึกทันที
         updateApplication({
           adminNote: adminNote,
-          adminNoteAt: new Date().toISOString(),
+          adminNoteAt: data.adminNoteAt || new Date().toISOString(),
         });
+        // เคลียร์ช่องหมายเหตุหลังบันทึกสำเร็จ
+        setAdminNote("");
       } else {
         console.log("Save Note Error:", data.message);
         toast.error(data.message || "ไม่สามารถบันทึกหมายเหตุได้");
@@ -461,6 +466,7 @@ export default function MembershipRequestDetail({ params }) {
           onViewDocument={handleViewDocument}
           isSubmitting={isSubmitting}
           onDownload={handleDownload}
+          updateApplication={updateApplication}
         />
 
         {/* Comments Section */}

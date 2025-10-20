@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 const AddressSectionEnhanced = ({ application, onUpdate }) => {
@@ -6,6 +6,13 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
   const [editData, setEditData] = useState(application?.addresses || []);
   const [postalCodeSuggestions, setPostalCodeSuggestions] = useState({});
   const [loadingPostalCode, setLoadingPostalCode] = useState({});
+
+  // Sync state when application prop changes (after successful update)
+  useEffect(() => {
+    if (!isEditing) {
+      setEditData(application?.addresses ? [...application.addresses] : [application?.address].filter(Boolean));
+    }
+  }, [application, isEditing]);
 
   // Check if we have multiple addresses or just one
   const hasMultipleAddresses = application?.addresses && application.addresses.length > 0;
@@ -22,7 +29,7 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
     try {
       await onUpdate("addresses", editData);
       setIsEditing(false);
-      toast.success("บันทึกข้อมูลที่อยู่สำเร็จ");
+      // ข้อมูลจะอัปเดตทันทีผ่าน state ไม่ต้อง reload
     } catch (error) {
       console.error("Error updating addresses:", error);
       toast.error("ไม่สามารถบันทึกข้อมูลที่อยู่ได้");

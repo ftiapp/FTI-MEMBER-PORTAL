@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatCurrency, formatNumber, formatPercent } from "../../ีutils/formatters";
 
 const FinancialInfoSection = ({ application, type, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
+  
+  const getInitialData = () => ({
     registeredCapital: application?.registeredCapital || "",
     productionCapacityValue: application?.productionCapacityValue || "",
     productionCapacityUnit: application?.productionCapacityUnit || "",
@@ -15,6 +16,25 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
     revenueLastYear: application?.revenueLastYear || "",
     revenuePreviousYear: application?.revenuePreviousYear || "",
   });
+
+  const [editData, setEditData] = useState(getInitialData());
+
+  // Sync state when application prop changes (after successful update)
+  useEffect(() => {
+    if (!isEditing && application) {
+      setEditData({
+        registeredCapital: application?.registeredCapital || "",
+        productionCapacityValue: application?.productionCapacityValue || "",
+        productionCapacityUnit: application?.productionCapacityUnit || "",
+        salesDomestic: application?.salesDomestic || "",
+        salesExport: application?.salesExport || "",
+        shareholderThaiPercent: application?.shareholderThaiPercent || "",
+        shareholderForeignPercent: application?.shareholderForeignPercent || "",
+        revenueLastYear: application?.revenueLastYear || "",
+        revenuePreviousYear: application?.revenuePreviousYear || "",
+      });
+    }
+  }, [application, isEditing]);
 
   // Format number with commas for display, keep raw numeric string in state
   const formatWithCommas = (value) => {

@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import SaveModal from "../../[type]/[id]/components/SaveModal";
 
 const BUSINESS_TYPES = {
   manufacturer: "ผู้ผลิต",
@@ -73,7 +72,49 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
   const [selectedTypes, setSelectedTypes] = useState(getBusinessTypeStrings());
   const [otherText, setOtherText] = useState(getOtherDetail());
   const [products, setProducts] = useState(productsData);
-  const [modalStatus, setModalStatus] = useState(null); // null, 'loading', 'success', 'error'
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sync state when application prop changes (after successful update)
+  useEffect(() => {
+    if (!isEditing && application) {
+      // Re-compute from latest application data
+      const businessTypesData = application.businessTypes || [];
+      const productsData = application.products || [];
+      const businessTypeOtherData = application.businessTypeOther || [];
+      
+      // แปลง businessTypes เป็น array ของ string
+      const getBusinessTypeStringsLocal = () => {
+        if (Array.isArray(businessTypesData)) {
+          return businessTypesData
+            .map((item) => {
+              if (typeof item === "string") return item;
+              return item?.business_type || item?.type || "";
+            })
+            .filter((type) => type);
+        }
+        if (businessTypesData && typeof businessTypesData === "object") {
+          return Object.keys(businessTypesData).filter((k) => !!businessTypesData[k]);
+        }
+        return [];
+      };
+      
+      // ดึง detail จาก businessTypes หรือ businessTypeOther
+      const getOtherDetailLocal = () => {
+        if (Array.isArray(businessTypesData)) {
+          const otherObj = businessTypesData.find((obj) => (obj?.business_type || obj?.type) === "other");
+          if (otherObj?.detail) return otherObj.detail;
+        }
+        if (Array.isArray(businessTypeOtherData) && businessTypeOtherData.length > 0) {
+          return businessTypeOtherData[0]?.detail || "";
+        }
+        return "";
+      };
+      
+      setSelectedTypes(getBusinessTypeStringsLocal());
+      setOtherText(getOtherDetailLocal());
+      setProducts(productsData);
+    }
+  }, [application, isEditing]);
 
   const toggleType = (key) => {
     if (selectedTypes.includes(key)) {
@@ -100,7 +141,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
   const handleSave = async () => {
     if (!onUpdate) return;
 
-    setModalStatus("loading");
+    setIsSaving(true);
     try {
       // บันทึกประเภทธุรกิจ
       await onUpdate("businessTypes", {
@@ -116,16 +157,14 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
         })),
       });
 
-      setModalStatus("success");
+      // ข้อมูลจะอัปเดตทันทีผ่าน state ไม่ต้อง reload
       setIsEditing(false);
     } catch (error) {
       console.error("Error:", error);
-      setModalStatus("error");
+      alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message);
+    } finally {
+      setIsSaving(false);
     }
-  };
-
-  const handleModalClose = () => {
-    setModalStatus(null);
   };
 
   const handleCancel = () => {
@@ -157,14 +196,14 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              disabled={modalStatus === "loading"}
+              disabled={isSaving}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
             >
-              บันทึก
+              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
             </button>
             <button
               onClick={handleCancel}
-              disabled={modalStatus === "loading"}
+              disabled={isSaving}
               className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
             >
               ยกเลิก
@@ -210,7 +249,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                   className="w-4 h-4 text-blue-600"
                   checked={selectedTypes.includes(key)}
                   onChange={() => toggleType(key)}
-                  disabled={modalStatus === "loading"}
+                  disabled={isSaving}
                 />
                 <span className="text-sm">{label}</span>
               </label>
@@ -224,7 +263,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                 onChange={(e) => setOtherText(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="ระบุรายละเอียดอื่นๆ"
-                disabled={modalStatus === "loading"}
+                disabled={isSaving}
               />
             </div>
           )}
@@ -266,7 +305,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
             <button
               onClick={addProduct}
               className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              disabled={modalStatus === "loading"}
+              disabled={isSaving}
             >
               + เพิ่ม
             </button>
@@ -280,7 +319,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                     <button
                       onClick={() => removeProduct(index)}
                       className="text-red-600 hover:text-red-800 text-sm"
-                      disabled={modalStatus === "loading"}
+                      disabled={isSaving}
                     >
                       ลบ
                     </button>
@@ -294,7 +333,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                         onChange={(e) => updateProduct(index, "name_th", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="ระบุชื่อสินค้า/บริการภาษาไทย"
-                        disabled={modalStatus === "loading"}
+                        disabled={isSaving}
                       />
                     </div>
                     <div>
@@ -305,7 +344,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                         onChange={(e) => updateProduct(index, "name_en", e.target.value)}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         placeholder="ระบุชื่อสินค้า/บริการภาษาอังกฤษ"
-                        disabled={modalStatus === "loading"}
+                        disabled={isSaving}
                       />
                     </div>
                   </div>
@@ -319,9 +358,6 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
           )}
         </div>
       )}
-
-      {/* Save Modal */}
-      <SaveModal isOpen={modalStatus !== null} status={modalStatus} onClose={handleModalClose} />
     </div>
   );
 };

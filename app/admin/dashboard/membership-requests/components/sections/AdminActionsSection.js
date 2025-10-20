@@ -6,10 +6,10 @@ import ApprovalModal from "../modals/ApprovalModal";
 const AdminActionsSection = ({
   application,
   adminNote,
-  onAdminNoteChange,
-  onSaveNote,
-  onApprove,
-  onReject,
+  setAdminNote,
+  handleSaveNote,
+  handleApprove,
+  handleReject,
   onOpenRejectModal,
   isSubmitting,
   type, // Add type prop to get membership type
@@ -22,7 +22,7 @@ const AdminActionsSection = ({
 
   const handleApprovalConfirm = () => {
     setShowApprovalModal(false);
-    onApprove();
+    handleApprove();
   };
 
   const handleApprovalCancel = () => {
@@ -69,13 +69,13 @@ const AdminActionsSection = ({
           className="w-full px-4 py-3 border border-blue-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
           rows="4"
           value={adminNote}
-          onChange={(e) => onAdminNoteChange(e.target.value)}
+          onChange={(e) => setAdminNote(e.target.value)}
           placeholder="เพิ่มหมายเหตุ (ถ้ามี)"
           disabled={isSubmitting}
         />
         <div className="mt-3 flex justify-end">
           <button
-            onClick={onSaveNote}
+            onClick={handleSaveNote}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
             disabled={isSubmitting}
           >

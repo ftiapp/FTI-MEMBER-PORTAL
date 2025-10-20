@@ -17,6 +17,16 @@ const IndustrialGroupsSection = ({
   const [showIndustrialDropdown, setShowIndustrialDropdown] = useState(false);
   const [showProvincialDropdown, setShowProvincialDropdown] = useState(false);
 
+  // Sync state when application prop changes (after successful update)
+  useEffect(() => {
+    if (!isEditing) {
+      setEditData({
+        industrialGroups: application?.industrialGroups || [],
+        provincialChapters: application?.provincialChapters || [],
+      });
+    }
+  }, [application, isEditing]);
+
   const hasIndustrialGroups = application?.industrialGroups?.length > 0;
   const hasProvincialChapters = application?.provincialChapters?.length > 0;
   const hasChapters = hasProvincialChapters;

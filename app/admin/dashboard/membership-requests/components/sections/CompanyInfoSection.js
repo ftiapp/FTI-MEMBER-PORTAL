@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { getFactoryTypeName } from "../../ีutils/dataTransformers";
 
 const CompanyInfoSection = ({ application, type, onUpdate }) => {
   const isIC = type === "ic";
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState({
+  
+  const getInitialData = () => ({
     // For IC: use first_name/last_name fields
     companyNameTh: isIC 
       ? `${application?.first_name_th || application?.firstNameTh || ""} ${application?.last_name_th || application?.lastNameTh || ""}`.trim()
@@ -23,6 +24,31 @@ const CompanyInfoSection = ({ application, type, onUpdate }) => {
     phone: application?.phone || "",
     website: application?.website || "",
   });
+
+  const [editData, setEditData] = useState(getInitialData());
+
+  // Sync state when application prop changes (after successful update)
+  useEffect(() => {
+    if (!isEditing && application) {
+      setEditData({
+        companyNameTh: isIC 
+          ? `${application?.first_name_th || application?.firstNameTh || ""} ${application?.last_name_th || application?.lastNameTh || ""}`.trim()
+          : application?.companyNameTh || "",
+        companyNameEn: isIC
+          ? `${application?.first_name_en || application?.firstNameEn || ""} ${application?.last_name_en || application?.lastNameEn || ""}`.trim()
+          : application?.companyNameEn || "",
+        taxId: isIC 
+          ? application?.id_card_number || application?.idCard || ""
+          : application?.taxId || "",
+        numberOfEmployees: application?.numberOfEmployees || "",
+        numberOfMembers: application?.numberOfMembers || "",
+        factoryType: application?.factoryType || "",
+        email: application?.email || "",
+        phone: application?.phone || "",
+        website: application?.website || "",
+      });
+    }
+  }, [application, isEditing, isIC]);
 
   if (!application) return null;
 

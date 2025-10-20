@@ -17,7 +17,7 @@ export default function ClientLayout({ children }) {
     <>
       {children}
       <CookieConsent />
-      <CookieSettingsButton />
+      {/* <CookieSettingsButton /> */}
     </>
   );
 }

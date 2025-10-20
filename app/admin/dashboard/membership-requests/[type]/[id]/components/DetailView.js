@@ -24,6 +24,7 @@ const DetailView = ({
   onViewDocument,
   isSubmitting,
   onDownload,
+  updateApplication, // Add callback to update application state
 }) => {
   // ฟังก์ชันสำหรับอัปเดตข้อมูลแต่ละส่วน
   const handleSectionUpdate = async (section, data) => {
@@ -45,19 +46,33 @@ const DetailView = ({
         const text = await response.text();
         let msg = `Failed to update data (HTTP ${response.status})`;
         try {
-          const json = JSON.parse(text || '{}');
+          const json = JSON.parse(text || "{}");
           msg = json.error || json.message || json.details || msg;
         } catch {}
         throw new Error(msg);
       }
 
-      const result = await response.json();
+      // Gracefully handle empty or non-JSON responses (e.g., 204 No Content)
+      const text = await response.text();
+      let result = { success: true };
+      if (text && text.trim().length > 0) {
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          // If server returned non-JSON but request succeeded, consider it success
+          result = { success: true };
+        }
+      }
 
-      if (result.success) {
-        // รีเฟรชหน้าเพื่อแสดงข้อมูลใหม่
-        window.location.reload();
+      if (result && result.success) {
+        // Update application state immediately without reloading
+        if (updateApplication) {
+          // Merge the updated data into application state
+          updateApplication({ ...data });
+        }
+        return result;
       } else {
-        throw new Error(result.error || "Update failed");
+        throw new Error((result && (result.error || result.message)) || "Update failed");
       }
     } catch (error) {
       console.error("Error updating section:", error);
@@ -96,11 +111,10 @@ const DetailView = ({
       <AdminActionsSection
         application={application}
         adminNote={adminNote}
-        onAdminNoteChange={onAdminNoteChange}
-        onSaveNote={onSaveNote}
-        onApprove={onApprove}
-        onReject={onReject}
-        onOpenRejectModal={onOpenRejectModal}
+        setAdminNote={onAdminNoteChange}
+        handleSaveNote={onSaveNote}
+        handleApprove={onApprove}
+        handleReject={onReject}
         isSubmitting={isSubmitting}
         type={type}
       />
