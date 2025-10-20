@@ -21,17 +21,8 @@ export const validateACForm = (formData, step) => {
       errors.taxId = "เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลขเท่านั้น";
     }
 
-    // ตรวจสอบอีเมลและเบอร์โทรของบริษัท (ฟิลด์ระดับบนสุดของ AC)
-    // อีเมล: ไม่บังคับ กรอกเมื่อมีแล้วตรวจรูปแบบเท่านั้น
-    if (formData.companyEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.companyEmail)) {
-      errors.companyEmail = "รูปแบบอีเมลบริษัทไม่ถูกต้อง";
-    }
-
-    if (!formData.companyPhone) {
-      errors.companyPhone = "กรุณากรอกเบอร์โทรศัพท์บริษัท";
-    } else if (String(formData.companyPhone).length > 50) {
-      errors.companyPhone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
-    }
+    // หมายเหตุ: อีเมลและโทรศัพท์ตรวจสอบใน address validation แล้ว (เหมือน OC)
+    // companyEmail และ companyPhone ใช้เป็น fallback ใน SummarySection เท่านั้น ไม่ต้อง validate
 
     // ตรวจสอบที่อยู่ - รองรับ multi-address
     const addressTypes = ["1", "2", "3"];
@@ -361,12 +352,8 @@ export const validateACForm = (formData, step) => {
       }
     }
 
-    // ถ้าเลือก "Other" ในภาษาอังกฤษ ต้องระบุรายละเอียด
-    if (formData.authorizedSignatoryPrenameEn === "Other") {
-      if (!formData.authorizedSignatoryPrenameOtherEn || formData.authorizedSignatoryPrenameOtherEn.trim() === "") {
-        errors.authorizedSignatoryPrenameOtherEn = "กรุณาระบุคำนำหน้า (Other) ภาษาอังกฤษ";
-      }
-    }
+    // คำนำหน้าภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ
+    // Removed validation for English prename fields
 
     // ตรวจสอบข้อมูลผู้มีอำนาจลงนาม (ชื่อ-นามสกุล และตำแหน่ง)
     // ภาษาไทย: ต้องมีเฉพาะอักษรไทยและเว้นวรรค

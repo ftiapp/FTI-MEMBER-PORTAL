@@ -3,7 +3,7 @@
 /**
  * Helper: Scroll to a field key with offset and focus
  */
-export const createScrollToErrorField = (errors) => (errorKey) => {
+export const scrollToErrorField = (errorKey) => {
   if (!errorKey || typeof document === "undefined") return;
 
   // Company basic info fields - handle these first and specifically
@@ -247,16 +247,10 @@ export const createScrollToErrorField = (errors) => (errorKey) => {
       const section = document.querySelector('[data-section="contact-person"]');
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
-    } else if (errorKey === "addresses" && errors.addresses) {
-      // Handle generic address errors
-      const addressTypes = ["1", "2", "3"];
-      for (const type of addressTypes) {
-        if (errors.addresses[type] && Object.keys(errors.addresses[type]).length > 0) {
-          const section = document.querySelector('[data-section="company-address"]');
-          if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-          break;
-        }
-      }
+    } else if (errorKey === "addresses") {
+      // Handle generic address errors - scroll to address section
+      const section = document.querySelector('[data-section="company-address"]');
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
       // Last resort: try to find a section based on the error key
       const sectionMap = {
@@ -294,9 +288,7 @@ export const getFirstFieldError = (errs) => {
     "taxId",
     "registrationNumber",
     "registrationDate",
-    "companyEmail",
-    "companyPhone",
-    "companyWebsite",
+    // Note: companyEmail, companyPhone, companyWebsite are fallback fields only, not validated
   ];
   for (const k of companyPriority) {
     if (typeof errs[k] === "string") {

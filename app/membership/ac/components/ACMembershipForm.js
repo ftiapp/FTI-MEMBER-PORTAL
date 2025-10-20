@@ -32,7 +32,7 @@ import { deleteDraftByTaxId, loadDraftFromUrl } from "../../utils/draftHelpers";
 import { 
   STEPS, 
   INITIAL_FORM_DATA,
-  createScrollToErrorField,
+  scrollToErrorField,
   getFirstFieldError,
   createHandleSaveDraft,
   createValidateTaxId,
@@ -62,12 +62,6 @@ export default function ACMembershipForm({
   const [internalFormData, setInternalFormData] = useState(INITIAL_FORM_DATA);
   const [errors, setErrors] = useState({});
   const [taxIdValidating, setTaxIdValidating] = useState(false);
-  
-  // Helper: Scroll to a field key with offset and focus
-  const scrollToErrorField = useMemo(
-    () => createScrollToErrorField(errors),
-    [errors],
-  );
   const [isLoadingDraft, setIsLoadingDraft] = useState(false);
   const [showDraftSavePopup, setShowDraftSavePopup] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);

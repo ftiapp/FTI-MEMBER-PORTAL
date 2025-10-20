@@ -432,12 +432,8 @@ const validateDocuments = (formData, errors) => {
     }
   }
 
-  // ถ้าเลือก "Other" ในภาษาอังกฤษ ต้องระบุรายละเอียด
-  if (formData.authorizedSignatoryPrenameEn === "Other") {
-    if (!formData.authorizedSignatoryPrenameOtherEn || formData.authorizedSignatoryPrenameOtherEn.trim() === "") {
-      errors.authorizedSignatoryPrenameOtherEn = "กรุณาระบุคำนำหน้า (Other) ภาษาอังกฤษ";
-    }
-  }
+  // คำนำหน้าภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ
+  // Removed validation for English prename fields
 
   // ตรวจสอบข้อมูลชื่อผู้มีอำนาจลงนาม
   if (!formData.authorizedSignatoryFirstNameTh) {

@@ -426,12 +426,8 @@ export const validateOCForm = (formData, step) => {
       }
     }
 
-    // ถ้าเลือก "Other" ในภาษาอังกฤษ ต้องระบุรายละเอียด
-    if (formData.authorizedSignatoryPrenameEn === "Other") {
-      if (!formData.authorizedSignatoryPrenameOtherEn || formData.authorizedSignatoryPrenameOtherEn.trim() === "") {
-        errors.authorizedSignatoryPrenameOtherEn = "กรุณาระบุคำนำหน้า (Other) ภาษาอังกฤษ";
-      }
-    }
+    // คำนำหน้าภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ
+    // Removed validation for English prename fields
 
     // ตรวจสอบชื่อผู้มีอำนาจลงนาม
     if (!formData.authorizedSignatoryFirstNameTh) {

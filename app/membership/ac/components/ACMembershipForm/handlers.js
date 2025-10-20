@@ -134,9 +134,7 @@ export const createHandleSubmit = ({
           "taxId",
           "registrationNumber",
           "registrationDate",
-          "companyEmail",
-          "companyPhone",
-          "companyWebsite",
+          // Note: companyEmail, companyPhone, companyWebsite are fallback fields only, not validated
         ];
         if (firstSpecificKey && companyBasicFields.includes(firstSpecificKey)) {
           scrollToErrorField(firstSpecificKey);
@@ -284,9 +282,7 @@ export const createHandleSubmit = ({
         "taxId",
         "registrationNumber",
         "registrationDate",
-        "companyEmail",
-        "companyPhone",
-        "companyWebsite",
+        // Note: companyEmail, companyPhone, companyWebsite are fallback fields only, not validated
       ];
 
       // ถ้าเป็นฟิลด์บริษัท ให้เลื่อนไปก่อน
