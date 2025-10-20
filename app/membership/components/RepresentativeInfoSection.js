@@ -28,6 +28,7 @@ export default function RepresentativeInfoSection({
     maxRepresentatives: 3,
     showPosition: true,
     positionPlaceholder: mode === "multiple" ? "ประธาน, รองประธาน... / President, Vice President..." : "ตำแหน่ง / Position",
+    positionRequired: false,
     headerTitle: mode === "single" ? "ข้อมูลผู้แทน / Representative Information" : "ข้อมูลผู้แทน / Association Representative Information",
     headerSubtitle:
       mode === "single" ? "ข้อมูลผู้แทนที่สามารถติดต่อได้ / Contact representative information" : "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม / Authorized signatory representative information",
@@ -73,6 +74,7 @@ export default function RepresentativeInfoSection({
       maxRepresentatives={finalConfig.maxRepresentatives}
       showPosition={finalConfig.showPosition}
       positionPlaceholder={finalConfig.positionPlaceholder}
+      positionRequired={finalConfig.positionRequired}
       headerTitle={finalConfig.headerTitle}
       headerSubtitle={finalConfig.headerSubtitle}
       infoMessage={finalConfig.infoMessage}

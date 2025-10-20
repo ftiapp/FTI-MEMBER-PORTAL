@@ -15,6 +15,7 @@ export default function RepresentativeCard({
   showRemoveButton = false,
   showPosition = true,
   positionPlaceholder = "ตำแหน่ง",
+  positionRequired = true,
   representativeErrors = {},
   duplicateErrors = {},
   phoneTouched = false,
@@ -97,6 +98,7 @@ export default function RepresentativeCard({
             errors={errors}
             showPosition={showPosition}
             positionPlaceholder={positionPlaceholder}
+            positionRequired={positionRequired}
             phoneTouched={phoneTouched}
             onUpdate={handleUpdate}
             onPhoneBlur={onPhoneBlur}

@@ -227,20 +227,34 @@ export default function ICMembershipForm(props = {}) {
         e.stopPropagation();
       }
 
+      console.log("\n🔵 handleNext - Step", currentStep, "- Validating formData:");
+      console.log("formData prename fields:", {
+        prename_th: formData.prename_th,
+        prenameTh: formData.prenameTh,
+        prename_other: formData.prename_other,
+        prenameOther: formData.prenameOther,
+        prename_en: formData.prename_en,
+        prenameEn: formData.prenameEn,
+        prename_other_en: formData.prename_other_en,
+        prenameOtherEn: formData.prenameOtherEn,
+      });
       const formErrors = validateCurrentStep(formData, currentStep);
+      console.log("🔵 handleNext - Validation errors:", formErrors);
       setErrors(formErrors);
 
       if (Object.keys(formErrors).length > 0) {
+        console.log("❌ handleNext - Errors found, blocking progression");
         if (typeof setShowErrors === "function") {
           setShowErrors(true);
         }
 
         // Let child components handle specific errors
         if (currentStep === 2 && formErrors.representativeErrors) {
+          console.log("❌ handleNext - Representative errors detected, returning early");
           return;
         }
 
-        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
+        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products || formErrors.productErrors)) {
           return;
         }
 
@@ -248,16 +262,8 @@ export default function ICMembershipForm(props = {}) {
         const firstErrorKey = getFirstErrorKey(formErrors) ||
           (formErrors.representativeErrors ? "representativeErrors" : null);
 
-        console.log("🔍 [handleNext] Form Errors:", formErrors);
-        console.log("🔍 [handleNext] First Error Key:", firstErrorKey);
-
         if (firstErrorKey) {
-          console.log("⏰ [handleNext] About to scroll to:", firstErrorKey);
           scrollToErrorField(firstErrorKey);
-        } else {
-          console.log("⚠️ [handleNext] No firstErrorKey found!");
-          // Fallback: scroll to top if no specific error field
-          scrollToTop();
         }
 
         const errorMessage =

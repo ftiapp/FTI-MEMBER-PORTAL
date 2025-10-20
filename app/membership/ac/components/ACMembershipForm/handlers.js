@@ -116,7 +116,7 @@ export const createHandleSubmit = ({
         }
 
         // If business info step has errors, let the child component handle scroll AND toast (avoid duplicate)
-        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products)) {
+        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products || formErrors.productErrors)) {
           // Child component (BusinessInfoSection) will handle both scroll and toast
           setIsSubmitting(false);
           return;

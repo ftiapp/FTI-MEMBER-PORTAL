@@ -836,19 +836,27 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
                   {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                    <input
-                      type="text"
-                      value={formData.authorizedSignatoryPrenameOther || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
-                        }))
-                      }
-                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                      className="mt-2 w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={formData.authorizedSignatoryPrenameOther || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                          }))
+                        }
+                        placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                        className={`w-full px-4 py-3 text-sm border rounded-lg focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-500"}`}
+                        required
+                      />
+                      {errors?.authorizedSignatoryPrenameOther && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center">
+                          <span className="mr-1">*</span>
+                          {errors.authorizedSignatoryPrenameOther}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
                 
@@ -928,8 +936,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
 
-                {/* Prename (EN) */}
-                <div>
+                {/* Prename (EN) - Hidden */}
+                <div className="hidden">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Prename (EN)
                   </label>
@@ -972,8 +980,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
                 
-                {/* First Name (EN) */}
-                <div>
+                {/* First Name (EN) - Hidden */}
+                <div className="hidden">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     First Name (EN) <span className="text-red-500">*</span>
                   </label>
@@ -997,8 +1005,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
                 
-                {/* Last Name (EN) */}
-                <div>
+                {/* Last Name (EN) - Hidden */}
+                <div className="hidden">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Last Name (EN) <span className="text-red-500">*</span>
                   </label>
@@ -1022,8 +1030,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
 
-                {/* Position (EN) */}
-                <div>
+                {/* Position (EN) - Hidden */}
+                <div className="hidden">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Position (EN)
                   </label>

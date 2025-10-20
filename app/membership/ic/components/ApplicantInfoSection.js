@@ -178,33 +178,39 @@ export default function ApplicantInfoSection({
     }
 
     // Handle prename Thai change and auto-update English prename
-    if (name === "prenameTh") {
+    if (name === "prename_th") {
       const englishPrename = prenameMapping[value] || "";
       setFormData((prev) => ({
         ...prev,
+        prename_th: value,
         prenameTh: value,
+        prename_en: englishPrename,
         prenameEn: englishPrename,
-        // ล้างค่า prenameOther เมื่อเปลี่ยนค่า prenameTh ที่ไม่ใช่ 'อื่นๆ'
+        // ล้างค่า prename_other เมื่อเปลี่ยนค่า prename_th ที่ไม่ใช่ 'อื่นๆ'
+        prename_other: value === "อื่นๆ" ? prev.prename_other : "",
         prenameOther: value === "อื่นๆ" ? prev.prenameOther : "",
-        // ล้างค่า prenameOtherEn เมื่อเปลี่ยนค่า prenameTh ที่ไม่ใช่ 'อื่นๆ'
+        // ล้างค่า prename_other_en เมื่อเปลี่ยนค่า prename_th ที่ไม่ใช่ 'อื่นๆ'
+        prename_other_en: value === "อื่นๆ" ? prev.prename_other_en : "",
         prenameOtherEn: value === "อื่นๆ" ? prev.prenameOtherEn : "",
       }));
       return;
     }
 
     // Handle prename English change
-    if (name === "prenameEn") {
+    if (name === "prename_en") {
       setFormData((prev) => ({
         ...prev,
+        prename_en: value,
         prenameEn: value,
-        // ล้างค่า prenameOtherEn เมื่อเปลี่ยนค่า prenameEn ที่ไม่ใช่ 'Other'
+        // ล้างค่า prename_other_en เมื่อเปลี่ยนค่า prename_en ที่ไม่ใช่ 'Other'
+        prename_other_en: value === "Other" ? prev.prename_other_en : "",
         prenameOtherEn: value === "Other" ? prev.prenameOtherEn : "",
       }));
       return;
     }
 
     // Thai language validation
-    if (name === "firstNameThai" || name === "lastNameThai" || name === "prenameOther") {
+    if (name === "firstNameThai" || name === "lastNameThai" || name === "prename_other") {
       const thaiPattern = /^[ก-๙\s\.]*$/;
       if (!thaiPattern.test(value) && value !== "") {
         // Allow input but don't update state
@@ -216,8 +222,8 @@ export default function ApplicantInfoSection({
     if (
       name === "firstNameEng" ||
       name === "lastNameEng" ||
-      name === "prenameEn" ||
-      name === "prenameOtherEn"
+      name === "prename_en" ||
+      name === "prename_other_en"
     ) {
       const engPattern = /^[a-zA-Z\s\.]*$/;
       if (!engPattern.test(value) && value !== "") {
@@ -453,16 +459,16 @@ export default function ApplicantInfoSection({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Prename Thai - Select */}
               <div className="lg:col-span-3 space-y-2">
-                <label htmlFor="prenameTh" className="block text-sm font-medium text-gray-900">
+                <label htmlFor="prename_th" className="block text-sm font-medium text-gray-900">
                   คำนำหน้า <span className="text-red-500">*</span>
                 </label>
                 <select
-                  id="prenameTh"
-                  name="prenameTh"
-                  value={formData.prenameTh || ""}
+                  id="prename_th"
+                  name="prename_th"
+                  value={formData.prename_th || ""}
                   onChange={handleInputChange}
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prenameTh || errors?.prename_th ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
+                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prename_th ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
                 >
                   <option value="">-- เลือกคำนำหน้า --</option>
                   <option value="นาย">นาย</option>
@@ -470,8 +476,8 @@ export default function ApplicantInfoSection({
                   <option value="นางสาว">นางสาว</option>
                   <option value="อื่นๆ">อื่นๆ</option>
                 </select>
-                {(errors?.prenameTh || errors?.prename_th) && (
-                  <p className="text-sm text-red-600">{errors.prenameTh || errors.prename_th}</p>
+                {errors?.prename_th && (
+                  <p className="text-sm text-red-600">{errors.prename_th}</p>
                 )}
               </div>
 
@@ -517,27 +523,27 @@ export default function ApplicantInfoSection({
             </div>
 
             {/* Thai Other Prename - show only when "อื่นๆ" selected */}
-            {formData.prenameTh === "อื่นๆ" && (
+            {formData.prename_th === "อื่นๆ" && (
               <div className="animate-fadeIn bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <label
-                  htmlFor="prenameOther"
+                  htmlFor="prename_other"
                   className="block text-sm font-medium text-gray-900 mb-2"
                 >
                   ระบุคำนำหน้า (ภาษาไทย) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  id="prenameOther"
-                  name="prenameOther"
-                  value={formData.prenameOther || ""}
+                  id="prename_other"
+                  name="prename_other"
+                  value={formData.prename_other || ""}
                   onChange={handleInputChange}
                   placeholder="เช่น ศ.ดร., รศ.ดร., พล.อ., ดร., ผศ."
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prenameOther || errors?.prename_other ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
+                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prename_other ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
                 />
-                {(errors?.prenameOther || errors?.prename_other) && (
+                {errors?.prename_other && (
                   <p className="text-sm text-red-600 mt-1">
-                    {errors.prenameOther || errors.prename_other}
+                    {errors.prename_other}
                   </p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
@@ -557,17 +563,17 @@ export default function ApplicantInfoSection({
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {/* Prename English - Auto-filled based on Thai selection */}
               <div className="lg:col-span-3 space-y-2">
-                <label htmlFor="prenameEn" className="block text-sm font-medium text-gray-900">
+                <label htmlFor="prename_en" className="block text-sm font-medium text-gray-900">
                   คำนำหน้า <span className="text-red-500">*</span>
                 </label>
                 <select
-                  id="prenameEn"
-                  name="prenameEn"
-                  data-field="prenameEn"
-                  value={formData.prenameEn || ""}
+                  id="prename_en"
+                  name="prename_en"
+                  data-field="prename_en"
+                  value={formData.prename_en || ""}
                   onChange={handleInputChange}
-                  disabled={isLoading || (formData.prenameTh && formData.prenameTh !== "อื่นๆ")}
-                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prenameEn || errors?.prename_en ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} ${formData.prenameTh && formData.prenameTh !== "อื่นๆ" ? "bg-gray-50" : "bg-white"}`}
+                  disabled={isLoading || (formData.prename_th && formData.prename_th !== "อื่นๆ")}
+                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prename_en ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} ${formData.prename_th && formData.prename_th !== "อื่นๆ" ? "bg-gray-50" : "bg-white"}`}
                 >
                   <option value="">-- Select Title --</option>
                   <option value="Mr.">Mr.</option>
@@ -575,8 +581,8 @@ export default function ApplicantInfoSection({
                   <option value="Miss">Miss</option>
                   <option value="Other">Other</option>
                 </select>
-                {(errors?.prenameEn || errors?.prename_en) && (
-                  <p className="text-sm text-red-600">{errors.prenameEn || errors.prename_en}</p>
+                {errors?.prename_en && (
+                  <p className="text-sm text-red-600">{errors.prename_en}</p>
                 )}
               </div>
 
@@ -622,41 +628,40 @@ export default function ApplicantInfoSection({
             </div>
 
             {/* English Other Prename - show when "Other" is selected */}
-            {(String(formData.prenameEn || "").toLowerCase() === "other" ||
-              formData.prenameTh === "อื่นๆ") && (
+            {(String(formData.prename_en || "").toLowerCase() === "other" ||
+              formData.prename_th === "อื่นๆ") && (
               <div className="animate-fadeIn bg-gray-50 border border-gray-200 rounded-lg p-4">
                 <label
-                  htmlFor="prenameOtherEn"
+                  htmlFor="prename_other_en"
                   className="block text-sm font-medium text-gray-900 mb-2"
                 >
                   ระบุคำนำหน้า (ภาษาอังกฤษ) <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
-                  id="prenameOtherEn"
-                  name="prenameOtherEn"
+                  id="prename_other_en"
+                  name="prename_other_en"
                   data-field="prename_other_en"
-                  value={formData.prenameOtherEn || ""}
+                  value={formData.prename_other_en || ""}
                   onChange={handleInputChange}
                   placeholder="e.g., Dr., Prof."
                   disabled={isLoading}
-                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prenameOtherEn || errors?.prename_other_en ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
+                  className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prename_other_en ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
                   ref={(el) => {
                     // เลื่อนไปยังช่องกรอกข้อมูลถ้ามี error
-                    if ((errors?.prenameOtherEn || errors?.prename_other_en) && el) {
+                    if (errors?.prename_other_en && el) {
                       el.scrollIntoView({ behavior: "smooth", block: "center" });
                       el.focus();
                     }
                   }}
                 />
-                {(errors?.prenameOtherEn || errors?.prename_other_en) && (
+                {errors?.prename_other_en && (
                   <p className="text-sm text-red-600 mt-1">
-                    {errors.prenameOtherEn || errors.prename_other_en}
+                    {errors.prename_other_en}
                   </p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
-                  อนุญาตเฉพาะตัวอักษรภาษาอังกฤษ ช่องว่าง และจุด (.) เช่น ตำแหน่งทางวิชาการ
-                  หรือยศทหาร
+                  Please specify the title you wish to use, e.g., academic or military rank
                 </p>
               </div>
             )}

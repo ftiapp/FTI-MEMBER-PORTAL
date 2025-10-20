@@ -1,4 +1,4 @@
-import ApplicantInfoSection from "../ApplicantInfoSection";
+import CompanyInfoSection from "../CompanyInfoSection";
 import RepresentativeInfoSection from "../../../components/RepresentativeInfoSection";
 import BusinessInfoSection from "../BusinessInfoSection";
 import DocumentUploadSection from "../DocumentUploadSection";
@@ -25,7 +25,7 @@ export const renderStepComponent = ({
 
   const stepComponents = {
     1: (
-      <ApplicantInfoSection
+      <CompanyInfoSection
         {...commonProps}
         setErrors={setErrors}
         industrialGroups={industrialGroups}

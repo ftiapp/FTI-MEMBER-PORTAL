@@ -24,27 +24,45 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
 
   // Scroll to error fields when errors change
   useEffect(() => {
+    const hasProductItemErrors = Array.isArray(errors.productErrors)
+      ? errors.productErrors.some((e) => e && Object.keys(e).length > 0)
+      : false;
+
     const errorFields = [
       { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
       { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
       { ref: employeeCountRef, error: errors.numberOfEmployees, name: 'จำนวนพนักงาน' },
-      { ref: productsRef, error: errors.products, name: 'สินค้า/บริการ' },
+      { ref: productsRef, error: errors.products || hasProductItemErrors, name: 'สินค้า/บริการ' },
     ];
 
     const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
 
     if (firstErrorField) {
-      const errorFieldNames = errorFields
-        .filter(field => field.error)
-        .map(field => field.name)
-        .join(', ');
+      // Use actual error message if it's a string, otherwise build field names list
+      let errorMessage;
+      
+      if (typeof errors.products === 'string' && firstErrorField.ref === productsRef) {
+        // Use the actual validation message for products
+        errorMessage = errors.products;
+      } else if (typeof errors.businessTypes === 'string' && firstErrorField.ref === businessTypesRef) {
+        errorMessage = errors.businessTypes;
+      } else if (typeof errors.otherBusinessTypeDetail === 'string' && firstErrorField.ref === otherBusinessTypeDetailRef) {
+        errorMessage = errors.otherBusinessTypeDetail;
+      } else {
+        // Fallback: build field names list
+        const errorFieldNames = errorFields
+          .filter(field => field.error)
+          .map(field => field.name)
+          .join(', ');
+        errorMessage = `กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`;
+      }
 
-      const errorKey = errorFieldNames;
+      const errorKey = errorMessage;
       
       if (errorKey !== lastScrolledErrorRef.current) {
         lastScrolledErrorRef.current = errorKey;
         firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        toast.error(`กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`, { 
+        toast.error(errorMessage, { 
           id: "oc-business-errors",
           duration: 5000 
         });

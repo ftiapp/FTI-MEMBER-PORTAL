@@ -168,14 +168,82 @@ export const useRepresentatives = ({
   // Handle errors and scroll to first error
   useEffect(() => {
     if (mode === "single") {
-      // Single mode - scroll to first error field
+      // Single mode - show toast and scroll to first error field
       if (representativeErrors && Object.keys(representativeErrors).length > 0) {
         const firstErrorField = findFirstErrorField(representativeErrors);
         if (firstErrorField) {
           const errorKey = `rep0:${firstErrorField}`;
           if (errorKey !== lastScrolledErrorRef.current) {
             lastScrolledErrorRef.current = errorKey;
-            // Scroll logic handled by component
+            const errorMessage = representativeErrors[firstErrorField];
+
+            // Show toast
+            toast.error(`ข้อมูลผู้แทน: ${errorMessage}`, {
+              duration: 5000,
+              id: toastId,
+            });
+
+            // Scroll to error field
+            setTimeout(() => {
+              const index = 0; // Single mode always uses index 0
+              if (firstErrorField === "prename_th" && prenameThRefs.current[index]) {
+                prenameThRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else if (firstErrorField === "prename_en" && prenameEnRefs.current[index]) {
+                prenameEnRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else if (firstErrorField === "prename_other" && prenameOtherRefs.current[index]) {
+                prenameOtherRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else if (
+                (firstErrorField === "firstNameTh" || firstErrorField === "firstNameThai") &&
+                firstNameThRefs.current[index]
+              ) {
+                firstNameThRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else if (
+                (firstErrorField === "lastNameTh" || firstErrorField === "lastNameThai") &&
+                lastNameThRefs.current[index]
+              ) {
+                lastNameThRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else if (
+                (firstErrorField === "firstNameEn" ||
+                  firstErrorField === "firstNameEng" ||
+                  firstErrorField === "firstNameEnglish") &&
+                firstNameEnRefs.current[index]
+              ) {
+                firstNameEnRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else if (
+                (firstErrorField === "lastNameEn" ||
+                  firstErrorField === "lastNameEng" ||
+                  firstErrorField === "lastNameEnglish") &&
+                lastNameEnRefs.current[index]
+              ) {
+                lastNameEnRefs.current[index].scrollIntoView({
+                  behavior: "smooth",
+                  block: "center",
+                });
+              } else {
+                const repCard = document.querySelector(`[data-rep-index="0"]`);
+                if (repCard) {
+                  repCard.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              }
+            }, 100);
           }
         }
       } else {
@@ -310,16 +378,26 @@ export const useRepresentatives = ({
         if (shouldUpdate) {
           const updatedRep = { ...rep, [field]: value };
 
-          // Auto-sync prenames
+          // Auto-sync prenames and clear prenameOther when not "อื่นๆ"/"Other"
           if (field === "prenameTh") {
             const englishEquivalent = mapThaiPrenameToEnglish(value);
             if (!updatedRep.prenameEn || mapThaiPrenameToEnglish(value) !== updatedRep.prenameEn) {
               updatedRep.prenameEn = englishEquivalent;
             }
+            // Clear prenameOther if not "อื่นๆ"
+            if (value !== "อื่นๆ") {
+              updatedRep.prenameOther = "";
+              updatedRep.prenameOtherEn = "";
+            }
           } else if (field === "prenameEn") {
             const thaiEquivalent = mapEnglishPrenameToThai(value);
             if (!updatedRep.prenameTh || mapEnglishPrenameToThai(value) !== updatedRep.prenameTh) {
               updatedRep.prenameTh = thaiEquivalent;
+            }
+            // Clear prenameOther fields if not "Other"
+            if (value.toLowerCase() !== "other") {
+              updatedRep.prenameOther = "";
+              updatedRep.prenameOtherEn = "";
             }
           }
 

@@ -34,14 +34,20 @@ const BusinessTypesField = forwardRef(({
       const { name, checked } = e.target;
       setFormData((prev) => {
         const updatedBusinessTypes = { ...prev.businessTypes };
+        const updates = { businessTypes: updatedBusinessTypes };
 
         if (checked) {
           updatedBusinessTypes[name] = true;
         } else {
           delete updatedBusinessTypes[name];
+          
+          // Clear otherBusinessTypeDetail when unchecking "other"
+          if (name === "other") {
+            updates.otherBusinessTypeDetail = "";
+          }
         }
 
-        return { ...prev, businessTypes: updatedBusinessTypes };
+        return { ...prev, ...updates };
       });
     },
     [setFormData],

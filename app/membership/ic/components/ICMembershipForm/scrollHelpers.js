@@ -1,4 +1,5 @@
-// ICMembershipForm/scrollHelpers.js - แก้ไขฟังก์ชัน scrollToErrorField
+// ScrollHelpers.js
+// Scroll and error field handling utilities for IC Form
 
 /**
  * Get first error key from errors object
@@ -15,142 +16,102 @@ export const getFirstErrorKey = (errors) => {
   return firstKey;
 };
 
+/**
+ * Scroll to error field with special handling for different field types
+ * @param {string} errorKey - The error key to scroll to
+ */
 export const scrollToErrorField = (errorKey) => {
   if (!errorKey) return;
-  
-  console.log("🔍 [scrollToErrorField] Attempting to scroll to:", errorKey);
 
-  // Map error keys to actual field IDs in the form
-  const fieldIdMap = {
-    // Applicant fields
-    'idCardNumber': 'idCardNumber',
-    'prename_th': 'prenameTh',
-    'prename_en': 'prenameEn', 
-    'prename_other': 'prenameOther',
-    'prename_other_en': 'prenameOtherEn',
-    'firstNameThai': 'firstNameThai',
-    'lastNameThai': 'lastNameThai',
-    'firstNameEng': 'firstNameEng',
-    'lastNameEng': 'lastNameEng',
-    'phone': 'phone',
-    'email': 'email',
+  // Address fields: addresses.{type}.{field} OR address_{type}_{field}
+  if (errorKey.startsWith("addresses.") || errorKey.startsWith("address_")) {
+    let tab, field;
     
-    // Address phone fields (for different tabs)
-    'address_1_phone': 'phone-1',
-    'address_2_phone': 'phone-2',
-    'phone-1': 'phone-1',
-    'phone-2': 'phone-2',
-    
-    // Basic address fields (fallback for old format)
-    'addressNumber': 'addressNumber',
-    'subDistrict': 'subDistrict',
-    'district': 'district',
-    'province': 'province',
-    'postalCode': 'postalCode',
-    'website': 'website',
-  };
+    // Parse addresses.1.phone format (OC style)
+    if (errorKey.startsWith("addresses.")) {
+      const match = errorKey.match(/addresses\.(\d+)\.(.+)$/);
+      if (match) {
+        tab = match[1];
+        field = match[2];
+      }
+    }
+    // Parse address_1_phone format (IC validation style)
+    else if (errorKey.startsWith("address_")) {
+      const match = errorKey.match(/address_(\d+)_(.+)$/);
+      if (match) {
+        tab = match[1];
+        field = match[2];
+      }
+    }
+    // Handle addresses.required and addresses.migration errors
+    else if (errorKey === "addresses.required" || errorKey === "addresses.migration" || errorKey === "addresses.legacy.addressNumber") {
+      setTimeout(() => {
+        const section =
+          document.querySelector('[data-section="company-address"]') ||
+          document.querySelector('[data-section="addresses"]') ||
+          document.querySelector(".address-tabs-container") ||
+          document.querySelector(".bg-white");
+        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+      return;
+    }
+
+    if (tab && field) {
+      // Map validation field to actual input id in AddressSection
+      let targetId = null;
+      if (field === "email") targetId = `email-${tab}`;
+      else if (field === "phone") targetId = `phone-${tab}`;
+      else if (field === "website") targetId = `website-${tab}`;
+      else if (["addressNumber", "building", "moo", "soi", "street"].includes(field))
+        targetId = field;
+      // subDistrict/district/province/postalCode are SearchableDropdowns; scrolling to section is sufficient
+
+      // Allow AddressSection to auto-switch tab via its useEffect (based on errors), then focus
+      setTimeout(() => {
+        let el = null;
+        if (targetId) {
+          el = document.getElementById(targetId);
+          if (!el) el = document.querySelector(`[name="${targetId}"]`);
+        }
+
+        // Fallback: scroll to the address section container
+        if (!el) {
+          const section =
+            document.querySelector('[data-section="company-address"]') ||
+            document.querySelector('[data-section="addresses"]') ||
+            document.querySelector(".address-tabs-container") ||
+            document.querySelector(".bg-white");
+          if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+
+        try {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Focus without jumping again
+          el.focus({ preventScroll: true });
+        } catch {}
+      }, 250);
+      return;
+    }
+  }
 
   // Representative errors
   if (errorKey === "representativeErrors" || errorKey?.startsWith("representative")) {
     setTimeout(() => {
       const section = document.querySelector(
-        '[data-section="representative"], [data-section="representative-section"], .representative-section'
+        '[data-section="representatives"], [data-section="representative-section"], [data-section="representative"]'
       );
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 80);
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
     return;
   }
 
-  // Multi-address fields: address_1_addressNumber, address_2_phone, etc.
-  if (errorKey.startsWith("address_") || errorKey.startsWith("addresses.")) {
-    console.log("📍 [Address Field] Detected address error:", errorKey);
-    
-    // Extract type and field from patterns like:
-    // address_1_addressNumber or addresses.1.addressNumber
-    let addressType, fieldName;
-    
-    if (errorKey.startsWith("address_")) {
-      const match = errorKey.match(/address_(\d+)_?(.*)$/);
-      if (match) {
-        addressType = match[1];
-        fieldName = match[2] || '';
-      }
-    } else if (errorKey.startsWith("addresses.")) {
-      const match = errorKey.match(/addresses\.(\d+)\.?(.*)$/);
-      if (match) {
-        addressType = match[1];
-        fieldName = match[2] || '';
-      }
-    }
-    
-    console.log("📍 Parsed - Type:", addressType, "Field:", fieldName);
-    
-    // AddressSection component has useEffect that auto-switches tab based on errors
-    // So we don't need to manually click the tab button here
-    // Just wait a bit for the tab to switch, then scroll to field
+  // Contact person errors (OC style)
+  if (errorKey?.startsWith("contactPerson")) {
     setTimeout(() => {
-      // Try to find the specific field - address fields use simple IDs without prefixes
-      let el = null;
-      
-      if (fieldName) {
-        console.log("🔍 Searching for field:", fieldName);
-        
-        // For phone/email fields, prioritize the address-specific ID with tab suffix
-        if (fieldName === 'phone' || fieldName === 'email' || fieldName === 'website') {
-          // Try address-specific ID first (e.g., phone-1, email-2)
-          el = document.getElementById(`${fieldName}-${addressType}`) ||
-               document.querySelector(`[name="${fieldName}-${addressType}"]`) ||
-               document.querySelector(`[data-error-key="address_${addressType}_${fieldName}"]`);
-          
-          console.log(`🔍 Looking for address-specific field: ${fieldName}-${addressType}`, el ? "✅ Found" : "❌ Not found");
-        }
-        
-        // If not found, try other selectors
-        if (!el) {
-          // Address fields use simple IDs like "addressNumber", "subDistrict", etc.
-          el = document.getElementById(fieldName) ||
-               document.getElementById(`address_${addressType}_${fieldName}`) ||
-               document.getElementById(`${fieldName}-${addressType}`) ||
-               document.querySelector(`[name="${fieldName}"]`) ||
-               document.querySelector(`[name="addresses[${addressType}][${fieldName}]"]`) ||
-               document.querySelector(`[name="address_${addressType}_${fieldName}"]`);
-        }
-        
-        if (el) {
-          console.log("✅ Found field element:", el.id || el.name);
-          
-          // Verify that the element is inside the address section
-          const addressSection = document.querySelector('[data-section="company-address"]');
-          if (addressSection && !addressSection.contains(el)) {
-            console.log("⚠️ Element is NOT inside address section, ignoring it");
-            el = null; // Reset to trigger fallback to section scroll
-          }
-        } else {
-          console.log("❌ Field element not found for:", fieldName);
-        }
-      }
-      
-      // If no specific field found, scroll to address section
-      if (!el) {
-        console.log("📜 Scrolling to address section instead");
-        const section = document.querySelector('[data-section="company-address"]') ||
-                       document.querySelector('[data-section="addresses"]') ||
-                       document.querySelector('.address-tabs-container') ||
-                       document.querySelector('[role="tabpanel"][data-state="active"]');
-        if (section) {
-          console.log("✅ Found address section, scrolling...");
-          section.scrollIntoView({ behavior: "smooth", block: "start" });
-        } else {
-          console.log("❌ Address section not found");
-        }
-      } else {
-        console.log("✅ Scrolling to field:", fieldName);
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        el.focus({ preventScroll: true });
-      }
-    }, 300);
+      const section = document.querySelector('[data-section="contact-person"]');
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
     return;
   }
 
@@ -158,11 +119,8 @@ export const scrollToErrorField = (errorKey) => {
   if (errorKey === "products" || errorKey === "productErrors") {
     setTimeout(() => {
       const section = document.querySelector('[data-section="products"]') ||
-                     document.querySelector('.products-section') ||
-                     document.querySelector('[id*="product"]');
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+                     document.querySelector('.products-section');
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
     return;
   }
@@ -170,72 +128,28 @@ export const scrollToErrorField = (errorKey) => {
   if (errorKey === "businessTypes" || errorKey === "otherBusinessTypeDetail") {
     setTimeout(() => {
       const section = document.querySelector('[data-section="business-types"]') ||
-                     document.querySelector('.business-types-section') ||
-                     document.querySelector('[id*="business"]');
-      if (section) {
-        section.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
+                     document.querySelector('.business-types-section');
+      if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
     return;
   }
 
-  // Regular fields - try mapped ID first, then original key
+  // Non-address fields: try matching by id or name
   setTimeout(() => {
-    const mappedId = fieldIdMap[errorKey];
-    console.log("🔍 [Regular Field] Error key:", errorKey, "Mapped to:", mappedId);
-    let el = null;
-    
-    // Try to find element with various selectors
-    if (mappedId) {
-      el = document.getElementById(mappedId) ||
-           document.querySelector(`[name="${mappedId}"]`) ||
-           document.querySelector(`input[id="${mappedId}"]`) ||
-           document.querySelector(`select[id="${mappedId}"]`);
-      
-      if (el) {
-        console.log("✅ Found element using mapped ID:", mappedId);
-      }
-    }
-    
-    // If not found with mapped ID, try original key
-    if (!el) {
-      el = document.getElementById(errorKey) ||
-           document.querySelector(`[name="${errorKey}"]`) ||
-           document.querySelector(`input[id="${errorKey}"]`) ||
-           document.querySelector(`select[id="${errorKey}"]`);
-      
-      if (el) {
-        console.log("✅ Found element using original key:", errorKey);
-      }
-    }
-    
-    // Special handling for dropdown/select fields
-    if (!el) {
-      // For SearchableDropdown components
-      el = document.querySelector(`[data-field="${errorKey}"]`) ||
-           document.querySelector(`[data-field="${mappedId}"]`) ||
-           document.querySelector(`div[class*="dropdown"][id*="${errorKey}"]`);
-      
-      if (el) {
-        console.log("✅ Found dropdown element");
-      }
-    }
-    
+    const byId = document.getElementById(errorKey);
+    const byName = document.querySelector(`[name="${errorKey}"]`);
+    const el = byId || byName;
     if (el) {
-      console.log("✅ Scrolling to element:", el.id || el.name || el.className);
-      el.scrollIntoView({ behavior: "smooth", block: "center" });
-      
-      // Try to focus if it's an input
-      if (el.tagName === 'INPUT' || el.tagName === 'SELECT' || el.tagName === 'TEXTAREA') {
+      try {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
         el.focus({ preventScroll: true });
-      }
-    } else {
-      console.log("❌ Could not find element for error key:", errorKey);
-      console.log("⬆️ Scrolling to top as fallback");
-      // Fallback - scroll to top of form
-      window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      } catch {}
     }
-  }, 120);
+
+    // Fallback: scroll to top
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, 100);
 };
 
 /**

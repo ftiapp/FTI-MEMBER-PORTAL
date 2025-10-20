@@ -52,50 +52,96 @@ const ProductsCard = ({ products }) => (
 );
 
 // Representative card
-// Representative card - แก้ไขเพื่อแสดง phone extension
-const RepresentativeCard = ({ representative }) => (
-  <div className="bg-white border border-gray-200 rounded-lg p-4">
-    <div className="mb-2">
-      <h4 className="text-sm font-medium text-gray-700">ข้อมูลผู้แทน</h4>
-    </div>
-
-    {representative ? (
-      <div className="space-y-2">
-        <div>
-          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-          <p className="text-sm">
-            {representative.fullNameTh ||
-              `${representative.firstNameTh || representative.firstNameThai || ""} ${representative.lastNameTh || representative.lastNameThai || ""}`.trim() ||
-              "-"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-          <p className="text-sm">
-            {representative.fullNameEn ||
-              `${representative.firstNameEn || representative.firstNameEng || ""} ${representative.lastNameEn || representative.lastNameEng || ""}`.trim() ||
-              "-"}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">อีเมล</p>
-          <p className="text-sm">{representative.email || "-"}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-          <p className="text-sm">
-            {representative.phone || "-"}
-            {representative.phoneExtension && representative.phoneExtension.trim() && (
-              <span className="text-gray-600 ml-1">ต่อ {representative.phoneExtension}</span>
-            )}
-          </p>
-        </div>
+// Representative card - แก้ไขเพื่อแสดง phone extension และคำนำหน้า
+const RepresentativeCard = ({ representative }) => {
+  // Helper: ชื่อ-นามสกุล (ไทย) พร้อมคำนำหน้า
+  const getRepNameTh = () => {
+    if (!representative) return "-";
+    
+    // ถ้ามี fullNameTh ให้ใช้เลย
+    if (representative.fullNameTh) return representative.fullNameTh;
+    
+    // สร้างชื่อเต็มจาก prename + firstName + lastName
+    let prename = "";
+    if (representative.prenameTh === "อื่นๆ" && representative.prenameOther) {
+      prename = representative.prenameOther;
+    } else if (representative.prenameTh && representative.prenameTh !== "อื่นๆ") {
+      prename = representative.prenameTh;
+    } else if (representative.prename_th === "อื่นๆ" && representative.prename_other) {
+      prename = representative.prename_other;
+    } else if (representative.prename_th && representative.prename_th !== "อื่นๆ") {
+      prename = representative.prename_th;
+    }
+    
+    const first = representative.firstNameTh || representative.firstNameThai || "";
+    const last = representative.lastNameTh || representative.lastNameThai || "";
+    const namePart = `${first} ${last}`.trim();
+    const full = `${prename}${namePart}`.trim();
+    return full || "-";
+  };
+  
+  // Helper: ชื่อ-นามสกุล (อังกฤษ) พร้อมคำนำหน้า
+  const getRepNameEn = () => {
+    if (!representative) return "-";
+    
+    // ถ้ามี fullNameEn ให้ใช้เลย
+    if (representative.fullNameEn) return representative.fullNameEn;
+    
+    // สร้างชื่อเต็มจาก prename + firstName + lastName
+    let prename = "";
+    if (representative.prenameEn === "Other" && representative.prenameOtherEn) {
+      prename = representative.prenameOtherEn;
+    } else if (representative.prenameEn && representative.prenameEn !== "Other") {
+      prename = representative.prenameEn;
+    } else if (representative.prename_en === "Other" && representative.prename_other_en) {
+      prename = representative.prename_other_en;
+    } else if (representative.prename_en && representative.prename_en !== "Other") {
+      prename = representative.prename_en;
+    }
+    
+    const first = representative.firstNameEn || representative.firstNameEng || "";
+    const last = representative.lastNameEn || representative.lastNameEng || "";
+    const namePart = `${first} ${last}`.trim();
+    const full = prename ? `${prename} ${namePart}`.trim() : namePart;
+    return full || "-";
+  };
+  
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="mb-2">
+        <h4 className="text-sm font-medium text-gray-700">ข้อมูลผู้แทน</h4>
       </div>
-    ) : (
-      <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
-    )}
-  </div>
-);
+
+      {representative ? (
+        <div className="space-y-2">
+          <div>
+            <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
+            <p className="text-sm">{getRepNameTh()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
+            <p className="text-sm">{getRepNameEn()}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">อีเมล</p>
+            <p className="text-sm">{representative.email || "-"}</p>
+          </div>
+          <div>
+            <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
+            <p className="text-sm">
+              {representative.phone || "-"}
+              {representative.phoneExtension && representative.phoneExtension.trim() && (
+                <span className="text-gray-600 ml-1">ต่อ {representative.phoneExtension}</span>
+              )}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500">ไม่มีข้อมูล</p>
+      )}
+    </div>
+  );
+};
 // Enhanced file display with view functionality
 const FileCard = ({ fileName, description, fileUrl, fileType, documentType }) => {
   const handleViewFile = () => {
@@ -308,37 +354,116 @@ export default function SummarySection({
     }
     return "ไฟล์ถูกอัปโหลดแล้ว";
   };
-  // Helper: ชื่อ-นามสกุล (ไทย) พร้อมคำนำหน้า เช่น "นายพลวัต ศรีชนะ"
+  
+  // Helper: ชื่อ-นามสกุล (ไทย) พร้อมคำนำหน้า
   const getDisplayNameTh = () => {
-    const prefix =
-      (viewMode
-        ? (formData.prename_th ??
-          formData.prenameTh ??
-          formData.prename_other ??
-          formData.prenameOther)
-        : (formData.prenameTh ?? formData.prenameOther)) || "";
+    try {
+      const prenameKeys = Object.keys(formData || {}).filter((k) => k.toLowerCase().includes("prename"));
+      console.log("[IC Summary][TH] prename-related keys:", prenameKeys);
+      console.log("[IC Summary][TH] raw values:", {
+        prename_th: formData?.prename_th,
+        prenameTh: formData?.prenameTh,
+        prename_other: formData?.prename_other,
+        prenameOther: formData?.prenameOther,
+        firstNameTh: formData?.firstNameTh,
+        first_name_th: formData?.first_name_th,
+        firstNameThai: formData?.firstNameThai,
+        lastNameTh: formData?.lastNameTh,
+        last_name_th: formData?.last_name_th,
+        lastNameThai: formData?.lastNameThai,
+      });
+    } catch {}
+    let prefix = "";
+    
+    if (viewMode) {
+      console.log("[IC Summary][TH] viewMode branch");
+      const prenameValue = formData.prename_th ?? formData.prenameTh;
+      const isOther = typeof prenameValue === "string" && prenameValue.replace(/\s/g, "") === "อื่นๆ";
+      if (isOther) {
+        // Use non-empty value preference
+        prefix = (formData.prename_other || formData.prenameOther || "").toString().trim();
+        if (!prefix) prefix = "อื่นๆ"; // fallback แสดงข้อความ ไม่ปล่อยค่าว่าง
+      } else {
+        prefix = prenameValue ?? "";
+      }
+    } else {
+      console.log("[IC Summary][TH] form branch");
+      // เช็คทั้ง prenameTh และ prename_th
+      const prenameValue = formData.prenameTh ?? formData.prename_th;
+      const isOther = typeof prenameValue === "string" && prenameValue.replace(/\s/g, "") === "อื่นๆ";
+      if (isOther) {
+        // เช็คทั้ง prenameOther และ prename_other (ให้ค่าว่างข้ามไป)
+        prefix = (formData.prenameOther || formData.prename_other || "").toString().trim();
+        if (!prefix) prefix = "อื่นๆ";
+      } else {
+        prefix = prenameValue ?? "";
+      }
+    }
+    
     const first =
-      (viewMode ? (formData.firstNameTh ?? formData.firstNameThai) : formData.firstNameThai) || "";
+      (viewMode
+        ? (formData.firstNameTh ?? formData.first_name_th ?? formData.firstNameThai)
+        : formData.firstNameThai) || "";
     const last =
-      (viewMode ? (formData.lastNameTh ?? formData.lastNameThai) : formData.lastNameThai) || "";
+      (viewMode
+        ? (formData.lastNameTh ?? formData.last_name_th ?? formData.lastNameThai)
+        : formData.lastNameThai) || "";
     const namePart = `${first} ${last}`.trim();
-    const full = `${prefix ? prefix : ""}${namePart ? namePart : ""}`.trim();
+    const full = prefix ? `${prefix} ${namePart}`.trim() : namePart;
+    console.log("[IC Summary][TH] computed:", { prefix, first, last, full });
     return full || "-";
   };
 
   // Helper: ชื่อ-นามสกุล (อังกฤษ) พร้อมคำนำหน้า (เว้นวรรคหลังคำนำหน้า)
   const getDisplayNameEn = () => {
-    const prefix =
-      (viewMode
-        ? (formData.prename_en ??
-          formData.prenameEn ??
-          formData.prename_other ??
-          formData.prenameOther)
-        : (formData.prenameEn ?? formData.prenameOther)) || "";
-    const first = (viewMode ? formData.firstNameEn : formData.firstNameEng) || "";
-    const last = (viewMode ? formData.lastNameEn : formData.lastNameEng) || "";
+    try {
+      const prenameKeys = Object.keys(formData || {}).filter((k) => k.toLowerCase().includes("prename"));
+      console.log("[IC Summary][EN] prename-related keys:", prenameKeys);
+      console.log("[IC Summary][EN] raw values:", {
+        prename_en: formData?.prename_en,
+        prenameEn: formData?.prenameEn,
+        prename_other_en: formData?.prename_other_en,
+        prenameOtherEn: formData?.prenameOtherEn,
+        firstNameEn: formData?.firstNameEn,
+        first_name_en: formData?.first_name_en,
+        firstNameEng: formData?.firstNameEng,
+        lastNameEn: formData?.lastNameEn,
+        last_name_en: formData?.last_name_en,
+        lastNameEng: formData?.lastNameEng,
+      });
+    } catch {}
+    let prefix = "";
+    
+    if (viewMode) {
+      console.log("[IC Summary][EN] viewMode branch");
+      const prenameValue = formData.prename_en ?? formData.prenameEn;
+      const isOther = typeof prenameValue === "string" && prenameValue.trim().toLowerCase() === "other";
+      if (isOther) {
+        prefix = (formData.prename_other_en || formData.prenameOtherEn || "").toString().trim();
+        if (!prefix) prefix = "Other";
+      } else {
+        prefix = prenameValue ?? "";
+      }
+    } else {
+      console.log("[IC Summary][EN] form branch");
+      // เช็คทั้ง prenameEn และ prename_en
+      const prenameValue = formData.prenameEn ?? formData.prename_en;
+      const isOther = typeof prenameValue === "string" && prenameValue.trim().toLowerCase() === "other";
+      if (isOther) {
+        // เช็คทั้ง prenameOtherEn และ prename_other_en
+        prefix = (formData.prenameOtherEn || formData.prename_other_en || "").toString().trim();
+        if (!prefix) prefix = "Other";
+      } else {
+        prefix = prenameValue ?? "";
+      }
+    }
+    
+    const first =
+      (viewMode ? (formData.firstNameEn ?? formData.first_name_en) : formData.firstNameEng) || "";
+    const last =
+      (viewMode ? (formData.lastNameEn ?? formData.last_name_en) : formData.lastNameEng) || "";
     const namePart = `${first} ${last}`.trim();
-    const full = `${prefix ? prefix + " " : ""}${namePart}`.trim();
+    const full = prefix ? `${prefix} ${namePart}`.trim() : namePart;
     return full || "-";
   };
 

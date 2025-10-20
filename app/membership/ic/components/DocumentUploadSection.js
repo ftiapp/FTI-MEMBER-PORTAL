@@ -616,19 +616,27 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
                   {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                    <input
-                      type="text"
-                      name="authorizedSignatoryPrenameOther"
-                      value={formData.authorizedSignatoryPrenameOther || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryPrenameOther: e.target.value,
-                        }))
-                      }
-                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    />
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        name="authorizedSignatoryPrenameOther"
+                        value={formData.authorizedSignatoryPrenameOther || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameOther: e.target.value,
+                          }))
+                        }
+                        placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                        className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
+                      />
+                      {errors?.authorizedSignatoryPrenameOther && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center">
+                          <span className="mr-1">*</span>
+                          {errors.authorizedSignatoryPrenameOther}
+                        </p>
+                      )}
+                    </div>
                   )}
                   {errors?.authorizedSignatoryPrenameTh && (
                     <p className="mt-1 text-xs text-red-600 flex items-center">
@@ -724,9 +732,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   />
                 </div>
 
-                {/* แถวที่ 2: ภาษาอังกฤษ */}
-                {/* Prename (EN) */}
-                <div>
+                {/* แถวที่ 2: ภาษาอังกฤษ - Hidden */}
+                {/* Prename (EN) - Hidden */}
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryPrenameEn"
                     className="block text-sm font-medium text-gray-700"
@@ -771,8 +779,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
                 
-                {/* First Name (EN) */}
-                <div>
+                {/* First Name (EN) - Hidden */}
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryFirstNameEn"
                     className="block text-sm font-medium text-gray-700"
@@ -802,8 +810,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
                 
-                {/* Last Name (EN) */}
-                <div>
+                {/* Last Name (EN) - Hidden */}
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryLastNameEn"
                     className="block text-sm font-medium text-gray-700"
@@ -833,8 +841,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
 
-                {/* Position (EN) */}
-                <div>
+                {/* Position (EN) - Hidden */}
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryPositionEn"
                     className="block text-sm font-medium text-gray-700"

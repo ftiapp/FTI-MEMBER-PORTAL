@@ -16,6 +16,7 @@ export default function RepresentativeForm({
   maxRepresentatives = 3,
   showPosition = true,
   positionPlaceholder = "ตำแหน่ง",
+  positionRequired = true,
   headerTitle = "ข้อมูลผู้แทน",
   headerSubtitle = "ข้อมูลผู้มีอำนาจลงนาม",
   infoMessage = "สามารถเพิ่มผู้แทนได้สูงสุด 3 ท่าน",
@@ -96,6 +97,7 @@ export default function RepresentativeForm({
               showRemoveButton={canRemove}
               showPosition={showPosition}
               positionPlaceholder={positionPlaceholder}
+              positionRequired={positionRequired}
               representativeErrors={
                 mode === "single" ? representativeErrors : representativeErrors[index] || {}
               }

@@ -245,7 +245,7 @@ export default function AMMembershipForm(props = {}) {
         }
 
         if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || 
-            formErrors.memberCount || formErrors.numberOfEmployees || formErrors.products)) {
+            formErrors.memberCount || formErrors.numberOfEmployees || formErrors.products || formErrors.productErrors)) {
           return;
         }
 

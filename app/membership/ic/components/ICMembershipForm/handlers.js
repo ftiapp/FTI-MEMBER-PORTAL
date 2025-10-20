@@ -2,6 +2,8 @@
 // Handler functions for IC Form
 
 import { toast } from "react-hot-toast";
+import { FIELD_ERROR_MAP } from "./constants";
+import { getFirstErrorKey } from "./scrollHelpers";
 
 /**
  * Check ID card uniqueness
@@ -189,40 +191,103 @@ export const buildRepresentativeErrorMessage = (representativeErrors) => {
     return "กรุณากรอกข้อมูลผู้แทนให้ครบถ้วน";
   }
 
-  const fieldMap = {
-    'prenameTh': 'คำนำหน้าชื่อ (ไทย)',
-    'prenameEn': 'คำนำหน้าชื่อ (อังกฤษ)',
-    'firstNameThai': 'ชื่อ (ไทย)',
-    'lastNameThai': 'นามสกุล (ไทย)',
-    'firstNameEng': 'ชื่อ (อังกฤษ)',
-    'lastNameEng': 'นามสกุล (อังกฤษ)',
-    'email': 'อีเมล',
-    'phone': 'เบอร์โทรศัพท์',
-  };
-
   const fieldNames = Object.keys(representativeErrors)
-    .map(key => fieldMap[key] || key)
+    .map(key => {
+      // Map error keys to Thai field names (support both snake_case and camelCase)
+      const fieldNameMap = {
+        'prenameTh': 'คำนำหน้าชื่อ (ไทย)',
+        'prename_th': 'คำนำหน้าชื่อ (ไทย)',
+        'prenameEn': 'คำนำหน้าชื่อ (อังกฤษ)',
+        'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
+        'prename_other': 'คำนำหน้าชื่อ (อื่นๆ)',
+        'prename_other_en': 'คำนำหน้าชื่อ (Other)',
+        'firstNameThai': 'ชื่อ (ไทย)',
+        'lastNameThai': 'นามสกุล (ไทย)',
+        'firstNameEng': 'ชื่อ (อังกฤษ)',
+        'lastNameEng': 'นามสกุล (อังกฤษ)',
+        'email': 'อีเมล',
+        'phone': 'เบอร์โทรศัพท์',
+      };
+      return fieldNameMap[key] || FIELD_ERROR_MAP[key] || key;
+    })
     .join(', ');
 
   return `ข้อมูลผู้แทนไม่ครบถ้วน: ${fieldNames}`;
 };
 
 /**
- * Build error toast message
+ * Build error toast message (Compatible with OC style - supports optional firstErrorKey param)
  * @param {Object} formErrors - Form errors object
- * @param {string} firstErrorKey - First error key
+ * @param {string} [firstErrorKey] - Optional first error key (if already computed)
  * @returns {string} - Error message
  */
 export const buildErrorToastMessage = (formErrors, firstErrorKey) => {
+  // Get first error key if not provided
+  if (!firstErrorKey) {
+    firstErrorKey = getFirstErrorKey(formErrors);
+  }
+  
+  if (!firstErrorKey) {
+    return "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
+  }
+
+  // Handle representative errors
   if (firstErrorKey === "representativeErrors" && formErrors.representativeErrors) {
     return buildRepresentativeErrorMessage(formErrors.representativeErrors);
   }
 
-  const firstErrorValue = formErrors[firstErrorKey];
-  if (typeof firstErrorValue === "string") {
-    return firstErrorValue;
+  // Handle address errors (multi-address format)
+  if (firstErrorKey.startsWith("address_")) {
+    const match = firstErrorKey.match(/address_(\d+)_(.*)$/);
+    if (match) {
+      const addressType = match[1];
+      const field = match[2];
+      const addressLabels = {
+        "1": "ที่อยู่สำนักงาน",
+        "2": "ที่อยู่จัดส่งเอกสาร",  
+        "3": "ที่อยู่ใบกำกับภาษี"
+      };
+      const label = addressLabels[addressType] || `ที่อยู่ประเภท ${addressType}`;
+      const fieldName = FIELD_ERROR_MAP[field] || field;
+      return `กรุณากรอก${fieldName} (${label})`;
+    }
   }
 
+  // Handle addresses.{type}.{field} format (OC style)
+  if (firstErrorKey.startsWith("addresses.")) {
+    const match = firstErrorKey.match(/addresses\.(\d+)\.(.*)$/);
+    if (match) {
+      const addressType = match[1];
+      const field = match[2];
+      const addressLabels = {
+        "1": "ที่อยู่สำนักงาน",
+        "2": "ที่อยู่จัดส่งเอกสาร",  
+        "3": "ที่อยู่ใบกำกับภาษี"
+      };
+      const label = addressLabels[addressType] || `ที่อยู่ประเภท ${addressType}`;
+      const fieldName = FIELD_ERROR_MAP[field] || field;
+      return `กรุณากรอก${fieldName} (${label})`;
+    }
+  }
+
+  // Handle product errors
+  if (firstErrorKey === "products" || firstErrorKey === "productErrors") {
+    return "กรุณากรอกข้อมูลสินค้า/บริการให้ครบถ้วน";
+  }
+
+  // Handle regular errors
+  const errorValue = formErrors[firstErrorKey];
+  if (typeof errorValue === "string") {
+    return errorValue;
+  }
+
+  // Use field map for better messages
+  const fieldName = FIELD_ERROR_MAP[firstErrorKey];
+  if (fieldName) {
+    return `กรุณากรอก${fieldName}`;
+  }
+
+  // Default message with error count
   const errorCount = Object.keys(formErrors).length;
-  return `พบข้อผิดพลาด ${errorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
+  return `พบข้อผิดพลาด ${errorCount} รายการ กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
 };

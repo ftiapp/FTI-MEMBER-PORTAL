@@ -98,8 +98,8 @@ const RepresentativeCard = ({ representative, index }) => (
         <p className="text-sm">
           {(() => {
             const pre =
-              representative.prenameEn === "Other" && representative.prenameOther
-                ? representative.prenameOther
+              representative.prenameEn === "Other" && representative.prenameOtherEn
+                ? representative.prenameOtherEn
                 : representative.prenameEn || "";
             const first = representative.firstNameEnglish || "-";
             const last = representative.lastNameEnglish || "-";

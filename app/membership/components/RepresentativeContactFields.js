@@ -12,6 +12,7 @@ export default function RepresentativeContactFields({
   errors = {},
   showPosition = true,
   positionPlaceholder = "ตำแหน่ง",
+  positionRequired = true,
   phoneTouched = false,
   onUpdate,
   onPhoneBlur,
@@ -35,7 +36,7 @@ export default function RepresentativeContactFields({
         {showPosition && (
           <div>
             <label className="block text-sm font-medium text-gray-900 mb-2">
-              ตำแหน่ง <span className="text-red-500">*</span>
+              ตำแหน่ง {positionRequired && <span className="text-red-500">*</span>}
             </label>
             <input
               type="text"

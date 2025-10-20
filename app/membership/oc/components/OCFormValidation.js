@@ -293,10 +293,8 @@ export const validateOCForm = (formData, step) => {
           repError.lastNameEnglish = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
         }
 
-        // ตรวจสอบตำแหน่ง (บังคับกรอก)
-        if (!rep.position || rep.position.trim() === "") {
-          repError.position = "กรุณากรอกตำแหน่ง";
-        }
+        // ตรวจสอบตำแหน่ง (ไม่บังคับกรอก - เอาออกแล้ว)
+        // Position is now optional for all representatives
 
         // ตรวจสอบอีเมล (บังคับกรอก)
         if (!rep.email || rep.email.trim() === "") {

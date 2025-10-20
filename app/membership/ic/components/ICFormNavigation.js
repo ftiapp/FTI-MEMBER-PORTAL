@@ -3,97 +3,18 @@
 import { useState, useCallback, useMemo } from "react";
 import { toast } from "react-hot-toast";
 
-export function useICFormNavigation({
-  currentStep,
-  setCurrentStep,
-  formData,
-  errors,
-  totalSteps,
-  validateCurrentStep,
-  checkIdCardUniqueness,
-}) {
+export function useICFormNavigation(validateForm) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
-
-  // Handle next step
-  // ในไฟล์ useICFormNavigation.js
-  // แก้ไขส่วน handleNextStep ตรงบรรทัดที่ตรวจสอบ ID Card
-
-  // แก้ไขใน useICFormNavigation.js
-
-  // ในไฟล์ useICFormNavigation.js
-  // แก้ไขส่วน handleNextStep
+  const totalSteps = 5;
 
   const handleNextStep = useCallback(async () => {
     if (currentStep >= totalSteps) return;
-
     setIsValidating(true);
-
     try {
-      // Validate current step
-      const stepErrors = validateCurrentStep(currentStep, formData);
-
-      if (Object.keys(stepErrors).length > 0) {
-        console.log("Validation errors:", stepErrors);
-        toast.error("กรุณาตรวจสอบข้อมูลให้ถูกต้องครบถ้วน", {
-          position: "top-right",
-        });
-        return;
-      }
-
-      // ✅ For step 1, check ID card validation status
-      if (currentStep === 1) {
-        const idCardValidation = formData._idCardValidation;
-
-        // ถ้ายังตรวจสอบอยู่
-        if (idCardValidation?.isChecking) {
-          toast.error("กรุณารอให้การตรวจสอบเลขบัตรประชาชนเสร็จสิ้น", {
-            position: "top-right",
-          });
-          return;
-        }
-
-        // ✅ ตรวจสอบ isValid แทน exists
-        if (idCardValidation?.isValid === false) {
-          toast.error(idCardValidation.message || "เลขบัตรประชาชนนี้ไม่สามารถใช้ได้", {
-            position: "top-right",
-          });
-          return;
-        }
-
-        // ถ้ายังไม่ได้ตรวจสอบ ID Card เลย (กรณีไม่มี _idCardValidation)
-        if (!idCardValidation && formData.idCardNumber) {
-          try {
-            const idCardCheckResult = await checkIdCardUniqueness(formData.idCardNumber);
-
-            // ✅ ตรวจสอบ valid แทน exists
-            if (idCardCheckResult && idCardCheckResult.valid === false) {
-              toast.error(idCardCheckResult.message || "เลขบัตรประชาชนนี้ไม่สามารถใช้ได้", {
-                position: "top-right",
-              });
-              return;
-            }
-          } catch (error) {
-            console.error("Error checking ID card:", error);
-            // หากเกิด error ให้ผ่านไป (สำหรับกรณีไม่มีฐานข้อมูล)
-          }
-        }
-
-        // ✅ ตรวจสอบให้แน่ใจว่า ID Card valid (เพิ่มการตรวจสอบเพิ่มเติม)
-        if (idCardValidation?.isValid !== true && formData.idCardNumber) {
-          toast.error("กรุณาตรวจสอบเลขบัตรประชาชนให้ถูกต้อง", {
-            position: "top-right",
-          });
-          return;
-        }
-      }
-
-      // ✅ ถ้าผ่านทุกการตรวจสอบแล้ว ให้ไปขั้นตอนต่อไป
       setCurrentStep((prev) => prev + 1);
       window.scrollTo(0, 0);
-
-      toast.success("ข้อมูลถูกต้อง กำลังไปขั้นตอนต่อไป", {
-        position: "top-right",
-      });
     } catch (error) {
       console.error("Error in form navigation:", error);
       toast.error("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", {
@@ -102,14 +23,7 @@ export function useICFormNavigation({
     } finally {
       setIsValidating(false);
     }
-  }, [
-    currentStep,
-    totalSteps,
-    formData,
-    validateCurrentStep,
-    setCurrentStep,
-    checkIdCardUniqueness,
-  ]);
+  }, [currentStep, totalSteps, setCurrentStep]);
 
   // Handle previous step
   const handlePrevStep = useCallback(() => {
@@ -279,10 +193,15 @@ export function useICFormNavigation({
   }, [currentStep, totalSteps, handlePrevStep, handleNextStep, isValidating]);
 
   return {
-    StepIndicator,
-    NavigationButtons,
+    currentStep,
+    setCurrentStep,
+    totalSteps,
+    isSubmitting,
+    setIsSubmitting,
     handleNextStep,
     handlePrevStep,
     isValidating,
+    StepIndicator,
+    NavigationButtons,
   };
 }

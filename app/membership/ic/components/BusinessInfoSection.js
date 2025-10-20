@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { toast } from "react-toastify";
+import { toast } from "react-hot-toast";
 import PropTypes from "prop-types";
 import {
   BusinessTypesField,
@@ -12,50 +12,65 @@ import {
  * BusinessInfoSection for IC (สามัญ-บุคคลธรรมดา) membership
  * Simplified version - Only Business Types and Products (no Employee Count, no Financial Info)
  */
-export default function BusinessInfoSection({ formData, setFormData, errors, showErrors = false }) {
+export default function BusinessInfoSection({ formData, setFormData, errors, businessTypes }) {
   // Refs for scrolling to error sections
   const businessTypesRef = useRef(null);
   const otherBusinessTypeDetailRef = useRef(null);
   const productsRef = useRef(null);
   const lastScrolledErrorRef = useRef(null);
 
-  // Scroll to error fields when showErrors is true
+  // Scroll to error fields when errors change (same as OC)
   useEffect(() => {
-    if (showErrors) {
-      const errorFields = [
-        { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
-        { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
-        { ref: productsRef, error: errors.products, name: 'สินค้า/บริการ' },
-      ];
+    // Check for per-item product errors (same as OC)
+    const hasProductItemErrors = Array.isArray(errors.productErrors)
+      ? errors.productErrors.some((e) => e && Object.keys(e).length > 0)
+      : false;
+    
+    const errorFields = [
+      { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
+      { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
+      { ref: productsRef, error: errors.products || hasProductItemErrors, name: 'สินค้า/บริการ' },
+    ];
 
-      const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
+    const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
 
-      if (firstErrorField) {
+    if (firstErrorField) {
+      // Use actual error message if it's a string, otherwise build field names list
+      let errorMessage;
+      
+      if (typeof errors.products === 'string') {
+        // Use the actual validation message for products
+        errorMessage = errors.products;
+      } else if (typeof errors.businessTypes === 'string') {
+        errorMessage = errors.businessTypes;
+      } else if (typeof errors.otherBusinessTypeDetail === 'string') {
+        errorMessage = errors.otherBusinessTypeDetail;
+      } else if (hasProductItemErrors && firstErrorField.ref === productsRef) {
+        // Per-item product errors
+        errorMessage = "กรุณากรอกข้อมูลสินค้า/บริการ อย่างน้อย 1 รายการ";
+      } else {
+        // Fallback: build field names list
         const errorFieldNames = errorFields
           .filter(field => field.error)
           .map(field => field.name)
           .join(', ');
+        errorMessage = `กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`;
+      }
 
-        const errorKey = errorFieldNames;
-        
-        if (errorKey !== lastScrolledErrorRef.current) {
-          lastScrolledErrorRef.current = errorKey;
-          firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          toast.error(`กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`, {
-            position: "top-right",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            toastId: "ic-business-errors"
-          });
-        }
+      const errorKey = errorMessage;
+      
+      if (errorKey !== lastScrolledErrorRef.current) {
+        lastScrolledErrorRef.current = errorKey;
+        firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        toast.error(errorMessage, { 
+          id: "ic-business-errors",
+          duration: 5000 
+        });
       }
     } else {
       lastScrolledErrorRef.current = null;
     }
-  }, [showErrors, errors]);
+  }, [errors]);
 
   return (
     <div 
@@ -75,6 +90,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
           formData={formData}
           setFormData={setFormData}
           errors={errors}
+          businessTypes={businessTypes}
           otherFieldRef={otherBusinessTypeDetailRef}
         />
 
@@ -93,7 +109,6 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 }
 
 BusinessInfoSection.propTypes = {
-  showErrors: PropTypes.bool,
   formData: PropTypes.shape({
     businessTypes: PropTypes.object,
     otherBusinessTypeDetail: PropTypes.string,
@@ -112,4 +127,5 @@ BusinessInfoSection.propTypes = {
     otherBusinessTypeDetail: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     products: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   }).isRequired,
+  businessTypes: PropTypes.array,
 };

@@ -921,20 +921,28 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
                   {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                    <input
-                      type="text"
-                      name="authorizedSignatoryPrenameOther"
-                      value={formData.authorizedSignatoryPrenameOther || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
-                        }))
-                      }
-                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      required
-                    />
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        name="authorizedSignatoryPrenameOther"
+                        value={formData.authorizedSignatoryPrenameOther || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                          }))
+                        }
+                        placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                        className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
+                        required
+                      />
+                      {errors?.authorizedSignatoryPrenameOther && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center">
+                          <span className="mr-1">*</span>
+                          {errors.authorizedSignatoryPrenameOther}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
                 <div>
@@ -1025,8 +1033,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                {/* Prename English */}
-                <div>
+                {/* Prename English - Hidden */}
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryPrenameEn"
                     className="block text-sm font-medium text-gray-700"
@@ -1074,7 +1082,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     />
                   )}
                 </div>
-                <div>
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryFirstNameEn"
                     className="block text-sm font-medium text-gray-700"
@@ -1102,7 +1110,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryLastNameEn"
                     className="block text-sm font-medium text-gray-700"
@@ -1130,7 +1138,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     </p>
                   )}
                 </div>
-                <div>
+                <div className="hidden">
                   <label
                     htmlFor="authorizedSignatoryPositionEn"
                     className="block text-sm font-medium text-gray-700"

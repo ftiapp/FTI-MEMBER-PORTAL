@@ -16,7 +16,7 @@ import {
  * BusinessInfoSection for AM (สมาคม) membership
  * Includes Member Count field
  */
-export default function BusinessInfoSection({ formData, setFormData, errors, showErrors = false }) {
+export default function BusinessInfoSection({ formData, setFormData, errors, businessTypes }) {
   // Use numeric input hook
   const numericHandlers = useNumericInput(formData, setFormData);
   
@@ -28,40 +28,62 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
   const productsRef = useRef(null);
   const lastScrolledErrorRef = useRef(null);
 
-  // Scroll to error fields when showErrors is true
+  // Scroll to error fields when errors change
   useEffect(() => {
-    if (showErrors) {
-      const errorFields = [
-        { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
-        { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
-        { ref: memberCountRef, error: errors.memberCount, name: 'จำนวนสมาชิกสมาคม' },
-        { ref: employeeCountRef, error: errors.numberOfEmployees, name: 'จำนวนพนักงาน' },
-        { ref: productsRef, error: errors.products, name: 'สินค้า/บริการ' },
-      ];
+    // Check for per-item product errors
+    const hasProductItemErrors = Array.isArray(errors.productErrors)
+      ? errors.productErrors.some((e) => e && Object.keys(e).length > 0)
+      : false;
+    
+    const errorFields = [
+      { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
+      { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
+      { ref: memberCountRef, error: errors.memberCount, name: 'จำนวนสมาชิกสมาคม' },
+      { ref: employeeCountRef, error: errors.numberOfEmployees, name: 'จำนวนพนักงาน' },
+      { ref: productsRef, error: errors.products || hasProductItemErrors, name: 'สินค้า/บริการ' },
+    ];
 
-      const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
+    const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
 
-      if (firstErrorField) {
+    if (firstErrorField) {
+      // Use actual error message if it's a string, otherwise build field names list
+      let errorMessage;
+      
+      if (typeof errors.products === 'string') {
+        errorMessage = errors.products;
+      } else if (typeof errors.businessTypes === 'string') {
+        errorMessage = errors.businessTypes;
+      } else if (typeof errors.otherBusinessTypeDetail === 'string') {
+        errorMessage = errors.otherBusinessTypeDetail;
+      } else if (typeof errors.memberCount === 'string') {
+        errorMessage = errors.memberCount;
+      } else if (typeof errors.numberOfEmployees === 'string') {
+        errorMessage = errors.numberOfEmployees;
+      } else if (hasProductItemErrors && firstErrorField.ref === productsRef) {
+        errorMessage = "กรุณากรอกข้อมูลสินค้า/บริการ อย่างน้อย 1 รายการ";
+      } else {
+        // Fallback: build field names list
         const errorFieldNames = errorFields
           .filter(field => field.error)
           .map(field => field.name)
           .join(', ');
+        errorMessage = `กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`;
+      }
 
-        const errorKey = errorFieldNames;
-        
-        if (errorKey !== lastScrolledErrorRef.current) {
-          lastScrolledErrorRef.current = errorKey;
-          firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-          toast.error(`กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`, { 
-            id: "am-business-errors",
-            duration: 5000 
-          });
-        }
+      const errorKey = errorMessage;
+      
+      if (errorKey !== lastScrolledErrorRef.current) {
+        lastScrolledErrorRef.current = errorKey;
+        firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        toast.error(errorMessage, { 
+          id: "am-business-errors",
+          duration: 5000 
+        });
       }
     } else {
       lastScrolledErrorRef.current = null;
     }
-  }, [showErrors, errors]);
+  }, [errors]);
 
   return (
     <div 
@@ -81,6 +103,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
           formData={formData}
           setFormData={setFormData}
           errors={errors}
+          businessTypes={businessTypes}
           otherFieldRef={otherBusinessTypeDetailRef}
         />
 
@@ -129,7 +152,6 @@ export default function BusinessInfoSection({ formData, setFormData, errors, sho
 }
 
 BusinessInfoSection.propTypes = {
-  showErrors: PropTypes.bool,
   formData: PropTypes.shape({
     businessTypes: PropTypes.object,
     otherBusinessTypeDetail: PropTypes.string,
@@ -160,5 +182,7 @@ BusinessInfoSection.propTypes = {
     memberCount: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     numberOfEmployees: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
     products: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
+    productErrors: PropTypes.array,
   }).isRequired,
+  businessTypes: PropTypes.array,
 };

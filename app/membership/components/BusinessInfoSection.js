@@ -31,61 +31,56 @@ export default function BusinessInfoSection({
   const productsRef = useRef(null);
   const lastScrolledErrorRef = useRef(null);
 
-  // Effect for scrolling to first error when showErrors is true
+  // Scroll to error fields when errors change (same as OC)
   useEffect(() => {
-    if (showErrors) {
-      // Define the order of fields to check
-      const errorFields = [
-        { ref: businessTypesRef, error: errors.businessTypes },
-        { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail },
-        { ref: memberCountRef, error: errors.memberCount },
-        { ref: employeeCountRef, error: errors.numberOfEmployees },
-        { ref: productsRef, error: errors.products },
-      ];
+    const hasProductItemErrors = Array.isArray(errors.productErrors)
+      ? errors.productErrors.some((e) => e && Object.keys(e).length > 0)
+      : false;
 
-      // Find the first field with an error
-      const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
+    const errorFields = [
+      { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
+      { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
+      { ref: memberCountRef, error: errors.memberCount, name: 'จำนวนสมาชิก' },
+      { ref: employeeCountRef, error: errors.numberOfEmployees, name: 'จำนวนพนักงาน' },
+      { ref: productsRef, error: errors.products || hasProductItemErrors, name: 'สินค้า/บริการ' },
+    ];
 
-      if (firstErrorField) {
-        // Create detailed error message
-        const fieldMap = {
-          businessTypes: 'ประเภทธุรกิจ',
-          otherBusinessTypeDetail: 'รายละเอียดประเภทธุรกิจอื่นๆ',
-          memberCount: 'จำนวนสมาชิก',
-          numberOfEmployees: 'จำนวนพนักงาน',
-          products: 'สินค้า/บริการ'
-        };
-        
+    const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
+
+    if (firstErrorField) {
+      // Use actual error message if it's a string, otherwise build field names list
+      let errorMessage;
+      
+      if (typeof errors.products === 'string' && firstErrorField.ref === productsRef) {
+        // Use the actual validation message for products
+        errorMessage = errors.products;
+      } else if (typeof errors.businessTypes === 'string' && firstErrorField.ref === businessTypesRef) {
+        errorMessage = errors.businessTypes;
+      } else if (typeof errors.otherBusinessTypeDetail === 'string' && firstErrorField.ref === otherBusinessTypeDetailRef) {
+        errorMessage = errors.otherBusinessTypeDetail;
+      } else {
+        // Fallback: build field names list
         const errorFieldNames = errorFields
           .filter(field => field.error)
-          .map(field => {
-            const key = Object.keys(errors).find(k => errors[k] === field.error);
-            return fieldMap[key] || key;
-          })
+          .map(field => field.name)
           .join(', ');
+        errorMessage = `กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`;
+      }
 
-        // Create a unique key for current errors to prevent duplicate scrolling
-        const errorKey = errorFieldNames;
-        
-        // Only scroll if errors are different from the last scroll
-        if (errorKey !== lastScrolledErrorRef.current) {
-          lastScrolledErrorRef.current = errorKey;
-          
-          // Scroll to the first error field
-          firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-
-          // Show toast notification with specific fields
-          toast.error(`กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`, { 
-            id: "business-errors",
-            duration: 5000 
-          });
-        }
+      const errorKey = errorMessage;
+      
+      if (errorKey !== lastScrolledErrorRef.current) {
+        lastScrolledErrorRef.current = errorKey;
+        firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        toast.error(errorMessage, { 
+          id: "business-errors",
+          duration: 5000 
+        });
       }
     } else {
-      // Reset the scroll tracker when showErrors is false
       lastScrolledErrorRef.current = null;
     }
-  }, [showErrors, errors]);
+  }, [errors]);
 
   return (
     <div 

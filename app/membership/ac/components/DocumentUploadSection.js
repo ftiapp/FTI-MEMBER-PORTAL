@@ -769,19 +769,27 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     <option value="อื่นๆ">อื่นๆ</option>
                   </select>
                   {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                    <input
-                      type="text"
-                      value={formData.authorizedSignatoryPrenameOther || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
-                        }))
-                      }
-                      placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                      className="mt-2 w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={formData.authorizedSignatoryPrenameOther || ""}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                          }))
+                        }
+                        placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
+                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-500"}`}
+                        required
+                      />
+                      {errors?.authorizedSignatoryPrenameOther && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center">
+                          <span className="mr-1">*</span>
+                          {errors.authorizedSignatoryPrenameOther}
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 
