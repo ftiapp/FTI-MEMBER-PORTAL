@@ -30,6 +30,8 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
 
   // Scroll to error fields when errors change
   useEffect(() => {
+    console.log("🔍 AM BusinessInfoSection - errors changed:", errors);
+    
     // Check for per-item product errors
     const hasProductItemErrors = Array.isArray(errors.productErrors)
       ? errors.productErrors.some((e) => e && Object.keys(e).length > 0)
@@ -43,7 +45,11 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
       { ref: productsRef, error: errors.products || hasProductItemErrors, name: 'สินค้า/บริการ' },
     ];
 
+    console.log("🔍 AM BusinessInfoSection - errorFields:", errorFields.map(f => ({ name: f.name, hasError: !!f.error, hasRef: !!f.ref.current })));
+
     const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
+
+    console.log("🔍 AM BusinessInfoSection - firstErrorField:", firstErrorField ? firstErrorField.name : "none");
 
     if (firstErrorField) {
       // Use actual error message if it's a string, otherwise build field names list
@@ -73,14 +79,19 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
       const errorKey = errorMessage;
       
       if (errorKey !== lastScrolledErrorRef.current) {
+        console.log("✅ AM BusinessInfoSection - Scrolling to:", firstErrorField.name);
+        console.log("✅ AM BusinessInfoSection - Toast message:", errorMessage);
         lastScrolledErrorRef.current = errorKey;
         firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
         toast.error(errorMessage, { 
           id: "am-business-errors",
           duration: 5000 
         });
+      } else {
+        console.log("⏭️ AM BusinessInfoSection - Skip scroll (same error)");
       }
     } else {
+      console.log("✅ AM BusinessInfoSection - No errors, clearing lastScrolledErrorRef");
       lastScrolledErrorRef.current = null;
     }
   }, [errors]);
@@ -92,7 +103,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
     >
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
-        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลุรกิจ / Business Information</h2>
+        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลธุรกิจ / Business Information</h2>
         <p className="text-blue-100 text-sm mt-1">ประเภทธุรกิจและข้อมูลผลิตภัณฑ์/บริการ / Business type and product/service information</p>
       </div>
 
@@ -143,7 +154,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
           formData={formData}
           setFormData={setFormData}
           errors={errors}
-          required={false}
+          required={true}
           maxProducts={10}
         />
       </div>

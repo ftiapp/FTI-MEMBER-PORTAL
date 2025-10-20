@@ -1059,33 +1059,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 </div>
               </div>
 
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <svg
-                    className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">หมายเหตุ:</p>
-                    <ul className="list-disc list-inside space-y-1 text-blue-700">
-                      <li>
-                        กรุณากรอกชื่อ-นามสกุลของผู้มีอำนาจลงนามให้ครบถ้วนทั้งภาษาไทยและภาษาอังกฤษ
-                      </li>
-                      <li>ชื่อที่กรอกต้องตรงกับเอกสารทางการและลายเซ็นที่อัปโหลด</li>
-                      <li>ข้อมูลนี้จะใช้สำหรับการตรวจสอบและออกเอกสารรับรองสมาชิกภาพ</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
+              
+               
+              
             </div>
 
             {/* Authorized Signature Upload */}

@@ -231,7 +231,9 @@ export default function AMMembershipForm(props = {}) {
         e.stopPropagation();
       }
 
+      console.log("🔵 AM handleNext - Step:", currentStep);
       const formErrors = validateAMForm(formData, currentStep);
+      console.log("🔵 AM handleNext - Validation errors:", formErrors);
       setErrors(formErrors);
 
       if (Object.keys(formErrors).length > 0) {
@@ -241,11 +243,13 @@ export default function AMMembershipForm(props = {}) {
 
         // Let child components handle specific errors
         if (currentStep === 2 && formErrors.representativeErrors) {
+          console.log("⏭️ AM handleNext - Step 2 representative errors, letting child handle");
           return;
         }
 
         if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || 
             formErrors.memberCount || formErrors.numberOfEmployees || formErrors.products || formErrors.productErrors)) {
+          console.log("⏭️ AM handleNext - Step 3 business errors, letting child handle");
           return;
         }
 

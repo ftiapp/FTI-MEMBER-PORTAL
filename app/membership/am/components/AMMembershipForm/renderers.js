@@ -53,9 +53,6 @@ export const renderStepComponent = ({
       <BusinessInfoSection
         {...commonProps}
         businessTypes={businessTypes}
-        industrialGroups={industrialGroups}
-        provincialChapters={provincialChapters}
-        showErrors={showErrors}
       />
     ),
     4: <DocumentsSection {...commonProps} />,

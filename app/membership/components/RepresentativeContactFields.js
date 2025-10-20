@@ -108,7 +108,7 @@ export default function RepresentativeContactFields({
                 onBlur={onPhoneBlur}
                 placeholder="เช่น 081-234-5678, 02-345-1075 หรือ 0812345678"
                 className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
-                  phoneTouched && errors.phone
+                  phoneTouched && (!representative.phone || representative.phone.trim() === "")
                     ? "border-red-300 bg-red-50 focus:ring-red-500"
                     : "border-gray-300 bg-white hover:border-gray-400"
                 }`}
@@ -124,7 +124,7 @@ export default function RepresentativeContactFields({
               />
             </div>
           </div>
-          {phoneTouched && errors.phone && (
+          {phoneTouched && (!representative.phone || representative.phone.trim() === "") && (
             <p className="text-sm text-red-600 mt-2 flex items-center gap-1">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
@@ -133,7 +133,7 @@ export default function RepresentativeContactFields({
                   clipRule="evenodd"
                 />
               </svg>
-              {errors.phone}
+              {"กรุณากรอกเบอร์โทรศัพท์"}
             </p>
           )}
         </div>

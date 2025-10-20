@@ -142,7 +142,7 @@ export default function BusinessInfoSection({
           formData={formData}
           setFormData={setFormData}
           errors={errors}
-          required={false}
+          required={true}
           maxProducts={10}
         />
       </div>

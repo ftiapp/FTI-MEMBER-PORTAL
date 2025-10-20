@@ -112,25 +112,48 @@ export const createScrollToErrorField = (stickyOffset = 120) => {
       return false;
     };
 
-    // Special handling: address_{type}_{field} -> switch tab first
+    // Special handling: address_{type}_{field} -> let AddressSection auto-switch tab
     if (fieldKey.startsWith("address_")) {
-      const match = fieldKey.match(/^address_(\d)_/);
-      const tabType = match?.[1];
-      if (tabType) {
-        const tabBtn = document.querySelector(`[data-address-tab="${tabType}"]`);
-        if (tabBtn) {
-          // If the tab isn't active, clicking will activate it; then scroll after a short delay
-          tabBtn.click();
-          setTimeout(() => {
-            if (!performScroll()) {
-              const section = document.querySelector(
-                '[data-section="addresses"], [data-section="address-section"]',
-              );
-              if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
-          }, 120);
-          return;
-        }
+      const match = fieldKey.match(/^address_(\d+)_(.+)$/);
+      if (match) {
+        const tab = match[1];
+        const field = match[2];
+        
+        // Map validation field to actual input id in AddressSection
+        let targetId = null;
+        if (field === "email") targetId = `email-${tab}`;
+        else if (field === "phone") targetId = `phone-${tab}`;
+        else if (field === "website") targetId = `website-${tab}`;
+        else if (["addressNumber", "building", "moo", "soi", "street"].includes(field))
+          targetId = field;
+        // subDistrict/district/province/postalCode are SearchableDropdowns; scrolling to section is sufficient
+
+        // Allow AddressSection to auto-switch tab via its useEffect (based on errors), then focus
+        setTimeout(() => {
+          let el = null;
+          if (targetId) {
+            el = document.getElementById(targetId);
+            if (!el) el = document.querySelector(`[name="${targetId}"]`);
+          }
+
+          // Fallback: scroll to the address section container
+          if (!el) {
+            const section =
+              document.querySelector('[data-section="company-address"]') ||
+              document.querySelector('[data-section="addresses"]') ||
+              document.querySelector('.address-tabs-container') ||
+              document.querySelector('.bg-white');
+            if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+          }
+
+          try {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            // Focus without jumping again
+            el.focus({ preventScroll: true });
+          } catch {}
+        }, 250);
+        return;
       }
     }
 
