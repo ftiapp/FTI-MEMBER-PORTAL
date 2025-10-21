@@ -1,6 +1,6 @@
 /**
  * Address Components - Shared components for address management
- * 
+ *
  * ไฟล์นี้ export components และ utilities ทั้งหมดที่เกี่ยวข้องกับการจัดการที่อยู่
  * เพื่อให้สามารถนำไปใช้ในส่วนต่างๆ ของระบบได้
  */

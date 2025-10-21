@@ -7,11 +7,11 @@
  * @returns {string|null} - First error key
  */
 export const getFirstErrorKey = (errors) => {
-  if (!errors || typeof errors !== 'object') return null;
-  
+  if (!errors || typeof errors !== "object") return null;
+
   const entries = Object.entries(errors);
   if (entries.length === 0) return null;
-  
+
   const [firstKey] = entries[0];
   return firstKey;
 };
@@ -26,7 +26,7 @@ export const scrollToErrorField = (errorKey) => {
   // Address fields: addresses.{type}.{field} OR address_{type}_{field}
   if (errorKey.startsWith("addresses.") || errorKey.startsWith("address_")) {
     let tab, field;
-    
+
     // Parse addresses.1.phone format (OC style)
     if (errorKey.startsWith("addresses.")) {
       const match = errorKey.match(/addresses\.(\d+)\.(.+)$/);
@@ -44,7 +44,11 @@ export const scrollToErrorField = (errorKey) => {
       }
     }
     // Handle addresses.required and addresses.migration errors
-    else if (errorKey === "addresses.required" || errorKey === "addresses.migration" || errorKey === "addresses.legacy.addressNumber") {
+    else if (
+      errorKey === "addresses.required" ||
+      errorKey === "addresses.migration" ||
+      errorKey === "addresses.legacy.addressNumber"
+    ) {
       setTimeout(() => {
         const section =
           document.querySelector('[data-section="company-address"]') ||
@@ -99,7 +103,7 @@ export const scrollToErrorField = (errorKey) => {
   if (errorKey === "representativeErrors" || errorKey?.startsWith("representative")) {
     setTimeout(() => {
       const section = document.querySelector(
-        '[data-section="representatives"], [data-section="representative-section"], [data-section="representative"]'
+        '[data-section="representatives"], [data-section="representative-section"], [data-section="representative"]',
       );
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -118,8 +122,9 @@ export const scrollToErrorField = (errorKey) => {
   // Products/Business types
   if (errorKey === "products" || errorKey === "productErrors") {
     setTimeout(() => {
-      const section = document.querySelector('[data-section="products"]') ||
-                     document.querySelector('.products-section');
+      const section =
+        document.querySelector('[data-section="products"]') ||
+        document.querySelector(".products-section");
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
     return;
@@ -127,8 +132,9 @@ export const scrollToErrorField = (errorKey) => {
 
   if (errorKey === "businessTypes" || errorKey === "otherBusinessTypeDetail") {
     setTimeout(() => {
-      const section = document.querySelector('[data-section="business-types"]') ||
-                     document.querySelector('.business-types-section');
+      const section =
+        document.querySelector('[data-section="business-types"]') ||
+        document.querySelector(".business-types-section");
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
     return;
@@ -166,9 +172,9 @@ export const scrollToTop = () => {
  */
 export const scrollToConsentBox = () => {
   setTimeout(() => {
-    const consentBox = document.querySelector('[data-consent-box]');
+    const consentBox = document.querySelector("[data-consent-box]");
     if (consentBox) {
-      consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      consentBox.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, 100);
 };

@@ -42,7 +42,7 @@ let dbConfig = {
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || "3306",
   ssl: false, // ถ้า MySQL รองรับ SSL ควรเปลี่ยนเป็น true
-}
+};
 
 // เพิ่ม connection options
 dbConfig = {

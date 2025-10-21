@@ -12,9 +12,7 @@ const SaveModal = ({ isOpen, status, onClose }) => {
             <div className="mb-4 flex justify-center">
               <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600"></div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              กำลังบันทึกข้อมูล...
-            </h3>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">กำลังบันทึกข้อมูล...</h3>
             <p className="text-gray-600">กรุณารอสักครู่</p>
           </div>
         )}
@@ -39,12 +37,8 @@ const SaveModal = ({ isOpen, status, onClose }) => {
                 </svg>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              บันทึกข้อมูลสำเร็จ!
-            </h3>
-            <p className="text-gray-600 mb-6">
-              ข้อมูลของคุณได้รับการบันทึกเรียบร้อยแล้ว
-            </p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">บันทึกข้อมูลสำเร็จ!</h3>
+            <p className="text-gray-600 mb-6">ข้อมูลของคุณได้รับการบันทึกเรียบร้อยแล้ว</p>
             <button
               onClick={onClose}
               className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
@@ -74,12 +68,8 @@ const SaveModal = ({ isOpen, status, onClose }) => {
                 </svg>
               </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              เกิดข้อผิดพลาด
-            </h3>
-            <p className="text-gray-600 mb-6">
-              ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง
-            </p>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">เกิดข้อผิดพลาด</h3>
+            <p className="text-gray-600 mb-6">ไม่สามารถบันทึกข้อมูลได้ กรุณาลองใหม่อีกครั้ง</p>
             <button
               onClick={onClose}
               className="w-full px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"

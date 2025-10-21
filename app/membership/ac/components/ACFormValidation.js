@@ -326,11 +326,17 @@ export const validateACForm = (formData, step) => {
 
     // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
     // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
-    const hasCompanyStamp = formData.companyStamp && 
-      (formData.companyStamp.file || formData.companyStamp.url || formData.companyStamp instanceof File);
-    
-    const hasAuthorizedSignature = formData.authorizedSignature && 
-      (formData.authorizedSignature.file || formData.authorizedSignature.url || formData.authorizedSignature instanceof File);
+    const hasCompanyStamp =
+      formData.companyStamp &&
+      (formData.companyStamp.file ||
+        formData.companyStamp.url ||
+        formData.companyStamp instanceof File);
+
+    const hasAuthorizedSignature =
+      formData.authorizedSignature &&
+      (formData.authorizedSignature.file ||
+        formData.authorizedSignature.url ||
+        formData.authorizedSignature instanceof File);
 
     if (!hasCompanyStamp) {
       errors.companyStamp = "กรุณาอัพโหลดรูปตราประทับบริษัท (หรือรูปลายเซ็นหากไม่มีตราประทับ)";
@@ -347,7 +353,10 @@ export const validateACForm = (formData, step) => {
 
     // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
     if (formData.authorizedSignatoryPrenameTh === "อื่นๆ") {
-      if (!formData.authorizedSignatoryPrenameOther || formData.authorizedSignatoryPrenameOther.trim() === "") {
+      if (
+        !formData.authorizedSignatoryPrenameOther ||
+        formData.authorizedSignatoryPrenameOther.trim() === ""
+      ) {
         errors.authorizedSignatoryPrenameOther = "กรุณาระบุคำนำหน้า (อื่นๆ) ภาษาไทย";
       }
     }
@@ -387,7 +396,8 @@ export const validateACForm = (formData, step) => {
     ) {
       errors.authorizedSignatoryPositionTh = "กรุณากรอกตำแหน่ง (ภาษาไทย) ของผู้มีอำนาจลงนาม";
     } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryPositionTh)) {
-      errors.authorizedSignatoryPositionTh = "ตำแหน่ง (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+      errors.authorizedSignatoryPositionTh =
+        "ตำแหน่ง (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
     }
 
     // ตำแหน่งภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)

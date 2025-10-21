@@ -65,9 +65,7 @@ export default function RepresentativeNameFields({
               <option value="นางสาว">นางสาว</option>
               <option value="อื่นๆ">อื่นๆ</option>
             </select>
-            {errors.prename_th && (
-              <p className="text-sm text-red-600 mt-2">{errors.prename_th}</p>
-            )}
+            {errors.prename_th && <p className="text-sm text-red-600 mt-2">{errors.prename_th}</p>}
             {/* Other Prename Thai */}
             {representative.prenameTh === "อื่นๆ" && (
               <input
@@ -173,9 +171,7 @@ export default function RepresentativeNameFields({
               <option value="Ms">Ms</option>
               <option value="Other">Other</option>
             </select>
-            {errors.prename_en && (
-              <p className="text-sm text-red-600 mt-2">{errors.prename_en}</p>
-            )}
+            {errors.prename_en && <p className="text-sm text-red-600 mt-2">{errors.prename_en}</p>}
             {/* Other Prename English */}
             {String(representative.prenameEn || "").toLowerCase() === "other" && (
               <input

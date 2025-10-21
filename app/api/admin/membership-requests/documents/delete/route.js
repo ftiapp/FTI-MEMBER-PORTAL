@@ -20,7 +20,7 @@ export async function DELETE(request) {
     if (!admin) {
       return Response.json(
         { success: false, message: "Unauthorized - Admin access required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -32,21 +32,18 @@ export async function DELETE(request) {
     if (!documentId || !membershipType || !applicationId) {
       return Response.json(
         { success: false, message: "Missing required parameters" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get document info
     const docs = await query(
       `SELECT * FROM MemberRegist_${membershipType}_Documents WHERE id = ? AND main_id = ?`,
-      [documentId, applicationId]
+      [documentId, applicationId],
     );
 
     if (docs.length === 0) {
-      return Response.json(
-        { success: false, message: "Document not found" },
-        { status: 404 }
-      );
+      return Response.json({ success: false, message: "Document not found" }, { status: 404 });
     }
 
     const doc = docs[0];
@@ -64,7 +61,7 @@ export async function DELETE(request) {
     // Delete from database
     await query(
       `DELETE FROM MemberRegist_${membershipType}_Documents WHERE id = ? AND main_id = ?`,
-      [documentId, applicationId]
+      [documentId, applicationId],
     );
 
     // Log action
@@ -79,7 +76,7 @@ export async function DELETE(request) {
           documentType: doc.document_type,
           fileName: doc.file_name,
         }),
-      ]
+      ],
     );
 
     return Response.json({
@@ -93,7 +90,7 @@ export async function DELETE(request) {
         success: false,
         message: error.message || "เกิดข้อผิดพลาดในการลบเอกสาร",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

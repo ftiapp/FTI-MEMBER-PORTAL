@@ -481,10 +481,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
 
         <div
           className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
-            disabled 
-              ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed" 
-              : errors?.[name] 
-                ? "border-red-300 bg-red-50" 
+            disabled
+              ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
+              : errors?.[name]
+                ? "border-red-300 bg-red-50"
                 : "border-gray-300 hover:border-blue-400"
           }`}
         >
@@ -493,7 +493,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               {UploadIcon}
               <div className="flex flex-col items-center mt-4">
                 <p className={`text-sm ${disabled ? "text-gray-400" : "text-gray-500"}`}>
-                  {disabled ? "ไม่สามารถอัปโหลดได้ (กรุณาลบไฟล์อีกตัวเลือกก่อน)" : "ลากไฟล์มาวางที่นี่ หรือ"}
+                  {disabled
+                    ? "ไม่สามารถอัปโหลดได้ (กรุณาลบไฟล์อีกตัวเลือกก่อน)"
+                    : "ลากไฟล์มาวางที่นี่ หรือ"}
                 </p>
                 {!disabled && (
                   <>
@@ -634,8 +636,13 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
         {/* Header Section */}
         <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารใบอนุญาต / License Documents</h2>
-          <p className="text-blue-100 text-sm mt-1">เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ / Select factory type and upload supporting documents</p>
+          <h2 className="text-xl font-semibold text-white tracking-tight">
+            เอกสารใบอนุญาต / License Documents
+          </h2>
+          <p className="text-blue-100 text-sm mt-1">
+            เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ / Select factory type and upload supporting
+            documents
+          </p>
         </div>
 
         {/* Content Section */}
@@ -901,14 +908,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     value={formData.authorizedSignatoryPrenameTh || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const mapThToEn = { "นาย": "Mr", "นาง": "Mrs", "นางสาว": "Ms", "อื่นๆ": "Other" };
+                      const mapThToEn = { นาย: "Mr", นาง: "Mrs", นางสาว: "Ms", อื่นๆ: "Other" };
                       const mappedEn = mapThToEn[value] || "";
                       setFormData((prev) => ({
                         ...prev,
                         authorizedSignatoryPrenameTh: value,
                         authorizedSignatoryPrenameEn: mappedEn,
-                        authorizedSignatoryPrenameOther: value === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
-                        authorizedSignatoryPrenameOtherEn: mappedEn === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                        authorizedSignatoryPrenameOther:
+                          value === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
+                        authorizedSignatoryPrenameOtherEn:
+                          mappedEn === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
                       }));
                     }}
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -929,7 +938,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                            authorizedSignatoryPrenameOther: e.target.value.replace(
+                              /[^ก-๙\.\s]/g,
+                              "",
+                            ),
                           }))
                         }
                         placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
@@ -1047,14 +1059,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     value={formData.authorizedSignatoryPrenameEn || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const mapEnToTh = { "Mr": "นาย", "Mrs": "นาง", "Ms": "นางสาว", "Other": "อื่นๆ" };
+                      const mapEnToTh = { Mr: "นาย", Mrs: "นาง", Ms: "นางสาว", Other: "อื่นๆ" };
                       const mappedTh = mapEnToTh[value] || "";
                       setFormData((prev) => ({
                         ...prev,
                         authorizedSignatoryPrenameEn: value,
                         authorizedSignatoryPrenameTh: mappedTh,
-                        authorizedSignatoryPrenameOtherEn: value === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
-                        authorizedSignatoryPrenameOther: mappedTh === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
+                        authorizedSignatoryPrenameOtherEn:
+                          value === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
+                        authorizedSignatoryPrenameOther:
+                          mappedTh === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
                       }));
                     }}
                     className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
@@ -1073,7 +1087,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(
+                            /[^a-zA-Z\.\s]/g,
+                            "",
+                          ),
                         }))
                       }
                       placeholder="e.g., Assoc. Prof., Dr."
@@ -1224,7 +1241,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
           </div>
 
           {/* Empty State */}
-        
         </div>
       </div>
 

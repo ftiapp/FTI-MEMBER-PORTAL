@@ -570,7 +570,9 @@ export async function GET(request, { params }) {
                 `
             SELECT first_name_th as firstNameTh, last_name_th as lastNameTh, 
                    first_name_en as firstNameEn, last_name_en as lastNameEn,
-                   position, email, phone
+                   prename_th as prenameTh, prename_en as prenameEn,
+                   prename_other as prenameOther, prename_other_en as prenameOtherEn,
+                   position, email, phone, phone_extension as phoneExtension
             FROM MemberRegist_IC_Representatives WHERE main_id = ?
           `,
                 [id],

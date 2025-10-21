@@ -45,7 +45,10 @@ export async function GET(request) {
       await query("SELECT 1 FROM FTI_Original_Membership_Company_Logos LIMIT 1");
     } catch (err) {
       // If the table doesn't exist, create it
-      console.log("FTI_Original_Membership_Company_Logos table does not exist, creating it:", err.message);
+      console.log(
+        "FTI_Original_Membership_Company_Logos table does not exist, creating it:",
+        err.message,
+      );
       try {
         await query(`
           CREATE TABLE IF NOT EXISTS FTI_Original_Membership_Company_Logos (
@@ -64,7 +67,10 @@ export async function GET(request) {
       } catch (createErr) {
         console.error("Error creating FTI_Original_Membership_Company_Logos table:", createErr);
         return NextResponse.json(
-          { success: false, error: "เกิดข้อผิดพลาดในการสร้างตาราง FTI_Original_Membership_Company_Logos" },
+          {
+            success: false,
+            error: "เกิดข้อผิดพลาดในการสร้างตาราง FTI_Original_Membership_Company_Logos",
+          },
           { status: 500 },
         );
       }

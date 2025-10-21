@@ -6,9 +6,21 @@
  * คอนฟิกประเภทที่อยู่
  */
 export const ADDRESS_TYPES = {
-  1: { label: "ที่อยู่สำนักงาน / Office Address", color: "blue", description: "ที่อยู่สำนักงานหลัก / Main office address" },
-  2: { label: "ที่อยู่จัดส่งเอกสาร / Mailing Address", color: "blue", description: "ที่อยู่สำหรับการจัดส่งเอกสาร / Address for document delivery" },
-  3: { label: "ที่อยู่ใบกำกับภาษี / Tax Invoice Address", color: "blue", description: "ที่อยู่ตามใบกำกับภาษี / Address on tax invoice" },
+  1: {
+    label: "ที่อยู่สำนักงาน / Office Address",
+    color: "blue",
+    description: "ที่อยู่สำนักงานหลัก / Main office address",
+  },
+  2: {
+    label: "ที่อยู่จัดส่งเอกสาร / Mailing Address",
+    color: "blue",
+    description: "ที่อยู่สำหรับการจัดส่งเอกสาร / Address for document delivery",
+  },
+  3: {
+    label: "ที่อยู่ใบกำกับภาษี / Tax Invoice Address",
+    color: "blue",
+    description: "ที่อยู่ตามใบกำกับภาษี / Address on tax invoice",
+  },
 };
 
 /**
@@ -39,9 +51,7 @@ export const copyAddress = (sourceAddress, targetType) => {
 
   // จัดการ dynamic contact fields (phone, email, website)
   // ลบ keys ที่มี suffix ของ source type
-  const keysToRemap = Object.keys(addressCopy).filter(
-    (key) => key.match(/-(1|2|3)$/)
-  );
+  const keysToRemap = Object.keys(addressCopy).filter((key) => key.match(/-(1|2|3)$/));
 
   keysToRemap.forEach((key) => {
     const baseKey = key.replace(/-(1|2|3)$/, "");
@@ -73,9 +83,7 @@ export const hasAddressErrors = (errors, addressType) => {
   if (!errors) return false;
 
   // ตรวจสอบ flattened keys (addresses.1.field)
-  const flatKeys = Object.keys(errors).filter((key) =>
-    key.startsWith(`addresses.${addressType}.`)
-  );
+  const flatKeys = Object.keys(errors).filter((key) => key.startsWith(`addresses.${addressType}.`));
   if (flatKeys.length > 0) return true;
 
   // ตรวจสอบ nested structure (errors.addresses[1])
@@ -135,7 +143,7 @@ export const scrollToAddressSection = () => {
       document.querySelector('[data-section="addresses"]') ||
       document.querySelector(".company-address") ||
       document.querySelector(".bg-white");
-    
+
     if (addressSection) {
       addressSection.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -151,7 +159,7 @@ export const createErrorSignature = (errors) => {
   if (!errors) return "";
 
   const addressKeys = Object.keys(errors).filter(
-    (key) => key.startsWith("addresses.") || /^address_\d+_/.test(key)
+    (key) => key.startsWith("addresses.") || /^address_\d+_/.test(key),
   );
 
   return addressKeys.sort().join("|");

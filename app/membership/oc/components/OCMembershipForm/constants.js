@@ -20,12 +20,12 @@ export const INITIAL_FORM_DATA = {
   phone: "",
   phoneExtension: "",
   email: "",
-  
+
   // Multi-address support
   addresses: {
-    "1": {}, // ที่อยู่สำนักงาน
-    "2": {}, // ที่อยู่จัดส่งเอกสาร  
-    "3": {}, // ที่อยู่ใบกำกับภาษี
+    1: {}, // ที่อยู่สำนักงาน
+    2: {}, // ที่อยู่จัดส่งเอกสาร
+    3: {}, // ที่อยู่ใบกำกับภาษี
   },
 
   // Industrial group and provincial chapter
@@ -72,26 +72,26 @@ export const STICKY_HEADER_OFFSET = 120;
 
 // Field mapping for error messages
 export const FIELD_ERROR_MAP = {
-  'idCardNumber': 'เลขบัตรประชาชน',
-  'prename_th': 'คำนำหน้าชื่อ (ไทย)',
-  'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
-  'prename_other': 'คำนำหน้าชื่อ (อื่นๆ)',
-  'firstNameThai': 'ชื่อ (ไทย)',
-  'lastNameThai': 'นามสกุล (ไทย)',
-  'firstNameEng': 'ชื่อ (อังกฤษ)',  
-  'lastNameEng': 'นามสกุล (อังกฤษ)',
-  'email': 'อีเมล',
-  'phone': 'เบอร์โทรศัพท์',
-  'addressNumber': 'บ้านเลขที่',
-  'subDistrict': 'ตำบล/แขวง',
-  'district': 'อำเภอ/เขต',
-  'province': 'จังหวัด',
-  'postalCode': 'รหัสไปรษณีย์',
-  'businessTypes': 'ประเภทธุรกิจ',
-  'otherBusinessTypeDetail': 'ประเภทธุรกิจอื่นๆ',
-  'products': 'สินค้า/บริการ',
-  'idCardDocument': 'สำเนาบัตรประชาชน',
-  'authorizedSignature': 'ลายเซ็นผู้มีอำนาจ',
-  'authorizedSignatoryFirstNameTh': 'ชื่อผู้มีอำนาจลงนาม',
-  'authorizedSignatoryLastNameTh': 'นามสกุลผู้มีอำนาจลงนาม'
+  idCardNumber: "เลขบัตรประชาชน",
+  prename_th: "คำนำหน้าชื่อ (ไทย)",
+  prename_en: "คำนำหน้าชื่อ (อังกฤษ)",
+  prename_other: "คำนำหน้าชื่อ (อื่นๆ)",
+  firstNameThai: "ชื่อ (ไทย)",
+  lastNameThai: "นามสกุล (ไทย)",
+  firstNameEng: "ชื่อ (อังกฤษ)",
+  lastNameEng: "นามสกุล (อังกฤษ)",
+  email: "อีเมล",
+  phone: "เบอร์โทรศัพท์",
+  addressNumber: "บ้านเลขที่",
+  subDistrict: "ตำบล/แขวง",
+  district: "อำเภอ/เขต",
+  province: "จังหวัด",
+  postalCode: "รหัสไปรษณีย์",
+  businessTypes: "ประเภทธุรกิจ",
+  otherBusinessTypeDetail: "ประเภทธุรกิจอื่นๆ",
+  products: "สินค้า/บริการ",
+  idCardDocument: "สำเนาบัตรประชาชน",
+  authorizedSignature: "ลายเซ็นผู้มีอำนาจ",
+  authorizedSignatoryFirstNameTh: "ชื่อผู้มีอำนาจลงนาม",
+  authorizedSignatoryLastNameTh: "นามสกุลผู้มีอำนาจลงนาม",
 };

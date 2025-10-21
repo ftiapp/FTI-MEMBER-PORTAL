@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 import { LoadingOverlay } from "./shared";
@@ -16,8 +16,23 @@ export default function SubmittedApplications({
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
   const [error, setError] = useState(null);
+  
+  // ป้องกัน API calls ซ้ำซ้อน
+  const fetchingRef = useRef(false);
+  const lastFetchParamsRef = useRef(null);
 
   useEffect(() => {
+    // สร้าง unique key สำหรับ fetch parameters
+    const fetchKey = `${userId}-${currentPage}-${itemsPerPage}`;
+    
+    // ถ้ากำลัง fetch อยู่ หรือ parameters เหมือนเดิม ไม่ต้อง fetch ใหม่
+    if (fetchingRef.current || lastFetchParamsRef.current === fetchKey) {
+      console.log('🚫 SubmittedApplications - Skip duplicate fetch:', fetchKey);
+      return;
+    }
+    
+    console.log('✅ SubmittedApplications - Fetching with params:', { userId, currentPage, itemsPerPage });
+    lastFetchParamsRef.current = fetchKey;
     fetchApplications();
   }, [userId, currentPage, itemsPerPage]);
 
@@ -29,9 +44,17 @@ export default function SubmittedApplications({
   }, [pagination, onTotalItemsChange]);
 
   const fetchApplications = async () => {
+    if (fetchingRef.current) {
+      console.log('⏳ SubmittedApplications - Already fetching, skipping...');
+      return;
+    }
+    
     try {
+      fetchingRef.current = true;
       setLoading(true);
       setError(null);
+      
+      console.log('📡 SubmittedApplications - API call starting...');
 
       const params = new URLSearchParams({
         page: currentPage?.toString() || "1",
@@ -40,6 +63,12 @@ export default function SubmittedApplications({
 
       const response = await fetch(`/api/membership/submitted-applications?${params}`);
       const data = await response.json();
+      
+      console.log('📥 SubmittedApplications - API response received:', {
+        success: data.success,
+        count: data.applications?.length,
+        totalItems: data.pagination?.totalItems
+      });
 
       if (data.success) {
         setApplications(data.applications || []);
@@ -55,12 +84,14 @@ export default function SubmittedApplications({
         setPagination(null);
       }
     } catch (error) {
-      console.error("Error fetching applications:", error);
+      console.error("❌ SubmittedApplications - Error fetching applications:", error);
       setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
       setApplications([]);
       setPagination(null);
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
+      console.log('✅ SubmittedApplications - Fetch completed');
     }
   };
 
@@ -190,13 +221,13 @@ export default function SubmittedApplications({
     <div className="space-y-4">
       {/* แสดงข้อมูลสถิติ */}
       {pagination && pagination.totalItems > 0 && (
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-6">
-          <span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-6 gap-2">
+          <span className="text-center sm:text-left">
             แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, pagination.totalItems)}-
             {Math.min(currentPage * itemsPerPage, pagination.totalItems)} จาก{" "}
             {pagination.totalItems} รายการ
           </span>
-          <span>
+          <span className="text-center sm:text-right text-gray-500">
             หน้า {currentPage} จาก {Math.ceil(pagination.totalItems / itemsPerPage)}
           </span>
         </div>
@@ -215,9 +246,9 @@ export default function SubmittedApplications({
             >
               {/* Header */}
               <div className="bg-blue-600 px-6 py-4">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
                       <span className={`text-lg font-bold ${memberTypeInfo.iconColor}`}>
                         {app.memberType === "IC"
                           ? "ทบ"
@@ -238,8 +269,8 @@ export default function SubmittedApplications({
                     </div>
                   </div>
 
-                  <div className="flex items-center space-x-4">
-                    <div className="text-right">
+                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
+                    <div className="text-left sm:text-right">
                       <div
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}
                       >
@@ -252,7 +283,7 @@ export default function SubmittedApplications({
 
                     <button
                       onClick={() => openDetailPage(app)}
-                      className="inline-flex items-center px-4 py-2 border border-white text-sm font-medium rounded-lg text-white bg-transparent hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200"
+                      className="inline-flex justify-center items-center px-4 py-2 border border-white text-sm font-medium rounded-lg text-white bg-transparent hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200 w-full sm:w-auto"
                     >
                       <svg
                         className="w-4 h-4 mr-2"

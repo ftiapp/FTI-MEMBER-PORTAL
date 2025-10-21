@@ -13,7 +13,10 @@ export async function GET(request) {
     }
 
     // ค้นหาโทเค็นในฐานข้อมูลโดยไม่สนใจว่าใช้แล้วหรือไม่
-    const allTokens = await query("SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ?", [token]);
+    const allTokens = await query(
+      "SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ?",
+      [token],
+    );
 
     // ถ้าไม่พบโทเค็นเลย
     if (allTokens.length === 0) {
@@ -23,9 +26,10 @@ export async function GET(request) {
     // ตรวจสอบว่าโทเค็นถูกใช้ไปแล้วหรือไม่
     if (allTokens[0].used === 1) {
       // ดึงข้อมูลผู้ใช้
-      const FTI_Portal_User = await query("SELECT email, email_verified FROM FTI_Portal_User WHERE id = ?", [
-        allTokens[0].user_id,
-      ]);
+      const FTI_Portal_User = await query(
+        "SELECT email, email_verified FROM FTI_Portal_User WHERE id = ?",
+        [allTokens[0].user_id],
+      );
 
       if (FTI_Portal_User.length > 0 && FTI_Portal_User[0].email_verified === 1) {
         return NextResponse.json(
@@ -61,13 +65,19 @@ export async function GET(request) {
     }
 
     // อัปเดตสถานะโทเค็นเป็นใช้แล้ว
-    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [validTokens[0].id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [
+      validTokens[0].id,
+    ]);
 
     // อัปเดตสถานะการยืนยันอีเมลของผู้ใช้
-    await query("UPDATE FTI_Portal_User SET email_verified = 1 WHERE id = ?", [validTokens[0].user_id]);
+    await query("UPDATE FTI_Portal_User SET email_verified = 1 WHERE id = ?", [
+      validTokens[0].user_id,
+    ]);
 
     // ดึงข้อมูลผู้ใช้เพื่อส่งกลับไปยังหน้าเว็บ
-    const FTI_Portal_User = await query("SELECT email FROM FTI_Portal_User WHERE id = ?", [validTokens[0].user_id]);
+    const FTI_Portal_User = await query("SELECT email FROM FTI_Portal_User WHERE id = ?", [
+      validTokens[0].user_id,
+    ]);
 
     if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });

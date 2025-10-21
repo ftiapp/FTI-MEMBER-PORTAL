@@ -7,22 +7,16 @@ import pool from "@/app/lib/db";
  */
 export async function POST(request) {
   let connection;
-  
+
   try {
     const body = await request.json();
-    const {
-      userId,
-      applicationType,
-      applicationId,
-      applicantName,
-      applicantEmail,
-    } = body;
+    const { userId, applicationType, applicationId, applicantName, applicantEmail } = body;
 
     // Validate required fields
     if (!userId || !applicationType || !applicationId) {
       return NextResponse.json(
         { success: false, message: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -42,14 +36,19 @@ export async function POST(request) {
     // Build link and metadata per current schema
     const link = `/membership/${applicationType}/${applicationId}`;
     const status = "new"; // or "unread" depending on your convention
-    const metadata = JSON.stringify({ applicationId, applicantName, applicantEmail, applicationType });
+    const metadata = JSON.stringify({
+      applicationId,
+      applicantName,
+      applicantEmail,
+      applicationType,
+    });
 
     // Insert notification into database (match table schema)
     const [result] = await connection.execute(
       `INSERT INTO FTI_Portal_User_Notifications 
        (user_id, type, message, link, status, metadata, created_at, updated_at) 
        VALUES (?, ?, ?, ?, ?, ?, NOW(), NOW())`,
-      [userId, "membership_application", message, link, status, metadata]
+      [userId, "membership_application", message, link, status, metadata],
     );
 
     // Optional: Send email notification if email is provided
@@ -64,7 +63,6 @@ export async function POST(request) {
       message: "Notification created successfully",
       notificationId: result.insertId,
     });
-
   } catch (error) {
     console.error("Error creating notification:", error);
     return NextResponse.json(
@@ -73,7 +71,7 @@ export async function POST(request) {
         message: "Failed to create notification",
         error: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) connection.release();

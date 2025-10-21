@@ -1,5 +1,19 @@
 import React, { useEffect, useState } from "react";
 
+const TH_TO_EN_PRENAME = {
+  นาย: "Mr.",
+  นาง: "Mrs.",
+  นางสาว: "Ms.",
+  อื่นๆ: "Other",
+};
+
+const EN_TO_TH_PRENAME = {
+  "Mr.": "นาย",
+  "Mrs.": "นาง",
+  "Ms.": "นางสาว",
+  Other: "อื่นๆ",
+};
+
 const ContactPersonSection = ({ application, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingIndex, setEditingIndex] = useState(-1);
@@ -9,9 +23,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
   const initialContacts = () => {
     // Use only the array form; do not auto-fallback from single contactPerson
     // to prevent UI from re-populating after deletion when table is empty
-    return Array.isArray(application?.contactPersons)
-      ? [...application.contactPersons]
-      : [];
+    return Array.isArray(application?.contactPersons) ? [...application.contactPersons] : [];
   };
   const [contacts, setContacts] = useState(initialContacts());
   const [contactTypes, setContactTypes] = useState([]);
@@ -65,14 +77,14 @@ const ContactPersonSection = ({ application, onUpdate }) => {
         contact.type_contact_id != null && contact.type_contact_id !== ""
           ? String(contact.type_contact_id)
           : contact.typeContactId != null && contact.typeContactId !== ""
-          ? String(contact.typeContactId)
-          : "",
+            ? String(contact.typeContactId)
+            : "",
       typeContactId:
         contact.typeContactId != null && contact.typeContactId !== ""
           ? String(contact.typeContactId)
           : contact.type_contact_id != null && contact.type_contact_id !== ""
-          ? String(contact.type_contact_id)
-          : "",
+            ? String(contact.type_contact_id)
+            : "",
     };
     setEditData(normalized);
   };
@@ -85,7 +97,9 @@ const ContactPersonSection = ({ application, onUpdate }) => {
     const name = editData.type_contact_name ?? editData.typeContactName ?? "";
     // If id missing but we have a name, try to find the id
     if ((!id || String(id).trim() === "") && name) {
-      const found = contactTypes.find((t) => t.type_name_th === name || t.type_name_en === name || t.type_code === name);
+      const found = contactTypes.find(
+        (t) => t.type_name_th === name || t.type_name_en === name || t.type_code === name,
+      );
       if (found) {
         setEditData((prev) => ({
           ...prev,
@@ -105,11 +119,23 @@ const ContactPersonSection = ({ application, onUpdate }) => {
         }));
       }
     }
-  }, [isEditing, editingIndex, contactTypes, editData.type_contact_id, editData.typeContactId, editData.type_contact_name, editData.typeContactName]);
+  }, [
+    isEditing,
+    editingIndex,
+    contactTypes,
+    editData.type_contact_id,
+    editData.typeContactId,
+    editData.type_contact_name,
+    editData.typeContactName,
+  ]);
 
   const handleAdd = () => {
     // Default blank contact structure (snake_case preferred for backend)
     const newContact = {
+      prename_th: "",
+      prename_en: "",
+      prename_other: "",
+      prename_other_en: "",
       first_name_th: "",
       last_name_th: "",
       first_name_en: "",
@@ -169,10 +195,12 @@ const ContactPersonSection = ({ application, onUpdate }) => {
         email: cp.email ?? "",
         phone: cp.phone ?? "",
         phoneExtension: cp.phone_extension ?? cp.phoneExtension ?? "",
-        typeContactId: cp.type_contact_id != null && String(cp.type_contact_id).trim() !== "" ? String(cp.type_contact_id) : null,
+        typeContactId:
+          cp.type_contact_id != null && String(cp.type_contact_id).trim() !== ""
+            ? String(cp.type_contact_id)
+            : null,
         typeContactName: cp.type_contact_name ?? cp.typeContactName ?? "",
-        typeContactOtherDetail:
-          cp.type_contact_other_detail ?? cp.typeContactOtherDetail ?? "",
+        typeContactOtherDetail: cp.type_contact_other_detail ?? cp.typeContactOtherDetail ?? "",
       }));
 
       // Send the entire updated array to the backend
@@ -194,7 +222,9 @@ const ContactPersonSection = ({ application, onUpdate }) => {
 
   const requestDelete = (index) => {
     const contact = contacts[index];
-    const name = `${contact.first_name_th || contact.firstNameTh || ""} ${contact.last_name_th || contact.lastNameTh || ""}`.trim() || "ผู้ติดต่อ";
+    const name =
+      `${contact.first_name_th || contact.firstNameTh || ""} ${contact.last_name_th || contact.lastNameTh || ""}`.trim() ||
+      "ผู้ติดต่อ";
     setDeleteTarget({ index, name });
     setShowDeleteModal(true);
   };
@@ -284,16 +314,19 @@ const ContactPersonSection = ({ application, onUpdate }) => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-blue-200 p-8 mb-8">
       <div className="flex justify-between items-center mb-6 border-b border-blue-100 pb-4">
-        <h3 className="text-2xl font-bold text-blue-900">
-          ข้อมูลผู้ติดต่อ ({contacts.length} คน)
-        </h3>
+        <h3 className="text-2xl font-bold text-blue-900">ข้อมูลผู้ติดต่อ ({contacts.length} คน)</h3>
         {!isEditing && (
           <button
             onClick={handleAdd}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-lg transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             เพิ่มผู้ติดต่อ
           </button>
@@ -332,7 +365,12 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                   title="ลบผู้ติดต่อ"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-3H10a1 1 0 00-1 1v1h8V5a1 1 0 00-1-1z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-1-3H10a1 1 0 00-1 1v1h8V5a1 1 0 00-1-1z"
+                    />
                   </svg>
                   ลบ
                 </button>
@@ -383,7 +421,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                       contact.prename_en || contact.prenameEn,
                       contact.prename_other || contact.prenameOther,
                       contact.prename_other_en || contact.prenameOtherEn,
-                      "th"
+                      "th",
                     );
                     const first = contact.first_name_th || contact.firstNameTh || "";
                     const last = contact.last_name_th || contact.lastNameTh || "";
@@ -402,7 +440,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                       contact.prename_en || contact.prenameEn,
                       contact.prename_other || contact.prenameOther,
                       contact.prename_other_en || contact.prenameOtherEn,
-                      "en"
+                      "en",
                     );
                     const first = contact.first_name_en || contact.firstNameEn || "";
                     const last = contact.last_name_en || contact.lastNameEn || "";
@@ -443,19 +481,27 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                   >
                     <option value="">เลือกประเภทผู้ติดต่อ</option>
                     {contactTypes.map((t) => (
-                      <option key={t.id} value={String(t.id)}>{t.type_name_th}</option>
+                      <option key={t.id} value={String(t.id)}>
+                        {t.type_name_th}
+                      </option>
                     ))}
                   </select>
                   {/* OTHER detail */}
                   {(() => {
                     const currentTypeId = editData.type_contact_id ?? editData.typeContactId;
-                    const current = contactTypes.find((t) => String(t.id) === String(currentTypeId));
+                    const current = contactTypes.find(
+                      (t) => String(t.id) === String(currentTypeId),
+                    );
                     if (current && current.type_code === "OTHER") {
                       return (
                         <input
                           type="text"
-                          value={editData.type_contact_other_detail || editData.typeContactOtherDetail || ""}
-                          onChange={(e)=> updateField("type_contact_other_detail", e.target.value)}
+                          value={
+                            editData.type_contact_other_detail ||
+                            editData.typeContactOtherDetail ||
+                            ""
+                          }
+                          onChange={(e) => updateField("type_contact_other_detail", e.target.value)}
                           className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                           placeholder="รายละเอียดประเภทผู้ติดต่อ (อื่นๆ)"
                         />
@@ -467,14 +513,242 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               ) : (
                 <p className="text-lg text-gray-900">{getContactTypeName(contact)}</p>
               )}
-              {typesError && (
-                <p className="text-sm text-red-600 mt-1">{typesError}</p>
+              {typesError && <p className="text-sm text-red-600 mt-1">{typesError}</p>}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">คำนำหน้า (ไทย)</p>
+              {isEditing && editingIndex === index ? (
+                <>
+                  <select
+                    value={
+                      editData.prename_th ?? editData.prenameTh ?? ""
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateField("prename_th", value);
+                      updateField("prenameTh", value);
+                      if (value !== "อื่นๆ") {
+                        updateField("prename_other", "");
+                        updateField("prenameOther", "");
+                      }
+                      if (value === "") {
+                        updateField("prename_en", "");
+                        updateField("prenameEn", "");
+                        updateField("prename_other_en", "");
+                        updateField("prenameOtherEn", "");
+                        return;
+                      }
+                      const mapped = TH_TO_EN_PRENAME[value];
+                      if (mapped) {
+                        updateField("prename_en", mapped);
+                        updateField("prenameEn", mapped);
+                        if (mapped !== "Other") {
+                          updateField("prename_other_en", "");
+                          updateField("prenameOtherEn", "");
+                        }
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="">-- เลือกคำนำหน้า --</option>
+                    <option value="นาย">นาย</option>
+                    <option value="นาง">นาง</option>
+                    <option value="นางสาว">นางสาว</option>
+                    <option value="อื่นๆ">อื่นๆ</option>
+                  </select>
+                  {(() => {
+                    const thaiPrename = editData.prename_th ?? editData.prenameTh ?? "";
+                    if (thaiPrename === "อื่นๆ") {
+                      return (
+                        <input
+                          type="text"
+                          value={
+                            editData.prename_other ?? editData.prenameOther ?? ""
+                          }
+                          onChange={(e) => {
+                            updateField("prename_other", e.target.value);
+                            updateField("prenameOther", e.target.value);
+                          }}
+                          className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="ระบุคำนำหน้าอื่นๆ (เช่น ดร., ศ., ผศ.)"
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
+                </>
+              ) : (
+                <p className="text-lg text-gray-900">
+                  {resolvePrename(
+                    contact.prename_th || contact.prenameTh,
+                    contact.prename_en || contact.prenameEn,
+                    contact.prename_other || contact.prenameOther,
+                    contact.prename_other_en || contact.prenameOtherEn,
+                    "th",
+                  ) || "-"}
+                </p>
               )}
             </div>
-            {/* Prename fields temporarily removed as requested */}
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">คำนำหน้า (อังกฤษ)</p>
+              {isEditing && editingIndex === index ? (
+                <>
+                  <select
+                    value={
+                      editData.prename_en ?? editData.prenameEn ?? ""
+                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      updateField("prename_en", value);
+                      updateField("prenameEn", value);
+                      if (value !== "Other") {
+                        updateField("prename_other_en", "");
+                        updateField("prenameOtherEn", "");
+                      }
+                      if (value === "") {
+                        updateField("prename_th", "");
+                        updateField("prenameTh", "");
+                        updateField("prename_other", "");
+                        updateField("prenameOther", "");
+                        return;
+                      }
+                      const mapped = EN_TO_TH_PRENAME[value];
+                      if (mapped) {
+                        updateField("prename_th", mapped);
+                        updateField("prenameTh", mapped);
+                        if (mapped !== "อื่นๆ") {
+                          updateField("prename_other", "");
+                          updateField("prenameOther", "");
+                        }
+                      }
+                    }}
+                    className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="">-- Select Title --</option>
+                    <option value="Mr.">Mr.</option>
+                    <option value="Mrs.">Mrs.</option>
+                    <option value="Ms.">Ms.</option>
+                    <option value="Other">Other</option>
+                  </select>
+                  {(() => {
+                    const enPrename = editData.prename_en ?? editData.prenameEn ?? "";
+                    if (enPrename === "Other") {
+                      return (
+                        <input
+                          type="text"
+                          value={
+                            editData.prename_other_en ?? editData.prenameOtherEn ?? ""
+                          }
+                          onChange={(e) => {
+                            updateField("prename_other_en", e.target.value);
+                            updateField("prenameOtherEn", e.target.value);
+                          }}
+                          className="mt-2 w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Specify other title (e.g., Dr., Prof.)"
+                        />
+                      );
+                    }
+                    return null;
+                  })()}
+                </>
+              ) : (
+                <p className="text-lg text-gray-900">
+                  {resolvePrename(
+                    contact.prename_th || contact.prenameTh,
+                    contact.prename_en || contact.prenameEn,
+                    contact.prename_other || contact.prenameOther,
+                    contact.prename_other_en || contact.prenameOtherEn,
+                    "en",
+                  ) || "-"}
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
+              {isEditing && editingIndex === index ? (
+                <input
+                  type="text"
+                  value={
+                    editData.first_name_th ?? editData.firstNameTh ?? ""
+                  }
+                  onChange={(e) => {
+                    updateField("first_name_th", e.target.value);
+                    updateField("firstNameTh", e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="ชื่อ (ไทย)"
+                />
+              ) : (
+                <p className="text-lg text-gray-900">
+                  {contact.first_name_th || contact.firstNameTh || "-"}
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
+              {isEditing && editingIndex === index ? (
+                <input
+                  type="text"
+                  value={
+                    editData.last_name_th ?? editData.lastNameTh ?? ""
+                  }
+                  onChange={(e) => {
+                    updateField("last_name_th", e.target.value);
+                    updateField("lastNameTh", e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="นามสกุล (ไทย)"
+                />
+              ) : (
+                <p className="text-lg text-gray-900">
+                  {contact.last_name_th || contact.lastNameTh || "-"}
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
+              {isEditing && editingIndex === index ? (
+                <input
+                  type="text"
+                  value={
+                    editData.first_name_en ?? editData.firstNameEn ?? ""
+                  }
+                  onChange={(e) => {
+                    updateField("first_name_en", e.target.value);
+                    updateField("firstNameEn", e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="ชื่อ (อังกฤษ)"
+                />
+              ) : (
+                <p className="text-lg text-gray-900">
+                  {contact.first_name_en || contact.firstNameEn || "-"}
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
+              {isEditing && editingIndex === index ? (
+                <input
+                  type="text"
+                  value={
+                    editData.last_name_en ?? editData.lastNameEn ?? ""
+                  }
+                  onChange={(e) => {
+                    updateField("last_name_en", e.target.value);
+                    updateField("lastNameEn", e.target.value);
+                  }}
+                  className="w-full px-3 py-2 border border-blue-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="นามสกุล (อังกฤษ)"
+                />
+              ) : (
+                <p className="text-lg text-gray-900">
+                  {contact.last_name_en || contact.lastNameEn || "-"}
+                </p>
+              )}
+            </div>
             {/* First Name Thai */}
-            
-          
+
             <div>
               <p className="text-sm font-semibold text-blue-700 mb-1">ตำแหน่ง</p>
               {isEditing && editingIndex === index ? (
@@ -572,8 +846,18 @@ const ContactPersonSection = ({ application, onUpdate }) => {
       {/* Empty State */}
       {contacts.length === 0 && (
         <div className="flex flex-col items-center justify-center border border-dashed border-blue-300 rounded-xl p-8 bg-blue-50/50 text-center">
-          <svg className="w-12 h-12 text-blue-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          <svg
+            className="w-12 h-12 text-blue-400 mb-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+            />
           </svg>
           <p className="text-blue-900 font-medium">ยังไม่มีข้อมูลผู้ติดต่อ</p>
           <p className="text-sm text-blue-700 mt-1">กดปุ่ม "เพิ่มผู้ติดต่อ" เพื่อเพิ่มข้อมูล</p>
@@ -588,9 +872,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
             <p className="text-sm text-gray-600 mb-4">คุณต้องการลบผู้ติดต่อนี้หรือไม่?</p>
             {deleteTarget && (
               <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200">
-                <div className="text-sm text-gray-800 font-medium">
-                  {deleteTarget.name}
-                </div>
+                <div className="text-sm text-gray-800 font-medium">{deleteTarget.name}</div>
                 <div className="mt-1 text-xs text-gray-600">
                   ผู้ติดต่อ #{deleteTarget.index + 1}
                 </div>

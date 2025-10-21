@@ -91,7 +91,7 @@ export function useFormNavigation({
    */
   const handleValidationErrors = useCallback((stepErrors) => {
     console.log("Validation errors detected:", stepErrors);
-    
+
     // Scroll to error with proper section mapping and options
     const sectionMapping = {
       // Company/Applicant info
@@ -99,18 +99,18 @@ export function useFormNavigation({
       companyNameEng: '[data-section="company-info"]',
       taxId: '[data-section="company-info"]',
       idCardNumber: '[data-section="applicant-info"]',
-      
+
       // Association info (AM)
       associationName: '[data-section="association-info"]',
       associationNameEng: '[data-section="association-info"]',
       associationEmail: '[data-section="association-info"]',
       associationPhone: '[data-section="association-info"]',
-      
+
       // Address errors
-      'addresses.required': '[data-section="address-section"]',
-      'addresses.office': '[data-section="address-section"]',
-      'addresses.mailing': '[data-section="address-section"]',
-      'addresses.tax': '[data-section="address-section"]',
+      "addresses.required": '[data-section="address-section"]',
+      "addresses.office": '[data-section="address-section"]',
+      "addresses.mailing": '[data-section="address-section"]',
+      "addresses.tax": '[data-section="address-section"]',
       address: '[data-section="address-section"]', // For address_1_field, address_2_field format
       address_1: '[data-section="address-section"]',
       address_2: '[data-section="address-section"]',
@@ -120,23 +120,23 @@ export function useFormNavigation({
       district: '[data-section="address-section"]',
       province: '[data-section="address-section"]',
       postalCode: '[data-section="address-section"]',
-      
+
       // Contact person
       contactPersons: '[data-section="contact-person"]',
       contactPerson0PrenameTh: '[data-section="contact-person"]',
       contactPerson0Email: '[data-section="contact-person"]',
-      
+
       // Representatives
       representatives: '[data-section="representative-section"]',
       representativeErrors: '[data-section="representative-section"]',
-      
+
       // Business info
       businessTypes: '[data-section="business-section"]',
       products: '[data-section="business-section"]',
       numberOfEmployees: '[data-section="business-section"]',
       memberCount: '[data-section="business-section"]',
       otherBusinessTypeDetail: '[data-section="business-section"]',
-      
+
       // Documents
       factoryType: '[data-section="document-section"]',
       documents: '[data-section="document-section"]',
@@ -146,7 +146,7 @@ export function useFormNavigation({
       associationCertificate: '[data-section="document-section"]',
       memberList: '[data-section="document-section"]',
     };
-    
+
     scrollToError(stepErrors, sectionMapping, {
       delay: 100,
       behavior: "smooth",
@@ -193,7 +193,7 @@ export function useFormNavigation({
 
     // นับ errors อื่นๆ ที่ไม่ใช่ representativeErrors
     const otherErrorCount = Object.keys(stepErrors).filter(
-      (key) => key !== "representativeErrors"
+      (key) => key !== "representativeErrors",
     ).length;
     errorCount += otherErrorCount;
 
@@ -265,7 +265,7 @@ export function useFormNavigation({
 
       return true;
     },
-    [config.validateIdCard, checkIdCardUniqueness]
+    [config.validateIdCard, checkIdCardUniqueness],
   );
 
   /**
@@ -287,7 +287,7 @@ export function useFormNavigation({
 
       return true;
     },
-    [config.validateTaxId, checkTaxIdUniqueness]
+    [config.validateTaxId, checkTaxIdUniqueness],
   );
 
   /**
@@ -563,16 +563,16 @@ export const useOCFormNavigation = (validateForm, currentStep, setCurrentStep, t
 
       if (Object.keys(errors).length > 0) {
         console.log("Legacy OC validation errors:", errors);
-        
+
         // Scroll to error with proper section mapping
         const sectionMapping = {
           companyName: '[data-section="company-info"]',
           companyNameEng: '[data-section="company-info"]',
           taxId: '[data-section="company-info"]',
-          'addresses.required': '[data-section="address-section"]',
-          'addresses.office': '[data-section="address-section"]',
-          'addresses.mailing': '[data-section="address-section"]',
-          'addresses.tax': '[data-section="address-section"]',
+          "addresses.required": '[data-section="address-section"]',
+          "addresses.office": '[data-section="address-section"]',
+          "addresses.mailing": '[data-section="address-section"]',
+          "addresses.tax": '[data-section="address-section"]',
           contactPersons: '[data-section="contact-person"]',
           representatives: '[data-section="representative-section"]',
           representativeErrors: '[data-section="representative-section"]',
@@ -582,7 +582,7 @@ export const useOCFormNavigation = (validateForm, currentStep, setCurrentStep, t
           companyStamp: '[data-section="document-section"]',
           authorizedSignature: '[data-section="document-section"]',
         };
-        
+
         scrollToError(errors, sectionMapping, {
           delay: 100,
           behavior: "smooth",
@@ -590,7 +590,7 @@ export const useOCFormNavigation = (validateForm, currentStep, setCurrentStep, t
           focusElement: true,
           preferSection: false,
         });
-        
+
         toast.error("กรุณากรอกข้อมูลให้ครบถ้วน", { duration: 7000 });
         return;
       }
@@ -628,15 +628,15 @@ export const useAMFormNavigation = (validateForm) => {
         }
       } else {
         console.log("Legacy AM validation errors:", formErrors);
-        
+
         // Scroll to error with proper section mapping
         const sectionMapping = {
           associationName: '[data-section="association-info"]',
           associationNameEng: '[data-section="association-info"]',
-          'addresses.required': '[data-section="address-section"]',
-          'addresses.office': '[data-section="address-section"]',
-          'addresses.mailing': '[data-section="address-section"]',
-          'addresses.tax': '[data-section="address-section"]',
+          "addresses.required": '[data-section="address-section"]',
+          "addresses.office": '[data-section="address-section"]',
+          "addresses.mailing": '[data-section="address-section"]',
+          "addresses.tax": '[data-section="address-section"]',
           contactPersons: '[data-section="contact-person"]',
           representatives: '[data-section="representative-section"]',
           representativeErrors: '[data-section="representative-section"]',
@@ -644,7 +644,7 @@ export const useAMFormNavigation = (validateForm) => {
           products: '[data-section="business-section"]',
           documents: '[data-section="document-section"]',
         };
-        
+
         scrollToError(formErrors, sectionMapping, {
           delay: 100,
           behavior: "smooth",

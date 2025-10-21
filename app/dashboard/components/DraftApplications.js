@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { LoadingOverlay } from "./shared";
@@ -16,9 +16,15 @@ export default function DraftApplications({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allDrafts, setAllDrafts] = useState([]); // เก็บข้อมูลทั้งหมดสำหรับ pagination
+  
+  // ป้องกัน API calls ซ้ำซ้อน
+  const fetchingRef = useRef(false);
+  const hasFetchedRef = useRef(false);
 
   useEffect(() => {
-    if (user) {
+    if (user && !hasFetchedRef.current) {
+      console.log('✅ DraftApplications - Initial fetch for user:', user.id);
+      hasFetchedRef.current = true;
       fetchDrafts();
     }
   }, [user]);
@@ -26,6 +32,7 @@ export default function DraftApplications({
   // เมื่อ currentPage หรือ itemsPerPage เปลี่ยน ให้ทำ pagination ใหม่
   useEffect(() => {
     if (allDrafts.length > 0) {
+      console.log('📋 DraftApplications - Paginating data:', { currentPage, itemsPerPage, totalDrafts: allDrafts.length });
       paginateData(allDrafts);
     }
   }, [currentPage, itemsPerPage, allDrafts]);
@@ -38,19 +45,28 @@ export default function DraftApplications({
   }, [allDrafts.length, onTotalItemsChange]);
 
   const fetchDrafts = async () => {
+    if (fetchingRef.current) {
+      console.log('⏳ DraftApplications - Already fetching, skipping...');
+      return;
+    }
+    
     try {
+      fetchingRef.current = true;
       setLoading(true);
-      console.log("Fetching drafts..."); // Debug log
+      console.log("📡 DraftApplications - API call starting...");
 
       const response = await fetch("/api/membership/get-drafts");
       if (!response.ok) {
         throw new Error("Failed to fetch drafts");
       }
       const data = await response.json();
-      console.log("API Response:", data); // Debug log
+      console.log("📥 DraftApplications - API response received:", { 
+        success: !!data.drafts, 
+        count: data.drafts?.length 
+      });
 
       const fetchedDrafts = data.drafts || [];
-      console.log("Fetched drafts count:", fetchedDrafts.length); // Debug log
+      console.log("📋 DraftApplications - Fetched drafts count:", fetchedDrafts.length);
 
       // ✅ เรียงตามวันที่อัปเดตล่าสุด (ล่าสุดขึ้นก่อน)
       const sortedDrafts = fetchedDrafts.sort((a, b) => {
@@ -62,12 +78,14 @@ export default function DraftApplications({
       setAllDrafts(sortedDrafts);
       paginateData(sortedDrafts);
     } catch (err) {
-      console.error("Error fetching drafts:", err);
+      console.error("❌ DraftApplications - Error fetching drafts:", err);
       setError("ไม่สามารถโหลดเอกสารสมัครสมาชิกที่บันทึกร่างไว้");
       setAllDrafts([]);
       setDrafts([]);
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
+      console.log('✅ DraftApplications - Fetch completed');
     }
   };
 
@@ -135,7 +153,13 @@ export default function DraftApplications({
   };
 
   if (loading) {
-    return <LoadingOverlay isVisible={true} message="กำลังโหลดเอกสารสมัครที่บันทึกร่างไว้..." inline={true} />;
+    return (
+      <LoadingOverlay
+        isVisible={true}
+        message="กำลังโหลดเอกสารสมัครที่บันทึกร่างไว้..."
+        inline={true}
+      />
+    );
   }
 
   if (error) {
@@ -198,12 +222,12 @@ export default function DraftApplications({
     <div className="space-y-4">
       {/* แสดงข้อมูลสถิติ */}
       {allDrafts.length > 0 && (
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-4 gap-2">
           <span>
             แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, allDrafts.length)}-
             {Math.min(currentPage * itemsPerPage, allDrafts.length)} จาก {allDrafts.length} รายการ
           </span>
-          <span>
+          <span className="text-gray-500">
             หน้า {currentPage} จาก {Math.ceil(allDrafts.length / itemsPerPage)}
           </span>
         </div>
@@ -215,7 +239,7 @@ export default function DraftApplications({
           key={`${draft.memberType}-${draft.id}`}
           className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
         >
-          <div className="flex justify-between items-start">
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div className="flex-1">
               {/* เลข Tax ID หรือ ID Card ไว้ด้านบนสุด */}
               <div className="mb-3">
@@ -249,7 +273,7 @@ export default function DraftApplications({
 
               {/* ข้อมูลประเภทสมาชิก */}
               <div className="flex items-center space-x-3 mb-2">
-                <div className="flex items-center justify-center w-8 h-8 bg-yellow-100 rounded-full">
+                <div className="flex items-center justify-center w-8 h-8 bg-yellow-100 rounded-full flex-shrink-0">
                   <svg
                     className="w-4 h-4 text-yellow-600"
                     fill="none"
@@ -276,7 +300,7 @@ export default function DraftApplications({
               </div>
 
               {/* วันที่อัปเดต */}
-              <div className="ml-11">
+              <div className="md:ml-11 mt-3 md:mt-0">
                 <p className="text-xs text-gray-500 flex items-center">
                   <svg
                     className="w-3 h-3 mr-1"
@@ -296,7 +320,7 @@ export default function DraftApplications({
               </div>
             </div>
 
-            <div className="flex flex-col space-y-3 ml-4">
+            <div className="flex flex-col space-y-3 md:ml-4 w-full md:w-auto">
               <Link
                 href={`/membership/${draft.memberType}?draftId=${draft.id}`}
                 className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors text-center font-medium shadow-sm"
@@ -306,7 +330,7 @@ export default function DraftApplications({
 
               {/* แสดง progress bar */}
               {draft.currentStep && (
-                <div className="w-28">
+                <div className="w-full md:w-28">
                   <div className="flex justify-between text-xs text-gray-600 mb-2">
                     <span className="font-medium">ความคืบหน้า</span>
                     <span className="font-bold text-blue-600">

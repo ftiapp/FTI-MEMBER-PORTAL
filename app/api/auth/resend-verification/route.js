@@ -16,9 +16,10 @@ export async function POST(request) {
     }
 
     // Check if user exists and is not verified
-    const FTI_Portal_User = await query("SELECT id, name, email, email_verified FROM FTI_Portal_User WHERE email = ?", [
-      email,
-    ]);
+    const FTI_Portal_User = await query(
+      "SELECT id, name, email, email_verified FROM FTI_Portal_User WHERE email = ?",
+      [email],
+    );
 
     if (FTI_Portal_User.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบอีเมลนี้ในระบบ" }, { status: 404 });
@@ -35,9 +36,10 @@ export async function POST(request) {
     }
 
     // Invalidate any existing tokens for this user
-    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE user_id = ? AND used = 0", [
-      user.id,
-    ]);
+    await query(
+      "UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE user_id = ? AND used = 0",
+      [user.id],
+    );
 
     // Generate a new verification token
     const verificationToken = await createVerificationToken(user.id);

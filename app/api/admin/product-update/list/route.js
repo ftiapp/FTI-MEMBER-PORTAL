@@ -33,7 +33,9 @@ export async function GET(request) {
     const offset = (page - 1) * limit;
 
     // Check if the table exists without using information_schema (avoid permission issues)
-    const tables = await dbQuery("SHOW TABLES LIKE ?", ["FTI_Original_Membership_Pending_Product_Updates"]);
+    const tables = await dbQuery("SHOW TABLES LIKE ?", [
+      "FTI_Original_Membership_Pending_Product_Updates",
+    ]);
 
     if (!tables || tables.length === 0) {
       // Table doesn't exist yet, so there are no requests

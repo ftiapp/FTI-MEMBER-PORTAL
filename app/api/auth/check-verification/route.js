@@ -11,7 +11,10 @@ export async function GET(request) {
     }
 
     // ค้นหาโทเค็นในฐานข้อมูล (ไม่สนใจว่าหมดอายุหรือถูกใช้แล้ว)
-    const tokens = await query("SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ?", [token]);
+    const tokens = await query(
+      "SELECT * FROM FTI_Portal_User_Verification_Tokens WHERE token = ?",
+      [token],
+    );
 
     if (tokens.length === 0) {
       return NextResponse.json({ verified: false, error: "Token not found" }, { status: 404 });

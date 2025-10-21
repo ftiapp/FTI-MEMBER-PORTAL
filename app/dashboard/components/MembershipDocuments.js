@@ -24,15 +24,18 @@ export default function MembershipDocuments() {
 
   // ฟังก์ชันสำหรับรับ totalItems จาก child components
   const handleTotalItemsChange = (total) => {
+    console.log('📊 MembershipDocuments - Total items updated:', total);
     setTotalItems(total);
   };
 
   // ลบ useEffect เดิมที่เรียก API เพื่อนับจำนวน เพราะจะให้ child components ส่งมาแทน
 
   const handleTabChange = (section) => {
+    console.log('🔄 MembershipDocuments - Tab changing to:', section);
     setActiveSection(section);
     setCurrentPage(1); // reset หน้าเป็น 1 เมื่อเปลี่ยน tab
     setTotalItems(0); // reset totalItems เมื่อเปลี่ยน tab
+    console.log('✅ MembershipDocuments - Tab changed, states reset');
   };
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
@@ -95,10 +98,10 @@ export default function MembershipDocuments() {
     };
 
     return (
-      <div className="flex flex-col sm:flex-row items-center justify-between mt-6 pt-4 border-t border-gray-200 space-y-4 sm:space-y-0">
+      <div className="flex flex-col items-center justify-between mt-6 pt-4 border-t border-gray-200 space-y-4">
         {/* ข้อมูลสถิติ */}
-        <div className="flex items-center space-x-4">
-          <p className="text-sm text-gray-700">
+        <div className="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full sm:w-auto">
+          <p className="text-sm text-gray-700 text-center sm:text-left">
             แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-
             {Math.min(currentPage * itemsPerPage, totalItems)} จาก {totalItems} รายการ
           </p>
@@ -120,31 +123,32 @@ export default function MembershipDocuments() {
         </div>
 
         {/* ปุ่ม Pagination */}
-        <div className="flex items-center space-x-1">
+        <div className="flex flex-wrap items-center justify-center gap-1 w-full sm:w-auto">
           {/* ปุ่มหน้าแรก */}
           <button
             onClick={() => onPageChange(1)}
             disabled={currentPage === 1}
-            className={`px-3 py-2 rounded text-sm ${
+            className={`px-2 sm:px-3 py-2 rounded text-xs sm:text-sm ${
               currentPage === 1
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
-            หน้าแรก
+            <span className="hidden sm:inline">หน้าแรก</span>
+            <span className="sm:hidden">««</span>
           </button>
 
           {/* ปุ่มก่อนหน้า */}
           <button
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className={`px-3 py-2 rounded text-sm flex items-center space-x-1 ${
+            className={`px-2 sm:px-3 py-2 rounded text-xs sm:text-sm flex items-center space-x-1 ${
               currentPage === 1
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -152,7 +156,8 @@ export default function MembershipDocuments() {
                 d="M15 19l-7-7 7-7"
               />
             </svg>
-            <span>ก่อนหน้า</span>
+            <span className="hidden sm:inline">ก่อนหน้า</span>
+            <span className="sm:hidden">«</span>
           </button>
 
           {/* หมายเลขหน้า */}
@@ -161,7 +166,7 @@ export default function MembershipDocuments() {
               key={index}
               onClick={() => (typeof page === "number" ? onPageChange(page) : null)}
               disabled={typeof page !== "number"}
-              className={`px-3 py-2 rounded text-sm min-w-[40px] ${
+              className={`px-2 sm:px-3 py-2 rounded text-xs sm:text-sm min-w-[32px] sm:min-w-[40px] ${
                 page === currentPage
                   ? "bg-blue-600 text-white"
                   : typeof page === "number"
@@ -177,14 +182,15 @@ export default function MembershipDocuments() {
           <button
             onClick={() => onPageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className={`px-3 py-2 rounded text-sm flex items-center space-x-1 ${
+            className={`px-2 sm:px-3 py-2 rounded text-xs sm:text-sm flex items-center space-x-1 ${
               currentPage === totalPages
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
-            <span>ถัดไป</span>
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <span className="hidden sm:inline">ถัดไป</span>
+            <span className="sm:hidden">»</span>
+            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -193,13 +199,14 @@ export default function MembershipDocuments() {
           <button
             onClick={() => onPageChange(totalPages)}
             disabled={currentPage === totalPages}
-            className={`px-3 py-2 rounded text-sm ${
+            className={`px-2 sm:px-3 py-2 rounded text-xs sm:text-sm ${
               currentPage === totalPages
                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
-            หน้าสุดท้าย
+            <span className="hidden sm:inline">หน้าสุดท้าย</span>
+            <span className="sm:hidden">»»</span>
           </button>
         </div>
       </div>
@@ -418,9 +425,9 @@ export default function MembershipDocuments() {
 
         {/* Help Section */}
         <div className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
+              <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full flex-shrink-0">
                 <svg
                   className="w-6 h-6 text-blue-600"
                   fill="none"
@@ -435,12 +442,12 @@ export default function MembershipDocuments() {
                   />
                 </svg>
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <h3 className="font-medium text-gray-900">ต้องการความช่วยเหลือ?</h3>
                 <p className="text-gray-600 text-sm">หากมีปัญหาหรือสงสัยเรื่องการสมัครสมาชิก</p>
               </div>
             </div>
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium flex items-center space-x-2">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-medium flex items-center space-x-2 w-full sm:w-auto justify-center">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"

@@ -10,9 +10,13 @@ import { useIndustrialGroups } from "../../hooks/useIndustrialGroups";
 export default function AssociationInfoSection({ formData, setFormData, errors, setErrors }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingTaxId, setIsCheckingTaxId] = useState(false);
-  
+
   // Fetch industrial groups and provincial chapters from MSSQL
-  const { industrialGroups, provincialChapters, isLoading: isLoadingGroups } = useIndustrialGroups();
+  const {
+    industrialGroups,
+    provincialChapters,
+    isLoading: isLoadingGroups,
+  } = useIndustrialGroups();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

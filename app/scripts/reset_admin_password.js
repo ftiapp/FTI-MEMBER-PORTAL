@@ -15,9 +15,10 @@ export async function resetSuperAdminPassword() {
     const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
 
     // อัปเดตรหัสผ่านสำหรับ admin ที่มี admin_level = 5
-    const result = await query("UPDATE FTI_Portal_Admin_Users SET password = ? WHERE admin_level = 5", [
-      hashedPassword,
-    ]);
+    const result = await query(
+      "UPDATE FTI_Portal_Admin_Users SET password = ? WHERE admin_level = 5",
+      [hashedPassword],
+    );
 
     if (result.affectedRows > 0) {
       return {

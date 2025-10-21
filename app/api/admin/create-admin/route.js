@@ -30,7 +30,9 @@ export async function POST(request) {
     }
 
     // Check if username already exists
-    const existingAdmin = await query("SELECT id FROM FTI_Portal_Admin_Users WHERE username = ?", [username]);
+    const existingAdmin = await query("SELECT id FROM FTI_Portal_Admin_Users WHERE username = ?", [
+      username,
+    ]);
 
     if (existingAdmin.length > 0) {
       return NextResponse.json(

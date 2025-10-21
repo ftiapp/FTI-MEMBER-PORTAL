@@ -53,10 +53,11 @@ export async function GET(request) {
                 // เช็คใน IC Main table
                 const [existingIC] = await query(
                   `SELECT status FROM MemberRegist_IC_Main WHERE id_card_number = ? AND (status = 0 OR status = 1) LIMIT 1`,
-                  [uniqueId]
+                  [uniqueId],
                 );
                 if (existingIC) {
-                  const statusText = existingIC.status === 0 ? "อยู่ระหว่างการพิจารณา" : "เป็นสมาชิกแล้ว";
+                  const statusText =
+                    existingIC.status === 0 ? "อยู่ระหว่างการพิจารณา" : "เป็นสมาชิกแล้ว";
                   warning = `หมายเลขบัตรประชาชน ${uniqueId} ${statusText} กรุณาใช้หมายเลขอื่น หรือติดต่อเรา`;
                   warningType = existingIC.status === 0 ? "pending" : "approved";
                 }
@@ -78,9 +79,10 @@ export async function GET(request) {
                   const memberTypeNames = {
                     am: "สมาคมการค้า",
                     ac: "สมทบ-นิติบุคคล",
-                    oc: "สามัญ-โรงงาน"
+                    oc: "สามัญ-โรงงาน",
                   };
-                  const statusText = existing.status === 0 ? "อยู่ระหว่างการพิจารณา" : "เป็นสมาชิกแล้ว";
+                  const statusText =
+                    existing.status === 0 ? "อยู่ระหว่างการพิจารณา" : "เป็นสมาชิกแล้ว";
                   const memberTypeName = memberTypeNames[existing.member_type] || "";
                   warning = `เลขประจำตัวผู้เสียภาษี ${uniqueId} ${statusText}ในประเภท${memberTypeName} กรุณาใช้เลขอื่น หรือติดต่อเรา`;
                   warningType = existing.status === 0 ? "pending" : "approved";

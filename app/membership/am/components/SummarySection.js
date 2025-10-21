@@ -63,7 +63,7 @@ const RepresentativeCard = ({ representative, index }) => {
   // Helper: ชื่อ-นามสกุล (ไทย) พร้อมคำนำหน้า
   const getFullNameTh = () => {
     if (!representative) return "-";
-    
+
     let prename = "";
     const prenameValue = representative.prename_th || representative.prenameTh || "";
     if (prenameValue === "อื่นๆ") {
@@ -71,18 +71,18 @@ const RepresentativeCard = ({ representative, index }) => {
     } else {
       prename = prenameValue;
     }
-    
+
     const first = representative.first_name_th || representative.firstNameTh || "";
     const last = representative.last_name_th || representative.lastNameTh || "";
     const namePart = `${first} ${last}`.trim();
     const full = prename ? `${prename} ${namePart}`.trim() : namePart;
     return full || "-";
   };
-  
+
   // Helper: ชื่อ-นามสกุล (อังกฤษ) พร้อมคำนำหน้า
   const getFullNameEn = () => {
     if (!representative) return "-";
-    
+
     let prename = "";
     const prenameValue = representative.prename_en || representative.prenameEn || "";
     if (prenameValue === "Other") {
@@ -90,14 +90,14 @@ const RepresentativeCard = ({ representative, index }) => {
     } else {
       prename = prenameValue;
     }
-    
+
     const first = representative.first_name_en || representative.firstNameEn || "";
     const last = representative.last_name_en || representative.lastNameEn || "";
     const namePart = `${first} ${last}`.trim();
     const full = prename ? `${prename} ${namePart}`.trim() : namePart;
     return full || "-";
   };
-  
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="mb-2">

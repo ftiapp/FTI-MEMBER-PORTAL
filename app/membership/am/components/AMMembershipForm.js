@@ -19,13 +19,13 @@ import { useAMFormNavigation } from "./AMFormNavigation";
 import { useApiData } from "../../hooks/useApiData";
 
 // Import extracted modules from AMMembershipForm folder
-import { 
-  STEPS, 
-  INITIAL_FORM_DATA, 
+import {
+  STEPS,
+  INITIAL_FORM_DATA,
   STICKY_HEADER_OFFSET,
-  getFirstFieldError, 
-  createScrollToErrorField, 
-  scrollToTop, 
+  getFirstFieldError,
+  createScrollToErrorField,
+  scrollToTop,
   scrollToConsentBox,
   checkTaxIdUniqueness,
   saveDraft,
@@ -36,13 +36,13 @@ import {
   renderStepComponent,
   renderNavigationButtons,
   renderDocumentHint,
-  renderErrorMessage
+  renderErrorMessage,
 } from "./AMMembershipForm/index";
 
 export default function AMMembershipForm(props = {}) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
-  
+
   // Create scroll function with offset
   const scrollToErrorField = useCallback(createScrollToErrorField(STICKY_HEADER_OFFSET), []);
 
@@ -135,7 +135,7 @@ export default function AMMembershipForm(props = {}) {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
-    
+
     setTaxIdValidating(true);
     const result = await checkTaxIdUniqueness(taxId, abortControllerRef.current);
     setTaxIdValidating(false);
@@ -159,7 +159,7 @@ export default function AMMembershipForm(props = {}) {
 
       if (Object.keys(formErrors).length > 0) {
         console.log("❌ Validation errors:", formErrors);
-        
+
         if (typeof setShowErrors === "function") {
           setShowErrors(true);
         }
@@ -247,14 +247,22 @@ export default function AMMembershipForm(props = {}) {
           return;
         }
 
-        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || 
-            formErrors.memberCount || formErrors.numberOfEmployees || formErrors.products || formErrors.productErrors)) {
+        if (
+          currentStep === 3 &&
+          (formErrors.businessTypes ||
+            formErrors.otherBusinessTypeDetail ||
+            formErrors.memberCount ||
+            formErrors.numberOfEmployees ||
+            formErrors.products ||
+            formErrors.productErrors)
+        ) {
           console.log("⏭️ AM handleNext - Step 3 business errors, letting child handle");
           return;
         }
 
         // Handle other errors
-        const firstErrorKey = getFirstFieldError(formErrors) ||
+        const firstErrorKey =
+          getFirstFieldError(formErrors) ||
           (formErrors.representativeErrors ? "representativeErrors" : null);
 
         if (firstErrorKey) {
@@ -285,7 +293,7 @@ export default function AMMembershipForm(props = {}) {
       } else {
         handleNextStep(formData, setErrors);
       }
-      
+
       scrollToTop();
     },
     [formData, currentStep, checkTaxId, handleNextStep, props.currentStep, setCurrentStep],
@@ -311,7 +319,11 @@ export default function AMMembershipForm(props = {}) {
     const result = await saveDraft(formData, currentStep);
     if (result.success) {
       setShowDraftSavePopup(true);
-    } else if (result.message && result.message !== "Missing tax ID" && result.message !== "Invalid tax ID format") {
+    } else if (
+      result.message &&
+      result.message !== "Missing tax ID" &&
+      result.message !== "Invalid tax ID format"
+    ) {
       toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message}`);
     }
   }, [formData, currentStep]);
@@ -370,11 +382,8 @@ export default function AMMembershipForm(props = {}) {
 
   return (
     <div className="relative max-w-7xl mx-auto px-6 py-8">
-      <LoadingOverlay 
-        isVisible={isSubmitting} 
-        message="กำลังส่งข้อมูล..." 
-      />
-      
+      <LoadingOverlay isVisible={isSubmitting} message="กำลังส่งข้อมูล..." />
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Error Messages */}
         <FormErrorBox errors={errors} excludeKeys={["representativeErrors"]} />

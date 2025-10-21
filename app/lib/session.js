@@ -28,9 +28,10 @@ export async function getSession() {
     }
 
     // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
-    const FTI_Portal_User = await query("SELECT id, email, name FROM FTI_Portal_User WHERE id = ? LIMIT 1", [
-      payload.userId,
-    ]);
+    const FTI_Portal_User = await query(
+      "SELECT id, email, name FROM FTI_Portal_User WHERE id = ? LIMIT 1",
+      [payload.userId],
+    );
 
     if (FTI_Portal_User.length === 0) {
       return null;
@@ -70,9 +71,10 @@ export async function getUserFromSession(request) {
     if (!payload || !payload.userId) return null;
 
     // ดึงข้อมูลผู้ใช้จากฐานข้อมูล
-    const FTI_Portal_User = await query("SELECT id, email, name FROM FTI_Portal_User WHERE id = ? LIMIT 1", [
-      payload.userId,
-    ]);
+    const FTI_Portal_User = await query(
+      "SELECT id, email, name FROM FTI_Portal_User WHERE id = ? LIMIT 1",
+      [payload.userId],
+    );
 
     if (FTI_Portal_User.length === 0) return null;
 

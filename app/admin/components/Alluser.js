@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -131,7 +131,7 @@ export default function Alluser() {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 mx-1 rounded ${
+          className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded ${
             currentPage === i
               ? "bg-[#1e3a8a] text-white"
               : "bg-white text-[#1e3a8a] border border-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white"
@@ -143,11 +143,11 @@ export default function Alluser() {
     }
 
     return (
-      <div className="flex justify-center items-center mt-4">
+      <div className="flex justify-center items-center mt-3 sm:mt-4 flex-wrap gap-1 sm:gap-2">
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`px-3 py-1 rounded mr-2 ${
+          className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded ${
             currentPage === 1
               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
               : "bg-white text-[#1e3a8a] border border-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white"
@@ -161,7 +161,7 @@ export default function Alluser() {
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className={`px-3 py-1 rounded ml-2 ${
+          className={`px-2 sm:px-3 py-1 text-xs sm:text-sm rounded ${
             currentPage === totalPages
               ? "bg-gray-200 text-gray-500 cursor-not-allowed"
               : "bg-white text-[#1e3a8a] border border-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white"
@@ -179,9 +179,9 @@ export default function Alluser() {
    */
   const renderStatistics = () => {
     return (
-      <div className="bg-white rounded-lg shadow-md p-4 mb-6">
-        <h3 className="text-lg font-semibold text-[#1e3a8a] mb-4">สถิติผู้ใช้งาน</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4 sm:mb-6">
+        <h3 className="text-base sm:text-lg font-semibold text-[#1e3a8a] mb-3 sm:mb-4">สถิติผู้ใช้งาน</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
             <div className="flex justify-between items-center">
               <div>
@@ -324,13 +324,13 @@ export default function Alluser() {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold text-[#1e3a8a] mb-6">ข้อมูลผู้ใช้ทั้งหมด</h2>
+    <div className="p-2 sm:p-4">
+      <h2 className="text-xl sm:text-2xl font-bold text-[#1e3a8a] mb-4 sm:mb-6">ข้อมูลผู้ใช้ทั้งหมด</h2>
 
       {renderStatistics()}
 
       {/* Search Bar */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
           <div className="flex-grow">
             <input
@@ -338,12 +338,12 @@ export default function Alluser() {
               value={searchTerm}
               onChange={handleSearchChange}
               placeholder="ค้นหาตามชื่อ หรือ นามสกุล..."
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent"
+              className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1e3a8a] focus:border-transparent"
             />
           </div>
           <button
             type="submit"
-            className="px-6 py-2 bg-[#1e3a8a] text-white rounded-lg hover:bg-[#152b65] transition-colors"
+            className="px-4 sm:px-6 py-2 text-sm sm:text-base bg-[#1e3a8a] text-white rounded-lg hover:bg-[#152b65] transition-colors whitespace-nowrap"
           >
             ค้นหา
           </button>
@@ -351,57 +351,57 @@ export default function Alluser() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
+        <div className="flex justify-center items-center h-48 sm:h-64">
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 p-4 rounded-lg text-red-600 text-center">{error}</div>
+        <div className="bg-red-50 p-3 sm:p-4 rounded-lg text-red-600 text-center text-sm sm:text-base">{error}</div>
       ) : (
         <>
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       ลำดับ
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       ชื่อ - นามสกุล
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       อีเมล
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       เบอร์โทรศัพท์
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       สถานะ
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       จำนวนเข้าสู่ระบบ
                     </th>
                     <th
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
                     >
                       วันที่สร้าง
                     </th>
@@ -414,21 +414,21 @@ export default function Alluser() {
                         key={user.id}
                         className={`${index % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-blue-50`}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-gray-500">
                           {(currentPage - 1) * usersPerPage + index + 1}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                          <div className="font-medium text-gray-900">
                             {`${user.firstname || ""} ${user.lastname || ""}`.trim() || "-"}
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{user.email}</div>
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                          <div className="text-gray-500">{user.email}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-500">{user.phone || "-"}</div>
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                          <div className="text-gray-500">{user.phone || "-"}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                               user.status === "active"
@@ -445,10 +445,10 @@ export default function Alluser() {
                                 : "ไม่ใช้งาน"}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-gray-500">
                           {user.login_count || 0}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-gray-500">
                           {new Date(user.created_at).toLocaleDateString("th-TH")}
                         </td>
                       </tr>

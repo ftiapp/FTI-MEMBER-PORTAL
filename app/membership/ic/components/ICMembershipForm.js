@@ -19,11 +19,11 @@ import { useICFormNavigation } from "./ICFormNavigation";
 import { useApiData } from "../../hooks/useApiData";
 
 // Import extracted modules from ICMembershipForm folder
-import { 
-  STEPS, 
+import {
+  STEPS,
   INITIAL_FORM_DATA,
-  scrollToErrorField, 
-  scrollToTop, 
+  scrollToErrorField,
+  scrollToTop,
   scrollToConsentBox,
   getFirstErrorKey,
   checkIdCardUniqueness,
@@ -35,7 +35,7 @@ import {
   renderStepComponent,
   renderNavigationButtons,
   renderDocumentHint,
-  renderErrorMessage
+  renderErrorMessage,
 } from "./ICMembershipForm/index";
 
 export default function ICMembershipForm(props = {}) {
@@ -131,7 +131,7 @@ export default function ICMembershipForm(props = {}) {
       abortControllerRef.current.abort();
     }
     abortControllerRef.current = new AbortController();
-    
+
     setIdCardValidating(true);
     const result = await checkIdCardUniqueness(idCardNumber, abortControllerRef.current);
     setIdCardValidating(false);
@@ -155,7 +155,7 @@ export default function ICMembershipForm(props = {}) {
 
       if (Object.keys(formErrors).length > 0) {
         console.log("❌ Validation errors:", formErrors);
-        
+
         if (typeof setShowErrors === "function") {
           setShowErrors(true);
         }
@@ -254,12 +254,19 @@ export default function ICMembershipForm(props = {}) {
           return;
         }
 
-        if (currentStep === 3 && (formErrors.businessTypes || formErrors.otherBusinessTypeDetail || formErrors.products || formErrors.productErrors)) {
+        if (
+          currentStep === 3 &&
+          (formErrors.businessTypes ||
+            formErrors.otherBusinessTypeDetail ||
+            formErrors.products ||
+            formErrors.productErrors)
+        ) {
           return;
         }
 
         // Handle other errors
-        const firstErrorKey = getFirstErrorKey(formErrors) ||
+        const firstErrorKey =
+          getFirstErrorKey(formErrors) ||
           (formErrors.representativeErrors ? "representativeErrors" : null);
 
         if (firstErrorKey) {
@@ -290,7 +297,7 @@ export default function ICMembershipForm(props = {}) {
       } else {
         handleNextStep(formData, setErrors);
       }
-      
+
       scrollToTop();
     },
     [formData, currentStep, checkIdCard, handleNextStep, props.currentStep, setCurrentStep],
@@ -316,7 +323,11 @@ export default function ICMembershipForm(props = {}) {
     const result = await saveDraft(formData, currentStep);
     if (result.success) {
       setShowDraftSavePopup(true);
-    } else if (result.message && result.message !== "Missing ID card number" && result.message !== "Invalid ID card format") {
+    } else if (
+      result.message &&
+      result.message !== "Missing ID card number" &&
+      result.message !== "Invalid ID card format"
+    ) {
       toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message}`);
     }
   }, [formData, currentStep]);
@@ -375,11 +386,8 @@ export default function ICMembershipForm(props = {}) {
 
   return (
     <div className="relative max-w-7xl mx-auto px-6 py-8">
-      <LoadingOverlay 
-        isVisible={isSubmitting} 
-        message="กำลังส่งข้อมูล..." 
-      />
-      
+      <LoadingOverlay isVisible={isSubmitting} message="กำลังส่งข้อมูล..." />
+
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Error Messages */}
         <FormErrorBox errors={errors} excludeKeys={["representativeErrors"]} />

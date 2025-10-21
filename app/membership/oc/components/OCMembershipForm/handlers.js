@@ -105,7 +105,8 @@ export const deleteDraft = async (idCardNumber) => {
     const drafts = Array.isArray(data) ? data : data?.drafts || [];
 
     const draftToDelete = drafts.find((draft) => {
-      const draftIdCard = draft?.draftData?.idCardNumber || draft?.id_card_number || draft?.idCardNumber;
+      const draftIdCard =
+        draft?.draftData?.idCardNumber || draft?.id_card_number || draft?.idCardNumber;
       return String(draftIdCard || "") === String(idCardNumber || "");
     });
 
@@ -180,28 +181,28 @@ export const loadDraftFromUrl = async (setFormData, setCurrentStep) => {
  * @returns {string} - Error message
  */
 export const buildRepresentativeErrorMessage = (representativeErrors) => {
-  if (!representativeErrors || typeof representativeErrors !== 'object') {
+  if (!representativeErrors || typeof representativeErrors !== "object") {
     return "กรุณากรอกข้อมูลผู้แทนให้ครบถ้วน";
   }
 
   const fieldNames = Object.keys(representativeErrors)
-    .map(key => {
+    .map((key) => {
       // Map error keys to Thai field names
       const fieldNameMap = {
-        'prenameTh': 'คำนำหน้าชื่อ (ไทย)',
-        'prename_th': 'คำนำหน้าชื่อ (ไทย)',
-        'prenameEn': 'คำนำหน้าชื่อ (อังกฤษ)',
-        'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
-        'firstNameThai': 'ชื่อ (ไทย)',
-        'lastNameThai': 'นามสกุล (ไทย)',
-        'firstNameEng': 'ชื่อ (อังกฤษ)',
-        'lastNameEng': 'นามสกุล (อังกฤษ)',
-        'email': 'อีเมล',
-        'phone': 'เบอร์โทรศัพท์',
+        prenameTh: "คำนำหน้าชื่อ (ไทย)",
+        prename_th: "คำนำหน้าชื่อ (ไทย)",
+        prenameEn: "คำนำหน้าชื่อ (อังกฤษ)",
+        prename_en: "คำนำหน้าชื่อ (อังกฤษ)",
+        firstNameThai: "ชื่อ (ไทย)",
+        lastNameThai: "นามสกุล (ไทย)",
+        firstNameEng: "ชื่อ (อังกฤษ)",
+        lastNameEng: "นามสกุล (อังกฤษ)",
+        email: "อีเมล",
+        phone: "เบอร์โทรศัพท์",
       };
       return fieldNameMap[key] || FIELD_ERROR_MAP[key] || key;
     })
-    .join(', ');
+    .join(", ");
 
   return `ข้อมูลผู้แทนไม่ครบถ้วน: ${fieldNames}`;
 };
@@ -214,7 +215,7 @@ export const buildRepresentativeErrorMessage = (representativeErrors) => {
 export const buildErrorToastMessage = (formErrors) => {
   // Get first error key
   const firstErrorKey = getFirstErrorKey(formErrors);
-  
+
   if (!firstErrorKey) {
     return "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
   }
@@ -231,9 +232,9 @@ export const buildErrorToastMessage = (formErrors) => {
       const addressType = match[1];
       const field = match[2];
       const addressLabels = {
-        "1": "ที่อยู่สำนักงาน",
-        "2": "ที่อยู่จัดส่งเอกสาร",  
-        "3": "ที่อยู่ใบกำกับภาษี"
+        1: "ที่อยู่สำนักงาน",
+        2: "ที่อยู่จัดส่งเอกสาร",
+        3: "ที่อยู่ใบกำกับภาษี",
       };
       const label = addressLabels[addressType] || `ที่อยู่ประเภท ${addressType}`;
       const fieldName = FIELD_ERROR_MAP[field] || field;

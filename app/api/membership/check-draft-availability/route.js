@@ -69,8 +69,9 @@ export async function POST(request) {
         // proceed to check drafts
       } else {
         let message = "";
-        const idFieldName = memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
-        
+        const idFieldName =
+          memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
+
         switch (record.status) {
           case 0:
             message = `${idFieldName}นี้มีคำขอสมัครอยู่ระหว่างการพิจารณา กรุณารอให้เสร็จสิ้นก่อน`;
@@ -81,7 +82,7 @@ export async function POST(request) {
           default:
             message = `${idFieldName}นี้มีอยู่ในระบบแล้ว`;
         }
-        
+
         return NextResponse.json({
           success: true,
           available: false,
@@ -97,16 +98,17 @@ export async function POST(request) {
       memberType.toLowerCase() === "ic"
         ? `SELECT id, user_id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
         : `SELECT id, user_id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
-    
+
     const existingDraft = await query(checkQuery, [uniqueId]);
 
     // Check if draft belongs to another user
     if (existingDraft && existingDraft.length > 0) {
       const draftOwnerId = existingDraft[0].user_id;
-      
+
       if (draftOwnerId !== userId) {
-        const idFieldName = memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
-        
+        const idFieldName =
+          memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
+
         return NextResponse.json({
           success: true,
           available: false,
@@ -132,12 +134,8 @@ export async function POST(request) {
       message: "สามารถใช้หมายเลขนี้ได้",
       reason: "available",
     });
-
   } catch (error) {
     console.error("Error checking draft availability:", error);
-    return NextResponse.json(
-      { success: false, message: "Internal server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, message: "Internal server error" }, { status: 500 });
   }
 }

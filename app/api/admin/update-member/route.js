@@ -39,7 +39,9 @@ export async function POST(request) {
     }
 
     // Check if member exists
-    const memberCheck = await query("SELECT user_id FROM FTI_Original_Membership WHERE id = ?", [id]);
+    const memberCheck = await query("SELECT user_id FROM FTI_Original_Membership WHERE id = ?", [
+      id,
+    ]);
 
     if (memberCheck.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อมูลสมาชิก" }, { status: 404 });

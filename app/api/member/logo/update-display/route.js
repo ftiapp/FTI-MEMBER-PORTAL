@@ -52,7 +52,10 @@ export async function POST(request) {
     }
 
     // Get logo information before updating
-    const logoResult = await query("SELECT member_code FROM FTI_Original_Membership_Company_Logos WHERE id = ?", [id]);
+    const logoResult = await query(
+      "SELECT member_code FROM FTI_Original_Membership_Company_Logos WHERE id = ?",
+      [id],
+    );
 
     if (logoResult.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อมูลโลโก้" }, { status: 404 });
@@ -61,10 +64,10 @@ export async function POST(request) {
     const memberCode = logoResult[0].member_code;
 
     // Update display mode
-    await query("UPDATE FTI_Original_Membership_Company_Logos SET display_mode = ?, updated_at = NOW() WHERE id = ?", [
-      displayMode,
-      id,
-    ]);
+    await query(
+      "UPDATE FTI_Original_Membership_Company_Logos SET display_mode = ?, updated_at = NOW() WHERE id = ?",
+      [displayMode, id],
+    );
 
     // Log the action in FTI_Portal_User_Logs
     try {
@@ -74,7 +77,9 @@ export async function POST(request) {
       const userAgent = request.headers.get("user-agent") || "Unknown";
 
       // ตรวจสอบว่า userId มีอยู่จริงในฐานข้อมูล
-      const userCheckQuery = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [userId]);
+      const userCheckQuery = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [
+        userId,
+      ]);
 
       let validUserId;
 
@@ -86,7 +91,9 @@ export async function POST(request) {
         console.log("User ID not found in database, searching for alternative user");
 
         // ค้นหา user ที่เป็น admin
-        const adminUserQuery = await query('SELECT id FROM FTI_Portal_User WHERE role = "admin" LIMIT 1');
+        const adminUserQuery = await query(
+          'SELECT id FROM FTI_Portal_User WHERE role = "admin" LIMIT 1',
+        );
 
         if (adminUserQuery.length > 0) {
           validUserId = adminUserQuery[0].id;

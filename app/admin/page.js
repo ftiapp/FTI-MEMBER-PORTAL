@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import CryptoJS from "crypto-js";
 
 /**
  * Admin Login Component
@@ -25,6 +26,7 @@ export default function AdminLogin() {
     username: "",
     password: "",
   });
+  const [rememberMe, setRememberMe] = useState(false);
   const [captchaRequired, setCaptchaRequired] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const [rateLimitInfo, setRateLimitInfo] = useState(null);
@@ -33,10 +35,82 @@ export default function AdminLogin() {
   const [formError, setFormError] = useState("");
   // เพิ่ม animation เมื่อโหลดหน้า
   const [mounted, setMounted] = useState(false);
+  const rememberMeSecret = process.env.NEXT_PUBLIC_REMEMBER_ME_SECRET || "fti-remember-secret";
 
   useEffect(() => {
     setMounted(true);
+    // Load saved credentials if exists
+    loadSavedCredentials();
   }, []);
+
+  const decodeLegacyCredential = (str) => {
+    try {
+      return decodeURIComponent(atob(str));
+    } catch (e) {
+      return str;
+    }
+  };
+
+  const encryptCredential = (str) => {
+    try {
+      if (!str) return "";
+      return CryptoJS.AES.encrypt(str, rememberMeSecret).toString();
+    } catch (error) {
+      console.error("Error encrypting credential:", error);
+      return str;
+    }
+  };
+
+  const decryptCredential = (str) => {
+    if (!str) return "";
+    try {
+      const bytes = CryptoJS.AES.decrypt(str, rememberMeSecret);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      if (decrypted) {
+        return decrypted;
+      }
+    } catch (error) {
+      console.error("Error decrypting credential:", error);
+    }
+    return decodeLegacyCredential(str);
+  };
+
+  // Load saved credentials from localStorage
+  const loadSavedCredentials = () => {
+    try {
+      const savedUsername = localStorage.getItem('admin_remember_username');
+      const savedPassword = localStorage.getItem('admin_remember_password');
+      const savedRemember = localStorage.getItem('admin_remember_me');
+
+      if (savedRemember === 'true' && savedUsername && savedPassword) {
+        setFormData({
+          username: decryptCredential(savedUsername),
+          password: decryptCredential(savedPassword),
+        });
+        setRememberMe(true);
+      }
+    } catch (error) {
+      console.error('Error loading saved credentials:', error);
+    }
+  };
+
+  // Save credentials to localStorage
+  const saveCredentials = () => {
+    try {
+      if (rememberMe) {
+        localStorage.setItem('admin_remember_username', encryptCredential(formData.username));
+        localStorage.setItem('admin_remember_password', encryptCredential(formData.password));
+        localStorage.setItem('admin_remember_me', 'true');
+      } else {
+        // Clear saved credentials if unchecked
+        localStorage.removeItem('admin_remember_username');
+        localStorage.removeItem('admin_remember_password');
+        localStorage.removeItem('admin_remember_me');
+      }
+    } catch (error) {
+      console.error('Error saving credentials:', error);
+    }
+  };
 
   // Load reCAPTCHA script dynamically when needed
   useEffect(() => {
@@ -173,6 +247,9 @@ export default function AdminLogin() {
       }
 
       if (result.success) {
+        // Save credentials if remember me is checked
+        saveCredentials();
+        
         toast.success("เข้าสู่ระบบสำเร็จ");
         // Redirect based on admin level with smooth transition
         if (result.adminLevel === 5) {
@@ -382,6 +459,21 @@ export default function AdminLogin() {
                   )}
                 </button>
               </div>
+            </div>
+
+            {/* Remember Me Checkbox */}
+            <div className="flex items-center">
+              <input
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="h-4 w-4 text-[#1e3a8a] focus:ring-[#1e3a8a] border-gray-300 rounded cursor-pointer"
+              />
+              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+                จดจำฉัน
+              </label>
             </div>
 
             {/* CAPTCHA Component */}

@@ -32,10 +32,10 @@ export async function GET(request) {
     }
 
     // Fetch submission details
-    const submissions = await query(`SELECT * FROM FTI_Original_Membership WHERE id = ? AND user_id = ?`, [
-      submissionId,
-      user.id,
-    ]);
+    const submissions = await query(
+      `SELECT * FROM FTI_Original_Membership WHERE id = ? AND user_id = ?`,
+      [submissionId, user.id],
+    );
 
     if (submissions.length === 0) {
       return NextResponse.json(

@@ -95,9 +95,10 @@ export async function checkUserSession(cookieStore) {
     const payload = verified.payload;
 
     // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูลและยังเป็น active อยู่
-    const FTI_Portal_User = await query("SELECT * FROM FTI_Portal_User WHERE id = ? AND is_active = TRUE LIMIT 1", [
-      payload.userId,
-    ]);
+    const FTI_Portal_User = await query(
+      "SELECT * FROM FTI_Portal_User WHERE id = ? AND is_active = TRUE LIMIT 1",
+      [payload.userId],
+    );
 
     if (FTI_Portal_User.length === 0) {
       return null;

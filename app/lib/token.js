@@ -21,11 +21,10 @@ export async function createVerificationToken(userId) {
   expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
 
   // Store token in database
-  await query("INSERT INTO FTI_Portal_User_Verification_Tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
-    userId,
-    token,
-    expiresAt,
-  ]);
+  await query(
+    "INSERT INTO FTI_Portal_User_Verification_Tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+    [userId, token, expiresAt],
+  );
 
   return token;
 }
@@ -41,11 +40,10 @@ export async function createPasswordResetToken(userId) {
   expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
 
   // Store token in database
-  await query("INSERT INTO FTI_Portal_User_Password_Reset_Tokens (user_id, token, expires_at) VALUES (?, ?, ?)", [
-    userId,
-    token,
-    expiresAt,
-  ]);
+  await query(
+    "INSERT INTO FTI_Portal_User_Password_Reset_Tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
+    [userId, token, expiresAt],
+  );
 
   return token;
 }
@@ -70,10 +68,14 @@ export async function verifyToken(token) {
     const verificationToken = tokens[0];
 
     // Mark the token as used
-    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [verificationToken.id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [
+      verificationToken.id,
+    ]);
 
     // Update user status to verified
-    await query("UPDATE FTI_Portal_User SET email_verified = 1 WHERE id = ?", [verificationToken.user_id]);
+    await query("UPDATE FTI_Portal_User SET email_verified = 1 WHERE id = ?", [
+      verificationToken.user_id,
+    ]);
 
     return true;
   } catch (error) {
@@ -126,7 +128,9 @@ export async function resetPassword(tokenId, userId, newPassword) {
     await query("UPDATE FTI_Portal_User SET password = ? WHERE id = ?", [hashedPassword, userId]);
 
     // Mark the token as used
-    await query("UPDATE FTI_Portal_User_Password_Reset_Tokens SET used = 1 WHERE id = ?", [tokenId]);
+    await query("UPDATE FTI_Portal_User_Password_Reset_Tokens SET used = 1 WHERE id = ?", [
+      tokenId,
+    ]);
 
     return true;
   } catch (error) {

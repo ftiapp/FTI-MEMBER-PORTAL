@@ -1,5 +1,5 @@
-﻿ import { query } from "../../../../lib/db";
- import { getAdminFromSession } from "../../../../lib/adminAuth";
+﻿import { query } from "../../../../lib/db";
+import { getAdminFromSession } from "../../../../lib/adminAuth";
 
 /**
  * API สำหรับเปลี่ยนประเภทสมาชิก (OC ↔ AC)
@@ -12,7 +12,7 @@ export async function POST(request) {
     if (!admin) {
       return Response.json(
         { success: false, message: "Unauthorized - Admin access required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -21,10 +21,7 @@ export async function POST(request) {
 
     // Validate input
     if (!applicationId || !fromType || !toType) {
-      return Response.json(
-        { success: false, message: "Missing required fields" },
-        { status: 400 }
-      );
+      return Response.json({ success: false, message: "Missing required fields" }, { status: 400 });
     }
 
     // รองรับเฉพาะ OC ↔ AC
@@ -32,18 +29,20 @@ export async function POST(request) {
     if (!validTypes.includes(fromType) || !validTypes.includes(toType)) {
       return Response.json(
         { success: false, message: "Invalid membership type. Only OC and AC are supported." },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (fromType === toType) {
       return Response.json(
         { success: false, message: "Source and target types must be different" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    console.log(`[Switch Type] Starting migration: ${fromType} → ${toType} for application ID: ${applicationId}`);
+    console.log(
+      `[Switch Type] Starting migration: ${fromType} → ${toType} for application ID: ${applicationId}`,
+    );
 
     // เริ่ม transaction
     await query("START TRANSACTION");
@@ -58,7 +57,7 @@ export async function POST(request) {
       // 2. ตรวจสอบว่า tax_id ซ้ำในตารางปลายทางหรือไม่
       const existingInTarget = await query(
         `SELECT id FROM MemberRegist_${toType}_Main WHERE tax_id = ? AND id != ?`,
-        [mainData.tax_id, applicationId]
+        [mainData.tax_id, applicationId],
       );
 
       if (existingInTarget.length > 0) {
@@ -80,7 +79,7 @@ export async function POST(request) {
           admin.id,
           newMainId,
           JSON.stringify({
-            event: 'switch_membership_type',
+            event: "switch_membership_type",
             fromType,
             toType,
             oldId: applicationId,
@@ -88,12 +87,14 @@ export async function POST(request) {
             taxId: mainData.tax_id,
             companyName: mainData.company_name_th,
           }),
-        ]
+        ],
       );
 
       await query("COMMIT");
 
-      console.log(`[Switch Type] Success: ${fromType} → ${toType}, Old ID: ${applicationId}, New ID: ${newMainId}`);
+      console.log(
+        `[Switch Type] Success: ${fromType} → ${toType}, Old ID: ${applicationId}, New ID: ${newMainId}`,
+      );
 
       return Response.json({
         success: true,
@@ -114,7 +115,7 @@ export async function POST(request) {
         success: false,
         message: error.message || "เกิดข้อผิดพลาดในการเปลี่ยนประเภทสมาชิก",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -156,11 +157,12 @@ async function copyMainData(mainData, toType, adminId) {
 
   // Determine required additional fields (NOT NULL and no default), excluding id and those already in baseFields
   const requiredExtra = columns
-    .filter((col) =>
-      col.Field !== "id" &&
-      !baseFields.has(col.Field) &&
-      col.Null === "NO" &&
-      (col.Default === null || typeof col.Default === "undefined")
+    .filter(
+      (col) =>
+        col.Field !== "id" &&
+        !baseFields.has(col.Field) &&
+        col.Null === "NO" &&
+        (col.Default === null || typeof col.Default === "undefined"),
     )
     .map((col) => ({ name: col.Field, type: String(col.Type || "").toLowerCase() }));
 
@@ -170,7 +172,13 @@ async function copyMainData(mainData, toType, adminId) {
 
   // Helper: safe default per type
   const safeDefault = (type) => {
-    if (type.includes("int") || type.includes("decimal") || type.includes("float") || type.includes("double")) return 0;
+    if (
+      type.includes("int") ||
+      type.includes("decimal") ||
+      type.includes("float") ||
+      type.includes("double")
+    )
+      return 0;
     if (type.includes("timestamp") || type.includes("datetime")) return new Date();
     // varchar/text or others
     return "";
@@ -188,7 +196,7 @@ async function copyMainData(mainData, toType, adminId) {
 
   const result = await query(
     `INSERT INTO MemberRegist_${toType}_Main (${fieldNames}) VALUES (${placeholders})`,
-    values
+    values,
   );
 
   return result.insertId;
@@ -200,28 +208,95 @@ async function copyMainData(mainData, toType, adminId) {
 async function copyRelatedData(oldMainId, newMainId, fromType, toType) {
   // ตารางที่ต้องคัดลอก
   const tables = [
-    { name: "Address", fields: ["address_number", "moo", "soi", "street", "sub_district", "district", "province", "postal_code", "phone", "email", "website", "building", "address_type"] },
-    { name: "ContactPerson", fields: ["first_name_th", "last_name_th", "first_name_en", "last_name_en", "position", "email", "phone", "phone_extension", "type_contact_id", "type_contact_name", "type_contact_other_detail", "prename_th", "prename_en", "prename_other_th", "prename_other_en"] },
-    { name: "Representatives", fields: ["first_name_th", "last_name_th", "first_name_en", "last_name_en", "position", "email", "phone", "is_primary", "phone_extension", "prename_th", "prename_en", "prename_other_th", "prename_other_en"] },
+    {
+      name: "Address",
+      fields: [
+        "address_number",
+        "moo",
+        "soi",
+        "street",
+        "sub_district",
+        "district",
+        "province",
+        "postal_code",
+        "phone",
+        "email",
+        "website",
+        "building",
+        "address_type",
+      ],
+    },
+    {
+      name: "ContactPerson",
+      fields: [
+        "first_name_th",
+        "last_name_th",
+        "first_name_en",
+        "last_name_en",
+        "position",
+        "email",
+        "phone",
+        "phone_extension",
+        "type_contact_id",
+        "type_contact_name",
+        "type_contact_other_detail",
+        "prename_th",
+        "prename_en",
+        "prename_other_th",
+        "prename_other_en",
+      ],
+    },
+    {
+      name: "Representatives",
+      fields: [
+        "first_name_th",
+        "last_name_th",
+        "first_name_en",
+        "last_name_en",
+        "position",
+        "email",
+        "phone",
+        "is_primary",
+        "phone_extension",
+        "prename_th",
+        "prename_en",
+        "prename_other_th",
+        "prename_other_en",
+      ],
+    },
     { name: "BusinessTypes", fields: ["business_type"] },
     { name: "BusinessTypeOther", fields: ["detail"] },
     { name: "Products", fields: ["name_th", "name_en", "description"] },
     { name: "IndustryGroups", fields: ["industry_group_id", "industry_group_name"] },
     { name: "ProvinceChapters", fields: ["province_chapter_id", "province_chapter_name"] },
-    { name: "Documents", fields: ["document_type", "file_name", "file_path", "file_size", "mime_type", "cloudinary_id", "cloudinary_url"] },
+    {
+      name: "Documents",
+      fields: [
+        "document_type",
+        "file_name",
+        "file_path",
+        "file_size",
+        "mime_type",
+        "cloudinary_id",
+        "cloudinary_url",
+      ],
+    },
     // Signature name needs to be migrated as well (OC <-> AC)
-    { name: "Signature_Name", fields: [
-      "prename_th",
-      "prename_en",
-      "prename_other",
-      "prename_other_en",
-      "first_name_th",
-      "last_name_th",
-      "first_name_en",
-      "last_name_en",
-      "position_th",
-      "position_en",
-    ] },
+    {
+      name: "Signature_Name",
+      fields: [
+        "prename_th",
+        "prename_en",
+        "prename_other",
+        "prename_other_en",
+        "first_name_th",
+        "last_name_th",
+        "first_name_en",
+        "last_name_en",
+        "position_th",
+        "position_en",
+      ],
+    },
   ];
 
   for (const table of tables) {
@@ -229,7 +304,7 @@ async function copyRelatedData(oldMainId, newMainId, fromType, toType) {
       // ดึงข้อมูลจากตารางเดิม
       const oldData = await query(
         `SELECT * FROM MemberRegist_${fromType}_${table.name} WHERE main_id = ?`,
-        [oldMainId]
+        [oldMainId],
       );
 
       if (oldData.length === 0) continue;
@@ -246,7 +321,7 @@ async function copyRelatedData(oldMainId, newMainId, fromType, toType) {
 
         await query(
           `INSERT INTO MemberRegist_${toType}_${table.name} (${fieldNames}) VALUES (${placeholders})`,
-          [newMainId, ...values]
+          [newMainId, ...values],
         );
       }
 

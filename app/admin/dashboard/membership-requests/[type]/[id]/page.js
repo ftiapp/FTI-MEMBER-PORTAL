@@ -14,8 +14,8 @@ import { getMemberTypeInfo } from "../../ีutils/dataTransformers";
 import { formatThaiDate } from "../../ีutils/formatters";
 import { STATUS } from "../../ีutils/constants";
 import ApplicationComments from "../../../../components/ApplicationComments";
- import { generateMembershipPDF } from "./components/PDFGenerator";
- import SwitchTypeModal from "./components/SwitchTypeModal";
+import { generateMembershipPDF } from "./components/PDFGenerator";
+import SwitchTypeModal from "./components/SwitchTypeModal";
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
@@ -48,7 +48,12 @@ export default function MembershipRequestDetail({ params }) {
   const handleSwitchSuccess = (newId, newType) => {
     setShowSwitchModal(false);
     // Navigate back to list with switch flag for toast feedback
-    const params = new URLSearchParams({ switched: "1", from: typeUpper, to: newType, id: String(newId) });
+    const params = new URLSearchParams({
+      switched: "1",
+      from: typeUpper,
+      to: newType,
+      id: String(newId),
+    });
     router.push(`/admin/dashboard/membership-requests?${params.toString()}`);
   };
 
@@ -375,33 +380,33 @@ export default function MembershipRequestDetail({ params }) {
                 </button>
                 <span className="text-sm opacity-80">กลับ</span>
               </div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
                 {memberType.code} ({memberType.name})
               </h1>
               {application && (
-                <div className="flex items-center gap-6 text-sm md:text-base flex-wrap">
+                <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm md:text-base flex-wrap">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">รหัสใบสมัคร:</span>
-                    <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg font-mono">
+                    <span className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-lg font-mono text-xs sm:text-sm">
                       {application.id || "N/A"}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">วันที่สมัคร:</span>
-                    <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg">
+                    <span className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm">
                       {formatThaiDate(application.createdAt)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">สถานะ:</span>
-                    <span className="px-3 py-1 rounded-lg font-semibold bg-white bg-opacity-20">
+                    <span className="px-2 sm:px-3 py-1 rounded-lg font-semibold bg-white bg-opacity-20">
                       <StatusBadge status={application.status} />
                     </span>
                   </div>
                   {application.memberCode && (
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">รหัสสมาชิก:</span>
-                      <span className="bg-white bg-opacity-20 px-3 py-1 rounded-lg">
+                      <span className="bg-white bg-opacity-20 px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm">
                         {application.memberCode}
                       </span>
                     </div>
@@ -409,14 +414,14 @@ export default function MembershipRequestDetail({ params }) {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-3 print:hidden">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 print:hidden">
               {(typeUpper === "OC" || typeUpper === "AC") && (
                 <button
                   onClick={() => setShowSwitchModal(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors flex-shrink-0"
+                  className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
                   title="เปลี่ยนประเภทสมาชิก"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -424,14 +429,15 @@ export default function MembershipRequestDetail({ params }) {
                       d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
                     />
                   </svg>
-                  เปลี่ยนประเภท
+                  <span className="hidden sm:inline">เปลี่ยนประเภท</span>
+                  <span className="sm:hidden">เปลี่ยน</span>
                 </button>
               )}
               <button
                 onClick={handleDownload}
-                className="flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors flex-shrink-0"
+                className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -445,7 +451,8 @@ export default function MembershipRequestDetail({ params }) {
                     d="M7 10l5 5m0 0l5-5m-5 5V4"
                   />
                 </svg>
-                ดาวน์โหลด PDF
+                <span className="hidden sm:inline">ดาวน์โหลด PDF</span>
+                <span className="sm:hidden">PDF</span>
               </button>
             </div>
           </div>

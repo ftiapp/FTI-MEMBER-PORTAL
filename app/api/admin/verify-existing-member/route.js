@@ -81,9 +81,10 @@ export async function POST(request) {
 
     try {
       // อัปเดตสถานะใน FTI_Original_Membership
-      await query("UPDATE FTI_Original_Membership SET Admin_Submit = 1, updated_at = NOW() WHERE id = ?", [
-        companyId,
-      ]);
+      await query(
+        "UPDATE FTI_Original_Membership SET Admin_Submit = 1, updated_at = NOW() WHERE id = ?",
+        [companyId],
+      );
 
       // บันทึกข้อมูลลงในตาราง member_INFO_existing
       await query(
@@ -147,7 +148,7 @@ export async function POST(request) {
       try {
         console.log("Attempting to send approval email to:", user.email);
         console.log("Postmark API Key exists:", !!process.env.POSTMARK_API_KEY);
-        
+
         const emailResponse = await sendExistingMemberApprovalEmail(
           user.email,
           user.firstname || "",
@@ -155,7 +156,7 @@ export async function POST(request) {
           memberCode,
           memberInfo.COMPANY_NAME || "ไม่ระบุ",
         );
-        
+
         console.log("✅ Existing member approval email sent successfully!");
         console.log("Email to:", user.email);
         console.log("Postmark MessageID:", emailResponse?.MessageID);

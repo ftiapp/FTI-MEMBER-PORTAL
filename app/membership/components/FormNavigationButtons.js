@@ -75,11 +75,7 @@ export const SubmitButton = ({
       disabled={isDisabled}
       className={`px-10 py-4 rounded-xl font-semibold text-base transition-all duration-200 hover:shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed bg-green-600 text-white hover:bg-green-700 ${className}`}
     >
-      {isSubmitting
-        ? "กำลังส่ง..."
-        : isResubmission
-          ? "ยืนยันการส่งใบสมัครใหม่"
-          : "ยืนยันการสมัคร"}
+      {isSubmitting ? "กำลังส่ง..." : isResubmission ? "ยืนยันการส่งใบสมัครใหม่" : "ยืนยันการสมัคร"}
     </button>
   );
 };

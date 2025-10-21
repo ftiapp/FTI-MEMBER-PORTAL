@@ -4,7 +4,7 @@ import { AlertCircle, CheckCircle, Loader2, Info } from "lucide-react";
 /**
  * Component to display draft availability status
  * Shows real-time feedback when user enters Tax ID or ID Card
- * 
+ *
  * @param {object} props - Component props
  * @param {boolean} props.isChecking - Whether check is in progress
  * @param {object} props.availabilityStatus - Availability check result
@@ -57,7 +57,7 @@ export const DraftAvailabilityIndicator = ({ isChecking, availabilityStatus, isB
 /**
  * Higher-order component to add draft availability checking to input fields
  * Automatically checks when user stops typing (debounced)
- * 
+ *
  * @param {object} props - Component props
  * @param {string} props.value - Current input value
  * @param {function} props.onChange - Input change handler
@@ -99,7 +99,7 @@ export const WithDraftAvailabilityCheck = ({
 
 /**
  * Wrapper component that blocks form submission when ID is not available
- * 
+ *
  * @param {object} props - Component props
  * @param {boolean} props.isBlocked - Whether form should be blocked
  * @param {React.ReactNode} props.children - Form content

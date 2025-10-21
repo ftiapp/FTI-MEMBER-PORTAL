@@ -210,40 +210,40 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">{title || "สถิติข้อมูล"}</h2>
+    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">{title || "สถิติข้อมูล"}</h2>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
+        <div className="flex justify-center items-center h-48 sm:h-64">
+          <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 p-4 rounded-lg text-red-600">
+        <div className="bg-red-50 p-3 sm:p-4 rounded-lg text-red-600 text-sm sm:text-base">
           <p>เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}</p>
         </div>
       ) : stats.total === 0 ? (
-        <div className="bg-gray-50 p-4 rounded-lg text-gray-600 text-center">
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-gray-600 text-center text-sm sm:text-base">
           <p>ไม่พบข้อมูล</p>
         </div>
       ) : (
         <div>
-          <div className="h-64 mb-4">
+          <div className="h-48 sm:h-56 md:h-64 mb-3 sm:mb-4">
             <Bar ref={chartRef} data={chartData} options={chartOptions} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4 mt-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
             {["pending", "approved", "rejected", "deleted"].map((status) => {
               if (status === "deleted" && !stats.hasOwnProperty("deleted")) return null;
               return (
                 <div
                   key={status}
-                  className="p-4 rounded-lg border flex items-center justify-between"
+                  className="p-3 sm:p-4 rounded-lg border flex items-center justify-between"
                   style={{ backgroundColor: statusColors[status].replace("0.7", "0.1") }}
                 >
-                  <div className="flex-1 mr-4">
-                    <p className="text-sm text-gray-500 mb-1">{statusLabels[status]}</p>
+                  <div className="flex-1 mr-2 sm:mr-4 min-w-0">
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1 truncate">{statusLabels[status]}</p>
                     <p
-                      className="text-2xl font-bold"
+                      className="text-xl sm:text-2xl font-bold"
                       style={{ color: statusColors[status].replace("0.7", "1") }}
                     >
                       {stats[status] || 0}
@@ -255,13 +255,13 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
                     </p>
                   </div>
                   <div
-                    className="p-3 rounded-full flex-shrink-0"
+                    className="p-2 sm:p-3 rounded-full flex-shrink-0"
                     style={{ backgroundColor: statusColors[status].replace("0.7", "0.2") }}
                   >
                     {status === "pending" && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke={statusColors[status].replace("0.7", "1")}
@@ -277,7 +277,7 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
                     {status === "approved" && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke={statusColors[status].replace("0.7", "1")}
@@ -293,7 +293,7 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
                     {status === "rejected" && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke={statusColors[status].replace("0.7", "1")}
@@ -309,7 +309,7 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
                     {status === "deleted" && (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
+                        className="h-4 w-4 sm:h-5 sm:w-5"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke={statusColors[status].replace("0.7", "1")}

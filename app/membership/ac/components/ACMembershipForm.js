@@ -29,8 +29,8 @@ import { useApiData } from "../../hooks/useApiData";
 import { deleteDraftByTaxId, loadDraftFromUrl } from "../../utils/draftHelpers";
 
 // Import from ACMembershipForm folder
-import { 
-  STEPS, 
+import {
+  STEPS,
   INITIAL_FORM_DATA,
   scrollToErrorField,
   getFirstFieldError,
@@ -39,7 +39,7 @@ import {
   createHandleSubmit,
   createHandlePrevious,
   createRenderFormContent,
-  renderErrorMessage
+  renderErrorMessage,
 } from "./ACMembershipForm/index";
 
 // Using shared useApiData hook (removed local implementation)
@@ -222,10 +222,7 @@ export default function ACMembershipForm({
     ],
   );
 
-  const handlePrevious = useCallback(
-    createHandlePrevious(handlePrevStep),
-    [handlePrevStep],
-  );
+  const handlePrevious = useCallback(createHandlePrevious(handlePrevStep), [handlePrevStep]);
 
   // Render form content based on layout
   const renderFormContent = createRenderFormContent({

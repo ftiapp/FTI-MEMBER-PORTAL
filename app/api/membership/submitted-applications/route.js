@@ -22,6 +22,8 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit")) || 5;
     const offset = (page - 1) * limit;
 
+    console.log('🔍 Fetching submitted applications - Page:', page, 'Limit:', limit);
+
     const allApplications = [];
 
     // IC Applications - Individual Contributor
@@ -47,70 +49,9 @@ export async function GET(request) {
       `;
 
       const icResults = await query(icQuery, [userId]);
+      console.log('📊 IC applications found:', icResults.length);
 
-      // Fetch additional data for IC applications
-      for (const app of icResults) {
-        // Get address
-        try {
-          const addressQuery = `
-            SELECT address_number, moo, soi, street, sub_district, district, province, postal_code
-            FROM ICmember_Addr WHERE ic_member_id = ?
-          `;
-          const addressResults = await query(addressQuery, [app.id]);
-          app.address = addressResults[0] || {};
-        } catch (err) {
-          app.address = {};
-        }
-
-        // Get representative
-        try {
-          const repQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, email, phone
-            FROM ICmember_Representatives WHERE ic_member_id = ?
-          `;
-          const repResults = await query(repQuery, [app.id]);
-          app.representative = repResults[0] || null;
-        } catch (err) {
-          app.representative = null;
-        }
-
-        // Get products
-        try {
-          const productQuery = `
-            SELECT name_th as nameTh, name_en as nameEn
-            FROM ICmember_Products WHERE ic_member_id = ?
-          `;
-          const productResults = await query(productQuery, [app.id]);
-          app.products = productResults;
-        } catch (err) {
-          app.products = [];
-        }
-
-        // Get business types
-        try {
-          const businessQuery = `
-            SELECT business_type
-            FROM ICmember_Business_TYPE WHERE ic_member_id = ?
-          `;
-          const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map((b) => b.business_type);
-        } catch (err) {
-          app.businessTypes = [];
-        }
-
-        // Get documents
-        try {
-          const docQuery = `
-            SELECT document_type, file_name, cloudinary_url
-            FROM MemberRegist_IC_Documents WHERE main_id = ?
-          `;
-          const docResults = await query(docQuery, [app.id]);
-          app.documents = docResults;
-        } catch (err) {
-          app.documents = [];
-        }
-      }
-
+      // Don't fetch additional data yet - just add to list
       allApplications.push(...icResults);
     } catch (error) {
       console.error("Error fetching IC applications:", error);
@@ -134,82 +75,9 @@ export async function GET(request) {
       `;
 
       const ocResults = await query(ocQuery, [userId]);
+      console.log('📊 OC applications found:', ocResults.length);
 
-      // Fetch additional data for OC applications
-      for (const app of ocResults) {
-        // Get address
-        try {
-          const addressQuery = `
-            SELECT address_number, moo, soi, street, sub_district, district, province, postal_code, phone, email, website
-            FROM MemberRegist_OC_Address WHERE main_id = ?
-          `;
-          const addressResults = await query(addressQuery, [app.id]);
-          app.address = addressResults[0] || {};
-        } catch (err) {
-          app.address = {};
-        }
-
-        // Get contact person
-        try {
-          const contactQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone
-            FROM MemberRegist_OC_ContactPerson WHERE main_id = ?
-          `;
-          const contactResults = await query(contactQuery, [app.id]);
-          app.contactPerson = contactResults[0] || null;
-        } catch (err) {
-          app.contactPerson = null;
-        }
-
-        // Get representatives
-        try {
-          const repQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone
-            FROM MemberRegist_OC_Representatives WHERE main_id = ?
-          `;
-          const repResults = await query(repQuery, [app.id]);
-          app.representatives = repResults;
-        } catch (err) {
-          app.representatives = [];
-        }
-
-        // Get products
-        try {
-          const productQuery = `
-            SELECT name_th as nameTh, name_en as nameEn
-            FROM MemberRegist_OC_Products WHERE main_id = ?
-          `;
-          const productResults = await query(productQuery, [app.id]);
-          app.products = productResults;
-        } catch (err) {
-          app.products = [];
-        }
-
-        // Get business types
-        try {
-          const businessQuery = `
-            SELECT business_type
-            FROM MemberRegist_OC_BusinessTypes WHERE main_id = ?
-          `;
-          const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map((b) => b.business_type);
-        } catch (err) {
-          app.businessTypes = [];
-        }
-
-        // Get documents
-        try {
-          const docQuery = `
-            SELECT document_type, file_name, cloudinary_url
-            FROM MemberRegist_OC_Documents WHERE main_id = ?
-          `;
-          const docResults = await query(docQuery, [app.id]);
-          app.documents = docResults;
-        } catch (err) {
-          app.documents = [];
-        }
-      }
-
+      // Don't fetch additional data yet - just add to list
       allApplications.push(...ocResults);
     } catch (error) {
       console.error("Error fetching OC applications:", error);
@@ -237,106 +105,9 @@ export async function GET(request) {
       `;
 
       const acResults = await query(acQuery, [userId]);
+      console.log('📊 AC applications found:', acResults.length);
 
-      // Fetch additional data for AC applications
-      for (const app of acResults) {
-        // Get address
-        try {
-          const addressQuery = `
-            SELECT address_number, moo, soi, street, sub_district, district, province, postal_code, phone, email, website
-            FROM MemberRegist_AC_Address WHERE main_id = ?
-          `;
-          const addressResults = await query(addressQuery, [app.id]);
-          app.address = addressResults[0] || {};
-        } catch (err) {
-          app.address = {};
-        }
-
-        // Get contact person
-        try {
-          const contactQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone
-            FROM MemberRegist_AC_ContactPerson WHERE main_id = ?
-          `;
-          const contactResults = await query(contactQuery, [app.id]);
-          app.contactPerson = contactResults[0] || null;
-        } catch (err) {
-          app.contactPerson = null;
-        }
-
-        // Get representatives
-        try {
-          const repQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone
-            FROM MemberRegist_AC_Representatives WHERE main_id = ?
-          `;
-          const repResults = await query(repQuery, [app.id]);
-          app.representatives = repResults;
-        } catch (err) {
-          app.representatives = [];
-        }
-
-        // Get products
-        try {
-          const productQuery = `
-            SELECT name_th as nameTh, name_en as nameEn
-            FROM MemberRegist_AC_Products WHERE main_id = ?
-          `;
-          const productResults = await query(productQuery, [app.id]);
-          app.products = productResults;
-        } catch (err) {
-          app.products = [];
-        }
-
-        // Get business types
-        try {
-          const businessQuery = `
-            SELECT business_type
-            FROM MemberRegist_AC_BusinessTypes WHERE main_id = ?
-          `;
-          const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map((b) => b.business_type);
-        } catch (err) {
-          app.businessTypes = [];
-        }
-
-        // Get industrial groups
-        try {
-          const industryQuery = `
-            SELECT industry_group_id
-            FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?
-          `;
-          const industryResults = await query(industryQuery, [app.id]);
-          app.industrialGroups = industryResults.map((i) => i.industry_group_id);
-        } catch (err) {
-          app.industrialGroups = [];
-        }
-
-        // Get provincial chapters
-        try {
-          const provinceQuery = `
-            SELECT province_chapter_id
-            FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?
-          `;
-          const provinceResults = await query(provinceQuery, [app.id]);
-          app.provincialChapters = provinceResults.map((p) => p.province_chapter_id);
-        } catch (err) {
-          app.provincialChapters = [];
-        }
-
-        // Get documents
-        try {
-          const docQuery = `
-            SELECT document_type, file_name, cloudinary_url
-            FROM MemberRegist_AC_Documents WHERE main_id = ?
-          `;
-          const docResults = await query(docQuery, [app.id]);
-          app.documents = docResults;
-        } catch (err) {
-          app.documents = [];
-        }
-      }
-
+      // Don't fetch additional data yet - just add to list
       allApplications.push(...acResults);
     } catch (error) {
       console.error("Error fetching AC applications:", error);
@@ -365,94 +136,9 @@ export async function GET(request) {
       `;
 
       const amResults = await query(amQuery, [userId]);
+      console.log('📊 AM applications found:', amResults.length);
 
-      // Fetch additional data for AM applications
-      for (const app of amResults) {
-        // Get address
-        try {
-          const addressQuery = `
-            SELECT address_number, moo, soi, street, sub_district, district, province, postal_code, phone, email, website
-            FROM MemberRegist_AM_Address WHERE main_id = ?
-          `;
-          const addressResults = await query(addressQuery, [app.id]);
-          app.address = addressResults[0] || {};
-        } catch (err) {
-          app.address = {};
-        }
-
-        // Get contact person
-        try {
-          const contactQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone
-            FROM MemberRegist_AM_ContactPerson WHERE main_id = ?
-          `;
-          const contactResults = await query(contactQuery, [app.id]);
-          app.contactPerson = contactResults[0] || null;
-        } catch (err) {
-          app.contactPerson = null;
-        }
-
-        // Get representatives
-        try {
-          const repQuery = `
-            SELECT first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone
-            FROM MemberRegist_AM_Representatives WHERE main_id = ?
-          `;
-          const repResults = await query(repQuery, [app.id]);
-          app.representatives = repResults;
-        } catch (err) {
-          app.representatives = [];
-        }
-
-        // Get business types
-        try {
-          const businessQuery = `
-            SELECT business_type
-            FROM MemberRegist_AM_BusinessTypes WHERE main_id = ?
-          `;
-          const businessResults = await query(businessQuery, [app.id]);
-          app.businessTypes = businessResults.map((b) => b.business_type);
-        } catch (err) {
-          app.businessTypes = [];
-        }
-
-        // Get industrial groups
-        try {
-          const industryQuery = `
-            SELECT industry_group_id
-            FROM MemberRegist_AM_IndustryGroups WHERE main_id = ?
-          `;
-          const industryResults = await query(industryQuery, [app.id]);
-          app.industrialGroups = industryResults.map((i) => i.industry_group_id);
-        } catch (err) {
-          app.industrialGroups = [];
-        }
-
-        // Get provincial chapters
-        try {
-          const provinceQuery = `
-            SELECT province_chapter_id
-            FROM MemberRegist_AM_ProvinceChapters WHERE main_id = ?
-          `;
-          const provinceResults = await query(provinceQuery, [app.id]);
-          app.provincialChapters = provinceResults.map((p) => p.province_chapter_id);
-        } catch (err) {
-          app.provincialChapters = [];
-        }
-
-        // Get documents
-        try {
-          const docQuery = `
-            SELECT document_type, file_name, cloudinary_url
-            FROM MemberRegist_AM_Documents WHERE main_id = ?
-          `;
-          const docResults = await query(docQuery, [app.id]);
-          app.documents = docResults;
-        } catch (err) {
-          app.documents = [];
-        }
-      }
-
+      // Don't fetch additional data yet - just add to list
       allApplications.push(...amResults);
     } catch (error) {
       console.error("Error fetching AM applications:", error);
@@ -461,10 +147,15 @@ export async function GET(request) {
     // Sort by createdAt descending
     allApplications.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    // Apply pagination
+    // Apply pagination FIRST
     const totalItems = allApplications.length;
     const paginatedApplications = allApplications.slice(offset, offset + limit);
+    
+    console.log('✂️ Paginated:', paginatedApplications.length, 'out of', totalItems, 'total applications');
+    console.log('⚡ Performance: Reduced queries from', totalItems * 6, 'to', paginatedApplications.length * 0, '(no detail queries needed for list view)');
 
+    console.log('✅ Returning', paginatedApplications.length, 'applications');
+    
     return NextResponse.json({
       success: true,
       applications: paginatedApplications,

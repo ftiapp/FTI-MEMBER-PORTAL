@@ -69,10 +69,15 @@ export const deleteDraftByTaxId = async (taxId, memberType) => {
  * @param {string} requiredIdField - Field name for required ID (e.g., 'taxId', 'idCardNumber')
  * @returns {Promise<object>} - Result object with success status
  */
-export const saveDraftData = async (formData, memberType, currentStep, requiredIdField = "taxId") => {
+export const saveDraftData = async (
+  formData,
+  memberType,
+  currentStep,
+  requiredIdField = "taxId",
+) => {
   // Validate required ID field
   const idValue = formData[requiredIdField];
-  
+
   if (!idValue || String(idValue).trim() === "") {
     const fieldLabels = {
       taxId: "เลขประจำตัวผู้เสียภาษี",

@@ -39,7 +39,10 @@ export async function DELETE(request) {
     }
 
     // Delete document record from database
-    await query(`DELETE FROM FTI_Original_Membership_Documents_Member WHERE id = ? AND user_id = ?`, [documentId, userId]);
+    await query(
+      `DELETE FROM FTI_Original_Membership_Documents_Member WHERE id = ? AND user_id = ?`,
+      [documentId, userId],
+    );
 
     // Log the activity
     await query(

@@ -829,14 +829,8 @@ export default function SummarySectionComponent({
               formData?.productionCapacityUnit,
             )}
           />
-          <InfoCard
-            title="ยอดจำหน่ายในประเทศ (%)"
-            value={formatPercent(formData?.salesDomestic)}
-          />
-          <InfoCard
-            title="ยอดจำหน่ายส่งออก (%)"
-            value={formatPercent(formData?.salesExport)}
-          />
+          <InfoCard title="ยอดจำหน่ายในประเทศ (%)" value={formatPercent(formData?.salesDomestic)} />
+          <InfoCard title="ยอดจำหน่ายส่งออก (%)" value={formatPercent(formData?.salesExport)} />
           <InfoCard
             title="สัดส่วนผู้ถือหุ้นไทย (%)"
             value={formatPercent(formData?.shareholderThaiPercent)}

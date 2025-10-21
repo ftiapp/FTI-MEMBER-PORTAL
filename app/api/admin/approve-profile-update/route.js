@@ -99,7 +99,10 @@ export async function POST(request) {
     // ส่งอีเมลแจ้งเตือนผู้ใช้
     try {
       // ดึงข้อมูลผู้ใช้
-      const userData = await query("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [userId]);
+      const userData = await query(
+        "SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?",
+        [userId],
+      );
       if (userData && userData.length > 0 && userData[0].email) {
         await sendProfileUpdateApprovalEmail(
           userData[0].email,

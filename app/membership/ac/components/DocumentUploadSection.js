@@ -181,11 +181,14 @@ const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
  */
 export default function DocumentUploadSection({ formData, setFormData, errors, setErrors }) {
   // ใช้ useMemo เพื่อกำหนดค่าเริ่มต้นจาก formData เพียงครั้งเดียว
-  const initialFiles = useMemo(() => ({
-    companyRegistration: formData.companyRegistration || null,
-    companyStamp: formData.companyStamp || null,
-    authorizedSignature: formData.authorizedSignature || null,
-  }), []); // Empty deps - calculate only once
+  const initialFiles = useMemo(
+    () => ({
+      companyRegistration: formData.companyRegistration || null,
+      companyStamp: formData.companyStamp || null,
+      authorizedSignature: formData.authorizedSignature || null,
+    }),
+    [],
+  ); // Empty deps - calculate only once
 
   const [selectedFiles, setSelectedFiles] = useState(initialFiles);
 
@@ -201,17 +204,25 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       let hasChanges = false;
 
       // Clear companyStamp error if file exists
-      if (formData.companyStamp && 
-          (formData.companyStamp.file || formData.companyStamp.url || formData.companyStamp instanceof File) &&
-          errors.companyStamp) {
+      if (
+        formData.companyStamp &&
+        (formData.companyStamp.file ||
+          formData.companyStamp.url ||
+          formData.companyStamp instanceof File) &&
+        errors.companyStamp
+      ) {
         delete newErrors.companyStamp;
         hasChanges = true;
       }
 
       // Clear authorizedSignature error if file exists
-      if (formData.authorizedSignature && 
-          (formData.authorizedSignature.file || formData.authorizedSignature.url || formData.authorizedSignature instanceof File) &&
-          errors.authorizedSignature) {
+      if (
+        formData.authorizedSignature &&
+        (formData.authorizedSignature.file ||
+          formData.authorizedSignature.url ||
+          formData.authorizedSignature instanceof File) &&
+        errors.authorizedSignature
+      ) {
         delete newErrors.authorizedSignature;
         hasChanges = true;
       }
@@ -226,8 +237,13 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         setErrors(newErrors);
       }
     }
-  }, [formData.companyStamp, formData.authorizedSignature, formData.companyRegistration, errors, setErrors]);
-
+  }, [
+    formData.companyStamp,
+    formData.authorizedSignature,
+    formData.companyRegistration,
+    errors,
+    setErrors,
+  ]);
 
   // Helper function to create consistent file object
   const createFileObject = (file) => {
@@ -611,9 +627,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
         {/* Header Section */}
         <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารประกอบการสมัคร / Application Documents</h2>
+          <h2 className="text-xl font-semibold text-white tracking-tight">
+            เอกสารประกอบการสมัคร / Application Documents
+          </h2>
           <p className="text-blue-100 text-sm mt-1">
-            กรุณาอัพโหลดเอกสารที่จำเป็นสำหรับการสมัครสมาชิกประเภทสมทบ-นิติบุคคล (ทน) / Please upload required documents for Associate Corporate membership application
+            กรุณาอัพโหลดเอกสารที่จำเป็นสำหรับการสมัครสมาชิกประเภทสมทบ-นิติบุคคล (ทน) / Please upload
+            required documents for Associate Corporate membership application
           </p>
         </div>
 
@@ -736,7 +755,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                   </svg>
                 </div>
                 <h3 className="text-lg font-semibold text-blue-800">ข้อมูลผู้มีอำนาจลงนาม</h3>
-               
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -750,14 +768,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                     value={formData.authorizedSignatoryPrenameTh || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const mapThToEn = { "นาย": "Mr", "นาง": "Mrs", "นางสาว": "Ms", "อื่นๆ": "Other" };
+                      const mapThToEn = { นาย: "Mr", นาง: "Mrs", นางสาว: "Ms", อื่นๆ: "Other" };
                       const mappedEn = mapThToEn[value] || "";
                       setFormData((prev) => ({
                         ...prev,
                         authorizedSignatoryPrenameTh: value,
                         authorizedSignatoryPrenameEn: mappedEn,
-                        authorizedSignatoryPrenameOther: value === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
-                        authorizedSignatoryPrenameOtherEn: mappedEn === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                        authorizedSignatoryPrenameOther:
+                          value === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
+                        authorizedSignatoryPrenameOtherEn:
+                          mappedEn === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
                       }));
                     }}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
@@ -776,7 +796,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                            authorizedSignatoryPrenameOther: e.target.value.replace(
+                              /[^ก-๙\.\s]/g,
+                              "",
+                            ),
                           }))
                         }
                         placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
@@ -886,9 +909,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                 {/* ซ่อนฟิลด์ภาษาอังกฤษ - ไม่ใช้งาน */}
               </div>
 
-              <div >
-                
-              </div>
+              <div></div>
             </div>
 
             {/* Company Stamp Upload */}
@@ -1013,8 +1034,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               </div>
             </div>
           </div>
-
-       
         </div>
       </div>
 

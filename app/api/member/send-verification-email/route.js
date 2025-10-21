@@ -15,10 +15,7 @@ export async function POST(request) {
     const { userId, companies } = body;
 
     if (!userId || !companies || !Array.isArray(companies) || companies.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "ข้อมูลไม่ครบถ้วน" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
     }
 
     // Get user information from database
@@ -28,10 +25,7 @@ export async function POST(request) {
     );
 
     if (!userResult || userResult.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูลผู้ใช้" },
-        { status: 404 },
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบข้อมูลผู้ใช้" }, { status: 404 });
     }
 
     const user = userResult[0];
@@ -53,7 +47,7 @@ export async function POST(request) {
       });
     } catch (emailError) {
       console.error("Error sending verification email:", emailError);
-      
+
       // Don't fail the request if email sending fails
       // Just log the error and return success
       return NextResponse.json({

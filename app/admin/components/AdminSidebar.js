@@ -11,7 +11,7 @@ import { MenuIcons } from "./MenuIcons";
 import { useAdminData, usePendingCounts } from "./hooks/useAdminData";
 import { useNavigation } from "./hooks/useNavigation";
 
-function AdminSidebar() {
+function AdminSidebar({ onNavigate }) {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
 
@@ -19,6 +19,14 @@ function AdminSidebar() {
   const { adminData, isLoading } = useAdminData();
   const { pendingCounts } = usePendingCounts();
   const { pathname, loading, activePath, handleNavigation, handleLogout } = useNavigation();
+
+  // Wrap handleNavigation to call onNavigate callback
+  const handleMenuNavigation = (event, path) => {
+    handleNavigation(event, path);
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
 
   // ดึงค่า adminLevel โดยตรงจาก adminData
   const adminLevel = adminData?.adminLevel || 0;
@@ -114,7 +122,7 @@ function AdminSidebar() {
                   collapsed={collapsed}
                   loading={loading}
                   activePath={activePath}
-                  onNavigation={handleNavigation}
+                  onNavigation={handleMenuNavigation}
                 />
               ))}
         </nav>

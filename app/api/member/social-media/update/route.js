@@ -105,9 +105,11 @@ export async function POST(request) {
     connection = await beginTransaction();
 
     // Delete existing social media entries for this member
-    await executeQuery(connection, "DELETE FROM FTI_Original_Membership_Member_Social_Media WHERE member_code = ?", [
-      memberCode,
-    ]);
+    await executeQuery(
+      connection,
+      "DELETE FROM FTI_Original_Membership_Member_Social_Media WHERE member_code = ?",
+      [memberCode],
+    );
 
     // Insert new social media entries
     const insertPromises = socialMedia.map((item) => {

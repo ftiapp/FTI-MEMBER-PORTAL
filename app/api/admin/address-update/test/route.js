@@ -110,7 +110,9 @@ export async function GET(request) {
     }
 
     // Fetch all records to confirm
-    const [allRecords] = await query("SELECT * FROM FTI_Original_Membership_Pending_Address_Updates");
+    const [allRecords] = await query(
+      "SELECT * FROM FTI_Original_Membership_Pending_Address_Updates",
+    );
 
     return NextResponse.json({
       success: true,

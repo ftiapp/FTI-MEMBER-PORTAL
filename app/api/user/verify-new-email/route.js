@@ -69,13 +69,15 @@ async function processVerification(tokenData, request) {
     const { user_id, new_email, old_email, firstname, lastname, pending_id } = tokenData;
 
     // อัปเดตอีเมลของผู้ใช้จาก FTI_Original_Membership_Pending_Email_Changes และตั้งค่า email_verified เป็น 1
-    await query("UPDATE FTI_Portal_User SET email = ?, email_verified = 1, updated_at = NOW() WHERE id = ?", [
-      new_email,
-      user_id,
-    ]);
+    await query(
+      "UPDATE FTI_Portal_User SET email = ?, email_verified = 1, updated_at = NOW() WHERE id = ?",
+      [new_email, user_id],
+    );
 
     // อัปเดตสถานะ token เป็นใช้งานแล้ว
-    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [tokenData.id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [
+      tokenData.id,
+    ]);
 
     // อัปเดตสถานะการยืนยันอีเมลใหม่
     try {

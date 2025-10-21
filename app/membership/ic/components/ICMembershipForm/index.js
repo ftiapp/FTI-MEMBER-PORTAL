@@ -5,11 +5,11 @@
 export { STEPS, INITIAL_FORM_DATA, STICKY_HEADER_OFFSET } from "./constants";
 
 // Export scroll helpers
-export { 
+export {
   getFirstErrorKey,
-  scrollToErrorField, 
-  scrollToTop, 
-  scrollToConsentBox 
+  scrollToErrorField,
+  scrollToTop,
+  scrollToConsentBox,
 } from "./scrollHelpers";
 
 // Export handlers

@@ -171,7 +171,8 @@ export async function POST(request) {
     if (existingDraft && existingDraft.length > 0) {
       const draftOwnerId = existingDraft[0].user_id;
       if (draftOwnerId !== userId) {
-        const idFieldName = memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
+        const idFieldName =
+          memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
         return NextResponse.json(
           {
             success: false,

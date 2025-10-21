@@ -67,15 +67,15 @@ export const INITIAL_FORM_DATA = {
 
 // Field mapping for error messages
 export const FIELD_ERROR_MAP = {
-  'prename_th': 'คำนำหน้าชื่อ (ไทย)',
-  'prename_en': 'คำนำหน้าชื่อ (อังกฤษ)',
-  'firstNameThai': 'ชื่อ (ไทย)',
-  'lastNameThai': 'นามสกุล (ไทย)',
-  'firstNameEnglish': 'ชื่อ (อังกฤษ)',
-  'lastNameEnglish': 'นามสกุล (อังกฤษ)',
-  'email': 'อีเมล',
-  'phone': 'เบอร์โทรศัพท์',
-  'position': 'ตำแหน่ง'
+  prename_th: "คำนำหน้าชื่อ (ไทย)",
+  prename_en: "คำนำหน้าชื่อ (อังกฤษ)",
+  firstNameThai: "ชื่อ (ไทย)",
+  lastNameThai: "นามสกุล (ไทย)",
+  firstNameEnglish: "ชื่อ (อังกฤษ)",
+  lastNameEnglish: "นามสกุล (อังกฤษ)",
+  email: "อีเมล",
+  phone: "เบอร์โทรศัพท์",
+  position: "ตำแหน่ง",
 };
 
 // Sticky header offset

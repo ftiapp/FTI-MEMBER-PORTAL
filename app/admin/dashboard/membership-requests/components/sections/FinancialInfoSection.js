@@ -3,7 +3,7 @@ import { formatCurrency, formatNumber, formatPercent } from "../../ีutils/form
 
 const FinancialInfoSection = ({ application, type, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  
+
   const getInitialData = () => ({
     registeredCapital: application?.registeredCapital || "",
     productionCapacityValue: application?.productionCapacityValue || "",
@@ -182,7 +182,10 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมก่อนหักค่าใช้จ่าย - ปีล่าสุด <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">
+            รายได้รวมก่อนหักค่าใช้จ่าย - ปีล่าสุด{" "}
+            <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+          </p>
           {isEditing ? (
             <div className="flex items-center">
               <input
@@ -198,7 +201,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.revenueLastYear !== undefined && application.revenueLastYear !== null && application.revenueLastYear !== ""
+              {application.revenueLastYear !== undefined &&
+              application.revenueLastYear !== null &&
+              application.revenueLastYear !== ""
                 ? `${formatCurrency(application.revenueLastYear)}`
                 : "-"}
             </p>
@@ -206,7 +211,10 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
         </div>
 
         <div>
-          <p className="text-sm font-semibold text-blue-700 mb-1">รายได้รวมก่อนหักค่าใช้จ่าย - ปีก่อนหน้า <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span></p>
+          <p className="text-sm font-semibold text-blue-700 mb-1">
+            รายได้รวมก่อนหักค่าใช้จ่าย - ปีก่อนหน้า{" "}
+            <span className="text-gray-500 text-xs">(ไม่บังคับกรอก)</span>
+          </p>
           {isEditing ? (
             <div className="flex items-center">
               <input
@@ -222,7 +230,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.revenuePreviousYear !== undefined && application.revenuePreviousYear !== null && application.revenuePreviousYear !== ""
+              {application.revenuePreviousYear !== undefined &&
+              application.revenuePreviousYear !== null &&
+              application.revenuePreviousYear !== ""
                 ? `${formatCurrency(application.revenuePreviousYear)}`
                 : "-"}
             </p>
@@ -298,7 +308,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.salesDomestic !== undefined && application.salesDomestic !== null && application.salesDomestic !== ""
+              {application.salesDomestic !== undefined &&
+              application.salesDomestic !== null &&
+              application.salesDomestic !== ""
                 ? formatPercent(application.salesDomestic)
                 : "-"}
             </p>
@@ -322,7 +334,9 @@ const FinancialInfoSection = ({ application, type, onUpdate }) => {
             </div>
           ) : (
             <p className="text-lg text-gray-900">
-              {application.salesExport !== undefined && application.salesExport !== null && application.salesExport !== ""
+              {application.salesExport !== undefined &&
+              application.salesExport !== null &&
+              application.salesExport !== ""
                 ? formatPercent(application.salesExport)
                 : "-"}
             </p>

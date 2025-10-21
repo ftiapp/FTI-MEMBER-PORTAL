@@ -7,11 +7,11 @@
  * @returns {string|null} - First error key
  */
 export const getFirstErrorKey = (errors) => {
-  if (!errors || typeof errors !== 'object') return null;
-  
+  if (!errors || typeof errors !== "object") return null;
+
   const entries = Object.entries(errors);
   if (entries.length === 0) return null;
-  
+
   const [firstKey] = entries[0];
   return firstKey;
 };
@@ -85,7 +85,7 @@ export const scrollToErrorField = (errorKey) => {
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     } else if (errorKey === "representativeErrors" || errorKey?.startsWith("representative")) {
       const section = document.querySelector(
-        '[data-section="representatives"], [data-section="representative-section"]'
+        '[data-section="representatives"], [data-section="representative-section"]',
       );
       if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -106,9 +106,9 @@ export const scrollToTop = () => {
  */
 export const scrollToConsentBox = () => {
   setTimeout(() => {
-    const consentBox = document.querySelector('[data-consent-box]');
+    const consentBox = document.querySelector("[data-consent-box]");
     if (consentBox) {
-      consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      consentBox.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, 100);
 };

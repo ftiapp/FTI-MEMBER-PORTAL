@@ -9,16 +9,13 @@ import { getErrorMessage } from "../utils/errorFieldHelpers";
  */
 export const FormErrorBox = ({ errors, excludeKeys = ["representativeErrors"] }) => {
   const errorKeys = Object.keys(errors).filter(
-    (key) => errors[key] && errors[key] !== "" && !excludeKeys.includes(key)
+    (key) => errors[key] && errors[key] !== "" && !excludeKeys.includes(key),
   );
 
   if (errorKeys.length === 0) return null;
 
   return (
-    <div
-      className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl"
-      role="alert"
-    >
+    <div className="bg-red-50 border border-red-200 text-red-700 px-8 py-6 rounded-xl" role="alert">
       <strong className="font-bold text-lg">กรุณาแก้ไขข้อมูลให้ถูกต้อง:</strong>
       <ul className="mt-4 list-disc list-inside space-y-2">
         {errorKeys.map((key, index) => (
@@ -52,11 +49,7 @@ export const ErrorSummaryBadge = ({ errorCount }) => {
 
   return (
     <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
-      <svg
-        className="w-4 h-4 mr-1"
-        fill="currentColor"
-        viewBox="0 0 20 20"
-      >
+      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
         <path
           fillRule="evenodd"
           d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"

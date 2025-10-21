@@ -52,12 +52,9 @@ export default function AddressLocationFields({
           isRequired={true}
           isReadOnly={true}
           error={
-            errors?.[`addresses.${activeTab}.district`] ||
-            errors?.addresses?.[activeTab]?.district
+            errors?.[`addresses.${activeTab}.district`] || errors?.addresses?.[activeTab]?.district
           }
-          autoFillNote={
-            isAutofill && currentAddress?.district ? "* ข้อมูลถูกดึงอัตโนมัติ" : null
-          }
+          autoFillNote={isAutofill && currentAddress?.district ? "* ข้อมูลถูกดึงอัตโนมัติ" : null}
         />
       </div>
 
@@ -73,12 +70,9 @@ export default function AddressLocationFields({
           isRequired={true}
           isReadOnly={true}
           error={
-            errors?.[`addresses.${activeTab}.province`] ||
-            errors?.addresses?.[activeTab]?.province
+            errors?.[`addresses.${activeTab}.province`] || errors?.addresses?.[activeTab]?.province
           }
-          autoFillNote={
-            isAutofill && currentAddress?.province ? "* ข้อมูลถูกดึงอัตโนมัติ" : null
-          }
+          autoFillNote={isAutofill && currentAddress?.province ? "* ข้อมูลถูกดึงอัตโนมัติ" : null}
         />
       </div>
 

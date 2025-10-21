@@ -44,7 +44,8 @@ export default function NotificationSettings({ settings, onSave, isLoading }) {
         dailyDigest: settings.FTI_Portal_User_Notifications.dailyDigest,
         notificationTypes: {
           newMembers: settings.FTI_Portal_User_Notifications.notificationTypes.newMembers,
-          verificationRequests: settings.FTI_Portal_User_Notifications.notificationTypes.verificationRequests,
+          verificationRequests:
+            settings.FTI_Portal_User_Notifications.notificationTypes.verificationRequests,
           profileUpdates: settings.FTI_Portal_User_Notifications.notificationTypes.profileUpdates,
           addressUpdates: settings.FTI_Portal_User_Notifications.notificationTypes.addressUpdates,
           productUpdates: settings.FTI_Portal_User_Notifications.notificationTypes.productUpdates,

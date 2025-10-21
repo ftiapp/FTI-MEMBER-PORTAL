@@ -25,7 +25,9 @@ export async function POST(request) {
     }
 
     // If admin user with this email already exists, block
-    const existing = await query("SELECT id FROM FTI_Portal_Admin_Users WHERE username = ?", [email]);
+    const existing = await query("SELECT id FROM FTI_Portal_Admin_Users WHERE username = ?", [
+      email,
+    ]);
     if (existing.length > 0) {
       return NextResponse.json(
         { success: false, message: "อีเมลนี้ถูกใช้เป็นผู้ดูแลระบบแล้ว" },

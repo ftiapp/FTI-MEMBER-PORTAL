@@ -9,17 +9,19 @@ export async function POST(request) {
     const { name, firstName, lastName, email, phone, password } = await request.json();
 
     // Check if user already exists and if email is verified
-    const existingUser = await query("SELECT id, name, email_verified FROM FTI_Portal_User WHERE email = ?", [
-      email,
-    ]);
+    const existingUser = await query(
+      "SELECT id, name, email_verified FROM FTI_Portal_User WHERE email = ?",
+      [email],
+    );
 
     if (existingUser.length > 0) {
       // If email exists but is not verified, send a new verification token
       if (existingUser[0].email_verified === 0) {
         // Invalidate any existing tokens for this user
-        await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE user_id = ? AND used = 0", [
-          existingUser[0].id,
-        ]);
+        await query(
+          "UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE user_id = ? AND used = 0",
+          [existingUser[0].id],
+        );
 
         // Generate a new verification token
         const verificationToken = await createVerificationToken(existingUser[0].id);

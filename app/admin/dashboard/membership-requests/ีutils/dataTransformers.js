@@ -1,4 +1,4 @@
-﻿import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./constants";
+import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./constants";
 
 export const normalizeApplicationData = (application, type) => {
   if (!application) return null;
@@ -274,6 +274,16 @@ export const normalizeRepresentatives = (application) => {
   const normalizedReps = Array.isArray(reps) ? reps : [reps];
 
   return normalizedReps.map((rep) => ({
+    id: rep.id || rep.rep_id || null,
+    // Prename fields (Thai/EN + other) - expose both camelCase and snake_case for UI compatibility
+    prenameTh: rep.prenameTh || rep.prename_th || null,
+    prenameEn: rep.prenameEn || rep.prename_en || null,
+    prenameOther: rep.prenameOther || rep.prename_other || null,
+    prenameOtherEn: rep.prenameOtherEn || rep.prename_other_en || null,
+    prename_th: rep.prename_th || rep.prenameTh || null,
+    prename_en: rep.prename_en || rep.prenameEn || null,
+    prename_other: rep.prename_other || rep.prenameOther || null,
+    prename_other_en: rep.prename_other_en || rep.prenameOtherEn || null,
     firstNameTh: rep.first_name_th || rep.firstNameTh,
     lastNameTh: rep.last_name_th || rep.lastNameTh,
     firstNameEn: rep.first_name_en || rep.firstNameEn,
@@ -283,8 +293,15 @@ export const normalizeRepresentatives = (application) => {
     phoneExtension: rep.phone_extension || rep.phoneExtension,
     email: rep.email,
     isPrimary:
-      rep.rep_order === 1 || rep.repOrder === 1 || rep.is_primary === 1 || rep.isPrimary === true,
-    order: rep.rep_order || rep.repOrder || (rep.is_primary ? 1 : 2),
+      rep.isPrimary === true || rep.is_primary === 1 || rep.is_primary === true || rep.rep_order === 1 || rep.repOrder === 1,
+    is_primary:
+      rep.is_primary !== undefined
+        ? rep.is_primary
+        : rep.isPrimary === true || rep.rep_order === 1 || rep.repOrder === 1
+          ? 1
+          : 0,
+    order: rep.order || rep.rep_order || rep.repOrder || (rep.is_primary === 1 ? 1 : 2),
+    rep_order: rep.rep_order || rep.repOrder || rep.order || (rep.is_primary === 1 ? 1 : 2),
   }));
 };
 
@@ -313,15 +330,26 @@ export const normalizeContactPerson = (application) => {
   return {
     // prename support (both snake and camel for UI compatibility)
     prename_th:
-      contact.prename_th || contact.prenameTh || contact.title_th || contact.titleTh || contact.title || null,
+      contact.prename_th ||
+      contact.prenameTh ||
+      contact.title_th ||
+      contact.titleTh ||
+      contact.title ||
+      null,
     prename_en:
       contact.prename_en || contact.prenameEn || contact.title_en || contact.titleEn || null,
     prename_other: contact.prename_other || contact.prenameOther || null,
     prename_other_en: contact.prename_other_en || contact.prenameOtherEn || null,
     // also expose camelCase for components that prefer it
     prenameTh:
-      contact.prenameTh || contact.prename_th || contact.titleTh || contact.title_th || contact.title || null,
-    prenameEn: contact.prenameEn || contact.prename_en || contact.titleEn || contact.title_en || null,
+      contact.prenameTh ||
+      contact.prename_th ||
+      contact.titleTh ||
+      contact.title_th ||
+      contact.title ||
+      null,
+    prenameEn:
+      contact.prenameEn || contact.prename_en || contact.titleEn || contact.title_en || null,
     prenameOther: contact.prenameOther || contact.prename_other || null,
     prenameOtherEn: contact.prenameOtherEn || contact.prename_other_en || null,
     firstNameTh: contact.first_name_th || contact.firstNameTh,
@@ -385,14 +413,25 @@ export const normalizeContactPersons = (application) => {
   return contacts.map((contact) => ({
     // prename support
     prename_th:
-      contact.prename_th || contact.prenameTh || contact.title_th || contact.titleTh || contact.title || null,
+      contact.prename_th ||
+      contact.prenameTh ||
+      contact.title_th ||
+      contact.titleTh ||
+      contact.title ||
+      null,
     prename_en:
       contact.prename_en || contact.prenameEn || contact.title_en || contact.titleEn || null,
     prename_other: contact.prename_other || contact.prenameOther || null,
     prename_other_en: contact.prename_other_en || contact.prenameOtherEn || null,
     prenameTh:
-      contact.prenameTh || contact.prename_th || contact.titleTh || contact.title_th || contact.title || null,
-    prenameEn: contact.prenameEn || contact.prename_en || contact.titleEn || contact.title_en || null,
+      contact.prenameTh ||
+      contact.prename_th ||
+      contact.titleTh ||
+      contact.title_th ||
+      contact.title ||
+      null,
+    prenameEn:
+      contact.prenameEn || contact.prename_en || contact.titleEn || contact.title_en || null,
     prenameOther: contact.prenameOther || contact.prename_other || null,
     prenameOtherEn: contact.prenameOtherEn || contact.prename_other_en || null,
     firstNameTh: contact.first_name_th || contact.firstNameTh,

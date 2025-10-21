@@ -19,9 +19,13 @@ export default function CompanyInfoSection({ formData, setFormData, errors, setE
   const [isLoading, setIsLoading] = useState(false);
   const [isAutofill, setIsAutofill] = useState(true); // เริ่มต้นด้วยโหมด autofill
   const [isCheckingTaxId, setIsCheckingTaxId] = useState(false);
-  
+
   // Fetch industrial groups and provincial chapters from MSSQL
-  const { industrialGroups, provincialChapters, isLoading: isLoadingGroups } = useIndustrialGroups();
+  const {
+    industrialGroups,
+    provincialChapters,
+    isLoading: isLoadingGroups,
+  } = useIndustrialGroups();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

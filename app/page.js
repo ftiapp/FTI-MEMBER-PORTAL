@@ -108,16 +108,16 @@ export default function Home() {
               transition={{ delay: 0.3, duration: 0.8 }}
             />
             <motion.p
-            className="text-lg md:text-xl text-center max-w-3xl mx-auto"
-            variants={fadeIn}
-            initial="hidden"
-            animate="visible"
-            transition={{ delay: 0.2 }}
-          >
-            เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย
-            <br />
-            ให้สามารถแข่งขันได้ในระดับสากล
-          </motion.p>
+              className="text-lg md:text-xl text-center max-w-3xl mx-auto"
+              variants={fadeIn}
+              initial="hidden"
+              animate="visible"
+              transition={{ delay: 0.2 }}
+            >
+              เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย
+              <br />
+              ให้สามารถแข่งขันได้ในระดับสากล
+            </motion.p>
 
             {!user && (
               <motion.div

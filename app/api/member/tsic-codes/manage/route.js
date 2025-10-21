@@ -87,7 +87,9 @@ export async function POST(request) {
       console.log(`User ID ${userId} not found, looking for fallback...`);
 
       // Try to find an admin user as fallback
-      const adminResult = await query("SELECT id, email FROM FTI_Portal_User WHERE is_admin = 1 LIMIT 1");
+      const adminResult = await query(
+        "SELECT id, email FROM FTI_Portal_User WHERE is_admin = 1 LIMIT 1",
+      );
 
       if (adminResult && adminResult.length > 0) {
         validUserId = adminResult[0].id;
@@ -95,7 +97,9 @@ export async function POST(request) {
         console.log(`Using admin user (ID: ${validUserId}) as fallback`);
       } else {
         // Try to find any active user as fallback
-        const anyUserResult = await query("SELECT id, email FROM FTI_Portal_User WHERE active = 1 LIMIT 1");
+        const anyUserResult = await query(
+          "SELECT id, email FROM FTI_Portal_User WHERE active = 1 LIMIT 1",
+        );
 
         if (anyUserResult && anyUserResult.length > 0) {
           validUserId = anyUserResult[0].id;
@@ -103,7 +107,9 @@ export async function POST(request) {
           console.log(`Using active user (ID: ${validUserId}) as fallback`);
         } else {
           // Last resort: try user ID 1 (system user)
-          const systemUserResult = await query("SELECT id, email FROM FTI_Portal_User WHERE id = 1 LIMIT 1");
+          const systemUserResult = await query(
+            "SELECT id, email FROM FTI_Portal_User WHERE id = 1 LIMIT 1",
+          );
 
           if (systemUserResult && systemUserResult.length > 0) {
             validUserId = 1;
@@ -382,10 +388,10 @@ export async function POST(request) {
         }
 
         // Delete TSIC code
-        await query("DELETE FROM FTI_Original_Membership_Member_Tsic_Codes WHERE member_code = ? AND tsic_code = ?", [
-          memberCode,
-          tsicCode,
-        ]);
+        await query(
+          "DELETE FROM FTI_Original_Membership_Member_Tsic_Codes WHERE member_code = ? AND tsic_code = ?",
+          [memberCode, tsicCode],
+        );
 
         // Log the action
         await query(

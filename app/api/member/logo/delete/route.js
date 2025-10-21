@@ -86,7 +86,11 @@ export async function DELETE(request) {
     }
 
     // Delete logo record from database
-    await executeQuery(connection, "DELETE FROM FTI_Original_Membership_Company_Logos WHERE id = ?", [logoId]);
+    await executeQuery(
+      connection,
+      "DELETE FROM FTI_Original_Membership_Company_Logos WHERE id = ?",
+      [logoId],
+    );
 
     // Log the action in FTI_Portal_User_Logs
     try {

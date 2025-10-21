@@ -668,7 +668,7 @@ export async function POST(request) {
       // ดึงข้อมูล user จาก FTI_Portal_User table
       const userQuery = `SELECT firstname, lastname, email FROM FTI_Portal_User WHERE id = ?`;
       const userResult = await executeQueryWithoutTransaction(userQuery, [userId]);
-      
+
       if (userResult && userResult.length > 0) {
         const user = userResult[0];
         const userEmail = user.email;

@@ -29,6 +29,7 @@ const DetailView = ({
   // ฟังก์ชันสำหรับอัปเดตข้อมูลแต่ละส่วน
   const handleSectionUpdate = async (section, data) => {
     try {
+      console.log("📡 DEBUG: handleSectionUpdate invoked", { section, data });
       const response = await fetch("/api/admin/membership-requests/update", {
         method: "POST",
         headers: {
@@ -65,17 +66,38 @@ const DetailView = ({
       }
 
       if (result && result.success) {
-        // Update application state immediately without reloading
-        if (updateApplication) {
-          // Merge the updated data into application state
-          updateApplication({ ...data });
+        console.log("✅ DEBUG: Section update succeeded", { section, data: result });
+        
+        // Refetch the updated data from server to ensure consistency
+        console.log("🔄 DEBUG: Refetching section data from server...");
+        const refetchResponse = await fetch(`/api/admin/membership-requests/${type}/${application.id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (refetchResponse.ok) {
+          const refetchText = await refetchResponse.text();
+          if (refetchText) {
+            const refetchData = JSON.parse(refetchText);
+            if (refetchData.success && refetchData.data) {
+              // Update application state with fresh data from server
+              if (updateApplication) {
+                updateApplication(refetchData.data);
+              }
+              console.log("✅ DEBUG: Section data refetched successfully");
+            }
+          }
         }
+        
         return result;
       } else {
         throw new Error((result && (result.error || result.message)) || "Update failed");
       }
     } catch (error) {
       console.error("Error updating section:", error);
+      console.error("❌ DEBUG: Section update failed", { section, data, error });
       alert("เกิดข้อผิดพลาดในการอัปเดตข้อมูล: " + error.message);
       throw error;
     }
@@ -103,7 +125,7 @@ const DetailView = ({
         onUpdate={handleSectionUpdate}
       />
       <FinancialInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
-      <RepresentativesSection application={application} onUpdate={handleSectionUpdate} />
+      <RepresentativesSection application={application} type={type} onUpdate={handleSectionUpdate} />
       <AddressSection application={application} onUpdate={handleSectionUpdate} />
       <BusinessInfoSection application={application} onUpdate={handleSectionUpdate} />
       <DocumentsSection application={application} onViewDocument={onViewDocument} type={type} />

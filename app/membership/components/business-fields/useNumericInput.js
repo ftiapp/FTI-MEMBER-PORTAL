@@ -27,12 +27,12 @@ export function useNumericInput(formData, setFormData) {
     (e) => {
       const { name, value } = e.target;
       let raw = sanitizeNumberInput(value);
-      
+
       // จำกัดจำนวนสมาชิกสมาคมไม่เกิน 7 หลัก
       if (name === "memberCount" && raw.length > 7) {
         raw = raw.slice(0, 7);
       }
-      
+
       setFormData((prev) => ({ ...prev, [name]: raw }));
     },
     [sanitizeNumberInput, setFormData],
@@ -42,20 +42,20 @@ export function useNumericInput(formData, setFormData) {
     (e, pairFieldName) => {
       const { name, value } = e.target;
       let raw = sanitizeNumberInput(value);
-      
+
       // จำกัดไม่เกิน 100
       const numValue = parseFloat(raw);
       if (!isNaN(numValue) && numValue > 100) {
         raw = "100";
       }
-      
+
       // คำนวณค่าคู่อัตโนมัติ
       const pairValue = raw && !isNaN(parseFloat(raw)) ? String(100 - parseFloat(raw)) : "";
-      
-      setFormData((prev) => ({ 
-        ...prev, 
+
+      setFormData((prev) => ({
+        ...prev,
         [name]: raw,
-        [pairFieldName]: pairValue
+        [pairFieldName]: pairValue,
       }));
     },
     [sanitizeNumberInput, setFormData],

@@ -29,7 +29,7 @@ const MultiSelectDropdown = ({
   }, []);
 
   const filteredOptions = options.filter((option) =>
-    option.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    option.name?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleToggle = (option) => {
@@ -86,9 +86,7 @@ const MultiSelectDropdown = ({
       >
         <div className="flex justify-between items-center">
           <span className="text-gray-600">
-            {selectedItems.length > 0
-              ? `เลือกแล้ว ${selectedItems.length} รายการ`
-              : placeholder}
+            {selectedItems.length > 0 ? `เลือกแล้ว ${selectedItems.length} รายการ` : placeholder}
           </span>
           <svg
             className={`w-5 h-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
@@ -96,12 +94,7 @@ const MultiSelectDropdown = ({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </button>
@@ -141,9 +134,7 @@ const MultiSelectDropdown = ({
                       className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                     />
                     <span className="flex-1 text-gray-900">{option.name}</span>
-                    {option.code && (
-                      <span className="text-sm text-gray-500">{option.code}</span>
-                    )}
+                    {option.code && <span className="text-sm text-gray-500">{option.code}</span>}
                   </label>
                 );
               })

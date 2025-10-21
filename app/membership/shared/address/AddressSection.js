@@ -39,11 +39,11 @@ export default function AddressSection({
   // Auto-switch to tab with error and scroll
   useEffect(() => {
     const errorTab = findFirstErrorTab(errors);
-    
+
     if (errorTab && errorTab !== activeTab && errorTab !== lastErrorTabRef.current) {
       lastErrorTabRef.current = errorTab;
       setActiveTab(errorTab);
-      
+
       // Scroll to address section after tab switch
       scrollToAddressSection();
     }

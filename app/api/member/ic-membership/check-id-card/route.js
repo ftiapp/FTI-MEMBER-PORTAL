@@ -9,7 +9,7 @@ export async function POST(request) {
     try {
       const text = await request.text();
       console.log("Raw request body:", text);
-      
+
       if (!text || text.trim() === "") {
         console.log("Empty request body received");
         return NextResponse.json(
@@ -21,7 +21,7 @@ export async function POST(request) {
           { status: 400 },
         );
       }
-      
+
       body = JSON.parse(text);
       console.log("Parsed body:", body);
     } catch (jsonError) {

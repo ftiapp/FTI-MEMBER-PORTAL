@@ -14,7 +14,12 @@ const fadeInUp = {
   },
 };
 
-const NotificationsHeader = ({ FTI_Portal_User_Notifications, markAllAsRead, startIndex, endIndex }) => {
+const NotificationsHeader = ({
+  FTI_Portal_User_Notifications,
+  markAllAsRead,
+  startIndex,
+  endIndex,
+}) => {
   return (
     <motion.div
       className="bg-white shadow-md rounded-lg p-4 sm:p-6 mb-4 sm:mb-6 relative z-[100]"

@@ -46,10 +46,10 @@ export async function POST(request) {
 
     // If there are existing pending requests, delete them
     if (existingRequests && existingRequests.length > 0) {
-      await query("DELETE FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE member_code = ? AND status = ?", [
-        memberCode,
-        "pending",
-      ]);
+      await query(
+        "DELETE FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE member_code = ? AND status = ?",
+        [memberCode, "pending"],
+      );
 
       // Log the deletion of previous requests
       const ipAddress = request.headers.get("x-forwarded-for") || "unknown";

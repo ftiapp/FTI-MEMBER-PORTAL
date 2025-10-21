@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
  * Draft Save Popup Component
  * คอมโพเนนต์แสดง popup เมื่อบันทึกร่างสำเร็จ
  * ใช้ร่วมกันระหว่าง AC, AM, IC, OC
- * 
+ *
  * @param {Object} props
  * @param {boolean} props.isOpen - เปิด/ปิด popup
  * @param {Function} props.onClose - ฟังก์ชันปิด popup
@@ -16,7 +16,12 @@ import { useRouter } from "next/navigation";
  * @param {string} props.displayInfo.primaryName - ชื่อหลัก (companyName, associationName, fullName)
  * @param {string} props.displayInfo.primaryIdLabel - Label สำหรับ ID (เลขทะเบียนนิติบุคคล, เลขบัตรประชาชน, เลขประจำตัวผู้เสียภาษี)
  */
-export default function DraftSavePopup({ isOpen, onClose, membershipType = "OC", displayInfo = {} }) {
+export default function DraftSavePopup({
+  isOpen,
+  onClose,
+  membershipType = "OC",
+  displayInfo = {},
+}) {
   const router = useRouter();
 
   if (!isOpen) return null;

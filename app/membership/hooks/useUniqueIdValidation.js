@@ -2,26 +2,26 @@ import { useState, useCallback, useRef } from "react";
 
 /**
  * Custom Hook สำหรับตรวจสอบ tax_id หรือ id_card แบบ real-time
- * 
+ *
  * @param {string} memberType - ประเภทสมาชิก (am, ac, oc, ic)
  * @param {number} debounceMs - เวลา debounce (default: 800ms)
  * @returns {Object} - { checkUniqueId, validationState, clearValidation }
- * 
+ *
  * @example
  * const { checkUniqueId, validationState, clearValidation } = useUniqueIdValidation('am');
- * 
+ *
  * // ใช้ใน onChange
  * const handleTaxIdChange = (e) => {
  *   const value = e.target.value;
  *   setTaxId(value);
- *   
+ *
  *   if (value.length === 13) {
  *     checkUniqueId(value);
  *   } else {
  *     clearValidation();
  *   }
  * };
- * 
+ *
  * // แสดงผลตาม validationState
  * {validationState.status === 'checking' && <Spinner />}
  * {validationState.status === 'error' && <ErrorMessage>{validationState.message}</ErrorMessage>}
@@ -97,7 +97,7 @@ export function useUniqueIdValidation(memberType, debounceMs = 800) {
             `/api/membership/check-unique-id?uniqueId=${encodeURIComponent(uniqueId)}&memberType=${memberType}`,
             {
               signal: abortControllerRef.current.signal,
-            }
+            },
           );
 
           const data = await response.json();
@@ -150,7 +150,7 @@ export function useUniqueIdValidation(memberType, debounceMs = 800) {
         }
       }, debounceMs);
     },
-    [memberType, debounceMs]
+    [memberType, debounceMs],
   );
 
   /**

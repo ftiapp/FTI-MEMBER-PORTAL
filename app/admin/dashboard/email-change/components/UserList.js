@@ -27,7 +27,9 @@ export default function UserList({ onSelectUser }) {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/admin/FTI_Portal_User?page=${currentPage}&limit=${usersPerPage}`);
+      const response = await fetch(
+        `/api/admin/FTI_Portal_User?page=${currentPage}&limit=${usersPerPage}`,
+      );
       const data = await response.json();
 
       if (data.success) {

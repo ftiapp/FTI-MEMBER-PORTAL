@@ -323,7 +323,9 @@ export async function POST(request) {
             } else if (columns.includes("ADDR_EN")) {
               fieldName = "ADDR_EN";
             } else {
-              console.log("No suitable English address field found in FTI_Original_Membership table");
+              console.log(
+                "No suitable English address field found in FTI_Original_Membership table",
+              );
               throw new Error("No suitable English address field found");
             }
           } else {
@@ -357,7 +359,9 @@ export async function POST(request) {
             } else if (columns.includes("FACTORY_ADDR")) {
               fieldName = "FACTORY_ADDR";
             } else {
-              console.log("No suitable Thai factory address field found in FTI_Original_Membership table");
+              console.log(
+                "No suitable Thai factory address field found in FTI_Original_Membership table",
+              );
               throw new Error("No suitable Thai factory address field found");
             }
           }

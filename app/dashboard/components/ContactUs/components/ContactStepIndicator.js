@@ -37,7 +37,10 @@ export default function ContactStepIndicator({ currentStep = 1 }) {
       <div className="hidden md:block">
         <div className="flex items-center justify-between relative">
           {/* Base line across steps */}
-          <div className="absolute left-0 right-0 h-1 bg-gray-200 rounded-full z-0" style={{ top: 24 }} />
+          <div
+            className="absolute left-0 right-0 h-1 bg-gray-200 rounded-full z-0"
+            style={{ top: 24 }}
+          />
 
           {/* Completed progress line */}
           {(() => {

@@ -3,6 +3,7 @@
 ## 📋 สรุปปัญหา (Problem Summary)
 
 ### ปัญหาเดิม (Original Issue)
+
 ระบบมีช่องโหว่ที่ทำให้เกิด **Race Condition** เมื่อมี 2 users พยายามใช้ Tax ID/ID Card เดียวกัน:
 
 1. **User A** กรอก Tax ID `1234567890123` และเริ่มกรอกฟอร์ม
@@ -12,6 +13,7 @@
 5. **User B** กด Save Draft ทีหลัง → ถูกบล็อก (แต่เสียเวลากรอกไปแล้ว)
 
 ### ผลกระทบ (Impact)
+
 - ❌ UX ไม่ดี - ผู้ใช้เสียเวลากรอกข้อมูลทั้งหมดแล้วค่อยรู้ว่าใช้ไม่ได้
 - ❌ ข้อมูลอาจถูกทับ - ถ้ามีการแก้ไข logic ผิดพลาด
 - ❌ สับสน - ผู้ใช้ไม่เข้าใจว่าทำไมถูกบล็อก
@@ -31,6 +33,7 @@ User กรอก Tax ID → ระบบตรวจสอบทันที �
 ### 2. Block Form Immediately - บล็อกฟอร์มทันทีถ้าไม่สามารถใช้ได้
 
 ถ้า Tax ID/ID Card ถูกใช้โดยผู้อื่นแล้ว:
+
 - 🚫 บล็อกฟอร์มทั้งหมด (overlay)
 - 📢 แสดงข้อความชัดเจน
 - ⚠️ ป้องกันไม่ให้กรอกข้อมูลต่อ
@@ -44,12 +47,14 @@ User กรอก Tax ID → ระบบตรวจสอบทันที �
 **ไฟล์:** `app/api/membership/check-draft-availability/route.js`
 
 **หน้าที่:**
+
 - ตรวจสอบว่า Tax ID/ID Card สามารถใช้ได้หรือไม่
 - ตรวจสอบใน Main Tables (MemberRegist_XX_Main)
 - ตรวจสอบใน Draft Tables (MemberRegist_XX_Draft)
 - ตรวจสอบว่า draft เป็นของ user คนเดียวกันหรือไม่
 
 **Response Format:**
+
 ```json
 {
   "success": true,
@@ -61,6 +66,7 @@ User กรอก Tax ID → ระบบตรวจสอบทันที �
 ```
 
 **Cases:**
+
 1. ✅ **Available** - สามารถใช้ได้
 2. ℹ️ **Draft exists (same user)** - มี draft ของตัวเองอยู่แล้ว (อนุญาตให้แก้ไขต่อ)
 3. ❌ **Draft exists (other user)** - มี draft ของผู้อื่น (บล็อก)
@@ -73,21 +79,23 @@ User กรอก Tax ID → ระบบตรวจสอบทันที �
 **ไฟล์:** `app/membership/hooks/useDraftAvailability.js`
 
 **หน้าที่:**
+
 - จัดการ state ของการตรวจสอบ
 - เรียก API check-draft-availability
 - จัดการ debounce และ abort controller
 - แสดง toast notification
 
 **Usage:**
+
 ```javascript
 import { useDraftAvailability } from "@/app/membership/hooks/useDraftAvailability";
 
-const { 
-  checkAvailability,    // ฟังก์ชันตรวจสอบ
-  isChecking,           // กำลังตรวจสอบอยู่
-  availabilityStatus,   // ผลการตรวจสอบ
-  isBlocked,            // ควรบล็อกฟอร์มหรือไม่
-  resetAvailability     // รีเซ็ต state
+const {
+  checkAvailability, // ฟังก์ชันตรวจสอบ
+  isChecking, // กำลังตรวจสอบอยู่
+  availabilityStatus, // ผลการตรวจสอบ
+  isBlocked, // ควรบล็อกฟอร์มหรือไม่
+  resetAvailability, // รีเซ็ต state
 } = useDraftAvailability("ac");
 
 // เรียกใช้
@@ -103,14 +111,18 @@ await checkAvailability("1234567890123");
 **Components:**
 
 #### 3.1 `DraftAvailabilityIndicator`
+
 แสดงสถานะการตรวจสอบ:
+
 - 🔄 กำลังตรวจสอบ... (loading spinner)
 - ✅ สามารถใช้หมายเลขนี้ได้ (green)
 - ℹ️ คุณมีร่างที่บันทึกไว้แล้ว (blue info box)
 - ❌ หมายเลขนี้ถูกใช้แล้ว (red error box)
 
 #### 3.2 `WithDraftAvailabilityCheck`
+
 HOC สำหรับ wrap input field เพื่อเพิ่ม auto-check:
+
 ```javascript
 <WithDraftAvailabilityCheck
   value={formData.taxId}
@@ -123,7 +135,9 @@ HOC สำหรับ wrap input field เพื่อเพิ่ม auto-chec
 ```
 
 #### 3.3 `DraftAvailabilityBlocker`
+
 Overlay สำหรับบล็อกฟอร์มเมื่อ ID ไม่สามารถใช้ได้:
+
 ```javascript
 <DraftAvailabilityBlocker isBlocked={isBlocked}>
   <form>...</form>
@@ -141,10 +155,10 @@ Overlay สำหรับบล็อกฟอร์มเมื่อ ID ไ�
 ```javascript
 // ใน CompanyBasicInfo.js หรือ CompanyInfoSection.js
 import { useDraftAvailability } from "@/app/membership/hooks/useDraftAvailability";
-import { 
+import {
   DraftAvailabilityIndicator,
   WithDraftAvailabilityCheck,
-  DraftAvailabilityBlocker 
+  DraftAvailabilityBlocker,
 } from "@/app/membership/components/DraftAvailabilityChecker";
 ```
 
@@ -153,13 +167,9 @@ import {
 ```javascript
 export default function CompanyBasicInfo({ formData, setFormData, errors, setErrors }) {
   // เพิ่ม hook
-  const { 
-    checkAvailability, 
-    isChecking, 
-    availabilityStatus, 
-    isBlocked 
-  } = useDraftAvailability("ac"); // "ac", "oc", "am", หรือ "ic"
-  
+  const { checkAvailability, isChecking, availabilityStatus, isBlocked } =
+    useDraftAvailability("ac"); // "ac", "oc", "am", หรือ "ic"
+
   // ... existing code
 }
 ```
@@ -172,7 +182,7 @@ const handleTaxIdChange = (e) => {
   const numericValue = value.replace(/\D/g, "").slice(0, 13);
 
   setFormData((prev) => ({ ...prev, taxId: numericValue }));
-  
+
   // Clear existing validation
   setValidationStatus({ status: "idle", message: "" });
   if (errors.taxId) {
@@ -185,12 +195,12 @@ const handleTaxIdChange = (e) => {
     taxIdTimeoutRef.current = setTimeout(async () => {
       // ✅ เพิ่ม: ตรวจสอบ draft availability ก่อน
       const availabilityResult = await checkAvailability(numericValue);
-      
+
       // ถ้าไม่สามารถใช้ได้ ให้หยุดเลย
       if (!availabilityResult.available) {
         return;
       }
-      
+
       // ถ้าใช้ได้ ให้ตรวจสอบ uniqueness ต่อ (existing logic)
       const isValid = await checkTaxIdUniqueness(numericValue);
       if (isValid && isAutofill) {
@@ -248,7 +258,7 @@ return (
         setFormData={setFormData}
         errors={errors}
         setErrors={setErrors}
-        isBlocked={isBlocked}  // ส่ง prop ไปด้วย
+        isBlocked={isBlocked} // ส่ง prop ไปด้วย
       />
       {/* ... other sections */}
     </div>
@@ -266,7 +276,7 @@ const handleSaveDraft = async () => {
     toast.error("ไม่สามารถบันทึกร่างได้ กรุณาตรวจสอบข้อมูล");
     return;
   }
-  
+
   // ... existing save draft logic
 };
 ```
@@ -279,8 +289,7 @@ const handleSaveDraft = async () => {
 
 ```javascript
 // Step 2: เปลี่ยน member type
-const { checkAvailability, isChecking, availabilityStatus, isBlocked } 
-  = useDraftAvailability("ic");
+const { checkAvailability, isChecking, availabilityStatus, isBlocked } = useDraftAvailability("ic");
 
 // Step 3: ใช้กับ idCardNumber field
 const handleIdCardChange = (e) => {
@@ -302,12 +311,14 @@ const handleIdCardChange = (e) => {
 ## 🎯 ผลลัพธ์ที่ได้ (Expected Outcome)
 
 ### ✅ ก่อนแก้ไข (Before)
+
 1. User กรอกฟอร์มทั้งหมด (5-10 นาที)
 2. กด Save Draft
 3. ❌ Error: "Tax ID นี้ถูกใช้แล้ว"
 4. 😡 User โกรธ เสียเวลา
 
 ### ✅ หลังแก้ไข (After)
+
 1. User กรอก Tax ID
 2. ⚡ ระบบตรวจสอบทันที (< 1 วินาที)
 3. ❌ แสดงข้อความ: "Tax ID นี้มีการบันทึกร่างโดยผู้ใช้อื่นอยู่แล้ว"
@@ -319,24 +330,30 @@ const handleIdCardChange = (e) => {
 ## 🔒 การป้องกันที่มีอยู่ (Existing Protections)
 
 ### 1. Database Level
+
 - **Unique Index** บน `tax_id` และ `idcard` columns
 - **Status Filter** - เช็คเฉพาะ `status = 3` (active drafts)
 
 ### 2. API Level (save-draft/route.js)
+
 ```javascript
 // บรรทัด 163-183
 if (existingDraft && existingDraft.length > 0) {
   const draftOwnerId = existingDraft[0].user_id;
   if (draftOwnerId !== userId) {
-    return NextResponse.json({
-      success: false,
-      message: `${idFieldName} ${uniqueId} มีการบันทึกร่างโดยผู้ใช้อื่นอยู่แล้ว`
-    }, { status: 409 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: `${idFieldName} ${uniqueId} มีการบันทึกร่างโดยผู้ใช้อื่นอยู่แล้ว`,
+      },
+      { status: 409 },
+    );
   }
 }
 ```
 
 ### 3. Frontend Level (NEW)
+
 - **Early validation** - ตรวจสอบก่อนกรอกฟอร์ม
 - **UI blocking** - บล็อกฟอร์มทันที
 - **Real-time feedback** - แสดงผลทันที
@@ -378,23 +395,28 @@ if (existingDraft && existingDraft.length > 0) {
 ### Test Cases
 
 #### 1. Tax ID ใหม่ (ยังไม่มีในระบบ)
+
 - ✅ แสดง: "สามารถใช้หมายเลขนี้ได้"
 - ✅ ให้กรอกฟอร์มต่อได้
 
 #### 2. Tax ID ที่มี draft ของตัวเอง
+
 - ℹ️ แสดง: "คุณมีร่างที่บันทึกไว้แล้ว สามารถแก้ไขต่อได้"
 - ✅ ให้กรอกฟอร์มต่อได้ (edit mode)
 
 #### 3. Tax ID ที่มี draft ของผู้อื่น
+
 - ❌ แสดง: "หมายเลขนี้มีการบันทึกร่างโดยผู้ใช้อื่นอยู่แล้ว"
 - 🚫 บล็อกฟอร์มทันที
 - ❌ Save Draft ไม่ได้
 
 #### 4. Tax ID ที่อยู่ในระบบหลักแล้ว (status = 0 หรือ 1)
+
 - ❌ แสดง: "หมายเลขนี้มีคำขอสมัครอยู่ระหว่างพิจารณา" หรือ "เป็นสมาชิกแล้ว"
 - 🚫 บล็อกฟอร์มทันที
 
 #### 5. Tax ID ที่เคยถูกปฏิเสธ (status = 2)
+
 - ✅ แสดง: "สามารถใช้หมายเลขนี้ได้"
 - ✅ ให้กรอกฟอร์มต่อได้ (สมัครใหม่)
 
@@ -403,17 +425,20 @@ if (existingDraft && existingDraft.length > 0) {
 ## 📝 สรุป (Summary)
 
 ### ปัญหาที่แก้ไข
+
 ✅ ป้องกัน race condition เมื่อหลาย users ใช้ Tax ID เดียวกัน  
 ✅ ป้องกัน UX ที่ไม่ดี (เสียเวลากรอกแล้วค่อยรู้ว่าใช้ไม่ได้)  
-✅ แจ้งเตือนชัดเจนทันทีที่กรอก Tax ID/ID Card  
+✅ แจ้งเตือนชัดเจนทันทีที่กรอก Tax ID/ID Card
 
 ### สิ่งที่สร้างขึ้น
+
 1. ✅ API: `/api/membership/check-draft-availability`
 2. ✅ Hook: `useDraftAvailability`
 3. ✅ Components: `DraftAvailabilityChecker`
 4. ✅ Documentation: คู่มือนี้
 
 ### ขั้นตอนถัดไป
+
 1. 🔧 Integrate เข้ากับ AC Form (CompanyBasicInfo.js)
 2. 🔧 Integrate เข้ากับ OC Form
 3. 🔧 Integrate เข้ากับ AM Form

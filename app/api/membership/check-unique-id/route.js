@@ -8,11 +8,11 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 /**
  * API สำหรับเช็คว่า tax_id หรือ id_card ซ้ำหรือไม่
  * เช็คทั้ง Main Tables (คำขอที่ส่งแล้ว/อนุมัติแล้ว) และ Draft Tables (ร่างของคนอื่น)
- * 
+ *
  * Query Parameters:
  * - uniqueId: เลขที่ต้องการเช็ค (tax_id หรือ id_card)
  * - memberType: ประเภทสมาชิก (am, ac, oc, ic)
- * 
+ *
  * Response:
  * {
  *   success: true,
@@ -45,7 +45,7 @@ export async function GET(request) {
           success: false,
           message: "กรุณาระบุ uniqueId และ memberType",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -55,7 +55,7 @@ export async function GET(request) {
           success: false,
           message: "memberType ไม่ถูกต้อง (ต้องเป็น am, ac, oc, หรือ ic)",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -73,7 +73,7 @@ export async function GET(request) {
         `SELECT status FROM MemberRegist_IC_Main 
          WHERE id_card_number = ? AND (status = 0 OR status = 1) 
          LIMIT 1`,
-        [uniqueId]
+        [uniqueId],
       );
 
       if (existingIC) {
@@ -144,7 +144,7 @@ export async function GET(request) {
         `SELECT user_id FROM MemberRegist_IC_Draft 
          WHERE idcard = ? AND status = 3 
          LIMIT 1`,
-        [uniqueId]
+        [uniqueId],
       );
 
       if (existingDraft && existingDraft.user_id !== userId) {
@@ -206,7 +206,7 @@ export async function GET(request) {
         success: false,
         message: "เกิดข้อผิดพลาดในการตรวจสอบ",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

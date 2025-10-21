@@ -14,7 +14,7 @@ export async function GET(request, { params }) {
           success: false,
           message: "เลขประจำตัวผู้เสียภาษีไม่ถูกต้อง กรุณากรอก 13 หลัก",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -23,15 +23,12 @@ export async function GET(request, { params }) {
     const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
     try {
-      const response = await fetch(
-        `https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`,
-        {
-          signal: controller.signal,
-          headers: {
-            "Accept": "application/json",
-          },
-        }
-      );
+      const response = await fetch(`https://openapi.dbd.go.th/api/v1/juristic_person/${taxId}`, {
+        signal: controller.signal,
+        headers: {
+          Accept: "application/json",
+        },
+      });
 
       clearTimeout(timeoutId);
 
@@ -40,10 +37,11 @@ export async function GET(request, { params }) {
         return NextResponse.json(
           {
             success: false,
-            message: "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+            message:
+              "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
             errorType: "rate_limit",
           },
-          { status: 503 }
+          { status: 503 },
         );
       }
 
@@ -51,10 +49,11 @@ export async function GET(request, { params }) {
         return NextResponse.json(
           {
             success: false,
-            message: "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
+            message:
+              "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
             errorType: "not_found",
           },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -87,10 +86,11 @@ export async function GET(request, { params }) {
         return NextResponse.json(
           {
             success: false,
-            message: "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
+            message:
+              "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
             errorType: "not_found",
           },
-          { status: 404 }
+          { status: 404 },
         );
       }
     } catch (fetchError) {
@@ -101,10 +101,11 @@ export async function GET(request, { params }) {
         return NextResponse.json(
           {
             success: false,
-            message: "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+            message:
+              "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
             errorType: "timeout",
           },
-          { status: 504 }
+          { status: 504 },
         );
       }
 
@@ -117,10 +118,11 @@ export async function GET(request, { params }) {
     return NextResponse.json(
       {
         success: false,
-        message: "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
+        message:
+          "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
         errorType: "network_error",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

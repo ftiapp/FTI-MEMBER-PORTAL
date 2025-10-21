@@ -104,10 +104,7 @@ export const useApplicationData = (type, id) => {
       ]);
 
       // Process industrial groups as array of { id, name, code }
-      if (
-        (groupsData && Array.isArray(groupsData?.data)) ||
-        Array.isArray(groupsData)
-      ) {
+      if ((groupsData && Array.isArray(groupsData?.data)) || Array.isArray(groupsData)) {
         const rawGroups = Array.isArray(groupsData) ? groupsData : groupsData.data;
         const groupsArray = rawGroups
           .map((group) => {
@@ -123,16 +120,13 @@ export const useApplicationData = (type, id) => {
           .filter(Boolean);
         // Dedupe by id
         const uniqueGroups = Array.from(
-          groupsArray.reduce((map, item) => map.set(item.id, item), new Map()).values()
+          groupsArray.reduce((map, item) => map.set(item.id, item), new Map()).values(),
         );
         setIndustrialGroups(uniqueGroups);
       }
 
       // Process provincial chapters as array of { id, name, code }
-      if (
-        (chaptersData && Array.isArray(chaptersData?.data)) ||
-        Array.isArray(chaptersData)
-      ) {
+      if ((chaptersData && Array.isArray(chaptersData?.data)) || Array.isArray(chaptersData)) {
         const rawChapters = Array.isArray(chaptersData) ? chaptersData : chaptersData.data;
         const chaptersArray = rawChapters
           .map((chapter) => {
@@ -150,7 +144,7 @@ export const useApplicationData = (type, id) => {
           .filter(Boolean);
         // Dedupe by id
         const uniqueChapters = Array.from(
-          chaptersArray.reduce((map, item) => map.set(item.id, item), new Map()).values()
+          chaptersArray.reduce((map, item) => map.set(item.id, item), new Map()).values(),
         );
         setProvincialChapters(uniqueChapters);
       }
@@ -162,7 +156,18 @@ export const useApplicationData = (type, id) => {
 
   const updateApplication = (updates) => {
     setApplication((prev) => {
-      if (!prev) return updates;
+      if (!prev) {
+        // If no previous data, normalize the new data
+        return normalizeApplicationData(updates, type);
+      }
+      
+      // Check if this is a full data replacement (has 'id' field) or partial update
+      if (updates.id && updates.id === prev.id) {
+        // Full data replacement - normalize it
+        return normalizeApplicationData(updates, type);
+      }
+      
+      // Partial update - merge with existing data
       return { ...prev, ...updates };
     });
   };

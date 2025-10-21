@@ -74,7 +74,9 @@ export default function CheckStatusOperation() {
   };
 
   if (loading) {
-    return <LoadingOverlay isVisible={true} message="กำลังโหลดสถานะการดำเนินการ..." inline={true} />;
+    return (
+      <LoadingOverlay isVisible={true} message="กำลังโหลดสถานะการดำเนินการ..." inline={true} />
+    );
   }
 
   if (loadingError) {

@@ -57,7 +57,8 @@ const normalizeRepresentative = (rep, index, fieldNames) => {
     prenameEn: rep.prenameEn ?? rep.prename_en ?? "",
     prenameOther: rep.prenameOther ?? rep.prename_other ?? "",
     prenameOtherEn: rep.prenameOtherEn ?? rep.prename_other_en ?? "",
-    [fieldNames.firstNameTh]: rep[fieldNames.firstNameTh] || rep.firstNameTh || rep.firstNameThai || "",
+    [fieldNames.firstNameTh]:
+      rep[fieldNames.firstNameTh] || rep.firstNameTh || rep.firstNameThai || "",
     [fieldNames.lastNameTh]: rep[fieldNames.lastNameTh] || rep.lastNameTh || rep.lastNameThai || "",
     [fieldNames.firstNameEn]:
       rep[fieldNames.firstNameEn] ||
@@ -253,7 +254,7 @@ export const useRepresentatives = ({
       // Multiple mode - find first representative with error
       if (representativeErrors.length > 0) {
         const errorIndex = representativeErrors.findIndex(
-          (err) => err && Object.keys(err).length > 0
+          (err) => err && Object.keys(err).length > 0,
         );
 
         if (errorIndex !== -1) {
@@ -404,7 +405,7 @@ export const useRepresentatives = ({
           return updatedRep;
         }
         return rep;
-      })
+      }),
     );
   };
 

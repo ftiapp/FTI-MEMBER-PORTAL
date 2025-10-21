@@ -103,12 +103,16 @@ export async function POST(request) {
         error.code === "ER_BAD_FIELD_ERROR" &&
         error.sqlMessage.includes("Unknown column 'status'")
       ) {
-        const pendingCheckQuery = "SELECT id FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?";
+        const pendingCheckQuery =
+          "SELECT id FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?";
         const pendingChanges = await query(pendingCheckQuery, [userId]);
 
         if (pendingChanges.length > 0) {
           // Delete previous pending changes since we can't update status
-          await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?", [userId]);
+          await query(
+            "DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?",
+            [userId],
+          );
         }
       } else {
         // Re-throw other errors
@@ -160,19 +164,25 @@ export async function POST(request) {
             }
 
             try {
-              await query(`ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN old_email VARCHAR(255)`);
+              await query(
+                `ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN old_email VARCHAR(255)`,
+              );
             } catch (e) {
               /* Column might already exist */
             }
 
             try {
-              await query(`ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN admin_id INT`);
+              await query(
+                `ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN admin_id INT`,
+              );
             } catch (e) {
               /* Column might already exist */
             }
 
             try {
-              await query(`ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN admin_note TEXT`);
+              await query(
+                `ALTER TABLE FTI_Original_Membership_Pending_Email_Changes ADD COLUMN admin_note TEXT`,
+              );
             } catch (e) {
               /* Column might already exist */
             }
@@ -254,7 +264,10 @@ export async function POST(request) {
       await query(logQuery, [userId, logDetails]);
 
       // Mark the email as unverified
-      await query("UPDATE FTI_Portal_User SET email_verified = 0, updated_at = NOW() WHERE id = ?", [userId]);
+      await query(
+        "UPDATE FTI_Portal_User SET email_verified = 0, updated_at = NOW() WHERE id = ?",
+        [userId],
+      );
 
       // Send verification email to the new email address
       await sendAdminEmailChangeVerification(newEmail, user.name, token);

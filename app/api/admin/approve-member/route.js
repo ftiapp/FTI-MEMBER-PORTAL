@@ -14,9 +14,10 @@ export async function POST(request) {
     }
 
     // Fetch admin details from database to get the name
-    const adminDetails = await query("SELECT name FROM FTI_Portal_Admin_Users WHERE id = ? LIMIT 1", [
-      admin.id,
-    ]);
+    const adminDetails = await query(
+      "SELECT name FROM FTI_Portal_Admin_Users WHERE id = ? LIMIT 1",
+      [admin.id],
+    );
 
     // Get admin name or use a default if not found
     const adminName = adminDetails.length > 0 ? adminDetails[0].name : "Admin";
@@ -60,9 +61,10 @@ export async function POST(request) {
         const userId = userResult[0].user_id;
 
         // Update user role from 'default_user' to 'member'
-        await query(`UPDATE FTI_Portal_User SET role = 'member' WHERE id = ? AND role = 'default_user'`, [
-          userId,
-        ]);
+        await query(
+          `UPDATE FTI_Portal_User SET role = 'member' WHERE id = ? AND role = 'default_user'`,
+          [userId],
+        );
       }
     }
 

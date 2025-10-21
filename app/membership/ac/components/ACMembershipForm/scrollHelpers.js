@@ -159,8 +159,9 @@ export const scrollToErrorField = (errorKey) => {
         }, 100);
       } else {
         // Fallback: scroll to document upload section
-        const section = document.querySelector('[data-section="documents"]') ||
-                       document.querySelector('[data-section="document-upload"]');
+        const section =
+          document.querySelector('[data-section="documents"]') ||
+          document.querySelector('[data-section="document-upload"]');
         if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     }, 100);

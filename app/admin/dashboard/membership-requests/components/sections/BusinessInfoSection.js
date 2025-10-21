@@ -23,6 +23,14 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
   const productsData = application.products || [];
   const businessTypeOtherData = application.businessTypeOther || [];
 
+  const normalizeProducts = (productArray) => {
+    if (!Array.isArray(productArray)) return [];
+    return productArray.map((product) => ({
+      name_th: product?.name_th ?? product?.nameTh ?? "",
+      name_en: product?.name_en ?? product?.nameEn ?? "",
+    }));
+  };
+
   // แปลง businessTypes เป็น array ของ objects { type, detail }
   const getBusinessTypeObjects = () => {
     // Case 1: already array of objects
@@ -71,7 +79,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState(getBusinessTypeStrings());
   const [otherText, setOtherText] = useState(getOtherDetail());
-  const [products, setProducts] = useState(productsData);
+  const [products, setProducts] = useState(normalizeProducts(productsData));
   const [isSaving, setIsSaving] = useState(false);
 
   // Sync state when application prop changes (after successful update)
@@ -81,7 +89,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
       const businessTypesData = application.businessTypes || [];
       const productsData = application.products || [];
       const businessTypeOtherData = application.businessTypeOther || [];
-      
+
       // แปลง businessTypes เป็น array ของ string
       const getBusinessTypeStringsLocal = () => {
         if (Array.isArray(businessTypesData)) {
@@ -97,11 +105,13 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
         }
         return [];
       };
-      
+
       // ดึง detail จาก businessTypes หรือ businessTypeOther
       const getOtherDetailLocal = () => {
         if (Array.isArray(businessTypesData)) {
-          const otherObj = businessTypesData.find((obj) => (obj?.business_type || obj?.type) === "other");
+          const otherObj = businessTypesData.find(
+            (obj) => (obj?.business_type || obj?.type) === "other",
+          );
           if (otherObj?.detail) return otherObj.detail;
         }
         if (Array.isArray(businessTypeOtherData) && businessTypeOtherData.length > 0) {
@@ -109,10 +119,10 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
         }
         return "";
       };
-      
+
       setSelectedTypes(getBusinessTypeStringsLocal());
       setOtherText(getOtherDetailLocal());
-      setProducts(productsData);
+      setProducts(normalizeProducts(productsData));
     }
   }, [application, isEditing]);
 
@@ -171,7 +181,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
     setIsEditing(false);
     setSelectedTypes(getBusinessTypeStrings());
     setOtherText(getOtherDetail());
-    setProducts(productsData);
+    setProducts(normalizeProducts(productsData));
   };
 
   return (
@@ -179,37 +189,38 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-blue-600">ข้อมูลธุรกิจ</h3>
-        {onUpdate && (!isEditing ? (
-          <button
-            onClick={() => {
-              // initialize edit buffers from latest props
-              setSelectedTypes(getBusinessTypeStrings());
-              setOtherText(getOtherDetail());
-              setProducts(productsData);
-              setIsEditing(true);
-            }}
-            className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-          >
-            แก้ไข
-          </button>
-        ) : (
-          <div className="flex gap-2">
+        {onUpdate &&
+          (!isEditing ? (
             <button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              onClick={() => {
+                // initialize edit buffers from latest props
+                setSelectedTypes(getBusinessTypeStrings());
+                setOtherText(getOtherDetail());
+                setProducts(normalizeProducts(productsData));
+                setIsEditing(true);
+              }}
+              className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             >
-              {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+              แก้ไข
             </button>
-            <button
-              onClick={handleCancel}
-              disabled={isSaving}
-              className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
-            >
-              ยกเลิก
-            </button>
-          </div>
-        ))}
+          ) : (
+            <div className="flex gap-2">
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50"
+              >
+                {isSaving ? "กำลังบันทึก..." : "บันทึก"}
+              </button>
+              <button
+                onClick={handleCancel}
+                disabled={isSaving}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+            </div>
+          ))}
       </div>
 
       {/* ประเภทธุรกิจ - โหมดดู */}
@@ -218,13 +229,17 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
           <h4 className="text-lg font-medium mb-3 text-gray-700">ประเภทธุรกิจ</h4>
           {getBusinessTypeStrings().length > 0 ? (
             <div className="flex flex-wrap gap-2">
-              {getBusinessTypeStrings().map((key, index) => (
-                key !== "other" && (
-                  <span key={index} className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-                    {BUSINESS_TYPES[key] || key}
-                  </span>
-                )
-              ))}
+              {getBusinessTypeStrings().map(
+                (key, index) =>
+                  key !== "other" && (
+                    <span
+                      key={index}
+                      className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full"
+                    >
+                      {BUSINESS_TYPES[key] || key}
+                    </span>
+                  ),
+              )}
               {getBusinessTypeStrings().includes("other") && getOtherDetail() && (
                 <span className="bg-orange-100 text-orange-800 text-sm font-medium px-3 py-1 rounded-full">
                   อื่นๆ: {getOtherDetail()}
@@ -243,7 +258,10 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
           <h4 className="text-lg font-medium mb-3 text-gray-700">ประเภทธุรกิจ</h4>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {Object.entries(BUSINESS_TYPES).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-blue-50 cursor-pointer">
+              <label
+                key={key}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg hover:bg-blue-50 cursor-pointer"
+              >
                 <input
                   type="checkbox"
                   className="w-4 h-4 text-blue-600"

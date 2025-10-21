@@ -72,7 +72,7 @@ export default function AddressHeader({
               พิมพ์
             </motion.button>
           </div>
-          
+
           {/* Warning message when there's a pending request */}
           {hasPendingRequest && (
             <motion.div
@@ -81,7 +81,9 @@ export default function AddressHeader({
               animate={{ opacity: 1, y: 0 }}
             >
               <FaExclamationTriangle className="mr-2 text-yellow-500 flex-shrink-0" />
-              <span className="text-sm font-medium">คำขอแก้ไขที่อยู่นี้กำลังรอการอนุมัติจากเจ้าหน้าที่</span>
+              <span className="text-sm font-medium">
+                คำขอแก้ไขที่อยู่นี้กำลังรอการอนุมัติจากเจ้าหน้าที่
+              </span>
             </motion.div>
           )}
         </div>

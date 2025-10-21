@@ -229,7 +229,9 @@ const ContactPersonSection = ({
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center">
           <User className="h-6 w-6 text-blue-600 mr-3" />
-          <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้ติดต่อ / Contact Person Information</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            ข้อมูลผู้ติดต่อ / Contact Person Information
+          </h3>
           <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
             {contactPersons.length}/4
           </span>
@@ -465,7 +467,8 @@ const ContactPersonSection = ({
                           {/* Last Name Thai */}
                           <div className="col-span-2">
                             <div className="text-xs text-gray-700 mb-1">
-                              นามสกุล / Last Name {isMain && <span className="text-red-500">*</span>}
+                              นามสกุล / Last Name{" "}
+                              {isMain && <span className="text-red-500">*</span>}
                             </div>
                             <input
                               type="text"
@@ -632,7 +635,8 @@ const ContactPersonSection = ({
                       {/* Phone */}
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          โทรศัพท์ / โทรศัพท์มือถือ / Phone / Mobile {isMain && <span className="text-red-500">*</span>}
+                          โทรศัพท์ / โทรศัพท์มือถือ / Phone / Mobile{" "}
+                          {isMain && <span className="text-red-500">*</span>}
                         </label>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           <div className="lg:col-span-2">
@@ -683,7 +687,8 @@ const ContactPersonSection = ({
             className="w-full flex items-center justify-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
             <Plus className="h-5 w-5 mr-2" />
-            เพิ่มผู้ติดต่อ ในด้านต่างๆเพื่อประโยชน์ในการรับข้อมูลข่าวสาร (เพิ่มได้อีก {4 - contactPersons.length} ท่าน)
+            เพิ่มผู้ติดต่อ ในด้านต่างๆเพื่อประโยชน์ในการรับข้อมูลข่าวสาร (เพิ่มได้อีก{" "}
+            {4 - contactPersons.length} ท่าน)
           </button>
         </div>
       )}

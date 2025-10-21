@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -1040,13 +1040,13 @@ export default function WasMember() {
       case 4: // Success step
         return (
           <motion.div
-            className="bg-white shadow-lg rounded-xl p-8 text-center max-w-lg mx-auto border border-green-100"
+            className="bg-white shadow-lg rounded-xl p-6 sm:p-8 text-center max-w-lg mx-auto border border-green-100"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
             <motion.div
-              className="w-24 h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6"
+              className="w-20 h-20 sm:w-24 sm:h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -1056,7 +1056,7 @@ export default function WasMember() {
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
               >
-                <FaCheckCircle className="w-12 h-12 text-green-600" />
+                <FaCheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-green-600" />
               </motion.div>
             </motion.div>
 
@@ -1065,8 +1065,8 @@ export default function WasMember() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">ส่งข้อมูลเรียบร้อยแล้ว</h3>
-              <p className="text-gray-600 mb-8 text-lg">
+              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">ส่งข้อมูลเรียบร้อยแล้ว</h3>
+              <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
                 เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ
               </p>
             </motion.div>
@@ -1077,7 +1077,7 @@ export default function WasMember() {
                 setCurrentStep(1);
                 setCompanies([]);
               }}
-              className="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-lg shadow-md"
+              className="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base sm:text-lg shadow-md w-full sm:w-auto"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -1135,14 +1135,15 @@ export default function WasMember() {
 
   return (
     <motion.div
-      className="space-y-4 sm:space-y-6"
+      className="space-y-4 sm:space-y-6 p-2 sm:p-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
       {/* Full-screen blocking overlay during submission */}
       <LoadingOverlay isVisible={showBlockingOverlay} message="กำลังส่งข้อมูล..." />
-      {false && showBlockingOverlay &&
+      {false &&
+        showBlockingOverlay &&
         typeof document !== "undefined" &&
         createPortal(
           <AnimatePresence>

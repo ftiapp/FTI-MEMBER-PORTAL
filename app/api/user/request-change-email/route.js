@@ -23,9 +23,10 @@ export async function POST(request) {
     }
 
     // ตรวจสอบว่าอีเมลมีอยู่ในระบบหรือไม่
-    const user = await query("SELECT id, email, firstname, lastname FROM FTI_Portal_User WHERE email = ?", [
-      email,
-    ]);
+    const user = await query(
+      "SELECT id, email, firstname, lastname FROM FTI_Portal_User WHERE email = ?",
+      [email],
+    );
 
     if (!user || user.length === 0) {
       return NextResponse.json({ error: "ไม่พบอีเมลนี้ในระบบ" }, { status: 404 });

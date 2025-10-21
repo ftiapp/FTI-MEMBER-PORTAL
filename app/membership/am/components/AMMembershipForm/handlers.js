@@ -184,10 +184,12 @@ export const buildRepresentativeErrorMessage = (representativeErrors) => {
 
   representativeErrors.forEach((repError, index) => {
     if (repError && Object.keys(repError).length > 0) {
-      const fieldNames = Object.keys(repError).map(key => {
-        return FIELD_ERROR_MAP[key] || key;
-      }).join(', ');
-      
+      const fieldNames = Object.keys(repError)
+        .map((key) => {
+          return FIELD_ERROR_MAP[key] || key;
+        })
+        .join(", ");
+
       repErrorDetails.push(`ผู้แทนคนที่ ${index + 1}: ${fieldNames}`);
       errorCount += Object.keys(repError).length;
     }
@@ -195,8 +197,8 @@ export const buildRepresentativeErrorMessage = (representativeErrors) => {
 
   if (repErrorDetails.length > 0) {
     return {
-      message: `ข้อมูลผู้แทนไม่ครบถ้วน:\n${repErrorDetails.join('\n')}`,
-      count: errorCount
+      message: `ข้อมูลผู้แทนไม่ครบถ้วน:\n${repErrorDetails.join("\n")}`,
+      count: errorCount,
     };
   }
 
@@ -211,15 +213,18 @@ export const buildRepresentativeErrorMessage = (representativeErrors) => {
  */
 export const buildErrorToastMessage = (errors, firstErrorKey) => {
   const repErrorResult = buildRepresentativeErrorMessage(errors.representativeErrors);
-  const otherErrorCount = Object.keys(errors).filter(key => key !== 'representativeErrors').length;
+  const otherErrorCount = Object.keys(errors).filter(
+    (key) => key !== "representativeErrors",
+  ).length;
   const totalErrorCount = repErrorResult.count + otherErrorCount;
 
   let errorMessage = repErrorResult.message;
 
   if (!errorMessage) {
-    errorMessage = typeof errors[firstErrorKey] === "string"
-      ? errors[firstErrorKey]
-      : `พบข้อผิดพลาด ${totalErrorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
+    errorMessage =
+      typeof errors[firstErrorKey] === "string"
+        ? errors[firstErrorKey]
+        : `พบข้อผิดพลาด ${totalErrorCount} รายการ: กรุณาตรวจสอบและกรอกข้อมูลให้ครบถ้วน`;
   } else if (otherErrorCount > 0) {
     errorMessage += `\n\nและข้อผิดพลาดอื่นๆ อีก ${otherErrorCount} รายการ`;
   }

@@ -145,14 +145,14 @@ export default function AssociationBasicInfo({
 
       if (!response.ok) {
         const errorData = await response.json();
-        
+
         // ตรวจสอบ status code เพื่อแสดงข้อความที่เหมาะสม
         if (response.status === 404) {
           // ไม่พบข้อมูล
           clearAutofilledFields();
           toast.error(
             errorData.message ||
-              "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง"
+              "ไม่พบเลขประจำตัวผู้เสียภาษีนี้ในระบบ กรุณาตรวจสอบหมายเลขอีกครั้ง หากท่านยืนยันว่าถูกต้อง ให้กรอกข้อมูลด้วยตนเอง",
           );
           return;
         } else if (response.status === 503 || response.status === 504 || response.status === 500) {
@@ -161,7 +161,7 @@ export default function AssociationBasicInfo({
           toast.error(
             errorData.message ||
               "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
-            { duration: 6000 }
+            { duration: 6000 },
           );
           return;
         } else {
@@ -244,12 +244,12 @@ export default function AssociationBasicInfo({
       }
     } catch (error) {
       console.error("Error fetching association info:", error);
-      
+
       // Network error (Failed to fetch)
       clearAutofilledFields();
       toast.error(
         "ขณะนี้ระบบดึงข้อมูลอัตโนมัติไม่พร้อมใช้งาน กรุณาลองใหม่ในภายหลัง หรือใช้โหมดกรอกข้อมูลด้วยตนเอง ขออภัยในความไม่สะดวก",
-        { duration: 6000 }
+        { duration: 6000 },
       );
     } finally {
       setIsFetchingDBD(false);
@@ -307,46 +307,50 @@ export default function AssociationBasicInfo({
 
   return (
     <>
-      <LoadingOverlay 
-        isVisible={isFetchingDBD} 
+      <LoadingOverlay
+        isVisible={isFetchingDBD}
         message="กำลังดึงข้อมูลจากกรมพัฒนาธุรกิจการค้า..."
       />
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-      {/* Header Section */}
-      <div className="bg-blue-600 px-8 py-6">
-        <h3 className="text-xl font-semibold text-white tracking-tight">ข้อมูลสมาคม / Association Information</h3>
-        <p className="text-blue-100 text-sm mt-1">กรอกข้อมูลพื้นฐานของสมาคม / Enter basic association information</p>
-      </div>
+        {/* Header Section */}
+        <div className="bg-blue-600 px-8 py-6">
+          <h3 className="text-xl font-semibold text-white tracking-tight">
+            ข้อมูลสมาคม / Association Information
+          </h3>
+          <p className="text-blue-100 text-sm mt-1">
+            กรอกข้อมูลพื้นฐานของสมาคม / Enter basic association information
+          </p>
+        </div>
 
-      {/* Content Section */}
-      <div className="px-8 py-8 space-y-8">
-        {/* Manual-only mode: autofill selection removed */}
+        {/* Content Section */}
+        <div className="px-8 py-8 space-y-8">
+          {/* Manual-only mode: autofill selection removed */}
 
-        {/* Association Information Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
-            ข้อมูลพื้นฐาน / Basic Information
-          </h4>
+          {/* Association Information Section */}
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">
+              ข้อมูลพื้นฐาน / Basic Information
+            </h4>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Tax ID Field */}
-            <div className="space-y-2">
-              <label htmlFor="taxId" className="block text-sm font-medium text-gray-900">
-                เลขประจำตัวผู้เสียภาษี / Tax ID
-                <span className="text-red-500 ml-1">*</span>
-              </label>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Tax ID Field */}
+              <div className="space-y-2">
+                <label htmlFor="taxId" className="block text-sm font-medium text-gray-900">
+                  เลขประจำตัวผู้เสียภาษี / Tax ID
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
 
-              <div className="relative">
-                <input
-                  type="text"
-                  id="taxId"
-                  name="taxId"
-                  value={formData.taxId || ""}
-                  onChange={handleTaxIdChange}
-                  maxLength={13}
-                  required
-                  placeholder="0000000000000"
-                  className={`
+                <div className="relative">
+                  <input
+                    type="text"
+                    id="taxId"
+                    name="taxId"
+                    value={formData.taxId || ""}
+                    onChange={handleTaxIdChange}
+                    maxLength={13}
+                    required
+                    placeholder="0000000000000"
+                    className={`
                     w-full px-4 py-3 text-sm
                     border rounded-lg
                     bg-white
@@ -362,141 +366,144 @@ export default function AssociationBasicInfo({
                     }
                     ${validationStatus.status === "checking" ? "pr-28" : ""}
                   `}
-                  disabled={validationStatus.status === "checking"}
-                />
+                    disabled={validationStatus.status === "checking"}
+                  />
 
-                {/* Status Badge or Fetch Button - Only show one at a time */}
-                {validationStatus.status === "checking" ? (
-                  <div className="absolute right-2 top-2 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-md flex items-center gap-2">
-                    <svg
-                      className="animate-spin h-4 w-4 text-blue-600"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
+                  {/* Status Badge or Fetch Button - Only show one at a time */}
+                  {validationStatus.status === "checking" ? (
+                    <div className="absolute right-2 top-2 px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded-md flex items-center gap-2">
+                      <svg
+                        className="animate-spin h-4 w-4 text-blue-600"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      ตรวจสอบ
+                    </div>
+                  ) : validationStatus.status === "invalid" ? (
+                    <div className="absolute right-2 top-2 px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-md flex items-center gap-2">
+                      <svg
+                        className="h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
                         fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    ตรวจสอบ
-                  </div>
-                ) : validationStatus.status === "invalid" ? (
-                  <div className="absolute right-2 top-2 px-3 py-1.5 bg-red-100 text-red-800 text-xs font-medium rounded-md flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    ไม่ผ่าน
-                  </div>
-                ) : validationStatus.status === "valid" ? (
-                  <div className="absolute right-2 top-2 px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-md flex items-center gap-2">
-                    <svg
-                      className="h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    ผ่าน
-                  </div>
-                ) : null}
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      ไม่ผ่าน
+                    </div>
+                  ) : validationStatus.status === "valid" ? (
+                    <div className="absolute right-2 top-2 px-3 py-1.5 bg-green-100 text-green-800 text-xs font-medium rounded-md flex items-center gap-2">
+                      <svg
+                        className="h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      ผ่าน
+                    </div>
+                  ) : null}
+                </div>
+
+                {/* Status Messages */}
+                {validationStatus.message && (
+                  <p
+                    className={`mt-1 text-sm flex items-center gap-2 ${
+                      validationStatus.status === "invalid"
+                        ? "text-red-600"
+                        : validationStatus.status === "valid"
+                          ? "text-green-600"
+                          : "text-blue-600"
+                    }`}
+                  >
+                    {validationStatus.status === "checking" && (
+                      <svg
+                        className="animate-spin h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                    )}
+                    {validationStatus.status === "valid" && (
+                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                    {validationStatus.status === "invalid" && (
+                      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                    {validationStatus.message}
+                  </p>
+                )}
               </div>
 
-              {/* Status Messages */}
-              {validationStatus.message && (
-                <p
-                  className={`mt-1 text-sm flex items-center gap-2 ${
-                    validationStatus.status === "invalid"
-                      ? "text-red-600"
-                      : validationStatus.status === "valid"
-                        ? "text-green-600"
-                        : "text-blue-600"
-                  }`}
+              {/* Association Name Field */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="associationName"
+                  className="block text-sm font-medium text-gray-900"
                 >
-                  {validationStatus.status === "checking" && (
-                    <svg
-                      className="animate-spin h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                  )}
-                  {validationStatus.status === "valid" && (
-                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
-                  {validationStatus.status === "invalid" && (
-                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  )}
-                  {validationStatus.message}
-                </p>
-              )}
-            </div>
+                  ชื่อสมาคม / Association Name (Thai)
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
 
-            {/* Association Name Field */}
-            <div className="space-y-2">
-              <label htmlFor="associationName" className="block text-sm font-medium text-gray-900">
-                ชื่อสมาคม / Association Name (Thai)
-                <span className="text-red-500 ml-1">*</span>
-              </label>
-
-              <input
-                type="text"
-                id="associationName"
-                name="associationName"
-                value={formData.associationName || ""}
-                onChange={handleInputChange}
-                required
-                placeholder="ชื่อสมาคม"
-                className={`
+                <input
+                  type="text"
+                  id="associationName"
+                  name="associationName"
+                  value={formData.associationName || ""}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="ชื่อสมาคม"
+                  className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
                   transition-all duration-200
@@ -506,41 +513,41 @@ export default function AssociationBasicInfo({
                       : "border-gray-300 hover:border-gray-400 bg-white"
                   }
                 `}
-              />
+                />
 
-              {errors.associationName && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.associationName}
-                </p>
-              )}
-            </div>
+                {errors.associationName && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {errors.associationName}
+                  </p>
+                )}
+              </div>
 
-            {/* Association Name English Field */}
-            <div className="space-y-2">
-              <label
-                htmlFor="associationNameEng"
-                className="block text-sm font-medium text-gray-900"
-              >
-                ชื่อสมาคมภาษาอังกฤษ / Association Name (English)
-                <span className="text-red-500 ml-1">*</span>
-              </label>
+              {/* Association Name English Field */}
+              <div className="space-y-2">
+                <label
+                  htmlFor="associationNameEng"
+                  className="block text-sm font-medium text-gray-900"
+                >
+                  ชื่อสมาคมภาษาอังกฤษ / Association Name (English)
+                  <span className="text-red-500 ml-1">*</span>
+                </label>
 
-              <input
-                type="text"
-                id="associationNameEng"
-                name="associationNameEng"
-                value={formData.associationNameEng || ""}
-                onChange={handleInputChange}
-                required
-                placeholder="Association Name in English"
-                className={`
+                <input
+                  type="text"
+                  id="associationNameEng"
+                  name="associationNameEng"
+                  value={formData.associationNameEng || ""}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Association Name in English"
+                  className={`
                   w-full px-4 py-3 text-sm
                   border rounded-lg
                   transition-all duration-200
@@ -550,25 +557,25 @@ export default function AssociationBasicInfo({
                       : "border-gray-300 hover:border-gray-400 bg-white"
                   }
                 `}
-              />
+                />
 
-              {errors.associationNameEng && (
-                <p className="text-sm text-red-600 flex items-center gap-2">
-                  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  {errors.associationNameEng}
-                </p>
-              )}
+                {errors.associationNameEng && (
+                  <p className="text-sm text-red-600 flex items-center gap-2">
+                    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    {errors.associationNameEng}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
     </>
   );
 }

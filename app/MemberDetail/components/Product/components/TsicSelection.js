@@ -902,136 +902,136 @@ export default function TsicSelection({
       />
 
       <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <SectionFlow currentStep={currentStep} language={languageState} />
-        <LanguageToggle language={languageState} onToggle={toggleLanguage} />
-      </div>
-
-      {showSuccess ? (
-        <SuccessMessage language={languageState} />
-      ) : (
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">
-            {currentStep === 1 && getText("1. เลือกหมวดหมู่ใหญ่", "1. Select Main Category")}
-            {currentStep === 2 && getText("2. เลือกหมวดหมู่ย่อย", "2. Select Subcategory")}
-            {currentStep === 3 && getText("3. ตรวจสอบข้อมูล", "3. Review Information")}
-            {currentStep === 4 && getText("4. กำลังส่งข้อมูล", "4. Submitting Data")}
-          </h3>
-
-          <p className="text-sm text-gray-500 mb-4">
-            {currentStep === 1 &&
-              getText(
-                `คุณสามารถเลือกได้สูงสุด ${MAX_MAIN_CATEGORIES} หมวดหมู่หลัก`,
-                `You can select up to ${MAX_MAIN_CATEGORIES} main categories`,
-              )}
-            {currentStep === 2 &&
-              getText(
-                `เลือกได้สูงสุด ${MAX_SUBCATEGORIES} หมวดหมู่ย่อยต่อหมวดหมู่หลัก`,
-                `Select up to ${MAX_SUBCATEGORIES} subcategories per main category`,
-              )}
-            {currentStep === 3 &&
-              getText(
-                "ตรวจสอบข้อมูลที่เลือกก่อนยืนยัน",
-                "Review your selected information before confirming",
-              )}
-            {currentStep === 4 &&
-              getText("กำลังส่งข้อมูลไปยังระบบ", "Submitting data to the system")}
-          </p>
-
-          {/* Step 1: Main Category Selection */}
-          {currentStep === 1 && (
-            <>
-              <MainCategoryStep
-                mainCategories={mainCategories}
-                selectedMainCategories={selectedMainCategories}
-                handleMainCategoryChange={handleMainCategoryChange}
-                isLoading={isLoading}
-                language={languageState}
-              />
-
-              <div className="mt-6 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => selectedMainCategories.length > 0 && setCurrentStep(2)}
-                  disabled={selectedMainCategories.length === 0}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {getText("ถัดไป", "Next")}
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Step 2: Subcategory Selection */}
-          {currentStep === 2 && selectedMainCategories.length > 0 && (
-            <>
-              <SubcategoryStep
-                selectedMainCategories={selectedMainCategories}
-                filteredSubcategories={filteredSubcategories}
-                selectedSubcategories={selectedSubcategories}
-                currentPage={currentPage}
-                itemsPerPage={itemsPerPage}
-                searchTerm={searchTerm}
-                handleSearch={handleSearch}
-                handlePageChange={handlePageChange}
-                handleSubcategoryChange={handleSubcategoryChange}
-                isLoading={isLoading}
-                language={languageState}
-                getSelectedCount={getSelectedCount}
-              />
-
-              <div className="mt-6 flex justify-between">
-                <button
-                  type="button"
-                  onClick={() => setCurrentStep(1)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {getText("ย้อนกลับ", "Back")}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  {getText("ถัดไป", "Next")}
-                </button>
-              </div>
-            </>
-          )}
-
-          {/* Step 3: Review and Confirm */}
-          {currentStep === 3 && (
-            <ReviewStep
-              selectedMainCategories={selectedMainCategories}
-              selectedSubcategories={selectedSubcategories}
-              language={languageState}
-              handleCancel={() => setCurrentStep(2)}
-              handleSubmit={confirmSubmit}
-            />
-          )}
-
-          {/* Step 4: Loading */}
-          {currentStep === 4 && (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" />
-            </div>
-          )}
+        <div className="flex justify-between items-center mb-4">
+          <SectionFlow currentStep={currentStep} language={languageState} />
+          <LanguageToggle language={languageState} onToggle={toggleLanguage} />
         </div>
-      )}
 
-      {showConfirmation && (
-        <ConfirmationDialog
-          title={getText("ยืนยันการส่งข้อมูล", "Confirm Submission")}
-          message={getText(
-            "คุณต้องการส่งข้อมูลรหัส TSIC ที่เลือกหรือไม่?",
-            "Do you want to submit the selected TSIC codes?",
-          )}
-          confirmText={getText("ยืนยัน", "Confirm")}
-          cancelText={getText("ยกเลิก", "Cancel")}
-          onConfirm={confirmSubmit}
-          onCancel={cancelSubmit}
-        />
-      )}
+        {showSuccess ? (
+          <SuccessMessage language={languageState} />
+        ) : (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              {currentStep === 1 && getText("1. เลือกหมวดหมู่ใหญ่", "1. Select Main Category")}
+              {currentStep === 2 && getText("2. เลือกหมวดหมู่ย่อย", "2. Select Subcategory")}
+              {currentStep === 3 && getText("3. ตรวจสอบข้อมูล", "3. Review Information")}
+              {currentStep === 4 && getText("4. กำลังส่งข้อมูล", "4. Submitting Data")}
+            </h3>
+
+            <p className="text-sm text-gray-500 mb-4">
+              {currentStep === 1 &&
+                getText(
+                  `คุณสามารถเลือกได้สูงสุด ${MAX_MAIN_CATEGORIES} หมวดหมู่หลัก`,
+                  `You can select up to ${MAX_MAIN_CATEGORIES} main categories`,
+                )}
+              {currentStep === 2 &&
+                getText(
+                  `เลือกได้สูงสุด ${MAX_SUBCATEGORIES} หมวดหมู่ย่อยต่อหมวดหมู่หลัก`,
+                  `Select up to ${MAX_SUBCATEGORIES} subcategories per main category`,
+                )}
+              {currentStep === 3 &&
+                getText(
+                  "ตรวจสอบข้อมูลที่เลือกก่อนยืนยัน",
+                  "Review your selected information before confirming",
+                )}
+              {currentStep === 4 &&
+                getText("กำลังส่งข้อมูลไปยังระบบ", "Submitting data to the system")}
+            </p>
+
+            {/* Step 1: Main Category Selection */}
+            {currentStep === 1 && (
+              <>
+                <MainCategoryStep
+                  mainCategories={mainCategories}
+                  selectedMainCategories={selectedMainCategories}
+                  handleMainCategoryChange={handleMainCategoryChange}
+                  isLoading={isLoading}
+                  language={languageState}
+                />
+
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => selectedMainCategories.length > 0 && setCurrentStep(2)}
+                    disabled={selectedMainCategories.length === 0}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {getText("ถัดไป", "Next")}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Step 2: Subcategory Selection */}
+            {currentStep === 2 && selectedMainCategories.length > 0 && (
+              <>
+                <SubcategoryStep
+                  selectedMainCategories={selectedMainCategories}
+                  filteredSubcategories={filteredSubcategories}
+                  selectedSubcategories={selectedSubcategories}
+                  currentPage={currentPage}
+                  itemsPerPage={itemsPerPage}
+                  searchTerm={searchTerm}
+                  handleSearch={handleSearch}
+                  handlePageChange={handlePageChange}
+                  handleSubcategoryChange={handleSubcategoryChange}
+                  isLoading={isLoading}
+                  language={languageState}
+                  getSelectedCount={getSelectedCount}
+                />
+
+                <div className="mt-6 flex justify-between">
+                  <button
+                    type="button"
+                    onClick={() => setCurrentStep(1)}
+                    className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    {getText("ย้อนกลับ", "Back")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSubmit}
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    {getText("ถัดไป", "Next")}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* Step 3: Review and Confirm */}
+            {currentStep === 3 && (
+              <ReviewStep
+                selectedMainCategories={selectedMainCategories}
+                selectedSubcategories={selectedSubcategories}
+                language={languageState}
+                handleCancel={() => setCurrentStep(2)}
+                handleSubmit={confirmSubmit}
+              />
+            )}
+
+            {/* Step 4: Loading */}
+            {currentStep === 4 && (
+              <div className="flex justify-center py-8">
+                <LoadingSpinner size="lg" />
+              </div>
+            )}
+          </div>
+        )}
+
+        {showConfirmation && (
+          <ConfirmationDialog
+            title={getText("ยืนยันการส่งข้อมูล", "Confirm Submission")}
+            message={getText(
+              "คุณต้องการส่งข้อมูลรหัส TSIC ที่เลือกหรือไม่?",
+              "Do you want to submit the selected TSIC codes?",
+            )}
+            confirmText={getText("ยืนยัน", "Confirm")}
+            cancelText={getText("ยกเลิก", "Cancel")}
+            onConfirm={confirmSubmit}
+            onCancel={cancelSubmit}
+          />
+        )}
       </div>
     </>
   );

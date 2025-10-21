@@ -17,7 +17,9 @@ export async function GET() {
     // ดึงข้อมูลเพิ่มเติมจากฐานข้อมูล เช่น name
     let adminName = null;
     try {
-      const admins = await query("SELECT name FROM FTI_Portal_Admin_Users WHERE id = ? LIMIT 1", [admin.id]);
+      const admins = await query("SELECT name FROM FTI_Portal_Admin_Users WHERE id = ? LIMIT 1", [
+        admin.id,
+      ]);
       adminName = admins.length > 0 ? admins[0].name : null;
     } catch (error) {
       console.error("Error fetching admin name:", error);

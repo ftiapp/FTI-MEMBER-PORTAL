@@ -93,7 +93,7 @@ export const renderNavigationButtons = ({
   consentAgreed,
 }) => {
   const steps = effectiveTotalSteps || totalSteps || 5;
-  
+
   return (
     <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg z-10">
       <div className="max-w-7xl mx-auto flex justify-between items-center">

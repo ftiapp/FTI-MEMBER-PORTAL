@@ -98,7 +98,11 @@ export async function POST(request) {
     );
 
     // Upload to Cloudinary
-    const uploadResult = await uploadToCloudinary(fileBuffer, fileName, "FTI_Original_Membership_Company_Logos");
+    const uploadResult = await uploadToCloudinary(
+      fileBuffer,
+      fileName,
+      "FTI_Original_Membership_Company_Logos",
+    );
 
     // Check if upload was successful
     if (!uploadResult.success) {
@@ -228,7 +232,7 @@ export async function POST(request) {
       ];
 
       // ตรวจสอบว่ามี undefined หรือไม่
-      if (logParams.some(param => param === undefined)) {
+      if (logParams.some((param) => param === undefined)) {
         console.error("Found undefined in log parameters:", {
           validUserId,
           action,

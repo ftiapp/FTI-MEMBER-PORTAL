@@ -49,12 +49,7 @@ export const renderStepComponent = ({
         }}
       />
     ),
-    3: (
-      <BusinessInfoSection
-        {...commonProps}
-        businessTypes={businessTypes}
-      />
-    ),
+    3: <BusinessInfoSection {...commonProps} businessTypes={businessTypes} />,
     4: <DocumentsSection {...commonProps} />,
     5: (
       <SummarySection
@@ -163,8 +158,8 @@ export const renderDocumentHint = (currentStep) => {
   return (
     <div className="mt-6 p-6 bg-yellow-50 border border-yellow-200 rounded-lg">
       <p className="text-yellow-700 text-base">
-        <strong>รายการเอกสารที่ท่านต้องเตรียม:</strong> หนังสือรับรองสมาคม
-        และทะเบียนภาษีมูลค่าเพิ่ม (ภ.พ.20)
+        <strong>รายการเอกสารที่ท่านต้องเตรียม:</strong> หนังสือรับรองสมาคม และทะเบียนภาษีมูลค่าเพิ่ม
+        (ภ.พ.20)
       </p>
     </div>
   );

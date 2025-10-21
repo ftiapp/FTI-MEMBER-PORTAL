@@ -68,7 +68,10 @@ export async function POST(request) {
     let oldEmail = null;
 
     // ดึงข้อมูลจาก FTI_Portal_User table
-    const user = await query("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [userId]);
+    const user = await query(
+      "SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?",
+      [userId],
+    );
     if (user && user.length > 0) {
       firstname = user[0].firstname;
       lastname = user[0].lastname;
@@ -78,7 +81,9 @@ export async function POST(request) {
     }
 
     // อัปเดตสถานะ token เป็นใช้งานแล้ว (OTP ของ email ปัจจุบัน)
-    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [verificationToken[0].id]);
+    await query("UPDATE FTI_Portal_User_Verification_Tokens SET used = 1 WHERE id = ?", [
+      verificationToken[0].id,
+    ]);
 
     // ลบข้อมูล OTP เก่าใน FTI_Portal_User_Verification_Tokens ที่อาจมีอยู่สำหรับผู้ใช้นี้
     await query(
@@ -93,7 +98,9 @@ export async function POST(request) {
     const expiresAt = new Date(Date.now() + expiresInMinutes * 60000);
 
     // ลบ FTI_Original_Membership_Pending_Email_Changes เดิม (ถ้ามี)
-    await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?", [userId]);
+    await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE user_id = ?", [
+      userId,
+    ]);
 
     // สร้าง FTI_Original_Membership_Pending_Email_Changes ใหม่
     await query(

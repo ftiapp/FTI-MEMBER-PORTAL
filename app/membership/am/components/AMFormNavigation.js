@@ -55,7 +55,11 @@ export const useAMFormNavigation = (validateForm) => {
           if (element) {
             element.scrollIntoView({ behavior: "smooth", block: "center" });
             // Focus ถ้าเป็น input field
-            if (element.tagName === "INPUT" || element.tagName === "TEXTAREA" || element.tagName === "SELECT") {
+            if (
+              element.tagName === "INPUT" ||
+              element.tagName === "TEXTAREA" ||
+              element.tagName === "SELECT"
+            ) {
               element.focus();
             }
             return;
@@ -64,7 +68,9 @@ export const useAMFormNavigation = (validateForm) => {
       }
 
       // ถ้าหาไม่เจอ ลอง scroll ไปหา error message แรก
-      const firstErrorMessage = document.querySelector(".text-red-600, .text-red-500, .border-red-300");
+      const firstErrorMessage = document.querySelector(
+        ".text-red-600, .text-red-500, .border-red-300",
+      );
       if (firstErrorMessage) {
         firstErrorMessage.scrollIntoView({ behavior: "smooth", block: "center" });
       }

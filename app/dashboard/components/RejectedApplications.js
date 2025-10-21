@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { LoadingOverlay } from "./shared";
 
@@ -15,8 +15,23 @@ export default function RejectedApplications({
   const [error, setError] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const router = useRouter();
+  
+  // ป้องกัน API calls ซ้ำซ้อน
+  const fetchingRef = useRef(false);
+  const lastFetchParamsRef = useRef(null);
 
   useEffect(() => {
+    // สร้าง unique key สำหรับ fetch parameters
+    const fetchKey = `${currentPage}-${itemsPerPage}`;
+    
+    // ถ้ากำลัง fetch อยู่ หรือ parameters เหมือนเดิม ไม่ต้อง fetch ใหม่
+    if (fetchingRef.current || lastFetchParamsRef.current === fetchKey) {
+      console.log('🚫 RejectedApplications - Skip duplicate fetch:', fetchKey);
+      return;
+    }
+    
+    console.log('✅ RejectedApplications - Fetching with params:', { currentPage, itemsPerPage });
+    lastFetchParamsRef.current = fetchKey;
     fetchRejectedApplications();
   }, [currentPage, itemsPerPage]);
 
@@ -28,12 +43,25 @@ export default function RejectedApplications({
   }, [totalItems, onTotalItemsChange]);
 
   const fetchRejectedApplications = async () => {
+    if (fetchingRef.current) {
+      console.log('⏳ RejectedApplications - Already fetching, skipping...');
+      return;
+    }
+    
     try {
+      fetchingRef.current = true;
       setLoading(true);
+      console.log('📡 RejectedApplications - API call starting...');
       const response = await fetch(
         `/api/membership/rejected-applications?page=${currentPage}&limit=${itemsPerPage}`,
       );
       const result = await response.json();
+      
+      console.log('📥 RejectedApplications - API response received:', {
+        success: result.success,
+        count: result.data?.length,
+        totalItems: result.pagination?.totalItems || result.totalItems
+      });
 
       if (result.success) {
         setRejectedApps(result.data || []);
@@ -44,12 +72,14 @@ export default function RejectedApplications({
         setTotalItems(0);
       }
     } catch (error) {
-      console.error("Error fetching rejected applications:", error);
+      console.error("❌ RejectedApplications - Error fetching:", error);
       setError("Failed to fetch rejected applications");
       setRejectedApps([]);
       setTotalItems(0);
     } finally {
+      fetchingRef.current = false;
       setLoading(false);
+      console.log('✅ RejectedApplications - Fetch completed');
     }
   };
 
@@ -165,12 +195,12 @@ export default function RejectedApplications({
     <div className="space-y-4">
       {/* แสดงข้อมูลสถิติ */}
       {totalItems > 0 && (
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-4">
-          <span>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-4 gap-2">
+          <span className="text-center sm:text-left">
             แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}-
             {Math.min(currentPage * itemsPerPage, totalItems)} จาก {totalItems} รายการ
           </span>
-          <span>
+          <span className="text-center sm:text-right text-gray-500">
             หน้า {currentPage} จาก {Math.ceil(totalItems / itemsPerPage)}
           </span>
         </div>
@@ -183,10 +213,10 @@ export default function RejectedApplications({
           className="bg-white border border-red-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
         >
           <div className="p-6">
-            <div className="flex items-start justify-between">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center space-x-3 mb-3">
-                  <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
+                  <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full flex-shrink-0">
                     <svg
                       className="w-5 h-5 text-red-600"
                       fill="none"
@@ -243,16 +273,16 @@ export default function RejectedApplications({
               </div>
             </div>
 
-            <div className="flex items-center justify-end space-x-3 pt-4 border-t border-gray-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 pt-4 border-t border-gray-200">
               <button
                 onClick={() => handleCancelApplication(app)}
-                className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-red-600 bg-white border border-red-300 rounded-md hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors w-full sm:w-auto"
               >
                 ยกเลิกใบสมัคร
               </button>
               <button
                 onClick={() => handleEditApplication(app)}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors w-full sm:w-auto"
               >
                 แก้ไขและส่งใหม่
               </button>

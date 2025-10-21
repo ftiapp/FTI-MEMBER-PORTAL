@@ -8,7 +8,7 @@ import RepresentativeForm from "./RepresentativeForm";
 /**
  * Unified Representative Info Section Component
  * Supports both single and multiple representative modes
- * 
+ *
  * @param {object} props
  * @param {string} props.mode - 'single' or 'multiple'
  * @param {object} props.formData - Form data object
@@ -27,11 +27,19 @@ export default function RepresentativeInfoSection({
   const defaultConfig = {
     maxRepresentatives: 3,
     showPosition: true,
-    positionPlaceholder: mode === "multiple" ? "ประธาน, รองประธาน... / President, Vice President..." : "ตำแหน่ง / Position",
+    positionPlaceholder:
+      mode === "multiple"
+        ? "ประธาน, รองประธาน... / President, Vice President..."
+        : "ตำแหน่ง / Position",
     positionRequired: false,
-    headerTitle: mode === "single" ? "ข้อมูลผู้แทน / Representative Information" : "ข้อมูลผู้แทน / Association Representative Information",
+    headerTitle:
+      mode === "single"
+        ? "ข้อมูลผู้แทน / Representative Information"
+        : "ข้อมูลผู้แทน / Association Representative Information",
     headerSubtitle:
-      mode === "single" ? "ข้อมูลผู้แทนที่สามารถติดต่อได้ / Contact representative information" : "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม / Authorized signatory representative information",
+      mode === "single"
+        ? "ข้อมูลผู้แทนที่สามารถติดต่อได้ / Contact representative information"
+        : "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม / Authorized signatory representative information",
     infoMessage: "สามารถเพิ่มผู้แทนได้สูงสุด 3 ท่าน ควรเป็นผู้มีอำนาจลงนามตามหนังสือรับรอง",
     toastId: "representative-errors",
     fieldNames: {

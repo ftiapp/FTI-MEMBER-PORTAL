@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { executeQueryWithoutTransaction } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -10,118 +10,118 @@ export async function POST(request) {
       return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
-// ฟังก์ชันสำหรับอัปเดตข้อมูลทางการเงิน (OC/AC/AM)
-async function updateFinancialInfo(applicationId, type, data) {
-  const upper = type.toUpperCase();
-  const tableName = `MemberRegist_${upper}_Main`;
+    // ฟังก์ชันสำหรับอัปเดตข้อมูลทางการเงิน (OC/AC/AM)
+    async function updateFinancialInfo(applicationId, type, data) {
+      const upper = type.toUpperCase();
+      const tableName = `MemberRegist_${upper}_Main`;
 
-  // ตรวจสอบคอลัมน์ที่มีอยู่จริงในตาราง เพื่อหลีกเลี่ยง error ระหว่าง type ต่างๆ
-  const columns = await executeQueryWithoutTransaction(`SHOW COLUMNS FROM ${tableName}`);
-  const columnNames = columns.map((c) => c.Field);
+      // ตรวจสอบคอลัมน์ที่มีอยู่จริงในตาราง เพื่อหลีกเลี่ยง error ระหว่าง type ต่างๆ
+      const columns = await executeQueryWithoutTransaction(`SHOW COLUMNS FROM ${tableName}`);
+      const columnNames = columns.map((c) => c.Field);
 
-  const updateFields = [];
-  const updateValues = [];
+      const updateFields = [];
+      const updateValues = [];
 
-  const toNumberOrNull = (v) => {
-    if (v === undefined || v === null || v === "") return null;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
-  };
+      const toNumberOrNull = (v) => {
+        if (v === undefined || v === null || v === "") return null;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+      };
 
-  const addField = (key, column, value, numeric = false) => {
-    if (value !== undefined && columnNames.includes(column)) {
-      updateFields.push(`${column} = ?`);
-      updateValues.push(numeric ? toNumberOrNull(value) : value);
+      const addField = (key, column, value, numeric = false) => {
+        if (value !== undefined && columnNames.includes(column)) {
+          updateFields.push(`${column} = ?`);
+          updateValues.push(numeric ? toNumberOrNull(value) : value);
+        }
+      };
+
+      // Map fields from FinancialInfoSection
+      addField("registeredCapital", "registered_capital", data.registeredCapital, true);
+      addField(
+        "productionCapacityValue",
+        "production_capacity_value",
+        data.productionCapacityValue,
+        true,
+      );
+      addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
+      addField("salesDomestic", "sales_domestic", data.salesDomestic, true);
+      addField("salesExport", "sales_export", data.salesExport, true);
+      addField(
+        "shareholderThaiPercent",
+        "shareholder_thai_percent",
+        data.shareholderThaiPercent,
+        true,
+      );
+      addField(
+        "shareholderForeignPercent",
+        "shareholder_foreign_percent",
+        data.shareholderForeignPercent,
+        true,
+      );
+      addField("revenueLastYear", "revenue_last_year", data.revenueLastYear, true);
+      addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear, true);
+
+      if (updateFields.length === 0) return { updated: 0 };
+
+      updateValues.push(applicationId);
+      await executeQueryWithoutTransaction(
+        `UPDATE ${tableName} SET ${updateFields.join(", ")} WHERE id = ?`,
+        updateValues,
+      );
+
+      return { updated: updateFields.length };
     }
-  };
 
-  // Map fields from FinancialInfoSection
-  addField("registeredCapital", "registered_capital", data.registeredCapital, true);
-  addField(
-    "productionCapacityValue",
-    "production_capacity_value",
-    data.productionCapacityValue,
-    true
-  );
-  addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
-  addField("salesDomestic", "sales_domestic", data.salesDomestic, true);
-  addField("salesExport", "sales_export", data.salesExport, true);
-  addField(
-    "shareholderThaiPercent",
-    "shareholder_thai_percent",
-    data.shareholderThaiPercent,
-    true
-  );
-  addField(
-    "shareholderForeignPercent",
-    "shareholder_foreign_percent",
-    data.shareholderForeignPercent,
-    true
-  );
-  addField("revenueLastYear", "revenue_last_year", data.revenueLastYear, true);
-  addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear, true);
+    // ฟังก์ชันสำหรับอัปเดตประเภทธุรกิจ
+    async function updateBusinessTypes(applicationId, type, data) {
+      const upper = type.toUpperCase();
+      const base = `MemberRegist_${upper}`;
 
-  if (updateFields.length === 0) return { updated: 0 };
+      const allowedTypes = new Set([
+        "manufacturer",
+        "distributor",
+        "importer",
+        "exporter",
+        "service",
+        "other",
+      ]);
 
-  updateValues.push(applicationId);
-  await executeQueryWithoutTransaction(
-    `UPDATE ${tableName} SET ${updateFields.join(", ")} WHERE id = ?`,
-    updateValues,
-  );
+      // Normalize input
+      const selected = Array.isArray(data?.businessTypes) ? data.businessTypes : [];
+      const filtered = selected.filter((t) => allowedTypes.has(String(t)));
+      const otherDetail = data?.businessTypeOther || data?.otherDetail || null;
 
-  return { updated: updateFields.length };
-}
+      // Resolve table names and column differences
+      const businessTypesTable = `${base}_BusinessTypes`;
+      const otherTable = `${base}_BusinessTypeOther`;
+      const otherColumn = type === "ic" ? "other_type" : "detail";
 
-// ฟังก์ชันสำหรับอัปเดตประเภทธุรกิจ
-async function updateBusinessTypes(applicationId, type, data) {
-  const upper = type.toUpperCase();
-  const base = `MemberRegist_${upper}`;
+      // Delete old rows
+      await executeQueryWithoutTransaction(`DELETE FROM ${businessTypesTable} WHERE main_id = ?`, [
+        applicationId,
+      ]);
+      await executeQueryWithoutTransaction(`DELETE FROM ${otherTable} WHERE main_id = ?`, [
+        applicationId,
+      ]).catch(() => {});
 
-  const allowedTypes = new Set([
-    "manufacturer",
-    "distributor",
-    "importer",
-    "exporter",
-    "service",
-    "other",
-  ]);
+      // Insert new business types
+      for (const bt of filtered) {
+        await executeQueryWithoutTransaction(
+          `INSERT INTO ${businessTypesTable} (main_id, business_type) VALUES (?, ?)`,
+          [applicationId, bt],
+        );
+      }
 
-  // Normalize input
-  const selected = Array.isArray(data?.businessTypes) ? data.businessTypes : [];
-  const filtered = selected.filter((t) => allowedTypes.has(String(t)));
-  const otherDetail = data?.businessTypeOther || data?.otherDetail || null;
+      // Insert other detail if provided and 'other' selected
+      if (filtered.includes("other") && otherDetail) {
+        await executeQueryWithoutTransaction(
+          `INSERT INTO ${otherTable} (main_id, ${otherColumn}) VALUES (?, ?)`,
+          [applicationId, otherDetail],
+        ).catch(() => {});
+      }
 
-  // Resolve table names and column differences
-  const businessTypesTable = `${base}_BusinessTypes`;
-  const otherTable = `${base}_BusinessTypeOther`;
-  const otherColumn = type === "ic" ? "other_type" : "detail";
-
-  // Delete old rows
-  await executeQueryWithoutTransaction(`DELETE FROM ${businessTypesTable} WHERE main_id = ?`, [
-    applicationId,
-  ]);
-  await executeQueryWithoutTransaction(`DELETE FROM ${otherTable} WHERE main_id = ?`, [
-    applicationId,
-  ]).catch(() => {});
-
-  // Insert new business types
-  for (const bt of filtered) {
-    await executeQueryWithoutTransaction(
-      `INSERT INTO ${businessTypesTable} (main_id, business_type) VALUES (?, ?)`,
-      [applicationId, bt],
-    );
-  }
-
-  // Insert other detail if provided and 'other' selected
-  if (filtered.includes("other") && otherDetail) {
-    await executeQueryWithoutTransaction(
-      `INSERT INTO ${otherTable} (main_id, ${otherColumn}) VALUES (?, ?)`,
-      [applicationId, otherDetail],
-    ).catch(() => {});
-  }
-
-  return { updated: filtered.length, other: !!otherDetail };
-}
+      return { updated: filtered.length, other: !!otherDetail };
+    }
 
     const { applicationId, type, section, data } = await request.json();
 
@@ -327,22 +327,37 @@ async function updateRepresentatives(applicationId, type, data) {
 
   // เพิ่มข้อมูลใหม่
   if (data && data.length > 0) {
-    for (const rep of data) {
+    for (const [index, rep] of data.entries()) {
+      const prenameTh = rep.prename_th ?? rep.prenameTh ?? null;
+      const prenameEn = rep.prename_en ?? rep.prenameEn ?? null;
+      const prenameOther = rep.prename_other ?? rep.prenameOther ?? null;
+      const prenameOtherEn = rep.prename_other_en ?? rep.prenameOtherEn ?? null;
+      const order = rep.rep_order ?? rep.order ?? index + 1;
+      const isPrimary = rep.is_primary ?? (rep.isPrimary ? 1 : 0) ?? (order === 1 ? 1 : 0);
+
       await executeQueryWithoutTransaction(
         `INSERT INTO ${tableName} (
-          main_id, first_name_th, last_name_th, first_name_en, last_name_en,
-          position, email, phone, phone_extension
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          main_id, prename_th, prename_en, prename_other, prename_other_en,
+          first_name_th, last_name_th, first_name_en, last_name_en,
+          position, email, phone, phone_extension,
+          rep_order, is_primary
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
         [
           applicationId,
-          rep.firstNameTh || "",
-          rep.lastNameTh || "",
-          rep.firstNameEn || "",
-          rep.lastNameEn || "",
+          prenameTh || "",
+          prenameEn || "",
+          prenameOther || "",
+          prenameOtherEn || "",
+          rep.firstNameTh || rep.first_name_th || "",
+          rep.lastNameTh || rep.last_name_th || "",
+          rep.firstNameEn || rep.first_name_en || "",
+          rep.lastNameEn || rep.last_name_en || "",
           rep.position || "",
           rep.email || "",
           rep.phone || "",
-          rep.phoneExtension || "",
+          rep.phoneExtension || rep.phone_extension || "",
+          order,
+          isPrimary ? 1 : 0,
         ],
       );
     }
@@ -383,13 +398,18 @@ async function updateCompanyInfo(applicationId, type, data) {
   addField("factoryType", "factory_type", data.factoryType);
   addField("numberOfEmployees", "number_of_employees", data.numberOfEmployees);
   addField("numberOfMembers", "number_of_members", data.numberOfMembers);
+  addField("numberOfMembers", "number_of_member", data.numberOfMembers);
   addField("registeredCapital", "registered_capital", data.registeredCapital);
   addField("productionCapacityValue", "production_capacity_value", data.productionCapacityValue);
   addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
   addField("salesDomestic", "sales_domestic", data.salesDomestic);
   addField("salesExport", "sales_export", data.salesExport);
   addField("shareholderThaiPercent", "shareholder_thai_percent", data.shareholderThaiPercent);
-  addField("shareholderForeignPercent", "shareholder_foreign_percent", data.shareholderForeignPercent);
+  addField(
+    "shareholderForeignPercent",
+    "shareholder_foreign_percent",
+    data.shareholderForeignPercent,
+  );
   addField("revenueLastYear", "revenue_last_year", data.revenueLastYear);
   addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear);
 

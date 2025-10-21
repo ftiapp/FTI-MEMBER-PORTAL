@@ -52,7 +52,7 @@ const SwitchTypeModal = ({ isOpen, onClose, application, currentType, onSuccess 
       }
 
       toast.success(data.message || "เปลี่ยนประเภทสมาชิกสำเร็จ");
-      
+
       // Redirect to new application page
       if (onSuccess) {
         onSuccess(data.data.newId, data.data.newType);
@@ -115,11 +115,7 @@ const SwitchTypeModal = ({ isOpen, onClose, application, currentType, onSuccess 
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded">
             <div className="flex">
               <div className="flex-shrink-0">
-                <svg
-                  className="h-5 w-5 text-yellow-400"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
+                <svg className="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
@@ -169,15 +165,15 @@ const SwitchTypeModal = ({ isOpen, onClose, application, currentType, onSuccess 
                     application.status === 0 || application.status === "pending"
                       ? "bg-yellow-100 text-yellow-800"
                       : application.status === 1 || application.status === "approved"
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
                   }`}
                 >
                   {application.status === 0 || application.status === "pending"
                     ? "รอพิจารณา"
                     : application.status === 1 || application.status === "approved"
-                    ? "อนุมัติแล้ว"
-                    : "ปฏิเสธ"}
+                      ? "อนุมัติแล้ว"
+                      : "ปฏิเสธ"}
                 </span>
               </div>
             </div>
@@ -221,9 +217,7 @@ const SwitchTypeModal = ({ isOpen, onClose, application, currentType, onSuccess 
 
           {/* Info Box */}
           <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h4 className="text-sm font-semibold text-gray-700 mb-2">
-              ข้อมูลที่จะถูกถ่ายโอน:
-            </h4>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">ข้อมูลที่จะถูกถ่ายโอน:</h4>
             <ul className="text-sm text-gray-600 space-y-1 list-disc list-inside">
               <li>ข้อมูลบริษัท (ชื่อ, เลขประจำตัวผู้เสียภาษี, ที่อยู่)</li>
               <li>ข้อมูลผู้ติดต่อและผู้แทนบริษัท</li>
@@ -251,11 +245,7 @@ const SwitchTypeModal = ({ isOpen, onClose, application, currentType, onSuccess 
           >
             {isProcessing ? (
               <>
-                <svg
-                  className="animate-spin h-5 w-5 text-white"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
                   <circle
                     className="opacity-25"
                     cx="12"

@@ -12,6 +12,7 @@ import Script from "next/script";
 import { FaSpinner } from "react-icons/fa";
 import { useSearchParams } from "next/navigation";
 import LoginLoadingOverlay from "./components/LoginLoadingOverlay";
+import CryptoJS from "crypto-js";
 
 export default function Login() {
   // Load reCAPTCHA script
@@ -34,6 +35,7 @@ export default function Login() {
   const [captchaToken, setCaptchaToken] = useState("");
   const recaptchaRef = useRef(null);
   const timerRef = useRef(null);
+  const rememberMeSecret = process.env.NEXT_PUBLIC_REMEMBER_ME_SECRET || "fti-remember-secret";
 
   // Function to get cookie value
   const getCookie = (name) => {
@@ -44,6 +46,88 @@ export default function Login() {
     return null;
   };
 
+  const decodeLegacyCredential = (str) => {
+    try {
+      return decodeURIComponent(atob(str));
+    } catch (e) {
+      return str;
+    }
+  };
+
+  const encryptCredential = (str) => {
+    try {
+      if (!str) return "";
+      return CryptoJS.AES.encrypt(str, rememberMeSecret).toString();
+    } catch (error) {
+      console.error("Error encrypting credential:", error);
+      return str;
+    }
+  };
+
+  const decryptCredential = (str) => {
+    if (!str) return "";
+    try {
+      const bytes = CryptoJS.AES.decrypt(str, rememberMeSecret);
+      const decrypted = bytes.toString(CryptoJS.enc.Utf8);
+      if (decrypted) {
+        return decrypted;
+      }
+    } catch (error) {
+      console.error("Error decrypting credential:", error);
+    }
+    return decodeLegacyCredential(str);
+  };
+
+  // Load saved credentials from localStorage
+  const loadSavedCredentials = () => {
+    try {
+      const savedEmail = localStorage.getItem("user_remember_email");
+      const savedPassword = localStorage.getItem("user_remember_password");
+      const savedRemember = localStorage.getItem("user_remember_me");
+
+      if (savedRemember === "true" && savedEmail) {
+        const decryptedEmail = decryptCredential(savedEmail);
+        const decryptedPassword = decryptCredential(savedPassword);
+
+        setFormData({
+          email: decryptedEmail,
+          password: decryptedPassword,
+        });
+        setRememberMe(true);
+      } else {
+        const cookieEmail = getCookie("userEmail");
+        const rememberedPref = getCookie("rememberMe");
+
+        if (cookieEmail) {
+          setFormData((prev) => ({ ...prev, email: cookieEmail }));
+        }
+
+        if (rememberedPref === "1") {
+          setRememberMe(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading saved credentials:', error);
+    }
+  };
+
+  // Save credentials to localStorage
+  const saveCredentials = () => {
+    try {
+      if (rememberMe) {
+        localStorage.setItem("user_remember_email", encryptCredential(formData.email));
+        localStorage.setItem("user_remember_password", encryptCredential(formData.password));
+        localStorage.setItem("user_remember_me", "true");
+      } else {
+        localStorage.removeItem("user_remember_email");
+        localStorage.removeItem("user_remember_password");
+        localStorage.removeItem("user_remember_me");
+      }
+    } catch (error) {
+      console.error("Error saving credentials:", error);
+    }
+  };
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth <= 768);
@@ -52,17 +136,8 @@ export default function Login() {
     checkMobile();
     window.addEventListener("resize", checkMobile);
 
-    // Check for saved email and remember me preference
-    const savedEmail = getCookie("userEmail");
-    const rememberedPref = getCookie("rememberMe");
-
-    if (savedEmail) {
-      setFormData((prev) => ({ ...prev, email: savedEmail }));
-    }
-
-    if (rememberedPref === "1") {
-      setRememberMe(true);
-    }
+    // Load saved credentials
+    loadSavedCredentials();
 
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
@@ -239,12 +314,6 @@ export default function Login() {
 
     setIsSubmitting(true);
     try {
-      // Store email in localStorage if rememberMe is checked (as a backup)
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", formData.email);
-      } else {
-        localStorage.removeItem("rememberedEmail");
-      }
 
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -309,12 +378,10 @@ export default function Login() {
         throw new Error(data.error || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ");
       }
 
+      // Save credentials if remember me is checked
+      saveCredentials();
+      
       login(data.user, rememberMe);
-
-      // Save email in localStorage as a backup in case cookies don't work
-      if (rememberMe) {
-        localStorage.setItem("rememberedEmail", formData.email);
-      }
       try {
         const sessionId =
           data.sessionId ||
@@ -548,8 +615,8 @@ export default function Login() {
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
                         />
-                        <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900">
-                          บันทึกผู้ใช้งาน
+                        <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900 cursor-pointer">
+                          จดจำฉัน
                         </label>
                       </div>
                       <div className="text-sm">

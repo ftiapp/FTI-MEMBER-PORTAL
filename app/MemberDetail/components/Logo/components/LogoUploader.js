@@ -176,30 +176,27 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
 
   return (
     <>
-      <LoadingOverlay
-        isVisible={showLoadingOverlay}
-        message="กำลังอัปโหลดโลโก้"
-      />
-    <div className="bg-white rounded-lg shadow p-6">
-      <h3 className="text-lg font-semibold mb-4">อัปโหลดโลโก้บริษัท</h3>
+      <LoadingOverlay isVisible={showLoadingOverlay} message="กำลังอัปโหลดโลโก้" />
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold mb-4">อัปโหลดโลโก้บริษัท</h3>
 
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
 
-      {success && (
-        <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
-          <p className="text-green-700">บันทึกข้อมูลเรียบร้อยแล้ว</p>
-        </div>
-      )}
+        {success && (
+          <div className="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
+            <p className="text-green-700">บันทึกข้อมูลเรียบร้อยแล้ว</p>
+          </div>
+        )}
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Logo preview */}
-        <div className="flex flex-col items-center">
-          <div
-            className={`
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Logo preview */}
+          <div className="flex flex-col items-center">
+            <div
+              className={`
             w-48 h-48 
             ${displayMode === "circle" ? "rounded-full" : "rounded-lg"} 
             border-2 border-dashed border-gray-300 
@@ -208,121 +205,121 @@ export default function LogoUploader({ memberCode, existingLogo = null, onUpdate
             bg-gray-50
             ${preview ? "border-solid border-blue-300" : ""}
           `}
-          >
-            {preview ? (
-              <img src={preview} alt="Logo preview" className="w-full h-full object-cover" />
-            ) : (
-              <FaImage className="text-gray-400 text-5xl" />
-            )}
-          </div>
-
-          <div className="flex gap-2 mt-4">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current.click()}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center"
             >
-              <FaUpload className="mr-2" />
-              {existingLogo ? "เปลี่ยนโลโก้" : "เลือกไฟล์"}
-            </button>
-
-            {croppedImage && (
-              <button
-                type="button"
-                onClick={() => setShowCropper(true)}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
-              >
-                <FaCrop className="mr-2" />
-                ปรับแต่งรูป
-              </button>
-            )}
-          </div>
-
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept="image/jpeg,image/png,image/gif,image/webp"
-            className="hidden"
-          />
-
-          <p className="text-sm text-gray-500 mt-2">
-            รองรับไฟล์ JPEG, PNG, GIF, WebP ขนาดไม่เกิน 5MB
-          </p>
-        </div>
-
-        {/* Display mode selection */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-gray-700">รูปแบบการแสดงผล</label>
-          <div className="flex space-x-4">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input
-                type="radio"
-                name="displayMode"
-                value="square"
-                checked={displayMode === "square"}
-                onChange={() => setDisplayMode("square")}
-                className="text-blue-600 focus:ring-blue-500"
-              />
-              <span className="flex items-center">
-                <FaSquare className="text-blue-600 mr-1" /> สี่เหลี่ยม
-              </span>
-            </label>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div className="flex justify-end space-x-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors flex items-center"
-            disabled={isSubmitting}
-          >
-            <FaTimes className="mr-1" /> ยกเลิก
-          </button>
-
-          <button
-            type="submit"
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <span className="flex items-center">
-                <FaSpinner className="animate-spin mr-2" /> กำลังบันทึก...
-              </span>
-            ) : (
-              <span className="flex items-center">
-                <FaSave className="mr-1" /> บันทึก
-              </span>
-            )}
-          </button>
-        </div>
-      </form>
-
-      {/* Cropper Modal */}
-      {showCropper && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">ปรับแต่งรูปโลโก้</h3>
-              <button
-                onClick={() => setShowCropper(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <FaTimes />
-              </button>
+              {preview ? (
+                <img src={preview} alt="Logo preview" className="w-full h-full object-cover" />
+              ) : (
+                <FaImage className="text-gray-400 text-5xl" />
+              )}
             </div>
 
-            <ImageCropper
-              image={imageToCrop}
-              onCropComplete={handleCropComplete}
-              onCancel={() => setShowCropper(false)}
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current.click()}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors flex items-center"
+              >
+                <FaUpload className="mr-2" />
+                {existingLogo ? "เปลี่ยนโลโก้" : "เลือกไฟล์"}
+              </button>
+
+              {croppedImage && (
+                <button
+                  type="button"
+                  onClick={() => setShowCropper(true)}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+                >
+                  <FaCrop className="mr-2" />
+                  ปรับแต่งรูป
+                </button>
+              )}
+            </div>
+
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              className="hidden"
             />
+
+            <p className="text-sm text-gray-500 mt-2">
+              รองรับไฟล์ JPEG, PNG, GIF, WebP ขนาดไม่เกิน 5MB
+            </p>
           </div>
-        </div>
-      )}
-    </div>
+
+          {/* Display mode selection */}
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-gray-700">รูปแบบการแสดงผล</label>
+            <div className="flex space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="displayMode"
+                  value="square"
+                  checked={displayMode === "square"}
+                  onChange={() => setDisplayMode("square")}
+                  className="text-blue-600 focus:ring-blue-500"
+                />
+                <span className="flex items-center">
+                  <FaSquare className="text-blue-600 mr-1" /> สี่เหลี่ยม
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex justify-end space-x-2">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors flex items-center"
+              disabled={isSubmitting}
+            >
+              <FaTimes className="mr-1" /> ยกเลิก
+            </button>
+
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center">
+                  <FaSpinner className="animate-spin mr-2" /> กำลังบันทึก...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <FaSave className="mr-1" /> บันทึก
+                </span>
+              )}
+            </button>
+          </div>
+        </form>
+
+        {/* Cropper Modal */}
+        {showCropper && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">ปรับแต่งรูปโลโก้</h3>
+                <button
+                  onClick={() => setShowCropper(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+
+              <ImageCropper
+                image={imageToCrop}
+                onCropComplete={handleCropComplete}
+                onCancel={() => setShowCropper(false)}
+              />
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }

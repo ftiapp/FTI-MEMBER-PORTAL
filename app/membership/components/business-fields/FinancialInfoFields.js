@@ -7,13 +7,13 @@ import PropTypes from "prop-types";
  * Financial Information Fields Component
  * Reusable component for financial data inputs (capital, revenue, production, sales, shareholders)
  */
-export default function FinancialInfoFields({ 
-  formData, 
+export default function FinancialInfoFields({
+  formData,
   setFormData,
   handleNumericChange,
   handlePercentageChange,
   handleNumericFocus,
-  handleNumericBlur
+  handleNumericBlur,
 }) {
   const handleInputChange = useCallback(
     (e) => {
@@ -32,7 +32,8 @@ export default function FinancialInfoFields({
       {/* Registered Capital */}
       <div className="space-y-2 mb-6">
         <label htmlFor="registeredCapital" className="block text-sm font-medium text-gray-900">
-          ทุนจดทะเบียน / Registered Capital (บาท / THB) <span className="text-gray-500 text-xs"></span>
+          ทุนจดทะเบียน / Registered Capital (บาท / THB){" "}
+          <span className="text-gray-500 text-xs"></span>
         </label>
         <input
           type="text"
@@ -55,10 +56,7 @@ export default function FinancialInfoFields({
         </label>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <label
-              htmlFor="revenueLastYear"
-              className="block text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="revenueLastYear" className="block text-sm font-medium text-gray-700">
               ปีล่าสุด / Last Year (บาท / THB)
             </label>
             <input
@@ -142,7 +140,9 @@ export default function FinancialInfoFields({
 
       {/* Sales Information */}
       <div className="space-y-2 mb-6">
-        <label className="block text-sm font-medium text-gray-900 mb-3">ยอดจำหน่าย / Sales Volume (%)</label>
+        <label className="block text-sm font-medium text-gray-900 mb-3">
+          ยอดจำหน่าย / Sales Volume (%)
+        </label>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label htmlFor="salesDomestic" className="block text-sm font-medium text-gray-700">

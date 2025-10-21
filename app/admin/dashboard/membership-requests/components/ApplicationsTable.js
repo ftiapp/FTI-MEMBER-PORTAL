@@ -14,22 +14,22 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-blue-100 overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="min-w-full">
+        <table className="min-w-full text-sm">
           <thead className="bg-blue-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 ประเภท
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 ชื่อ/บริษัท
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 เลขทะเบียน
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 ผู้สมัคร
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase select-none">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase select-none whitespace-nowrap">
                 <button
                   type="button"
                   onClick={onToggleDateSort}
@@ -40,10 +40,10 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
                   <span className="text-[10px]">{sortOrder === "asc" ? "▲" : "▼"}</span>
                 </button>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-blue-700 uppercase">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 สถานะ
               </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-blue-700 uppercase">
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 การดำเนินการ
               </th>
             </tr>
@@ -55,46 +55,46 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
 
               return (
                 <tr key={`${app.type}-${app.id}`} className="hover:bg-blue-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                       {memberType.code}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
                     <div className="max-w-xs">
                       <div className="font-medium text-blue-900 truncate">
                         {isIC
                           ? `${app.firstNameTh || ""} ${app.lastNameTh || ""}`.trim()
                           : app.companyNameTh || "-"}
                       </div>
-                      <div className="text-sm text-blue-600 truncate">
+                      <div className="text-xs sm:text-sm text-blue-600 truncate">
                         {isIC
                           ? `${app.firstNameEn || ""} ${app.lastNameEn || ""}`.trim()
                           : app.companyNameEn || "-"}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-blue-800 font-mono">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <div className="text-blue-800 font-mono">
                       {isIC ? app.idCard : app.taxId}
                     </div>
                   </td>
-                  <td className="px-6 py-4">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
                     <div className="max-w-xs">
-                      <div className="text-sm text-gray-900">{app.email}</div>
-                      {app.phone && <div className="text-sm text-gray-500">{app.phone}</div>}
+                      <div className="text-gray-900 truncate">{app.email}</div>
+                      {app.phone && <div className="text-xs sm:text-sm text-gray-500">{app.phone}</div>}
                     </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-blue-800">{formatThaiDate(app.createdAt)}</div>
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <div className="text-blue-800">{formatThaiDate(app.createdAt)}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <StatusBadge status={app.status} />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right">
                     <button
                       onClick={() => handleViewDetails(app.type, app.id)}
-                      className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
                     >
                       ดูรายละเอียด
                     </button>

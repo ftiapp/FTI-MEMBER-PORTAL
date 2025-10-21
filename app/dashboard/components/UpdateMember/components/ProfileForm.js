@@ -27,10 +27,10 @@ const ProfileForm = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="bg-white shadow rounded-lg p-6"
+      className="bg-white shadow rounded-lg p-4 sm:p-6"
     >
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-800">ข้อมูลส่วนตัว</h3>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-3">
+        <h3 className="text-base sm:text-lg font-semibold text-gray-800">ข้อมูลส่วนตัว</h3>
 
         {/* Edit button */}
         {!editMode && !hasPendingRequest && (
@@ -38,7 +38,7 @@ const ProfileForm = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={toggleEditMode}
-            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors flex items-center text-sm"
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors flex items-center justify-center text-sm w-full sm:w-auto"
             disabled={isLimitReached}
           >
             <FaEdit className="mr-1" /> แก้ไขข้อมูล
@@ -117,13 +117,13 @@ const ProfileForm = ({
 
           {/* Action buttons */}
           {editMode && !hasPendingRequest && (
-            <div className="flex justify-end space-x-3 mt-6">
+            <div className="flex flex-col sm:flex-row sm:justify-end gap-3 mt-6">
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={toggleEditMode}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors flex items-center justify-center w-full sm:w-auto"
               >
                 <FaTimes className="mr-2" /> ยกเลิก
               </motion.button>
@@ -132,7 +132,7 @@ const ProfileForm = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 type="submit"
-                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center ${isLimitReached ? "opacity-50 cursor-not-allowed" : ""}`}
+                className={`px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center w-full sm:w-auto ${isLimitReached ? "opacity-50 cursor-not-allowed" : ""}`}
                 disabled={submitting || isLimitReached}
               >
                 {submitting ? (

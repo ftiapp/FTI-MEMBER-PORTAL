@@ -116,7 +116,7 @@ export async function POST(request) {
         // ดึงข้อมูลผู้ใช้
         const [userData] = await pool.query(
           "SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?",
-          [productUpdateRequest.user_id]
+          [productUpdateRequest.user_id],
         );
         if (userData && userData.length > 0 && userData[0].email) {
           await sendProductUpdateApprovalEmail(

@@ -52,10 +52,10 @@ export async function POST(request) {
     ]);
 
     // Delete associated documents
-    await query(`DELETE FROM FTI_Original_Membership_Documents_Member WHERE user_id = ? AND MEMBER_CODE = ?`, [
-      userId,
-      memberNumber,
-    ]);
+    await query(
+      `DELETE FROM FTI_Original_Membership_Documents_Member WHERE user_id = ? AND MEMBER_CODE = ?`,
+      [userId, memberNumber],
+    );
 
     // Log the deletion action
     const userIp =

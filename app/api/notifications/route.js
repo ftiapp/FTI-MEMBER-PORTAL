@@ -51,7 +51,10 @@ export async function GET(request) {
         [userId],
       );
 
-      console.log("FTI_Portal_User_Notifications found:", FTI_Portal_User_Notifications ? FTI_Portal_User_Notifications.length : 0);
+      console.log(
+        "FTI_Portal_User_Notifications found:",
+        FTI_Portal_User_Notifications ? FTI_Portal_User_Notifications.length : 0,
+      );
       return NextResponse.json({ success: true, FTI_Portal_User_Notifications });
     } catch (dbError) {
       console.error("Database query error:", dbError);

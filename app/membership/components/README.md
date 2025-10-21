@@ -10,12 +10,14 @@
 ## 🎯 ฟีเจอร์หลัก
 
 ### 1. รองรับทุกประเภทสมาชิก
+
 - **IC** (Individual Corporate) - บุคคลธรรมดา
 - **OC** (Ordinary Corporate) - นิติบุคคลสามัญ
 - **AC** (Associate Corporate) - นิติบุคคลสมทบ
 - **AM** (Association Member) - สมาชิกสมาคม
 
 ### 2. ฟีเจอร์ตามประเภท
+
 - ✅ ตรวจสอบบัตรประชาชน (IC)
 - ✅ ตรวจสอบ Tax ID (OC, AC)
 - ✅ ปุ่มบันทึกร่าง (AC)
@@ -35,30 +37,25 @@ function ICMembershipForm() {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
 
-  const {
-    StepIndicator,
-    NavigationButtons,
-    handleNextStep,
-    handlePrevStep,
-    isValidating,
-  } = useFormNavigation({
-    membershipType: "IC", // หรือ "OC", "AC", "AM"
-    currentStep,
-    setCurrentStep,
-    formData,
-    errors,
-    totalSteps: 5,
-    validateCurrentStep: validateForm, // ฟังก์ชัน validation ของคุณ
-    checkIdCardUniqueness: checkIdCard, // สำหรับ IC
-    checkTaxIdUniqueness: checkTaxId, // สำหรับ OC, AC
-  });
+  const { StepIndicator, NavigationButtons, handleNextStep, handlePrevStep, isValidating } =
+    useFormNavigation({
+      membershipType: "IC", // หรือ "OC", "AC", "AM"
+      currentStep,
+      setCurrentStep,
+      formData,
+      errors,
+      totalSteps: 5,
+      validateCurrentStep: validateForm, // ฟังก์ชัน validation ของคุณ
+      checkIdCardUniqueness: checkIdCard, // สำหรับ IC
+      checkTaxIdUniqueness: checkTaxId, // สำหรับ OC, AC
+    });
 
   return (
     <div>
       <StepIndicator />
-      
+
       {/* Form content here */}
-      
+
       <NavigationButtons
         onSubmit={handleSubmit}
         onSaveDraft={handleSaveDraft} // สำหรับ AC
@@ -88,22 +85,12 @@ const navigation = useICFormNavigation({
 // สำหรับ OC
 import { useOCFormNavigation } from "../components/FormNavigation";
 
-const navigation = useOCFormNavigation(
-  validateForm,
-  currentStep,
-  setCurrentStep,
-  totalSteps
-);
+const navigation = useOCFormNavigation(validateForm, currentStep, setCurrentStep, totalSteps);
 
 // สำหรับ AC
 import { useACFormNavigation } from "../components/FormNavigation";
 
-const navigation = useACFormNavigation(
-  validateForm,
-  currentStep,
-  setCurrentStep,
-  totalSteps
-);
+const navigation = useACFormNavigation(validateForm, currentStep, setCurrentStep, totalSteps);
 
 // สำหรับ AM
 import { useAMFormNavigation } from "../components/FormNavigation";
@@ -128,7 +115,7 @@ function CustomForm() {
           // ...
         ]}
       />
-      
+
       <NavigationButtons
         currentStep={currentStep}
         totalSteps={5}
@@ -163,27 +150,27 @@ function CustomForm() {
 
 ### useFormNavigation Options
 
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| `membershipType` | string | Yes | ประเภทสมาชิก: "IC", "OC", "AC", "AM" |
-| `currentStep` | number | Yes | ขั้นตอนปัจจุบัน |
-| `setCurrentStep` | function | Yes | ฟังก์ชันเปลี่ยนขั้นตอน |
-| `formData` | object | Yes | ข้อมูลฟอร์ม |
-| `errors` | object | Yes | ข้อผิดพลาด |
-| `totalSteps` | number | Yes | จำนวนขั้นตอนทั้งหมด |
-| `validateCurrentStep` | function | Yes | ฟังก์ชัน validation |
-| `checkIdCardUniqueness` | function | No | ตรวจสอบบัตรประชาชน (IC) |
-| `checkTaxIdUniqueness` | function | No | ตรวจสอบ Tax ID (OC, AC) |
+| Parameter               | Type     | Required | Description                          |
+| ----------------------- | -------- | -------- | ------------------------------------ |
+| `membershipType`        | string   | Yes      | ประเภทสมาชิก: "IC", "OC", "AC", "AM" |
+| `currentStep`           | number   | Yes      | ขั้นตอนปัจจุบัน                      |
+| `setCurrentStep`        | function | Yes      | ฟังก์ชันเปลี่ยนขั้นตอน               |
+| `formData`              | object   | Yes      | ข้อมูลฟอร์ม                          |
+| `errors`                | object   | Yes      | ข้อผิดพลาด                           |
+| `totalSteps`            | number   | Yes      | จำนวนขั้นตอนทั้งหมด                  |
+| `validateCurrentStep`   | function | Yes      | ฟังก์ชัน validation                  |
+| `checkIdCardUniqueness` | function | No       | ตรวจสอบบัตรประชาชน (IC)              |
+| `checkTaxIdUniqueness`  | function | No       | ตรวจสอบ Tax ID (OC, AC)              |
 
 ### Return Values
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `StepIndicator` | Component | Component แสดงขั้นตอน |
-| `NavigationButtons` | Component | Component ปุ่มนำทาง |
-| `handleNextStep` | function | ฟังก์ชันไปขั้นตอนถัดไป |
-| `handlePrevStep` | function | ฟังก์ชันย้อนกลับ |
-| `isValidating` | boolean | สถานะกำลังตรวจสอบ |
+| Property            | Type      | Description            |
+| ------------------- | --------- | ---------------------- |
+| `StepIndicator`     | Component | Component แสดงขั้นตอน  |
+| `NavigationButtons` | Component | Component ปุ่มนำทาง    |
+| `handleNextStep`    | function  | ฟังก์ชันไปขั้นตอนถัดไป |
+| `handlePrevStep`    | function  | ฟังก์ชันย้อนกลับ       |
+| `isValidating`      | boolean   | สถานะกำลังตรวจสอบ      |
 
 ## 📝 ตัวอย่างการใช้งานแบบเต็ม
 
@@ -208,11 +195,7 @@ export default function ICMembershipForm() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const {
-    StepIndicator,
-    NavigationButtons,
-    isValidating,
-  } = useFormNavigation({
+  const { StepIndicator, NavigationButtons, isValidating } = useFormNavigation({
     membershipType: "IC",
     currentStep,
     setCurrentStep,
@@ -242,25 +225,18 @@ export default function ICMembershipForm() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6">สมัครสมาชิก IC</h1>
-      
+
       <StepIndicator />
-      
+
       <div className="bg-white rounded-lg shadow p-6">
         {/* Step 1 */}
-        {currentStep === 1 && (
-          <div>
-            {/* Form fields */}
-          </div>
-        )}
-        
+        {currentStep === 1 && <div>{/* Form fields */}</div>}
+
         {/* Step 2-5 */}
         {/* ... */}
       </div>
-      
-      <NavigationButtons
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
+
+      <NavigationButtons onSubmit={handleSubmit} isSubmitting={isSubmitting} />
     </div>
   );
 }
@@ -269,10 +245,7 @@ export default function ICMembershipForm() {
 ### AC Membership Form (with Save Draft)
 
 ```javascript
-const {
-  StepIndicator,
-  NavigationButtons,
-} = useFormNavigation({
+const { StepIndicator, NavigationButtons } = useFormNavigation({
   membershipType: "AC",
   currentStep,
   setCurrentStep,
@@ -309,6 +282,7 @@ return (
 ### จาก ICFormNavigation.js
 
 **เดิม:**
+
 ```javascript
 import { useICFormNavigation } from "./ICFormNavigation";
 
@@ -324,6 +298,7 @@ const { StepIndicator, NavigationButtons, ... } = useICFormNavigation({
 ```
 
 **ใหม่:**
+
 ```javascript
 import { useFormNavigation } from "../components/FormNavigation";
 
@@ -342,6 +317,7 @@ const { StepIndicator, NavigationButtons, ... } = useFormNavigation({
 ### จาก OCFormNavigation.js / ACFormNavigation.js
 
 **เดิม:**
+
 ```javascript
 import { useOCFormNavigation } from "./OCFormNavigation";
 
@@ -355,6 +331,7 @@ const {
 ```
 
 **ใหม่:**
+
 ```javascript
 import { useFormNavigation } from "../components/FormNavigation";
 
@@ -373,6 +350,7 @@ const { handleNextStep, handlePrevStep, ... } = useFormNavigation({
 ### จาก AMFormNavigation.js
 
 **เดิม:**
+
 ```javascript
 import { useAMFormNavigation } from "./AMFormNavigation";
 
@@ -386,6 +364,7 @@ const {
 ```
 
 **ใหม่:**
+
 ```javascript
 import { useFormNavigation } from "../components/FormNavigation";
 
@@ -420,14 +399,14 @@ MEMBERSHIP_CONFIGS.IC.steps = [
 ```javascript
 const validateCurrentStep = (step, formData) => {
   const errors = {};
-  
+
   if (step === 1) {
     if (!formData.firstName) {
       errors.firstName = "กรุณากรอกชื่อ";
     }
     // ...
   }
-  
+
   return errors;
 };
 ```
@@ -435,12 +414,15 @@ const validateCurrentStep = (step, formData) => {
 ## 🐛 Troubleshooting
 
 ### ปัญหา: Toast ไม่แสดง
+
 **แก้ไข:** ตรวจสอบว่าได้ import `react-hot-toast` และมี `<Toaster />` ในแอพแล้ว
 
 ### ปัญหา: Scroll to error ไม่ทำงาน
+
 **แก้ไข:** ตรวจสอบว่า input fields มี `name` attribute ที่ตรงกับ error keys
 
 ### ปัญหา: ID Card validation ไม่ทำงาน
+
 **แก้ไข:** ตรวจสอบว่าได้ส่ง `checkIdCardUniqueness` function และ `membershipType: "IC"`
 
 ## 📚 เพิ่มเติม
@@ -452,6 +434,7 @@ const validateCurrentStep = (step, formData) => {
 ## 🤝 Contributing
 
 หากต้องการเพิ่มฟีเจอร์หรือแก้ไข:
+
 1. แก้ไขที่ `FormNavigation.js`
 2. อัพเดท `MEMBERSHIP_CONFIGS` ถ้าจำเป็น
 3. เพิ่ม tests

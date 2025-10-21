@@ -18,9 +18,10 @@ export async function POST(request) {
     }
 
     // Prevent deleting SuperAdmin accounts
-    const rows = await query("SELECT id, username, admin_level FROM FTI_Portal_Admin_Users WHERE id = ?", [
-      adminId,
-    ]);
+    const rows = await query(
+      "SELECT id, username, admin_level FROM FTI_Portal_Admin_Users WHERE id = ?",
+      [adminId],
+    );
     if (rows.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบผู้ดูแลระบบ" }, { status: 404 });
     }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 
@@ -414,9 +414,9 @@ export default function ActionCounts({ title }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">{title || "สถิติการดำเนินการ"}</h2>
-        <div className="flex justify-center items-center h-32">
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">{title || "สถิติการดำเนินการ"}</h2>
+        <div className="flex justify-center items-center h-24 sm:h-32">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1e3a8a]"></div>
         </div>
       </div>
@@ -425,9 +425,9 @@ export default function ActionCounts({ title }) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-800 mb-4">{title || "สถิติการดำเนินการ"}</h2>
-        <div className="bg-red-50 p-4 rounded-lg text-red-600">
+      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">{title || "สถิติการดำเนินการ"}</h2>
+        <div className="bg-red-50 p-3 sm:p-4 rounded-lg text-red-600 text-sm sm:text-base">
           <p>เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}</p>
         </div>
       </div>
@@ -435,15 +435,15 @@ export default function ActionCounts({ title }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-      <h2 className="text-xl font-bold text-gray-800 mb-4">{title || "สถิติการดำเนินการ"}</h2>
+    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">{title || "สถิติการดำเนินการ"}</h2>
 
       {Object.keys(actionCounts).length === 0 ? (
-        <div className="bg-gray-50 p-4 rounded-lg text-gray-600">
+        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-gray-600 text-sm sm:text-base">
           <p>ไม่พบข้อมูลการดำเนินการ</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
           {Object.entries(actionCounts).map(([action, count]) => {
             const baseInfo = actionInfo[action] || actionInfo.other;
             const title = actionInfo[action]?.title || translateActionKey(action);
@@ -451,14 +451,14 @@ export default function ActionCounts({ title }) {
             return (
               <div
                 key={action}
-                className="bg-white border rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow"
+                className="bg-white border rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow"
               >
-                <div className="flex items-center justify-between mb-3">
-                  <div className={`${baseInfo.bgColor} p-3 rounded-full`}>{baseInfo.icon}</div>
-                  <p className={`text-3xl font-bold ${baseInfo.textColor}`}>{count}</p>
+                <div className="flex items-center justify-between mb-2 sm:mb-3">
+                  <div className={`${baseInfo.bgColor} p-2 sm:p-3 rounded-full flex-shrink-0`}>{baseInfo.icon}</div>
+                  <p className={`text-2xl sm:text-3xl font-bold ${baseInfo.textColor}`}>{count}</p>
                 </div>
-                <p className="text-lg font-semibold text-gray-700">{title}</p>
-                <p className="text-sm text-gray-500">{action}</p>
+                <p className="text-base sm:text-lg font-semibold text-gray-700 truncate">{title}</p>
+                <p className="text-xs sm:text-sm text-gray-500 truncate">{action}</p>
               </div>
             );
           })}

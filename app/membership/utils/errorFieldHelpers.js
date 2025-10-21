@@ -6,7 +6,7 @@
 /**
  * Get the first error field key with priority
  * This is a base implementation that can be customized per form type
- * 
+ *
  * @param {object} errors - Error object from validation
  * @param {object} options - Configuration options
  * @param {string[]} options.companyPriority - Priority order for company/organization fields
@@ -194,7 +194,9 @@ export const countErrors = (errors = {}, excludeKeys = ["representativeErrors"])
       count++;
     } else if (Array.isArray(value)) {
       // Count errors in array (e.g., representativeErrors)
-      count += value.filter((item) => item && typeof item === "object" && Object.keys(item).length > 0).length;
+      count += value.filter(
+        (item) => item && typeof item === "object" && Object.keys(item).length > 0,
+      ).length;
     } else if (value && typeof value === "object") {
       // Count nested errors
       count += countErrors(value, []);

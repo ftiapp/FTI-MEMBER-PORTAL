@@ -43,7 +43,9 @@ export async function POST(request) {
 
     // If there's an existing pending request, delete it
     if (existingRequests && existingRequests.length > 0) {
-      await query("DELETE FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE id = ?", [existingRequests[0].id]);
+      await query("DELETE FROM FTI_Original_Membership_Pending_Tsic_Updates WHERE id = ?", [
+        existingRequests[0].id,
+      ]);
     }
 
     // Insert new TSIC request into FTI_Original_Membership_Pending_Tsic_Updates

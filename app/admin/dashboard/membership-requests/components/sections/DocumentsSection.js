@@ -279,7 +279,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   // Document type options per membership type
   const getDocumentTypeOptions = () => {
     const typeUpper = String(type).toUpperCase();
-    
+
     const documentTypes = {
       OC: [
         { value: "factoryLicense", label: "ใบอนุญาตประกอบกิจการโรงงาน (รง.4)" },
@@ -323,9 +323,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
     // Fallback to capitalized type or 'ไม่ระบุ'
     if (!found) {
       if (!docType) return "ไม่ระบุ";
-      return docType
-        .replace(/([A-Z])/g, " $1")
-        .replace(/^\w/, (c) => c.toUpperCase());
+      return docType.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase());
     }
     return found.label;
   };
@@ -530,21 +528,12 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
         {docs.length === 0 ? (
           <div className="col-span-full">
             <div className="flex flex-col items-center justify-center border border-dashed border-blue-300 rounded-xl p-8 bg-blue-50/50 text-center">
-              <svg className="w-12 h-12 text-blue-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <p className="text-blue-900 font-medium">ยังไม่มีเอกสารแนบ</p>
-              <p className="text-sm text-blue-700 mt-1">กดปุ่ม "อัปโหลดเอกสารใหม่" เพื่อเพิ่มเอกสาร</p>
-            </div>
-          </div>
-        ) : (
-          docs.map((doc, index) => (
-          <div
-            key={index}
-            className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col gap-3"
-          >
-            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white">
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="w-12 h-12 text-blue-400 mb-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -552,100 +541,138 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <p className="font-semibold text-gray-900 truncate" title={doc.name}>{doc.name}</p>
-                {/* Document type badge */}
-                {doc.type && (
-                  <span
-                    title={doc.type}
-                    className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-800 border border-blue-200"
-                  >
-                    {getDocumentTypeLabel(doc.type)}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-600 truncate" title={doc.filePath || "-"}>
-                {doc.filePath || "-"}
+              <p className="text-blue-900 font-medium">ยังไม่มีเอกสารแนบ</p>
+              <p className="text-sm text-blue-700 mt-1">
+                กดปุ่ม "อัปโหลดเอกสารใหม่" เพื่อเพิ่มเอกสาร
               </p>
             </div>
-            {doc.filePath && (
-              <div className="flex flex-wrap gap-2 w-full justify-start border-t border-blue-200 pt-3">
-                {canPreview(doc.filePath || doc.name) && (
-                  <button
-                    onClick={() => handlePreview(doc.filePath, doc.name)}
-                    className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-indigo-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-                    title={
-                      isImage(doc.filePath || doc.name) ? "ดูตัวอย่างรูปภาพ" : "ดูตัวอย่าง PDF"
-                    }
+          </div>
+        ) : (
+          docs.map((doc, index) => (
+            <div
+              key={index}
+              className="bg-blue-50 border border-blue-200 rounded-lg p-6 flex flex-col gap-3"
+            >
+              <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="font-semibold text-gray-900 truncate" title={doc.name}>
+                    {doc.name}
+                  </p>
+                  {/* Document type badge */}
+                  {doc.type && (
+                    <span
+                      title={doc.type}
+                      className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-100 text-blue-800 border border-blue-200"
+                    >
+                      {getDocumentTypeLabel(doc.type)}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600 truncate" title={doc.filePath || "-"}>
+                  {doc.filePath || "-"}
+                </p>
+              </div>
+              {doc.filePath && (
+                <div className="flex flex-wrap gap-2 w-full justify-start border-t border-blue-200 pt-3">
+                  {canPreview(doc.filePath || doc.name) && (
+                    <button
+                      onClick={() => handlePreview(doc.filePath, doc.name)}
+                      className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-indigo-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                      title={
+                        isImage(doc.filePath || doc.name) ? "ดูตัวอย่างรูปภาพ" : "ดูตัวอย่าง PDF"
+                      }
+                    >
+                      <svg
+                        className="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        />
+                      </svg>
+                      ดู
+                    </button>
+                  )}
+                  <a
+                    href={doc.filePath}
+                    download
+                    className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-white border border-blue-300 text-blue-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
+                    title="ดาวน์โหลดไฟล์"
                   >
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
-                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
                       />
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth="2"
-                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                        d="M7 10l5 5m0 0l5-5m-5 5V4"
                       />
                     </svg>
-                    ดู
+                    ดาวน์โหลด
+                  </a>
+                  {/* Replace */}
+                  <button
+                    onClick={() => handleSelectFile(doc.id, doc.type)}
+                    className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-amber-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
+                    title="แทนที่ไฟล์นี้"
+                    disabled={isUploading}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4"
+                      />
+                    </svg>
+                    แทนที่
                   </button>
-                )}
-                <a
-                  href={doc.filePath}
-                  download
-                  className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-white border border-blue-300 text-blue-700 text-xs sm:text-sm font-medium rounded-lg hover:bg-blue-600 hover:text-white transition-colors"
-                  title="ดาวน์โหลดไฟล์"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M7 10l5 5m0 0l5-5m-5 5V4"
-                    />
-                  </svg>
-                  ดาวน์โหลด
-                </a>
-                {/* Replace */}
-                <button
-                  onClick={() => handleSelectFile(doc.id, doc.type)}
-                  className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-amber-500 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-amber-600 transition-colors"
-                  title="แทนที่ไฟล์นี้"
-                  disabled={isUploading}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4M16 17H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  แทนที่
-                </button>
-                {/* Delete */}
-                <button
-                  onClick={() => requestDelete(doc)}
-                  className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-                  title="ลบไฟล์นี้"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  ลบ
-                </button>
-              </div>
-            )}
-          </div>
-        ))
+                  {/* Delete */}
+                  <button
+                    onClick={() => requestDelete(doc)}
+                    className="flex items-center gap-2 sm:px-3 sm:py-2 px-2 py-1 bg-red-600 text-white text-xs sm:text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                    title="ลบไฟล์นี้"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth="2"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    ลบ
+                  </button>
+                </div>
+              )}
+            </div>
+          ))
         )}
       </div>
 
@@ -835,14 +862,10 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[70] p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
             <h3 className="text-xl font-bold text-gray-900 mb-4">เลือกประเภทเอกสาร</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              กรุณาเลือกประเภทเอกสารที่ต้องการอัปโหลด
-            </p>
-            
+            <p className="text-sm text-gray-600 mb-4">กรุณาเลือกประเภทเอกสารที่ต้องการอัปโหลด</p>
+
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                ประเภทเอกสาร *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">ประเภทเอกสาร *</label>
               <select
                 value={selectedDocType}
                 onChange={(e) => setSelectedDocType(e.target.value)}
@@ -887,7 +910,10 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
             <p className="text-sm text-gray-600 mb-4">คุณต้องการลบเอกสารนี้หรือไม่?</p>
             {deleteTarget && (
               <div className="mb-4 p-3 bg-gray-50 rounded border border-gray-200">
-                <div className="text-sm text-gray-800 font-medium truncate" title={deleteTarget.name}>
+                <div
+                  className="text-sm text-gray-800 font-medium truncate"
+                  title={deleteTarget.name}
+                >
                   {deleteTarget.name}
                 </div>
                 <div className="mt-1 text-xs text-gray-600 flex items-center gap-2">

@@ -65,7 +65,7 @@ export default function useAddressHandlers(formData, setFormData, errors) {
         },
       }));
     },
-    [setFormData, activeTab]
+    [setFormData, activeTab],
   );
 
   // Fetch functions
@@ -92,7 +92,7 @@ export default function useAddressHandlers(formData, setFormData, errors) {
         return [];
       }
     },
-    [formData.addresses, activeTab]
+    [formData.addresses, activeTab],
   );
 
   const fetchDistricts = useCallback(
@@ -116,7 +116,7 @@ export default function useAddressHandlers(formData, setFormData, errors) {
         return [];
       }
     },
-    [formData.addresses, activeTab]
+    [formData.addresses, activeTab],
   );
 
   const fetchProvinces = useCallback(async (searchTerm) => {
@@ -124,7 +124,7 @@ export default function useAddressHandlers(formData, setFormData, errors) {
 
     try {
       const response = await fetch(
-        `/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=province`
+        `/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=province`,
       );
       if (!response.ok) throw new Error(`ไม่สามารถค้นหาข้อมูลจังหวัดได้: ${response.status}`);
 
@@ -141,10 +141,9 @@ export default function useAddressHandlers(formData, setFormData, errors) {
 
     try {
       const response = await fetch(
-        `/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=postalCode`
+        `/api/thailand-address/search?query=${encodeURIComponent(searchTerm)}&type=postalCode`,
       );
-      if (!response.ok)
-        throw new Error(`ไม่สามารถค้นหาข้อมูลรหัสไปรษณีย์ได้: ${response.status}`);
+      if (!response.ok) throw new Error(`ไม่สามารถค้นหาข้อมูลรหัสไปรษณีย์ได้: ${response.status}`);
 
       const data = await response.json();
       return data.success ? data.data : [];
@@ -159,7 +158,7 @@ export default function useAddressHandlers(formData, setFormData, errors) {
     (value) => {
       handleInputChange("subDistrict", value);
     },
-    [handleInputChange]
+    [handleInputChange],
   );
 
   const handleSubDistrictSelect = useCallback(
@@ -189,14 +188,14 @@ export default function useAddressHandlers(formData, setFormData, errors) {
         toast.success("ข้อมูลที่อยู่ถูกเติมอัตโนมัติแล้ว");
       }
     },
-    [setFormData, activeTab]
+    [setFormData, activeTab],
   );
 
   const handleDistrictChange = useCallback(
     (value) => {
       handleInputChange("district", value);
     },
-    [handleInputChange]
+    [handleInputChange],
   );
 
   const handleDistrictSelect = useCallback(
@@ -216,14 +215,14 @@ export default function useAddressHandlers(formData, setFormData, errors) {
         },
       }));
     },
-    [setFormData, activeTab]
+    [setFormData, activeTab],
   );
 
   const handleProvinceChange = useCallback(
     (value) => {
       handleInputChange("province", value);
     },
-    [handleInputChange]
+    [handleInputChange],
   );
 
   const handleProvinceSelect = useCallback(
@@ -242,14 +241,14 @@ export default function useAddressHandlers(formData, setFormData, errors) {
         },
       }));
     },
-    [setFormData, activeTab]
+    [setFormData, activeTab],
   );
 
   const handlePostalCodeChange = useCallback(
     (value) => {
       handleInputChange("postalCode", value);
     },
-    [handleInputChange]
+    [handleInputChange],
   );
 
   const handlePostalCodeSelect = useCallback(
@@ -273,7 +272,7 @@ export default function useAddressHandlers(formData, setFormData, errors) {
 
       toast.success("ข้อมูลที่อยู่ถูกเติมจากรหัสไปรษณีย์แล้ว");
     },
-    [setFormData, activeTab]
+    [setFormData, activeTab],
   );
 
   return {

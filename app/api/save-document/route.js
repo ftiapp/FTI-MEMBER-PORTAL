@@ -45,7 +45,9 @@ export async function POST(request) {
 
     // ตรวจสอบว่า user มีอยู่จริงหรือไม่
     if (userIdToUse) {
-      const userResult = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [userIdToUse]);
+      const userResult = await query("SELECT id FROM FTI_Portal_User WHERE id = ? LIMIT 1", [
+        userIdToUse,
+      ]);
       if (userResult.length === 0) {
         // ถ้าไม่พบ user ให้ใช้ fallback เป็น admin หรือ user คนแรก
         const fallbackUserResult = await query(

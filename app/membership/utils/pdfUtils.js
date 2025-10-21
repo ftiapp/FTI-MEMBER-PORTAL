@@ -487,7 +487,7 @@ const processData = (app) => {
       // Resolve prename (handle "อื่นๆ"/"Other" case)
       let displayPrenameTh = "";
       let displayPrenameEn = "";
-      
+
       if (prenameTh && (/^อื่นๆ$/i.test(prenameTh) || /^other$/i.test(prenameEn))) {
         displayPrenameTh = prenameOther || prenameTh;
       } else {
@@ -503,7 +503,10 @@ const processData = (app) => {
       // Thai formatting: concatenate prename directly with first name (e.g., ดร.พลวัต)
       const firstWithPrenameTh = (displayPrenameTh || "") + (thFirst || "");
       const fullTh = [firstWithPrenameTh.trim(), thLast || ""].filter(Boolean).join(" ").trim();
-      const fullEn = [displayPrenameEn, enFirst || "", enLast || ""].filter(Boolean).join(" ").trim();
+      const fullEn = [displayPrenameEn, enFirst || "", enLast || ""]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
 
       if (fullTh) return fullTh;
       if (fullEn) return fullEn;
@@ -513,9 +516,15 @@ const processData = (app) => {
         const r = app.representatives[0];
         const repPrenameTh = r.prename_th || r.prenameTh || "";
         const repPrenameOther = r.prename_other || r.prenameOther || "";
-        const repDisplayPrename = (/^อื่นๆ$/i.test(repPrenameTh)) ? repPrenameOther : repPrenameTh;
-        const repTh =
-          [repDisplayPrename, r.firstNameTh || r.first_name_th || "", r.lastNameTh || r.last_name_th || ""].filter(Boolean).join(" ").trim();
+        const repDisplayPrename = /^อื่นๆ$/i.test(repPrenameTh) ? repPrenameOther : repPrenameTh;
+        const repTh = [
+          repDisplayPrename,
+          r.firstNameTh || r.first_name_th || "",
+          r.lastNameTh || r.last_name_th || "",
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
         const repEn =
           `${r.firstNameEn || r.firstNameEng || r.first_name_en || ""} ${r.lastNameEn || r.lastNameEng || r.last_name_en || ""}`.trim();
         return pick(repTh, repEn, r.name, app.representativeName, "ผู้มีอำนาจลงนาม");

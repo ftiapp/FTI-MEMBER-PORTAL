@@ -38,17 +38,17 @@ const IndustrialGroupsSection = ({
   useEffect(() => {
     if (isEditing) {
       // Transform application data to match dropdown format
-      const igItems = (application?.industrialGroups || []).map(g => ({
+      const igItems = (application?.industrialGroups || []).map((g) => ({
         id: g.id || g.code,
         name: g.name || g.name_th || `รหัส: ${g.id}`,
-        code: g.code || g.id
+        code: g.code || g.id,
       }));
-      const pcItems = (application?.provincialChapters || []).map(c => ({
+      const pcItems = (application?.provincialChapters || []).map((c) => ({
         id: c.id || c.code,
         name: c.name || c.name_th || `รหัส: ${c.id}`,
-        code: c.code || c.id
+        code: c.code || c.id,
       }));
-      
+
       setSelectedIndustrialGroups(igItems);
       setSelectedProvincialChapters(pcItems);
     }
@@ -85,40 +85,44 @@ const IndustrialGroupsSection = ({
   };
 
   const handleRemoveIndustrialGroup = (id) => {
-    setSelectedIndustrialGroups(prev => prev.filter(item => item.id !== id));
+    setSelectedIndustrialGroups((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleRemoveProvincialChapter = (id) => {
-    setSelectedProvincialChapters(prev => prev.filter(item => item.id !== id));
+    setSelectedProvincialChapters((prev) => prev.filter((item) => item.id !== id));
   };
 
   // Transform API data to dropdown format (supports array or object maps)
   const igRaw = Array.isArray(industrialGroups)
     ? industrialGroups
     : industrialGroups && typeof industrialGroups === "object"
-    ? Object.values(industrialGroups)
-    : [];
+      ? Object.values(industrialGroups)
+      : [];
   const pcRaw = Array.isArray(provincialChapters)
     ? provincialChapters
     : provincialChapters && typeof provincialChapters === "object"
-    ? Object.values(provincialChapters)
-    : [];
+      ? Object.values(provincialChapters)
+      : [];
 
   // Debug: Log raw data
   console.log("IndustrialGroupsSection - Raw IG data:", igRaw);
   console.log("IndustrialGroupsSection - Raw PC data:", pcRaw);
 
-  const industrialGroupOptions = igRaw.map((g) => ({
-    id: g.MEMBER_GROUP_CODE || g.id || g.code,
-    name: g.MEMBER_GROUP_NAME_TH || g.name_th || g.name || g.MEMBER_GROUP_NAME || "",
-    code: g.MEMBER_GROUP_CODE || g.code || g.id,
-  })).filter((o) => o.id && o.name);
+  const industrialGroupOptions = igRaw
+    .map((g) => ({
+      id: g.MEMBER_GROUP_CODE || g.id || g.code,
+      name: g.MEMBER_GROUP_NAME_TH || g.name_th || g.name || g.MEMBER_GROUP_NAME || "",
+      code: g.MEMBER_GROUP_CODE || g.code || g.id,
+    }))
+    .filter((o) => o.id && o.name);
 
-  const provincialChapterOptions = pcRaw.map((c) => ({
-    id: c.MEMBER_GROUP_CODE || c.id || c.code,
-    name: c.MEMBER_GROUP_NAME_TH || c.name_th || c.name || c.MEMBER_GROUP_NAME || "",
-    code: c.MEMBER_GROUP_CODE || c.code || c.id,
-  })).filter((o) => o.id && o.name);
+  const provincialChapterOptions = pcRaw
+    .map((c) => ({
+      id: c.MEMBER_GROUP_CODE || c.id || c.code,
+      name: c.MEMBER_GROUP_NAME_TH || c.name_th || c.name || c.MEMBER_GROUP_NAME || "",
+      code: c.MEMBER_GROUP_CODE || c.code || c.id,
+    }))
+    .filter((o) => o.id && o.name);
 
   // Debug: Log transformed options
   console.log("IndustrialGroupsSection - IG Options:", industrialGroupOptions);
@@ -182,10 +186,8 @@ const IndustrialGroupsSection = ({
         <div className="space-y-6">
           {/* Industrial Groups Section */}
           <div className="space-y-3">
-            <label className="block text-sm font-semibold text-gray-700">
-              กลุ่มอุตสาหกรรม
-            </label>
-            
+            <label className="block text-sm font-semibold text-gray-700">กลุ่มอุตสาหกรรม</label>
+
             {/* Selected items are shown inside MultiSelectDropdown */}
 
             {/* Dropdown */}
@@ -196,7 +198,7 @@ const IndustrialGroupsSection = ({
               placeholder="เลือกกลุ่มอุตสาหกรรม"
               label=""
             />
-            
+
             {industrialGroupOptions.length === 0 && (
               <p className="text-sm text-amber-600 mt-2">
                 ⚠️ ไม่พบข้อมูลกลุ่มอุตสาหกรรม กรุณาตรวจสอบการโหลดข้อมูล
@@ -209,7 +211,7 @@ const IndustrialGroupsSection = ({
             <label className="block text-sm font-semibold text-gray-700">
               สภาอุตสาหกรรมจังหวัด
             </label>
-            
+
             {/* Selected items are shown inside MultiSelectDropdown */}
 
             {/* Dropdown */}
@@ -220,7 +222,7 @@ const IndustrialGroupsSection = ({
               placeholder="เลือกสภาอุตสาหกรรมจังหวัด"
               label=""
             />
-            
+
             {provincialChapterOptions.length === 0 && (
               <p className="text-sm text-amber-600 mt-2">
                 ⚠️ ไม่พบข้อมูลสภาอุตสาหกรรมจังหวัด กรุณาตรวจสอบการโหลดข้อมูล

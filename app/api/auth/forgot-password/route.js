@@ -72,7 +72,10 @@ export async function POST(request) {
     }
 
     // Check if user exists
-    const FTI_Portal_User = await query("SELECT id, name, email FROM FTI_Portal_User WHERE email = ?", [email]);
+    const FTI_Portal_User = await query(
+      "SELECT id, name, email FROM FTI_Portal_User WHERE email = ?",
+      [email],
+    );
 
     // Always return success even if user doesn't exist (for security)
     if (FTI_Portal_User.length === 0) {

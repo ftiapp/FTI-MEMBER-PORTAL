@@ -624,7 +624,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="text-base font-semibold text-blue-800">เอกสารรับรอง / Certification Documents *</span>
+                <span className="text-base font-semibold text-blue-800">
+                  เอกสารรับรอง / Certification Documents *
+                </span>
               </div>
             </div>
 
@@ -705,7 +707,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                   />
                 </svg>
-                <span className="text-base font-semibold text-blue-800">ตราประทับและลายเซ็น / Stamp and Signature</span>
+                <span className="text-base font-semibold text-blue-800">
+                  ตราประทับและลายเซ็น / Stamp and Signature
+                </span>
               </div>
             </div>
 
@@ -800,9 +804,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900">ข้อมูลผู้มีอำนาจลงนาม / Authorized Signatory Information</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  ข้อมูลผู้มีอำนาจลงนาม / Authorized Signatory Information
+                </h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ / Please enter name and position of authorized signatory in both Thai and English
+                  กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ / Please
+                  enter name and position of authorized signatory in both Thai and English
                 </p>
               </div>
 
@@ -816,14 +823,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     value={formData.authorizedSignatoryPrenameTh || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const mapThToEn = { "นาย": "Mr", "นาง": "Mrs", "นางสาว": "Ms", "อื่นๆ": "Other" };
+                      const mapThToEn = { นาย: "Mr", นาง: "Mrs", นางสาว: "Ms", อื่นๆ: "Other" };
                       const mappedEn = mapThToEn[value] || "";
                       setFormData((prev) => ({
                         ...prev,
                         authorizedSignatoryPrenameTh: value,
                         authorizedSignatoryPrenameEn: mappedEn,
-                        authorizedSignatoryPrenameOther: value === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
-                        authorizedSignatoryPrenameOtherEn: mappedEn === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
+                        authorizedSignatoryPrenameOther:
+                          value === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
+                        authorizedSignatoryPrenameOtherEn:
+                          mappedEn === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
                       }));
                     }}
                     className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -843,7 +852,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            authorizedSignatoryPrenameOther: e.target.value.replace(/[^ก-๙\.\s]/g, ""),
+                            authorizedSignatoryPrenameOther: e.target.value.replace(
+                              /[^ก-๙\.\s]/g,
+                              "",
+                            ),
                           }))
                         }
                         placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
@@ -859,11 +871,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </div>
                   )}
                 </div>
-                
+
                 {/* ชื่อ (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ชื่อ  <span className="text-red-500">*</span>
+                    ชื่อ <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -885,11 +897,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
-                
+
                 {/* นามสกุล (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    นามสกุล  <span className="text-red-500">*</span>
+                    นามสกุล <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -915,7 +927,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 {/* ตำแหน่ง (ไทย) */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ตำแหน่ง  <span className="text-red-500">*</span>
+                    ตำแหน่ง <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -945,14 +957,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     value={formData.authorizedSignatoryPrenameEn || ""}
                     onChange={(e) => {
                       const value = e.target.value;
-                      const mapEnToTh = { "Mr": "นาย", "Mrs": "นาง", "Ms": "นางสาว", "Other": "อื่นๆ" };
+                      const mapEnToTh = { Mr: "นาย", Mrs: "นาง", Ms: "นางสาว", Other: "อื่นๆ" };
                       const mappedTh = mapEnToTh[value] || "";
                       setFormData((prev) => ({
                         ...prev,
                         authorizedSignatoryPrenameEn: value,
                         authorizedSignatoryPrenameTh: mappedTh,
-                        authorizedSignatoryPrenameOtherEn: value === "Other" ? (prev.authorizedSignatoryPrenameOtherEn || "") : "",
-                        authorizedSignatoryPrenameOther: mappedTh === "อื่นๆ" ? (prev.authorizedSignatoryPrenameOther || "") : "",
+                        authorizedSignatoryPrenameOtherEn:
+                          value === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
+                        authorizedSignatoryPrenameOther:
+                          mappedTh === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
                       }));
                     }}
                     className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -970,7 +984,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(/[^a-zA-Z\.\s]/g, ""),
+                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(
+                            /[^a-zA-Z\.\s]/g,
+                            "",
+                          ),
                         }))
                       }
                       placeholder="e.g., Assoc. Prof., Dr."
@@ -979,7 +996,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     />
                   )}
                 </div>
-                
+
                 {/* First Name (EN) - Hidden */}
                 <div className="hidden">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1004,7 +1021,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
-                
+
                 {/* Last Name (EN) - Hidden */}
                 <div className="hidden">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1042,15 +1059,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       setFormData((prev) => ({
                         ...prev,
                         authorizedSignatoryPositionEn: e.target.value,
-                        }))
-                      }
-                      className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                        errors?.authorizedSignatoryPositionEn
-                          ? "border-red-300 bg-red-50"
-                          : "border-gray-300"
-                      }`}
-                      placeholder="e.g. Managing Director"
-                    />
+                      }))
+                    }
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                      errors?.authorizedSignatoryPositionEn
+                        ? "border-red-300 bg-red-50"
+                        : "border-gray-300"
+                    }`}
+                    placeholder="e.g. Managing Director"
+                  />
                   {errors?.authorizedSignatoryPositionEn && (
                     <p className="mt-1 text-sm text-red-600">
                       {errors.authorizedSignatoryPositionEn}
@@ -1058,10 +1075,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   )}
                 </div>
               </div>
-
-              
-               
-              
             </div>
 
             {/* Authorized Signature Upload */}
@@ -1125,8 +1138,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             </div>
           </div>
-
-        
         </div>
       </div>
 

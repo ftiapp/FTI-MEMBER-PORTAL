@@ -18,7 +18,8 @@ import { useNotifications } from "./hooks/useNotifications";
 
 const NotificationsPage = () => {
   const { user } = useAuth();
-  const { FTI_Portal_User_Notifications, loading, error, markAsRead, markAllAsRead } = useNotifications(user);
+  const { FTI_Portal_User_Notifications, loading, error, markAsRead, markAllAsRead } =
+    useNotifications(user);
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);

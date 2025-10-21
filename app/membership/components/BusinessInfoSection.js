@@ -12,13 +12,13 @@ import {
   useNumericInput,
 } from "./business-fields";
 
-export default function BusinessInfoSection({ 
-  formData, 
-  setFormData, 
-  errors, 
+export default function BusinessInfoSection({
+  formData,
+  setFormData,
+  errors,
   showErrors = false,
   showMemberCount = false,
-  businessTypes = null
+  businessTypes = null,
 }) {
   // Use numeric input hook
   const numericHandlers = useNumericInput(formData, setFormData);
@@ -38,11 +38,15 @@ export default function BusinessInfoSection({
       : false;
 
     const errorFields = [
-      { ref: businessTypesRef, error: errors.businessTypes, name: 'ประเภทธุรกิจ' },
-      { ref: otherBusinessTypeDetailRef, error: errors.otherBusinessTypeDetail, name: 'รายละเอียดประเภทธุรกิจอื่นๆ' },
-      { ref: memberCountRef, error: errors.memberCount, name: 'จำนวนสมาชิก' },
-      { ref: employeeCountRef, error: errors.numberOfEmployees, name: 'จำนวนพนักงาน' },
-      { ref: productsRef, error: errors.products || hasProductItemErrors, name: 'สินค้า/บริการ' },
+      { ref: businessTypesRef, error: errors.businessTypes, name: "ประเภทธุรกิจ" },
+      {
+        ref: otherBusinessTypeDetailRef,
+        error: errors.otherBusinessTypeDetail,
+        name: "รายละเอียดประเภทธุรกิจอื่นๆ",
+      },
+      { ref: memberCountRef, error: errors.memberCount, name: "จำนวนสมาชิก" },
+      { ref: employeeCountRef, error: errors.numberOfEmployees, name: "จำนวนพนักงาน" },
+      { ref: productsRef, error: errors.products || hasProductItemErrors, name: "สินค้า/บริการ" },
     ];
 
     const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
@@ -50,31 +54,37 @@ export default function BusinessInfoSection({
     if (firstErrorField) {
       // Use actual error message if it's a string, otherwise build field names list
       let errorMessage;
-      
-      if (typeof errors.products === 'string' && firstErrorField.ref === productsRef) {
+
+      if (typeof errors.products === "string" && firstErrorField.ref === productsRef) {
         // Use the actual validation message for products
         errorMessage = errors.products;
-      } else if (typeof errors.businessTypes === 'string' && firstErrorField.ref === businessTypesRef) {
+      } else if (
+        typeof errors.businessTypes === "string" &&
+        firstErrorField.ref === businessTypesRef
+      ) {
         errorMessage = errors.businessTypes;
-      } else if (typeof errors.otherBusinessTypeDetail === 'string' && firstErrorField.ref === otherBusinessTypeDetailRef) {
+      } else if (
+        typeof errors.otherBusinessTypeDetail === "string" &&
+        firstErrorField.ref === otherBusinessTypeDetailRef
+      ) {
         errorMessage = errors.otherBusinessTypeDetail;
       } else {
         // Fallback: build field names list
         const errorFieldNames = errorFields
-          .filter(field => field.error)
-          .map(field => field.name)
-          .join(', ');
+          .filter((field) => field.error)
+          .map((field) => field.name)
+          .join(", ");
         errorMessage = `กรุณากรอก ${errorFieldNames} ให้ถูกต้องครบถ้วน`;
       }
 
       const errorKey = errorMessage;
-      
+
       if (errorKey !== lastScrolledErrorRef.current) {
         lastScrolledErrorRef.current = errorKey;
         firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        toast.error(errorMessage, { 
+        toast.error(errorMessage, {
           id: "business-errors",
-          duration: 5000 
+          duration: 5000,
         });
       }
     } else {
@@ -83,7 +93,7 @@ export default function BusinessInfoSection({
   }, [errors]);
 
   return (
-    <div 
+    <div
       className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10"
       data-section="business-info"
     >
@@ -157,7 +167,7 @@ BusinessInfoSection.propTypes = {
     PropTypes.shape({
       id: PropTypes.string.isRequired,
       nameTh: PropTypes.string.isRequired,
-    })
+    }),
   ),
   formData: PropTypes.shape({
     businessTypes: PropTypes.object,

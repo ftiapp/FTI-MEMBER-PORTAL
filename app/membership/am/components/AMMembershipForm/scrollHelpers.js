@@ -118,7 +118,7 @@ export const createScrollToErrorField = (stickyOffset = 120) => {
       if (match) {
         const tab = match[1];
         const field = match[2];
-        
+
         // Map validation field to actual input id in AddressSection
         let targetId = null;
         if (field === "email") targetId = `email-${tab}`;
@@ -141,8 +141,8 @@ export const createScrollToErrorField = (stickyOffset = 120) => {
             const section =
               document.querySelector('[data-section="company-address"]') ||
               document.querySelector('[data-section="addresses"]') ||
-              document.querySelector('.address-tabs-container') ||
-              document.querySelector('.bg-white');
+              document.querySelector(".address-tabs-container") ||
+              document.querySelector(".bg-white");
             if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
             return;
           }
@@ -197,9 +197,9 @@ export const scrollToTop = () => {
  */
 export const scrollToConsentBox = () => {
   setTimeout(() => {
-    const consentBox = document.querySelector('[data-consent-box]');
+    const consentBox = document.querySelector("[data-consent-box]");
     if (consentBox) {
-      consentBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      consentBox.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, 100);
 };

@@ -110,12 +110,18 @@ export const checkDuplicateNames = (representatives) => {
         errors[i].firstNameThai = errors[i].firstNameThai || "ชื่อ-นามสกุลซ้ำกับผู้แทนท่านอื่น";
         errors[i].lastNameThai = errors[i].lastNameThai || "ชื่อ-นามสกุลซ้ำกับผู้แทนท่านอื่น";
       } else if (lang === "en") {
-        errors[i].firstNameEn = errors[i].firstNameEn || "First/Last name duplicates another representative";
-        errors[i].lastNameEn = errors[i].lastNameEn || "First/Last name duplicates another representative";
-        errors[i].firstNameEng = errors[i].firstNameEng || "First/Last name duplicates another representative";
-        errors[i].lastNameEng = errors[i].lastNameEng || "First/Last name duplicates another representative";
-        errors[i].firstNameEnglish = errors[i].firstNameEnglish || "First/Last name duplicates another representative";
-        errors[i].lastNameEnglish = errors[i].lastNameEnglish || "First/Last name duplicates another representative";
+        errors[i].firstNameEn =
+          errors[i].firstNameEn || "First/Last name duplicates another representative";
+        errors[i].lastNameEn =
+          errors[i].lastNameEn || "First/Last name duplicates another representative";
+        errors[i].firstNameEng =
+          errors[i].firstNameEng || "First/Last name duplicates another representative";
+        errors[i].lastNameEng =
+          errors[i].lastNameEng || "First/Last name duplicates another representative";
+        errors[i].firstNameEnglish =
+          errors[i].firstNameEnglish || "First/Last name duplicates another representative";
+        errors[i].lastNameEnglish =
+          errors[i].lastNameEnglish || "First/Last name duplicates another representative";
       }
     });
   };

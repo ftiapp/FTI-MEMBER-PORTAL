@@ -4,11 +4,7 @@ import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
-export default function LoadingOverlay({ 
-  isVisible, 
-  message = "กำลังโหลด...", 
-  inline = false
-}) {
+export default function LoadingOverlay({ isVisible, message = "กำลังโหลด...", inline = false }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -78,11 +74,7 @@ export default function LoadingOverlay({
 
   // Inline mode: render directly in place
   if (inline) {
-    return (
-      <div className="flex items-center justify-center py-12 px-4">
-        {content}
-      </div>
-    );
+    return <div className="flex items-center justify-center py-12 px-4">{content}</div>;
   }
 
   // Fullscreen mode: render via portal

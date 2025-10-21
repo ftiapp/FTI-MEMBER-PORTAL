@@ -35,9 +35,10 @@ export async function POST(request) {
     }
 
     // ดึงข้อมูลอีเมลเดิมของผู้ใช้
-    const userData = await query("SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?", [
-      userId,
-    ]);
+    const userData = await query(
+      "SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?",
+      [userId],
+    );
 
     if (!userData || userData.length === 0) {
       return NextResponse.json({ error: "ไม่พบข้อมูลผู้ใช้" }, { status: 404 });
@@ -48,13 +49,15 @@ export async function POST(request) {
     const lastname = userData[0].lastname;
 
     // อัปเดต FTI_Portal_User: เปลี่ยน email และ set email_verified = 1
-    await query("UPDATE FTI_Portal_User SET email = ?, email_verified = 1, updated_at = NOW() WHERE id = ?", [
-      newEmail,
-      userId,
-    ]);
+    await query(
+      "UPDATE FTI_Portal_User SET email = ?, email_verified = 1, updated_at = NOW() WHERE id = ?",
+      [newEmail, userId],
+    );
 
     // ลบ FTI_Original_Membership_Pending_Email_Changes
-    await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE id = ?", [pending[0].id]);
+    await query("DELETE FROM FTI_Original_Membership_Pending_Email_Changes WHERE id = ?", [
+      pending[0].id,
+    ]);
 
     // บันทึกประวัติการเปลี่ยนอีเมล (ใช้ action เดิมแต่แยกด้วยข้อความใน details)
     await query(

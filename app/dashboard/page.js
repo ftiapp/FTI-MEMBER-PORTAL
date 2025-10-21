@@ -156,7 +156,6 @@ export default function Dashboard() {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
-
   // Handle URL parameters (reactive to query changes)
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -200,7 +199,6 @@ export default function Dashboard() {
     searchParams.set("tab", item.tab);
     window.history.pushState({}, "", `/dashboard?${searchParams.toString()}`);
   };
-
 
   // Get user status badge
   const getUserStatusBadge = () => {

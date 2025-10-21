@@ -28,13 +28,7 @@ function MyForm() {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
 
-  return (
-    <AddressSection
-      formData={formData}
-      setFormData={setFormData}
-      errors={errors}
-    />
-  );
+  return <AddressSection formData={formData} setFormData={setFormData} errors={errors} />;
 }
 ```
 
@@ -71,13 +65,8 @@ import {
 } from "@/app/membership/shared/address";
 
 function CustomAddressForm() {
-  const {
-    activeTab,
-    currentAddress,
-    handleInputChange,
-    handlers,
-    fetchFunctions,
-  } = useAddressHandlers(formData, setFormData, errors);
+  const { activeTab, currentAddress, handleInputChange, handlers, fetchFunctions } =
+    useAddressHandlers(formData, setFormData, errors);
 
   return (
     <div>
@@ -87,7 +76,7 @@ function CustomAddressForm() {
         errors={errors}
         activeTab={activeTab}
       />
-      
+
       <AddressLocationFields
         currentAddress={currentAddress}
         handlers={handlers}
@@ -95,7 +84,7 @@ function CustomAddressForm() {
         errors={errors}
         activeTab={activeTab}
       />
-      
+
       <AddressContactFields
         currentAddress={currentAddress}
         onInputChange={handleInputChange}
@@ -132,24 +121,25 @@ const errorTab = findFirstErrorTab(errors);
 
 ## Props ของ AddressSection
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `formData` | Object | **required** | ข้อมูลฟอร์มทั้งหมด |
-| `setFormData` | Function | **required** | ฟังก์ชันอัพเดทข้อมูลฟอร์ม |
-| `errors` | Object | `{}` | ข้อผิดพลาดของฟอร์ม |
-| `isAutofill` | Boolean | `false` | แสดงว่าข้อมูลถูกเติมอัตโนมัติ |
-| `title` | String | `"ที่อยู่บริษัท"` | หัวข้อของ section |
-| `subtitle` | String | `"ข้อมูลที่อยู่และการติดต่อ"` | คำอธิบายใต้หัวข้อ |
-| `showCopyButton` | Boolean | `true` | แสดงปุ่มคัดลอกที่อยู่ |
-| `showEmail` | Boolean | `true` | แสดงฟิลด์อีเมล |
-| `showWebsite` | Boolean | `true` | แสดงฟิลด์เว็บไซต์ |
+| Prop             | Type     | Default                       | Description                   |
+| ---------------- | -------- | ----------------------------- | ----------------------------- |
+| `formData`       | Object   | **required**                  | ข้อมูลฟอร์มทั้งหมด            |
+| `setFormData`    | Function | **required**                  | ฟังก์ชันอัพเดทข้อมูลฟอร์ม     |
+| `errors`         | Object   | `{}`                          | ข้อผิดพลาดของฟอร์ม            |
+| `isAutofill`     | Boolean  | `false`                       | แสดงว่าข้อมูลถูกเติมอัตโนมัติ |
+| `title`          | String   | `"ที่อยู่บริษัท"`             | หัวข้อของ section             |
+| `subtitle`       | String   | `"ข้อมูลที่อยู่และการติดต่อ"` | คำอธิบายใต้หัวข้อ             |
+| `showCopyButton` | Boolean  | `true`                        | แสดงปุ่มคัดลอกที่อยู่         |
+| `showEmail`      | Boolean  | `true`                        | แสดงฟิลด์อีเมล                |
+| `showWebsite`    | Boolean  | `true`                        | แสดงฟิลด์เว็บไซต์             |
 
 ## โครงสร้างข้อมูล
 
 ```javascript
 formData = {
   addresses: {
-    "1": {  // ที่อยู่สำนักงาน
+    1: {
+      // ที่อยู่สำนักงาน
       addressType: "1",
       addressNumber: "123",
       building: "อาคารตัวอย่าง",
@@ -163,18 +153,20 @@ formData = {
       "phone-1": "02-123-4567",
       "phoneExtension-1": "101",
       "email-1": "info@example.com",
-      "website-1": "https://example.com"
+      "website-1": "https://example.com",
     },
-    "2": {  // ที่อยู่จัดส่งเอกสาร
+    2: {
+      // ที่อยู่จัดส่งเอกสาร
       addressType: "2",
       // ... ฟิลด์เดียวกัน
     },
-    "3": {  // ที่อยู่ใบกำกับภาษี
+    3: {
+      // ที่อยู่ใบกำกับภาษี
       addressType: "3",
       // ... ฟิลด์เดียวกัน
-    }
-  }
-}
+    },
+  },
+};
 ```
 
 ## โครงสร้าง Errors
@@ -182,25 +174,27 @@ formData = {
 รองรับทั้ง 2 รูปแบบ:
 
 ### Flattened Format
+
 ```javascript
 errors = {
   "addresses.1.addressNumber": "กรุณากรอกเลขที่",
-  "addresses.2.phone-2": "กรุณากรอกเบอร์โทรศัพท์"
-}
+  "addresses.2.phone-2": "กรุณากรอกเบอร์โทรศัพท์",
+};
 ```
 
 ### Nested Format
+
 ```javascript
 errors = {
   addresses: {
-    "1": {
-      addressNumber: "กรุณากรอกเลขที่"
+    1: {
+      addressNumber: "กรุณากรอกเลขที่",
     },
-    "2": {
-      phone: "กรุณากรอกเบอร์โทรศัพท์"
-    }
-  }
-}
+    2: {
+      phone: "กรุณากรอกเบอร์โทรศัพท์",
+    },
+  },
+};
 ```
 
 ## Features
@@ -212,11 +206,12 @@ errors = {
 ✅ Auto-switch ไปยัง tab ที่มี error  
 ✅ Responsive design  
 ✅ Loading states  
-✅ Customizable (ซ่อน/แสดงฟิลด์ได้)  
+✅ Customizable (ซ่อน/แสดงฟิลด์ได้)
 
 ## ตัวอย่างการใช้งานในแต่ละประเภทสมาชิก
 
 ### OC (สามัญ-นิติบุคคล)
+
 ```jsx
 <AddressSection
   formData={formData}
@@ -228,6 +223,7 @@ errors = {
 ```
 
 ### AC (สมทบ-นิติบุคคล)
+
 ```jsx
 <AddressSection
   formData={formData}
@@ -238,6 +234,7 @@ errors = {
 ```
 
 ### IC (สมทบ-บุคคลธรรมดา)
+
 ```jsx
 <AddressSection
   formData={formData}
@@ -249,6 +246,7 @@ errors = {
 ```
 
 ### AM (สมทบ-สมาคม)
+
 ```jsx
 <AddressSection
   formData={formData}
@@ -262,6 +260,7 @@ errors = {
 ## การ Migrate จากโค้ดเดิม
 
 ### ก่อน
+
 ```jsx
 import CompanyAddressInfo from "./CompanyAddressInfo";
 
@@ -270,10 +269,11 @@ import CompanyAddressInfo from "./CompanyAddressInfo";
   setFormData={setFormData}
   errors={errors}
   isAutofill={isAutofill}
-/>
+/>;
 ```
 
 ### หลัง
+
 ```jsx
 import { AddressSection } from "@/app/membership/shared/address";
 
@@ -282,7 +282,7 @@ import { AddressSection } from "@/app/membership/shared/address";
   setFormData={setFormData}
   errors={errors}
   isAutofill={isAutofill}
-/>
+/>;
 ```
 
 ## หมายเหตุ

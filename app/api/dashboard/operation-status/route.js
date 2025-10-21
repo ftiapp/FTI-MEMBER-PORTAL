@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 export async function GET(request) {
@@ -51,18 +51,18 @@ async function fetchOperationStatus(userId) {
       ),
       // Address updates
       query(
-        `SELECT id, user_id, member_code, status, created_at 
+        `SELECT id, user_id, member_code, status, request_date as created_at 
          FROM FTI_Original_Membership_Pending_Address_Updates 
          WHERE user_id = ? 
-         ORDER BY created_at DESC`,
+         ORDER BY request_date DESC`,
         [userId],
       ),
       // Product updates
       query(
-        `SELECT id, user_id, member_code, status, created_at 
+        `SELECT id, user_id, member_code, status, request_date as created_at 
          FROM FTI_Original_Membership_Pending_Product_Updates 
          WHERE user_id = ? 
-         ORDER BY created_at DESC`,
+         ORDER BY request_date DESC`,
         [userId],
       ),
       // Social media updates from log
@@ -83,12 +83,12 @@ async function fetchOperationStatus(userId) {
          LIMIT 10`,
         [userId],
       ),
-      // TSIC updates
+      // TSIC updates (assuming same structure as Address/Product updates)
       query(
-        `SELECT id, user_id, member_code, status, created_at 
+        `SELECT id, user_id, member_code, status, request_date as created_at 
          FROM FTI_Original_Membership_Pending_Tsic_Updates 
          WHERE user_id = ? 
-         ORDER BY created_at DESC`,
+         ORDER BY request_date DESC`,
         [userId],
       ),
     ]);
@@ -172,7 +172,12 @@ async function fetchOperationStatus(userId) {
         id: `social-${s.id}`,
         type: "social_media_update",
         title: `อัปเดตโซเชียลมีเดีย`,
-        description: s.action === "social_media_add" ? "เพิ่มโซเชียลมีเดีย" : s.action === "social_media_delete" ? "ลบโซเชียลมีเดีย" : "แก้ไขโซเชียลมีเดีย",
+        description:
+          s.action === "social_media_add"
+            ? "เพิ่มโซเชียลมีเดีย"
+            : s.action === "social_media_delete"
+              ? "ลบโซเชียลมีเดีย"
+              : "แก้ไขโซเชียลมีเดีย",
         status: "approved",
         created_at: s.created_at,
       };
@@ -182,7 +187,12 @@ async function fetchOperationStatus(userId) {
       id: `logo-${l.id}`,
       type: "logo_update",
       title: `จัดการโลโก้`,
-      description: l.action === "logo_add" ? "อัปโหลดโลโก้" : l.action === "logo_delete" ? "ลบโลโก้" : "แก้ไขโลโก้",
+      description:
+        l.action === "logo_add"
+          ? "อัปโหลดโลโก้"
+          : l.action === "logo_delete"
+            ? "ลบโลโก้"
+            : "แก้ไขโลโก้",
       status: "approved",
       created_at: l.created_at,
     }));

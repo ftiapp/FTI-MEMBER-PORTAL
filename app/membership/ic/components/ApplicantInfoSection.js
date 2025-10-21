@@ -399,8 +399,12 @@ export default function ApplicantInfoSection({
     >
       {/* Header */}
       <div className="bg-blue-600 px-8 py-6">
-        <h2 className="text-xl font-semibold text-white tracking-tight">ข้อมูลผู้สมัคร / Applicant Information</h2>
-        <p className="text-blue-100 text-sm mt-1">ข้อมูลส่วนตัวและที่อยู่ / Personal information and address</p>
+        <h2 className="text-xl font-semibold text-white tracking-tight">
+          ข้อมูลผู้สมัคร / Applicant Information
+        </h2>
+        <p className="text-blue-100 text-sm mt-1">
+          ข้อมูลส่วนตัวและที่อยู่ / Personal information and address
+        </p>
       </div>
 
       {/* Content */}
@@ -476,9 +480,7 @@ export default function ApplicantInfoSection({
                   <option value="นางสาว">นางสาว</option>
                   <option value="อื่นๆ">อื่นๆ</option>
                 </select>
-                {errors?.prename_th && (
-                  <p className="text-sm text-red-600">{errors.prename_th}</p>
-                )}
+                {errors?.prename_th && <p className="text-sm text-red-600">{errors.prename_th}</p>}
               </div>
 
               {/* Thai First Name */}
@@ -542,9 +544,7 @@ export default function ApplicantInfoSection({
                   className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prename_other ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
                 />
                 {errors?.prename_other && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.prename_other}
-                  </p>
+                  <p className="text-sm text-red-600 mt-1">{errors.prename_other}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
                   กรุณากรอกคำนำหน้าที่ต้องการใช้ เช่น ตำแหน่งทางวิชาการ หรือยศทหาร
@@ -581,9 +581,7 @@ export default function ApplicantInfoSection({
                   <option value="Miss">Miss</option>
                   <option value="Other">Other</option>
                 </select>
-                {errors?.prename_en && (
-                  <p className="text-sm text-red-600">{errors.prename_en}</p>
-                )}
+                {errors?.prename_en && <p className="text-sm text-red-600">{errors.prename_en}</p>}
               </div>
 
               {/* English First Name */}
@@ -656,9 +654,7 @@ export default function ApplicantInfoSection({
                   }}
                 />
                 {errors?.prename_other_en && (
-                  <p className="text-sm text-red-600 mt-1">
-                    {errors.prename_other_en}
-                  </p>
+                  <p className="text-sm text-red-600 mt-1">{errors.prename_other_en}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
                   Please specify the title you wish to use, e.g., academic or military rank

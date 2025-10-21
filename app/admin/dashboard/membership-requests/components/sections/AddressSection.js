@@ -10,7 +10,11 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
   // Sync state when application prop changes (after successful update)
   useEffect(() => {
     if (!isEditing) {
-      setEditData(application?.addresses ? [...application.addresses] : [application?.address].filter(Boolean));
+      setEditData(
+        application?.addresses
+          ? [...application.addresses]
+          : [application?.address].filter(Boolean),
+      );
     }
   }, [application, isEditing]);
 
@@ -58,13 +62,13 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
 
     const updatedAddresses = [...editData];
     const targetType = updatedAddresses[targetIndex].addressType;
-    
+
     updatedAddresses[targetIndex] = {
       ...officeAddress,
       addressType: targetType, // Keep original type
       id: updatedAddresses[targetIndex].id, // Keep original ID
     };
-    
+
     setEditData(updatedAddresses);
     toast.success("คัดลอกที่อยู่สำเร็จ");
   };
@@ -80,7 +84,7 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
 
     try {
       const response = await fetch(
-        `https://api.thaiaddressdb.com/v1/postal_code/search?q=${postalCode}`
+        `https://api.thaiaddressdb.com/v1/postal_code/search?q=${postalCode}`,
       );
       const data = await response.json();
 
@@ -271,7 +275,8 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
           {/* Postal Code with API */}
           <div className="relative">
             <p className="text-sm font-semibold text-blue-700 mb-1">
-              รหัสไปรษณีย์ {isEditing && <span className="text-xs text-gray-500">(ค้นหาอัตโนมัติ)</span>}
+              รหัสไปรษณีย์{" "}
+              {isEditing && <span className="text-xs text-gray-500">(ค้นหาอัตโนมัติ)</span>}
             </p>
             {isEditing ? (
               <>
@@ -501,10 +506,7 @@ const AddressSectionEnhanced = ({ application, onUpdate }) => {
               return renderAddressCard(addr, title, index);
             })
         : // Display single address (fallback)
-          renderAddressCard(
-            isEditing ? editData[0] : application.address,
-            "ที่อยู่จัดส่งเอกสาร"
-          )}
+          renderAddressCard(isEditing ? editData[0] : application.address, "ที่อยู่จัดส่งเอกสาร")}
     </div>
   );
 };

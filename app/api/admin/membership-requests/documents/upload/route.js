@@ -20,7 +20,7 @@ export async function POST(request) {
     if (!admin) {
       return Response.json(
         { success: false, message: "Unauthorized - Admin access required" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -32,10 +32,7 @@ export async function POST(request) {
     const replaceDocumentId = formData.get("replaceDocumentId"); // Optional: ID of document to replace
 
     if (!file || !membershipType || !applicationId || !documentType) {
-      return Response.json(
-        { success: false, message: "Missing required fields" },
-        { status: 400 }
-      );
+      return Response.json({ success: false, message: "Missing required fields" }, { status: 400 });
     }
 
     // Convert file to buffer for Cloudinary
@@ -52,7 +49,7 @@ export async function POST(request) {
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
-        }
+        },
       );
       uploadStream.end(buffer);
     });
@@ -61,7 +58,7 @@ export async function POST(request) {
     if (replaceDocumentId) {
       const oldDoc = await query(
         `SELECT * FROM MemberRegist_${membershipType}_Documents WHERE id = ? AND main_id = ?`,
-        [replaceDocumentId, applicationId]
+        [replaceDocumentId, applicationId],
       );
 
       if (oldDoc.length > 0 && oldDoc[0].cloudinary_id) {
@@ -75,7 +72,7 @@ export async function POST(request) {
       // Delete from database
       await query(
         `DELETE FROM MemberRegist_${membershipType}_Documents WHERE id = ? AND main_id = ?`,
-        [replaceDocumentId, applicationId]
+        [replaceDocumentId, applicationId],
       );
     }
 
@@ -93,7 +90,7 @@ export async function POST(request) {
         file.type,
         uploadResult.public_id,
         uploadResult.secure_url,
-      ]
+      ],
     );
 
     // Log action
@@ -109,7 +106,7 @@ export async function POST(request) {
           fileName: file.name,
           replaced: !!replaceDocumentId,
         }),
-      ]
+      ],
     );
 
     return Response.json({
@@ -128,7 +125,7 @@ export async function POST(request) {
         success: false,
         message: error.message || "เกิดข้อผิดพลาดในการอัปโหลดเอกสาร",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -45,7 +45,9 @@ export async function POST(request, { params }) {
     }
 
     // Get message details
-    const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ?`, [id]);
+    const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ?`, [
+      id,
+    ]);
 
     if (!messages || messages.length === 0) {
       return NextResponse.json({ success: false, message: "ไม่พบข้อความติดต่อ" }, { status: 404 });

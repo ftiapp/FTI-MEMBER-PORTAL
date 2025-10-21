@@ -7,25 +7,28 @@ Shared React hooks used across all membership forms (AC, OC, IC, AM).
 ### `useApiData()`
 
 Fetches common API data needed for membership forms:
+
 - Business types
 - Industrial groups
 - Provincial chapters
 
 **Usage:**
+
 ```javascript
 import { useApiData } from "@/app/membership/hooks/useApiData";
 
 function MyForm() {
   const { businessTypes, industrialGroups, provincialChapters, isLoading, error } = useApiData();
-  
+
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
-  
+
   // Use the data...
 }
 ```
 
 **Returns:**
+
 ```javascript
 {
   businessTypes: Array,
@@ -37,6 +40,7 @@ function MyForm() {
 ```
 
 **Features:**
+
 - ✅ Automatic request cancellation on unmount
 - ✅ Error handling with toast notifications
 - ✅ Parallel API fetching with Promise.all
@@ -45,6 +49,7 @@ function MyForm() {
 ## Migration Guide
 
 ### Before (in each form):
+
 ```javascript
 const useApiData = () => {
   const [data, setData] = useState({...});
@@ -53,6 +58,7 @@ const useApiData = () => {
 ```
 
 ### After (shared hook):
+
 ```javascript
 import { useApiData } from "@/app/membership/hooks/useApiData";
 

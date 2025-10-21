@@ -44,10 +44,10 @@ export async function POST(request) {
     }
 
     // Verify the message exists and belongs to this user
-    const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ? AND user_id = ?`, [
-      messageId,
-      userId,
-    ]);
+    const messages = await query(
+      `SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ? AND user_id = ?`,
+      [messageId, userId],
+    );
 
     if (!messages || messages.length === 0) {
       return NextResponse.json(

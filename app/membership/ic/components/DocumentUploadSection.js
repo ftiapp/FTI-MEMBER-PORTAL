@@ -401,8 +401,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         data-section="documents"
       >
         <div className="bg-blue-600 px-8 py-6">
-          <h2 className="text-xl font-semibold text-white tracking-tight">เอกสารแนบ / Attached Documents</h2>
-          <p className="text-blue-100 text-sm mt-1">อัพโหลดสำเนาบัตรประชาชนและลายเซ็น / Upload ID card copy and signature</p>
+          <h2 className="text-xl font-semibold text-white tracking-tight">
+            เอกสารแนบ / Attached Documents
+          </h2>
+          <p className="text-blue-100 text-sm mt-1">
+            อัพโหลดสำเนาบัตรประชาชนและลายเซ็น / Upload ID card copy and signature
+          </p>
         </div>
 
         <div className="px-8 py-8">
@@ -554,8 +558,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 ไฟล์ถูกอัพโหลดเรียบร้อยแล้ว
               </div>
             )}
-
-            
           </div>
         </div>
 
@@ -582,8 +584,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 กรุณาอัพโหลดรูปลายเซ็นของผู้มีอำนาจลงนาม (จำเป็น)
               </p>
             </div>
-
-          
 
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 mb-6">
               <h4 className="text-md font-semibold text-gray-800 mb-2">ข้อมูลผู้มีอำนาจลงนาม</h4>
@@ -645,7 +645,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
-                
+
                 {/* ชื่อ (ไทย) */}
                 <div>
                   <label
@@ -676,7 +676,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
-                
+
                 {/* นามสกุล (ไทย) */}
                 <div>
                   <label
@@ -778,7 +778,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
-                
+
                 {/* First Name (EN) - Hidden */}
                 <div className="hidden">
                   <label
@@ -809,7 +809,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     </p>
                   )}
                 </div>
-                
+
                 {/* Last Name (EN) - Hidden */}
                 <div className="hidden">
                   <label
@@ -867,7 +867,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6" style={{ display: 'none' }}>
+            <div
+              className="bg-white border border-gray-200 rounded-xl p-6 mb-6"
+              style={{ display: "none" }}
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label

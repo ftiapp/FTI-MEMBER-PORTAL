@@ -67,7 +67,9 @@ export async function POST(request) {
 
     if (!userResult || userResult.length === 0) {
       // Try to find an admin user as fallback
-      const adminResult = await query("SELECT id, email FROM FTI_Portal_User WHERE is_admin = 1 LIMIT 1");
+      const adminResult = await query(
+        "SELECT id, email FROM FTI_Portal_User WHERE is_admin = 1 LIMIT 1",
+      );
 
       if (adminResult && adminResult.length > 0) {
         userId = adminResult[0].id;

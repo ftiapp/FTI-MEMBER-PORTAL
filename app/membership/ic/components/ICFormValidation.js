@@ -54,14 +54,39 @@ const validateApplicantInfo = (formData) => {
   // Priority: snake_case > camelCase
   const prenameThVal = formData.prename_th !== undefined ? formData.prename_th : formData.prenameTh;
   const prenameEnVal = formData.prename_en !== undefined ? formData.prename_en : formData.prenameEn;
-  const prenameOtherVal = formData.prename_other !== undefined ? formData.prename_other : formData.prenameOther;
-  const prenameOtherEnVal = formData.prename_other_en !== undefined ? formData.prename_other_en : formData.prenameOtherEn;
+  const prenameOtherVal =
+    formData.prename_other !== undefined ? formData.prename_other : formData.prenameOther;
+  const prenameOtherEnVal =
+    formData.prename_other_en !== undefined ? formData.prename_other_en : formData.prenameOtherEn;
 
-  console.log("🔍 DEBUG validateApplicantInfo - prenameThVal:", prenameThVal, "type:", typeof prenameThVal);
-  console.log("🔍 DEBUG validateApplicantInfo - prenameEnVal:", prenameEnVal, "type:", typeof prenameEnVal);
-  console.log("🔍 DEBUG validateApplicantInfo - prenameOtherVal:", prenameOtherVal, "type:", typeof prenameOtherVal);
-  console.log("🔍 DEBUG validateApplicantInfo - prenameOtherEnVal:", prenameOtherEnVal, "type:", typeof prenameOtherEnVal);
-  console.log("🔍 DEBUG validateApplicantInfo - formData keys:", Object.keys(formData).filter(k => k.includes('prename')));
+  console.log(
+    "🔍 DEBUG validateApplicantInfo - prenameThVal:",
+    prenameThVal,
+    "type:",
+    typeof prenameThVal,
+  );
+  console.log(
+    "🔍 DEBUG validateApplicantInfo - prenameEnVal:",
+    prenameEnVal,
+    "type:",
+    typeof prenameEnVal,
+  );
+  console.log(
+    "🔍 DEBUG validateApplicantInfo - prenameOtherVal:",
+    prenameOtherVal,
+    "type:",
+    typeof prenameOtherVal,
+  );
+  console.log(
+    "🔍 DEBUG validateApplicantInfo - prenameOtherEnVal:",
+    prenameOtherEnVal,
+    "type:",
+    typeof prenameOtherEnVal,
+  );
+  console.log(
+    "🔍 DEBUG validateApplicantInfo - formData keys:",
+    Object.keys(formData).filter((k) => k.includes("prename")),
+  );
 
   if (!prenameThVal || prenameThVal.trim() === "") {
     errors.prename_th = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
@@ -77,7 +102,12 @@ const validateApplicantInfo = (formData) => {
 
   // ตรวจสอบว่าถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
   if (prenameThVal === "อื่นๆ") {
-    console.log("✅ DETECTED Thai prename is 'อื่นๆ' - checking prenameOtherVal:", prenameOtherVal, "trimmed:", prenameOtherVal?.trim?.());
+    console.log(
+      "✅ DETECTED Thai prename is 'อื่นๆ' - checking prenameOtherVal:",
+      prenameOtherVal,
+      "trimmed:",
+      prenameOtherVal?.trim?.(),
+    );
     if (!prenameOtherVal || prenameOtherVal.trim() === "") {
       console.log("❌ ERROR: prenameOther is empty when prename_th is 'อื่นๆ'");
       errors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ) ภาษาไทย";
@@ -85,10 +115,15 @@ const validateApplicantInfo = (formData) => {
       console.log("✅ OK: prenameOther has value:", prenameOtherVal);
     }
   }
-  
+
   // ตรวจสอบว่าถ้าเลือก "Other" ต้องระบุรายละเอียด
   if (prenameEnVal && String(prenameEnVal).toLowerCase() === "other") {
-    console.log("✅ DETECTED English prename is 'Other' - checking prenameOtherEnVal:", prenameOtherEnVal, "trimmed:", prenameOtherEnVal?.trim?.());
+    console.log(
+      "✅ DETECTED English prename is 'Other' - checking prenameOtherEnVal:",
+      prenameOtherEnVal,
+      "trimmed:",
+      prenameOtherEnVal?.trim?.(),
+    );
     if (!prenameOtherEnVal || prenameOtherEnVal.trim() === "") {
       console.log("❌ ERROR: prenameOtherEn is empty when prename_en is 'Other'");
       errors.prename_other_en = "กรุณาระบุคำนำหน้าชื่อ (Other) ภาษาอังกฤษ";
@@ -279,7 +314,7 @@ const validateRepresentativeInfo = (formData) => {
       representativeErrors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ) ภาษาไทย";
     }
   }
-  
+
   // ตรวจสอบว่าถ้าเลือก "Other" ต้องระบุรายละเอียด
   if (repPrenameEn && String(repPrenameEn).toLowerCase() === "other") {
     if (!repPrenameOtherEn || repPrenameOtherEn.trim() === "") {
@@ -390,29 +425,50 @@ const validateDocuments = (formData) => {
   }
 
   // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
-  const hasAuthorizedSignature = formData.authorizedSignature && 
-    (formData.authorizedSignature.file || formData.authorizedSignature.url || formData.authorizedSignature instanceof File);
+  const hasAuthorizedSignature =
+    formData.authorizedSignature &&
+    (formData.authorizedSignature.file ||
+      formData.authorizedSignature.url ||
+      formData.authorizedSignature instanceof File);
 
   if (!hasAuthorizedSignature) {
     errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
   }
 
   // Authorized signatory prename validation (required)
-  console.log("🔍 DEBUG validateDocuments - authorizedSignatoryPrenameTh:", formData.authorizedSignatoryPrenameTh);
-  console.log("🔍 DEBUG validateDocuments - authorizedSignatoryPrenameOther:", formData.authorizedSignatoryPrenameOther);
-  
-  if (!formData.authorizedSignatoryPrenameTh || formData.authorizedSignatoryPrenameTh.trim() === "") {
+  console.log(
+    "🔍 DEBUG validateDocuments - authorizedSignatoryPrenameTh:",
+    formData.authorizedSignatoryPrenameTh,
+  );
+  console.log(
+    "🔍 DEBUG validateDocuments - authorizedSignatoryPrenameOther:",
+    formData.authorizedSignatoryPrenameOther,
+  );
+
+  if (
+    !formData.authorizedSignatoryPrenameTh ||
+    formData.authorizedSignatoryPrenameTh.trim() === ""
+  ) {
     errors.authorizedSignatoryPrenameTh = "กรุณาเลือกคำนำหน้าชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
   }
-  
+
   // ตรวจสอบว่าถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
   if (formData.authorizedSignatoryPrenameTh === "อื่นๆ") {
-    console.log("✅ DETECTED authorizedSignatory prename is 'อื่นๆ' - checking authorizedSignatoryPrenameOther:", formData.authorizedSignatoryPrenameOther);
-    if (!formData.authorizedSignatoryPrenameOther || formData.authorizedSignatoryPrenameOther.trim() === "") {
+    console.log(
+      "✅ DETECTED authorizedSignatory prename is 'อื่นๆ' - checking authorizedSignatoryPrenameOther:",
+      formData.authorizedSignatoryPrenameOther,
+    );
+    if (
+      !formData.authorizedSignatoryPrenameOther ||
+      formData.authorizedSignatoryPrenameOther.trim() === ""
+    ) {
       console.log("❌ ERROR: authorizedSignatoryPrenameOther is empty when prename is 'อื่นๆ'");
       errors.authorizedSignatoryPrenameOther = "กรุณาระบุคำนำหน้าชื่อผู้มีอำนาจลงนาม (อื่นๆ)";
     } else {
-      console.log("✅ OK: authorizedSignatoryPrenameOther has value:", formData.authorizedSignatoryPrenameOther);
+      console.log(
+        "✅ OK: authorizedSignatoryPrenameOther has value:",
+        formData.authorizedSignatoryPrenameOther,
+      );
     }
   }
 
