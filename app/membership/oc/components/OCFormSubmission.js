@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Submits the OC membership form data to the server.
  * @param {object} data - The form data object to submit.
  * @returns {Promise<{success: boolean, data: any, error: string | null}>}
@@ -6,6 +6,14 @@
 export async function submitOCMembershipForm(data) {
   try {
     const formData = new FormData();
+
+    // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroupIds และ provincialChapterIds
+    if (data.industrialGroupIds && Array.isArray(data.industrialGroupIds)) {
+      data.industrialGroupIds = data.industrialGroupIds.filter(id => id !== "000" && id !== 0);
+    }
+    if (data.provincialChapterIds && Array.isArray(data.provincialChapterIds)) {
+      data.provincialChapterIds = data.provincialChapterIds.filter(id => id !== "000" && id !== 0);
+    }
 
     // Helper to append data, handles files, arrays, and objects
     const appendToFormData = (key, value) => {

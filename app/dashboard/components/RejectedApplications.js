@@ -84,8 +84,10 @@ export default function RejectedApplications({
   };
 
   const handleEditApplication = (app) => {
-    // Navigate to edit page with rejection data
-    router.push(`/membership/rejected/${app.id}/edit`);
+    // Navigate directly to the membership type specific edit form
+    const membershipType = app.membership_type;
+    const editUrl = `/membership/${membershipType}/edit-rejected/${app.id}`;
+    router.push(editUrl);
   };
 
   const handleCancelApplication = async (app) => {

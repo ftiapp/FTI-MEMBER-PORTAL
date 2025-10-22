@@ -97,13 +97,13 @@ export default function MemberInfoForm({
 
   return (
     <motion.div
-      className="bg-white shadow-md rounded-lg p-6"
+      className="bg-white shadow-md rounded-lg p-4 sm:p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
       <motion.form
-        className="space-y-6"
+        className="space-y-4 sm:space-y-6"
         onSubmit={handleSubmit}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -119,18 +119,18 @@ export default function MemberInfoForm({
         />
 
         <motion.div
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6"
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">ประเภทสมาชิก</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">ประเภทสมาชิก</label>
             <select
               name="memberType"
               value={formData.memberType}
               onChange={(e) => handleChange("memberType", e.target.value)}
-              className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.memberType ? "border-red-500" : ""} text-gray-900 bg-gray-100`}
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${formErrors.memberType ? "border-red-500" : ""} text-gray-900 bg-gray-100`}
               disabled
             >
               <option value="">-- เลือกประเภทสมาชิก --</option>
@@ -145,7 +145,7 @@ export default function MemberInfoForm({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
               เลขประจำตัวผู้เสียภาษี
             </label>
             <input
@@ -153,7 +153,7 @@ export default function MemberInfoForm({
               name="taxId"
               value={formData.taxId}
               onChange={(e) => handleChange("taxId", e.target.value)}
-              className={`w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${formErrors.taxId ? "border-red-500" : ""} text-gray-900 bg-gray-100`}
+              className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm sm:text-base ${formErrors.taxId ? "border-red-500" : ""} text-gray-900 bg-gray-100`}
               placeholder="เลข 13 หลัก"
               readOnly={true}
             />
@@ -198,11 +198,11 @@ export default function MemberInfoForm({
               }
             />
 
-            <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 mt-2">
-              <h4 className="text-sm font-medium text-blue-800 mb-1">
+            <div className="bg-blue-50 border border-blue-100 rounded-lg p-2.5 sm:p-3 mt-2">
+              <h4 className="text-xs sm:text-sm font-medium text-blue-800 mb-1">
                 เอกสารที่ต้องใช้ในการยืนยันสมาชิก
               </h4>
-              <ul className="text-xs text-blue-700 list-disc pl-4 space-y-1">
+              <ul className="text-xs text-blue-700 list-disc pl-3 sm:pl-4 space-y-1">
                 <li>สมาชิกประเภทสามัญ-โรงงาน (สน): หนังสือรับรองบริษัทที่มีการประทับตราและลงนาม</li>
                 <li>
                   สมาชิกประเภทสามัญ-สมาคมการค้า (สส): หนังสือรับรองสมาคมที่มีการประทับตราและลงนาม
@@ -224,7 +224,7 @@ export default function MemberInfoForm({
 
         {showSubmitButton && (
           <motion.div
-            className="pt-4"
+            className="pt-3 sm:pt-4"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 }}
@@ -232,7 +232,7 @@ export default function MemberInfoForm({
             <motion.button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
+              className={`w-full py-2.5 sm:py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm sm:text-base ${isSubmitting ? "opacity-70 cursor-not-allowed" : ""}`}
               whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
               whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
             >

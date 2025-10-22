@@ -49,6 +49,8 @@ export default function EditRejectedAM() {
     const btypes = Array.isArray(data.businessTypes) ? data.businessTypes : [];
     const btypeOther = (Array.isArray(data.businessTypeOther) && data.businessTypeOther[0]) || {};
     const products = Array.isArray(data.products) ? data.products : [];
+    const industryGroups = Array.isArray(data.industryGroups) ? data.industryGroups : [];
+    const provinceChapters = Array.isArray(data.provinceChapters) ? data.provinceChapters : [];
     const documents = Array.isArray(data.documents) ? data.documents : [];
     const financial = (Array.isArray(data.financial) && data.financial[0]) || {};
 
@@ -100,6 +102,15 @@ export default function EditRejectedAM() {
         name: p.name_th || p.product_name || "",
       })),
       memberCount: main.number_of_member ? String(main.number_of_member) : "",
+
+      // Industry Groups and Province Chapters
+      // กรอง "000" (ไม่ระบุ) ออก
+      industrialGroupIds: industryGroups
+        .map((ig) => ig.industry_group_id || ig.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+      provincialChapterIds: provinceChapters
+        .map((pc) => pc.province_chapter_id || pc.id)
+        .filter((id) => id && id !== "000" && id !== 0),
 
       // Financial
       registeredCapital: financial.registered_capital || "",

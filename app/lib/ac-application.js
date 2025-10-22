@@ -1,4 +1,4 @@
-﻿import { getConnection } from "./db";
+import { getConnection } from "./db";
 import { addComment } from "./membership";
 
 /**
@@ -168,7 +168,7 @@ async function updateAddresses(connection, membershipId, formData) {
         await connection.execute(
           `
           INSERT INTO MemberRegist_AC_Address (
-            main_id, address_type, building, address_number, moo, soi, road,
+            main_id, address_type, building, address_number, moo, soi, street,
             sub_district, district, province, postal_code, phone, email, website
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
@@ -179,7 +179,7 @@ async function updateAddresses(connection, membershipId, formData) {
             addressData.addressNumber || "",
             addressData.moo || "",
             addressData.soi || "",
-            addressData.street || "",
+            addressData.street || addressData.road || "",
             addressData.subDistrict || "",
             addressData.district || "",
             addressData.province || "",

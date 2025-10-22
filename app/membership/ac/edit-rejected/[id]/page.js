@@ -360,15 +360,21 @@ export default function EditRejectedACApplication() {
               },
             ],
 
-      // Industrial Groups & Provincial Chapters - map to array of objects for the form
-      industrialGroups: industrialGroups.map((ig) => ({
-        id: ig.industry_group_id,
-        name_th: ig.industry_group_name,
-      })),
-      provincialChapters: provincialChapters.map((pc) => ({
-        id: pc.province_chapter_id,
-        name_th: pc.province_chapter_name,
-      })),
+      // Industrial Groups & Provincial Chapters - map to array of selected IDs
+      // ใช้ทั้ง 2 format เพื่อ backward compatibility
+      // กรอง "000" (ไม่ระบุ) ออก
+      industrialGroupIds: industrialGroups
+        .map((ig) => ig.industry_group_id || ig.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+      industrialGroups: industrialGroups
+        .map((ig) => ig.industry_group_id || ig.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+      provincialChapterIds: provincialChapters
+        .map((pc) => pc.province_chapter_id || pc.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+      provincialChapters: provincialChapters
+        .map((pc) => pc.province_chapter_id || pc.id)
+        .filter((id) => id && id !== "000" && id !== 0),
 
       // Business Types - convert to object format expected by AC form
       businessTypes: businessTypes.reduce((acc, bt) => {

@@ -137,6 +137,7 @@ const DetailView = ({
         handleSaveNote={onSaveNote}
         handleApprove={onApprove}
         handleReject={onReject}
+        onOpenRejectModal={onOpenRejectModal}
         isSubmitting={isSubmitting}
         type={type}
       />

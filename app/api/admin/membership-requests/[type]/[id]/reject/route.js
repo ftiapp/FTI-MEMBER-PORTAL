@@ -59,6 +59,10 @@ async function fetchCompleteApplicationData(connection, type, id) {
         `SELECT * FROM MemberRegist_OC_Documents WHERE main_id = ?`,
         [id],
       );
+      const [signatureName] = await connection.execute(
+        `SELECT * FROM MemberRegist_OC_Signature_Name WHERE main_id = ?`,
+        [id],
+      );
 
       data.addresses = addresses;
       data.contactPersons = contactPersons;
@@ -69,6 +73,7 @@ async function fetchCompleteApplicationData(connection, type, id) {
       data.industryGroups = industryGroups;
       data.provinceChapters = provinceChapters;
       data.documents = documents;
+      data.signatureName = signatureName.length > 0 ? signatureName[0] : null;
     } else if (type === "ac") {
       // AC specific tables
       const [addresses] = await connection.execute(
@@ -107,6 +112,10 @@ async function fetchCompleteApplicationData(connection, type, id) {
         `SELECT * FROM MemberRegist_AC_Documents WHERE main_id = ?`,
         [id],
       );
+      const [signatureName] = await connection.execute(
+        `SELECT * FROM MemberRegist_AC_Signature_Name WHERE main_id = ?`,
+        [id],
+      );
 
       data.addresses = addresses;
       data.contactPersons = contactPersons;
@@ -117,6 +126,7 @@ async function fetchCompleteApplicationData(connection, type, id) {
       data.industryGroups = industryGroups;
       data.provinceChapters = provinceChapters;
       data.documents = documents;
+      data.signatureName = signatureName.length > 0 ? signatureName[0] : null;
     } else if (type === "am") {
       // AM specific tables
       const [addresses] = await connection.execute(
@@ -155,6 +165,10 @@ async function fetchCompleteApplicationData(connection, type, id) {
         `SELECT * FROM MemberRegist_AM_Documents WHERE main_id = ?`,
         [id],
       );
+      const [signatureName] = await connection.execute(
+        `SELECT * FROM MemberRegist_AM_Signature_Name WHERE main_id = ?`,
+        [id],
+      );
 
       data.addresses = addresses;
       data.contactPersons = contactPersons;
@@ -165,6 +179,7 @@ async function fetchCompleteApplicationData(connection, type, id) {
       data.industryGroups = industryGroups;
       data.provinceChapters = provinceChapters;
       data.documents = documents;
+      data.signatureName = signatureName.length > 0 ? signatureName[0] : null;
     } else if (type === "ic") {
       // IC specific tables
       const [addresses] = await connection.execute(
@@ -199,6 +214,10 @@ async function fetchCompleteApplicationData(connection, type, id) {
         `SELECT * FROM MemberRegist_IC_Documents WHERE ic_main_id = ?`,
         [id],
       );
+      const [signatureName] = await connection.execute(
+        `SELECT * FROM MemberRegist_IC_Signature_Name WHERE ic_main_id = ?`,
+        [id],
+      );
 
       data.addresses = addresses;
       data.representatives = representatives;
@@ -208,6 +227,7 @@ async function fetchCompleteApplicationData(connection, type, id) {
       data.industryGroups = industryGroups;
       data.provinceChapters = provinceChapters;
       data.documents = documents;
+      data.signatureName = signatureName.length > 0 ? signatureName[0] : null;
     }
 
     return data;

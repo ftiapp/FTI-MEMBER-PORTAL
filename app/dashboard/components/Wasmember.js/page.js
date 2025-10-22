@@ -948,6 +948,154 @@ export default function WasMember() {
 
   // Function to render the current step content
   const renderStepContent = () => {
+    // Show empty state when no companies added and no submissions exist
+    if (companies.length === 0 && allSubmissions.length === 0 && currentStep === 1) {
+      return (
+        <div className="space-y-6">
+          {/* Empty State Message */}
+          <motion.div
+            className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-6 sm:p-8 md:p-10 text-center shadow-lg"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              className="w-16 h-16 sm:w-20 sm:h-20 mx-auto bg-blue-100 rounded-full flex items-center justify-center mb-4 sm:mb-6"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+                />
+              </svg>
+            </motion.div>
+            <motion.h3
+              className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+            >
+              ยินดีต้อนรับสู่ระบบยืนยันสมาชิก ส.อ.ท.
+            </motion.h3>
+            <motion.p
+              className="text-base sm:text-lg md:text-xl text-gray-700 mb-4 sm:mb-6 leading-relaxed"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+            >
+              ท่านสามารถเพิ่มข้อมูลสมาชิกได้ 2 วิธี
+            </motion.p>
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 max-w-3xl mx-auto mb-6 sm:mb-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+            >
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md border border-blue-100">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 sm:h-7 sm:w-7 text-green-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2 text-base sm:text-lg">ยืนยันสมาชิกเดิม</h4>
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                  หากท่านเป็นสมาชิกเดิมของ ส.อ.ท. กรุณากรอกข้อมูลด้านล่างเพื่อยืนยันตัวตน
+                </p>
+              </div>
+              <div className="bg-white rounded-lg p-4 sm:p-6 shadow-md border border-blue-100">
+                <div className="w-12 h-12 sm:w-14 sm:h-14 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 sm:h-7 sm:w-7 text-purple-600"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                    />
+                  </svg>
+                </div>
+                <h4 className="font-bold text-gray-900 mb-2 text-base sm:text-lg">สมัครสมาชิก ส.อ.ท.</h4>
+                <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
+                  หากท่านต้องการสมัครเป็นสมาชิกใหม่ กรุณาไปที่เมนู "สมัครสมาชิก"
+                </p>
+              </div>
+            </motion.div>
+            <motion.div
+              className="flex items-center justify-center text-sm sm:text-base text-gray-600 bg-white rounded-lg p-3 sm:p-4 border border-blue-100 max-w-2xl mx-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.6 }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 mr-2 flex-shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="text-left">
+                เจ้าหน้าที่จะตรวจสอบข้อมูลของท่านภายใน <strong>1-2 วันทำการ</strong>
+              </span>
+            </motion.div>
+          </motion.div>
+
+          {/* Member Info Form */}
+          <div className={showTemporaryStatus || isSubmitting ? "opacity-50 pointer-events-none" : ""}>
+            <MemberInfoForm
+              formData={formData}
+              setFormData={setFormData}
+              formErrors={formErrors}
+              setFormErrors={setFormErrors}
+              selectedResult={selectedResult}
+              setSelectedResult={setSelectedResult}
+              isSubmitting={isSubmitting}
+              onSubmit={handleAddCompany}
+              showSubmitButton={
+                !isSubmitting && (editingCompanyIndex !== null || companies.length < MAX_COMPANIES)
+              }
+              submitButtonText={editingCompanyIndex !== null ? "บันทึกการแก้ไข" : "เพิ่มบริษัท"}
+              verifiedCompanies={nonSelectableCompanies}
+              selectedCompanies={companies.map((company) => company.memberNumber)}
+            />
+          </div>
+        </div>
+      );
+    }
+
     switch (currentStep) {
       case 1: // Select company step
         return (
@@ -1040,13 +1188,13 @@ export default function WasMember() {
       case 4: // Success step
         return (
           <motion.div
-            className="bg-white shadow-lg rounded-xl p-6 sm:p-8 text-center max-w-lg mx-auto border border-green-100"
+            className="bg-white shadow-lg rounded-xl p-4 sm:p-6 md:p-8 text-center max-w-lg mx-auto border border-green-100"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
           >
             <motion.div
-              className="w-20 h-20 sm:w-24 sm:h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-6"
+              className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4 sm:mb-6"
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
@@ -1056,7 +1204,7 @@ export default function WasMember() {
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.4 }}
               >
-                <FaCheckCircle className="w-10 h-10 sm:w-12 sm:h-12 text-green-600" />
+                <FaCheckCircle className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-green-600" />
               </motion.div>
             </motion.div>
 
@@ -1065,8 +1213,8 @@ export default function WasMember() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <h3 className="text-xl sm:text-2xl font-bold text-gray-900 mb-3">ส่งข้อมูลเรียบร้อยแล้ว</h3>
-              <p className="text-gray-600 mb-6 sm:mb-8 text-base sm:text-lg">
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">ส่งข้อมูลเรียบร้อยแล้ว</h3>
+              <p className="text-gray-600 mb-4 sm:mb-6 md:mb-8 text-sm sm:text-base md:text-lg">
                 เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ
               </p>
             </motion.div>
@@ -1077,7 +1225,7 @@ export default function WasMember() {
                 setCurrentStep(1);
                 setCompanies([]);
               }}
-              className="py-3 px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-base sm:text-lg shadow-md w-full sm:w-auto"
+              className="py-2.5 px-5 sm:py-3 sm:px-6 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm sm:text-base md:text-lg shadow-md w-full sm:w-auto"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -1135,7 +1283,7 @@ export default function WasMember() {
 
   return (
     <motion.div
-      className="space-y-4 sm:space-y-6 p-2 sm:p-0"
+      className="space-y-4 sm:space-y-6 p-2 sm:p-4 md:p-6 lg:p-0"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
@@ -1206,18 +1354,18 @@ export default function WasMember() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-3"
+        className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 sm:p-4 md:p-5 mb-3"
       >
-        <div className="flex items-center">
+        <div className="flex items-start sm:items-center">
           <motion.div
-            className="bg-yellow-100 rounded-full p-2 mr-3"
+            className="bg-yellow-100 rounded-full p-1.5 sm:p-2 mr-2 sm:mr-3 flex-shrink-0"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.3 }}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-yellow-600"
+              className="h-5 w-5 sm:h-6 sm:w-6 text-yellow-600"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -1230,9 +1378,9 @@ export default function WasMember() {
               />
             </svg>
           </motion.div>
-          <div>
+          <div className="flex-1">
             <motion.p
-              className="font-medium text-black"
+              className="font-medium text-black text-sm sm:text-base"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
@@ -1240,7 +1388,7 @@ export default function WasMember() {
               หากท่านเป็นสมาชิกเดิมของสภาอุตสาหกรรมแห่งประเทศไทย
             </motion.p>
             <motion.p
-              className="text-sm text-black"
+              className="text-xs sm:text-sm text-black mt-1"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5 }}

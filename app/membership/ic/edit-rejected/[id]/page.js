@@ -160,14 +160,13 @@ export default function EditRejectedIC() {
           : [],
 
       // Industrial Groups & Provincial Chapters
-      industrialGroups: industryGroups.map((ig) => ({
-        id: ig.industry_group_id || ig.id,
-        name: ig.industry_group_name || ig.name,
-      })),
-      provincialChapters: provinceChapters.map((pc) => ({
-        id: pc.province_chapter_id || pc.id,
-        name: pc.province_chapter_name || pc.name,
-      })),
+      // กรอง "000" (ไม่ระบุ) ออก และแปลงเป็น array of IDs
+      industrialGroupId: industryGroups
+        .map((ig) => ig.industry_group_id || ig.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+      provincialChapterId: provinceChapters
+        .map((pc) => pc.province_chapter_id || pc.id)
+        .filter((id) => id && id !== "000" && id !== 0),
 
       // Business
       businessTypes: btypes

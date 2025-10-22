@@ -3,7 +3,7 @@ import { getConnection } from "@/app/lib/db";
 import { getUserFromSession } from "@/app/lib/userAuth";
 
 export async function GET(request, { params }) {
-  const { type, id } = params;
+  const { type, id } = await params;
 
   // 1. Check user session to ensure they are logged in
   const user = await getUserFromSession();

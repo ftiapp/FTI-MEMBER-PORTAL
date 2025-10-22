@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -218,7 +218,7 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-        <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 relative max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-4 sm:p-6 relative max-h-[90vh] overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
@@ -239,7 +239,7 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
             </svg>
           </button>
 
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">แก้ไขข้อมูลการยืนยันสมาชิก</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">แก้ไขข้อมูลการยืนยันสมาชิก</h2>
 
           {isLoading ? (
             <div className="flex justify-center items-center py-10">
@@ -249,16 +249,16 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
           ) : (
             <div>
               {rejectionComment && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-                  <h3 className="text-md font-medium text-red-800 mb-2">เหตุผลที่ถูกปฏิเสธ:</h3>
+                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-md">
+                  <h3 className="text-sm sm:text-md font-medium text-red-800 mb-2">เหตุผลที่ถูกปฏิเสธ:</h3>
                   <p className="text-sm text-red-700">{rejectionComment}</p>
                 </div>
               )}
 
               {existingDocuments.length > 0 && (
-                <div className="mb-6">
-                  <h3 className="text-md font-medium text-gray-800 mb-2">เอกสารที่มีอยู่:</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="mb-4 sm:mb-6">
+                  <h3 className="text-sm sm:text-md font-medium text-gray-800 mb-2">เอกสารที่มีอยู่:</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {existingDocuments.map((doc, index) => (
                       <div key={`doc-${index}`} className="border rounded-md p-3 flex items-center">
                         <div className="flex-shrink-0 mr-3">
@@ -310,7 +310,7 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 {/* Member Search Field */}
                 <div>
                   <label
@@ -349,7 +349,7 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
                     name="memberNumber"
                     value={formData.memberNumber}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${formErrors.memberNumber ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`w-full px-3 py-2 border text-sm sm:text-base ${formErrors.memberNumber ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                     placeholder="รหัสสมาชิก"
                   />
                   {formErrors.memberNumber && (
@@ -370,7 +370,7 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
                     name="memberType"
                     value={formData.memberType}
                     onChange={handleChange}
-                    className={`w-full px-3 py-2 border ${formErrors.memberType ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
+                    className={`w-full px-3 py-2 border text-sm sm:text-base ${formErrors.memberType ? "border-red-500" : "border-gray-300"} rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500`}
                   >
                     <option value="">เลือกประเภทสมาชิก</option>
                     <option value="สามัญ">สามัญ</option>
@@ -504,18 +504,18 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
                 </div>
 
                 {/* Submit Button */}
-                <div className="flex justify-end space-x-3">
+                <div className="flex flex-col sm:flex-row justify-end gap-2 sm:gap-3">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none"
+                    className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none order-2 sm:order-1"
                   >
                     ยกเลิก
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none flex items-center"
+                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none flex items-center justify-center order-1 sm:order-2"
                   >
                     {isSubmitting ? (
                       <>

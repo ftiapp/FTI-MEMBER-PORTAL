@@ -1,4 +1,4 @@
-﻿// components/AMFormSubmission.js
+// components/AMFormSubmission.js
 "use client";
 
 /**
@@ -10,6 +10,14 @@ export const submitAMMembershipForm = async (formData) => {
   try {
     console.log("🚀 [AM] Starting form submission...");
     console.log("📋 [AM] Original form data:", formData);
+
+    // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroupIds และ provincialChapterIds
+    if (formData.industrialGroupIds && Array.isArray(formData.industrialGroupIds)) {
+      formData.industrialGroupIds = formData.industrialGroupIds.filter(id => id !== "000" && id !== 0);
+    }
+    if (formData.provincialChapterIds && Array.isArray(formData.provincialChapterIds)) {
+      formData.provincialChapterIds = formData.provincialChapterIds.filter(id => id !== "000" && id !== 0);
+    }
 
     // สร้าง FormData สำหรับส่งไฟล์
     const formDataToSubmit = new FormData();

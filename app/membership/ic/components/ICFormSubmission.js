@@ -1,4 +1,4 @@
-﻿// ICFormSubmission.js - ไฟล์สำหรับจัดการการส่งข้อมูลสมัครสมาชิก IC
+// ICFormSubmission.js - ไฟล์สำหรับจัดการการส่งข้อมูลสมัครสมาชิก IC
 
 // ฟังก์ชันตรวจสอบเลขบัตรประชาชน
 export const checkIdCard = async (idCardNumber) => {
@@ -87,6 +87,14 @@ export const submitICMembershipForm = async (formData) => {
   console.log("Form Data received:", formData);
 
   try {
+    // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroupId และ provincialChapterId
+    if (formData.industrialGroupId && Array.isArray(formData.industrialGroupId)) {
+      formData.industrialGroupId = formData.industrialGroupId.filter(id => id !== "000" && id !== 0);
+    }
+    if (formData.provincialChapterId && Array.isArray(formData.provincialChapterId)) {
+      formData.provincialChapterId = formData.provincialChapterId.filter(id => id !== "000" && id !== 0);
+    }
+
     const formDataToSubmit = new FormData();
 
     // ข้อมูลหลัก - แก้ไขชื่อฟิลด์ให้ตรงกับ backend

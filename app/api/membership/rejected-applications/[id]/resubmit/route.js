@@ -6,6 +6,111 @@ import { updateOCApplication } from "@/app/lib/oc-application";
 import { updateAMApplication } from "@/app/lib/am-application";
 import { updateICApplication } from "@/app/lib/ic-application";
 
+// Helper function to validate required documents
+function validateDocuments(formData, membershipType) {
+  const errors = [];
+
+  if (membershipType === "ac") {
+    // AC required documents
+    if (!formData.companyRegistration) {
+      errors.push("สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล");
+    }
+    
+    const hasCompanyStamp =
+      formData.companyStamp &&
+      (formData.companyStamp.file ||
+        formData.companyStamp.url ||
+        formData.companyStamp instanceof File);
+    
+    const hasAuthorizedSignature =
+      formData.authorizedSignature &&
+      (formData.authorizedSignature.file ||
+        formData.authorizedSignature.url ||
+        formData.authorizedSignature instanceof File);
+    
+    if (!hasCompanyStamp) {
+      errors.push("รูปตราประทับบริษัท");
+    }
+    if (!hasAuthorizedSignature) {
+      errors.push("รูปลายเซ็นผู้มีอำนาจลงนาม");
+    }
+  } else if (membershipType === "oc") {
+    // OC required documents
+    if (!formData.companyRegistration) {
+      errors.push("สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล");
+    }
+    if (!formData.factoryLicense) {
+      errors.push("สำเนาใบอนุญาตประกอบกิจการโรงงาน");
+    }
+    
+    const hasCompanyStamp =
+      formData.companyStamp &&
+      (formData.companyStamp.file ||
+        formData.companyStamp.url ||
+        formData.companyStamp instanceof File);
+    
+    const hasAuthorizedSignature =
+      formData.authorizedSignature &&
+      (formData.authorizedSignature.file ||
+        formData.authorizedSignature.url ||
+        formData.authorizedSignature instanceof File);
+    
+    if (!hasCompanyStamp) {
+      errors.push("รูปตราประทับบริษัท");
+    }
+    if (!hasAuthorizedSignature) {
+      errors.push("รูปลายเซ็นผู้มีอำนาจลงนาม");
+    }
+  } else if (membershipType === "am") {
+    // AM required documents
+    if (!formData.associationRegistration) {
+      errors.push("สำเนาหนังสือรับรองการจดทะเบียนสมาคม");
+    }
+    if (!formData.associationProfile) {
+      errors.push("โปรไฟล์สมาคม");
+    }
+    if (!formData.memberList) {
+      errors.push("รายชื่อสมาชิก");
+    }
+    
+    const hasCompanyStamp =
+      formData.companyStamp &&
+      (formData.companyStamp.file ||
+        formData.companyStamp.url ||
+        formData.companyStamp instanceof File);
+    
+    const hasAuthorizedSignature =
+      formData.authorizedSignature &&
+      (formData.authorizedSignature.file ||
+        formData.authorizedSignature.url ||
+        formData.authorizedSignature instanceof File);
+    
+    if (!hasCompanyStamp) {
+      errors.push("รูปตราประทับสมาคม");
+    }
+    if (!hasAuthorizedSignature) {
+      errors.push("รูปลายเซ็นผู้มีอำนาจลงนาม");
+    }
+  } else if (membershipType === "ic") {
+    // IC required documents
+    if (!formData.idCardDocument) {
+      errors.push("สำเนาบัตรประชาชน");
+    }
+    
+    const hasAuthorizedSignature =
+      formData.authorizedSignature &&
+      (formData.authorizedSignature.file ||
+        formData.authorizedSignature.url ||
+        formData.authorizedSignature instanceof File);
+    
+    if (!hasAuthorizedSignature) {
+      errors.push("รูปลายเซ็นผู้มีอำนาจลงนาม");
+    }
+  }
+
+  return errors;
+}
+
 export async function POST(request, { params }) {
   let connection;
 
@@ -42,6 +147,21 @@ export async function POST(request, { params }) {
       }
 
       const { membership_type, membership_id } = rejectedApp[0];
+
+      // Validate required documents before proceeding
+      if (formData) {
+        const documentErrors = validateDocuments(formData, membership_type);
+        if (documentErrors.length > 0) {
+          return NextResponse.json(
+            {
+              success: false,
+              message: `กรุณาอัพโหลดเอกสารที่จำเป็นให้ครบถ้วน: ${documentErrors.join(", ")}`,
+              errors: documentErrors,
+            },
+            { status: 400 },
+          );
+        }
+      }
 
       // อัปเดตข้อมูลตามประเภทสมาชิก
       if (membership_type === "ac" && formData) {

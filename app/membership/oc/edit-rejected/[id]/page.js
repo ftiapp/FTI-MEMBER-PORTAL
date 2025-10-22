@@ -77,6 +77,8 @@ export default function EditRejectedOCApplication() {
         ? data.businessTypeOther[0]
         : {};
     const products = Array.isArray(data.products) ? data.products : [];
+    const industryGroups = Array.isArray(data.industryGroups) ? data.industryGroups : [];
+    const provinceChapters = Array.isArray(data.provinceChapters) ? data.provinceChapters : [];
 
     console.log("📊 Extracted OC nested data:", {
       main,
@@ -85,6 +87,8 @@ export default function EditRejectedOCApplication() {
       btypes,
       btypeOther,
       products,
+      industryGroups,
+      provinceChapters,
     });
 
     const documents = data.documents || {};
@@ -151,6 +155,15 @@ export default function EditRejectedOCApplication() {
       })),
       numberOfEmployees: main.number_of_employees ? String(main.number_of_employees) : "",
 
+      // Industry Groups and Province Chapters
+      // กรอง "000" (ไม่ระบุ) ออก
+      industrialGroupIds: industryGroups
+        .map((ig) => ig.industry_group_id || ig.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+      provincialChapterIds: provinceChapters
+        .map((pc) => pc.province_chapter_id || pc.id)
+        .filter((id) => id && id !== "000" && id !== 0),
+
       // Documents: Preserve existing files
       companyRegistration: getFileObject(documents.company_registration_doc),
       factoryLicense: getFileObject(documents.factory_license_doc),
@@ -165,9 +178,13 @@ export default function EditRejectedOCApplication() {
   const fetchRejectedApplication = async () => {
     try {
       setLoading(true);
+      console.log("📡 Fetching rejected application with ID:", params.id);
       const response = await fetch(`/api/membership/rejected-applications/${params.id}`);
+      console.log("📡 Response status:", response.status, response.statusText);
       const result = await response.json();
       console.log("🌐 OC API Response:", result);
+      console.log("🔍 rejectionData exists?", !!result.data?.rejectionData);
+      console.log("🔍 rejectionData content:", result.data?.rejectionData);
 
       if (result.success) {
         setRejectedApp(result.data);

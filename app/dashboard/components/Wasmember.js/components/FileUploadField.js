@@ -71,7 +71,7 @@ export default function FileUploadField({
 
         {!fileName ? (
           <div
-            className={`border-2 border-dashed rounded-lg p-4 text-center ${hasError ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-blue-400"}`}
+            className={`border-2 border-dashed rounded-lg p-3 sm:p-4 text-center ${hasError ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-blue-400"}`}
           >
             <input
               type="file"
@@ -85,17 +85,17 @@ export default function FileUploadField({
               htmlFor={name}
               className="cursor-pointer flex flex-col items-center justify-center"
             >
-              <FaUpload className="text-gray-400 text-2xl mb-2" />
-              <span className="text-sm text-gray-500 mb-1">คลิกเพื่ออัพโหลดเอกสาร</span>
+              <FaUpload className="text-gray-400 text-xl sm:text-2xl mb-2" />
+              <span className="text-xs sm:text-sm text-gray-500 mb-1">คลิกเพื่ออัพโหลดเอกสาร</span>
               <span className="text-xs text-gray-400">{helpText}</span>
             </label>
           </div>
         ) : (
-          <div className="border rounded-lg p-3 bg-gray-50">
+          <div className="border rounded-lg p-2.5 sm:p-3 bg-gray-50">
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <FaFile className="text-blue-500 mr-2" />
-                <span className="text-sm text-gray-700 truncate max-w-xs">{fileName}</span>
+              <div className="flex items-center flex-1 min-w-0">
+                <FaFile className="text-blue-500 mr-1.5 sm:mr-2 flex-shrink-0" />
+                <span className="text-xs sm:text-sm text-gray-700 truncate">{fileName}</span>
               </div>
               <button
                 type="button"
@@ -114,7 +114,7 @@ export default function FileUploadField({
       {/* Oversize File Error Modal */}
       {showSizeErrorModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full max-w-md mx-4">
+          <div className="bg-white rounded-lg w-full max-w-md mx-4 sm:mx-auto">
             <div className="flex justify-between items-center p-4 border-b">
               <h3 className="text-lg font-semibold">ไฟล์มีขนาดใหญ่เกินกำหนด</h3>
               <button

@@ -7,21 +7,21 @@ import { FaFileAlt, FaCheckCircle, FaTimesCircle, FaEye } from "react-icons/fa";
 const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument }) => {
   return (
     <motion.div
-      className="bg-white shadow-md rounded-lg p-6"
+      className="bg-white shadow-md rounded-lg p-4 sm:p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <h3 className="text-lg font-medium text-gray-900 mb-4">ตรวจสอบข้อมูลและเอกสารทั้งหมด</h3>
+      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">ตรวจสอบข้อมูลและเอกสารทั้งหมด</h3>
 
-      <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
+      <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
         <p className="text-sm text-blue-700">
           กรุณาตรวจสอบข้อมูลและเอกสารทั้งหมดให้ถูกต้องก่อนส่งข้อมูล
           เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 2 วันทำการ
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {companies.map((company, index) => (
           <motion.div
             key={company.id || index}
@@ -30,16 +30,16 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <div className="bg-gray-50 p-4 border-b border-gray-200">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <span className="font-medium text-gray-900">{company.memberNumber}</span>
-                <span className="text-sm text-gray-500">({company.memberType})</span>
+            <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <span className="font-medium text-gray-900 text-sm sm:text-base">{company.memberNumber}</span>
+                <span className="text-xs sm:text-sm text-gray-500">({company.memberType})</span>
               </div>
-              <h4 className="text-md font-medium text-gray-800">{company.companyName}</h4>
+              <h4 className="text-sm sm:text-md font-medium text-gray-800 mt-1">{company.companyName}</h4>
             </div>
 
-            <div className="p-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-3 sm:p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <p className="text-sm text-gray-500 mb-1">เลขประจำตัวผู้เสียภาษี</p>
                   <p className="text-md text-gray-900">{company.taxId}</p>
@@ -49,16 +49,16 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
                   <p className="text-sm text-gray-500 mb-1">เอกสารแนบ</p>
                   {company.documentFile ? (
                     <div
-                      className="flex items-center text-sm text-blue-600 cursor-pointer"
+                      className="flex items-center text-xs sm:text-sm text-blue-600 cursor-pointer"
                       onClick={() => onViewDocument && onViewDocument(index)}
                     >
-                      <FaFileAlt className="mr-2" />
-                      <span className="truncate max-w-[250px]">
+                      <FaFileAlt className="mr-1 sm:mr-2 flex-shrink-0" />
+                      <span className="truncate max-w-[180px] sm:max-w-[250px]">
                         {typeof company.documentFile === "string"
                           ? company.documentFile
                           : company.documentFile.name}
                       </span>
-                      <FaEye className="ml-2 text-green-600" title="ดูเอกสาร" />
+                      <FaEye className="ml-1 sm:ml-2 text-green-600 flex-shrink-0" title="ดูเอกสาร" />
                     </div>
                   ) : (
                     <div className="flex items-center text-sm text-red-600">
@@ -91,12 +91,12 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
         ))}
       </div>
 
-      <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-end">
+      <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end">
         <motion.button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="py-2.5 px-5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          className="py-2 sm:py-2.5 px-4 sm:px-5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 text-sm sm:text-base"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
@@ -107,7 +107,7 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting || companies.some((company) => !company.documentFile)}
-          className={`py-2.5 px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
+          className={`py-2 sm:py-2.5 px-4 sm:px-5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 text-sm sm:text-base ${
             isSubmitting || companies.some((company) => !company.documentFile)
               ? "opacity-70 cursor-not-allowed"
               : ""
