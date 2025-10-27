@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";

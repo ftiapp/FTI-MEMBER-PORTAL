@@ -220,18 +220,18 @@ export default function EditRejectedAM() {
         <Navbar />
         <main className="min-h-screen bg-gray-50">
           {/* Hero Header */}
-          <div className="relative bg-gradient-to-r from-green-900 to-green-700 text-white py-16 md:py-24">
+          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
             {/* Decorative elements - ซ่อนในมือถือ */}
             {!isMobile && (
               <>
-                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-green-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-green-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
               </>
             )}
 
             <div className="container mx-auto px-4 relative z-10 max-w-5xl">
               <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-                แก้ไขใบสมัครสมาชิก AM ที่ถูกปฏิเสธ
+                แก้ไขใบสมัครสมาชิกที่ถูกปฏิเสธ
               </h1>
               <motion.div
                 className="w-24 h-1 bg-white mx-auto mb-6"
@@ -239,14 +239,14 @@ export default function EditRejectedAM() {
                 animate={{ width: 96 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               />
-              <p className="text-lg md:text-xl text-center text-green-100 max-w-3xl mx-auto">
+              <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
                 กำลังโหลดข้อมูลใบสมัครที่ถูกปฏิเสธ
               </p>
             </div>
           </div>
 
           <div className="flex justify-center items-center py-16">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
           </div>
         </main>
@@ -261,18 +261,18 @@ export default function EditRejectedAM() {
         <Navbar />
         <main className="min-h-screen bg-gray-50">
           {/* Hero Header */}
-          <div className="relative bg-gradient-to-r from-green-900 to-green-700 text-white py-16 md:py-24">
+          <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
             {/* Decorative elements - ซ่อนในมือถือ */}
             {!isMobile && (
               <>
-                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-green-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-                <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-green-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+                <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
               </>
             )}
 
             <div className="container mx-auto px-4 relative z-10 max-w-5xl">
               <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-                แก้ไขใบสมัครสมาชิก AM ที่ถูกปฏิเสธ
+                แก้ไขใบสมัครสมาชิกที่ถูกปฏิเสธ
               </h1>
               <motion.div
                 className="w-24 h-1 bg-white mx-auto mb-6"
@@ -280,7 +280,7 @@ export default function EditRejectedAM() {
                 animate={{ width: 96 }}
                 transition={{ duration: 0.8, delay: 0.2 }}
               />
-              <p className="text-lg md:text-xl text-center text-green-100 max-w-3xl mx-auto">
+              <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
                 เกิดข้อผิดพลาดในการโหลดข้อมูล
               </p>
             </div>
@@ -288,7 +288,7 @@ export default function EditRejectedAM() {
 
           <div className="flex justify-center items-center py-16">
             <div className="text-center">
-              <div className="text-red-600 mb-4">
+              <div className="text-blue-600 mb-4">
                 <svg
                   className="w-12 h-12 mx-auto mb-4"
                   fill="none"
@@ -324,18 +324,18 @@ export default function EditRejectedAM() {
       <Navbar />
       <main className="min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="relative bg-gradient-to-r from-green-900 to-green-700 text-white py-16 md:py-24">
+        <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
           {/* Decorative elements - ซ่อนในมือถือ */}
           {!isMobile && (
             <>
-              <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-green-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
-              <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-green-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-blue-600 rounded-full filter blur-3xl opacity-20 -mr-20 -mt-20"></div>
+              <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-blue-500 rounded-full filter blur-3xl opacity-20 -ml-20 -mb-20"></div>
             </>
           )}
 
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-              แก้ไขใบสมัครสมาชิก AM ที่ถูกปฏิเสธ
+              แก้ไขใบสมัครสมาชิกที่ถูกปฏิเสธ
             </h1>
             <motion.div
               className="w-24 h-1 bg-white mx-auto mb-6"
@@ -343,8 +343,8 @@ export default function EditRejectedAM() {
               animate={{ width: 96 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             />
-            <p className="text-lg md:text-xl text-center text-green-100 max-w-3xl mx-auto">
-              สมาชิกสามัญ-สมาคมการค้า (AM)
+            <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
+              สามัญ-สมาคมการค้า
             </p>
           </div>
         </div>

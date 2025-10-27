@@ -372,8 +372,8 @@ export const createHandleSubmit =
     try {
       let result;
       if (rejectionId) {
-        console.log("🔄 Resubmitting rejected application (step mode):", rejectionId);
-        const res = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
+        console.log("🔄 Resubmitting rejected application (v2 - no Reject_DATA):", rejectionId);
+        const res = await fetch(`/api/membership/rejected-applications-v2/ac/${rejectionId}/resubmit`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -381,12 +381,7 @@ export const createHandleSubmit =
           },
           body: JSON.stringify({
             formData: formData,
-            memberType: "ac",
-            userComment: userComment, // ส่ง comment ไปด้วย
-            apiData: {
-              industrialGroups,
-              provincialChapters,
-            },
+            userComment: userComment,
           }),
         });
 

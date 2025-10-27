@@ -3,6 +3,47 @@ import { FIELD_ERROR_MAP } from "./constants";
 import { getFirstErrorKey } from "./scrollHelpers";
 
 /**
+ * Check Tax ID uniqueness
+ * @param {string} taxId - Tax ID to check
+ * @param {AbortController} abortController - Abort controller for cancellation
+ * @returns {Promise<{isUnique: boolean, message: string}>}
+ */
+export const checkTaxIdUniqueness = async (taxId, abortController) => {
+  if (!taxId || taxId.length !== 13) {
+    return { isUnique: false, message: "เลขประจำตัวผู้เสียภาษีอากรไม่ถูกต้อง" };
+  }
+
+  try {
+    const response = await fetch("/api/member/oc-membership/check-tax-id", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ taxId }),
+      signal: abortController?.signal,
+    });
+
+    const data = await response.json();
+    console.log("Tax ID validation response:", data);
+
+    return {
+      isUnique: data.valid === true,
+      message: data.message || "ไม่สามารถตรวจสอบเลขประจำตัวผู้เสียภาษีอากรได้",
+    };
+  } catch (error) {
+    if (error.name === "AbortError") {
+      throw error;
+    }
+
+    console.error("Error checking Tax ID uniqueness:", error);
+    return {
+      isUnique: false,
+      message: "เกิดข้อผิดพลาดในการตรวจสอบเลขประจำตัวผู้เสียภาษีอากร",
+    };
+  }
+};
+
+/**
  * Check ID card uniqueness
  * @param {string} idCardNumber - ID card number to check
  * @param {AbortController} abortController - Abort controller for cancellation

@@ -1,4 +1,4 @@
-﻿import { getConnection } from "./db";
+import { getConnection } from "./db";
 
 /**
  * อัปเดตข้อมูลการสมัครสมาชิก OC ทั้งหมด
@@ -64,11 +64,11 @@ export async function updateOCApplication(
       );
     }
 
-    // อัปเดตสถานะใบสมัครกลับเป็น pending
+    // อัปเดตสถานะใบสมัครเป็น resubmitted (status = 3)
     await connection.execute(
       `
       UPDATE MemberRegist_OC_Main 
-      SET status = 0, 
+      SET status = 3, 
           resubmission_count = resubmission_count + 1,
           rejection_reason = NULL,
           updated_at = NOW()

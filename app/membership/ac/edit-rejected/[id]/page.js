@@ -35,17 +35,14 @@ export default function EditRejectedACApplication() {
   }, [params.id]);
 
   useEffect(() => {
-    if (rejectedApp && rejectedApp.rejectionData) {
-      console.log("✅ Found AC rejectionData, mapping...");
-      const mapped = mapRejectionDataToACForm(rejectedApp.rejectionData);
+    if (rejectedApp) {
+      console.log("✅ Found AC rejected app (v2 - from Main table), mapping...");
+      const mapped = mapRejectionDataToACForm(rejectedApp);
       console.log("✅ Setting AC formData to:", mapped);
       setFormData(mapped);
 
       // เพิ่ม debug info
       setDebugInfo(`Mapped data: ${Object.keys(mapped).length} fields`);
-    } else if (rejectedApp) {
-      console.log("❌ No AC rejectionData found in response");
-      setDebugInfo("No rejection data found");
     }
   }, [rejectedApp]);
 
@@ -441,7 +438,7 @@ export default function EditRejectedACApplication() {
       setIsLoading(true);
       console.log("🔄 Fetching rejected application:", params.id);
 
-      const res = await fetch(`/api/membership/rejected-applications/${params.id}`);
+      const res = await fetch(`/api/membership/rejected-applications-v2/ac/${params.id}`);
       const result = await res.json();
       console.log("📥 AC API Response:", result);
 

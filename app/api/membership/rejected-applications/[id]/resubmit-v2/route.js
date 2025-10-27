@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { getConnection } from "@/app/lib/db";
 import { getUserFromSession } from "@/app/lib/userAuth";
+import { submitACMembershipForm } from "@/app/membership/ac/components/ACFormSubmission";
+import { submitOCMembershipForm } from "@/app/membership/oc/components/OCFormSubmission";
+import { submitAMMembershipForm } from "@/app/membership/am/components/AMFormSubmission";
+import { submitICMembershipForm } from "@/app/membership/ic/components/ICFormSubmission";
 
 /**
- * NEW RESUBMIT API - Simple & Clean
+ * NEW RESUBMIT API v2 - Simple & Clean
  * 
  * Flow:
  * 1. Load rejection data
- * 2. User edits in form
- * 3. Submit as NEW application (reuse existing submit APIs)
- * 4. Mark old application as archived
- * 5. Mark rejection_data as used
+ * 2. Submit as NEW application (call submit functions directly)
+ * 3. Mark old application as archived
+ * 4. Mark rejection_data as used
  */
 
 export async function POST(request, { params }) {
@@ -73,37 +76,25 @@ export async function POST(request, { params }) {
       const oldVersion = oldApp[0]?.version || 1;
       const newVersion = oldVersion + 1;
 
-      // 3. Call appropriate submit API based on membership type
+      // 3. Call submit function directly with parent_id and version
+      const enhancedFormData = {
+        ...formData,
+        parent_id: oldMembershipId,
+        version: newVersion,
+      };
+
       let submitResult;
       
-      if (membershipType === "oc") {
-        const { submitOCMembershipForm } = await import("@/app/membership/oc/components/OCFormSubmission");
-        submitResult = await submitOCMembershipForm({
-          ...formData,
-          parent_id: oldMembershipId,
-          version: newVersion,
-        });
-      } else if (membershipType === "ac") {
-        const { submitACMembershipForm } = await import("@/app/membership/ac/components/ACFormSubmission");
-        submitResult = await submitACMembershipForm({
-          ...formData,
-          parent_id: oldMembershipId,
-          version: newVersion,
-        });
+      if (membershipType === "ac") {
+        submitResult = await submitACMembershipForm(enhancedFormData);
+      } else if (membershipType === "oc") {
+        submitResult = await submitOCMembershipForm(enhancedFormData);
       } else if (membershipType === "am") {
-        const { submitAMMembershipForm } = await import("@/app/membership/am/components/AMFormSubmission");
-        submitResult = await submitAMMembershipForm({
-          ...formData,
-          parent_id: oldMembershipId,
-          version: newVersion,
-        });
+        submitResult = await submitAMMembershipForm(enhancedFormData);
       } else if (membershipType === "ic") {
-        const { submitICMembershipForm } = await import("@/app/membership/ic/components/ICFormSubmission");
-        submitResult = await submitICMembershipForm({
-          ...formData,
-          parent_id: oldMembershipId,
-          version: newVersion,
-        });
+        submitResult = await submitICMembershipForm(enhancedFormData);
+      } else {
+        throw new Error(`Invalid membership type: ${membershipType}`);
       }
 
       if (!submitResult || !submitResult.success) {

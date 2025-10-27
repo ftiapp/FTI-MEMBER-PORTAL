@@ -5,6 +5,7 @@ import { updateACApplication } from "@/app/lib/ac-application";
 import { updateOCApplication } from "@/app/lib/oc-application";
 import { updateAMApplication } from "@/app/lib/am-application";
 import { updateICApplication } from "@/app/lib/ic-application";
+import { createSnapshot } from "@/app/lib/history-snapshot";
 
 // Helper function to validate required documents
 function validateDocuments(formData, membershipType) {
@@ -119,6 +120,8 @@ export async function POST(request, { params }) {
     const body = await request.json();
     const { formData, userComment, apiData } = body;
 
+    console.log("📝 User comment:", userComment);
+
     // Get user from session
     const user = await getUserFromSession();
     if (!user) {
@@ -132,21 +135,44 @@ export async function POST(request, { params }) {
     await connection.beginTransaction();
 
     try {
-      // Verify ownership and get rejection data
-      const [rejectedApp] = await connection.execute(
+      // Debug: Log incoming parameters
+      console.log("🔍 DEBUG Resubmit - ID:", id, "User ID:", userId);
+      
+      // Verify ownership and get rejection data from MemberRegist_Rejections (new system)
+      const [rejectData] = await connection.execute(
         `
-        SELECT membership_type, membership_id 
-        FROM MemberRegist_Reject_DATA 
-        WHERE id = ? AND user_id = ? AND is_active = 1
+        SELECT id, membership_type, membership_id, history_snapshot_id, status, resubmission_count
+        FROM MemberRegist_Rejections 
+        WHERE id = ? AND user_id = ?
       `,
         [id, userId],
       );
 
-      if (!rejectedApp.length) {
-        throw new Error("Rejected application not found or access denied");
+      console.log("🔍 DEBUG RejectData found:", rejectData.length, "records");
+      if (rejectData.length > 0) {
+        console.log("🔍 DEBUG Record:", rejectData[0]);
       }
 
-      const { membership_type, membership_id } = rejectedApp[0];
+      if (!rejectData.length) {
+        console.log("🔍 DEBUG No rejection record found with id:", id);
+        throw new Error(`Rejected application with id ${id} not found`);
+      }
+
+      const { membership_type, membership_id, history_snapshot_id } = rejectData[0];
+
+      // Save user comment as conversation if provided
+      if (userComment && userComment.trim()) {
+        await connection.execute(
+          `
+          INSERT INTO MemberRegist_Rejection_Conversations 
+          (rejection_id, sender_type, sender_id, message, created_at)
+          VALUES (?, 'member', ?, ?, NOW())
+          `,
+          [id, userId, userComment.trim()]
+        );
+        
+        console.log("💬 Saved user comment to conversation");
+      }
 
       // Validate required documents before proceeding
       if (formData) {
@@ -174,6 +200,19 @@ export async function POST(request, { params }) {
         await updateAMApplication(membership_id, formData, userId, id, userComment);
       } else if (membership_type === "ic" && formData) {
         await updateICApplication(membership_id, formData, userId, id, userComment);
+        
+        // Create history snapshot for IC resubmission
+        console.log(`📸 Creating resubmission snapshot for IC ${membership_id}`);
+        const historyId = await createSnapshot(connection, 'ic', membership_id, 'resubmission', userId);
+        console.log(`✅ IC resubmission snapshot created: ${historyId}`);
+        
+        // Update rejection record with history snapshot ID
+        await connection.execute(
+          `UPDATE MemberRegist_Rejections 
+           SET history_snapshot_id = ?, updated_at = NOW()
+           WHERE id = ?`,
+          [historyId, id]
+        );
       } else {
         // ถ้าไม่มี formData ให้ทำแบบเดิม (แค่เปลี่ยนสถานะ)
         await legacyResubmit(connection, membership_type, membership_id, userId, id);
@@ -216,17 +255,17 @@ export async function POST(request, { params }) {
  * ฟังก์ชันสำหรับ resubmit แบบเดิม (แค่เปลี่ยนสถานะ) สำหรับกรณีที่ไม่มี formData
  */
 async function legacyResubmit(connection, membership_type, membership_id, userId, rejectionId) {
-  // Mark rejection data as inactive (resubmitted)
+  // Update rejection status to resubmitted
   await connection.execute(
     `
-    UPDATE MemberRegist_Reject_DATA 
-    SET is_active = 0, resubmitted_at = NOW(), updated_at = NOW() 
+    UPDATE MemberRegist_Rejections 
+    SET status = 'resolved', updated_at = NOW()
     WHERE id = ?
   `,
     [rejectionId],
   );
 
-  // Update the main application status back to pending (status = 0) and increment resubmission count
+  // Update the main application status to resubmitted (status = 3) and increment resubmission count
   const tableMap = {
     oc: "MemberRegist_OC_Main",
     am: "MemberRegist_AM_Main",
@@ -238,9 +277,10 @@ async function legacyResubmit(connection, membership_type, membership_id, userId
   await connection.execute(
     `
     UPDATE ${mainTable} 
-    SET status = 0, 
+    SET status = 3, 
         resubmission_count = resubmission_count + 1,
         rejection_reason = NULL,
+        created_at = NOW(),
         updated_at = NOW()
     WHERE id = ?
   `,
@@ -250,17 +290,17 @@ async function legacyResubmit(connection, membership_type, membership_id, userId
   // บันทึก log ของผู้ใช้
   await connection.execute(
     `
-    INSERT INTO Member_portal_User_log (user_id, action_type, details, created_at)
+    INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at)
     VALUES (?, 'resubmit_membership', ?, NOW())
   `,
-    [
-      userId,
-      JSON.stringify({
-        membershipType: membership_type,
-        membershipId: membership_id,
-        rejectionId,
-        method: "legacy",
-      }),
-    ],
-  );
+  [
+    userId,
+    JSON.stringify({
+      membershipType: membership_type,
+      membershipId: membership_id,
+      rejectionId,
+      method: "legacy",
+    }),
+  ],
+);
 }

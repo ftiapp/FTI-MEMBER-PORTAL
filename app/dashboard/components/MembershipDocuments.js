@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { LoadingOverlay } from "./shared";
 import DraftApplications from "./DraftApplications";
 import SubmittedApplications from "./SubmittedApplications";
-import RejectedApplications from "./RejectedApplications";
+import RejectedApplicationsV3 from "./RejectedApplicationsV3"; // ← เปลี่ยนเป็น V3
 import ApplicationsList from "../../components/member/ApplicationsList";
 import ApplicationDetailView from "./ApplicationDetailView";
 
@@ -360,20 +360,8 @@ export default function MembershipDocuments() {
                   </div>
                 </div>
 
-                <RejectedApplications
-                  currentPage={currentPage}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={setCurrentPage}
-                  onTotalItemsChange={handleTotalItemsChange}
-                />
-
-                <EnhancedPagination
-                  totalItems={totalItems}
-                  currentPage={currentPage}
-                  itemsPerPage={itemsPerPage}
-                  onPageChange={setCurrentPage}
-                  onItemsPerPageChange={handleItemsPerPageChange}
-                />
+                {/* V3: ใช้ระบบ Conversations ใหม่ - มี pagination ในตัวแล้ว */}
+                <RejectedApplicationsV3 />
               </div>
             ) : (
               <div>

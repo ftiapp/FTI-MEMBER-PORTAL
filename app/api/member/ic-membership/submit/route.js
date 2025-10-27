@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import {
   beginTransaction,
@@ -9,6 +9,7 @@ import {
 } from "@/app/lib/db";
 import { uploadToCloudinary } from "@/app/lib/cloudinary";
 import { sendMembershipConfirmationEmail } from "@/app/lib/postmark";
+import { createSnapshot } from "@/app/lib/history-snapshot";
 
 export async function POST(request) {
   let trx;
@@ -681,6 +682,16 @@ export async function POST(request) {
     } catch (emailError) {
       console.error("❌ [IC] Error sending membership confirmation email:", emailError);
       // ไม่ต้องหยุดการทำงานหากส่งอีเมลไม่สำเร็จ
+    }
+
+    // Create history snapshot for initial submission
+    try {
+      console.log(`📸 Creating initial submission snapshot for IC ${icMemberId}`);
+      const historyId = await createSnapshot(trx, 'ic', icMemberId, 'manual', userId);
+      console.log(`✅ IC initial submission snapshot created: ${historyId}`);
+    } catch (snapshotError) {
+      console.error("❌ Error creating history snapshot:", snapshotError);
+      // Don't fail the submission if snapshot creation fails
     }
 
     return NextResponse.json({

@@ -25,40 +25,26 @@ export async function GET(request) {
     const safeLimit = Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 10;
     const safeOffset = Number.isFinite(offset) && offset >= 0 ? Math.floor(offset) : 0;
 
-    // Fetch rejected applications for the user (interpolate limit/offset to avoid placeholder issues)
+    // Fetch rejected applications using the view with conversation data
     const listQuery = `
       SELECT 
-        r.id,
-        r.membership_type,
-        r.membership_id,
-        r.admin_note,
-        r.created_at,
-        r.is_active,
-        CASE 
-          WHEN r.membership_type = 'oc' THEN oc.company_name_th
-          WHEN r.membership_type = 'ac' THEN ac.company_name_th  
-          WHEN r.membership_type = 'am' THEN am.company_name_th
-          WHEN r.membership_type = 'ic' THEN CONCAT(ic.first_name_th, ' ', ic.last_name_th)
-        END as application_name,
-        CASE 
-          WHEN r.membership_type = 'oc' THEN oc.tax_id
-          WHEN r.membership_type = 'ac' THEN ac.tax_id  
-          WHEN r.membership_type = 'am' THEN am.tax_id
-          WHEN r.membership_type = 'ic' THEN ic.id_card_number
-        END as identifier,
-        CASE 
-          WHEN r.membership_type = 'oc' THEN oc.rejection_reason
-          WHEN r.membership_type = 'ac' THEN ac.rejection_reason  
-          WHEN r.membership_type = 'am' THEN am.rejection_reason
-          WHEN r.membership_type = 'ic' THEN ic.rejection_reason
-        END as rejection_reason
-      FROM MemberRegist_Reject_DATA r
-      LEFT JOIN MemberRegist_OC_Main oc ON r.membership_type = 'oc' AND r.membership_id = oc.id
-      LEFT JOIN MemberRegist_AC_Main ac ON r.membership_type = 'ac' AND r.membership_id = ac.id
-      LEFT JOIN MemberRegist_AM_Main am ON r.membership_type = 'am' AND r.membership_id = am.id
-      LEFT JOIN MemberRegist_IC_Main ic ON r.membership_type = 'ic' AND r.membership_id = ic.id
-      WHERE r.user_id = ? AND r.is_active = 1
-      ORDER BY r.created_at DESC
+        reject_id,
+        user_id,
+        membership_type,
+        membership_id,
+        reject_status,
+        resubmission_count,
+        rejected_at,
+        resolved_at,
+        last_conversation_at,
+        unread_count,
+        application_name,
+        identifier,
+        application_status,
+        conversation_count
+      FROM v_rejected_applications_with_conversations
+      WHERE user_id = ? AND reject_status = 0
+      ORDER BY last_conversation_at DESC, rejected_at DESC
       LIMIT ${safeLimit} OFFSET ${safeOffset}
     `;
 
@@ -69,7 +55,7 @@ export async function GET(request) {
       `
       SELECT COUNT(*) as total 
       FROM MemberRegist_Reject_DATA 
-      WHERE user_id = ? AND is_active = 1
+      WHERE user_id = ? AND is_active = 1 AND status = 0
     `,
       [userId],
     );
@@ -77,9 +63,24 @@ export async function GET(request) {
     const total = countResult[0].total;
     const totalPages = Math.ceil(total / limit);
 
+    // Format response data
+    const formattedData = rejectedApps.map(app => ({
+      id: app.reject_id,
+      membershipType: app.membership_type,
+      membershipId: app.membership_id,
+      applicationName: app.application_name,
+      identifier: app.identifier,
+      status: app.application_status,
+      resubmissionCount: app.resubmission_count,
+      rejectedAt: app.rejected_at,
+      lastConversationAt: app.last_conversation_at,
+      conversationCount: app.conversation_count,
+      unreadCount: app.unread_count,
+    }));
+
     return NextResponse.json({
       success: true,
-      data: rejectedApps,
+      data: formattedData,
       pagination: {
         currentPage: page,
         totalPages,

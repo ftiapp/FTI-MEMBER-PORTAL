@@ -16,6 +16,7 @@ import { STATUS } from "../../ีutils/constants";
 import ApplicationComments from "../../../../components/ApplicationComments";
 import { generateMembershipPDF } from "./components/PDFGenerator";
 import SwitchTypeModal from "./components/SwitchTypeModal";
+import ConversationHistory from "./components/ConversationHistory";
 
 export default function MembershipRequestDetail({ params }) {
   const router = useRouter();
@@ -479,6 +480,14 @@ export default function MembershipRequestDetail({ params }) {
         {/* Comments Section */}
         <div className="mt-8">
           <ApplicationComments membershipType={type} membershipId={id} />
+        </div>
+
+        {/* Conversation History Section */}
+        <div className="mt-8">
+          <ConversationHistory 
+            applicationId={id} 
+            membershipType={type} 
+          />
         </div>
 
         {/* Reject Modal */}

@@ -1,4 +1,4 @@
-﻿import { cookies } from "next/headers";
+import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 import { query } from "./db";
 

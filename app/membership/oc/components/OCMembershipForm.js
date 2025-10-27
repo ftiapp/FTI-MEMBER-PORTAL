@@ -127,6 +127,12 @@ export default function OCMembershipForm(props = {}) {
 
   // Wrapped checkTaxIdUniqueness with abort controller
   const checkTaxId = useCallback(async (taxId) => {
+    // Skip Tax ID uniqueness check in rejected edit mode
+    if (props.isRejectedMode) {
+      console.log("⏭️ Skipping Tax ID uniqueness check in rejected edit mode");
+      return { isUnique: true, message: "" };
+    }
+
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -136,7 +142,7 @@ export default function OCMembershipForm(props = {}) {
     const result = await checkTaxIdUniqueness(taxId, abortControllerRef.current);
     setTaxIdValidating(false);
     return result;
-  }, []);
+  }, [props.isRejectedMode]);
 
   // Handle form submission - only for final step (step 5)
   const handleSubmit = useCallback(

@@ -1,4 +1,4 @@
-﻿import { getConnection } from "./db";
+import { getConnection } from "./db";
 import { addComment } from "./membership"; // Assuming addComment will be generalized
 
 /**
@@ -24,7 +24,7 @@ async function updateMainData(connection, membershipId, data) {
       company_name_th = ?, company_name_en = ?,
       tax_id = ?, number_of_member = ?,
       company_email = ?, company_phone = ?,
-      status = 'pending_review', updated_at = NOW()
+      status = 3, updated_at = NOW()
     WHERE id = ?
   `;
 

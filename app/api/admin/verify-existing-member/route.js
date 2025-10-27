@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { mssqlQuery } from "@/app/lib/mssql";
 import { getAdminFromSession } from "@/app/lib/adminAuth";

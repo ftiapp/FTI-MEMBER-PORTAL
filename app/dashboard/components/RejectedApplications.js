@@ -51,9 +51,9 @@ export default function RejectedApplications({
     try {
       fetchingRef.current = true;
       setLoading(true);
-      console.log('📡 RejectedApplications - API call starting...');
+      console.log('📡 RejectedApplications - API call starting (v2 - no Reject_DATA)...');
       const response = await fetch(
-        `/api/membership/rejected-applications?page=${currentPage}&limit=${itemsPerPage}`,
+        `/api/membership/rejected-applications-v2`,
       );
       const result = await response.json();
       
@@ -84,8 +84,8 @@ export default function RejectedApplications({
   };
 
   const handleEditApplication = (app) => {
-    // Navigate directly to the membership type specific edit form
-    const membershipType = app.membership_type;
+    // Navigate directly to the membership type specific edit form (v2 - uses Main table ID)
+    const membershipType = app.membership_type; // v2 API returns 'membership_type'
     const editUrl = `/membership/${membershipType}/edit-rejected/${app.id}`;
     router.push(editUrl);
   };
@@ -121,7 +121,7 @@ export default function RejectedApplications({
       am: "สามัญ-สมาคมการค้า (AM)",
       ic: "สมทบ-บุคคลธรรมดา (IC)",
     };
-    return labels[type] || type.toUpperCase();
+    return labels[type] || (type ? type.toUpperCase() : "N/A");
   };
 
   const formatDate = (dateString) => {

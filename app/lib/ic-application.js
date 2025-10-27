@@ -1,4 +1,4 @@
-﻿import { getConnection } from "./db";
+import { getConnection } from "./db";
 import { addComment } from "./membership";
 
 export async function updateICApplication(
@@ -15,19 +15,21 @@ export async function updateICApplication(
     const {
       main,
       address,
-      representatives,
+      representative,
       businessTypes,
       businessTypeOther,
       products,
       industryGroups,
       provinceChapters,
+      documents,
+      signatureName,
     } = updatedData;
 
     // 1. Update MemberRegist_IC_Main
     await connection.execute(
       `UPDATE MemberRegist_IC_Main 
        SET first_name_th = ?, last_name_th = ?, first_name_en = ?, last_name_en = ?, 
-           phone = ?, email = ?, website = ?, status = 'pending_review' 
+           phone = ?, email = ?, website = ?, status = 3 
        WHERE id = ?`,
       [
         main.firstNameTh,
@@ -66,22 +68,28 @@ export async function updateICApplication(
     await connection.execute("DELETE FROM MemberRegist_IC_Representatives WHERE main_id = ?", [
       membershipId,
     ]);
-    if (representatives && representatives.length > 0) {
-      for (const rep of representatives) {
-        await connection.execute(
-          `INSERT INTO MemberRegist_IC_Representatives (main_id, first_name_th, last_name_th, first_name_en, last_name_en, email, phone) 
-                 VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [
-            membershipId,
-            rep.firstNameThai,
-            rep.lastNameThai,
-            rep.firstNameEng,
-            rep.lastNameEng,
-            rep.email,
-            rep.phone,
-          ],
-        );
-      }
+    if (representative) {
+      await connection.execute(
+        `INSERT INTO MemberRegist_IC_Representatives (main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position, email, phone, phone_extension, rep_order, is_primary) 
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          membershipId,
+          representative.prenameTh || null,
+          representative.prenameEn || null,
+          representative.prenameOther || null,
+          representative.prenameOtherEn || null,
+          representative.firstNameThai,
+          representative.lastNameThai,
+          representative.firstNameEng || null,
+          representative.lastNameEng || null,
+          representative.position || null,
+          representative.email || null,
+          representative.phone || null,
+          representative.phoneExtension || null,
+          1, // rep_order always 1 for single representative
+          representative.isPrimary ? 1 : 0,
+        ],
+      );
     }
 
     // 4. Update Business Information
@@ -144,7 +152,59 @@ export async function updateICApplication(
       }
     }
 
-    // 6. Add a comment for resubmission
+    // 6. Update Documents
+    await connection.execute("DELETE FROM MemberRegist_IC_Documents WHERE main_id = ?", [
+      membershipId,
+    ]);
+    if (documents && documents.length > 0) {
+      for (const doc of documents) {
+        await connection.execute(
+          `INSERT INTO MemberRegist_IC_Documents (
+            main_id, document_type, file_name, file_path, 
+            file_size, mime_type, cloudinary_id, cloudinary_url
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            membershipId,
+            doc.document_type,
+            doc.file_name,
+            doc.file_path,
+            doc.file_size,
+            doc.mime_type,
+            doc.cloudinary_id,
+            doc.cloudinary_url,
+          ],
+        );
+      }
+    }
+
+    // 7. Update Signature Name
+    await connection.execute("DELETE FROM MemberRegist_IC_Signature_Name WHERE main_id = ?", [
+      membershipId,
+    ]);
+    if (signatureName) {
+      await connection.execute(
+        `INSERT INTO MemberRegist_IC_Signature_Name (
+          main_id, prename_th, prename_en, prename_other, prename_other_en,
+          first_name_th, last_name_th, first_name_en, last_name_en,
+          position_th, position_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          membershipId,
+          signatureName.prename_th || null,
+          signatureName.prename_en || null,
+          signatureName.prename_other || null,
+          signatureName.prename_other_en || null,
+          signatureName.first_name_th || null,
+          signatureName.last_name_th || null,
+          signatureName.first_name_en || null,
+          signatureName.last_name_en || null,
+          signatureName.position_th || null,
+          signatureName.position_en || null,
+        ],
+      );
+    }
+
+    // 8. Add a comment for resubmission
     const commentText = userComment || "Resubmitted the application for review.";
     await addComment(
       connection,

@@ -271,20 +271,45 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
   const viewFile = (file) => {
     if (!file) return;
 
+    // If it's already a URL string, open directly
     if (typeof file === "string") {
       window.open(file, "_blank");
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    if (file.type?.startsWith("image/")) {
-      const img = new Image();
-      img.src = url;
-      const w = window.open("");
-      w.document.write(img.outerHTML);
-    } else {
-      window.open(url, "_blank");
+    // If it's an object from history (existing upload), try common URL fields
+    if (typeof file === "object" && !(file instanceof Blob)) {
+      const existingUrl = file.cloudinary_url || file.file_path || file.url || file.path;
+      if (existingUrl && typeof existingUrl === "string") {
+        window.open(existingUrl, "_blank");
+        return;
+      }
     }
+
+    // If it's a Blob/File, create an object URL and open
+    if (file instanceof Blob) {
+      const url = URL.createObjectURL(file);
+      if (file.type?.startsWith("image/")) {
+        const img = new Image();
+        img.onload = () => {
+          // Revoke after load to free memory
+          URL.revokeObjectURL(url);
+        };
+        img.src = url;
+        const w = window.open("");
+        if (w && w.document) {
+          w.document.write(img.outerHTML);
+        }
+      } else {
+        window.open(url, "_blank");
+        // Revoke shortly after opening
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+      }
+      return;
+    }
+
+    // Fallback: cannot determine URL
+    alert("ไม่สามารถแสดงตัวอย่างไฟล์ได้");
   };
 
   const removeFile = (documentType) => {
@@ -512,9 +537,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                       <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
                         {selectedFile.name}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
+                      {typeof selectedFile.size === "number" && !isNaN(selectedFile.size) && (
+                        <p className="text-xs text-gray-500">
+                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="flex space-x-2">

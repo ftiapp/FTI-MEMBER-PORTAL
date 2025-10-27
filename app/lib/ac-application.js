@@ -65,11 +65,11 @@ export async function updateACApplication(
       formData,
     );
 
-    // 10. อัปเดตสถานะใบสมัครกลับเป็น pending
+    // 10. อัปเดตสถานะใบสมัครเป็น resubmitted (status = 3)
     await connection.execute(
       `
       UPDATE MemberRegist_AC_Main 
-      SET status = 0, 
+      SET status = 3, 
           resubmission_count = resubmission_count + 1,
           rejection_reason = NULL,
           updated_at = NOW()

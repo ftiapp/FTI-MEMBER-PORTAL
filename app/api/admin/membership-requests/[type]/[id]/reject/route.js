@@ -2,9 +2,15 @@ import { NextResponse } from "next/server";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 import { sendRejectionEmail } from "@/app/lib/postmark";
+import { createSnapshot } from "@/app/lib/history-snapshot";
 
-// Function to fetch complete application data for resubmission
-async function fetchCompleteApplicationData(connection, type, id) {
+/**
+ * Admin Reject API - Updated to use Conversations system
+ * No longer uses MemberRegist_Reject_DATA table
+ */
+
+// DEPRECATED: No longer needed - keeping for reference only
+async function fetchCompleteApplicationData_DEPRECATED(connection, type, id) {
   const data = { type, id };
 
   try {
@@ -383,48 +389,74 @@ export async function POST(request, { params }) {
           break;
       }
 
-      // Fetch all application data before updating status
-      const applicationData = await fetchCompleteApplicationData(connection, type, id);
+      // Get current status and user_id from the main table
+      const [appRows] = await connection.execute(
+        `SELECT status, user_id FROM ${tableName} WHERE id = ?`,
+        [id]
+      );
 
-      // Get user_id from the main table
-      const [userRows] = await connection.execute(`SELECT user_id FROM ${tableName} WHERE id = ?`, [
-        id,
-      ]);
-      const userId = userRows[0]?.user_id;
-
-      if (!userId) {
-        throw new Error("User ID not found for this application");
+      if (appRows.length === 0) {
+        throw new Error("Application not found");
       }
 
-      // Update status to rejected (2)
+      const currentStatus = appRows[0].status;
+      const userId = appRows[0].user_id;
+
+      // Create history snapshot FIRST
+      console.log(`📸 Creating history snapshot for ${type} ${id}`);
+      const historyId = await createSnapshot(connection, type, id, 'rejection', adminData.id);
+      console.log(`✅ History snapshot created: ${historyId}`);
+
+      // Update Main table with rejection info
       await connection.execute(
-        `UPDATE ${tableName} SET status = 2, rejection_reason = ? WHERE id = ?`,
-        [rejectionReason, id],
+        `UPDATE ${tableName} 
+         SET status = 2,
+             rejection_reason = ?,
+             rejected_by = ?,
+             rejected_at = NOW()
+         WHERE id = ?`,
+        [rejectionReason, adminData.id, id]
       );
 
-      // Store complete rejection data in separate table
-      await connection.execute(
-        `INSERT INTO MemberRegist_Reject_DATA 
-        (membership_type, membership_id, user_id, rejection_data, admin_note, admin_note_by) 
-        VALUES (?, ?, ?, ?, ?, ?)`,
-        [type, id, userId, JSON.stringify(applicationData), adminNote || null, adminData.id],
+      // Create rejection record in MemberRegist_Rejections
+      const [rejectionResult] = await connection.execute(
+        `INSERT INTO MemberRegist_Rejections (
+          user_id, membership_type, membership_id, history_snapshot_id,
+          rejected_by, rejection_reason, status
+        ) VALUES (?, ?, ?, ?, ?, ?, 'pending_fix')`,
+        [userId, type, id, historyId, adminData.id, rejectionReason]
       );
 
-      // Insert rejection reason into comments table
-      await connection.execute(
-        `INSERT INTO MemberRegist_Comments (membership_type, membership_id, admin_id, comment_type, comment_text, rejection_reason)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [type, id, adminData.id, "admin_rejection", rejectionReason, rejectionReason],
-      );
+      const rejectionId = rejectionResult.insertId;
+      console.log(`✅ Rejection record created: ${rejectionId}`);
 
-      // If there's an admin note, insert it as a separate comment
-      if (adminNote && adminNote.trim()) {
+      // Create initial conversation message with rejection reason
+      if (rejectionReason && rejectionReason.trim()) {
         await connection.execute(
-          `INSERT INTO MemberRegist_Comments (membership_type, membership_id, admin_id, comment_type, comment_text)
-           VALUES (?, ?, ?, ?, ?)`,
-          [type, id, adminData.id, "admin_note", adminNote],
+          `INSERT INTO MemberRegist_Rejection_Conversations (
+            rejection_id, sender_type, sender_id, message
+          ) VALUES (?, 'admin', ?, ?)`,
+          [rejectionId, adminData.id, rejectionReason.trim()]
+        );
+
+        await connection.execute(
+          `UPDATE MemberRegist_Rejections 
+           SET last_conversation_at = NOW(), unread_member_count = 1
+           WHERE id = ?`,
+          [rejectionId]
         );
       }
+
+      // Add admin note as separate message if provided
+      if (adminNote && adminNote.trim()) {
+        await connection.execute(
+          `INSERT INTO MemberRegist_Rejection_Conversations (
+            rejection_id, sender_type, sender_id, message
+          ) VALUES (?, 'admin', ?, ?)`,
+          [rejectionId, adminData.id, adminNote.trim()]
+        );
+      }
+
 
       // Fetch applicant details for email notification and description
       let email = "";

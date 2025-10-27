@@ -3,15 +3,25 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Toaster } from "react-hot-toast";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import LoadingOverlay from "../../../components/LoadingOverlay";
-// removed incorrect use() import; useParams is a hook usable directly in client components
+import RejectedApplicationHeader from "../../../components/RejectedApplicationHeader";
+import RejectedApplicationForm from "../../../components/RejectedApplicationForm";
+import RejectedApplicationFormSinglePage from "../../../components/RejectedApplicationFormSinglePage";
+import RejectedConversations from "../../../components/RejectedConversations";
+import RejectionConversationsTable from "../../../components/RejectionConversationsTable";
+import RejectedActions from "../../../components/RejectedActions";
+
+// Centralized data mapping function
+import { mapRejectionDataToForm } from "../../../utils/rejectionDataMappers";
 
 export default function EditRejectedApplication() {
   const params = useParams();
   const router = useRouter();
   const [rejectedApp, setRejectedApp] = useState(null);
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -40,6 +50,20 @@ export default function EditRejectedApplication() {
 
       if (result.success) {
         setRejectedApp(result.data);
+        
+        // Map rejection data to form data based on membership type
+        if (result.data.rejectionData) {
+          console.log("📦 Raw rejectionData from API:", result.data.rejectionData);
+          const mapped = mapRejectionDataToForm(result.data.membershipType, result.data.rejectionData);
+          console.log("🎯 Mapped formData:", mapped);
+          console.log("📍 Address fields:", {
+            addressNumber: mapped.addressNumber,
+            street: mapped.street,
+            province: mapped.province
+          });
+          console.log("👥 ContactPersons:", mapped.contactPersons);
+          setFormData(mapped);
+        }
       } else {
         setError(result.message || "Failed to fetch rejected application");
       }
@@ -48,54 +72,6 @@ export default function EditRejectedApplication() {
       setError("Failed to fetch rejected application");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleResubmit = async () => {
-    if (!confirm("คุณแน่ใจหรือไม่ที่จะส่งใบสมัครนี้ใหม่? ระบบจะนำใบสมัครกลับไปสู่สถานะรอพิจารณา")) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/membership/rejected-applications/${params.id}/resubmit`, {
-        method: "POST",
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert("ส่งใบสมัครใหม่เรียบร้อยแล้ว");
-        router.push("/dashboard?tab=membership");
-      } else {
-        alert("เกิดข้อผิดพลาด: " + result.message);
-      }
-    } catch (error) {
-      console.error("Error resubmitting application:", error);
-      alert("เกิดข้อผิดพลาดในการส่งใบสมัครใหม่");
-    }
-  };
-
-  const handleCancel = async () => {
-    if (!confirm("คุณแน่ใจหรือไม่ที่จะยกเลิกใบสมัครนี้? การดำเนินการนี้ไม่สามารถย้อนกลับได้")) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/membership/rejected-applications/${params.id}`, {
-        method: "DELETE",
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert("ยกเลิกใบสมัครเรียบร้อยแล้ว");
-        router.push("/dashboard?tab=membership");
-      } else {
-        alert("เกิดข้อผิดพลาด: " + result.message);
-      }
-    } catch (error) {
-      console.error("Error cancelling application:", error);
-      alert("เกิดข้อผิดพลาดในการยกเลิกใบสมัคร");
     }
   };
 
@@ -250,10 +226,11 @@ export default function EditRejectedApplication() {
 
   return (
     <>
+      <Toaster position="top-right" />
       <Navbar />
       <main className="min-h-screen bg-gray-50">
         {/* Hero Header */}
-        <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-16 md:py-24">
+        <div className="relative bg-gradient-to-r from-blue-900 to-blue-700 text-white py-12 md:py-16">
           {/* Decorative elements - ซ่อนในมือถือ */}
           {!isMobile && (
             <>
@@ -306,162 +283,46 @@ export default function EditRejectedApplication() {
           </div>
         </div>
 
-        <div className="py-6">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            {/* Header */}
-            <div className="bg-white shadow rounded-lg mb-6">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h1 className="text-2xl font-bold text-gray-900">แก้ไขใบสมัครที่ถูกปฏิเสธ</h1>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {getMembershipTypeLabel(rejectedApp.membershipType)} -{" "}
-                      {rejectedApp.applicationName}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => router.push("/dashboard?tab=membership")}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                  >
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+        <div className="py-8">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Rejection Header */}
+            <RejectedApplicationHeader 
+              rejectedApp={rejectedApp}
+              membershipTypeLabel={getMembershipTypeLabel(rejectedApp.membershipType)}
+            />
 
-            {/* Admin Comments Section */}
-            <div className="bg-red-50 border border-red-200 rounded-lg mb-6">
-              <div className="p-6">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                      <svg
-                        className="w-5 h-5 text-red-600"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-medium text-red-800 mb-2">
-                      ความเห็นของผู้ดูแลระบบ
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-3">
-                      วันที่ปฏิเสธ: {formatDate(rejectedApp.createdAt)}
-                    </p>
-
-                    {rejectedApp.rejectionReason && (
-                      <div className="mb-4">
-                        <p className="text-sm font-medium text-red-700 mb-1">เหตุผลการปฏิเสธ:</p>
-                        <div className="bg-white border border-red-200 rounded-md p-3">
-                          <p className="text-sm text-red-800">{rejectedApp.rejectionReason}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="bg-white shadow rounded-lg">
-              <div className="p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-4">เลือกการดำเนินการ</h3>
-                <p className="text-sm text-gray-600 mb-6">
-                  คุณสามารถแก้ไขใบสมัครตามข้อเสนอแนะของผู้ดูแลระบบ หรือยกเลิกใบสมัครนี้
+            {/* Conversations Table */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-8"
+            >
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                  ประวัติการสื่อสาร
+                </h2>
+                <p className="text-gray-600 mb-6">
+                  ข้อมูลการติดต่อระหว่างผู้สมัครและฝ่ายทะเบียนสมาชิก
                 </p>
-
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={handleEditInForm}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors font-medium"
-                  >
-                    <div className="flex items-center justify-center space-x-2">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
-                      <span>แก้ไขใบสมัคร</span>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={handleCancel}
-                    className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors font-medium"
-                  >
-                    <div className="flex items-center justify-center space-x-2">
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                      <span>ยกเลิกใบสมัคร</span>
-                    </div>
-                  </button>
-                </div>
+                <RejectionConversationsTable rejectionId={rejectedApp.rejectId} />
               </div>
-            </div>
+            </motion.div>
 
-            {/* Help Section */}
-            <div className="mt-6 bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <div className="flex items-start space-x-3">
-                <div className="flex-shrink-0">
-                  <svg
-                    className="w-5 h-5 text-blue-600 mt-0.5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="text-sm font-medium text-blue-800">คำแนะนำ</h4>
-                  <ul className="text-sm text-blue-700 mt-1 space-y-1">
-                    <li>• กดปุ่ม "แก้ไขใบสมัคร" เพื่อแก้ไขข้อมูลตามข้อเสนอแนะของผู้ดูแลระบบ</li>
-                    <li>• กดปุ่ม "ส่งใบสมัครใหม่" หากคุณไม่ต้องการแก้ไขข้อมูลเพิ่มเติม</li>
-                    <li>• กดปุ่ม "ยกเลิกใบสมัคร" หากคุณไม่ต้องการดำเนินการต่อ</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
+            {/* Form - Single Page View */}
+            <RejectedApplicationFormSinglePage 
+              membershipType={rejectedApp.membershipType}
+              formData={formData}
+              setFormData={setFormData}
+              rejectedApp={rejectedApp}
+            />
+
+            {/* Actions */}
+            <RejectedActions 
+              rejectionId={rejectedApp.rejectId}
+              membershipType={rejectedApp.membershipType}
+              status={rejectedApp.status}
+            />
           </div>
         </div>
       </main>

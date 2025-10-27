@@ -1,4 +1,4 @@
-﻿import { getAdminFromSession } from "../../../../lib/adminAuth";
+import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { query } from "../../../../lib/db";
 
 export async function GET(request) {

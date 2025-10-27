@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
 import { verify } from "jsonwebtoken";
