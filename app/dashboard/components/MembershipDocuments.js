@@ -311,11 +311,10 @@ export default function MembershipDocuments() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">
-                      เอกสารสมัครสมาชิกที่ยังไม่ส่ง
+                      เอกสารสมัครสมาชิกทีบันทึกร่าง
                     </h2>
-                    <p className="text-gray-600 text-sm mt-1">
-                      เอกสารสมัครสมาชิกที่ยังกรอกไม่เสร็จ สามารถแก้ไขและส่งได้
-                    </p>
+                    
+                   
                   </div>
                 </div>
 
@@ -354,9 +353,7 @@ export default function MembershipDocuments() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">เอกสารรอการแก้ไข</h2>
-                    <p className="text-gray-600 text-sm mt-1">
-                      เอกสารสมัครสมาชิกที่ถูกปฏิเสธ สามารถแก้ไขและส่งใหม่ได้
-                    </p>
+                    
                   </div>
                 </div>
 
@@ -385,9 +382,7 @@ export default function MembershipDocuments() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">เอกสารสมัครสมาชิกที่ส่งแล้ว</h2>
-                    <p className="text-gray-600 text-sm mt-1">
-                      เอกสารสมัครสมาชิกที่ส่งไปแล้ว พร้อมสถานะการตรวจสอบ
-                    </p>
+                   
                   </div>
                 </div>
 

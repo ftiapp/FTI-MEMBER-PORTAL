@@ -221,7 +221,7 @@ export default function SubmittedApplications({
     <div className="space-y-4">
       {/* แสดงข้อมูลสถิติ */}
       {pagination && pagination.totalItems > 0 && (
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-6 gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-4 gap-2">
           <span className="text-center sm:text-left">
             แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, pagination.totalItems)}-
             {Math.min(currentPage * itemsPerPage, pagination.totalItems)} จาก{" "}
@@ -234,59 +234,55 @@ export default function SubmittedApplications({
       )}
 
       {/* รายการใบสมัคร */}
-      <div className="space-y-6">
-        {applications.map((app) => {
-          const memberTypeInfo = getMemberTypeInfo(app.memberType);
-          const statusBadge = getStatusBadge(app.status);
+      {applications.map((app) => {
+        const memberTypeInfo = getMemberTypeInfo(app.memberType);
+        const statusBadge = getStatusBadge(app.status);
 
-          return (
-            <div
-              key={`${app.memberType}-${app.id}`}
-              className={`bg-white rounded-lg shadow-sm border-2 ${memberTypeInfo.color} overflow-hidden`}
-            >
-              {/* Header */}
-              <div className="bg-blue-600 px-6 py-4">
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center flex-shrink-0">
-                      <span className={`text-lg font-bold ${memberTypeInfo.iconColor}`}>
-                        {app.memberType === "IC"
-                          ? "ทบ"
-                          : app.memberType === "OC"
-                            ? "สน"
-                            : app.memberType === "AC"
-                              ? "ทน"
-                              : app.memberType === "AM"
-                                ? "สส"
-                                : app.memberType}
-                      </span>
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-white">
-                        {app.displayName || "ไม่ระบุชื่อ"}
-                      </h3>
-                      <p className="text-blue-100 text-sm">{memberTypeInfo.text}</p>
-                    </div>
+        return (
+          <div
+            key={`${app.memberType}-${app.id}`}
+            className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+          >
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+              <div className="flex-1">
+                {/* ข้อมูลประเภทสมาชิก */}
+                <div className="flex items-center space-x-3 mb-2">
+                  <div className="flex items-center justify-center w-8 h-8 bg-green-100 rounded-full flex-shrink-0">
+                    <span className={`text-sm font-bold ${memberTypeInfo.iconColor}`}>
+                      {app.memberType === "IC"
+                        ? "ทบ"
+                        : app.memberType === "OC"
+                          ? "สน"
+                          : app.memberType === "AC"
+                            ? "ทน"
+                            : app.memberType === "AM"
+                              ? "สส"
+                              : app.memberType}
+                    </span>
                   </div>
-
-                  <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4">
-                    <div className="text-left sm:text-right">
+                  <div>
+                    <h4 className="font-medium text-gray-900 text-lg">
+                      {memberTypeInfo.text}
+                    </h4>
+                    <div className="flex items-center space-x-2">
+                      <p className="text-sm text-gray-600">
+                        ชื่อ: {app.displayName || "ไม่ระบุชื่อ"}
+                      </p>
                       <div
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}
+                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${statusBadge.color}`}
                       >
                         {statusBadge.text}
                       </div>
-                      <p className="text-blue-100 text-xs mt-1">
-                        ส่งเมื่อ {format(new Date(app.createdAt), "dd MMM yyyy", { locale: th })}
-                      </p>
                     </div>
+                  </div>
+                </div>
 
-                    <button
-                      onClick={() => openDetailPage(app)}
-                      className="inline-flex justify-center items-center px-4 py-2 border border-white text-sm font-medium rounded-lg text-white bg-transparent hover:bg-white hover:text-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white transition-colors duration-200 w-full sm:w-auto"
-                    >
+                {/* วันที่และข้อมูลอื่นๆ */}
+                <div className="md:ml-11 mt-3 md:mt-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
+                    <p className="flex items-center">
                       <svg
-                        className="w-4 h-4 mr-2"
+                        className="w-3 h-3 mr-1"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
@@ -295,48 +291,76 @@ export default function SubmittedApplications({
                           strokeLinecap="round"
                           strokeLinejoin="round"
                           strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      ดูรายละเอียด
-                    </button>
+                      ส่งเมื่อ: {format(new Date(app.createdAt), "dd/MM/yyyy HH:mm", { locale: th })}
+                    </p>
+                    {app.updatedAt && (
+                      <p className="flex items-center">
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        อัปเดต: {format(new Date(app.updatedAt), "dd/MM/yyyy HH:mm", { locale: th })}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* เพิ่มข้อมูลเพิ่มเติมในส่วน Body */}
-              <div className="p-4 bg-gray-50">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-700">รหัสใบสมัคร:</span>
-                    <span className="ml-1 text-gray-600">{app.id}</span>
+              <div className="flex flex-col space-y-3 md:ml-4 w-full md:w-auto">
+                <button
+                  onClick={() => openDetailPage(app)}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors text-center font-medium shadow-sm"
+                >
+                  ดูรายละเอียด
+                </button>
+
+                {/* แสดงสถานะ */}
+                <div className="w-full md:w-28">
+                  <div className="flex justify-between text-xs text-gray-600 mb-2">
+                    <span className="font-medium">สถานะ</span>
+                    <span className={`font-bold ${
+                      app.status === 0 ? 'text-yellow-600' :
+                      app.status === 1 ? 'text-green-600' :
+                      app.status === 2 ? 'text-red-600' :
+                      'text-gray-600'
+                    }`}>
+                      {statusBadge.text}
+                    </span>
                   </div>
-                  {app.identifier && (
-                    <div>
-                      <span className="font-medium text-gray-700">เลขประจำตัว:</span>
-                      <span className="ml-1 text-gray-600">{app.identifier}</span>
-                    </div>
-                  )}
-                  {app.updatedAt && (
-                    <div>
-                      <span className="font-medium text-gray-700">อัปเดตล่าสุด:</span>
-                      <span className="ml-1 text-gray-600">
-                        {format(new Date(app.updatedAt), "dd/MM/yyyy HH:mm", { locale: th })}
-                      </span>
-                    </div>
-                  )}
+                  <div className={`w-full rounded-full h-2 ${
+                    app.status === 0 ? 'bg-yellow-200' :
+                    app.status === 1 ? 'bg-green-200' :
+                    app.status === 2 ? 'bg-red-200' :
+                    'bg-gray-200'
+                  }`}>
+                    <div
+                      className={`h-2 rounded-full transition-all duration-300 shadow-sm ${
+                        app.status === 0 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                        app.status === 1 ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                        app.status === 2 ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                        'bg-gradient-to-r from-gray-500 to-gray-600'
+                      }`}
+                      style={{ width: '100%' }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
 
       {/* หากไม่มีข้อมูลในหน้านี้ แต่มีข้อมูลรวม */}
       {applications.length === 0 && pagination && pagination.totalItems > 0 && (

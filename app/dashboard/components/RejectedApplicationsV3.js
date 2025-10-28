@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { LoadingOverlay } from "./shared";
 
 /**
  * Rejected Applications List V3
@@ -53,13 +54,24 @@ export default function RejectedApplicationsV3() {
   };
 
   const getMembershipTypeLabel = (type) => {
-    const labels = {
-      oc: "สามัญ-โรงงาน (OC)",
-      ac: "สมทบ-นิติบุคคล (AC)",
-      am: "สามัญ-สมาคมการค้า (AM)",
-      ic: "สมทบ-บุคคลธรรมดา (IC)",
+    const typeMap = {
+      oc: "สมาชิกสามัญ-โรงงาน",
+      ac: "สมาชิกสมทบ-นิติบุคคล",
+      ic: "สมาชิกสมทบ-บุคคลธรรมดา",
+      am: "สมาชิกสามัญ-สมาคมการค้า",
     };
-    return labels[type] || type.toUpperCase();
+    return typeMap[type] || type;
+  };
+
+  // Get identifier label based on member type
+  const getIdentifierLabel = (memberType) => {
+    const labels = {
+      ic: "เลขบัตรประจำตัวประชาชน",
+      oc: "ทะเบียนนิติบุคคล",
+      ac: "ทะเบียนนิติบุคคล",
+      am: "ทะเบียนนิติบุคคล",
+    };
+    return labels[memberType] || "เลขประจำตัว";
   };
 
   const getMembershipTypeBadge = (type) => {
@@ -70,6 +82,13 @@ export default function RejectedApplicationsV3() {
       ic: "bg-yellow-100 text-yellow-800",
     };
     return badges[type] || "bg-gray-100 text-gray-800";
+  };
+
+  // Thai abbreviations for member types
+  const getThaiAbbrev = (type) => {
+    const key = typeof type === 'string' ? type.toLowerCase() : type;
+    const map = { ic: "ทบ", oc: "สน", ac: "ทน", am: "สส" };
+    return map[key] || type;
   };
 
   const getStatusBadge = (status) => {
@@ -126,42 +145,50 @@ export default function RejectedApplicationsV3() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">กำลังโหลดข้อมูล...</span>
-      </div>
+      <LoadingOverlay 
+        isVisible={true} 
+        message="กำลังโหลดข้อมูล..." 
+        inline={true} 
+      />
     );
   }
 
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 mb-4">
-          <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <p className="text-lg font-medium">เกิดข้อผิดพลาด</p>
-          <p className="text-sm text-gray-600 mt-1">{error}</p>
+        <div className="flex flex-col items-center max-w-md mx-auto">
+          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">เกิดข้อผิดพลาด</h3>
+          <p className="text-sm text-gray-600 mb-6">{error}</p>
+          <button
+            onClick={fetchApplications}
+            className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            <span>ลองใหม่</span>
+          </button>
         </div>
-        <button
-          onClick={fetchApplications}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
-        >
-          ลองใหม่
-        </button>
       </div>
     );
   }
 
   if (applications.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-400 mb-4">
-          <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-          <p className="text-lg font-medium text-gray-600">ไม่มีใบสมัครที่ถูกปฏิเสธ</p>
-          <p className="text-sm text-gray-500 mt-1">เมื่อมีใบสมัครที่ถูกปฏิเสธ จะแสดงที่นี่</p>
+      <div className="text-center py-16">
+        <div className="flex flex-col items-center max-w-md mx-auto">
+          <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">ไม่มีใบสมัครที่ถูกปฏิเสธ</h3>
+          <p className="text-gray-600 text-center">เมื่อมีใบสมัครที่ถูกปฏิเสธ จะแสดงที่นี่</p>
         </div>
       </div>
     );
@@ -169,76 +196,63 @@ export default function RejectedApplicationsV3() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            ใบสมัครที่ต้องแก้ไข
-          </h2>
-          <p className="text-sm text-gray-500 mt-1">
-            สถานะ: 
-            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-              รอการตรวจสอบ (แก้ไขแล้ว)
-            </span>
-            <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-              รอแก้ไข
-            </span>
-            <span className="ml-1 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-              แก้ไขแล้ว
-            </span>
-          </p>
+      {/* แสดงข้อมูลสถิติ */}
+      {pagination.total > 0 && (
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-4 gap-2">
+          <span>
+            แสดง {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-
+            {Math.min(pagination.page * pagination.limit, pagination.total)} จาก {pagination.total} รายการ
+          </span>
+          <span className="text-gray-500">
+            หน้า {pagination.page} จาก {Math.ceil(pagination.total / pagination.limit)}
+          </span>
         </div>
-        <span className="text-sm text-gray-500">
-          ทั้งหมด {pagination.total} รายการ
-        </span>
-      </div>
+      )}
 
-      {/* Table View */}
-      <div className="bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ประเภท
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ชื่อ/บริษัท
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                เลขประจำตัว
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                สถานะ
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                วันที่ปฏิเสธ
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                การสนทนา
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                จัดการ
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {applications.map((app) => (
-              <tr 
-                key={`${app.type}-${app.id}`} 
-                className={`hover:bg-gray-50 transition-colors ${
-                  app.status === 'pending_review' ? 'bg-orange-50 hover:bg-orange-100' : ''
-                }`}
-              >
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getMembershipTypeBadge(app.type)}`}>
-                    {app.type.toUpperCase()}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center">
-                    <div className="text-sm font-medium text-gray-900">{app.name}</div>
+      {/* รายการใบสมัคร */}
+      {applications.map((app) => (
+        <div
+          key={`${app.type}-${app.id}`}
+          className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
+        >
+          <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
+            <div className="flex-1">
+              {/* เลขประจำตัวไว้ด้านบนสุด */}
+              <div className="mb-3">
+                <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  <span className="font-semibold">{getIdentifierLabel(app.type)}:</span>
+                  <span className="ml-1 font-mono">{app.identifier || "ไม่ระบุ"}</span>
+                </div>
+              </div>
+
+              {/* ข้อมูลประเภทสมาชิก */}
+              <div className="flex items-center space-x-3 mb-2">
+                <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full flex-shrink-0">
+                  <span className="text-sm font-bold text-red-600">{getThaiAbbrev(app.type)}</span>
+                </div>
+                <div>
+                  <h4 className="font-medium text-gray-900 text-lg">
+                    {getMembershipTypeLabel(app.type)}
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-gray-600">
+                      สถานะ: {app.statusLabel}
+                    </p>
                     {app.status === 'pending_review' && (
-                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
                         <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
@@ -246,114 +260,159 @@ export default function RejectedApplicationsV3() {
                       </span>
                     )}
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm text-gray-500">{app.identifier || "-"}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}>
-                      {getStatusIcon(app.status)}
-                      {app.statusLabel}
-                    </span>
-                    {app.resubmissionCount > 0 && (
-                      <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        ครั้งที่ {app.resubmissionCount}
-                      </span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(app.rejectedAt)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </div>
+              </div>
+
+              {/* วันที่และข้อมูลอื่นๆ */}
+              <div className="md:ml-11 mt-3 md:mt-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
+                  <p className="flex items-center">
+                    <svg
+                      className="w-3 h-3 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
                     </svg>
-                    {app.conversationCount}
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => handleViewApplication(app)}
-                    className="text-blue-600 hover:text-blue-900 font-medium"
-                  >
-                    ดูรายละเอียด →
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    ปฏิเสธเมื่อ: {formatDate(app.rejectedAt)}
+                  </p>
+                  <p className="flex items-center">
+                    <svg
+                      className="w-3 h-3 mr-1 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    {app.conversationCount} การสนทนา
+                  </p>
+                  {app.resubmissionCount > 0 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      ครั้งที่ {app.resubmissionCount}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col space-y-3 md:ml-4 w-full md:w-auto">
+              <button
+                onClick={() => handleViewApplication(app)}
+                className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors text-center font-medium shadow-sm"
+              >
+                ดูรายละเอียด
+              </button>
+
+              {/* แสดงสถานะ */}
+              <div className="w-full md:w-28">
+                <div className="flex justify-between text-xs text-gray-600 mb-2">
+                  <span className="font-medium">สถานะ</span>
+                  <span className={`font-bold ${
+                    app.status === 'pending_review' ? 'text-orange-600' :
+                    app.status === 'pending_fix' ? 'text-red-600' :
+                    app.status === 'resolved' ? 'text-green-600' :
+                    'text-gray-600'
+                  }`}>
+                    {app.statusLabel}
+                  </span>
+                </div>
+                <div className={`w-full rounded-full h-2 ${
+                  app.status === 'pending_review' ? 'bg-orange-200' :
+                  app.status === 'pending_fix' ? 'bg-red-200' :
+                  app.status === 'resolved' ? 'bg-green-200' :
+                  'bg-gray-200'
+                }`}>
+                  <div
+                    className={`h-2 rounded-full transition-all duration-300 shadow-sm ${
+                      app.status === 'pending_review' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                      app.status === 'pending_fix' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                      app.status === 'resolved' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                      'bg-gradient-to-r from-gray-500 to-gray-600'
+                    }`}
+                    style={{ width: '100%' }}
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* หากไม่มีข้อมูลในหน้านี้ แต่มีข้อมูลรวม */}
+      {applications.length === 0 && pagination.total > 0 && (
+        <div className="text-center py-8 text-gray-500">
+          <p>ไม่มีข้อมูลในหน้านี้</p>
+          <button
+            onClick={() => handlePageChange(1)}
+            className="mt-2 text-blue-600 hover:text-blue-800 underline"
+          >
+            กลับไปหน้าแรก
+          </button>
+        </div>
+      )}
 
       {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg">
-          <div className="flex flex-1 justify-between sm:hidden">
+        <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 border-t border-gray-200 pt-4">
+          <div className="text-sm text-gray-700">
+            แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> ถึง{" "}
+            <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> จาก{" "}
+            <span className="font-medium">{pagination.total}</span> รายการ
+          </div>
+
+          <div className="flex items-center space-x-1">
             <button
               onClick={() => handlePageChange(pagination.page - 1)}
               disabled={pagination.page === 1}
-              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
               ก่อนหน้า
             </button>
+
+            {[...Array(pagination.totalPages)].map((_, i) => {
+              const pageNum = i + 1;
+              const isCurrent = pagination.page === pageNum;
+              
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => handlePageChange(pageNum)}
+                  className={`relative inline-flex items-center px-4 py-2 text-sm font-medium ${
+                    isCurrent
+                      ? "z-10 bg-blue-600 text-white border-blue-600"
+                      : "bg-white text-gray-700 border border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
             <button
               onClick={() => handlePageChange(pagination.page + 1)}
               disabled={pagination.page === pagination.totalPages}
-              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               ถัดไป
+              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
             </button>
-          </div>
-          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-gray-700">
-                แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> ถึง{" "}
-                <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> จาก{" "}
-                <span className="font-medium">{pagination.total}</span> รายการ
-              </p>
-            </div>
-            <div>
-              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                <button
-                  onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page === 1}
-                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="sr-only">Previous</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                  </svg>
-                </button>
-                
-                {[...Array(pagination.totalPages)].map((_, i) => (
-                  <button
-                    key={i + 1}
-                    onClick={() => handlePageChange(i + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                      pagination.page === i + 1
-                        ? "z-10 bg-blue-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                        : "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                    }`}
-                  >
-                    {i + 1}
-                  </button>
-                ))}
-                
-                <button
-                  onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page === pagination.totalPages}
-                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <span className="sr-only">Next</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </nav>
-            </div>
           </div>
         </div>
       )}

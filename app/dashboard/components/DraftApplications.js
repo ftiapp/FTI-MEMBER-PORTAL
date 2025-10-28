@@ -140,6 +140,17 @@ export default function DraftApplications({
     return val && String(val).trim() !== "" ? String(val) : "-";
   };
 
+  // Get identifier label based on member type
+  const getIdentifierLabel = (memberType) => {
+    const labels = {
+      ic: "เลขบัตรประจำตัวประชาชน",
+      oc: "ทะเบียนนิติบุคคล",
+      ac: "ทะเบียนนิติบุคคล",
+      am: "ทะเบียนนิติบุคคล",
+    };
+    return labels[memberType] || "เลขประจำตัว";
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "-";
     const date = new Date(dateString);
@@ -257,41 +268,21 @@ export default function DraftApplications({
                       d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
                   </svg>
-                  {draft.memberType === "ic" ? (
-                    <>
-                      <span className="font-semibold">บัตรประชาชน:</span>
-                      <span className="ml-1 font-mono">{getDraftIdCard(draft)}</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-semibold">ทะเบียนนิติบุคคล:</span>
-                      <span className="ml-1 font-mono">{getDraftTaxId(draft)}</span>
-                    </>
-                  )}
+                  <span className="font-semibold">{getIdentifierLabel(draft.memberType)}:</span>
+                  <span className="ml-1 font-mono">{draft.memberType === "ic" ? getDraftIdCard(draft) : getDraftTaxId(draft)}</span>
                 </div>
               </div>
 
               {/* ข้อมูลประเภทสมาชิก */}
               <div className="flex items-center space-x-3 mb-2">
                 <div className="flex items-center justify-center w-8 h-8 bg-yellow-100 rounded-full flex-shrink-0">
-                  <svg
-                    className="w-4 h-4 text-yellow-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
+                  <span className="text-sm font-bold text-yellow-600">
+                    {getMemberTypeThai(draft.memberType)}
+                  </span>
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 text-lg">
-                    {getMemberTypeThai(draft.memberType)} -{" "}
-                    {getMemberTypeFullName(draft.memberType)}
+                    {getMemberTypeThai(draft.memberType)} - {getMemberTypeFullName(draft.memberType)}
                   </h4>
                   <p className="text-sm text-gray-600">
                     ขั้นตอนที่ {draft.currentStep} จากทั้งหมด 5 ขั้นตอน
