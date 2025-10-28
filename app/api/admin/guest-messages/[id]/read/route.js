@@ -15,7 +15,7 @@ export async function PUT(request, { params }) {
     // Update message status to 'read'
     const updateQuery = `
       UPDATE FTI_Portal_Guest_Contact_Messages
-      SET status = 'read', read_by_admin_id = ?
+      SET status = 'read', read_by_admin_id = ?, read_at = NOW()
       WHERE id = ? AND status = 'unread'
     `;
 

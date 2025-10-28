@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/app/contexts/AuthContext";
-import { FaLanguage } from "react-icons/fa";
 
 // Import sub-components
 import AddressSelector from "./components/AddressSelector";
@@ -44,7 +43,6 @@ export default function AddressTabContent({
   const [hasPendingRequest, setHasPendingRequest] = useState(false);
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [language, setLanguage] = useState("th"); // เพิ่ม state สำหรับเก็บภาษาที่เลือก (th หรือ en)
 
   // Animation variants
   const containerVariants = {
@@ -86,18 +84,18 @@ export default function AddressTabContent({
   const isEditable = isAddressTypeEditable && memberType === "000";
 
   // Check if there's a pending address update request
-  const checkPendingRequest = async (lang = "th") => {
+  const checkPendingRequest = async () => {
     if (!user?.id || !isEditable || !selectedAddress) return;
 
     setIsCheckingStatus(true);
     try {
       const response = await fetch(
-        `/api/member/check-pending-address-update?userId=${user.id}&memberCode=${memberCode}&memberType=${memberType}&memberGroupCode=${memberGroupCode}&typeCode=${typeCode}&addrCode=${selectedAddress}&addrLang=${lang}`,
+        `/api/member/check-pending-address-update?userId=${user.id}&memberCode=${memberCode}&memberType=${memberType}&memberGroupCode=${memberGroupCode}&typeCode=${typeCode}&addrCode=${selectedAddress}`,
       );
       const data = await response.json();
 
       setHasPendingRequest(data.hasPendingRequest);
-      console.log(`Checked pending request with language: ${lang}`, data);
+      console.log("Checked pending request", data);
     } catch (error) {
       console.error("Error checking pending address update:", error);
     } finally {
@@ -129,15 +127,6 @@ export default function AddressTabContent({
     } else {
       console.log("No addresses found in props");
     }
-
-    // อ่านค่า lang จาก URL เมื่อโหลดหน้า
-    const urlParams = new URLSearchParams(window.location.search);
-    const langParam = urlParams.get("lang");
-    if (langParam) {
-      // ตั้งค่าภาษาตามพารามิเตอร์ใน URL (TH -> th, EN -> en)
-      setLanguage(langParam.toLowerCase() === "th" ? "th" : "en");
-      console.log("Language set from URL parameter:", langParam);
-    }
   }, [addresses, initialSelectedAddress]);
 
   // Debug log current state
@@ -153,14 +142,14 @@ export default function AddressTabContent({
   // Check for pending requests when the selected address changes
   useEffect(() => {
     if (isEditable && selectedAddress) {
-      checkPendingRequest(language);
+      checkPendingRequest();
     } else {
       setHasPendingRequest(false);
     }
 
     // Reset edit mode when changing address
     setIsEditMode(false);
-  }, [selectedAddress, user?.id, memberCode, memberType, memberGroupCode, typeCode, language]);
+  }, [selectedAddress, user?.id, memberCode, memberType, memberGroupCode, typeCode]);
 
   return (
     <motion.div
@@ -186,47 +175,6 @@ export default function AddressTabContent({
         addresses={safeAddresses}
       />
 
-      {/* Language Switch */}
-      {hasAddresses && selectedAddressExists && (
-        <div className="flex justify-end mb-4">
-          <div className="flex items-center space-x-2">
-            <FaLanguage className="text-blue-500 text-xl" />
-            <div className="flex bg-gray-100 rounded-lg p-1">
-              <button
-                type="button"
-                onClick={() => {
-                  setLanguage("th");
-                  // อัปเดต URL ด้วยพารามิเตอร์ lang=TH
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("lang", "TH");
-                  window.history.pushState({}, "", url.toString());
-                  // เรียกใช้ checkPendingRequest กับภาษาใหม่
-                  checkPendingRequest("th");
-                }}
-                className={`px-3 py-1 text-sm rounded-md transition-all ${language === "th" ? "bg-blue-500 text-white" : "text-gray-700 hover:bg-gray-200"}`}
-              >
-                TH
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLanguage("en");
-                  // อัปเดต URL ด้วยพารามิเตอร์ lang=EN
-                  const url = new URL(window.location.href);
-                  url.searchParams.set("lang", "EN");
-                  window.history.pushState({}, "", url.toString());
-                  // เรียกใช้ checkPendingRequest กับภาษาใหม่
-                  checkPendingRequest("en");
-                }}
-                className={`px-3 py-1 text-sm rounded-md transition-all ${language === "en" ? "bg-blue-500 text-white" : "text-gray-700 hover:bg-gray-200"}`}
-              >
-                EN
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       <AnimatePresence mode="wait">
         {hasAddresses ? (
           <motion.div
@@ -251,6 +199,7 @@ export default function AddressTabContent({
             {isEditMode && selectedAddressExists && (
               <EditAddressForm
                 address={addresses[selectedAddress]}
+                addresses={safeAddresses}
                 addrCode={selectedAddress}
                 memberCode={memberCode}
                 compPersonCode={addresses[selectedAddress]?.COMP_PERSON_CODE || ""}
@@ -258,7 +207,6 @@ export default function AddressTabContent({
                 memberType={memberType}
                 memberGroupCode={memberGroupCode}
                 typeCode={typeCode}
-                activeLanguage={language} /* ส่งค่า language ไปให้ EditAddressForm */
                 onCancel={() => setIsEditMode(false)}
                 onSuccess={() => {
                   setIsEditMode(false);
@@ -276,13 +224,13 @@ export default function AddressTabContent({
                 </h4>
 
                 {/* Full address at the top */}
-                <FullAddressDisplay address={addresses[selectedAddress]} language={language} />
+                <FullAddressDisplay address={addresses[selectedAddress]} />
 
                 {/* Address information grid */}
-                <AddressDetailsGrid address={addresses[selectedAddress]} language={language} />
+                <AddressDetailsGrid address={addresses[selectedAddress]} />
 
                 {/* Contact information */}
-                <ContactInfoGrid address={addresses[selectedAddress]} language={language} />
+                <ContactInfoGrid address={addresses[selectedAddress]} />
               </div>
             )}
           </motion.div>

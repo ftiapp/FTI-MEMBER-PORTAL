@@ -28,8 +28,8 @@ export async function GET(request, { params }) {
     // Fetch the message details
     const messages = await query(
       `SELECT cm.*, 
-              a1.username as read_by_admin_name, 
-              a2.username as replied_by_admin_name 
+              a1.name as read_by_admin_name, 
+              a2.name as replied_by_admin_name 
        FROM FTI_Portal_User_Contact_Messages cm
        LEFT JOIN FTI_Portal_Admin_Users a1 ON cm.read_by_admin_id = a1.id
        LEFT JOIN FTI_Portal_Admin_Users a2 ON cm.replied_by_admin_id = a2.id
@@ -48,7 +48,7 @@ export async function GET(request, { params }) {
     try {
       // Try to fetch admin responses from the contact_message_responses table
       adminResponses = await query(
-        `SELECT cmr.id, cmr.admin_id, cmr.response_text, cmr.created_at, au.username as admin_name
+        `SELECT cmr.id, cmr.admin_id, cmr.response_text, cmr.created_at, au.name as admin_name
          FROM FTI_Portal_User_Contact_Message_Responses cmr
          LEFT JOIN FTI_Portal_Admin_Users au ON cmr.admin_id = au.id
          WHERE cmr.message_id = ?

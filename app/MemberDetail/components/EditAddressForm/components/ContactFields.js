@@ -4,17 +4,15 @@ import { motion } from "framer-motion";
 
 /**
  * Contact information fields component
- * Handles both Thai and English contact fields
+ * Handles Thai contact fields only
  */
-export default function ContactFields({ formData, handleChange, itemVariants, activeLanguage }) {
-  // Determine which language's fields to use
-  const isThai = activeLanguage === "th";
+export default function ContactFields({ formData, handleChange, itemVariants }) {
 
   return (
     <>
       <div className="md:col-span-2 border-b border-gray-200 pb-2 mb-4 mt-6">
         <h3 className="text-lg font-semibold text-gray-800">
-          {isThai ? "ข้อมูลติดต่อ" : "Contact Information"}
+          ข้อมูลติดต่อ
         </h3>
       </div>
 
@@ -22,15 +20,15 @@ export default function ContactFields({ formData, handleChange, itemVariants, ac
       <motion.div className="mb-4" variants={itemVariants}>
         <label
           className="block text-gray-700 font-medium mb-2"
-          htmlFor={isThai ? "ADDR_TELEPHONE" : "ADDR_TELEPHONE_EN"}
+          htmlFor="ADDR_TELEPHONE"
         >
-          {isThai ? "โทรศัพท์" : "Telephone"}
+          โทรศัพท์:
         </label>
         <input
           type="text"
-          id={isThai ? "ADDR_TELEPHONE" : "ADDR_TELEPHONE_EN"}
-          name={isThai ? "ADDR_TELEPHONE" : "ADDR_TELEPHONE_EN"}
-          value={isThai ? formData.ADDR_TELEPHONE || "" : formData.ADDR_TELEPHONE_EN || ""}
+          id="ADDR_TELEPHONE"
+          name="ADDR_TELEPHONE"
+          value={formData.ADDR_TELEPHONE || ""}
           onChange={handleChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -40,15 +38,15 @@ export default function ContactFields({ formData, handleChange, itemVariants, ac
       <motion.div className="mb-4" variants={itemVariants}>
         <label
           className="block text-gray-700 font-medium mb-2"
-          htmlFor={isThai ? "ADDR_FAX" : "ADDR_FAX_EN"}
+          htmlFor="ADDR_FAX"
         >
-          {isThai ? "โทรสาร" : "Fax"}
+          โทรสาร:
         </label>
         <input
           type="text"
-          id={isThai ? "ADDR_FAX" : "ADDR_FAX_EN"}
-          name={isThai ? "ADDR_FAX" : "ADDR_FAX_EN"}
-          value={isThai ? formData.ADDR_FAX || "" : formData.ADDR_FAX_EN || ""}
+          id="ADDR_FAX"
+          name="ADDR_FAX"
+          value={formData.ADDR_FAX || ""}
           onChange={handleChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -58,15 +56,15 @@ export default function ContactFields({ formData, handleChange, itemVariants, ac
       <motion.div className="mb-4" variants={itemVariants}>
         <label
           className="block text-gray-700 font-medium mb-2"
-          htmlFor={isThai ? "ADDR_EMAIL" : "ADDR_EMAIL_EN"}
+          htmlFor="ADDR_EMAIL"
         >
-          {isThai ? "อีเมล" : "Email"}
+          อีเมล:
         </label>
         <input
           type="text"
-          id={isThai ? "ADDR_EMAIL" : "ADDR_EMAIL_EN"}
-          name={isThai ? "ADDR_EMAIL" : "ADDR_EMAIL_EN"}
-          value={isThai ? formData.ADDR_EMAIL || "" : formData.ADDR_EMAIL_EN || ""}
+          id="ADDR_EMAIL"
+          name="ADDR_EMAIL"
+          value={formData.ADDR_EMAIL || ""}
           onChange={handleChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
@@ -76,15 +74,15 @@ export default function ContactFields({ formData, handleChange, itemVariants, ac
       <motion.div className="mb-4" variants={itemVariants}>
         <label
           className="block text-gray-700 font-medium mb-2"
-          htmlFor={isThai ? "ADDR_WEBSITE" : "ADDR_WEBSITE_EN"}
+          htmlFor="ADDR_WEBSITE"
         >
-          {isThai ? "เว็บไซต์" : "Website"}
+          เว็บไซต์:
         </label>
         <input
           type="text"
-          id={isThai ? "ADDR_WEBSITE" : "ADDR_WEBSITE_EN"}
-          name={isThai ? "ADDR_WEBSITE" : "ADDR_WEBSITE_EN"}
-          value={isThai ? formData.ADDR_WEBSITE || "" : formData.ADDR_WEBSITE_EN || ""}
+          id="ADDR_WEBSITE"
+          name="ADDR_WEBSITE"
+          value={formData.ADDR_WEBSITE || ""}
           onChange={handleChange}
           className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />

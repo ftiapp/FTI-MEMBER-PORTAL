@@ -171,6 +171,7 @@ const SignatureEditor = ({ isOpen, onClose, onSave, initialImage, title = "ป�
 export default function DocumentUploadSection({ formData, setFormData, errors }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedSignature, setSelectedSignature] = useState(null);
+  const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [showSignatureEditor, setShowSignatureEditor] = useState(false);
   const [editingSignature, setEditingSignature] = useState(null);
 
@@ -220,7 +221,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     if (formData.authorizedSignature) {
       setSelectedSignature(formData.authorizedSignature);
     }
-  }, [formData.idCardDocument, formData.authorizedSignature]);
+    if (formData.attachmentDocument) {
+      setSelectedAttachment(formData.attachmentDocument);
+    }
+  }, [formData.idCardDocument, formData.authorizedSignature, formData.attachmentDocument]);
 
   const handleFileChange = (e, documentType) => {
     const { files } = e.target;
@@ -248,6 +252,13 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
           return;
         }
         setSelectedFile(file);
+        setFormData((prev) => ({ ...prev, [documentType]: file }));
+      } else if (documentType === "attachmentDocument") {
+        if (!(isImage || isPdf)) {
+          alert("ประเภทไฟล์ไม่ถูกต้อง เอกสารแนบรองรับไฟล์ภาพ (JPG, JPEG, PNG) หรือ PDF");
+          return;
+        }
+        setSelectedAttachment(file);
         setFormData((prev) => ({ ...prev, [documentType]: file }));
       }
     }
@@ -317,6 +328,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
       setSelectedFile(null);
     } else if (documentType === "authorizedSignature") {
       setSelectedSignature(null);
+    } else if (documentType === "attachmentDocument") {
+      setSelectedAttachment(null);
     }
 
     setFormData((prev) => ({ ...prev, [documentType]: null }));
@@ -1099,6 +1112,121 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="px-8 pb-8">
+          <div className="bg-white border border-gray-200 rounded-xl p-8">
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-10 h-10 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">เอกสารแนบ</h3>
+              <p className="text-sm text-gray-600">
+                หมายเหตุ : โปรดลงนาม และประทับตราทุกหน้า
+              </p>
+            </div>
+
+            <div
+              id="attachmentUpload"
+              data-field="attachmentDocument"
+              className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
+                errors?.attachmentDocument
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300 hover:border-blue-400"
+              }`}
+            >
+              {!selectedAttachment ? (
+                <div className="text-center">
+                  {UploadIcon}
+                  <div className="flex flex-col items-center mt-4">
+                    <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
+                    <label htmlFor="attachmentDocument" className="mt-2 cursor-pointer">
+                      <span className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                        เลือกไฟล์
+                      </span>
+                      <input
+                        id="attachmentDocument"
+                        name="attachmentDocument"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onChange={(e) => handleFileChange(e, "attachmentDocument")}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="mt-2 text-xs text-gray-500">
+                      รองรับไฟล์ JPG, JPEG, PNG หรือ PDF ขนาดไม่เกิน 5MB
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    {FileIcon}
+                    <div className="ml-4">
+                      <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
+                        {selectedAttachment.name}
+                      </p>
+                      {typeof selectedAttachment.size === "number" && !isNaN(selectedAttachment.size) && (
+                        <p className="text-xs text-gray-500">
+                          {(selectedAttachment.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <button
+                      type="button"
+                      onClick={() => viewFile(selectedAttachment)}
+                      className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
+                      title="ดูไฟล์"
+                    >
+                      {ViewIcon}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeFile("attachmentDocument")}
+                      className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
+                      title="ลบไฟล์"
+                    >
+                      {DeleteIcon}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {errors?.attachmentDocument && (
+              <p className="mt-2 text-sm text-red-600 flex items-center">
+                {ErrorIcon}
+                <span className="ml-1">{errors.attachmentDocument}</span>
+              </p>
+            )}
+
+            {selectedAttachment && !errors?.attachmentDocument && (
+              <div className="mt-2 flex items-center text-sm text-green-600">
+                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                ไฟล์ถูกอัพโหลดเรียบร้อยแล้ว
+              </div>
+            )}
           </div>
         </div>
       </div>

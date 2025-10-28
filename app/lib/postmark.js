@@ -1267,6 +1267,113 @@ export async function sendApprovalEmail(
 }
 
 /**
+ * Send member connection email notification
+ * @param {string} email - User's email address
+ * @param {string} userName - User's name
+ * @param {Object} memberData - Member information object
+ * @param {string} memberData.company_name - Company name
+ * @param {string} memberData.tax_id - Tax ID
+ * @param {string} memberData.member_code - Member code
+ * @param {string} memberData.member_type - Member type (OC, IC, AM, AC)
+ * @returns {Promise} - Promise with email sending result
+ */
+export async function sendMemberConnectionEmail(email, userName, memberData) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const dashboardLink = `${baseUrl}/dashboard?tab=member`;
+
+  // Map member type to Thai name
+  const memberTypeMap = {
+    OC: "สามัญ (นิติบุคคล)",
+    AC: "สมทบ (นิติบุคคล)",
+    IC: "สามัญ (บุคคลธรรมดา)",
+    AM: "สมาคม",
+  };
+
+  const memberTypeThai = memberTypeMap[memberData.member_type] || memberData.member_type || "";
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "การเชื่อมต่อข้อมูลสมาชิกสำเร็จ - สภาอุตสาหกรรมแห่งประเทศไทย",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "การเชื่อมต่อข้อมูลสมาชิกสำเร็จ",
+        bodyContent: `
+          <p>เรียน คุณ${userName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การเชื่อมต่อข้อมูลสมาชิกของท่านสำเร็จเรียบร้อยแล้ว</strong></p>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0 0 10px 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              ข้อมูลสมาชิก:
+            </p>
+            <p style="margin: 5px 0;"><strong>บริษัท:</strong> ${memberData.company_name}</p>
+            <p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberData.member_code}</p>
+            <p style="margin: 5px 0;"><strong>เลขประจำตัวผู้เสียภาษี:</strong> ${memberData.tax_id}</p>
+            <p style="margin: 5px 0;"><strong>ประเภทสมาชิก:</strong> ${memberTypeThai}</p>
+          </div>
+          
+          <div style="background-color: #f0fdf4; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #16a34a;">
+            <p style="margin: 0; font-weight: 600; color: #16a34a; font-size: 16px;">
+              ✓ การสมัครสมาชิกสำเร็จเรียบร้อยแล้ว
+            </p>
+          </div>
+          
+          <p>ท่านสามารถเข้าสู่ระบบและดูข้อมูลสมาชิกได้ที่แดชบอร์ดของท่าน</p>
+          
+          <div style="text-align: center; margin: 28px 0;">
+            <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
+              ไปที่แดชบอร์ด
+            </a>
+          </div>
+          
+          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
+            ขอบคุณที่เป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+          
+          <p style="margin-top: 16px;">
+            หากมีข้อสงสัยประการใด กรุณาติดต่อ:<br/>
+            CALL CENTER: <strong>1453 กด 2</strong><br/>
+            E-MAIL: <strong>member@fti.or.th</strong>
+          </p>
+        `,
+      }),
+      TextBody: `
+        การเชื่อมต่อข้อมูลสมาชิกสำเร็จ - สภาอุตสาหกรรมแห่งประเทศไทย
+        
+        เรียน คุณ${userName}
+        
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการเชื่อมต่อข้อมูลสมาชิกของท่านสำเร็จเรียบร้อยแล้ว
+        
+        ข้อมูลสมาชิก:
+        บริษัท: ${memberData.company_name}
+        หมายเลขสมาชิก: ${memberData.member_code}
+        เลขประจำตัวผู้เสียภาษี: ${memberData.tax_id}
+        ประเภทสมาชิก: ${memberTypeThai}
+        
+        การสมัครสมาชิกสำเร็จเรียบร้อยแล้ว
+        
+        ท่านสามารถเข้าสู่ระบบและดูข้อมูลสมาชิกได้ที่แดชบอร์ดของท่าน
+        
+        ไปที่แดชบอร์ด: ${dashboardLink}
+        
+        ขอบคุณที่เป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+        
+        หากมีข้อสงสัยประการใด กรุณาติดต่อ:
+        CALL CENTER: 1453 กด 2
+        E-MAIL: member@fti.or.th
+        
+        © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending member connection email:", error);
+    throw error;
+  }
+}
+
+/**
  * Send membership application rejection email
  * @param {string} email - User's email address
  * @param {string} firstname - User's first name

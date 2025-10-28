@@ -87,6 +87,18 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
             <p className="text-sm text-gray-600">วันที่ส่ง</p>
             <p className="font-medium">{formatDate(selectedMessage.created_at)}</p>
           </div>
+          {selectedMessage.status !== "unread" && selectedMessage.read_by_admin_name && (
+            <div>
+              <p className="text-sm text-gray-600">อ่านโดย</p>
+              <p className="font-medium">{selectedMessage.read_by_admin_name}</p>
+            </div>
+          )}
+          {selectedMessage.status === "replied" && selectedMessage.replied_by_admin_name && (
+            <div>
+              <p className="text-sm text-gray-600">ตอบกลับโดย</p>
+              <p className="font-medium">{selectedMessage.replied_by_admin_name}</p>
+            </div>
+          )}
         </div>
 
         <div className="mb-6">

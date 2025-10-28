@@ -38,6 +38,7 @@ import {
  */
 export default function EditAddressForm({
   address,
+  addresses,
   addrCode,
   memberCode,
   compPersonCode,
@@ -103,17 +104,8 @@ export default function EditAddressForm({
     ADDR_WEBSITE_EN: "",
   });
 
-  // State to track which language tab is active - default to 'th'
-  const [activeLanguage, setActiveLanguage] = useState("th");
-
   // State for document file
   const [documentFile, setDocumentFile] = useState(null);
-
-  // Log when language changes
-  const handleLanguageChange = (lang) => {
-    console.log("Language changed to:", lang);
-    setActiveLanguage(lang);
-  };
 
   // Handle document file change (including clearing when file is null)
   const handleDocumentChange = (file) => {
@@ -187,9 +179,9 @@ export default function EditAddressForm({
       compPersonCode,
       registCode,
       addrCode,
-      activeLanguage,
+      addresses: addresses || "No addresses prop",
     });
-  }, [memberCode, compPersonCode, registCode, addrCode, activeLanguage]);
+  }, [memberCode, compPersonCode, registCode, addrCode, addresses]);
 
   // Initialize form data from address
   useEffect(() => {
@@ -236,6 +228,41 @@ export default function EditAddressForm({
     }));
   };
 
+  // Handle copying address data from another address
+  const handleCopyAddress = (sourceAddress) => {
+    console.log("Copying address from:", sourceAddress.label);
+    
+    const sourceData = sourceAddress.data;
+    if (!sourceData) {
+      console.error("No source address data available");
+      return;
+    }
+
+    // Copy Thai address fields only
+    const updatedFormData = { ...formData };
+    
+    updatedFormData.ADDR_NO = sourceData.ADDR_NO || "";
+    updatedFormData.ADDR_MOO = sourceData.ADDR_MOO || "";
+    updatedFormData.ADDR_SOI = sourceData.ADDR_SOI || "";
+    updatedFormData.ADDR_ROAD = sourceData.ADDR_ROAD || "";
+    updatedFormData.ADDR_SUB_DISTRICT = sourceData.ADDR_SUB_DISTRICT || "";
+    updatedFormData.ADDR_DISTRICT = sourceData.ADDR_DISTRICT || "";
+    updatedFormData.ADDR_PROVINCE_NAME = sourceData.ADDR_PROVINCE_NAME || "";
+    updatedFormData.ADDR_POSTCODE = sourceData.ADDR_POSTCODE || "";
+    
+    // Copy contact fields (same for both languages)
+    updatedFormData.ADDR_TELEPHONE = sourceData.ADDR_TELEPHONE || "";
+    updatedFormData.ADDR_FAX = sourceData.ADDR_FAX || "";
+    updatedFormData.ADDR_EMAIL = sourceData.ADDR_EMAIL || "";
+    updatedFormData.ADDR_WEBSITE = sourceData.ADDR_WEBSITE || "";
+    updatedFormData.ADDR_TELEPHONE_EN = sourceData.ADDR_TELEPHONE_EN || sourceData.ADDR_TELEPHONE || "";
+    updatedFormData.ADDR_FAX_EN = sourceData.ADDR_FAX_EN || sourceData.ADDR_FAX || "";
+    updatedFormData.ADDR_EMAIL_EN = sourceData.ADDR_EMAIL_EN || sourceData.ADDR_EMAIL || "";
+    updatedFormData.ADDR_WEBSITE_EN = sourceData.ADDR_WEBSITE_EN || sourceData.ADDR_WEBSITE || "";
+
+    setFormData(updatedFormData);
+  };
+
   // Get the global loading state
   const { setLoading } = useLoading();
 
@@ -252,7 +279,7 @@ export default function EditAddressForm({
     setLoading(true, "กำลังส่งข้อมูลการแก้ไขที่อยู่...");
     setErrorMessage(""); // Clear any previous error messages
 
-    console.log("Submitting form with language:", activeLanguage);
+    console.log("Submitting form for Thai address");
 
     // ตรวจสอบว่ามี user object หรือไม่
     if (!user || !user.id) {
@@ -277,36 +304,13 @@ export default function EditAddressForm({
     }
 
     try {
-      // แยกข้อมูลตามภาษาที่เลือก
+      // เลือกเฉพาะฟิลด์ภาษาไทย
       let filteredFormData = {};
-
-      if (activeLanguage === "en") {
-        // เลือกเฉพาะฟิลด์ภาษาอังกฤษและเปลี่ยนชื่อฟิลด์ให้ตรงกับที่ต้องการ
-        Object.keys(formData).forEach((key) => {
-          if (key.endsWith("_EN")) {
-            // เปลี่ยนชื่อฟิลด์จาก ADDR_XXX_EN เป็น ADDR_XXX
-            const newKey = key.replace("_EN", "");
-            filteredFormData[newKey] = formData[key];
-          } else if (!key.includes("_EN")) {
-            // คัดลอกฟิลด์ที่ไม่มีเวอร์ชันภาษาอังกฤษ เช่น เบอร์โทรศัพท์ อีเมล์ เว็บไซต์
-            if (
-              key === "ADDR_TELEPHONE" ||
-              key === "ADDR_FAX" ||
-              key === "ADDR_EMAIL" ||
-              key === "ADDR_WEBSITE"
-            ) {
-              filteredFormData[key] = formData[key];
-            }
-          }
-        });
-      } else {
-        // เลือกเฉพาะฟิลด์ภาษาไทย
-        Object.keys(formData).forEach((key) => {
-          if (!key.endsWith("_EN")) {
-            filteredFormData[key] = formData[key];
-          }
-        });
-      }
+      Object.keys(formData).forEach((key) => {
+        if (!key.endsWith("_EN")) {
+          filteredFormData[key] = formData[key];
+        }
+      });
 
       // Prepare data for API
       const requestData = {
@@ -318,7 +322,7 @@ export default function EditAddressForm({
         memberGroupCode: memberGroupCode || "", // ตรวจสอบว่ามีค่าหรือไม่
         typeCode: typeCode || "000", // ตรวจสอบว่ามีค่าหรือไม่
         addrCode: addrCode || "001", // ตรวจสอบว่ามีค่าหรือไม่
-        addrLang: activeLanguage, // Add the active language (th or en)
+        addrLang: "th", // Always use Thai language
         originalAddress: address || {}, // ตรวจสอบว่ามีค่าหรือไม่
         newAddress: filteredFormData,
       };
@@ -522,15 +526,15 @@ export default function EditAddressForm({
       {/* Step Indicator */}
       <StepIndicator currentStep={currentStep} addrCode={addrCode} />
 
-      {/* Form Header with language tabs - only show in step 1 */}
+      {/* Form Header - only show in step 1 */}
       {currentStep === 1 && (
         <AddressFormHeader
           addrCode={addrCode}
-          activeLanguage={activeLanguage}
-          handleLanguageChange={handleLanguageChange}
           onCancel={onCancel}
           isSubmitting={isSubmitting}
           onSubmit={handleSubmit}
+          addresses={addresses}
+          onCopyAddress={handleCopyAddress}
         />
       )}
 
@@ -561,31 +565,22 @@ export default function EditAddressForm({
           {/* Section headers */}
           <div className="md:col-span-2 border-b border-gray-200 pb-2 mb-4">
             <h3 className="text-lg font-semibold text-gray-800">
-              {activeLanguage === "th" ? "ข้อมูลที่อยู่" : "Address Information"}
+              ข้อมูลที่อยู่
             </h3>
           </div>
 
-          {/* Address Fields based on active language */}
-          {activeLanguage === "th" ? (
-            <ThaiAddressFields
-              formData={formData}
-              handleChange={handleChange}
-              itemVariants={itemVariants}
-            />
-          ) : (
-            <EnglishAddressFields
-              formData={formData}
-              handleChange={handleChange}
-              itemVariants={itemVariants}
-            />
-          )}
+          {/* Thai Address Fields only */}
+          <ThaiAddressFields
+            formData={formData}
+            handleChange={handleChange}
+            itemVariants={itemVariants}
+          />
 
           {/* Contact Fields */}
           <ContactFields
             formData={formData}
             handleChange={handleChange}
             itemVariants={itemVariants}
-            activeLanguage={activeLanguage}
           />
         </div>
       )}
@@ -621,67 +616,149 @@ export default function EditAddressForm({
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="font-medium text-gray-700 mb-2">ข้อมูลที่อยู่ที่ต้องการแก้ไข</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <h4 className="font-medium text-gray-700 mb-4">เปรียบเทียบข้อมูลที่อยู่</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* ประเภทที่อยู่ */}
               <div>
                 <p className="text-sm font-medium text-gray-500">ประเภทที่อยู่:</p>
+                <p className="text-sm text-blue-600 font-medium">ข้อมูลเดิม</p>
+                <p className="text-sm text-green-600 font-medium">ข้อมูลใหม่</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">ภาษา:</p>
+                <p className="text-sm text-blue-600 font-medium">ภาษาไทย</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500">ที่อยู่:</p>
                 <p className="text-sm">
                   {addrCode === "001" && "ที่อยู่สำนักงานใหญ่"}
                   {addrCode === "002" && "ที่อยู่สำหรับจัดส่งเอกสาร"}
                   {addrCode === "003" && "ที่อยู่สำหรับออกใบกำกับภาษี"}
                 </p>
               </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">ภาษา:</p>
-                <p className="text-sm">{activeLanguage === "th" ? "ภาษาไทย" : "ภาษาอังกฤษ"}</p>
-              </div>
-
-              <div className="md:col-span-2">
-                <p className="text-sm font-medium text-gray-500">ที่อยู่ใหม่:</p>
-                <p className="text-sm">
-                  {activeLanguage === "th" ? (
-                    <>
-                      {formData.ADDR_NO} {formData.ADDR_MOO && `หมู่ ${formData.ADDR_MOO}`}
-                      {formData.ADDR_SOI && `ซอย ${formData.ADDR_SOI}`}
-                      {formData.ADDR_ROAD && `ถนน ${formData.ADDR_ROAD}`}
-                      {formData.ADDR_SUB_DISTRICT && `ตำบล/แขวง ${formData.ADDR_SUB_DISTRICT}`}
-                      {formData.ADDR_DISTRICT && `อำเภอ/เขต ${formData.ADDR_DISTRICT}`}
-                      {formData.ADDR_PROVINCE_NAME && `จังหวัด ${formData.ADDR_PROVINCE_NAME}`}
-                      {formData.ADDR_POSTCODE}
-                    </>
-                  ) : (
-                    <>
-                      {formData.ADDR_NO_EN} {formData.ADDR_MOO_EN && `Moo ${formData.ADDR_MOO_EN}`}
-                      {formData.ADDR_SOI_EN && `Soi ${formData.ADDR_SOI_EN}`}
-                      {formData.ADDR_ROAD_EN && `Road ${formData.ADDR_ROAD_EN}`}
-                      {formData.ADDR_SUB_DISTRICT_EN &&
-                        `Sub-district ${formData.ADDR_SUB_DISTRICT_EN}`}
-                      {formData.ADDR_DISTRICT_EN && `District ${formData.ADDR_DISTRICT_EN}`}
-                      {formData.ADDR_PROVINCE_NAME_EN &&
-                        `Province ${formData.ADDR_PROVINCE_NAME_EN}`}
-                      {formData.ADDR_POSTCODE_EN}
-                    </>
-                  )}
-                </p>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-500">เบอร์โทรศัพท์:</p>
-                <p className="text-sm">{formData.ADDR_TELEPHONE || "-"}</p>
-              </div>
-
-              <div>
-                <p className="text-sm font-medium text-gray-500">อีเมล:</p>
-                <p className="text-sm">{formData.ADDR_EMAIL || "-"}</p>
-              </div>
-
-              {(addrCode === "001" || addrCode === "003") && (
-                <div className="md:col-span-2">
-                  <p className="text-sm font-medium text-gray-500">เอกสารแนบ:</p>
-                  <p className="text-sm">{documentFile ? documentFile.name : "ไม่ได้แนบเอกสาร"}</p>
-                </div>
-              )}
             </div>
+
+            {/* Address fields comparison */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6 border-t pt-4">
+              {/* Column 1: Field names */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm font-medium text-gray-500">เลขที่:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">หมู่:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">ซอย:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">ถนน:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">ตำบล/แขวง:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">อำเภอ/เขต:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">จังหวัด:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">รหัสไปรษณีย์:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">เบอร์โทรศัพท์:</p>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500">อีเมล:</p>
+                </div>
+              </div>
+
+              {/* Column 2: Original data */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_NO || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_MOO || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_SOI || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_ROAD || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_SUB_DISTRICT?.replace('ตำบล', '').replace('แขวง', '').trim() || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_DISTRICT?.replace('อำเภอ', '').replace('เขต', '').trim() || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_PROVINCE_NAME?.replace('จังหวัด', '').trim() || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_POSTCODE || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_TELEPHONE || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-blue-600">{address?.ADDR_EMAIL || "-"}</p>
+                </div>
+              </div>
+
+              {/* Column 3: New data */}
+              <div className="space-y-3">
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_NO || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_MOO || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_SOI || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_ROAD || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_SUB_DISTRICT?.replace('ตำบล', '').replace('แขวง', '').trim() || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_DISTRICT?.replace('อำเภอ', '').replace('เขต', '').trim() || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_PROVINCE_NAME?.replace('จังหวัด', '').trim() || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_POSTCODE || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_TELEPHONE || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_EMAIL || "-"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Document info */}
+            {(addrCode === "001" || addrCode === "003") && (
+              <div className="mt-6 border-t pt-4">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div>
+                    <p className="text-sm font-medium text-gray-500">เอกสารแนบ:</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-blue-600">{address?.documentUrl ? "มีเอกสารแนบ" : "ไม่มีเอกสารแนบ"}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-green-600 font-medium">{documentFile ? documentFile.name : "ไม่ได้แนบเอกสาร"}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <motion.div

@@ -31,7 +31,7 @@ export async function PUT(request, { params }) {
     }
 
     const adminId = admin.id;
-    const adminName = admin.username || "Admin";
+    const adminName = admin.name || "Admin";
 
     if (!id) {
       return NextResponse.json({ success: false, message: "ไม่พบ ID ข้อความ" }, { status: 400 });

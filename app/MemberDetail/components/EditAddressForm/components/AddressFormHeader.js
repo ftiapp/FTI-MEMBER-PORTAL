@@ -2,26 +2,34 @@
 
 import { motion } from "framer-motion";
 import { FaSave, FaTimes } from "react-icons/fa";
+import AddressCopyButton from "./AddressCopyButton";
 
 /**
  * Header component for the EditAddressForm
  */
 export default function AddressFormHeader({
   addrCode,
-  activeLanguage,
-  handleLanguageChange,
   onCancel,
   isSubmitting,
   onSubmit,
+  addresses,
+  onCopyAddress,
 }) {
   return (
     <div className="mb-6 pb-3 border-b">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold text-blue-700">
-          แก้ไขที่อยู่ {addrCode === "001" ? "สำหรับติดต่อ (ทะเบียน)" : "สำหรับจัดส่งเอกสาร"}
+          แก้ไขที่อยู่ {addrCode === "001" ? "สำหรับติดต่อ (ทะเบียน)" : addrCode === "002" ? "สำหรับจัดส่งเอกสาร" : "สำหรับออกใบกำกับภาษี"}
         </h3>
 
         <div className="flex space-x-2">
+          {/* Copy button */}
+          <AddressCopyButton
+            addresses={addresses}
+            currentAddrCode={addrCode}
+            onCopyAddress={onCopyAddress}
+          />
+          
           <motion.button
             type="button"
             onClick={onCancel}
@@ -46,24 +54,6 @@ export default function AddressFormHeader({
             {isSubmitting ? 'กำลังส่งข้อมูล...' : 'บันทึกการแก้ไข'}
           </motion.button> */}
         </div>
-      </div>
-
-      {/* Language tabs */}
-      <div className="flex border-b mb-4">
-        <button
-          type="button"
-          className={`px-4 py-2 font-medium text-sm ${activeLanguage === "th" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-          onClick={() => handleLanguageChange("th")}
-        >
-          ภาษาไทย
-        </button>
-        <button
-          type="button"
-          className={`px-4 py-2 font-medium text-sm ${activeLanguage === "en" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}
-          onClick={() => handleLanguageChange("en")}
-        >
-          English
-        </button>
       </div>
     </div>
   );

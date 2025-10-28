@@ -534,21 +534,27 @@ export default function RequestDetail({
 
       {/* Show processed info if not pending */}
       {selectedRequest.status !== "pending" && selectedRequest.processed_date && (
-        <div className="p-4 bg-gray-50">
-          <p className="text-sm text-gray-600">
+        <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+          <div className="text-sm text-gray-700 mb-2">
             <span className="font-medium">วันที่ดำเนินการ:</span>{" "}
             {formatDate(selectedRequest.processed_date)}
-          </p>
+          </div>
+          {selectedRequest.approved_by_admin_name && (
+            <div className="text-sm text-gray-700 mb-2">
+              <span className="font-medium">ดำเนินการโดย:</span>{" "}
+              {selectedRequest.approved_by_admin_name}
+            </div>
+          )}
           {selectedRequest.admin_notes && (
-            <p className="text-sm text-gray-600 mt-1 bg-yellow-50 p-2 border border-yellow-200 rounded">
-              <span className="font-medium">บันทึกช่วยจำ (เฉพาะเจ้าหน้าที่):</span>{" "}
+            <div className="text-sm text-gray-700 mb-2">
+              <span className="font-medium">บันทึกของผู้ดูแลระบบ:</span>{" "}
               {selectedRequest.admin_notes}
-            </p>
+            </div>
           )}
           {selectedRequest.admin_comment && (
-            <p className="text-sm text-gray-600 mt-1 bg-red-50 p-2 border border-red-200 rounded">
+            <div className="text-sm text-gray-700">
               <span className="font-medium">เหตุผลที่ปฏิเสธ:</span> {selectedRequest.admin_comment}
-            </p>
+            </div>
           )}
         </div>
       )}

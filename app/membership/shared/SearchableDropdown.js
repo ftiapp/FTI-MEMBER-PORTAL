@@ -21,6 +21,7 @@ export default function SearchableDropdown({
   className,
   autoFillNote,
   containerProps,
+  showLoading,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -29,6 +30,12 @@ export default function SearchableDropdown({
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const dropdownRef = useRef(null);
   const searchTimeout = useRef(null);
+  const fetchOptionsRef = useRef(fetchOptions);
+
+  // Update fetchOptions ref when fetchOptions changes
+  useEffect(() => {
+    fetchOptionsRef.current = fetchOptions;
+  }, [fetchOptions]);
 
   // Debounce search term
   useEffect(() => {
@@ -57,7 +64,7 @@ export default function SearchableDropdown({
 
       setIsLoading(true);
       try {
-        const results = await fetchOptions(debouncedSearchTerm);
+        const results = await fetchOptionsRef.current(debouncedSearchTerm);
         // ตรวจสอบว่า results เป็น array และทุก option มี text property
         const validResults = Array.isArray(results)
           ? results.filter((opt) => opt && opt.text !== undefined && opt.text !== null)
@@ -75,7 +82,7 @@ export default function SearchableDropdown({
     };
 
     fetchData();
-  }, [debouncedSearchTerm, fetchOptions]);
+  }, [debouncedSearchTerm]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -151,7 +158,7 @@ export default function SearchableDropdown({
           required={isRequired}
         />
 
-        {isLoading && (
+        {isLoading && showLoading && (
           <div className="absolute right-3 top-3">
             <svg
               className="animate-spin h-5 w-5 text-gray-400"
@@ -232,6 +239,7 @@ SearchableDropdown.propTypes = {
   className: PropTypes.string,
   autoFillNote: PropTypes.string,
   containerProps: PropTypes.object,
+  showLoading: PropTypes.bool,
 };
 
 SearchableDropdown.defaultProps = {
@@ -246,4 +254,5 @@ SearchableDropdown.defaultProps = {
   className: "",
   autoFillNote: "",
   containerProps: {},
+  showLoading: true,
 };

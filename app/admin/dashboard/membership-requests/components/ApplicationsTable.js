@@ -43,6 +43,9 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
               <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 สถานะ
               </th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
+                อนุมัติโดย
+              </th>
               <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 การดำเนินการ
               </th>
@@ -90,6 +93,15 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <StatusBadge status={app.status} />
+                  </td>
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <div className="text-gray-900">
+                      {app.status === 1 && app.approved_by_admin_name ? (
+                        <div className="text-xs text-gray-900">{app.approved_by_admin_name}</div>
+                      ) : (
+                        "-"
+                      )}
+                    </div>
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right">
                     <button

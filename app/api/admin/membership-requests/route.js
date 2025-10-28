@@ -79,9 +79,15 @@ export async function GET(request) {
           FTI_Portal_User.firstname,
           FTI_Portal_User.lastname,
           FTI_Portal_User.email,
-          FTI_Portal_User.phone
+          FTI_Portal_User.phone,
+          approve_admin.name as approved_by_admin_name,
+          approve_admin.created_at as approved_at
         FROM ${tableName} 
         LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id
+        LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON ${tableName}.id = approve_log.target_id 
+          AND approve_log.action_type = 'approve_member'
+          AND ${tableName}.status = 1
+        LEFT JOIN FTI_Portal_Admin_Users approve_admin ON approve_log.admin_id = approve_admin.id
         WHERE 1=1`;
 
         let countQuery = `SELECT COUNT(*) as count FROM ${tableName} LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id WHERE 1=1`;

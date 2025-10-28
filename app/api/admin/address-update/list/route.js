@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 import { query as dbQuery } from "@/app/lib/db";
 
@@ -79,10 +79,15 @@ export async function GET(request) {
         u.firstname,
         u.lastname,
         u.email,
-        u.phone
+        u.phone,
+        approve_admin.name as approved_by_admin_name,
+        approve_admin.created_at as approved_at
       FROM FTI_Original_Membership_Pending_Address_Updates pau
       LEFT JOIN FTI_Original_Membership cm ON pau.member_code = cm.MEMBER_CODE
       LEFT JOIN FTI_Portal_User u ON pau.user_id = u.id
+      LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON pau.id = approve_log.target_id 
+        AND approve_log.action_type = 'approve_address_update'
+      LEFT JOIN FTI_Portal_Admin_Users approve_admin ON approve_log.admin_id = approve_admin.id
       ${whereSQL}
       ORDER BY pau.request_date DESC
       LIMIT ?

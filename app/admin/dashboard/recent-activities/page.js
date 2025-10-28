@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { useAuth } from "../../../contexts/AuthContext";
 import AdminLayout from "../../components/AdminLayout";
 import toast from "react-hot-toast";
 import FilterPanel from "./components/FilterPanel";
@@ -13,8 +12,7 @@ import { useActivities } from "./hooks/useActivities";
 
 export default function RecentActivities() {
   const router = useRouter();
-  const { user } = useAuth();
-  const {
+    const {
     activities,
     loading,
     error,
@@ -60,14 +58,6 @@ export default function RecentActivities() {
 
     checkAdminLevel();
   }, [router]);
-
-  useEffect(() => {
-    // Check if user is admin
-    if (user && user.role !== "admin") {
-      router.push("/dashboard");
-      return;
-    }
-  }, [user, router]);
 
   // Animation variants
   const pageVariants = {

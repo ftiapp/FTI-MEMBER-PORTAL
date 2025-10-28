@@ -435,6 +435,9 @@ const validateDocuments = (formData) => {
     errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
   }
 
+  // Attachment document validation (optional - no validation required)
+  // This field is optional as per requirements
+
   // Authorized signatory prename validation (required)
   console.log(
     "🔍 DEBUG validateDocuments - authorizedSignatoryPrenameTh:",

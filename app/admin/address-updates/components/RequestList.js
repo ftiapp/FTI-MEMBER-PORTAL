@@ -126,6 +126,11 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
             <div className="mt-2 text-xs text-gray-500">
               วันที่ขอแก้ไข: {formatDate(request.request_date)}
             </div>
+            {request.status !== 'pending' && request.approved_by_admin_name && (
+              <div className="mt-1 text-xs text-gray-600">
+                ดำเนินการโดย: {request.approved_by_admin_name}
+              </div>
+            )}
           </motion.div>
         );
       })}

@@ -28,7 +28,7 @@ export default function AddressDetailsGrid({ address, language = "th" }) {
           <div className="flex items-center mb-2">
             <FaHome className="text-blue-500 flex-shrink-0 mr-2" />
             <p className="font-semibold text-blue-700 text-base">
-              {isThai ? "ที่อยู่" : "Address"}
+              {isThai ? "ที่อยู่:" : "Address:"}
             </p>
           </div>
           <p className="text-gray-800 text-lg pl-7">
@@ -42,7 +42,7 @@ export default function AddressDetailsGrid({ address, language = "th" }) {
         <div className="bg-white p-4 rounded-lg border border-gray-100 shadow hover:shadow-md transition-all">
           <div className="flex items-center mb-2">
             <FaRoad className="text-blue-500 flex-shrink-0 mr-2" />
-            <p className="font-semibold text-blue-700 text-base">{isThai ? "ถนน" : "Road"}</p>
+            <p className="font-semibold text-blue-700 text-base">{isThai ? "ถนน:" : "Road:"}</p>
           </div>
           <p className="text-gray-800 text-lg pl-7">
             {isThai ? address.ADDR_ROAD : address.ADDR_ROAD_EN || address.ADDR_ROAD}
@@ -58,7 +58,7 @@ export default function AddressDetailsGrid({ address, language = "th" }) {
           <div className="flex items-center mb-2">
             <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
             <p className="font-semibold text-blue-700 text-base">
-              {isThai ? "ตำบล/แขวง" : "Sub-district"}
+              {isThai ? "ตำบล/แขวง:" : "Sub-district:"}
             </p>
           </div>
           <p className="text-gray-800 text-lg pl-7">
@@ -75,7 +75,7 @@ export default function AddressDetailsGrid({ address, language = "th" }) {
           <div className="flex items-center mb-2">
             <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
             <p className="font-semibold text-blue-700 text-base">
-              {isThai ? "อำเภอ/เขต" : "District"}
+              {isThai ? "อำเภอ/เขต:" : "District:"}
             </p>
           </div>
           <p className="text-gray-800 text-lg pl-7">
@@ -92,7 +92,7 @@ export default function AddressDetailsGrid({ address, language = "th" }) {
           <div className="flex items-center mb-2">
             <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
             <p className="font-semibold text-blue-700 text-base">
-              {isThai ? "จังหวัด" : "Province"}
+              {isThai ? "จังหวัด:" : "Province:"}
             </p>
           </div>
           <p className="text-gray-800 text-lg pl-7">
@@ -109,7 +109,7 @@ export default function AddressDetailsGrid({ address, language = "th" }) {
           <div className="flex items-center mb-2">
             <FaMapMarkerAlt className="text-blue-500 flex-shrink-0 mr-2" />
             <p className="font-semibold text-blue-700 text-base">
-              {isThai ? "รหัสไปรษณีย์" : "Postal Code"}
+              {isThai ? "รหัสไปรษณีย์:" : "Postal Code:"}
             </p>
           </div>
           <p className="text-gray-800 text-lg pl-7">

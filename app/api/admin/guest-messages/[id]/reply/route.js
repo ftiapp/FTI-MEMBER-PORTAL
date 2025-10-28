@@ -29,6 +29,7 @@ export async function POST(request, { params }) {
       SET 
         status = 'replied', 
         replied_at = NOW(), 
+        replied_by_admin_id = ?,
         remark = ?
       WHERE id = ?
     `;
@@ -47,7 +48,7 @@ export async function POST(request, { params }) {
       }
 
       // Update the message with remark
-      await query(updateQuery, [replyMessage, id]);
+      await query(updateQuery, [admin.id, replyMessage, id]);
     } catch (dbError) {
       console.error("Database error when updating message:", dbError);
       return NextResponse.json(

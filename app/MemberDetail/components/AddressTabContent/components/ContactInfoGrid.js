@@ -39,7 +39,7 @@ export default function ContactInfoGrid({ address, language = "th" }) {
               <FaPhone className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
               <div>
                 <p className="font-semibold text-blue-700 mb-2">
-                  {isThai ? "โทรศัพท์" : "Telephone"}
+                  {isThai ? "โทรศัพท์:" : "Telephone:"}
                 </p>
                 <p className="text-gray-800 text-lg">{address.ADDR_TELEPHONE}</p>
               </div>
@@ -53,7 +53,7 @@ export default function ContactInfoGrid({ address, language = "th" }) {
             <div className="flex items-center mb-2">
               <FaFax className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
               <div>
-                <p className="font-semibold text-blue-700 mb-2">{isThai ? "โทรสาร" : "Fax"}</p>
+                <p className="font-semibold text-blue-700 mb-2">{isThai ? "โทรสาร:" : "Fax:"}</p>
                 <p className="text-gray-800 text-lg">{address.ADDR_FAX}</p>
               </div>
             </div>
@@ -65,7 +65,7 @@ export default function ContactInfoGrid({ address, language = "th" }) {
           <div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all">
             <FaEnvelope className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
             <div className="overflow-hidden">
-              <p className="font-semibold text-blue-700 mb-2">{isThai ? "อีเมล" : "Email"}</p>
+              <p className="font-semibold text-blue-700 mb-2">{isThai ? "อีเมล:" : "Email:"}</p>
               <a
                 href={`mailto:${address.ADDR_EMAIL}`}
                 className="text-blue-600 hover:underline break-words block text-ellipsis overflow-hidden text-lg"
@@ -81,7 +81,7 @@ export default function ContactInfoGrid({ address, language = "th" }) {
           <div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all">
             <FaGlobe className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
             <div className="overflow-hidden">
-              <p className="font-semibold text-blue-700 mb-2">{isThai ? "เว็บไซต์" : "Website"}</p>
+              <p className="font-semibold text-blue-700 mb-2">{isThai ? "เว็บไซต์:" : "Website:"}</p>
               {/* แสดงเว็บไซต์ตามภาษาที่เลือก */}
               <a
                 href={(() => {

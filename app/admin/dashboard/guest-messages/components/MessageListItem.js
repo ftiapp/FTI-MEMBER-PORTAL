@@ -23,6 +23,12 @@ const MessageListItem = ({ message, isSelected, onClick }) => {
         </span>
       </div>
       <p className="text-sm text-gray-600 truncate">{message.name}</p>
+      {message.status !== "unread" && message.read_by_admin_name && (
+        <p className="text-xs text-gray-500 truncate">อ่านโดย: {message.read_by_admin_name}</p>
+      )}
+      {message.status === "replied" && message.replied_by_admin_name && (
+        <p className="text-xs text-gray-500 truncate">ตอบกลับโดย: {message.replied_by_admin_name}</p>
+      )}
       <div className="flex justify-between items-center mt-2">
         <span className="text-xs text-gray-500">{formatDate(message.created_at)}</span>
         {message.priority && (

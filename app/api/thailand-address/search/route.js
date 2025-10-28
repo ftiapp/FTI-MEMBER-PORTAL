@@ -66,8 +66,8 @@ export async function GET(request) {
     const ip =
       request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown";
 
-    // Rate limiting: 60 requests per minute per IP
-    const rateCheck = rateLimiter.checkRateLimit(ip, 60000, 60);
+    // Rate limiting: 300 requests per minute per IP (more reasonable for UI search)
+    const rateCheck = rateLimiter.checkRateLimit(ip, 60000, 300);
 
     if (!rateCheck.allowed) {
       return NextResponse.json(
@@ -155,11 +155,43 @@ export async function GET(request) {
 
           return a.province.localeCompare(b.province, "th");
         })
-        .slice(0, 10);
+        .slice(0, 100);
+    } else if (type === "postalCode") {
+      filteredData = allData
+        .filter((item) => item.postalCode.includes(searchTerm))
+        .sort((a, b) => {
+          const aStartsWith = a.postalCode.startsWith(searchTerm);
+          const bStartsWith = b.postalCode.startsWith(searchTerm);
+
+          if (aStartsWith && !bStartsWith) return -1;
+          if (!aStartsWith && bStartsWith) return 1;
+
+          return a.postalCode.localeCompare(b.postalCode);
+        })
+        .slice(0, 100);
     }
 
+    // Deduplicate per type to avoid duplicate dropdown entries
+    const seen = new Set();
+    const deduped = filteredData.filter((item) => {
+      let key = "";
+      if (type === "subdistrict") {
+        key = `${item.subdistrict}|${item.district}|${item.province}|${item.postalCode}`.toLowerCase();
+      } else if (type === "district") {
+        key = `${item.district}|${item.province}`.toLowerCase();
+      } else if (type === "province") {
+        key = item.province.toLowerCase();
+      } else if (type === "postalCode") {
+        key = `${item.postalCode}|${item.subdistrict}|${item.district}|${item.province}`.toLowerCase();
+      }
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 10);
+
     // แปลงข้อมูลให้อยู่ในรูปแบบที่ SearchableDropdown ต้องการ
-    const formattedData = filteredData.map((item) => {
+    const formattedData = deduped.map((item) => {
       if (type === "subdistrict") {
         return {
           id: item.subdistrict,
@@ -180,6 +212,16 @@ export async function GET(request) {
         return {
           id: item.province,
           text: item.province,
+        };
+      } else if (type === "postalCode") {
+        return {
+          id: item.postalCode,
+          text: `${item.subdistrict} (${item.postalCode})`,
+          subText: `${item.district}, ${item.province}`,
+          subdistrict: item.subdistrict,
+          district: item.district,
+          province: item.province,
+          postalCode: item.postalCode,
         };
       }
     });
