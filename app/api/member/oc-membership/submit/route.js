@@ -768,14 +768,22 @@ export async function POST(request) {
       let deletedRows = 0;
 
       if (taxIdFromData) {
-        const deleteResult = await executeQueryWithoutTransaction(
-          "DELETE FROM MemberRegist_OC_Draft WHERE tax_id = ? AND user_id = ?",
-          [taxIdFromData, userId],
-        );
-        deletedRows = deleteResult.affectedRows || 0;
-        console.log(
-          `✅ [OC API] Draft deleted by tax_id: ${taxIdFromData}, affected rows: ${deletedRows}`,
-        );
+        // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
+        const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
+        
+        for (const memberType of allMemberTypes) {
+          const deleteDraftQuery =
+            memberType === "ic"
+              ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
+              : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
+          
+          const deleteResult = await executeQueryWithoutTransaction(deleteDraftQuery, [taxIdFromData]);
+          const affectedRows = deleteResult.affectedRows || 0;
+          deletedRows += affectedRows;
+          console.log(
+            `✅ [OC API] Deleted ALL drafts for ${memberType} by tax_id: ${taxIdFromData}, affected rows: ${affectedRows} (all users)`,
+          );
+        }
       } else {
         console.warn("⚠️ [OC API] No taxId provided, cannot delete draft");
       }

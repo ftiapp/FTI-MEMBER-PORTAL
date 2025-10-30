@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import {
   beginTransaction,
@@ -934,6 +934,24 @@ export async function POST(request) {
     await commitTransaction(trx);
     console.log("🎉 [AC] Transaction committed successfully");
 
+    // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
+    try {
+      const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
+      
+      for (const memberType of allMemberTypes) {
+        const deleteDraftQuery =
+          memberType === "ic"
+            ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
+            : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
+        
+        await executeQueryWithoutTransaction(deleteDraftQuery, [data.taxId]);
+        console.log(`🗑️ [AC] Deleted ALL drafts for ${memberType} with tax_id: ${data.taxId} (all users)`);
+      }
+    } catch (draftError) {
+      console.error("❌ [AC] Error deleting drafts:", draftError);
+      // ไม่ต้อง rollback transaction เพราะ main data บันทึกสำเร็จแล้ว
+    }
+
     // บันทึก user log สำหรับการสมัครสมาชิก AC
     try {
       const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
@@ -953,32 +971,7 @@ export async function POST(request) {
       console.error("❌ [AC API] Error recording user log:", logError.message);
     }
 
-    // ลบ draft หลังจากสมัครสำเร็จ
-    const taxIdFromData = data.taxId;
-
-    console.log("🗑️ [AC API] Attempting to delete draft...");
-    console.log("🗑️ [AC API] taxId from data:", taxIdFromData);
-
-    try {
-      let deletedRows = 0;
-
-      if (taxIdFromData) {
-        const deleteResult = await executeQuery(
-          trx,
-          "DELETE FROM MemberRegist_AC_Draft WHERE tax_id = ? AND user_id = ?",
-          [taxIdFromData, userId],
-        );
-        deletedRows = deleteResult.affectedRows || 0;
-        console.log(
-          `✅ [AC API] Draft deleted by tax_id: ${taxIdFromData}, affected rows: ${deletedRows}`,
-        );
-      } else {
-        console.warn("⚠️ [AC API] No taxId provided, cannot delete draft");
-      }
-    } catch (draftError) {
-      console.error("❌ [AC API] Error deleting draft:", draftError.message);
-    }
-
+    
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
       // ดึงข้อมูล user จาก FTI_Portal_User table

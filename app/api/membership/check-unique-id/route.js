@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { getSession } from "@/app/lib/session";
 import { query } from "@/app/lib/db";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 /**
  * API สำหรับเช็คว่า tax_id หรือ id_card ซ้ำหรือไม่
@@ -24,15 +21,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
  */
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
+    const session = await getSession();
+    if (!session || !session.user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = session.user.id;
 
     const { searchParams } = new URL(request.url);
     const uniqueId = searchParams.get("uniqueId");

@@ -44,6 +44,7 @@ export default function Dashboard() {
   );
 
   // Menu items configuration
+  const isProduction = process.env.NODE_ENV === 'production';
   const menuItems = [
     //{
     //name: 'ข้อมูลผู้ใช้งาน',
@@ -68,7 +69,7 @@ export default function Dashboard() {
         </svg>
       ),
     },
-    {
+    ...(isProduction ? [] : [{
       name: "ยืนยันสมาชิกเดิม",
       tab: "wasmember",
       icon: (
@@ -81,7 +82,7 @@ export default function Dashboard() {
           />
         </svg>
       ),
-    },
+    }]),
     {
       name: "สมัครสมาชิก ส.อ.ท.",
       tab: "membership",

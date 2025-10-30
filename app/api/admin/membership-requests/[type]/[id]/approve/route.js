@@ -56,8 +56,11 @@ export async function POST(request, { params }) {
           break;
       }
 
-      // Update status to approved (1)
-      await connection.execute(`UPDATE ${tableName} SET status = 1 WHERE id = ?`, [id]);
+      // Update status to approved (1) and set approved metadata
+      await connection.execute(
+        `UPDATE ${tableName} SET status = 1, approved_at = NOW(), approved_by = ? WHERE id = ?`,
+        [adminData.id, id],
+      );
 
       // Save admin note directly to the main table if provided
       if (adminNote && adminNote.trim()) {

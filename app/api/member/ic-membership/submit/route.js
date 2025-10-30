@@ -620,14 +620,20 @@ export async function POST(request) {
       const idcardFromData = data.idCardNumber;
 
       if (idcardFromData) {
-        const deleteResult = await executeQuery(
-          trx,
-          "DELETE FROM MemberRegist_IC_Draft WHERE idcard = ? AND user_id = ?",
-          [idcardFromData, userId],
-        );
-        console.log(
-          `✅ Draft deleted by idcard: ${idcardFromData}, affected rows: ${deleteResult.affectedRows || 0}`,
-        );
+        // ลบ draft ทั้งหมดที่ใช้ id card เดียวกันในทุกประเภทสมาชิกและทุก user
+        const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
+        
+        for (const memberType of allMemberTypes) {
+          const deleteDraftQuery =
+            memberType === "ic"
+              ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
+              : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
+          
+          const deleteResult = await executeQuery(trx, deleteDraftQuery, [idcardFromData]);
+          console.log(
+            `✅ Deleted ALL drafts for ${memberType} by idcard: ${idcardFromData}, affected rows: ${deleteResult.affectedRows || 0} (all users)`,
+          );
+        }
       }
     } catch (draftError) {
       console.error("❌ Error deleting draft:", draftError.message);

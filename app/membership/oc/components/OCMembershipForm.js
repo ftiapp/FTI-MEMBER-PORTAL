@@ -27,6 +27,7 @@ import {
   scrollToConsentBox,
   getFirstErrorKey,
   checkTaxIdUniqueness,
+  createHandleSaveDraft,
   saveDraft,
   deleteDraft,
   loadDraftFromUrl,
@@ -234,6 +235,7 @@ export default function OCMembershipForm(props = {}) {
       }
 
       const formErrors = validateOCForm(formData, currentStep);
+      console.log("🔍 OC Form validation errors for step", currentStep, ":", formErrors);
       setErrors(formErrors);
 
       if (Object.keys(formErrors).length > 0) {
@@ -273,14 +275,23 @@ export default function OCMembershipForm(props = {}) {
 
       // Special check for Tax ID on step 1
       if (currentStep === 1 && formData.taxId?.length === 13) {
+        console.log("🔵 OC: Checking Tax ID for:", formData.taxId);
         const taxIdResult = await checkTaxId(formData.taxId);
-        if (!taxIdResult.valid) {
+        console.log("🔍 OC: Tax ID result:", taxIdResult);
+        
+        if (!taxIdResult.isUnique) {
+          console.log("❌ OC: Tax ID NOT valid");
           setErrors((prev) => ({ ...prev, taxId: taxIdResult.message }));
           toast.error(taxIdResult.message);
           return;
         }
+        
+        console.log("✅ OC: Tax ID is valid, proceeding to next step");
+      } else if (currentStep === 1) {
+        console.log("⚠️ OC: Step 1 but tax ID is missing or not 13 digits:", formData.taxId);
       }
 
+      console.log("✅ OC: All validations passed, moving to step", currentStep + 1);
       if (props.currentStep !== undefined && typeof setCurrentStep === "function") {
         setCurrentStep(currentStep + 1);
       } else {
@@ -308,8 +319,14 @@ export default function OCMembershipForm(props = {}) {
     [handlePrevStep, props.currentStep, setCurrentStep, currentStep],
   );
 
-  const handleSaveDraft = useCallback(async () => {
-    const result = await saveDraft(formData, currentStep);
+  const handleSaveDraft = useCallback(
+    createHandleSaveDraft(formData, currentStep),
+    [formData, currentStep]
+  );
+
+  // Wrapper to handle popup
+  const handleSaveDraftWithPopup = useCallback(async () => {
+    const result = await handleSaveDraft();
     if (result.success) {
       setShowDraftSavePopup(true);
     } else if (
@@ -319,7 +336,7 @@ export default function OCMembershipForm(props = {}) {
     ) {
       toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message}`);
     }
-  }, [formData, currentStep]);
+  }, [handleSaveDraft]);
 
   // Render current step component
   const currentStepComponent = useMemo(() => {
@@ -398,7 +415,7 @@ export default function OCMembershipForm(props = {}) {
           handlePrevious,
           handleNext,
           handleSubmit,
-          handleSaveDraft,
+          handleSaveDraft: handleSaveDraftWithPopup,
           isSubmitting,
           consentAgreed,
         })}

@@ -18,6 +18,9 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
           <thead className="bg-blue-50">
             <tr>
               <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
+                การดำเนินการ
+              </th>
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 ประเภท
               </th>
               <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
@@ -46,18 +49,34 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
               <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
                 อนุมัติโดย
               </th>
-              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-right text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
-                การดำเนินการ
+              <th className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 text-left text-xs font-medium text-blue-700 uppercase whitespace-nowrap">
+                วันที่อนุมัติ
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-blue-100">
-            {applications.map((app) => {
+            {applications.map((app, index) => {
               const memberType = getMemberTypeInfo(app.type);
               const isIC = app.type === "ic";
 
+              // Debug: Log approved data for AM records
+              if (app.type === 'am' && app.status === 1) {
+                console.log('=== Frontend DEBUG: AM Record ===');
+                console.log('App data:', JSON.stringify(app, null, 2));
+                console.log('approvedByAdminName:', app.approvedByAdminName);
+                console.log('mainApprovedBy:', app.mainApprovedBy);
+              }
+
               return (
-                <tr key={`${app.type}-${app.id}`} className="hover:bg-blue-50">
+                <tr key={`${app.type}-${app.id}-${app.status}-${app.createdAt || app.id}-${index}`} className="hover:bg-blue-50">
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleViewDetails(app.type, app.id)}
+                      className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+                    >
+                      ดูรายละเอียด
+                    </button>
+                  </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
                       {memberType.code}
@@ -96,20 +115,21 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <div className="text-gray-900">
-                      {app.status === 1 && app.approved_by_admin_name ? (
-                        <div className="text-xs text-gray-900">{app.approved_by_admin_name}</div>
+                      {app.approvedByAdminName ? (
+                        <div className="text-xs text-gray-900">{app.approvedByAdminName}</div>
                       ) : (
                         "-"
                       )}
                     </div>
                   </td>
-                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-right">
-                    <button
-                      onClick={() => handleViewDetails(app.type, app.id)}
-                      className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
-                    >
-                      ดูรายละเอียด
-                    </button>
+                  <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
+                    <div className="text-gray-900">
+                      {app.mainApprovedAt ? (
+                        <div className="text-xs text-gray-900">{formatThaiDate(app.mainApprovedAt)}</div>
+                      ) : (
+                        "-"
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

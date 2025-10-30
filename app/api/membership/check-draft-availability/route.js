@@ -1,9 +1,6 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { getSession } from "@/app/lib/session";
 import { query } from "@/app/lib/db";
-
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 /**
  * API endpoint to check if a Tax ID or ID Card is available for draft creation
@@ -11,15 +8,12 @@ const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
  */
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
+    const session = await getSession();
+    if (!session || !session.user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = session.user.id;
 
     const { memberType, uniqueId } = await request.json();
 

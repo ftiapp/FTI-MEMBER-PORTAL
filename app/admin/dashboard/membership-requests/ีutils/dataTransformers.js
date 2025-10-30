@@ -87,6 +87,10 @@ export const normalizeApplicationData = (application, type) => {
     // Admin
     adminNote: application.adminNote || application.admin_note,
     adminNoteAt: application.adminNoteAt || application.admin_note_at,
+    approvedByAdminName: application.approved_by_admin_name,
+    approvedAt: application.approved_at,
+    mainApprovedAt: application.main_approved_at,
+    mainApprovedBy: application.main_approved_by,
 
     // Timestamps
     createdAt: application.created_at || application.createdAt,

@@ -1,22 +1,16 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+import { getSession } from "@/app/lib/session";
 import { query } from "@/app/lib/db";
 import { createNotification } from "@/app/lib/notifications";
 
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
-
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
-
-    if (!token) {
+    const session = await getSession();
+    if (!session || !session.user) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    const decoded = jwt.verify(token, JWT_SECRET);
-    const userId = decoded.userId;
+    const userId = session.user.id;
 
     const { memberType, draftData, currentStep } = await request.json();
 
@@ -160,23 +154,38 @@ export async function POST(request) {
       }
     }
 
-    // ตรวจสอบว่ามี draft อยู่แล้วหรือไม่ (ใช้ tax_id/idcard เป็น unique identifier)
-    const checkQuery =
-      memberType.toLowerCase() === "ic"
-        ? `SELECT id, user_id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
-        : `SELECT id, user_id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
-    const existingDraft = await query(checkQuery, [uniqueId]);
+    // ตรวจสอบว่ามี draft อยู่แล้วหรือไม่ (ตรวจสอบข้ามทุกประเภทสมาชิก)
+    const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
+    let existingDraft = null;
+    let existingMemberType = null;
+    
+    for (const type of allMemberTypes) {
+      const checkQuery =
+        type === "ic"
+          ? `SELECT id, user_id FROM MemberRegist_${type.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
+          : `SELECT id, user_id FROM MemberRegist_${type.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
+      const draftResult = await query(checkQuery, [uniqueId]);
+      
+      if (draftResult && draftResult.length > 0) {
+        existingDraft = draftResult;
+        existingMemberType = type;
+        break;
+      }
+    }
 
-    // ตรวจสอบว่า draft ที่มีอยู่เป็นของ user คนอื่นหรือไม่
+    // ตรวจสอบว่า draft ที่มีอยู่เป็นของ user คนอื่นหรือไม่ (ถ้าเป็นของ user เดียวกัน อนุญาตให้สร้างประเภทอื่นได้)
     if (existingDraft && existingDraft.length > 0) {
       const draftOwnerId = existingDraft[0].user_id;
       if (draftOwnerId !== userId) {
         const idFieldName =
           memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
+        const existingTypeName = getMemberTypeName(existingMemberType);
+        const currentTypeName = getMemberTypeName(memberType);
+        
         return NextResponse.json(
           {
             success: false,
-            message: `${idFieldName} ${uniqueId} มีการบันทึกร่างโดยผู้ใช้อื่นอยู่แล้ว กรุณาใช้${idFieldName}อื่น หรือติดต่อเจ้าหน้าที่`,
+            message: `${idFieldName} ${uniqueId} ถูกใช้งานโดยผู้ใช้อื่นสำหรับสมาชิก${existingTypeName}อยู่แล้ว ไม่สามารถใช้${idFieldName}นี้ได้ กรุณาใช้${idFieldName}อื่น หรือติดต่อเจ้าหน้าที่`,
           },
           { status: 409 },
         );
@@ -184,25 +193,27 @@ export async function POST(request) {
     }
 
     let result;
-    if (existingDraft && existingDraft.length > 0) {
-      // อัปเดต draft ที่มีอยู่
+    
+    // ถ้าเจอ draft ใน user เดียวกันและประเภทเดียวกัน ให้อัปเดต
+    if (existingDraft && existingDraft.length > 0 && existingMemberType === memberType) {
+      // อัปเดต draft ที่มีอยู่ (ในตารางเดียวกัน)
       const updateQuery =
         memberType.toLowerCase() === "ic"
           ? `UPDATE MemberRegist_${memberType.toUpperCase()}_Draft 
            SET draft_data = ?, current_step = ?, updated_at = NOW()
-           WHERE idcard = ? AND status = 3`
+           WHERE idcard = ? AND status = 3 AND user_id = ?`
           : `UPDATE MemberRegist_${memberType.toUpperCase()}_Draft 
            SET draft_data = ?, current_step = ?, updated_at = NOW()
-           WHERE tax_id = ? AND status = 3`;
+           WHERE tax_id = ? AND status = 3 AND user_id = ?`;
 
       const updateParams =
         memberType.toLowerCase() === "ic"
-          ? [JSON.stringify(cleanDraftData), currentStep, uniqueId]
-          : [JSON.stringify(cleanDraftData), currentStep, uniqueId];
+          ? [JSON.stringify(cleanDraftData), currentStep, uniqueId, userId]
+          : [JSON.stringify(cleanDraftData), currentStep, uniqueId, userId];
 
       result = await query(updateQuery, updateParams);
     } else {
-      // เพิ่ม draft ใหม่
+      // สร้าง draft ใหม่ (กรณีไม่มีเลย หรือ user เดียวกันแต่คนละประเภท)
       const insertQuery =
         memberType.toLowerCase() === "ic"
           ? `INSERT INTO MemberRegist_${memberType.toUpperCase()}_Draft (user_id, draft_data, current_step, status, idcard, created_at, updated_at) 
@@ -220,19 +231,13 @@ export async function POST(request) {
 
     // สร้างการแจ้งเตือนเมื่อบันทึก draft สำเร็จ
     try {
-      // ดึง draft ID ที่เพิ่งบันทึก
-      let draftId;
-      if (existingDraft && existingDraft.length > 0) {
-        draftId = existingDraft[0].id;
-      } else {
-        // ดึง draft ID ที่เพิ่งสร้างใหม่
-        const getDraftQuery =
-          memberType.toLowerCase() === "ic"
-            ? `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`
-            : `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`;
-        const draftResult = await query(getDraftQuery, [uniqueId]);
-        draftId = draftResult && draftResult.length > 0 ? draftResult[0].id : null;
-      }
+      // ดึง draft ID ที่เพิ่งสร้างใหม่ (จากตารางประเภทปัจจุบัน)
+      const getDraftQuery =
+        memberType.toLowerCase() === "ic"
+          ? `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`
+          : `SELECT id FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3 ORDER BY updated_at DESC LIMIT 1`;
+      const draftResult = await query(getDraftQuery, [uniqueId]);
+      const draftId = draftResult && draftResult.length > 0 ? draftResult[0].id : null;
 
       const memberTypeName = getMemberTypeName(memberType);
       let applicantName = "ผู้สมัคร";

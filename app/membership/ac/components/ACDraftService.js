@@ -1,5 +1,19 @@
 // Service for handling draft operations in AC membership form
+import { toast } from "react-hot-toast";
+
 export async function saveDraft(draftData) {
+  // ตรวจสอบว่ามี Tax ID หรือไม่ (AC ใช้ Tax ID)
+  if (!draftData.taxId || draftData.taxId.trim() === "") {
+    toast.error("กรุณากรอกเลขประจำตัวผู้เสียภาษีก่อนบันทึกร่าง");
+    return { success: false, message: "Missing tax ID" };
+  }
+
+  // ตรวจสอบความถูกต้องของ Tax ID (13 หลัก)
+  if (draftData.taxId.length !== 13 || !/^\d{13}$/.test(draftData.taxId)) {
+    toast.error("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
+    return { success: false, message: "Invalid tax ID format" };
+  }
+
   try {
     const response = await fetch("/api/membership/save-draft", {
       method: "POST",
@@ -17,6 +31,7 @@ export async function saveDraft(draftData) {
     return result;
   } catch (error) {
     console.error("Error saving draft:", error);
+    toast.error("เกิดข้อผิดพลาดในการบันทึกร่าง");
     throw error;
   }
 }

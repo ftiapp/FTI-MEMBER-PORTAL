@@ -50,6 +50,14 @@ export async function GET(request) {
     const connection = await getConnection();
 
     try {
+      // Debug: Check admin users table structure
+      console.log('=== DEBUG: Admin Users Table Check ===');
+      const [adminUsers] = await connection.query('SELECT id, username, name FROM FTI_Portal_Admin_Users WHERE id = 1 LIMIT 1');
+      if (adminUsers.length > 0) {
+        console.log('Admin user ID 1:', JSON.stringify(adminUsers[0], null, 2));
+      } else {
+        console.log('No admin user found with ID 1');
+      }
       // Prepare base queries for each membership type
       let queries = [];
       let countQueries = [];
@@ -75,19 +83,21 @@ export async function GET(request) {
           NULL as idCard, 
           ${tableName}.status, 
           ${tableName}.created_at as createdAt,
+          ${tableName}.approved_at as main_approved_at,
+          ${tableName}.approved_by as main_approved_by,
           ${tableName}.user_id,
           FTI_Portal_User.firstname,
           FTI_Portal_User.lastname,
           FTI_Portal_User.email,
           FTI_Portal_User.phone,
-          approve_admin.name as approved_by_admin_name,
+          COALESCE(NULLIF(approve_admin.name, ''), approve_admin.username, NULLIF(admin_user.name, ''), admin_user.username) as approved_by_admin_name,
           approve_admin.created_at as approved_at
         FROM ${tableName} 
         LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id
         LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON ${tableName}.id = approve_log.target_id 
           AND approve_log.action_type = 'approve_member'
-          AND ${tableName}.status = 1
         LEFT JOIN FTI_Portal_Admin_Users approve_admin ON approve_log.admin_id = approve_admin.id
+        LEFT JOIN FTI_Portal_Admin_Users admin_user ON ${tableName}.approved_by = admin_user.id
         WHERE 1=1`;
 
         let countQuery = `SELECT COUNT(*) as count FROM ${tableName} LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id WHERE 1=1`;
@@ -143,13 +153,21 @@ export async function GET(request) {
           id_card_number as idCard, 
           MemberRegist_IC_Main.status, 
           MemberRegist_IC_Main.created_at as createdAt,
+          MemberRegist_IC_Main.approved_at as main_approved_at,
+          MemberRegist_IC_Main.approved_by as main_approved_by,
           MemberRegist_IC_Main.user_id,
           FTI_Portal_User.firstname,
           FTI_Portal_User.lastname,
           FTI_Portal_User.email,
-          FTI_Portal_User.phone
+          FTI_Portal_User.phone,
+          COALESCE(NULLIF(approve_admin.name, ''), approve_admin.username, NULLIF(admin_user.name, ''), admin_user.username) as approved_by_admin_name,
+          approve_admin.created_at as approved_at
         FROM MemberRegist_IC_Main 
         LEFT JOIN FTI_Portal_User ON MemberRegist_IC_Main.user_id = FTI_Portal_User.id
+        LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON MemberRegist_IC_Main.id = approve_log.target_id 
+          AND approve_log.action_type = 'approve_member'
+        LEFT JOIN FTI_Portal_Admin_Users approve_admin ON approve_log.admin_id = approve_admin.id
+        LEFT JOIN FTI_Portal_Admin_Users admin_user ON MemberRegist_IC_Main.approved_by = admin_user.id
         WHERE 1=1`;
 
         let countQuery = `SELECT COUNT(*) as count FROM MemberRegist_IC_Main LEFT JOIN FTI_Portal_User ON MemberRegist_IC_Main.user_id = FTI_Portal_User.id WHERE 1=1`;
@@ -254,13 +272,41 @@ export async function GET(request) {
         countParamsList.push(icQuery.countQueryParams);
       }
 
-      // Combine all queries with UNION
-      let combinedQuery = queries.join(" UNION ");
+      // Combine all queries with UNION ALL then remove duplicates
+      let combinedQuery = queries.join(" UNION ALL ");
+      combinedQuery = `SELECT * FROM (${combinedQuery}) AS combined_all 
+                       GROUP BY id, type, companyNameTh, companyNameEn, taxId, idCard, 
+                                status, createdAt, main_approved_at, main_approved_by, user_id,
+                                firstname, lastname, email, phone, approved_by_admin_name, approved_at`;
       combinedQuery += ` ORDER BY createdAt ${sortOrder} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 
       // Execute the combined query
       const [rows] = await connection.query(combinedQuery, params);
+      
+      // Debug: Log first row to see what data we're getting
+      if (rows.length > 0) {
+        console.log('=== DEBUG: Sample row data ===');
+        console.log('First row:', JSON.stringify(rows[0], null, 2));
+        
+        // Check specifically for AM records with approved_by
+        const amRow = rows.find(r => r.type === 'am' && r.main_approved_by);
+        if (amRow) {
+          console.log('=== DEBUG: AM Sample with approved_by ===');
+          console.log('AM row:', JSON.stringify(amRow, null, 2));
+          console.log('approved_by_admin_name:', amRow.approved_by_admin_name);
+          console.log('main_approved_by:', amRow.main_approved_by);
+        }
+        
+        // Check all records with approved_by but null name
+        const problematicRows = rows.filter(r => r.main_approved_by && !r.approved_by_admin_name);
+        if (problematicRows.length > 0) {
+          console.log('=== DEBUG: Records with approved_by but null name ===');
+          problematicRows.forEach(row => {
+            console.log(`ID: ${row.id}, Type: ${row.type}, approved_by: ${row.main_approved_by}, name: ${row.approved_by_admin_name}`);
+          });
+        }
+      }
 
       // Execute count queries to get total count for pagination
       // Use per-type parameter arrays to avoid placeholder mismatches

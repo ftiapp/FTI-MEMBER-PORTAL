@@ -3,53 +3,10 @@ import { toast } from "react-hot-toast";
 import { validateACForm } from "../ACFormValidation";
 import { submitACMembershipForm } from "../ACFormSubmission";
 import { checkTaxIdUniqueness } from "../../../utils/taxIdValidator";
-import { deleteDraftByTaxId } from "../../../utils/draftHelpers";
+import { deleteDraftByTaxId, saveDraftData } from "../../../utils/draftHelpers";
 import { STEPS } from "./constants";
 import { getFirstFieldError } from "./scrollHelpers";
 
-/**
- * Handle saving draft
- */
-export const createHandleSaveDraft = (formData, currentStep) => async () => {
-  // ตรวจสอบว่ามี Tax ID หรือไม่
-  if (!formData.taxId || formData.taxId.trim() === "") {
-    toast.error("กรุณากรอกเลขประจำตัวผู้เสียภาษีก่อนบันทึกร่าง");
-    return;
-  }
-
-  // ตรวจสอบความถูกต้องของ Tax ID (13 หลัก)
-  if (formData.taxId.length !== 13 || !/^\d{13}$/.test(formData.taxId)) {
-    toast.error("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
-    return;
-  }
-
-  try {
-    const response = await fetch("/api/membership/save-draft", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        memberType: "ac",
-        draftData: formData,
-        currentStep: currentStep,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      return { success: true };
-    } else {
-      toast.error(`ไม่สามารถบันทึกร่างได้: ${result.message || "กรุณาลองใหม่"}`);
-      return { success: false };
-    }
-  } catch (error) {
-    console.error("Error saving draft:", error);
-    toast.error("เกิดข้อผิดพลาดในการบันทึกร่าง");
-    return { success: false };
-  }
-};
 
 /**
  * Validate Tax ID
@@ -74,6 +31,13 @@ export const createValidateTaxId = (abortControllerRef, setTaxIdValidating) => a
     setTaxIdValidating(false);
     return { isUnique: false, message: "เกิดข้อผิดพลาดในการตรวจสอบ" };
   }
+};
+
+/**
+ * Handle saving draft for AC membership
+ */
+export const createHandleSaveDraft = (formData, currentStep) => async () => {
+  return await saveDraftData(formData, "ac", currentStep, "taxId");
 };
 
 /**
@@ -107,6 +71,7 @@ export const createHandleSubmit =
       // ถ้าอยู่ในโหมดแบ่งขั้นตอน และไม่ใช่ขั้นตอนสุดท้าย ให้ไปขั้นตอนถัดไป
       if (!isSinglePageLayout && currentStep < totalSteps) {
         const formErrors = validateACForm(formData, currentStep);
+        console.log("🔍 AC Form validation errors for step", currentStep, ":", formErrors);
         setErrors(formErrors);
 
         if (Object.keys(formErrors).length > 0) {
@@ -192,12 +157,20 @@ export const createHandleSubmit =
 
         // ตรวจสอบ Tax ID ในขั้นตอนที่ 1
         if (currentStep === 1 && formData.taxId && formData.taxId.length === 13) {
+          console.log("🔵 Checking Tax ID uniqueness for:", formData.taxId);
           const taxIdResult = await validateTaxId(formData.taxId);
+          console.log("🔍 Tax ID validation result:", taxIdResult);
+          
           if (!taxIdResult.isUnique) {
+            console.log("❌ Tax ID is NOT unique, blocking progression");
             setIsSubmitting(false);
             toast.error(taxIdResult.message);
             return;
           }
+          
+          console.log("✅ Tax ID is unique, continuing to next step");
+        } else if (currentStep === 1) {
+          console.log("⚠️ Step 1 but tax ID is missing or not 13 digits:", formData.taxId);
         }
 
         console.log("✅ Step validation passed, moving to next step");

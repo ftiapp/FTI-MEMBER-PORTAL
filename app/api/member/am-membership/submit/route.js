@@ -774,7 +774,25 @@ export async function POST(request) {
 
     // Commit transaction
     await commitTransaction(trx);
-    console.log("🎉 [AM Membership Submit] Transaction committed successfully");
+    console.log(" [AM Membership Submit] Transaction committed successfully");
+
+    // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
+    try {
+      const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
+      
+      for (const memberType of allMemberTypes) {
+        const deleteDraftQuery =
+          memberType === "ic"
+            ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
+            : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
+        
+        await executeQueryWithoutTransaction(deleteDraftQuery, [taxId]);
+        console.log(`🗑️ [AM] Deleted ALL drafts for ${memberType} with tax_id: ${taxId} (all users)`);
+      }
+    } catch (draftError) {
+      console.error("❌ [AM] Error deleting drafts:", draftError);
+      // ไม่ต้อง rollback transaction เพราะ main data บันทึกสำเร็จแล้ว
+    }
 
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
