@@ -100,7 +100,7 @@ export function getFTIEmailHtmlTemplate({ title, bodyContent }) {
         <div class="header">
           <img src="${logoUrl}" alt="FTI Logo" />
           <div class="org">สภาอุตสาหกรรมแห่งประเทศไทย</div>
-          <div class="org-en">The Federation of Thai Industries</div>
+          <div class="org-en">FEDERATION OF THAI INDUSTRIES</div>
         </div>
         <div class="email-title">${title}</div>
         <div class="body-content">
@@ -119,8 +119,8 @@ export function getFTIEmailHtmlTemplate({ title, bodyContent }) {
             อีเมลนี้ถูกส่งด้วยระบบอัตโนมัติ กรุณาอย่าตอบกลับอีเมลนี้
           </div>
           <div class="copyright">
-            &copy; 2025 The Federation of Thai Industries. All rights reserved.<br/>
-            Digital and Information Technology Department, The Federation of Thai Industries
+            &copy; 2025 FEDERATION OF THAI INDUSTRIES. All rights reserved.<br/>
+            Digital and Information Technology Department, FEDERATION OF THAI INDUSTRIES
           </div>
         </div>
       </div>

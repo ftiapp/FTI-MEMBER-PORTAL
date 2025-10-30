@@ -14,6 +14,8 @@ export default function MembershipDocuments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [submittedPagination, setSubmittedPagination] = useState(null);
+  
+  const isProduction = process.env.NODE_ENV === 'production';
 
   // เพิ่มตัวเลือกจำนวนรายการต่อหน้า
   const [itemsPerPage, setItemsPerPage] = useState(5); // เปลี่ยนกลับเป็น 5 รายการ
@@ -37,6 +39,13 @@ export default function MembershipDocuments() {
     setTotalItems(0); // reset totalItems เมื่อเปลี่ยน tab
     console.log('✅ MembershipDocuments - Tab changed, states reset');
   };
+  
+  // Reset to drafts tab if rejected is selected in production
+  useEffect(() => {
+    if (isProduction && activeSection === 'rejected') {
+      setActiveSection('drafts');
+    }
+  }, [isProduction, activeSection]);
 
   const handleItemsPerPageChange = (newItemsPerPage) => {
     setItemsPerPage(newItemsPerPage);
@@ -246,25 +255,28 @@ export default function MembershipDocuments() {
                 <span className="sm:hidden">ยังไม่ส่ง</span>
               </button>
 
-              <button
-                onClick={() => handleTabChange("rejected")}
-                className={`flex-1 py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
-                  activeSection === "rejected"
-                    ? "text-red-600 border-b-2 border-red-500 bg-white"
-                    : "text-gray-600 hover:text-gray-800"
-                }`}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                <span className="hidden sm:inline">เอกสารรอการแก้ไข</span>
-                <span className="sm:hidden">รอแก้ไข</span>
-              </button>
+              {/* Show rejected tab only in non-production */}
+              {!isProduction && (
+                <button
+                  onClick={() => handleTabChange("rejected")}
+                  className={`flex-1 py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
+                    activeSection === "rejected"
+                      ? "text-red-600 border-b-2 border-red-500 bg-white"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span className="hidden sm:inline">เอกสารรอการแก้ไข</span>
+                  <span className="sm:hidden">รอแก้ไข</span>
+                </button>
+              )}
 
               <button
                 onClick={() => handleTabChange("completed")}
@@ -333,7 +345,7 @@ export default function MembershipDocuments() {
                   onItemsPerPageChange={handleItemsPerPageChange}
                 />
               </div>
-            ) : activeSection === "rejected" ? (
+            ) : !isProduction && activeSection === "rejected" ? (
               <div>
                 <div className="mb-4 flex items-center space-x-3">
                   <div className="flex items-center justify-center w-8 h-8 bg-red-100 rounded-full">
