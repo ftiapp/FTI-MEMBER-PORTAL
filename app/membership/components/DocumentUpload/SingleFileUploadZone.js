@@ -116,7 +116,7 @@ const SingleFileUploadZone = ({
         >
           {!hasUploadedFile ? (
             <div className="text-center">
-              {UploadIcon}
+              <UploadIcon />
               <div className="flex flex-col items-center mt-4">
                 <p className={`text-sm ${disabled ? "text-gray-400" : "text-gray-500"}`}>
                   {disabled
@@ -244,7 +244,7 @@ const SingleFileUploadZone = ({
 
         {!hasUploadedFile ? (
           <div className="text-center">
-            {UploadIcon}
+            <UploadIcon />
             <div className="flex flex-col items-center mt-4">
               <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
               <label htmlFor={name} className="mt-2 cursor-pointer">

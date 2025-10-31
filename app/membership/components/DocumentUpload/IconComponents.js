@@ -1,104 +1,84 @@
 "use client";
 
-import { useMemo } from "react";
-
 /**
  * Shared icon components for document upload
  */
 
-export const ErrorIcon = useMemo(
-  () => (
-    <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        fillRule="evenodd"
-        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
-  [],
+export const ErrorIcon = () => (
+  <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+    <path
+      fillRule="evenodd"
+      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+      clipRule="evenodd"
+    />
+  </svg>
 );
 
-export const FileIcon = useMemo(
-  () => (
-    <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        fillRule="evenodd"
-        d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
-  [],
+export const FileIcon = () => (
+  <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+    <path
+      fillRule="evenodd"
+      d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+      clipRule="evenodd"
+    />
+  </svg>
 );
 
-export const ViewIcon = useMemo(
-  () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-      />
-    </svg>
-  ),
-  [],
+export const ViewIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+    />
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+    />
+  </svg>
 );
 
-export const EditIcon = useMemo(
-  () => (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="2"
-        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-      />
-    </svg>
-  ),
-  [],
+export const EditIcon = () => (
+  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="2"
+      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+    />
+  </svg>
 );
 
-export const DeleteIcon = useMemo(
-  () => (
-    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-      <path
-        fillRule="evenodd"
-        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-        clipRule="evenodd"
-      />
-    </svg>
-  ),
-  [],
+export const DeleteIcon = () => (
+  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+    <path
+      fillRule="evenodd"
+      d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+      clipRule="evenodd"
+    />
+  </svg>
 );
 
-export const UploadIcon = useMemo(
-  () => (
-    <svg
-      className="mx-auto h-12 w-12 text-gray-400"
-      stroke="currentColor"
-      fill="none"
-      viewBox="0 0 48 48"
-    >
-      <path
-        d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  ),
-  [],
+export const UploadIcon = () => (
+  <svg
+    className="mx-auto h-12 w-12 text-gray-400"
+    stroke="currentColor"
+    fill="none"
+    viewBox="0 0 48 48"
+  >
+    <path
+      d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
 );
 
-export const SuccessIcon = (
+export const SuccessIcon = () => (
   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
     <path
       fillRule="evenodd"
@@ -108,7 +88,7 @@ export const SuccessIcon = (
   </svg>
 );
 
-export const DocumentIcon = (
+export const DocumentIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
@@ -119,7 +99,7 @@ export const DocumentIcon = (
   </svg>
 );
 
-export const UsersIcon = (
+export const UsersIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
@@ -130,7 +110,7 @@ export const UsersIcon = (
   </svg>
 );
 
-export const BuildingIcon = (
+export const BuildingIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
@@ -141,7 +121,7 @@ export const BuildingIcon = (
   </svg>
 );
 
-export const ShieldIcon = (
+export const ShieldIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
@@ -152,7 +132,7 @@ export const ShieldIcon = (
   </svg>
 );
 
-export const PhotoIcon = (
+export const PhotoIcon = () => (
   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path
       strokeLinecap="round"
