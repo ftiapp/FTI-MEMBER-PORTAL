@@ -1,172 +1,22 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-
-// Signature Editor Modal Component
-const SignatureEditor = ({ isOpen, onClose, onSave, initialImage, title = "ปรับแต่งลายเซ็น" }) => {
-  const canvasRef = useRef(null);
-  const [scale, setScale] = useState(1);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [image, setImage] = useState(null);
-
-  useEffect(() => {
-    if (initialImage && isOpen) {
-      const img = new Image();
-      img.onload = () => {
-        setImage(img);
-        setScale(1);
-        setPosition({ x: 0, y: 0 });
-      };
-      if (typeof initialImage === "string") {
-        img.src = initialImage;
-      } else {
-        img.src = URL.createObjectURL(initialImage);
-      }
-    }
-  }, [initialImage, isOpen]);
-
-  useEffect(() => {
-    if (image && isOpen) {
-      drawCanvas();
-    }
-  }, [image, scale, position, isOpen]);
-
-  const drawCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas || !image) return;
-
-    const ctx = canvas.getContext("2d");
-    canvas.width = 400;
-    canvas.height = 200;
-
-    ctx.fillStyle = "#f8f9fa";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.strokeStyle = "#e9ecef";
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 20) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, canvas.height);
-      ctx.stroke();
-    }
-    for (let i = 0; i < canvas.height; i += 20) {
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(canvas.width, i);
-      ctx.stroke();
-    }
-
-    ctx.save();
-    ctx.translate(canvas.width / 2 + position.x, canvas.height / 2 + position.y);
-    ctx.scale(scale, scale);
-    ctx.drawImage(image, -image.width / 2, -image.height / 2);
-    ctx.restore();
-
-    ctx.strokeStyle = "#dee2e6";
-    ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, canvas.width, canvas.height);
-  };
-
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    const rect = canvasRef.current.getBoundingClientRect();
-    setDragStart({
-      x: e.clientX - rect.left - position.x,
-      y: e.clientY - rect.top - position.y,
-    });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const rect = canvasRef.current.getBoundingClientRect();
-    setPosition({
-      x: e.clientX - rect.left - dragStart.x,
-      y: e.clientY - rect.top - dragStart.y,
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleSave = () => {
-    const canvas = canvasRef.current;
-    canvas.toBlob((blob) => {
-      onSave(blob);
-    }, "image/png");
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-
-        <div className="mb-4">
-          <canvas
-            ref={canvasRef}
-            className="border border-gray-300 rounded cursor-move block mx-auto"
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            ขนาด: {Math.round(scale * 100)}%
-          </label>
-          <input
-            type="range"
-            min="0.1"
-            max="3"
-            step="0.01"
-            value={scale}
-            onChange={(e) => setScale(parseFloat(e.target.value))}
-            className="w-full"
-          />
-        </div>
-
-        <div className="text-xs text-gray-700 mb-4 bg-blue-50 p-3 rounded leading-5">
-          <div className="font-semibold mb-1">คำแนะนำการใช้งาน</div>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>กรุณาคลิกค้างและลากภาพเพื่อปรับเปลี่ยนตำแหน่ง</li>
-            <li>กรุณาใช้แถบเลื่อนเพื่อปรับขนาดภาพให้เหมาะสม (10-300%)</li>
-            <li>
-              ขนาดที่แนะนำ:
-              <ul className="list-[circle] pl-5 mt-1 space-y-0.5">
-                <li>โลโก้/ตราประทับบริษัท: 300 × 300 พิกเซล</li>
-                <li>ลายเซ็นผู้มีอำนาจลงนาม: 120 × 60 พิกเซล</li>
-              </ul>
-            </li>
-            <li>ท่านควรใช้ไฟล์ PNG พื้นหลังโปร่งใสเพื่อผลลัพธ์ที่เหมาะสม</li>
-          </ul>
-        </div>
-
-        <div className="flex justify-end space-x-2">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition-colors"
-          >
-            ยกเลิก
-          </button>
-          <button
-            onClick={handleSave}
-            className="px-4 py-2 text-white bg-blue-600 rounded hover:bg-blue-700 transition-colors"
-          >
-            บันทึก
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+import ImageEditor from "../../components/DocumentUpload/ImageEditor";
+import SingleFileUploadZone from "../../components/DocumentUpload/SingleFileUploadZone";
+import {
+  createFileObject,
+  validateFileSize,
+  validateFileType,
+  getImageEditorTitle,
+  viewFile,
+} from "../../components/DocumentUpload/fileUtils";
+import {
+  DocumentIcon,
+  BuildingIcon,
+  ShieldIcon,
+  PhotoIcon,
+} from "../../components/DocumentUpload/IconComponents";
 
 export default function DocumentUploadSection({ formData, setFormData, errors }) {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -175,24 +25,18 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
   const [showSignatureEditor, setShowSignatureEditor] = useState(false);
   const [editingSignature, setEditingSignature] = useState(null);
 
-  const THAI_TO_ENGLISH_PRENAME = {
-    นาย: "Mr.",
-    นาง: "Mrs.",
-    นางสาว: "Miss",
-    อื่นๆ: "Other",
-  };
-  const ENGLISH_TO_THAI_PRENAME = {
-    "Mr.": "นาย",
-    "Mrs.": "นาง",
-    Miss: "นางสาว",
-    Other: "อื่นๆ",
-  };
 
   const handleAuthorizedPrenameChange = (field, value) => {
     setFormData((prev) => {
       const next = { ...prev };
 
       if (field === "authorizedSignatoryPrenameTh") {
+        const THAI_TO_ENGLISH_PRENAME = {
+          นาย: "Mr.",
+          นาง: "Mrs.",
+          นางสาว: "Miss",
+          อื่นๆ: "Other",
+        };
         next.authorizedSignatoryPrenameTh = value;
         next.authorizedSignatoryPrenameEn = THAI_TO_ENGLISH_PRENAME[value] || "";
         if (value !== "อื่นๆ") {
@@ -200,6 +44,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
           next.authorizedSignatoryPrenameOtherEn = "";
         }
       } else if (field === "authorizedSignatoryPrenameEn") {
+        const ENGLISH_TO_THAI_PRENAME = {
+          "Mr.": "นาย",
+          "Mrs.": "นาง",
+          Miss: "นางสาว",
+          Other: "อื่นๆ",
+        };
         next.authorizedSignatoryPrenameEn = value;
         next.authorizedSignatoryPrenameTh = ENGLISH_TO_THAI_PRENAME[value] || "";
         if (value !== "Other") {
@@ -231,43 +81,43 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     if (files && files[0]) {
       const file = files[0];
 
-      if (file.size > 5 * 1024 * 1024) {
+      if (!validateFileSize(file)) {
         alert("ไฟล์ใหญ่เกินไป กรุณาเลือกไฟล์ที่มีขนาดไม่เกิน 5MB");
         return;
       }
 
-      const isImage = !!file.type && file.type.startsWith("image/");
-      const isPdf = file.type === "application/pdf" || file.name?.toLowerCase().endsWith(".pdf");
-
       if (documentType === "authorizedSignature") {
-        if (!isImage) {
+        if (!validateFileType(file, ["image/jpeg", "image/jpg", "image/png"])) {
           alert("ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)");
           return;
         }
         setEditingSignature(file);
         setShowSignatureEditor(true);
       } else if (documentType === "idCardDocument") {
-        if (!(isImage || isPdf)) {
+        if (!validateFileType(file, ["image/jpeg", "image/jpg", "image/png", "application/pdf"])) {
           alert("ประเภทไฟล์ไม่ถูกต้อง สำเนาบัตรประชาชนรองรับไฟล์ภาพ (JPG, JPEG, PNG) หรือ PDF");
           return;
         }
-        setSelectedFile(file);
-        setFormData((prev) => ({ ...prev, [documentType]: file }));
+        const fileObj = createFileObject(file);
+        setSelectedFile(fileObj);
+        setFormData((prev) => ({ ...prev, [documentType]: fileObj }));
       } else if (documentType === "attachmentDocument") {
-        if (!(isImage || isPdf)) {
+        if (!validateFileType(file, ["image/jpeg", "image/jpg", "image/png", "application/pdf"])) {
           alert("ประเภทไฟล์ไม่ถูกต้อง เอกสารแนบรองรับไฟล์ภาพ (JPG, JPEG, PNG) หรือ PDF");
           return;
         }
-        setSelectedAttachment(file);
-        setFormData((prev) => ({ ...prev, [documentType]: file }));
+        const fileObj = createFileObject(file);
+        setSelectedAttachment(fileObj);
+        setFormData((prev) => ({ ...prev, [documentType]: fileObj }));
       }
     }
   };
 
   const handleSignatureSave = (blob) => {
     const file = new File([blob], "signature.png", { type: "image/png" });
-    setSelectedSignature(file);
-    setFormData((prev) => ({ ...prev, authorizedSignature: file }));
+    const fileObj = createFileObject(file);
+    setSelectedSignature(fileObj);
+    setFormData((prev) => ({ ...prev, authorizedSignature: fileObj }));
     setShowSignatureEditor(false);
     setEditingSignature(null);
   };
@@ -277,50 +127,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
       setEditingSignature(selectedSignature);
       setShowSignatureEditor(true);
     }
-  };
-
-  const viewFile = (file) => {
-    if (!file) return;
-
-    // If it's already a URL string, open directly
-    if (typeof file === "string") {
-      window.open(file, "_blank");
-      return;
-    }
-
-    // If it's an object from history (existing upload), try common URL fields
-    if (typeof file === "object" && !(file instanceof Blob)) {
-      const existingUrl = file.cloudinary_url || file.file_path || file.url || file.path;
-      if (existingUrl && typeof existingUrl === "string") {
-        window.open(existingUrl, "_blank");
-        return;
-      }
-    }
-
-    // If it's a Blob/File, create an object URL and open
-    if (file instanceof Blob) {
-      const url = URL.createObjectURL(file);
-      if (file.type?.startsWith("image/")) {
-        const img = new Image();
-        img.onload = () => {
-          // Revoke after load to free memory
-          URL.revokeObjectURL(url);
-        };
-        img.src = url;
-        const w = window.open("");
-        if (w && w.document) {
-          w.document.write(img.outerHTML);
-        }
-      } else {
-        window.open(url, "_blank");
-        // Revoke shortly after opening
-        setTimeout(() => URL.revokeObjectURL(url), 1500);
-      }
-      return;
-    }
-
-    // Fallback: cannot determine URL
-    alert("ไม่สามารถแสดงตัวอย่างไฟล์ได้");
   };
 
   const removeFile = (documentType) => {
@@ -340,97 +146,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     }
   };
 
-  const ErrorIcon = useMemo(
-    () => (
-      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fillRule="evenodd"
-          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  const FileIcon = useMemo(
-    () => (
-      <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fillRule="evenodd"
-          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  const ViewIcon = useMemo(
-    () => (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  const EditIcon = useMemo(
-    () => (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  const DeleteIcon = useMemo(
-    () => (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fillRule="evenodd"
-          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  const UploadIcon = useMemo(
-    () => (
-      <svg
-        className="mx-auto h-12 w-12 text-gray-400"
-        stroke="currentColor"
-        fill="none"
-        viewBox="0 0 48 48"
-      >
-        <path
-          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    [],
-  );
 
   return (
     <>
@@ -519,69 +234,32 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   : "border-gray-300 hover:border-blue-400"
               }`}
             >
-              {!selectedFile ? (
-                <div className="text-center">
-                  {UploadIcon}
-                  <div className="flex flex-col items-center mt-4">
-                    <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
-                    <label htmlFor="idCardDocument" className="mt-2 cursor-pointer">
-                      <span className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                        เลือกไฟล์
-                      </span>
-                      <input
-                        id="idCardDocument"
-                        name="idCardDocument"
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        onChange={(e) => handleFileChange(e, "idCardDocument")}
-                        className="hidden"
-                      />
-                    </label>
-                    <p className="mt-2 text-xs text-gray-500">
-                      รองรับไฟล์ JPG, JPEG, PNG หรือ PDF ขนาดไม่เกิน 5MB
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {FileIcon}
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                        {selectedFile.name}
-                      </p>
-                      {typeof selectedFile.size === "number" && !isNaN(selectedFile.size) && (
-                        <p className="text-xs text-gray-500">
-                          {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => viewFile(selectedFile)}
-                      className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-                      title="ดูไฟล์"
-                    >
-                      {ViewIcon}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeFile("idCardDocument")}
-                      className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                      title="ลบไฟล์"
-                    >
-                      {DeleteIcon}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <SingleFileUploadZone
+                title=""
+                description=""
+                name="idCardDocument"
+                file={selectedFile}
+                icon={DocumentIcon}
+                error={errors?.idCardDocument}
+                onFileChange={(e) => handleFileChange(e, "idCardDocument")}
+                onRemoveFile={() => removeFile("idCardDocument")}
+                onViewFile={() => viewFile(selectedFile)}
+                onEditImage={null}
+                disabled={selectedFile !== null}
+                accept=".jpg,.jpeg,.png,.pdf"
+                isImageRequired={false}
+              />
             </div>
 
             {errors?.idCardDocument && (
               <p className="mt-2 text-sm text-red-600 flex items-center">
-                {ErrorIcon}
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 <span className="ml-1">{errors.idCardDocument}</span>
               </p>
             )}
@@ -980,89 +658,32 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   : "border-gray-300 hover:border-blue-400"
               }`}
             >
-              {!selectedSignature ? (
-                <div className="text-center">
-                  <svg
-                    className="mx-auto h-12 w-12 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
-                  <div className="flex flex-col items-center mt-4">
-                    <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
-                    <label htmlFor="authorizedSignature" className="mt-2 cursor-pointer">
-                      <span className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                        เลือกไฟล์
-                      </span>
-                      <input
-                        id="authorizedSignature"
-                        name="authorizedSignature"
-                        type="file"
-                        accept=".jpg,.jpeg,.png"
-                        onChange={(e) => handleFileChange(e, "authorizedSignature")}
-                        className="hidden"
-                      />
-                    </label>
-                    <p className="mt-2 text-xs text-gray-500">
-                      รองรับไฟล์ JPG, JPEG, PNG ขนาดไม่เกิน 5MB
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {FileIcon}
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                        {selectedSignature.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {(selectedSignature.size / 1024 / 1024).toFixed(2)} MB
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => viewFile(selectedSignature)}
-                      className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-                      title="ดูไฟล์"
-                    >
-                      {ViewIcon}
-                    </button>
-                    {selectedSignature.type?.startsWith("image/") && (
-                      <button
-                        type="button"
-                        onClick={editSignature}
-                        className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-                        title="ปรับแต่งลายเซ็น"
-                      >
-                        {EditIcon}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => removeFile("authorizedSignature")}
-                      className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                      title="ลบไฟล์"
-                    >
-                      {DeleteIcon}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <SingleFileUploadZone
+                title=""
+                description=""
+                name="authorizedSignature"
+                file={selectedSignature}
+                icon={PhotoIcon}
+                error={errors?.authorizedSignature}
+                onFileChange={(e) => handleFileChange(e, "authorizedSignature")}
+                onRemoveFile={() => removeFile("authorizedSignature")}
+                onViewFile={() => viewFile(selectedSignature)}
+                onEditImage={editSignature}
+                disabled={selectedSignature !== null}
+                accept=".jpg,.jpeg,.png"
+                isImageRequired={true}
+              />
             </div>
 
             {errors?.authorizedSignature && (
               <p className="mt-2 text-sm text-red-600 flex items-center">
-                {ErrorIcon}
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 <span className="ml-1">{errors.authorizedSignature}</span>
               </p>
             )}
@@ -1148,69 +769,32 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                   : "border-gray-300 hover:border-blue-400"
               }`}
             >
-              {!selectedAttachment ? (
-                <div className="text-center">
-                  {UploadIcon}
-                  <div className="flex flex-col items-center mt-4">
-                    <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
-                    <label htmlFor="attachmentDocument" className="mt-2 cursor-pointer">
-                      <span className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors duration-200">
-                        เลือกไฟล์
-                      </span>
-                      <input
-                        id="attachmentDocument"
-                        name="attachmentDocument"
-                        type="file"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        onChange={(e) => handleFileChange(e, "attachmentDocument")}
-                        className="hidden"
-                      />
-                    </label>
-                    <p className="mt-2 text-xs text-gray-500">
-                      รองรับไฟล์ JPG, JPEG, PNG หรือ PDF ขนาดไม่เกิน 5MB
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    {FileIcon}
-                    <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                        {selectedAttachment.name}
-                      </p>
-                      {typeof selectedAttachment.size === "number" && !isNaN(selectedAttachment.size) && (
-                        <p className="text-xs text-gray-500">
-                          {(selectedAttachment.size / 1024 / 1024).toFixed(2)} MB
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      onClick={() => viewFile(selectedAttachment)}
-                      className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
-                      title="ดูไฟล์"
-                    >
-                      {ViewIcon}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeFile("attachmentDocument")}
-                      className="p-2 text-red-600 bg-red-100 rounded-full hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors duration-200"
-                      title="ลบไฟล์"
-                    >
-                      {DeleteIcon}
-                    </button>
-                  </div>
-                </div>
-              )}
+              <SingleFileUploadZone
+                title=""
+                description=""
+                name="attachmentDocument"
+                file={selectedAttachment}
+                icon={DocumentIcon}
+                error={errors?.attachmentDocument}
+                onFileChange={(e) => handleFileChange(e, "attachmentDocument")}
+                onRemoveFile={() => removeFile("attachmentDocument")}
+                onViewFile={() => viewFile(selectedAttachment)}
+                onEditImage={null}
+                disabled={selectedAttachment !== null}
+                accept=".jpg,.jpeg,.png,.pdf"
+                isImageRequired={false}
+              />
             </div>
 
             {errors?.attachmentDocument && (
               <p className="mt-2 text-sm text-red-600 flex items-center">
-                {ErrorIcon}
+                <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                    clipRule="evenodd"
+                  />
+                </svg>
                 <span className="ml-1">{errors.attachmentDocument}</span>
               </p>
             )}
@@ -1231,7 +815,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
         </div>
       </div>
 
-      <SignatureEditor
+      <ImageEditor
         isOpen={showSignatureEditor}
         onClose={() => {
           setShowSignatureEditor(false);

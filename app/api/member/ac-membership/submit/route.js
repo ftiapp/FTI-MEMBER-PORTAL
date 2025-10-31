@@ -313,13 +313,13 @@ export async function POST(request) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
       [
         userId,
-        data.companyName || "",
-        data.companyNameEn || "",
-        data.taxId,
-        companyEmail,
-        companyPhone,
-        companyPhoneExtension,
-        data.companyWebsite || "",
+        data.companyName || null,
+        data.companyNameEn || null,
+        data.taxId || null,
+        companyEmail || null,
+        companyPhone || null,
+        companyPhoneExtension || null,
+        data.companyWebsite || null,
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
         registeredCapital,
         productionCapacityValue,
@@ -530,18 +530,18 @@ export async function POST(request) {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
             [
               mainId,
-              rep.prenameTh || null,
-              rep.prenameEn || null,
-              rep.prenameOther || null,
-              rep.prenameOtherEn || null,
-              rep.firstNameTh || rep.firstNameThai || "",
-              rep.lastNameTh || rep.lastNameThai || "",
-              rep.firstNameEn || rep.firstNameEng || "",
-              rep.lastNameEn || rep.lastNameEng || "",
-              rep.position || "",
-              rep.email || "",
-              rep.phone || "",
-              rep.phoneExtension || null,
+              rep.prenameTh || rep.prename_th || null,
+              rep.prenameEn || rep.prename_en || null,
+              rep.prenameOther || rep.prename_other || null,
+              rep.prenameOtherEn || rep.prename_other_en || null,
+              (rep.firstNameTh || rep.firstNameThai || rep.first_name_th) || null,
+              (rep.lastNameTh || rep.lastNameThai || rep.last_name_th) || null,
+              (rep.firstNameEn || rep.firstNameEng || rep.first_name_en) || null,
+              (rep.lastNameEn || rep.lastNameEng || rep.last_name_en) || null,
+              rep.position || null,
+              rep.email || null,
+              rep.phone || null,
+              rep.phoneExtension || rep.phone_extension || null,
               index + 1, // ✅ rep_order เริ่มจาก 1, 2, 3...
               rep.isPrimary || false,
             ],
@@ -658,13 +658,8 @@ export async function POST(request) {
       }
       console.log(`✅ [AC] Inserted ${products.length} products`);
     } else {
-      // Default product if none provided
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_AC_Products (main_id, name_th, name_en) VALUES (?, ?, ?);`,
-        [mainId, "ไม่ระบุ", "Not specified"],
-      );
-      console.log("✅ [AC] Inserted default product");
+      // No products provided, skip insertion
+      console.log("✅ [AC] No products provided, skipping insertion");
     }
 
     // Step 9: Insert Industry Groups
@@ -714,12 +709,7 @@ export async function POST(request) {
       }
       console.log(`✅ [AC] Inserted ${industrialGroups.length} industry groups with names`);
     } else {
-      console.log("⚠️ [AC] No industrial groups selected, inserting default");
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_AC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`,
-        [mainId, "000", "ไม่ระบุ"],
-      );
+      console.log("⚠️ [AC] No industrial groups selected, skipping insertion");
     }
 
     // Step 10: Insert Province Chapters
@@ -779,12 +769,7 @@ export async function POST(request) {
       }
       console.log(`✅ [AC] Inserted ${provincialChapters.length} provincial chapters with names`);
     } else {
-      console.log("⚠️ [AC] No provincial chapters selected, inserting default");
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_AC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`,
-        [mainId, "000", "ไม่ระบุ"],
-      );
+      console.log("⚠️ [AC] No provincial chapters selected, skipping insertion");
     }
 
     // Step 11: Insert Authorized Signatory Names

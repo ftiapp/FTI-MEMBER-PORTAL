@@ -132,19 +132,19 @@ export async function POST(request) {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)`,
       [
         userId,
-        data.idCardNumber,
+        data.idCardNumber || null,
         prenameTh,
         prenameEn,
         prenameOther,
         prenameOtherEn,
-        data.firstNameTh,
-        data.lastNameTh,
-        data.firstNameEn,
-        data.lastNameEn,
-        userPhone,
-        userPhoneExtension,
-        userEmail,
-        userWebsite,
+        data.firstNameTh || null,
+        data.lastNameTh || null,
+        data.firstNameEn || null,
+        data.lastNameEn || null,
+        userPhone || null,
+        userPhoneExtension || null,
+        userEmail || null,
+        userWebsite || null,
       ],
     );
 
@@ -306,14 +306,14 @@ export async function POST(request) {
           repPrenameEn,
           repPrenameOther,
           repPrenameOtherEn,
-          data.representativeFirstNameTh || "",
-          data.representativeLastNameTh || "",
-          data.representativeFirstNameEn || "",
-          data.representativeLastNameEn || "",
-          data.representativePhone || "",
+          data.representativeFirstNameTh || null,
+          data.representativeLastNameTh || null,
+          data.representativeFirstNameEn || null,
+          data.representativeLastNameEn || null,
+          data.representativePhone || null,
           data.representativePhoneExtension || null,
-          data.representativeEmail || "",
-          data.relationship || "",
+          data.representativeEmail || null,
+          data.relationship || null,
           1,
         ],
       );
@@ -322,13 +322,13 @@ export async function POST(request) {
     // Insert authorized signatory name (if provided)
     try {
       const sigFirstTh =
-        data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || "";
+        data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || null;
       const sigLastTh =
-        data.authorizedSignatoryLastNameTh || data.authorizedSignatureLastNameTh || "";
+        data.authorizedSignatoryLastNameTh || data.authorizedSignatureLastNameTh || null;
       const sigFirstEn =
-        data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || "";
+        data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || null;
       const sigLastEn =
-        data.authorizedSignatoryLastNameEn || data.authorizedSignatureLastNameEn || "";
+        data.authorizedSignatoryLastNameEn || data.authorizedSignatureLastNameEn || null;
       const sigPosTh =
         data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || null;
       const sigPosEn =

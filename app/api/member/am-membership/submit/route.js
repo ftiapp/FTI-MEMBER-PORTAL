@@ -326,10 +326,10 @@ export async function POST(request) {
           toNull(authorizedSignatoryPrenameEn),
           toNull(authorizedSignatoryPrenameOther),
           toNull(authorizedSignatoryPrenameOtherEn),
-          authorizedSignatoryFirstNameTh,
-          authorizedSignatoryLastNameTh,
-          authorizedSignatoryFirstNameEn,
-          authorizedSignatoryLastNameEn,
+          toNull(authorizedSignatoryFirstNameTh),
+          toNull(authorizedSignatoryLastNameTh),
+          toNull(authorizedSignatoryFirstNameEn),
+          toNull(authorizedSignatoryLastNameEn),
           authorizedSignatoryPositionTh && String(authorizedSignatoryPositionTh).trim()
             ? authorizedSignatoryPositionTh
             : null,
@@ -388,15 +388,19 @@ export async function POST(request) {
       // Normalize keys from frontend (supports both firstNameTh/firstNameThai, etc.)
       for (let i = 0; i < representatives.length; i++) {
         const rep = representatives[i] || {};
+        console.log(`🔍 DEBUG AM Representative ${i + 1}:`, rep);
+        console.log(`🔍 Available fields:`, Object.keys(rep));
 
-        const firstNameTh = rep.firstNameTh ?? rep.firstNameThai ?? null;
-        const lastNameTh = rep.lastNameTh ?? rep.lastNameThai ?? null;
-        const firstNameEn = rep.firstNameEn ?? rep.firstNameEnglish ?? null;
-        const lastNameEn = rep.lastNameEn ?? rep.lastNameEnglish ?? null;
+        const firstNameTh = rep.firstNameTh ?? rep.firstNameThai ?? rep.first_name_th ?? null;
+        const lastNameTh = rep.lastNameTh ?? rep.lastNameThai ?? rep.last_name_th ?? null;
+        const firstNameEn = rep.firstNameEn ?? rep.firstNameEnglish ?? rep.first_name_en ?? null;
+        const lastNameEn = rep.lastNameEn ?? rep.lastNameEnglish ?? rep.last_name_en ?? null;
         const position = rep.position ?? null;
         const email = rep.email ?? null;
         const phone = rep.phone ?? null;
         const isPrimary = rep.isPrimary ? 1 : 0;
+        
+        console.log(`🔍 Mapped fields - firstNameTh: ${firstNameTh}, lastNameTh: ${lastNameTh}, firstNameEn: ${firstNameEn}, lastNameEn: ${lastNameEn}`);
 
         // Require TH names and also EN names
         if (!firstNameTh || !lastNameTh) {
@@ -429,10 +433,10 @@ export async function POST(request) {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
           [
             mainId,
-            toNull(rep.prenameTh),
-            toNull(rep.prenameEn),
-            toNull(rep.prenameOther),
-            toNull(rep.prenameOtherEn),
+            toNull(rep.prenameTh ?? rep.prename_th),
+            toNull(rep.prenameEn ?? rep.prename_en),
+            toNull(rep.prenameOther ?? rep.prename_other),
+            toNull(rep.prenameOtherEn ?? rep.prename_other_en),
             toNull(firstNameTh),
             toNull(lastNameTh),
             toNull(firstNameEn),

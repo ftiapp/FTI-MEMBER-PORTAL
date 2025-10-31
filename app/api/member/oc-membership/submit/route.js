@@ -383,13 +383,13 @@ export async function POST(request) {
             contact.prenameEn || null,
             contact.prenameOther || null,
             contact.prenameOtherEn || null,
-            contact.firstNameTh,
-            contact.lastNameTh,
-            contact.firstNameEn,
-            contact.lastNameEn,
-            contact.position,
-            contact.email,
-            contact.phone,
+            contact.firstNameTh || null,
+            contact.lastNameTh || null,
+            contact.firstNameEn || null,
+            contact.lastNameEn || null,
+            contact.position || null,
+            contact.email || null,
+            contact.phone || null,
             contact.phoneExtension || null,
             contact.typeContactId || "MAIN",
             contact.typeContactName || "ผู้ประสานงานหลัก",
@@ -411,13 +411,13 @@ export async function POST(request) {
           null,
           null,
           null,
-          data.contactPersonFirstName,
-          data.contactPersonLastName,
-          data.contactPersonFirstNameEng,
-          data.contactPersonLastNameEng,
-          data.contactPersonPosition,
-          data.contactPersonEmail,
-          data.contactPersonPhone,
+          data.contactPersonFirstName || null,
+          data.contactPersonLastName || null,
+          data.contactPersonFirstNameEng || null,
+          data.contactPersonLastNameEng || null,
+          data.contactPersonPosition || null,
+          data.contactPersonEmail || null,
+          data.contactPersonPhone || null,
           data.contactPersonPhoneExtension || null,
           "MAIN",
           "ผู้ประสานงานหลัก",
@@ -429,11 +429,31 @@ export async function POST(request) {
     // Step 6: Insert Representatives
     if (data.representatives) {
       const representatives = JSON.parse(data.representatives);
+      console.log("🔍 DEBUG OC Representatives - Raw data:", representatives);
+      
       // Enforce English names for all representatives
       for (let i = 0; i < representatives.length; i++) {
         const r = representatives[i] || {};
-        const firstEn = r.firstNameEnglish || r.firstNameEn;
-        const lastEn = r.lastNameEnglish || r.lastNameEn;
+        console.log(`🔍 DEBUG OC Representative ${i + 1}:`, r);
+        console.log(`🔍 Available fields:`, Object.keys(r));
+        
+        const firstTh = r.firstNameThai || r.firstNameTh || r.first_name_th;
+        const lastTh = r.lastNameThai || r.lastNameTh || r.last_name_th;
+        const firstEn = r.firstNameEnglish || r.firstNameEn || r.first_name_en;
+        const lastEn = r.lastNameEnglish || r.lastNameEn || r.last_name_en;
+        
+        console.log(`🔍 Mapped fields - firstTh: ${firstTh}, lastTh: ${lastTh}, firstEn: ${firstEn}, lastEn: ${lastEn}`);
+        
+        // Validate Thai names (required)
+        if (!firstTh || !String(firstTh).trim() || !lastTh || !String(lastTh).trim()) {
+          await rollbackTransaction(trx);
+          return NextResponse.json(
+            { error: `กรุณากรอกชื่อ-นามสกุลภาษาไทยของผู้แทนคนที่ ${i + 1}` },
+            { status: 400 },
+          );
+        }
+        
+        // Validate English names (required)
         if (!firstEn || !String(firstEn).trim() || !lastEn || !String(lastEn).trim()) {
           await rollbackTransaction(trx);
           return NextResponse.json(
@@ -452,18 +472,18 @@ export async function POST(request) {
           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
             mainId,
-            rep.prenameTh || null,
-            rep.prenameEn || null,
-            rep.prenameOther || null,
-            rep.prenameOtherEn || null,
-            rep.firstNameThai,
-            rep.lastNameThai,
-            rep.firstNameEnglish,
-            rep.lastNameEnglish,
-            rep.position,
-            rep.email,
-            rep.phone,
-            rep.phoneExtension || null,
+            rep.prenameTh || rep.prename_th || null,
+            rep.prenameEn || rep.prename_en || null,
+            rep.prenameOther || rep.prename_other || null,
+            rep.prenameOtherEn || rep.prename_other_en || null,
+            rep.firstNameThai || rep.firstNameTh || rep.first_name_th || null,
+            rep.lastNameThai || rep.lastNameTh || rep.last_name_th || null,
+            rep.firstNameEnglish || rep.firstNameEn || rep.first_name_en || null,
+            rep.lastNameEnglish || rep.lastNameEn || rep.last_name_en || null,
+            rep.position || null,
+            rep.email || null,
+            rep.phone || null,
+            rep.phoneExtension || rep.phone_extension || null,
             rep.isPrimary,
             index + 1,
           ],
@@ -516,11 +536,7 @@ export async function POST(request) {
         );
       }
     } else {
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_OC_Products (main_id, name_th, name_en) VALUES (?, ?, ?);`,
-        [mainId, "ไม่ระบุ", "Not specified"],
-      );
+      console.log("No products provided, skipping insertion");
     }
 
     // Step 9: Insert Industry Groups
@@ -544,12 +560,7 @@ export async function POST(request) {
       }
       console.log(`Inserted ${industrialGroupIds.length} industry groups with names`);
     } else {
-      console.log("No industrial groups selected, inserting default");
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_OC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?);`,
-        [mainId, "000", "ไม่ระบุ"],
-      );
+      console.log("No industrial groups selected, skipping insertion");
     }
 
     // Step 10: Insert Province Chapters
@@ -573,12 +584,7 @@ export async function POST(request) {
       }
       console.log(`Inserted ${provincialChapterIds.length} provincial chapters with names`);
     } else {
-      console.log("No provincial chapters selected, inserting default");
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_OC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?);`,
-        [mainId, "000", "ไม่ระบุ"],
-      );
+      console.log("No provincial chapters selected, skipping insertion");
     }
 
     // Step 11: Insert Authorized Signatory Names
@@ -610,10 +616,10 @@ export async function POST(request) {
           data.authorizedSignatoryPrenameEn || null,
           data.authorizedSignatoryPrenameOther || null,
           data.authorizedSignatoryPrenameOtherEn || null,
-          data.authorizedSignatoryFirstNameTh,
-          data.authorizedSignatoryLastNameTh,
-          data.authorizedSignatoryFirstNameEn,
-          data.authorizedSignatoryLastNameEn,
+          data.authorizedSignatoryFirstNameTh || null,
+          data.authorizedSignatoryLastNameTh || null,
+          data.authorizedSignatoryFirstNameEn || null,
+          data.authorizedSignatoryLastNameEn || null,
           posTh && String(posTh).trim() ? posTh : null,
           posEn && String(posEn).trim() ? posEn : null,
         ],
