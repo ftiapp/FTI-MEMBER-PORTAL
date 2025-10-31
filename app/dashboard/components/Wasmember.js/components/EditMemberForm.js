@@ -239,7 +239,9 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
             </svg>
           </button>
 
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">แก้ไขข้อมูลการยืนยันสมาชิก</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3 sm:mb-4">
+            แก้ไขข้อมูลการยืนยันสมาชิก
+          </h2>
 
           {isLoading ? (
             <div className="flex justify-center items-center py-10">
@@ -250,14 +252,18 @@ const EditMemberForm = ({ submission, onClose, onSuccess }) => {
             <div>
               {rejectionComment && (
                 <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-md">
-                  <h3 className="text-sm sm:text-md font-medium text-red-800 mb-2">เหตุผลที่ถูกปฏิเสธ:</h3>
+                  <h3 className="text-sm sm:text-md font-medium text-red-800 mb-2">
+                    เหตุผลที่ถูกปฏิเสธ:
+                  </h3>
                   <p className="text-sm text-red-700">{rejectionComment}</p>
                 </div>
               )}
 
               {existingDocuments.length > 0 && (
                 <div className="mb-4 sm:mb-6">
-                  <h3 className="text-sm sm:text-md font-medium text-gray-800 mb-2">เอกสารที่มีอยู่:</h3>
+                  <h3 className="text-sm sm:text-md font-medium text-gray-800 mb-2">
+                    เอกสารที่มีอยู่:
+                  </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     {existingDocuments.map((doc, index) => (
                       <div key={`doc-${index}`} className="border rounded-md p-3 flex items-center">

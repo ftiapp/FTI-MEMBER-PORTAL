@@ -134,19 +134,23 @@ export function mapOCRejectionData(rejectionData) {
     addresses: addresses.length,
     contactPersons: contactPersons.length,
     documents: documents.length,
-    hasSignatureName: !!signatureName
+    hasSignatureName: !!signatureName,
   });
-  
+
   console.log("📄 OC Documents detail:", documents);
-  console.log("📄 Document types found:", documents.map(d => d.document_type));
+  console.log(
+    "📄 Document types found:",
+    documents.map((d) => d.document_type),
+  );
 
   // Parse JSON fields if they exist
   let productionImages = [];
   if (main.production_process_images) {
     try {
-      const parsed = typeof main.production_process_images === 'string' 
-        ? JSON.parse(main.production_process_images)
-        : main.production_process_images;
+      const parsed =
+        typeof main.production_process_images === "string"
+          ? JSON.parse(main.production_process_images)
+          : main.production_process_images;
       productionImages = Array.isArray(parsed) ? parsed : [];
     } catch (e) {
       console.error("Error parsing production_process_images:", e);
@@ -164,10 +168,10 @@ export function mapOCRejectionData(rejectionData) {
     companyPhone: main.company_phone || "",
     companyPhoneExtension: main.company_phone_extension || "",
     factoryType: main.factory_type || "",
-    
+
     // Address info - use addressesObj for AddressSection component
     addresses: addressesObj,
-    
+
     // Also keep flat fields for backward compatibility
     addressNumber: addresses[0]?.address_number || main.address_number || "",
     street: addresses[0]?.street || main.street || "",
@@ -179,23 +183,32 @@ export function mapOCRejectionData(rejectionData) {
 
     // Financial Info - map from actual database columns
     registeredCapital: main.registered_capital ? String(main.registered_capital) : "",
-    productionCapacityValue: main.production_capacity_value ? String(main.production_capacity_value) : "",
+    productionCapacityValue: main.production_capacity_value
+      ? String(main.production_capacity_value)
+      : "",
     productionCapacityUnit: main.production_capacity_unit || "",
     salesDomestic: main.sales_domestic ? String(main.sales_domestic) : "",
     salesExport: main.sales_export ? String(main.sales_export) : "",
-    shareholderThaiPercent: main.shareholder_thai_percent ? String(main.shareholder_thai_percent) : "",
-    shareholderForeignPercent: main.shareholder_foreign_percent ? String(main.shareholder_foreign_percent) : "",
+    shareholderThaiPercent: main.shareholder_thai_percent
+      ? String(main.shareholder_thai_percent)
+      : "",
+    shareholderForeignPercent: main.shareholder_foreign_percent
+      ? String(main.shareholder_foreign_percent)
+      : "",
     revenueLastYear: main.revenue_last_year ? String(main.revenue_last_year) : "",
     revenuePreviousYear: main.revenue_previous_year ? String(main.revenue_previous_year) : "",
-    
+
     // Legacy financial fields (for backward compatibility)
     totalAssets: "", // Not in OC history table
     totalRevenue: main.revenue_last_year ? String(main.revenue_last_year) : "",
     netProfit: "", // Not in OC history table
-    productionCapacity: main.production_capacity_value ? String(main.production_capacity_value) : "",
-    exportSalesRatio: main.sales_export && (main.sales_domestic || main.sales_export) 
-      ? String((main.sales_export / (main.sales_domestic + main.sales_export)) * 100) 
+    productionCapacity: main.production_capacity_value
+      ? String(main.production_capacity_value)
       : "",
+    exportSalesRatio:
+      main.sales_export && (main.sales_domestic || main.sales_export)
+        ? String((main.sales_export / (main.sales_domestic + main.sales_export)) * 100)
+        : "",
     debtToEquityRatio: "", // Not in OC history table
 
     // Representatives
@@ -219,7 +232,7 @@ export function mapOCRejectionData(rejectionData) {
     // Business Types - convert array to object format
     businessTypes: convertBusinessTypesToObject(businessTypes),
     otherBusinessTypeDetail: businessTypeOther?.detail || main.other_business_type_detail || "",
-    
+
     // Products
     products: products.map((p, index) => ({
       id: p.id || null,
@@ -239,41 +252,49 @@ export function mapOCRejectionData(rejectionData) {
 
     // Documents - map from documents history table
     companyRegistration: (() => {
-      const doc = mapDocuments(documents, main, 'company_registration');
+      const doc = mapDocuments(documents, main, "company_registration");
       console.log("📄 companyRegistration mapped:", doc);
       return doc;
     })(),
     factoryLicense: (() => {
-      const doc = mapDocuments(documents, main, 'factory_license');
+      const doc = mapDocuments(documents, main, "factory_license");
       console.log("📄 factoryLicense mapped:", doc);
       return doc;
     })(),
     industrialEstateLicense: (() => {
-      const doc = mapDocuments(documents, main, 'industrial_estate_license');
+      const doc = mapDocuments(documents, main, "industrial_estate_license");
       console.log("📄 industrialEstateLicense mapped:", doc);
       return doc;
     })(),
     companyStamp: (() => {
-      const doc = mapDocuments(documents, main, 'companyStamp');
+      const doc = mapDocuments(documents, main, "companyStamp");
       console.log("📄 companyStamp mapped:", doc);
       return doc;
     })(),
     authorizedSignature: (() => {
-      const doc = mapDocuments(documents, main, 'authorizedSignature');
+      const doc = mapDocuments(documents, main, "authorizedSignature");
       console.log("📄 authorizedSignature mapped:", doc);
       return doc;
     })(),
-    productionImages: documents.filter(d => d.document_type === 'production_image').map(d => ({
-      name: d.file_name,
-      url: d.cloudinary_url || d.file_path
-    })).concat(productionImages),
-    
+    productionImages: documents
+      .filter((d) => d.document_type === "production_image")
+      .map((d) => ({
+        name: d.file_name,
+        url: d.cloudinary_url || d.file_path,
+      }))
+      .concat(productionImages),
+
     // Authorized Signatory Info - use signatureName if available, fallback to main
-    authorizedSignatoryPrenameTh: signatureName?.prename_th || main.authorized_signatory_prename_th || "",
-    authorizedSignatoryPrenameOther: signatureName?.prename_other || main.authorized_signatory_prename_other || "",
-    authorizedSignatoryFirstNameTh: signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
-    authorizedSignatoryLastNameTh: signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
-    authorizedSignatoryPositionTh: signatureName?.position_th || main.authorized_signatory_position_th || "",
+    authorizedSignatoryPrenameTh:
+      signatureName?.prename_th || main.authorized_signatory_prename_th || "",
+    authorizedSignatoryPrenameOther:
+      signatureName?.prename_other || main.authorized_signatory_prename_other || "",
+    authorizedSignatoryFirstNameTh:
+      signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
+    authorizedSignatoryLastNameTh:
+      signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
+    authorizedSignatoryPositionTh:
+      signatureName?.position_th || main.authorized_signatory_position_th || "",
 
     // Contact Persons
     contactPersons: contactPersons.map((cp, idx) => ({
@@ -329,10 +350,10 @@ export function mapACRejectionData(rejectionData) {
     companyEmail: main.company_email || "",
     companyPhone: main.company_phone || "",
     companyPhoneExtension: main.company_phone_extension || "",
-    
+
     // Address info
     addresses: addressesObj,
-    
+
     addressNumber: addresses[0]?.address_number || main.address_number || "",
     street: addresses[0]?.street || main.street || "",
     subDistrict: addresses[0]?.sub_district || main.sub_district || "",
@@ -343,12 +364,18 @@ export function mapACRejectionData(rejectionData) {
 
     // Financial Info
     registeredCapital: main.registered_capital ? String(main.registered_capital) : "",
-    productionCapacityValue: main.production_capacity_value ? String(main.production_capacity_value) : "",
+    productionCapacityValue: main.production_capacity_value
+      ? String(main.production_capacity_value)
+      : "",
     productionCapacityUnit: main.production_capacity_unit || "",
     salesDomestic: main.sales_domestic ? String(main.sales_domestic) : "",
     salesExport: main.sales_export ? String(main.sales_export) : "",
-    shareholderThaiPercent: main.shareholder_thai_percent ? String(main.shareholder_thai_percent) : "",
-    shareholderForeignPercent: main.shareholder_foreign_percent ? String(main.shareholder_foreign_percent) : "",
+    shareholderThaiPercent: main.shareholder_thai_percent
+      ? String(main.shareholder_thai_percent)
+      : "",
+    shareholderForeignPercent: main.shareholder_foreign_percent
+      ? String(main.shareholder_foreign_percent)
+      : "",
     revenueLastYear: main.revenue_last_year ? String(main.revenue_last_year) : "",
     revenuePreviousYear: main.revenue_previous_year ? String(main.revenue_previous_year) : "",
 
@@ -371,7 +398,7 @@ export function mapACRejectionData(rejectionData) {
 
     businessTypes: convertBusinessTypesToObject(businessTypes),
     otherBusinessTypeDetail: businessTypeOther?.detail || main.other_business_type_detail || "",
-    
+
     products: products.map((p, index) => ({
       id: p.id || null,
       key: p.id || `new-${index}-${Date.now()}`,
@@ -386,17 +413,22 @@ export function mapACRejectionData(rejectionData) {
       .map((pc) => pc.province_chapter_id || pc.id)
       .filter((id) => id && id !== "000" && id !== 0),
 
-    companyRegistration: mapDocuments(documents, main, 'company_registration'),
-    factoryLicense: mapDocuments(documents, main, 'factory_license'),
-    industrialEstateLicense: mapDocuments(documents, main, 'industrial_estate_license'),
-    companyStamp: mapDocuments(documents, main, 'companyStamp'),
-    authorizedSignature: mapDocuments(documents, main, 'authorizedSignature'),
+    companyRegistration: mapDocuments(documents, main, "company_registration"),
+    factoryLicense: mapDocuments(documents, main, "factory_license"),
+    industrialEstateLicense: mapDocuments(documents, main, "industrial_estate_license"),
+    companyStamp: mapDocuments(documents, main, "companyStamp"),
+    authorizedSignature: mapDocuments(documents, main, "authorizedSignature"),
 
-    authorizedSignatoryPrenameTh: signatureName?.prename_th || main.authorized_signatory_prename_th || "",
-    authorizedSignatoryPrenameOther: signatureName?.prename_other || main.authorized_signatory_prename_other || "",
-    authorizedSignatoryFirstNameTh: signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
-    authorizedSignatoryLastNameTh: signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
-    authorizedSignatoryPositionTh: signatureName?.position_th || main.authorized_signatory_position_th || "",
+    authorizedSignatoryPrenameTh:
+      signatureName?.prename_th || main.authorized_signatory_prename_th || "",
+    authorizedSignatoryPrenameOther:
+      signatureName?.prename_other || main.authorized_signatory_prename_other || "",
+    authorizedSignatoryFirstNameTh:
+      signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
+    authorizedSignatoryLastNameTh:
+      signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
+    authorizedSignatoryPositionTh:
+      signatureName?.position_th || main.authorized_signatory_position_th || "",
 
     contactPersons: contactPersons.map((cp, idx) => ({
       id: cp.history_id || null,
@@ -449,10 +481,10 @@ export function mapAMRejectionData(rejectionData) {
     companyEmail: main.company_email || "",
     companyPhone: main.company_phone || "",
     companyPhoneExtension: main.company_phone_extension || "",
-    
+
     // Address info
     addresses: addressesObj,
-    
+
     addressNumber: addresses[0]?.address_number || main.address_number || "",
     street: addresses[0]?.street || main.street || "",
     subDistrict: addresses[0]?.sub_district || main.sub_district || "",
@@ -463,12 +495,18 @@ export function mapAMRejectionData(rejectionData) {
 
     // Financial Info
     registeredCapital: main.registered_capital ? String(main.registered_capital) : "",
-    productionCapacityValue: main.production_capacity_value ? String(main.production_capacity_value) : "",
+    productionCapacityValue: main.production_capacity_value
+      ? String(main.production_capacity_value)
+      : "",
     productionCapacityUnit: main.production_capacity_unit || "",
     salesDomestic: main.sales_domestic ? String(main.sales_domestic) : "",
     salesExport: main.sales_export ? String(main.sales_export) : "",
-    shareholderThaiPercent: main.shareholder_thai_percent ? String(main.shareholder_thai_percent) : "",
-    shareholderForeignPercent: main.shareholder_foreign_percent ? String(main.shareholder_foreign_percent) : "",
+    shareholderThaiPercent: main.shareholder_thai_percent
+      ? String(main.shareholder_thai_percent)
+      : "",
+    shareholderForeignPercent: main.shareholder_foreign_percent
+      ? String(main.shareholder_foreign_percent)
+      : "",
     revenueLastYear: main.revenue_last_year ? String(main.revenue_last_year) : "",
     revenuePreviousYear: main.revenue_previous_year ? String(main.revenue_previous_year) : "",
 
@@ -491,7 +529,7 @@ export function mapAMRejectionData(rejectionData) {
 
     businessTypes: convertBusinessTypesToObject(businessTypes),
     otherBusinessTypeDetail: businessTypeOther?.detail || main.other_business_type_detail || "",
-    
+
     products: products.map((p, index) => ({
       id: p.id || null,
       key: p.id || `new-${index}-${Date.now()}`,
@@ -499,16 +537,21 @@ export function mapAMRejectionData(rejectionData) {
       nameEn: p.name_en || "",
     })),
 
-    companyRegistration: mapDocuments(documents, main, 'company_registration'),
-    factoryLicense: mapDocuments(documents, main, 'factory_license'),
-    companyStamp: mapDocuments(documents, main, 'companyStamp'),
-    authorizedSignature: mapDocuments(documents, main, 'authorizedSignature'),
+    companyRegistration: mapDocuments(documents, main, "company_registration"),
+    factoryLicense: mapDocuments(documents, main, "factory_license"),
+    companyStamp: mapDocuments(documents, main, "companyStamp"),
+    authorizedSignature: mapDocuments(documents, main, "authorizedSignature"),
 
-    authorizedSignatoryPrenameTh: signatureName?.prename_th || main.authorized_signatory_prename_th || "",
-    authorizedSignatoryPrenameOther: signatureName?.prename_other || main.authorized_signatory_prename_other || "",
-    authorizedSignatoryFirstNameTh: signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
-    authorizedSignatoryLastNameTh: signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
-    authorizedSignatoryPositionTh: signatureName?.position_th || main.authorized_signatory_position_th || "",
+    authorizedSignatoryPrenameTh:
+      signatureName?.prename_th || main.authorized_signatory_prename_th || "",
+    authorizedSignatoryPrenameOther:
+      signatureName?.prename_other || main.authorized_signatory_prename_other || "",
+    authorizedSignatoryFirstNameTh:
+      signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
+    authorizedSignatoryLastNameTh:
+      signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
+    authorizedSignatoryPositionTh:
+      signatureName?.position_th || main.authorized_signatory_position_th || "",
 
     contactPersons: contactPersons.map((cp, idx) => ({
       id: cp.history_id || null,
@@ -554,7 +597,7 @@ export function mapICRejectionData(rejectionData) {
     addresses: addresses.length,
     documents: documents.length,
     hasSignatureName: !!signatureName,
-    representatives: representatives.length
+    representatives: representatives.length,
   });
 
   const addressesObj = convertAddressesToObject(addresses);
@@ -564,18 +607,18 @@ export function mapICRejectionData(rejectionData) {
     prenameEn: main.prename_en || "",
     prenameOther: main.prename_other || "",
     prenameOtherEn: main.prename_other_en || "",
-    
+
     firstNameThai: main.first_name_th || "",
     lastNameThai: main.last_name_th || "",
     firstNameEnglish: main.first_name_en || "",
     lastNameEnglish: main.last_name_en || "",
-    
+
     idCardNumber: main.id_card_number || "",
     email: main.email || "",
     phone: main.phone || "",
-    
+
     addresses: addressesObj,
-    
+
     addressNumber: addresses[0]?.address_number || main.address_number || "",
     street: addresses[0]?.street || main.street || "",
     subDistrict: addresses[0]?.sub_district || main.sub_district || "",
@@ -585,26 +628,30 @@ export function mapICRejectionData(rejectionData) {
     moo: addresses[0]?.moo || main.moo || "",
 
     // Representatives - IC has single representative
-    representative: representatives.length > 0 ? {
-      id: representatives[0].id || null,
-      prenameTh: representatives[0].prename_th || "",
-      prenameEn: representatives[0].prename_en || "",
-      prenameOther: representatives[0].prename_other || "",
-      prenameOtherEn: representatives[0].prename_other_en || "",
-      firstNameThai: representatives[0].first_name_th || "",
-      lastNameThai: representatives[0].last_name_th || "",
-      firstNameEnglish: representatives[0].first_name_en || "",
-      lastNameEnglish: representatives[0].last_name_en || "",
-      position: representatives[0].position || "",
-      email: representatives[0].email || "",
-      phone: representatives[0].phone || "",
-      phoneExtension: representatives[0].phone_extension || "",
-      isPrimary: representatives[0].is_primary === 1 || representatives[0].is_primary === true || true,
-    } : null,
+    representative:
+      representatives.length > 0
+        ? {
+            id: representatives[0].id || null,
+            prenameTh: representatives[0].prename_th || "",
+            prenameEn: representatives[0].prename_en || "",
+            prenameOther: representatives[0].prename_other || "",
+            prenameOtherEn: representatives[0].prename_other_en || "",
+            firstNameThai: representatives[0].first_name_th || "",
+            lastNameThai: representatives[0].last_name_th || "",
+            firstNameEnglish: representatives[0].first_name_en || "",
+            lastNameEnglish: representatives[0].last_name_en || "",
+            position: representatives[0].position || "",
+            email: representatives[0].email || "",
+            phone: representatives[0].phone || "",
+            phoneExtension: representatives[0].phone_extension || "",
+            isPrimary:
+              representatives[0].is_primary === 1 || representatives[0].is_primary === true || true,
+          }
+        : null,
 
     businessTypes: convertBusinessTypesToObject(businessTypes),
     otherBusinessTypeDetail: businessTypeOther?.detail || main.other_business_type_detail || "",
-    
+
     products: products.map((p, index) => ({
       id: p.id || null,
       key: p.id || `new-${index}-${Date.now()}`,
@@ -615,27 +662,32 @@ export function mapICRejectionData(rejectionData) {
     // IC Documents
     idCardDocument: (() => {
       // Support multiple aliases used across systems
-      const doc = mapDocuments(documents, main, ['idCardDocument', 'id_card', 'idCard']);
+      const doc = mapDocuments(documents, main, ["idCardDocument", "id_card", "idCard"]);
       console.log("📄 idCardDocument mapped:", doc);
       return doc;
     })(),
     companyStamp: (() => {
-      const doc = mapDocuments(documents, main, 'companyStamp');
+      const doc = mapDocuments(documents, main, "companyStamp");
       console.log("📄 companyStamp mapped:", doc);
       return doc;
     })(),
     authorizedSignature: (() => {
-      const doc = mapDocuments(documents, main, 'authorizedSignature');
+      const doc = mapDocuments(documents, main, "authorizedSignature");
       console.log("📄 authorizedSignature mapped:", doc);
       return doc;
     })(),
 
     // Authorized Signatory Info
-    authorizedSignatoryPrenameTh: signatureName?.prename_th || main.authorized_signatory_prename_th || "",
-    authorizedSignatoryPrenameOther: signatureName?.prename_other || main.authorized_signatory_prename_other || "",
-    authorizedSignatoryFirstNameTh: signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
-    authorizedSignatoryLastNameTh: signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
-    authorizedSignatoryPositionTh: signatureName?.position_th || main.authorized_signatory_position_th || "",
+    authorizedSignatoryPrenameTh:
+      signatureName?.prename_th || main.authorized_signatory_prename_th || "",
+    authorizedSignatoryPrenameOther:
+      signatureName?.prename_other || main.authorized_signatory_prename_other || "",
+    authorizedSignatoryFirstNameTh:
+      signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
+    authorizedSignatoryLastNameTh:
+      signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
+    authorizedSignatoryPositionTh:
+      signatureName?.position_th || main.authorized_signatory_position_th || "",
   };
 }
 
@@ -644,15 +696,15 @@ export function mapICRejectionData(rejectionData) {
  */
 export function mapRejectionDataToForm(membershipType, rejectionData) {
   console.log(`🗺️ Mapping ${membershipType.toUpperCase()} rejection data to form`);
-  
+
   switch (membershipType) {
-    case 'oc':
+    case "oc":
       return mapOCRejectionData(rejectionData);
-    case 'ac':
+    case "ac":
       return mapACRejectionData(rejectionData);
-    case 'am':
+    case "am":
       return mapAMRejectionData(rejectionData);
-    case 'ic':
+    case "ic":
       return mapICRejectionData(rejectionData);
     default:
       console.error(`Unknown membership type: ${membershipType}`);

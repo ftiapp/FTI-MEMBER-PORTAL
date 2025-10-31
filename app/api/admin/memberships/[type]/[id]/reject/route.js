@@ -13,10 +13,7 @@ export async function POST(request, { params }) {
   try {
     const user = await getUserFromSession();
     if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     const { type, id } = await params;
@@ -26,15 +23,15 @@ export async function POST(request, { params }) {
     if (!rejectionReason || !rejectionReason.trim()) {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุเหตุผลการปฏิเสธ" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Validate membership type
-    if (!['oc', 'ac', 'am', 'ic'].includes(type)) {
+    if (!["oc", "ac", "am", "ic"].includes(type)) {
       return NextResponse.json(
         { success: false, message: "ประเภทสมาชิกไม่ถูกต้อง" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,7 +49,7 @@ export async function POST(request, { params }) {
 
       const [appRecords] = await connection.execute(
         `SELECT id, user_id, status FROM ${tableMap[type]} WHERE id = ?`,
-        [id]
+        [id],
       );
 
       if (!appRecords.length) {
@@ -68,7 +65,7 @@ export async function POST(request, { params }) {
 
       // Create history snapshot
       console.log(`📸 Creating history snapshot for ${type} ${id}`);
-      const historyId = await createSnapshot(connection, type, id, 'rejection', user.id);
+      const historyId = await createSnapshot(connection, type, id, "rejection", user.id);
       console.log(`✅ History snapshot created: ${historyId}`);
 
       // Update main table status to rejected (2)
@@ -80,7 +77,7 @@ export async function POST(request, { params }) {
              rejected_by = ?,
              updated_at = NOW()
          WHERE id = ?`,
-        [rejectionReason, user.id, id]
+        [rejectionReason, user.id, id],
       );
 
       // Create rejection record
@@ -89,7 +86,7 @@ export async function POST(request, { params }) {
           user_id, membership_type, membership_id, history_snapshot_id,
           rejected_by, rejection_reason, status
         ) VALUES (?, ?, ?, ?, ?, ?, 'pending_fix')`,
-        [app.user_id, type, id, historyId, user.id, rejectionReason]
+        [app.user_id, type, id, historyId, user.id, rejectionReason],
       );
 
       const rejectionId = rejectionResult.insertId;
@@ -100,14 +97,14 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Rejection_Conversations (
             rejection_id, sender_type, sender_id, message
           ) VALUES (?, 'admin', ?, ?)`,
-          [rejectionId, user.id, adminMessage.trim()]
+          [rejectionId, user.id, adminMessage.trim()],
         );
 
         await connection.execute(
           `UPDATE MemberRegist_Rejections 
            SET last_conversation_at = NOW(), unread_member_count = 1
            WHERE id = ?`,
-          [rejectionId]
+          [rejectionId],
         );
       }
 
@@ -124,7 +121,7 @@ export async function POST(request, { params }) {
             historySnapshotId: historyId,
             targetUserId: app.user_id,
           }),
-        ]
+        ],
       );
 
       await connection.commit();
@@ -145,7 +142,7 @@ export async function POST(request, { params }) {
     console.error("Error rejecting application:", error);
     return NextResponse.json(
       { success: false, message: error.message || "เกิดข้อผิดพลาดในการปฏิเสธใบสมัคร" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

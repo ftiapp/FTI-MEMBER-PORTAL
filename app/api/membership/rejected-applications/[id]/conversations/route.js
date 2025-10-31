@@ -11,10 +11,7 @@ export async function GET(request, { params }) {
     // Get user from session
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const userId = user.id;
@@ -25,7 +22,7 @@ export async function GET(request, { params }) {
     // Verify rejection belongs to user
     const [rejectData] = await connection.execute(
       `SELECT id FROM MemberRegist_Rejections WHERE id = ? AND user_id = ?`,
-      [id, userId]
+      [id, userId],
     );
 
     if (!rejectData.length) {
@@ -35,7 +32,7 @@ export async function GET(request, { params }) {
           success: false,
           message: "Rejection not found or access denied",
         },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -54,7 +51,7 @@ export async function GET(request, { params }) {
        FROM MemberRegist_Rejection_Conversations 
        WHERE rejection_id = ?
        ORDER BY created_at ASC`,
-      [id]
+      [id],
     );
 
     console.log("✅ Fetched conversations:", conversations.length);
@@ -80,7 +77,7 @@ export async function GET(request, { params }) {
         success: false,
         message: "Failed to fetch conversations",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

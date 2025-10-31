@@ -14,10 +14,7 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -48,9 +45,7 @@ export async function GET(request) {
     }
 
     if (search) {
-      whereConditions.push(
-        "(application_name LIKE ? OR identifier LIKE ?)"
-      );
+      whereConditions.push("(application_name LIKE ? OR identifier LIKE ?)");
       queryParams.push(`%${search}%`, `%${search}%`);
     }
 
@@ -171,9 +166,10 @@ export async function GET(request) {
     const formattedData = rejectedApps.map((app) => ({
       id: app.rejection_id,
       userId: app.user_id,
-      userName: app.user_firstname && app.user_lastname 
-        ? `${app.user_firstname} ${app.user_lastname}`
-        : "N/A",
+      userName:
+        app.user_firstname && app.user_lastname
+          ? `${app.user_firstname} ${app.user_lastname}`
+          : "N/A",
       userEmail: app.user_email || "N/A",
       membershipType: app.membership_type,
       membershipId: app.membership_id,
@@ -187,10 +183,11 @@ export async function GET(request) {
       lastConversationAt: app.last_conversation_at,
       conversationCount: app.conversation_count || 0,
       unreadCount: app.unread_admin_count || 0,
-      rejectedBy: app.admin_firstname && app.admin_lastname 
-        ? `${app.admin_firstname} ${app.admin_lastname}`
-        : "N/A",
-      rejectionReason: app.rejection_reason
+      rejectedBy:
+        app.admin_firstname && app.admin_lastname
+          ? `${app.admin_firstname} ${app.admin_lastname}`
+          : "N/A",
+      rejectionReason: app.rejection_reason,
     }));
 
     return NextResponse.json({
@@ -207,7 +204,7 @@ export async function GET(request) {
     console.error("Error fetching rejected applications (admin v3):", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

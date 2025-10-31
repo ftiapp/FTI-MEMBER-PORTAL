@@ -67,15 +67,18 @@ const DetailView = ({
 
       if (result && result.success) {
         console.log("✅ DEBUG: Section update succeeded", { section, data: result });
-        
+
         // Refetch the updated data from server to ensure consistency
         console.log("🔄 DEBUG: Refetching section data from server...");
-        const refetchResponse = await fetch(`/api/admin/membership-requests/${type}/${application.id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
+        const refetchResponse = await fetch(
+          `/api/admin/membership-requests/${type}/${application.id}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
           },
-        });
+        );
 
         if (refetchResponse.ok) {
           const refetchText = await refetchResponse.text();
@@ -90,7 +93,7 @@ const DetailView = ({
             }
           }
         }
-        
+
         return result;
       } else {
         throw new Error((result && (result.error || result.message)) || "Update failed");
@@ -125,7 +128,11 @@ const DetailView = ({
         onUpdate={handleSectionUpdate}
       />
       <FinancialInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
-      <RepresentativesSection application={application} type={type} onUpdate={handleSectionUpdate} />
+      <RepresentativesSection
+        application={application}
+        type={type}
+        onUpdate={handleSectionUpdate}
+      />
       <AddressSection application={application} onUpdate={handleSectionUpdate} />
       <BusinessInfoSection application={application} onUpdate={handleSectionUpdate} />
       <DocumentsSection application={application} onViewDocument={onViewDocument} type={type} />

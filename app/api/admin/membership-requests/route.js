@@ -51,12 +51,14 @@ export async function GET(request) {
 
     try {
       // Debug: Check admin users table structure
-      console.log('=== DEBUG: Admin Users Table Check ===');
-      const [adminUsers] = await connection.query('SELECT id, username, name FROM FTI_Portal_Admin_Users WHERE id = 1 LIMIT 1');
+      console.log("=== DEBUG: Admin Users Table Check ===");
+      const [adminUsers] = await connection.query(
+        "SELECT id, username, name FROM FTI_Portal_Admin_Users WHERE id = 1 LIMIT 1",
+      );
       if (adminUsers.length > 0) {
-        console.log('Admin user ID 1:', JSON.stringify(adminUsers[0], null, 2));
+        console.log("Admin user ID 1:", JSON.stringify(adminUsers[0], null, 2));
       } else {
-        console.log('No admin user found with ID 1');
+        console.log("No admin user found with ID 1");
       }
       // Prepare base queries for each membership type
       let queries = [];
@@ -283,27 +285,29 @@ export async function GET(request) {
 
       // Execute the combined query
       const [rows] = await connection.query(combinedQuery, params);
-      
+
       // Debug: Log first row to see what data we're getting
       if (rows.length > 0) {
-        console.log('=== DEBUG: Sample row data ===');
-        console.log('First row:', JSON.stringify(rows[0], null, 2));
-        
+        console.log("=== DEBUG: Sample row data ===");
+        console.log("First row:", JSON.stringify(rows[0], null, 2));
+
         // Check specifically for AM records with approved_by
-        const amRow = rows.find(r => r.type === 'am' && r.main_approved_by);
+        const amRow = rows.find((r) => r.type === "am" && r.main_approved_by);
         if (amRow) {
-          console.log('=== DEBUG: AM Sample with approved_by ===');
-          console.log('AM row:', JSON.stringify(amRow, null, 2));
-          console.log('approved_by_admin_name:', amRow.approved_by_admin_name);
-          console.log('main_approved_by:', amRow.main_approved_by);
+          console.log("=== DEBUG: AM Sample with approved_by ===");
+          console.log("AM row:", JSON.stringify(amRow, null, 2));
+          console.log("approved_by_admin_name:", amRow.approved_by_admin_name);
+          console.log("main_approved_by:", amRow.main_approved_by);
         }
-        
+
         // Check all records with approved_by but null name
-        const problematicRows = rows.filter(r => r.main_approved_by && !r.approved_by_admin_name);
+        const problematicRows = rows.filter((r) => r.main_approved_by && !r.approved_by_admin_name);
         if (problematicRows.length > 0) {
-          console.log('=== DEBUG: Records with approved_by but null name ===');
-          problematicRows.forEach(row => {
-            console.log(`ID: ${row.id}, Type: ${row.type}, approved_by: ${row.main_approved_by}, name: ${row.approved_by_admin_name}`);
+          console.log("=== DEBUG: Records with approved_by but null name ===");
+          problematicRows.forEach((row) => {
+            console.log(
+              `ID: ${row.id}, Type: ${row.type}, approved_by: ${row.main_approved_by}, name: ${row.approved_by_admin_name}`,
+            );
           });
         }
       }

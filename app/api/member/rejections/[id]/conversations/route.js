@@ -12,10 +12,7 @@ export async function GET(request, { params }) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -24,22 +21,16 @@ export async function GET(request, { params }) {
     // Verify access
     const [rejections] = await connection.execute(
       `SELECT user_id FROM MemberRegist_Rejections WHERE id = ?`,
-      [id]
+      [id],
     );
 
     if (!rejections.length) {
-      return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูล" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบข้อมูล" }, { status: 404 });
     }
 
     // Check access (member must be owner, or admin)
     if (user.role !== "admin" && user.id !== rejections[0].user_id) {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     // Get conversations
@@ -62,7 +53,7 @@ export async function GET(request, { params }) {
       LEFT JOIN FTI_Portal_User a ON c.sender_type = 'admin' AND c.sender_id = a.id
       WHERE c.rejection_id = ?
       ORDER BY c.created_at ASC`,
-      [id]
+      [id],
     );
 
     // Mark messages as read
@@ -71,22 +62,22 @@ export async function GET(request, { params }) {
         `UPDATE MemberRegist_Rejection_Conversations 
          SET is_read = 1, read_at = NOW()
          WHERE rejection_id = ? AND sender_type = 'member' AND is_read = 0`,
-        [id]
+        [id],
       );
       await connection.execute(
         `UPDATE MemberRegist_Rejections SET unread_admin_count = 0 WHERE id = ?`,
-        [id]
+        [id],
       );
     } else {
       await connection.execute(
         `UPDATE MemberRegist_Rejection_Conversations 
          SET is_read = 1, read_at = NOW()
          WHERE rejection_id = ? AND sender_type = 'admin' AND is_read = 0`,
-        [id]
+        [id],
       );
       await connection.execute(
         `UPDATE MemberRegist_Rejections SET unread_member_count = 0 WHERE id = ?`,
-        [id]
+        [id],
       );
     }
 
@@ -106,10 +97,7 @@ export async function GET(request, { params }) {
     });
   } catch (error) {
     console.error("Error fetching conversations:", error);
-    return NextResponse.json(
-      { success: false, message: "เกิดข้อผิดพลาด" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "เกิดข้อผิดพลาด" }, { status: 500 });
   } finally {
     if (connection) {
       try {
@@ -129,10 +117,7 @@ export async function POST(request, { params }) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -140,10 +125,7 @@ export async function POST(request, { params }) {
     const { message, attachments } = body;
 
     if (!message || !message.trim()) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาระบุข้อความ" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาระบุข้อความ" }, { status: 400 });
     }
 
     connection = await getConnection();
@@ -151,21 +133,15 @@ export async function POST(request, { params }) {
     // Verify access
     const [rejections] = await connection.execute(
       `SELECT user_id FROM MemberRegist_Rejections WHERE id = ?`,
-      [id]
+      [id],
     );
 
     if (!rejections.length) {
-      return NextResponse.json(
-        { success: false, message: "ไม่พบข้อมูล" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่พบข้อมูล" }, { status: 404 });
     }
 
     if (user.role !== "admin" && user.id !== rejections[0].user_id) {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     const senderType = user.role === "admin" ? "admin" : "member";
@@ -175,7 +151,7 @@ export async function POST(request, { params }) {
       `INSERT INTO MemberRegist_Rejection_Conversations 
        (rejection_id, sender_type, sender_id, message, attachments) 
        VALUES (?, ?, ?, ?, ?)`,
-      [id, senderType, user.id, message.trim(), attachments ? JSON.stringify(attachments) : null]
+      [id, senderType, user.id, message.trim(), attachments ? JSON.stringify(attachments) : null],
     );
 
     // Update rejection record
@@ -184,14 +160,14 @@ export async function POST(request, { params }) {
         `UPDATE MemberRegist_Rejections 
          SET last_conversation_at = NOW(), unread_admin_count = unread_admin_count + 1 
          WHERE id = ?`,
-        [id]
+        [id],
       );
     } else {
       await connection.execute(
         `UPDATE MemberRegist_Rejections 
          SET last_conversation_at = NOW(), unread_member_count = unread_member_count + 1 
          WHERE id = ?`,
-        [id]
+        [id],
       );
     }
 
@@ -213,7 +189,7 @@ export async function POST(request, { params }) {
       LEFT JOIN FTI_Portal_User u ON c.sender_type = 'member' AND c.sender_id = u.id
       LEFT JOIN FTI_Portal_User a ON c.sender_type = 'admin' AND c.sender_id = a.id
       WHERE c.id = ?`,
-      [result.insertId]
+      [result.insertId],
     );
 
     const msg = newMsg[0];
@@ -234,10 +210,7 @@ export async function POST(request, { params }) {
     });
   } catch (error) {
     console.error("Error adding conversation:", error);
-    return NextResponse.json(
-      { success: false, message: "เกิดข้อผิดพลาด" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: "เกิดข้อผิดพลาด" }, { status: 500 });
   } finally {
     if (connection) {
       try {

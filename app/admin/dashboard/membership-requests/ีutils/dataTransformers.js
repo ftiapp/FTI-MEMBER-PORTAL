@@ -297,7 +297,11 @@ export const normalizeRepresentatives = (application) => {
     phoneExtension: rep.phone_extension || rep.phoneExtension,
     email: rep.email,
     isPrimary:
-      rep.isPrimary === true || rep.is_primary === 1 || rep.is_primary === true || rep.rep_order === 1 || rep.repOrder === 1,
+      rep.isPrimary === true ||
+      rep.is_primary === 1 ||
+      rep.is_primary === true ||
+      rep.rep_order === 1 ||
+      rep.repOrder === 1,
     is_primary:
       rep.is_primary !== undefined
         ? rep.is_primary

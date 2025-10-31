@@ -4,7 +4,7 @@ import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 /**
  * NEW REJECT API v2 - No Reject_DATA table
- * 
+ *
  * Simply update Main table with rejection info
  */
 
@@ -20,17 +20,14 @@ export async function POST(request, { params }) {
     if (!rejectionReason || !rejectionReason.trim()) {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุเหตุผลในการปฏิเสธ" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get admin from session
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -58,7 +55,7 @@ export async function POST(request, { params }) {
              rejected_by = ?,
              rejected_at = NOW()
          WHERE id = ?`,
-        [rejectionReason, admin.id, id]
+        [rejectionReason, admin.id, id],
       );
 
       await connection.commit();
@@ -67,12 +64,10 @@ export async function POST(request, { params }) {
         success: true,
         message: "ปฏิเสธใบสมัครเรียบร้อยแล้ว",
       });
-
     } catch (error) {
       await connection.rollback();
       throw error;
     }
-
   } catch (error) {
     console.error("Error rejecting application:", error);
     return NextResponse.json(
@@ -80,7 +75,7 @@ export async function POST(request, { params }) {
         success: false,
         message: "ไม่สามารถปฏิเสธใบสมัครได้ กรุณาลองใหม่อีกครั้ง",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

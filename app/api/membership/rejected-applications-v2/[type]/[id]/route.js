@@ -12,13 +12,10 @@ export async function GET(request, { params }) {
 
   try {
     const { type, id } = await params;
-    
+
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -82,20 +79,20 @@ export async function GET(request, { params }) {
     if (!config) {
       return NextResponse.json(
         { success: false, message: "Invalid membership type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // 1. Get main data
     const [mainData] = await connection.execute(
       `SELECT * FROM ${config.main} WHERE id = ? AND user_id = ? AND status = 2 AND is_archived = 0`,
-      [id, user.id]
+      [id, user.id],
     );
 
     if (!mainData.length) {
       return NextResponse.json(
         { success: false, message: "ไม่พบข้อมูลใบสมัครที่ถูกปฏิเสธ หรือคุณไม่มีสิทธิ์เข้าถึง" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -104,40 +101,40 @@ export async function GET(request, { params }) {
     // 2. Get related data
     const [addresses] = await connection.execute(
       `SELECT * FROM ${config.address} WHERE ${config.idField} = ?`,
-      [id]
+      [id],
     );
     data.addresses = addresses;
 
     const [representatives] = await connection.execute(
       `SELECT * FROM ${config.representatives} WHERE ${config.idField} = ?`,
-      [id]
+      [id],
     );
     data.representatives = representatives;
 
     if (config.contactPersons) {
       const [contactPersons] = await connection.execute(
         `SELECT * FROM ${config.contactPersons} WHERE ${config.idField} = ?`,
-        [id]
+        [id],
       );
       data.contactPersons = contactPersons;
     }
 
     const [businessTypes] = await connection.execute(
       `SELECT * FROM ${config.businessTypes} WHERE ${config.idField} = ?`,
-      [id]
+      [id],
     );
     data.businessTypes = businessTypes;
 
     const [products] = await connection.execute(
       `SELECT * FROM ${config.products} WHERE ${config.idField} = ?`,
-      [id]
+      [id],
     );
     data.products = products;
 
     if (config.industryGroups) {
       const [industryGroups] = await connection.execute(
         `SELECT * FROM ${config.industryGroups} WHERE ${config.idField} = ?`,
-        [id]
+        [id],
       );
       data.industryGroups = industryGroups;
     }
@@ -145,20 +142,20 @@ export async function GET(request, { params }) {
     if (config.provinceChapters) {
       const [provinceChapters] = await connection.execute(
         `SELECT * FROM ${config.provinceChapters} WHERE ${config.idField} = ?`,
-        [id]
+        [id],
       );
       data.provinceChapters = provinceChapters;
     }
 
     const [documents] = await connection.execute(
       `SELECT * FROM ${config.documents} WHERE ${config.idField} = ?`,
-      [id]
+      [id],
     );
     data.documents = documents;
 
     const [signatureName] = await connection.execute(
       `SELECT * FROM ${config.signatureName} WHERE ${config.idField} = ?`,
-      [id]
+      [id],
     );
     data.signatureName = signatureName.length > 0 ? signatureName[0] : null;
 
@@ -166,7 +163,6 @@ export async function GET(request, { params }) {
       success: true,
       data,
     });
-
   } catch (error) {
     console.error("Error fetching rejected application:", error);
     return NextResponse.json(
@@ -174,7 +170,7 @@ export async function GET(request, { params }) {
         success: false,
         message: "ไม่สามารถโหลดข้อมูลได้",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

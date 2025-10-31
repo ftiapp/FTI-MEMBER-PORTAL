@@ -12,7 +12,7 @@ import { useActivities } from "./hooks/useActivities";
 
 export default function RecentActivities() {
   const router = useRouter();
-    const {
+  const {
     activities,
     loading,
     error,

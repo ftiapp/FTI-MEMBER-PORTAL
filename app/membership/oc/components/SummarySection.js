@@ -75,68 +75,90 @@ const ProductsCard = ({ products }) => (
 const RepresentativeCard = ({ representative, index }) => {
   console.log(`🔍 DEBUG Summary Representative ${index + 1}:`, representative);
   console.log(`🔍 Available fields:`, Object.keys(representative || {}));
-  
+
   return (
-  <div className="bg-white border border-gray-200 rounded-lg p-4">
-    <div className="mb-2">
-      <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <div className="mb-2">
+        <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
+      </div>
+      <div className="space-y-3">
+        <div>
+          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
+          <p className="text-sm">
+            {(() => {
+              const pre =
+                (representative.prenameTh === "อื่นๆ" && representative.prenameOther) ||
+                (representative.prename_th === "อื่นๆ" && representative.prename_other)
+                  ? representative.prenameOther || representative.prename_other
+                  : representative.prenameTh || representative.prename_th || "";
+              const first =
+                representative.firstNameThai ||
+                representative.firstNameTh ||
+                representative.first_name_th ||
+                "-";
+              const last =
+                representative.lastNameThai ||
+                representative.lastNameTh ||
+                representative.last_name_th ||
+                "-";
+              const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
+              console.log(`🔍 Mapped Thai name for rep ${index + 1}:`, { pre, first, last, name });
+              return name || "-";
+            })()}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
+          <p className="text-sm">
+            {(() => {
+              const pre =
+                (representative.prenameEn === "Other" && representative.prenameOtherEn) ||
+                (representative.prename_en === "Other" && representative.prename_other_en)
+                  ? representative.prenameOtherEn || representative.prename_other_en
+                  : representative.prenameEn || representative.prename_en || "";
+              const first =
+                representative.firstNameEnglish ||
+                representative.firstNameEn ||
+                representative.first_name_en ||
+                "-";
+              const last =
+                representative.lastNameEnglish ||
+                representative.lastNameEn ||
+                representative.last_name_en ||
+                "-";
+              const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
+              console.log(`🔍 Mapped English name for rep ${index + 1}:`, {
+                pre,
+                first,
+                last,
+                name,
+              });
+              return name || "-";
+            })()}
+          </p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">ตำแหน่ง</p>
+          <p className="text-sm">{representative.position || "-"}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">อีเมล</p>
+          <p className="text-sm">{representative.email || "-"}</p>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
+          <p className="text-sm">
+            {(() => {
+              const phone = representative.phone || "-";
+              const extension =
+                representative.phoneExtension || representative.phone_extension || "";
+              if (phone === "-") return "-";
+              return extension ? `${phone} ต่อ ${extension}` : phone;
+            })()}
+          </p>
+        </div>
+      </div>
     </div>
-    <div className="space-y-3">
-      <div>
-        <p className="text-xs text-gray-500">ชื่อ-นามสกุล (ไทย)</p>
-        <p className="text-sm">
-          {(() => {
-            const pre =
-              (representative.prenameTh === "อื่นๆ" && representative.prenameOther) ||
-              (representative.prename_th === "อื่นๆ" && representative.prename_other)
-                ? representative.prenameOther || representative.prename_other
-                : representative.prenameTh || representative.prename_th || "";
-            const first = representative.firstNameThai || representative.firstNameTh || representative.first_name_th || "-";
-            const last = representative.lastNameThai || representative.lastNameTh || representative.last_name_th || "-";
-            const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
-            console.log(`🔍 Mapped Thai name for rep ${index + 1}:`, { pre, first, last, name });
-            return name || "-";
-          })()}
-        </p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">ชื่อ-นามสกุล (อังกฤษ)</p>
-        <p className="text-sm">
-          {(() => {
-            const pre =
-              (representative.prenameEn === "Other" && representative.prenameOtherEn) ||
-              (representative.prename_en === "Other" && representative.prename_other_en)
-                ? representative.prenameOtherEn || representative.prename_other_en
-                : representative.prenameEn || representative.prename_en || "";
-            const first = representative.firstNameEnglish || representative.firstNameEn || representative.first_name_en || "-";
-            const last = representative.lastNameEnglish || representative.lastNameEn || representative.last_name_en || "-";
-            const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
-            console.log(`🔍 Mapped English name for rep ${index + 1}:`, { pre, first, last, name });
-            return name || "-";
-          })()}
-        </p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">ตำแหน่ง</p>
-        <p className="text-sm">{representative.position || "-"}</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">อีเมล</p>
-        <p className="text-sm">{representative.email || "-"}</p>
-      </div>
-      <div>
-        <p className="text-xs text-gray-500">เบอร์โทรศัพท์</p>
-        <p className="text-sm">
-          {(() => {
-            const phone = representative.phone || "-";
-            const extension = representative.phoneExtension || representative.phone_extension || "";
-            if (phone === "-") return "-";
-            return extension ? `${phone} ต่อ ${extension}` : phone;
-          })()}
-        </p>
-      </div>
-    </div>
-  </div>
   );
 };
 
@@ -436,8 +458,10 @@ export default function SummarySectionComponent({
           (mainContact.prename_en === "Other" && mainContact.prename_other_en)
             ? mainContact.prenameOtherEn || mainContact.prename_other_en
             : mainContact.prenameEn || mainContact.prename_en || "";
-        const first = mainContact.firstNameEn || mainContact.firstNameEnglish || mainContact.first_name_en;
-        const last = mainContact.lastNameEn || mainContact.lastNameEnglish || mainContact.last_name_en;
+        const first =
+          mainContact.firstNameEn || mainContact.firstNameEnglish || mainContact.first_name_en;
+        const last =
+          mainContact.lastNameEn || mainContact.lastNameEnglish || mainContact.last_name_en;
         if (first && last) {
           return `${pre ? pre + " " : ""}${first} ${last}`;
         }
@@ -448,22 +472,21 @@ export default function SummarySectionComponent({
         (mainContact.prename_th === "อื่นๆ" && mainContact.prename_other)
           ? mainContact.prenameOther || mainContact.prename_other
           : mainContact.prenameTh || mainContact.prename_th || "";
-      const firstTh = mainContact.firstNameTh || mainContact.firstNameThai || mainContact.first_name_th;
+      const firstTh =
+        mainContact.firstNameTh || mainContact.firstNameThai || mainContact.first_name_th;
       const lastTh = mainContact.lastNameTh || mainContact.lastNameThai || mainContact.last_name_th;
-      return firstTh && lastTh
-        ? `${preTh ? preTh + " " : ""}${firstTh} ${lastTh}`
-        : "-";
+      return firstTh && lastTh ? `${preTh ? preTh + " " : ""}${firstTh} ${lastTh}` : "-";
     }
 
     // ระบบเก่า: ใช้ field names แบบเดิม (สำหรับ backward compatibility)
     if (isEnglish) {
-      return (formData.contactPersonFirstNameEng || formData.contact_person_first_name_eng) && 
-             (formData.contactPersonLastNameEng || formData.contact_person_last_name_eng)
+      return (formData.contactPersonFirstNameEng || formData.contact_person_first_name_eng) &&
+        (formData.contactPersonLastNameEng || formData.contact_person_last_name_eng)
         ? `${formData.contactPersonFirstNameEng || formData.contact_person_first_name_eng} ${formData.contactPersonLastNameEng || formData.contact_person_last_name_eng}`
         : "-";
     }
-    return (formData.contactPersonFirstName || formData.contact_person_first_name) && 
-           (formData.contactPersonLastName || formData.contact_person_last_name)
+    return (formData.contactPersonFirstName || formData.contact_person_first_name) &&
+      (formData.contactPersonLastName || formData.contact_person_last_name)
       ? `${formData.contactPersonFirstName || formData.contact_person_first_name} ${formData.contactPersonLastName || formData.contact_person_last_name}`
       : "-";
   };
@@ -737,8 +760,16 @@ export default function SummarySectionComponent({
                                 (contact.prename_th === "อื่นๆ" && contact.prename_other)
                                   ? contact.prenameOther || contact.prename_other
                                   : contact.prenameTh || contact.prename_th || "";
-                              const first = contact.firstNameTh || contact.firstNameTh || contact.first_name_th || "";
-                              const last = contact.lastNameTh || contact.lastNameTh || contact.last_name_th || "";
+                              const first =
+                                contact.firstNameTh ||
+                                contact.firstNameTh ||
+                                contact.first_name_th ||
+                                "";
+                              const last =
+                                contact.lastNameTh ||
+                                contact.lastNameTh ||
+                                contact.last_name_th ||
+                                "";
                               const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
                               return name || "-";
                             })()}
@@ -753,7 +784,8 @@ export default function SummarySectionComponent({
                             <span className="font-medium">โทร:</span>
                             {(() => {
                               const phone = contact.phone || "-";
-                              const extension = contact.phoneExtension || contact.phone_extension || "";
+                              const extension =
+                                contact.phoneExtension || contact.phone_extension || "";
                               if (phone === "-") return "-";
                               return extension ? `${phone} ต่อ ${extension}` : phone;
                             })()}

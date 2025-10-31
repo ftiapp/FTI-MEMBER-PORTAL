@@ -231,7 +231,7 @@ export default function EditAddressForm({
   // Handle copying address data from another address
   const handleCopyAddress = (sourceAddress) => {
     console.log("Copying address from:", sourceAddress.label);
-    
+
     const sourceData = sourceAddress.data;
     if (!sourceData) {
       console.error("No source address data available");
@@ -240,7 +240,7 @@ export default function EditAddressForm({
 
     // Copy Thai address fields only
     const updatedFormData = { ...formData };
-    
+
     updatedFormData.ADDR_NO = sourceData.ADDR_NO || "";
     updatedFormData.ADDR_MOO = sourceData.ADDR_MOO || "";
     updatedFormData.ADDR_SOI = sourceData.ADDR_SOI || "";
@@ -249,13 +249,14 @@ export default function EditAddressForm({
     updatedFormData.ADDR_DISTRICT = sourceData.ADDR_DISTRICT || "";
     updatedFormData.ADDR_PROVINCE_NAME = sourceData.ADDR_PROVINCE_NAME || "";
     updatedFormData.ADDR_POSTCODE = sourceData.ADDR_POSTCODE || "";
-    
+
     // Copy contact fields (same for both languages)
     updatedFormData.ADDR_TELEPHONE = sourceData.ADDR_TELEPHONE || "";
     updatedFormData.ADDR_FAX = sourceData.ADDR_FAX || "";
     updatedFormData.ADDR_EMAIL = sourceData.ADDR_EMAIL || "";
     updatedFormData.ADDR_WEBSITE = sourceData.ADDR_WEBSITE || "";
-    updatedFormData.ADDR_TELEPHONE_EN = sourceData.ADDR_TELEPHONE_EN || sourceData.ADDR_TELEPHONE || "";
+    updatedFormData.ADDR_TELEPHONE_EN =
+      sourceData.ADDR_TELEPHONE_EN || sourceData.ADDR_TELEPHONE || "";
     updatedFormData.ADDR_FAX_EN = sourceData.ADDR_FAX_EN || sourceData.ADDR_FAX || "";
     updatedFormData.ADDR_EMAIL_EN = sourceData.ADDR_EMAIL_EN || sourceData.ADDR_EMAIL || "";
     updatedFormData.ADDR_WEBSITE_EN = sourceData.ADDR_WEBSITE_EN || sourceData.ADDR_WEBSITE || "";
@@ -564,9 +565,7 @@ export default function EditAddressForm({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Section headers */}
           <div className="md:col-span-2 border-b border-gray-200 pb-2 mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">
-              ข้อมูลที่อยู่
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800">ข้อมูลที่อยู่</h3>
           </div>
 
           {/* Thai Address Fields only */}
@@ -689,13 +688,20 @@ export default function EditAddressForm({
                   <p className="text-sm text-blue-600">{address?.ADDR_ROAD || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-blue-600">{address?.ADDR_SUB_DISTRICT?.replace('ตำบล', '').replace('แขวง', '').trim() || "-"}</p>
+                  <p className="text-sm text-blue-600">
+                    {address?.ADDR_SUB_DISTRICT?.replace("ตำบล", "").replace("แขวง", "").trim() ||
+                      "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-blue-600">{address?.ADDR_DISTRICT?.replace('อำเภอ', '').replace('เขต', '').trim() || "-"}</p>
+                  <p className="text-sm text-blue-600">
+                    {address?.ADDR_DISTRICT?.replace("อำเภอ", "").replace("เขต", "").trim() || "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-blue-600">{address?.ADDR_PROVINCE_NAME?.replace('จังหวัด', '').trim() || "-"}</p>
+                  <p className="text-sm text-blue-600">
+                    {address?.ADDR_PROVINCE_NAME?.replace("จังหวัด", "").trim() || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-blue-600">{address?.ADDR_POSTCODE || "-"}</p>
@@ -723,19 +729,30 @@ export default function EditAddressForm({
                   <p className="text-sm text-green-600 font-medium">{formData.ADDR_ROAD || "-"}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_SUB_DISTRICT?.replace('ตำบล', '').replace('แขวง', '').trim() || "-"}</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    {formData.ADDR_SUB_DISTRICT?.replace("ตำบล", "").replace("แขวง", "").trim() ||
+                      "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_DISTRICT?.replace('อำเภอ', '').replace('เขต', '').trim() || "-"}</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    {formData.ADDR_DISTRICT?.replace("อำเภอ", "").replace("เขต", "").trim() || "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_PROVINCE_NAME?.replace('จังหวัด', '').trim() || "-"}</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    {formData.ADDR_PROVINCE_NAME?.replace("จังหวัด", "").trim() || "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_POSTCODE || "-"}</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    {formData.ADDR_POSTCODE || "-"}
+                  </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-600 font-medium">{formData.ADDR_TELEPHONE || "-"}</p>
+                  <p className="text-sm text-green-600 font-medium">
+                    {formData.ADDR_TELEPHONE || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-green-600 font-medium">{formData.ADDR_EMAIL || "-"}</p>
@@ -751,10 +768,14 @@ export default function EditAddressForm({
                     <p className="text-sm font-medium text-gray-500">เอกสารแนบ:</p>
                   </div>
                   <div>
-                    <p className="text-sm text-blue-600">{address?.documentUrl ? "มีเอกสารแนบ" : "ไม่มีเอกสารแนบ"}</p>
+                    <p className="text-sm text-blue-600">
+                      {address?.documentUrl ? "มีเอกสารแนบ" : "ไม่มีเอกสารแนบ"}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-green-600 font-medium">{documentFile ? documentFile.name : "ไม่ได้แนบเอกสาร"}</p>
+                    <p className="text-sm text-green-600 font-medium">
+                      {documentFile ? documentFile.name : "ไม่ได้แนบเอกสาร"}
+                    </p>
                   </div>
                 </div>
               </div>

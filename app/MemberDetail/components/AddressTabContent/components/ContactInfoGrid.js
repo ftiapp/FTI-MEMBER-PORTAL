@@ -81,7 +81,9 @@ export default function ContactInfoGrid({ address, language = "th" }) {
           <div className="flex items-start bg-white p-4 rounded-lg border border-gray-100 hover:shadow-md transition-all">
             <FaGlobe className="mt-1 mr-3 text-blue-500 flex-shrink-0" />
             <div className="overflow-hidden">
-              <p className="font-semibold text-blue-700 mb-2">{isThai ? "เว็บไซต์:" : "Website:"}</p>
+              <p className="font-semibold text-blue-700 mb-2">
+                {isThai ? "เว็บไซต์:" : "Website:"}
+              </p>
               {/* แสดงเว็บไซต์ตามภาษาที่เลือก */}
               <a
                 href={(() => {

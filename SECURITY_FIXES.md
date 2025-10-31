@@ -1,32 +1,41 @@
 # Security Fixes Applied - Removed Fallback Secrets
 
 ## Summary
+
 Removed all fallback secrets from the codebase to prevent security vulnerabilities in production.
 
 ## Changes Made
 
 ### 1. Created Centralized JWT Utility
+
 **File**: `app/lib/jwt.js`
+
 - Validates JWT_SECRET on module load
 - Throws error if JWT_SECRET is not configured
 - Provides centralized JWT secret management
 
 ### 2. Updated Authentication Libraries
+
 **Files**:
+
 - `app/lib/auth.js` - Removed fallback "your-secret-key-for-admin-auth"
 - `app/lib/adminAuth.js` - Removed fallback "your-secret-key-for-admin-auth"
 - `app/lib/userAuth.js` - Removed fallback "your-secret-key" (2 locations)
 - `app/lib/session.js` - Removed fallback "your-secret-key" and "your-secret-key-for-admin-auth"
 
 ### 3. Updated Client-Side Encryption
+
 **Files**:
+
 - `app/login/page.js` - Removed fallback "fti-remember-secret", added warning
 - `app/admin/page.js` - Removed fallback "fti-remember-secret", added warning
 
 **Warning Added**: Remember Me feature stores encrypted credentials in localStorage. This is NOT recommended for production. Consider using secure HTTP-only cookies instead.
 
 ### 4. Updated API Routes (Using Centralized Utility)
+
 **Files Updated to use `@/app/lib/jwt`**:
+
 - `app/api/notifications/route.js`
 - `app/api/notifications/mark-read/route.js`
 - `app/api/notifications/mark-all-read/route.js`
@@ -37,14 +46,18 @@ Removed all fallback secrets from the codebase to prevent security vulnerabiliti
 - `app/api/contact/reply/route.js`
 
 ### 5. Updated API Routes (Direct Validation)
+
 **Files Updated with inline validation**:
+
 - `app/api/member/verify-ownership/route.js`
 - `app/api/auth/login/route.js`
 - `app/api/faq/route.js`
 - `app/api/faq/middleware/auth.js`
 
 ### 6. Remaining Files with Inline jwt.verify() Calls
+
 **These files still use inline `jwt.verify()` with fallback** (need manual update):
+
 - `app/api/member/tsic-codes/list/route.js`
 - `app/api/member/tsic-codes/manage/route.js`
 - `app/api/member/tsic-codes/direct-update/route.js`
@@ -59,6 +72,7 @@ Removed all fallback secrets from the codebase to prevent security vulnerabiliti
 ## Required Environment Variables
 
 ### Critical (Must be set in production)
+
 ```bash
 JWT_SECRET=<strong-random-secret-key>
 NEXT_PUBLIC_REMEMBER_ME_SECRET=<strong-random-secret-key>
@@ -66,6 +80,7 @@ NEXT_PUBLIC_RECAPTCHA_SITE_KEY=<your-recaptcha-site-key>
 ```
 
 ### Database
+
 ```bash
 DB_HOST=<database-host>
 DB_USER=<database-user>
@@ -75,6 +90,7 @@ DB_PORT=3306
 ```
 
 ### API Keys (Server-side only)
+
 ```bash
 POSTMARK_API_KEY=<your-postmark-key>
 MAILERSEND_API_KEY=<your-mailersend-key>
@@ -87,11 +103,13 @@ CLOUDINARY_API_SECRET=<your-cloudinary-secret>
 ## Security Improvements
 
 ### Before
+
 ```javascript
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"; // ❌ Unsafe
 ```
 
 ### After
+
 ```javascript
 import { JWT_SECRET } from "@/app/lib/jwt"; // ✅ Safe - throws error if not configured
 ```

@@ -95,7 +95,8 @@ export default function ResubmitSuccessModal({ isOpen, onClose, membershipType }
 
                 <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                   <p className="text-xs text-amber-800">
-                    <span className="font-semibold">หมายเหตุ:</span> คุณสามารถตรวจสอบสถานะใบสมัครได้ที่เมนู "สมาชิกภาพของฉัน"
+                    <span className="font-semibold">หมายเหตุ:</span>{" "}
+                    คุณสามารถตรวจสอบสถานะใบสมัครได้ที่เมนู "สมาชิกภาพของฉัน"
                   </p>
                 </div>
               </div>

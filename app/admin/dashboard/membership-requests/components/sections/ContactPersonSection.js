@@ -520,9 +520,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <>
                   <select
-                    value={
-                      editData.prename_th ?? editData.prenameTh ?? ""
-                    }
+                    value={editData.prename_th ?? editData.prenameTh ?? ""}
                     onChange={(e) => {
                       const value = e.target.value;
                       updateField("prename_th", value);
@@ -562,9 +560,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                       return (
                         <input
                           type="text"
-                          value={
-                            editData.prename_other ?? editData.prenameOther ?? ""
-                          }
+                          value={editData.prename_other ?? editData.prenameOther ?? ""}
                           onChange={(e) => {
                             updateField("prename_other", e.target.value);
                             updateField("prenameOther", e.target.value);
@@ -594,9 +590,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <>
                   <select
-                    value={
-                      editData.prename_en ?? editData.prenameEn ?? ""
-                    }
+                    value={editData.prename_en ?? editData.prenameEn ?? ""}
                     onChange={(e) => {
                       const value = e.target.value;
                       updateField("prename_en", value);
@@ -636,9 +630,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
                       return (
                         <input
                           type="text"
-                          value={
-                            editData.prename_other_en ?? editData.prenameOtherEn ?? ""
-                          }
+                          value={editData.prename_other_en ?? editData.prenameOtherEn ?? ""}
                           onChange={(e) => {
                             updateField("prename_other_en", e.target.value);
                             updateField("prenameOtherEn", e.target.value);
@@ -668,9 +660,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={
-                    editData.first_name_th ?? editData.firstNameTh ?? ""
-                  }
+                  value={editData.first_name_th ?? editData.firstNameTh ?? ""}
                   onChange={(e) => {
                     updateField("first_name_th", e.target.value);
                     updateField("firstNameTh", e.target.value);
@@ -689,9 +679,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={
-                    editData.last_name_th ?? editData.lastNameTh ?? ""
-                  }
+                  value={editData.last_name_th ?? editData.lastNameTh ?? ""}
                   onChange={(e) => {
                     updateField("last_name_th", e.target.value);
                     updateField("lastNameTh", e.target.value);
@@ -710,9 +698,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={
-                    editData.first_name_en ?? editData.firstNameEn ?? ""
-                  }
+                  value={editData.first_name_en ?? editData.firstNameEn ?? ""}
                   onChange={(e) => {
                     updateField("first_name_en", e.target.value);
                     updateField("firstNameEn", e.target.value);
@@ -731,9 +717,7 @@ const ContactPersonSection = ({ application, onUpdate }) => {
               {isEditing && editingIndex === index ? (
                 <input
                   type="text"
-                  value={
-                    editData.last_name_en ?? editData.lastNameEn ?? ""
-                  }
+                  value={editData.last_name_en ?? editData.lastNameEn ?? ""}
                   onChange={(e) => {
                     updateField("last_name_en", e.target.value);
                     updateField("lastNameEn", e.target.value);

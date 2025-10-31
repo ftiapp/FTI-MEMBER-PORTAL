@@ -534,10 +534,10 @@ export async function POST(request) {
               rep.prenameEn || rep.prename_en || null,
               rep.prenameOther || rep.prename_other || null,
               rep.prenameOtherEn || rep.prename_other_en || null,
-              (rep.firstNameTh || rep.firstNameThai || rep.first_name_th) || null,
-              (rep.lastNameTh || rep.lastNameThai || rep.last_name_th) || null,
-              (rep.firstNameEn || rep.firstNameEng || rep.first_name_en) || null,
-              (rep.lastNameEn || rep.lastNameEng || rep.last_name_en) || null,
+              rep.firstNameTh || rep.firstNameThai || rep.first_name_th || null,
+              rep.lastNameTh || rep.lastNameThai || rep.last_name_th || null,
+              rep.firstNameEn || rep.firstNameEng || rep.first_name_en || null,
+              rep.lastNameEn || rep.lastNameEng || rep.last_name_en || null,
               rep.position || null,
               rep.email || null,
               rep.phone || null,
@@ -921,16 +921,18 @@ export async function POST(request) {
 
     // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
     try {
-      const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
-      
+      const allMemberTypes = ["ic", "oc", "am", "ac"];
+
       for (const memberType of allMemberTypes) {
         const deleteDraftQuery =
           memberType === "ic"
             ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
             : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
-        
+
         await executeQueryWithoutTransaction(deleteDraftQuery, [data.taxId]);
-        console.log(`🗑️ [AC] Deleted ALL drafts for ${memberType} with tax_id: ${data.taxId} (all users)`);
+        console.log(
+          `🗑️ [AC] Deleted ALL drafts for ${memberType} with tax_id: ${data.taxId} (all users)`,
+        );
       }
     } catch (draftError) {
       console.error("❌ [AC] Error deleting drafts:", draftError);
@@ -956,7 +958,6 @@ export async function POST(request) {
       console.error("❌ [AC API] Error recording user log:", logError.message);
     }
 
-    
     // ส่งอีเมลแจ้งการสมัครสมาชิกสำเร็จ
     try {
       // ดึงข้อมูล user จาก FTI_Portal_User table

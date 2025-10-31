@@ -7,7 +7,6 @@ import { deleteDraftByTaxId, saveDraftData } from "../../../utils/draftHelpers";
 import { STEPS } from "./constants";
 import { getFirstFieldError } from "./scrollHelpers";
 
-
 /**
  * Validate Tax ID
  */
@@ -160,14 +159,14 @@ export const createHandleSubmit =
           console.log("🔵 Checking Tax ID uniqueness for:", formData.taxId);
           const taxIdResult = await validateTaxId(formData.taxId);
           console.log("🔍 Tax ID validation result:", taxIdResult);
-          
+
           if (!taxIdResult.isUnique) {
             console.log("❌ Tax ID is NOT unique, blocking progression");
             setIsSubmitting(false);
             toast.error(taxIdResult.message);
             return;
           }
-          
+
           console.log("✅ Tax ID is unique, continuing to next step");
         } else if (currentStep === 1) {
           console.log("⚠️ Step 1 but tax ID is missing or not 13 digits:", formData.taxId);
@@ -346,17 +345,20 @@ export const createHandleSubmit =
       let result;
       if (rejectionId) {
         console.log("🔄 Resubmitting rejected application (v2 - no Reject_DATA):", rejectionId);
-        const res = await fetch(`/api/membership/rejected-applications-v2/ac/${rejectionId}/resubmit`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+        const res = await fetch(
+          `/api/membership/rejected-applications-v2/ac/${rejectionId}/resubmit`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+            },
+            body: JSON.stringify({
+              formData: formData,
+              userComment: userComment,
+            }),
           },
-          body: JSON.stringify({
-            formData: formData,
-            userComment: userComment,
-          }),
-        });
+        );
 
         if (!res.ok) {
           throw new Error(`HTTP ${res.status}: ${res.statusText}`);

@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { memo } from "react";
+import { memo, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import AdminLayout from "../../components/AdminLayout";
 import useAdminActivities from "./hooks/useAdminActivities";
@@ -23,10 +23,22 @@ import useAdminActivities from "./hooks/useAdminActivities";
  */
 
 const ActivitiesPage = () => {
+  // Add error boundary handling
+  useEffect(() => {
+    const handleError = (event) => {
+      console.error("Activities page error:", event.error);
+      toast.error("เกิดข้อผิดพลาดในการโหลดข้อมูลกิจกรรม");
+    };
+
+    window.addEventListener("error", handleError);
+    return () => window.removeEventListener("error", handleError);
+  }, []);
+
   // Use the optimized hook for activities data and management
   const {
     activities,
     isLoading,
+    error,
     filter,
     page,
     totalPages,
@@ -68,68 +80,79 @@ const ActivitiesPage = () => {
             {isLoading ? "กำลังโหลด..." : "รีเฟรช"}
           </button>
         </div>
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <h2 className="text-xl font-semibold">กิจกรรมของแอดมิน</h2>
 
-          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-            {/* Filter by activity type */}
-            <div className="w-full md:w-auto">
-              <select
-                value={filter}
-                onChange={handleFilterChange}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              >
-                <option value="all">ทั้งหมด</option>
-                <option value="login">เข้าสู่ระบบ</option>
-                <option value="logout">ออกจากระบบ</option>
-                <option value="create">สร้าง</option>
-                <option value="update">แก้ไข</option>
-                <option value="delete">ลบ</option>
-                <option value="approve">อนุมัติ</option>
-                <option value="reject">ปฏิเสธ</option>
-              </select>
-            </div>
+        {/* Error fallback */}
+        {error && !isLoading && <div className="text-center py-12 text-red-500">{error}</div>}
 
-            {/* Date range filter */}
-            <div className="flex flex-col md:flex-row gap-2">
-              <input
-                type="date"
-                name="start"
-                value={dateRange.start}
-                onChange={handleDateChange}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-              <span className="self-center">ถึง</span>
-              <input
-                type="date"
-                name="end"
-                value={dateRange.end}
-                onChange={handleDateChange}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              />
-              <button
-                onClick={applyDateFilter}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                กรอง
-              </button>
-              <button
-                onClick={clearDateFilter}
-                className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
-              >
-                ล้าง
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {isLoading ? (
+        {/* Loading state */}
+        {isLoading && !error ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-        ) : activities.length === 0 ? (
+        ) : !error && activities.length === 0 ? (
           <div className="text-center py-12 text-gray-500">ไม่พบข้อมูลกิจกรรม</div>
-        ) : (
+        ) : null}
+
+        {/* Filter controls - only show when not loading or error */}
+        {!isLoading && !error && (
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <h2 className="text-xl font-semibold">กิจกรรมของแอดมิน</h2>
+
+            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+              {/* Filter by activity type */}
+              <div className="w-full md:w-auto">
+                <select
+                  value={filter}
+                  onChange={handleFilterChange}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                >
+                  <option value="all">ทั้งหมด</option>
+                  <option value="login">เข้าสู่ระบบ</option>
+                  <option value="logout">ออกจากระบบ</option>
+                  <option value="create">สร้าง</option>
+                  <option value="update">แก้ไข</option>
+                  <option value="delete">ลบ</option>
+                  <option value="approve">อนุมัติ</option>
+                  <option value="reject">ปฏิเสธ</option>
+                </select>
+              </div>
+
+              {/* Date range filter */}
+              <div className="flex flex-col md:flex-row gap-2">
+                <input
+                  type="date"
+                  name="start"
+                  value={dateRange.start}
+                  onChange={handleDateChange}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+                <span className="self-center">ถึง</span>
+                <input
+                  type="date"
+                  name="end"
+                  value={dateRange.end}
+                  onChange={handleDateChange}
+                  className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                />
+                <button
+                  onClick={applyDateFilter}
+                  className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  กรอง
+                </button>
+                <button
+                  onClick={clearDateFilter}
+                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+                >
+                  ล้าง
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Activities table */}
+        {!isLoading && !error && activities.length > 0 && (
           <>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">

@@ -4,7 +4,7 @@ import { useState } from "react";
 
 /**
  * Conversation Timeline Component
- * 
+ *
  * Displays conversation history between Admin and User
  * Supports adding new comments
  */
@@ -13,7 +13,7 @@ export default function ConversationTimeline({
   conversations = [],
   onAddComment,
   currentUserType = "user", // 'user' or 'admin'
-  isLoading = false
+  isLoading = false,
 }) {
   const [newComment, setNewComment] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -37,40 +37,90 @@ export default function ConversationTimeline({
       case "rejection":
         return (
           <div className="flex items-center justify-center w-10 h-10 bg-red-100 rounded-full">
-            <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-5 h-5 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </div>
         );
       case "resubmission":
         return (
           <div className="flex items-center justify-center w-10 h-10 bg-blue-100 rounded-full">
-            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className="w-5 h-5 text-blue-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </div>
         );
       case "approval":
         return (
           <div className="flex items-center justify-center w-10 h-10 bg-green-100 rounded-full">
-            <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <svg
+              className="w-5 h-5 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
             </svg>
           </div>
         );
       case "admin_comment":
         return (
           <div className="flex items-center justify-center w-10 h-10 bg-purple-100 rounded-full">
-            <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <svg
+              className="w-5 h-5 text-purple-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
             </svg>
           </div>
         );
       case "user_comment":
         return (
           <div className="flex items-center justify-center w-10 h-10 bg-gray-100 rounded-full">
-            <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            <svg
+              className="w-5 h-5 text-gray-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
             </svg>
           </div>
         );
@@ -86,7 +136,7 @@ export default function ConversationTimeline({
       approval: "อนุมัติใบสมัคร",
       admin_comment: "ความคิดเห็นจากเจ้าหน้าที่",
       user_comment: "ความคิดเห็นจากผู้สมัคร",
-      system: "ระบบ"
+      system: "ระบบ",
     };
     return labels[messageType] || messageType;
   };
@@ -114,12 +164,8 @@ export default function ConversationTimeline({
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
-          ประวัติการสนทนา
-        </h3>
-        <span className="text-sm text-gray-500">
-          {conversations.length} ข้อความ
-        </span>
+        <h3 className="text-lg font-semibold text-gray-900">ประวัติการสนทนา</h3>
+        <span className="text-sm text-gray-500">{conversations.length} ข้อความ</span>
       </div>
 
       {/* Timeline */}
@@ -139,9 +185,7 @@ export default function ConversationTimeline({
             conversations.map((conv, index) => (
               <div key={conv.id} className="relative flex gap-4">
                 {/* Icon */}
-                <div className="relative z-10 flex-shrink-0">
-                  {getMessageIcon(conv.type)}
-                </div>
+                <div className="relative z-10 flex-shrink-0">{getMessageIcon(conv.type)}</div>
 
                 {/* Content */}
                 <div className="flex-1 pb-6">
@@ -149,41 +193,41 @@ export default function ConversationTimeline({
                     {/* Header */}
                     <div className="flex items-start justify-between mb-2">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {conv.authorName}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {getMessageTypeLabel(conv.type)}
-                        </p>
+                        <p className="text-sm font-medium text-gray-900">{conv.authorName}</p>
+                        <p className="text-xs text-gray-500">{getMessageTypeLabel(conv.type)}</p>
                       </div>
-                      <time className="text-xs text-gray-500">
-                        {formatDate(conv.createdAt)}
-                      </time>
+                      <time className="text-xs text-gray-500">{formatDate(conv.createdAt)}</time>
                     </div>
 
                     {/* Message */}
                     <div className="mt-2">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                        {conv.message}
-                      </p>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{conv.message}</p>
                     </div>
 
                     {/* Status change badge */}
                     {conv.statusAfter !== null && conv.statusAfter !== undefined && (
                       <div className="mt-3 pt-3 border-t border-gray-100">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          conv.statusAfter === 1 ? 'bg-green-100 text-green-800' :
-                          conv.statusAfter === 2 ? 'bg-red-100 text-red-800' :
-                          conv.statusAfter === 3 ? 'bg-blue-100 text-blue-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
-                          สถานะ: {
-                            conv.statusAfter === 0 ? 'รอพิจารณา' :
-                            conv.statusAfter === 1 ? 'อนุมัติ' :
-                            conv.statusAfter === 2 ? 'ปฏิเสธ' :
-                            conv.statusAfter === 3 ? 'ส่งใหม่แล้ว' :
-                            'อื่นๆ'
-                          }
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            conv.statusAfter === 1
+                              ? "bg-green-100 text-green-800"
+                              : conv.statusAfter === 2
+                                ? "bg-red-100 text-red-800"
+                                : conv.statusAfter === 3
+                                  ? "bg-blue-100 text-blue-800"
+                                  : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          สถานะ:{" "}
+                          {conv.statusAfter === 0
+                            ? "รอพิจารณา"
+                            : conv.statusAfter === 1
+                              ? "อนุมัติ"
+                              : conv.statusAfter === 2
+                                ? "ปฏิเสธ"
+                                : conv.statusAfter === 3
+                                  ? "ส่งใหม่แล้ว"
+                                  : "อื่นๆ"}
                         </span>
                       </div>
                     )}
@@ -198,9 +242,7 @@ export default function ConversationTimeline({
       {/* Add Comment Form */}
       {onAddComment && (
         <div className="border-t border-gray-200 pt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            เพิ่มความคิดเห็น
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">เพิ่มความคิดเห็น</label>
           <textarea
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}

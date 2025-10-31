@@ -341,7 +341,7 @@ async function updateRepresentatives(applicationId, type, data) {
           first_name_th, last_name_th, first_name_en, last_name_en,
           position, email, phone, phone_extension,
           rep_order, is_primary
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)` ,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           applicationId,
           prenameTh || "",

@@ -12,10 +12,7 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -103,9 +100,8 @@ export async function GET(request) {
     const formattedData = rejections.map((r) => ({
       id: r.rejection_id,
       userId: r.user_id,
-      userName: r.user_firstname && r.user_lastname 
-        ? `${r.user_firstname} ${r.user_lastname}` 
-        : "N/A",
+      userName:
+        r.user_firstname && r.user_lastname ? `${r.user_firstname} ${r.user_lastname}` : "N/A",
       userEmail: r.user_email || "N/A",
       membershipType: r.membership_type,
       membershipId: r.membership_id,
@@ -115,9 +111,10 @@ export async function GET(request) {
       currentStatus: r.current_application_status,
       rejectionStatus: r.status,
       rejectedAt: r.rejected_at,
-      rejectedBy: r.admin_firstname && r.admin_lastname 
-        ? `${r.admin_firstname} ${r.admin_lastname}` 
-        : "Admin",
+      rejectedBy:
+        r.admin_firstname && r.admin_lastname
+          ? `${r.admin_firstname} ${r.admin_lastname}`
+          : "Admin",
       rejectionReason: r.rejection_reason,
       resubmissionCount: r.resubmission_count,
       resolvedAt: r.resolved_at,
@@ -140,7 +137,7 @@ export async function GET(request) {
     console.error("Error fetching rejections (admin):", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

@@ -160,13 +160,13 @@ export const useApplicationData = (type, id) => {
         // If no previous data, normalize the new data
         return normalizeApplicationData(updates, type);
       }
-      
+
       // Check if this is a full data replacement (has 'id' field) or partial update
       if (updates.id && updates.id === prev.id) {
         // Full data replacement - normalize it
         return normalizeApplicationData(updates, type);
       }
-      
+
       // Partial update - merge with existing data
       return { ...prev, ...updates };
     });

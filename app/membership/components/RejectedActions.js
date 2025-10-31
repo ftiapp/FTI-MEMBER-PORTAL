@@ -16,7 +16,7 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   // Hide action buttons if status is resolved (แก้ไขแล้ว)
-  const isResolved = status === 'resolved' || status === 'แก้ไขแล้ว';
+  const isResolved = status === "resolved" || status === "แก้ไขแล้ว";
 
   const handleResubmitClick = () => {
     setShowResubmitConfirm(true);
@@ -27,16 +27,19 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`/api/membership/rejected-applications/${rejectionId}/resubmit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/membership/rejected-applications/${rejectionId}/resubmit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            formData: formData,
+            userComment: userMessage,
+          }),
         },
-        body: JSON.stringify({
-          formData: formData,
-          userComment: userMessage,
-        }),
-      });
+      );
 
       const result = await response.json();
 
@@ -87,10 +90,7 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
   return (
     <>
       {/* Loading Overlay */}
-      <LoadingOverlay 
-        isVisible={isSubmitting}
-        message="กำลังส่งใบสมัครใหม่..." 
-      />
+      <LoadingOverlay isVisible={isSubmitting} message="กำลังส่งใบสมัครใหม่..." />
 
       {/* Success Modal */}
       <ResubmitSuccessModal
@@ -126,7 +126,7 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
         >
           ย้อนกลับ
         </button>
-        
+
         {!isResolved && (
           <>
             <button
@@ -136,7 +136,7 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
             >
               ยกเลิกใบสมัคร
             </button>
-            
+
             <button
               onClick={handleResubmitClick}
               disabled={isSubmitting}
@@ -146,7 +146,7 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
             </button>
           </>
         )}
-        
+
         {isResolved && (
           <div className="px-4 py-2 bg-green-100 text-green-800 rounded-lg text-sm font-medium">
             ✓ แก้ไขแล้ว

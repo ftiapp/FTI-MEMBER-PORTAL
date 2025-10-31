@@ -211,7 +211,9 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
-      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">{title || "สถิติข้อมูล"}</h2>
+      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
+        {title || "สถิติข้อมูล"}
+      </h2>
 
       {loading ? (
         <div className="flex justify-center items-center h-48 sm:h-64">
@@ -241,7 +243,9 @@ export default function Analytics({ title, endpoint, chartType = "bar" }) {
                   style={{ backgroundColor: statusColors[status].replace("0.7", "0.1") }}
                 >
                   <div className="flex-1 mr-2 sm:mr-4 min-w-0">
-                    <p className="text-xs sm:text-sm text-gray-500 mb-1 truncate">{statusLabels[status]}</p>
+                    <p className="text-xs sm:text-sm text-gray-500 mb-1 truncate">
+                      {statusLabels[status]}
+                    </p>
                     <p
                       className="text-xl sm:text-2xl font-bold"
                       style={{ color: statusColors[status].replace("0.7", "1") }}

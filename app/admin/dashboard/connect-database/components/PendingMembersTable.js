@@ -1,12 +1,6 @@
 import { formatThaiDate, getMemberTypeDescription, getMemberTypeColorClasses } from "./utils";
 
-function PendingMembersTable({
-  members,
-  connecting,
-  pendingSearch,
-  onConnect,
-  onSearchChange,
-}) {
+function PendingMembersTable({ members, connecting, pendingSearch, onConnect, onSearchChange }) {
   return (
     <div className="p-6">
       {/* Pending search */}
@@ -33,9 +27,7 @@ function PendingMembersTable({
       {members.length === 0 ? (
         <div className="text-center py-8">
           <div className="text-gray-500 text-lg">ไม่มีรายการสมาชิกที่ต้องเชื่อมต่อ</div>
-          <div className="text-gray-400 text-sm mt-2">
-            สมาชิกทั้งหมดได้รับการเชื่อมต่อแล้ว
-          </div>
+          <div className="text-gray-400 text-sm mt-2">สมาชิกทั้งหมดได้รับการเชื่อมต่อแล้ว</div>
         </div>
       ) : (
         <div className="overflow-x-auto">
@@ -83,7 +75,7 @@ function PendingMembersTable({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMemberTypeColorClasses(
-                          member.member_type
+                          member.member_type,
                         )}`}
                       >
                         {getMemberTypeDescription(member.member_type)}
@@ -94,9 +86,7 @@ function PendingMembersTable({
                         {member.company_name_th}
                       </div>
                       {member.company_name_en && (
-                        <div className="text-sm text-gray-500">
-                          {member.company_name_en}
-                        </div>
+                        <div className="text-sm text-gray-500">{member.company_name_en}</div>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">

@@ -6,7 +6,7 @@ import { LoadingOverlay } from "./shared";
 
 /**
  * Rejected Applications List V3
- * 
+ *
  * Simple, clean list of rejected applications
  * Click to view details and conversations
  */
@@ -19,9 +19,9 @@ export default function RejectedApplicationsV3() {
     page: 1,
     limit: 10,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   });
-  
+
   const router = useRouter();
 
   useEffect(() => {
@@ -32,15 +32,15 @@ export default function RejectedApplicationsV3() {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/membership/rejected-applications-v3?page=${pagination.page}&limit=${pagination.limit}`
+        `/api/membership/rejected-applications-v3?page=${pagination.page}&limit=${pagination.limit}`,
       );
       const result = await response.json();
 
       if (result.success) {
         setApplications(result.data || []);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
-          ...result.pagination
+          ...result.pagination,
         }));
       } else {
         setError(result.message || "ไม่สามารถโหลดข้อมูลได้");
@@ -86,39 +86,54 @@ export default function RejectedApplicationsV3() {
 
   // Thai abbreviations for member types
   const getThaiAbbrev = (type) => {
-    const key = typeof type === 'string' ? type.toLowerCase() : type;
+    const key = typeof type === "string" ? type.toLowerCase() : type;
     const map = { ic: "ทบ", oc: "สน", ac: "ทน", am: "สส" };
     return map[key] || type;
   };
 
   const getStatusBadge = (status) => {
-    if (status === 'pending_review') {
+    if (status === "pending_review") {
       return "bg-orange-100 text-orange-800 border border-orange-200";
-    } else if (status === 'pending_fix') {
+    } else if (status === "pending_fix") {
       return "bg-red-100 text-red-800 border border-red-200";
-    } else if (status === 'resolved') {
+    } else if (status === "resolved") {
       return "bg-green-100 text-green-800 border border-green-200";
     }
     return "bg-gray-100 text-gray-800 border border-gray-200";
   };
 
   const getStatusIcon = (status) => {
-    if (status === 'pending_review') {
+    if (status === "pending_review") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       );
-    } else if (status === 'pending_fix') {
+    } else if (status === "pending_fix") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+          />
         </svg>
       );
-    } else if (status === 'resolved') {
+    } else if (status === "resolved") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       );
     }
@@ -140,17 +155,11 @@ export default function RejectedApplicationsV3() {
   };
 
   const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
   if (loading) {
-    return (
-      <LoadingOverlay 
-        isVisible={true} 
-        message="กำลังโหลดข้อมูล..." 
-        inline={true} 
-      />
-    );
+    return <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูล..." inline={true} />;
   }
 
   if (error) {
@@ -158,8 +167,18 @@ export default function RejectedApplicationsV3() {
       <div className="text-center py-12">
         <div className="flex flex-col items-center max-w-md mx-auto">
           <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mb-4">
-            <svg className="w-10 h-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-10 h-10 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">เกิดข้อผิดพลาด</h3>
@@ -169,7 +188,12 @@ export default function RejectedApplicationsV3() {
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-2.5 rounded-lg font-medium transition-colors duration-200 flex items-center space-x-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
             <span>ลองใหม่</span>
           </button>
@@ -183,8 +207,18 @@ export default function RejectedApplicationsV3() {
       <div className="text-center py-16">
         <div className="flex flex-col items-center max-w-md mx-auto">
           <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-            <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            <svg
+              className="w-12 h-12 text-gray-400"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+              />
             </svg>
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">ไม่มีใบสมัครที่ถูกปฏิเสธ</h3>
@@ -201,7 +235,8 @@ export default function RejectedApplicationsV3() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-4 gap-2">
           <span>
             แสดง {Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}-
-            {Math.min(pagination.page * pagination.limit, pagination.total)} จาก {pagination.total} รายการ
+            {Math.min(pagination.page * pagination.limit, pagination.total)} จาก {pagination.total}{" "}
+            รายการ
           </span>
           <span className="text-gray-500">
             หน้า {pagination.page} จาก {Math.ceil(pagination.total / pagination.limit)}
@@ -248,13 +283,21 @@ export default function RejectedApplicationsV3() {
                     {getMembershipTypeLabel(app.type)}
                   </h4>
                   <div className="flex items-center space-x-2">
-                    <p className="text-sm text-gray-600">
-                      สถานะ: {app.statusLabel}
-                    </p>
-                    {app.status === 'pending_review' && (
+                    <p className="text-sm text-gray-600">สถานะ: {app.statusLabel}</p>
+                    {app.status === "pending_review" && (
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
                         ตรวจสอบ
                       </span>
@@ -319,29 +362,42 @@ export default function RejectedApplicationsV3() {
               <div className="w-full md:w-28">
                 <div className="flex justify-between text-xs text-gray-600 mb-2">
                   <span className="font-medium">สถานะ</span>
-                  <span className={`font-bold ${
-                    app.status === 'pending_review' ? 'text-orange-600' :
-                    app.status === 'pending_fix' ? 'text-red-600' :
-                    app.status === 'resolved' ? 'text-green-600' :
-                    'text-gray-600'
-                  }`}>
+                  <span
+                    className={`font-bold ${
+                      app.status === "pending_review"
+                        ? "text-orange-600"
+                        : app.status === "pending_fix"
+                          ? "text-red-600"
+                          : app.status === "resolved"
+                            ? "text-green-600"
+                            : "text-gray-600"
+                    }`}
+                  >
                     {app.statusLabel}
                   </span>
                 </div>
-                <div className={`w-full rounded-full h-2 ${
-                  app.status === 'pending_review' ? 'bg-orange-200' :
-                  app.status === 'pending_fix' ? 'bg-red-200' :
-                  app.status === 'resolved' ? 'bg-green-200' :
-                  'bg-gray-200'
-                }`}>
+                <div
+                  className={`w-full rounded-full h-2 ${
+                    app.status === "pending_review"
+                      ? "bg-orange-200"
+                      : app.status === "pending_fix"
+                        ? "bg-red-200"
+                        : app.status === "resolved"
+                          ? "bg-green-200"
+                          : "bg-gray-200"
+                  }`}
+                >
                   <div
                     className={`h-2 rounded-full transition-all duration-300 shadow-sm ${
-                      app.status === 'pending_review' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
-                      app.status === 'pending_fix' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                      app.status === 'resolved' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                      'bg-gradient-to-r from-gray-500 to-gray-600'
+                      app.status === "pending_review"
+                        ? "bg-gradient-to-r from-orange-500 to-orange-600"
+                        : app.status === "pending_fix"
+                          ? "bg-gradient-to-r from-red-500 to-red-600"
+                          : app.status === "resolved"
+                            ? "bg-gradient-to-r from-green-500 to-green-600"
+                            : "bg-gradient-to-r from-gray-500 to-gray-600"
                     }`}
-                    style={{ width: '100%' }}
+                    style={{ width: "100%" }}
                   ></div>
                 </div>
               </div>
@@ -367,9 +423,12 @@ export default function RejectedApplicationsV3() {
       {pagination.totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 border-t border-gray-200 pt-4">
           <div className="text-sm text-gray-700">
-            แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> ถึง{" "}
-            <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> จาก{" "}
-            <span className="font-medium">{pagination.total}</span> รายการ
+            แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span>{" "}
+            ถึง{" "}
+            <span className="font-medium">
+              {Math.min(pagination.page * pagination.limit, pagination.total)}
+            </span>{" "}
+            จาก <span className="font-medium">{pagination.total}</span> รายการ
           </div>
 
           <div className="flex items-center space-x-1">
@@ -379,7 +438,12 @@ export default function RejectedApplicationsV3() {
               className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
               ก่อนหน้า
             </button>
@@ -387,7 +451,7 @@ export default function RejectedApplicationsV3() {
             {[...Array(pagination.totalPages)].map((_, i) => {
               const pageNum = i + 1;
               const isCurrent = pagination.page === pageNum;
-              
+
               return (
                 <button
                   key={pageNum}
@@ -410,7 +474,12 @@ export default function RejectedApplicationsV3() {
             >
               ถัดไป
               <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>

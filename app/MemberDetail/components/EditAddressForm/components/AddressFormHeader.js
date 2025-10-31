@@ -19,7 +19,12 @@ export default function AddressFormHeader({
     <div className="mb-6 pb-3 border-b">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-semibold text-blue-700">
-          แก้ไขที่อยู่ {addrCode === "001" ? "สำหรับติดต่อ (ทะเบียน)" : addrCode === "002" ? "สำหรับจัดส่งเอกสาร" : "สำหรับออกใบกำกับภาษี"}
+          แก้ไขที่อยู่{" "}
+          {addrCode === "001"
+            ? "สำหรับติดต่อ (ทะเบียน)"
+            : addrCode === "002"
+              ? "สำหรับจัดส่งเอกสาร"
+              : "สำหรับออกใบกำกับภาษี"}
         </h3>
 
         <div className="flex space-x-2">
@@ -29,7 +34,7 @@ export default function AddressFormHeader({
             currentAddrCode={addrCode}
             onCopyAddress={onCopyAddress}
           />
-          
+
           <motion.button
             type="button"
             onClick={onCancel}

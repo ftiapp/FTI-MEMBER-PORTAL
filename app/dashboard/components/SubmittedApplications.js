@@ -16,7 +16,7 @@ export default function SubmittedApplications({
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
   const [error, setError] = useState(null);
-  
+
   // ป้องกัน API calls ซ้ำซ้อน
   const fetchingRef = useRef(false);
   const lastFetchParamsRef = useRef(null);
@@ -24,14 +24,18 @@ export default function SubmittedApplications({
   useEffect(() => {
     // สร้าง unique key สำหรับ fetch parameters
     const fetchKey = `${userId}-${currentPage}-${itemsPerPage}`;
-    
+
     // ถ้ากำลัง fetch อยู่ หรือ parameters เหมือนเดิม ไม่ต้อง fetch ใหม่
     if (fetchingRef.current || lastFetchParamsRef.current === fetchKey) {
-      console.log('🚫 SubmittedApplications - Skip duplicate fetch:', fetchKey);
+      console.log("🚫 SubmittedApplications - Skip duplicate fetch:", fetchKey);
       return;
     }
-    
-    console.log('✅ SubmittedApplications - Fetching with params:', { userId, currentPage, itemsPerPage });
+
+    console.log("✅ SubmittedApplications - Fetching with params:", {
+      userId,
+      currentPage,
+      itemsPerPage,
+    });
     lastFetchParamsRef.current = fetchKey;
     fetchApplications();
   }, [userId, currentPage, itemsPerPage]);
@@ -45,16 +49,16 @@ export default function SubmittedApplications({
 
   const fetchApplications = async () => {
     if (fetchingRef.current) {
-      console.log('⏳ SubmittedApplications - Already fetching, skipping...');
+      console.log("⏳ SubmittedApplications - Already fetching, skipping...");
       return;
     }
-    
+
     try {
       fetchingRef.current = true;
       setLoading(true);
       setError(null);
-      
-      console.log('📡 SubmittedApplications - API call starting...');
+
+      console.log("📡 SubmittedApplications - API call starting...");
 
       const params = new URLSearchParams({
         page: currentPage?.toString() || "1",
@@ -63,11 +67,11 @@ export default function SubmittedApplications({
 
       const response = await fetch(`/api/membership/submitted-applications?${params}`);
       const data = await response.json();
-      
-      console.log('📥 SubmittedApplications - API response received:', {
+
+      console.log("📥 SubmittedApplications - API response received:", {
         success: data.success,
         count: data.applications?.length,
-        totalItems: data.pagination?.totalItems
+        totalItems: data.pagination?.totalItems,
       });
 
       if (data.success) {
@@ -91,7 +95,7 @@ export default function SubmittedApplications({
     } finally {
       fetchingRef.current = false;
       setLoading(false);
-      console.log('✅ SubmittedApplications - Fetch completed');
+      console.log("✅ SubmittedApplications - Fetch completed");
     }
   };
 
@@ -261,9 +265,7 @@ export default function SubmittedApplications({
                     </span>
                   </div>
                   <div>
-                    <h4 className="font-medium text-gray-900 text-lg">
-                      {memberTypeInfo.text}
-                    </h4>
+                    <h4 className="font-medium text-gray-900 text-lg">{memberTypeInfo.text}</h4>
                     <div className="flex items-center space-x-2">
                       <p className="text-sm text-gray-600">
                         ชื่อ: {app.displayName || "ไม่ระบุชื่อ"}
@@ -294,7 +296,8 @@ export default function SubmittedApplications({
                           d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                         />
                       </svg>
-                      ส่งเมื่อ: {format(new Date(app.createdAt), "dd/MM/yyyy HH:mm", { locale: th })}
+                      ส่งเมื่อ:{" "}
+                      {format(new Date(app.createdAt), "dd/MM/yyyy HH:mm", { locale: th })}
                     </p>
                     {app.updatedAt && (
                       <p className="flex items-center">
@@ -311,7 +314,8 @@ export default function SubmittedApplications({
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        อัปเดต: {format(new Date(app.updatedAt), "dd/MM/yyyy HH:mm", { locale: th })}
+                        อัปเดต:{" "}
+                        {format(new Date(app.updatedAt), "dd/MM/yyyy HH:mm", { locale: th })}
                       </p>
                     )}
                   </div>
@@ -330,29 +334,42 @@ export default function SubmittedApplications({
                 <div className="w-full md:w-28">
                   <div className="flex justify-between text-xs text-gray-600 mb-2">
                     <span className="font-medium">สถานะ</span>
-                    <span className={`font-bold ${
-                      app.status === 0 ? 'text-yellow-600' :
-                      app.status === 1 ? 'text-green-600' :
-                      app.status === 2 ? 'text-red-600' :
-                      'text-gray-600'
-                    }`}>
+                    <span
+                      className={`font-bold ${
+                        app.status === 0
+                          ? "text-yellow-600"
+                          : app.status === 1
+                            ? "text-green-600"
+                            : app.status === 2
+                              ? "text-red-600"
+                              : "text-gray-600"
+                      }`}
+                    >
                       {statusBadge.text}
                     </span>
                   </div>
-                  <div className={`w-full rounded-full h-2 ${
-                    app.status === 0 ? 'bg-yellow-200' :
-                    app.status === 1 ? 'bg-green-200' :
-                    app.status === 2 ? 'bg-red-200' :
-                    'bg-gray-200'
-                  }`}>
+                  <div
+                    className={`w-full rounded-full h-2 ${
+                      app.status === 0
+                        ? "bg-yellow-200"
+                        : app.status === 1
+                          ? "bg-green-200"
+                          : app.status === 2
+                            ? "bg-red-200"
+                            : "bg-gray-200"
+                    }`}
+                  >
                     <div
                       className={`h-2 rounded-full transition-all duration-300 shadow-sm ${
-                        app.status === 0 ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                        app.status === 1 ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                        app.status === 2 ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                        'bg-gradient-to-r from-gray-500 to-gray-600'
+                        app.status === 0
+                          ? "bg-gradient-to-r from-yellow-500 to-yellow-600"
+                          : app.status === 1
+                            ? "bg-gradient-to-r from-green-500 to-green-600"
+                            : app.status === 2
+                              ? "bg-gradient-to-r from-red-500 to-red-600"
+                              : "bg-gradient-to-r from-gray-500 to-gray-600"
                       }`}
-                      style={{ width: '100%' }}
+                      style={{ width: "100%" }}
                     ></div>
                   </div>
                 </div>

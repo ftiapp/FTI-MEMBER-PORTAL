@@ -40,7 +40,7 @@ export async function GET(request, { params }) {
        WHERE (id = ? OR membership_id = ?) AND user_id = ?
        ORDER BY rejected_at DESC
        LIMIT 1`,
-      [id, id, userId]
+      [id, id, userId],
     );
 
     if (!rejectData.length) {
@@ -62,158 +62,180 @@ export async function GET(request, { params }) {
 
     // Fetch data from History tables based on membership_type
     let rejectionData = null;
-    
+
     switch (membership_type) {
-      case 'oc':
+      case "oc":
         // Check OC History table
         const [ocApp] = await connection.execute(
           `SELECT * FROM MemberRegist_Reject_OC_Main_History WHERE history_id = ?`,
-          [history_snapshot_id]
+          [history_snapshot_id],
         );
 
         if (ocApp.length > 0) {
           console.log("✅ Found OC rejected application");
           const app = ocApp[0];
-          
+
           try {
             // Fetch all related data from History tables in parallel
-            const [representatives, products, businessTypes, businessTypeOther, industryGroups, provinceChapters, addresses, contactPersons, documents, signatureNames, convCount] = await Promise.all([
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_Representatives_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_Products_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_BusinessTypes_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_BusinessTypeOther_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_IndustryGroups_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_ProvinceChapters_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_Address_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_ContactPerson_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_Documents_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT * FROM MemberRegist_Reject_OC_Signature_Name_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
-          ),
-          connection.execute(
-            `SELECT COUNT(*) as count FROM MemberRegist_Rejection_Conversations WHERE rejection_id = ?`,
-            [rejectId]
-          )
-        ]);
-        
-        console.log("📊 Fetched OC related data:", {
-          representatives: representatives[0].length,
-          products: products[0].length,
-          businessTypes: businessTypes[0].length,
-          industryGroups: industryGroups[0].length,
-          provinceChapters: provinceChapters[0].length,
-          addresses: addresses[0].length,
-          contactPersons: contactPersons[0].length,
-          documents: documents[0].length,
-          signatureNames: signatureNames[0].length
-        });
+            const [
+              representatives,
+              products,
+              businessTypes,
+              businessTypeOther,
+              industryGroups,
+              provinceChapters,
+              addresses,
+              contactPersons,
+              documents,
+              signatureNames,
+              convCount,
+            ] = await Promise.all([
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_Representatives_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_Products_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_BusinessTypes_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_BusinessTypeOther_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_IndustryGroups_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_ProvinceChapters_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_Address_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_ContactPerson_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_Documents_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT * FROM MemberRegist_Reject_OC_Signature_Name_History WHERE main_history_id = ?`,
+                [history_snapshot_id],
+              ),
+              connection.execute(
+                `SELECT COUNT(*) as count FROM MemberRegist_Rejection_Conversations WHERE rejection_id = ?`,
+                [rejectId],
+              ),
+            ]);
 
-        return NextResponse.json({
-          success: true,
-          data: {
-            rejectId,
-            membershipType: 'oc',
-            membershipId: app.original_id || app.id,
-            applicationName: app.company_name_th,
-            status: reject.status, // Use rejection status, not app status
-            resubmissionCount: reject.resubmission_count || 0,
-            rejectedAt: reject.rejected_at,
-            conversationCount: convCount[0][0].count,
-            rejectionData: {
-              main: app,
-              representatives: representatives[0] || [],
-              products: products[0] || [],
-              businessTypes: businessTypes[0] || [],
-              businessTypeOther: businessTypeOther[0].length > 0 ? businessTypeOther[0][0] : null,
-              industryGroups: industryGroups[0] || [],
-              provinceChapters: provinceChapters[0] || [],
-              addresses: addresses[0] || [],
-              contactPersons: contactPersons[0] || [],
-              documents: documents[0] || [],
-              signatureName: signatureNames[0].length > 0 ? signatureNames[0][0] : null,
-            },
-          },
-        });
-      } catch (error) {
-        console.error("❌ Error fetching OC data:", error);
-        throw error;
-      }
+            console.log("📊 Fetched OC related data:", {
+              representatives: representatives[0].length,
+              products: products[0].length,
+              businessTypes: businessTypes[0].length,
+              industryGroups: industryGroups[0].length,
+              provinceChapters: provinceChapters[0].length,
+              addresses: addresses[0].length,
+              contactPersons: contactPersons[0].length,
+              documents: documents[0].length,
+              signatureNames: signatureNames[0].length,
+            });
+
+            return NextResponse.json({
+              success: true,
+              data: {
+                rejectId,
+                membershipType: "oc",
+                membershipId: app.original_id || app.id,
+                applicationName: app.company_name_th,
+                status: reject.status, // Use rejection status, not app status
+                resubmissionCount: reject.resubmission_count || 0,
+                rejectedAt: reject.rejected_at,
+                conversationCount: convCount[0][0].count,
+                rejectionData: {
+                  main: app,
+                  representatives: representatives[0] || [],
+                  products: products[0] || [],
+                  businessTypes: businessTypes[0] || [],
+                  businessTypeOther:
+                    businessTypeOther[0].length > 0 ? businessTypeOther[0][0] : null,
+                  industryGroups: industryGroups[0] || [],
+                  provinceChapters: provinceChapters[0] || [],
+                  addresses: addresses[0] || [],
+                  contactPersons: contactPersons[0] || [],
+                  documents: documents[0] || [],
+                  signatureName: signatureNames[0].length > 0 ? signatureNames[0][0] : null,
+                },
+              },
+            });
+          } catch (error) {
+            console.error("❌ Error fetching OC data:", error);
+            throw error;
+          }
         }
         break;
-        
-      case 'ic':
+
+      case "ic":
         // Check IC History table
         const [icApp] = await connection.execute(
           `SELECT * FROM MemberRegist_Reject_IC_Main_History WHERE history_id = ?`,
-          [history_snapshot_id]
+          [history_snapshot_id],
         );
 
         if (icApp.length > 0) {
           console.log("✅ Found IC rejected application");
           const app = icApp[0];
-          
+
           try {
             // Fetch all related data from History tables in parallel
-            const [representatives, products, businessTypes, businessTypeOther, icAddresses, documents, signatureNames, convCount] = await Promise.all([
+            const [
+              representatives,
+              products,
+              businessTypes,
+              businessTypeOther,
+              icAddresses,
+              documents,
+              signatureNames,
+              convCount,
+            ] = await Promise.all([
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_Representatives_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_Products_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_BusinessTypes_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_BusinessTypeOther_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_Address_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_Documents_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT * FROM MemberRegist_Reject_IC_SignatureName_History WHERE main_history_id = ?`,
-                [history_snapshot_id]
+                [history_snapshot_id],
               ),
               connection.execute(
                 `SELECT COUNT(*) as count FROM MemberRegist_Rejection_Conversations WHERE rejection_id = ?`,
-                [rejectId]
+                [rejectId],
               ),
             ]);
 
@@ -221,7 +243,7 @@ export async function GET(request, { params }) {
               success: true,
               data: {
                 rejectId,
-                membershipType: 'ic',
+                membershipType: "ic",
                 membershipId: app.original_id || app.id,
                 applicationName: `${app.first_name_th} ${app.last_name_th}`,
                 status: reject.status, // Use rejection status, not app status
@@ -233,7 +255,8 @@ export async function GET(request, { params }) {
                   representatives: representatives[0] || [],
                   products: products[0] || [],
                   businessTypes: businessTypes[0] || [],
-                  businessTypeOther: businessTypeOther[0].length > 0 ? businessTypeOther[0][0] : null,
+                  businessTypeOther:
+                    businessTypeOther[0].length > 0 ? businessTypeOther[0][0] : null,
                   addresses: icAddresses[0] || [],
                   documents: documents[0] || [],
                   signatureName: signatureNames[0].length > 0 ? signatureNames[0][0] : null,
@@ -246,64 +269,64 @@ export async function GET(request, { params }) {
           }
         }
         break;
-        
-      case 'ac':
+
+      case "ac":
         // Check AC History table
         const [acApp] = await connection.execute(
           `SELECT * FROM MemberRegist_Reject_AC_Main_History WHERE history_id = ?`,
-          [history_snapshot_id]
+          [history_snapshot_id],
         );
 
         if (acApp.length > 0) {
           console.log("✅ Found AC rejected application");
           const app = acApp[0];
-          
+
           const [representatives] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_Representatives_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [products] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_Products_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [businessTypes] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_BusinessTypes_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [businessTypeOther] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_BusinessTypeOther_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [industryGroups] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_IndustryGroups_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [acAddresses] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_Address_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [acContactPersons] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AC_ContactPerson_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           // Get conversation count
           const [convCount] = await connection.execute(
             `SELECT COUNT(*) as count FROM MemberRegist_Rejection_Conversations WHERE rejection_id = ?`,
-            [rejectId]
+            [rejectId],
           );
 
           return NextResponse.json({
             success: true,
             data: {
               rejectId,
-              membershipType: 'ac',
+              membershipType: "ac",
               membershipId: app.original_id || app.id,
               applicationName: app.company_name_th,
               status: reject.status, // Use rejection status, not app status
@@ -325,59 +348,59 @@ export async function GET(request, { params }) {
           });
         }
         break;
-        
-      case 'am':
+
+      case "am":
         // Check AM History table
         const [amApp] = await connection.execute(
           `SELECT * FROM MemberRegist_Reject_AM_Main_History WHERE history_id = ?`,
-          [history_snapshot_id]
+          [history_snapshot_id],
         );
 
         if (amApp.length > 0) {
           console.log("✅ Found AM rejected application");
           const app = amApp[0];
-          
+
           const [representatives] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AM_Representatives_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [products] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AM_Products_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [businessTypes] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AM_BusinessTypes_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [businessTypeOther] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AM_BusinessTypeOther_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [amAddresses] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AM_Address_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           const [amContactPersons] = await connection.execute(
             `SELECT * FROM MemberRegist_Reject_AM_ContactPerson_History WHERE main_history_id = ?`,
-            [history_snapshot_id]
+            [history_snapshot_id],
           );
-          
+
           // Get conversation count
           const [convCount] = await connection.execute(
             `SELECT COUNT(*) as count FROM MemberRegist_Rejection_Conversations WHERE rejection_id = ?`,
-            [rejectId]
+            [rejectId],
           );
 
           return NextResponse.json({
             success: true,
             data: {
               rejectId,
-              membershipType: 'am',
+              membershipType: "am",
               membershipId: app.original_id || app.id,
               applicationName: app.company_name_th,
               status: reject.status, // Use rejection status, not app status
@@ -397,7 +420,7 @@ export async function GET(request, { params }) {
           });
         }
         break;
-        
+
       default:
         console.error(`❌ Unknown membership type: ${membership_type}`);
         return NextResponse.json(
@@ -467,7 +490,7 @@ export async function DELETE(request, { params }) {
     for (const [type, table] of Object.entries(tableMap)) {
       const [result] = await connection.execute(
         `UPDATE ${table} SET status = 3, updated_at = NOW() WHERE id = ? AND user_id = ? AND status = 2`,
-        [id, userId]
+        [id, userId],
       );
 
       if (result.affectedRows > 0) {

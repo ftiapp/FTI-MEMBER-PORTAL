@@ -46,9 +46,7 @@ export default function ResubmitModal({ isOpen, onConfirm, onCancel }) {
                   <div className="p-2 rounded-full bg-blue-100">
                     <MessageSquare className="w-6 h-6 text-blue-600" />
                   </div>
-                  <h2 className="text-lg font-bold text-blue-900">
-                    ส่งใบสมัครใหม่
-                  </h2>
+                  <h2 className="text-lg font-bold text-blue-900">ส่งใบสมัครใหม่</h2>
                 </div>
                 <button
                   onClick={handleCancel}
@@ -62,9 +60,10 @@ export default function ResubmitModal({ isOpen, onConfirm, onCancel }) {
               <div className="px-6 py-6">
                 <div className="space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    คุณแน่ใจหรือไม่ที่จะส่งใบสมัครนี้ใหม่? ระบบจะตรวจสอบและติดต่อกลับภายใน 3-5 วันทำการ
+                    คุณแน่ใจหรือไม่ที่จะส่งใบสมัครนี้ใหม่? ระบบจะตรวจสอบและติดต่อกลับภายใน 3-5
+                    วันทำการ
                   </p>
-                  
+
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       ข้อความถึงผู้ดูแลระบบ <span className="text-red-500">*</span>

@@ -4,7 +4,7 @@ import { getUserFromSession } from "@/app/lib/userAuth";
 
 /**
  * GET rejected applications for current user (v3 - NEW SYSTEM)
- * 
+ *
  * Uses MemberRegist_Rejections table and History tables
  * Returns applications with conversation counts
  */
@@ -15,10 +15,7 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -90,28 +87,31 @@ export async function GET(request) {
 
     return NextResponse.json({
       success: true,
-      data: applications.map(app => ({
+      data: applications.map((app) => ({
         id: app.id,
         type: app.type,
         name: app.name,
         identifier: app.identifier,
         status: app.status,
-        statusLabel: app.status === 'pending_review' ? 'รอการตรวจสอบ (แก้ไขแล้ว)' : 
-                     app.status === 'pending_fix' ? 'รอแก้ไข' : 'แก้ไขแล้ว',
+        statusLabel:
+          app.status === "pending_review"
+            ? "รอการตรวจสอบ (แก้ไขแล้ว)"
+            : app.status === "pending_fix"
+              ? "รอแก้ไข"
+              : "แก้ไขแล้ว",
         rejectionReason: app.rejection_reason,
         rejectedAt: app.rejected_at,
         resolvedAt: app.resolved_at,
         resubmissionCount: app.resubmission_count || 0,
-        conversationCount: app.conversation_count || 0
+        conversationCount: app.conversation_count || 0,
       })),
       pagination: {
         page,
         limit,
         total,
-        totalPages: Math.ceil(total / limit)
-      }
+        totalPages: Math.ceil(total / limit),
+      },
     });
-
   } catch (error) {
     console.error("Error fetching rejected applications:", error);
     return NextResponse.json(
@@ -119,7 +119,7 @@ export async function GET(request) {
         success: false,
         message: "ไม่สามารถโหลดข้อมูลได้",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

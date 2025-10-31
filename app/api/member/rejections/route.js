@@ -12,10 +12,7 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -97,9 +94,10 @@ export async function GET(request) {
       lastConversationAt: r.last_conversation_at,
       conversationCount: r.conversation_count,
       unreadCount: r.unread_member_count,
-      rejectedBy: r.admin_firstname && r.admin_lastname 
-        ? `${r.admin_firstname} ${r.admin_lastname}` 
-        : "Admin",
+      rejectedBy:
+        r.admin_firstname && r.admin_lastname
+          ? `${r.admin_firstname} ${r.admin_lastname}`
+          : "Admin",
     }));
 
     return NextResponse.json({
@@ -116,7 +114,7 @@ export async function GET(request) {
     console.error("Error fetching rejections:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

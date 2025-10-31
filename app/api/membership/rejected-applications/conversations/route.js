@@ -13,20 +13,14 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const rejectId = searchParams.get("rejectId");
 
     if (!rejectId) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาระบุ rejectId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาระบุ rejectId" }, { status: 400 });
     }
 
     connection = await getConnection();
@@ -34,13 +28,13 @@ export async function GET(request) {
     // Verify access rights
     const [rejectData] = await connection.execute(
       `SELECT user_id, membership_type, membership_id FROM MemberRegist_Reject_DATA WHERE id = ? AND is_active = 1`,
-      [rejectId]
+      [rejectId],
     );
 
     if (!rejectData.length) {
       return NextResponse.json(
         { success: false, message: "ไม่พบข้อมูลใบสมัครที่ถูกปฏิเสธ" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -50,7 +44,7 @@ export async function GET(request) {
     if (user.role !== "admin" && user.id !== reject.user_id) {
       return NextResponse.json(
         { success: false, message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -73,7 +67,7 @@ export async function GET(request) {
       LEFT JOIN FTI_Portal_User a ON c.sender_type = 'admin' AND c.sender_id = a.id
       WHERE c.reject_id = ?
       ORDER BY c.created_at ASC`,
-      [rejectId]
+      [rejectId],
     );
 
     // Mark as read for the current user
@@ -83,13 +77,13 @@ export async function GET(request) {
         `UPDATE MemberRegist_Reject_Conversations 
          SET is_read = 1 
          WHERE reject_id = ? AND sender_type = 'member' AND is_read = 0`,
-        [rejectId]
+        [rejectId],
       );
 
       // Reset unread count for admin
       await connection.execute(
         `UPDATE MemberRegist_Reject_DATA SET unread_count = 0 WHERE id = ?`,
-        [rejectId]
+        [rejectId],
       );
     } else {
       // Mark admin messages as read for member
@@ -97,7 +91,7 @@ export async function GET(request) {
         `UPDATE MemberRegist_Reject_Conversations 
          SET is_read = 1 
          WHERE reject_id = ? AND sender_type = 'admin' AND is_read = 0`,
-        [rejectId]
+        [rejectId],
       );
     }
 
@@ -123,7 +117,7 @@ export async function GET(request) {
     console.error("Error fetching conversations:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลการสนทนา" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {
@@ -145,10 +139,7 @@ export async function POST(request) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const body = await request.json();
@@ -157,7 +148,7 @@ export async function POST(request) {
     if (!rejectId || !message || !message.trim()) {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุ rejectId และข้อความ" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -166,13 +157,13 @@ export async function POST(request) {
     // Verify access rights
     const [rejectData] = await connection.execute(
       `SELECT user_id, membership_type, membership_id FROM MemberRegist_Reject_DATA WHERE id = ? AND is_active = 1`,
-      [rejectId]
+      [rejectId],
     );
 
     if (!rejectData.length) {
       return NextResponse.json(
         { success: false, message: "ไม่พบข้อมูลใบสมัครที่ถูกปฏิเสธ" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -182,7 +173,7 @@ export async function POST(request) {
     if (user.role !== "admin" && user.id !== reject.user_id) {
       return NextResponse.json(
         { success: false, message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -193,7 +184,13 @@ export async function POST(request) {
       `INSERT INTO MemberRegist_Reject_Conversations 
        (reject_id, sender_type, sender_id, message, attachments, is_read, created_at) 
        VALUES (?, ?, ?, ?, ?, 0, NOW())`,
-      [rejectId, senderType, user.id, message.trim(), attachments ? JSON.stringify(attachments) : null]
+      [
+        rejectId,
+        senderType,
+        user.id,
+        message.trim(),
+        attachments ? JSON.stringify(attachments) : null,
+      ],
     );
 
     // Update last_conversation_at and unread count
@@ -203,7 +200,7 @@ export async function POST(request) {
         `UPDATE MemberRegist_Reject_DATA 
          SET last_conversation_at = NOW(), unread_count = unread_count + 1 
          WHERE id = ?`,
-        [rejectId]
+        [rejectId],
       );
     } else {
       // Admin sent message - just update timestamp
@@ -211,7 +208,7 @@ export async function POST(request) {
         `UPDATE MemberRegist_Reject_DATA 
          SET last_conversation_at = NOW() 
          WHERE id = ?`,
-        [rejectId]
+        [rejectId],
       );
     }
 
@@ -233,7 +230,7 @@ export async function POST(request) {
       LEFT JOIN FTI_Portal_User u ON c.sender_type = 'member' AND c.sender_id = u.id
       LEFT JOIN FTI_Portal_User a ON c.sender_type = 'admin' AND c.sender_id = a.id
       WHERE c.id = ?`,
-      [result.insertId]
+      [result.insertId],
     );
 
     const conv = newConversation[0];
@@ -256,7 +253,7 @@ export async function POST(request) {
     console.error("Error adding conversation:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการส่งข้อความ" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

@@ -48,16 +48,19 @@ export default function EditRejectedOC() {
 
       if (result.success) {
         setRejectedApp(result.data);
-        
+
         // Map rejection data to form data based on membership type
         if (result.data.rejectionData) {
           console.log("📦 Raw rejectionData from API:", result.data.rejectionData);
-          const mapped = mapRejectionDataToForm(result.data.membershipType, result.data.rejectionData);
+          const mapped = mapRejectionDataToForm(
+            result.data.membershipType,
+            result.data.rejectionData,
+          );
           console.log("🎯 Mapped formData:", mapped);
           console.log("📍 Address fields:", {
             addressNumber: mapped.addressNumber,
             street: mapped.street,
-            province: mapped.province
+            province: mapped.province,
           });
           console.log("👥 ContactPersons:", mapped.contactPersons);
           setFormData(mapped);
@@ -232,19 +235,17 @@ export default function EditRejectedOC() {
         <div className="py-6">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             {/* Header Section */}
-            <RejectedApplicationHeader 
+            <RejectedApplicationHeader
               rejectedApp={rejectedApp}
               membershipTypeLabel={getMembershipTypeLabel(rejectedApp?.membershipType)}
               formatDate={formatDate}
             />
 
             {/* Conversations Table */}
-            <RejectionConversationsTable 
-              rejectionId={rejectedApp?.rejectId}
-            />
+            <RejectionConversationsTable rejectionId={rejectedApp?.rejectId} />
 
             {/* Form - Single Page View */}
-            <RejectedApplicationFormSinglePage 
+            <RejectedApplicationFormSinglePage
               membershipType={rejectedApp?.membershipType}
               formData={formData}
               setFormData={setFormData}
@@ -252,7 +253,7 @@ export default function EditRejectedOC() {
             />
 
             {/* Actions */}
-            <RejectedActions 
+            <RejectedActions
               rejectionId={rejectedApp?.rejectId}
               membershipType={rejectedApp?.membershipType}
               status={rejectedApp?.status}

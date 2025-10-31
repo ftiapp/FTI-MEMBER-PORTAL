@@ -102,7 +102,7 @@ export const formatThaiDate = (value) => {
 
     const thaiFormatter = new Intl.DateTimeFormat("th-TH", options);
     const parts = thaiFormatter.formatToParts(parsed);
-    
+
     // Convert Buddhist year (BE) to Gregorian year minus 543
     const yearPart = parts.find((p) => p.type === "year");
     if (yearPart) {

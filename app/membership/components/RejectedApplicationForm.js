@@ -10,11 +10,11 @@ import ACStepIndicator from "../ac/components/ACStepIndicator";
 import AMStepIndicator from "../am/components/AMStepIndicator";
 import ICStepIndicator from "../ic/components/ICStepIndicator";
 
-export default function RejectedApplicationForm({ 
-  membershipType, 
-  formData, 
+export default function RejectedApplicationForm({
+  membershipType,
+  formData,
   setFormData,
-  rejectedApp 
+  rejectedApp,
 }) {
   const [currentStep, setCurrentStep] = useState(1);
 
@@ -30,13 +30,13 @@ export default function RejectedApplicationForm({
     };
 
     switch (membershipType) {
-      case 'oc':
+      case "oc":
         return <OCMembershipForm {...commonProps} />;
-      case 'ac':
+      case "ac":
         return <ACMembershipForm {...commonProps} />;
-      case 'am':
+      case "am":
         return <AMMembershipForm {...commonProps} />;
-      case 'ic':
+      case "ic":
         return <ICMembershipForm {...commonProps} />;
       default:
         return <div className="text-red-500">ไม่รองรับประเภทสมาชิกนี้</div>;
@@ -46,8 +46,8 @@ export default function RejectedApplicationForm({
   // Define steps for each membership type
   const getSteps = () => {
     switch (membershipType) {
-      case 'oc':
-      case 'ac':
+      case "oc":
+      case "ac":
         return [
           { id: 1, name: "ข้อมูลบริษัท" },
           { id: 2, name: "ข้อมูลผู้แทน" },
@@ -55,7 +55,7 @@ export default function RejectedApplicationForm({
           { id: 4, name: "เอกสารแนบ" },
           { id: 5, name: "ยืนยันข้อมูล" },
         ];
-      case 'am':
+      case "am":
         return [
           { id: 1, name: "ข้อมูลบริษัท" },
           { id: 2, name: "ข้อมูลผู้แทน" },
@@ -63,7 +63,7 @@ export default function RejectedApplicationForm({
           { id: 4, name: "เอกสารแนบ" },
           { id: 5, name: "ยืนยันข้อมูล" },
         ];
-      case 'ic':
+      case "ic":
         return [
           { id: 1, name: "ข้อมูลส่วนตัว" },
           { id: 2, name: "ข้อมูลธุรกิจ" },
@@ -81,13 +81,13 @@ export default function RejectedApplicationForm({
     const props = { currentStep, setCurrentStep, steps };
 
     switch (membershipType) {
-      case 'oc':
+      case "oc":
         return <OCStepIndicator {...props} />;
-      case 'ac':
+      case "ac":
         return <ACStepIndicator {...props} />;
-      case 'am':
+      case "am":
         return <AMStepIndicator {...props} />;
-      case 'ic':
+      case "ic":
         return <ICStepIndicator {...props} />;
       default:
         return null;

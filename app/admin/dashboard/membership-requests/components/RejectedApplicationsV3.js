@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 /**
  * Rejected Applications List for Admin (V3 - NEW SYSTEM)
- * 
+ *
  * Uses MemberRegist_Rejections table with status differentiation:
  * - pending_fix: รอแก้ไข (newly rejected)
  * - pending_review: รอการตรวจสอบ (resubmitted and waiting for admin review)
@@ -21,14 +21,14 @@ export default function RejectedApplicationsV3() {
     page: 1,
     limit: 20,
     total: 0,
-    totalPages: 0
+    totalPages: 0,
   });
   const [filters, setFilters] = useState({
-    status: '',
-    type: '',
-    search: ''
+    status: "",
+    type: "",
+    search: "",
   });
-  
+
   const router = useRouter();
 
   useEffect(() => {
@@ -41,17 +41,17 @@ export default function RejectedApplicationsV3() {
       const params = new URLSearchParams({
         page: pagination.page,
         limit: pagination.limit,
-        ...filters
+        ...filters,
       });
-      
+
       const response = await fetch(`/api/admin/rejected-applications-v3?${params}`);
       const result = await response.json();
 
       if (result.success) {
         setApplications(result.data || []);
-        setPagination(prev => ({
+        setPagination((prev) => ({
           ...prev,
-          ...result.pagination
+          ...result.pagination,
         }));
       } else {
         setError(result.message || "ไม่สามารถโหลดข้อมูลได้");
@@ -85,41 +85,61 @@ export default function RejectedApplicationsV3() {
   };
 
   const getStatusBadge = (status) => {
-    if (status === 'pending_review') {
+    if (status === "pending_review") {
       return "bg-orange-100 text-orange-800 border border-orange-200";
-    } else if (status === 'pending_fix') {
+    } else if (status === "pending_fix") {
       return "bg-red-100 text-red-800 border border-red-200";
-    } else if (status === 'resolved') {
+    } else if (status === "resolved") {
       return "bg-green-100 text-green-800 border border-green-200";
-    } else if (status === 'cancelled') {
+    } else if (status === "cancelled") {
       return "bg-gray-100 text-gray-800 border border-gray-200";
     }
     return "bg-gray-100 text-gray-800 border border-gray-200";
   };
 
   const getStatusIcon = (status) => {
-    if (status === 'pending_review') {
+    if (status === "pending_review") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       );
-    } else if (status === 'pending_fix') {
+    } else if (status === "pending_fix") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+          />
         </svg>
       );
-    } else if (status === 'resolved') {
+    } else if (status === "resolved") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+          />
         </svg>
       );
-    } else if (status === 'cancelled') {
+    } else if (status === "cancelled") {
       return (
         <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M6 18L18 6M6 6l12 12"
+          />
         </svg>
       );
     }
@@ -128,10 +148,10 @@ export default function RejectedApplicationsV3() {
 
   const getStatusLabel = (status) => {
     const labels = {
-      pending_review: 'รอการตรวจสอบ (แก้ไขแล้ว)',
-      pending_fix: 'รอแก้ไข',
-      resolved: 'แก้ไขแล้ว',
-      cancelled: 'ยกเลิก'
+      pending_review: "รอการตรวจสอบ (แก้ไขแล้ว)",
+      pending_fix: "รอแก้ไข",
+      resolved: "แก้ไขแล้ว",
+      cancelled: "ยกเลิก",
     };
     return labels[status] || status;
   };
@@ -143,7 +163,7 @@ export default function RejectedApplicationsV3() {
       month: "short",
       day: "numeric",
       hour: "2-digit",
-      minute: "2-digit"
+      minute: "2-digit",
     });
   };
 
@@ -153,12 +173,12 @@ export default function RejectedApplicationsV3() {
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPagination(prev => ({ ...prev, page: 1 })); // Reset to first page
+    setFilters((prev) => ({ ...prev, [key]: value }));
+    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page
   };
 
   const handlePageChange = (newPage) => {
-    setPagination(prev => ({ ...prev, page: newPage }));
+    setPagination((prev) => ({ ...prev, page: newPage }));
   };
 
   if (loading) {
@@ -174,8 +194,18 @@ export default function RejectedApplicationsV3() {
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">
-          <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-12 h-12 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <p className="text-lg font-medium">เกิดข้อผิดพลาด</p>
           <p className="text-sm text-gray-600 mt-1">{error}</p>
@@ -195,11 +225,9 @@ export default function RejectedApplicationsV3() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">
-            ใบสมัครที่ถูกปฏิเสธ
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-900">ใบสมัครที่ถูกปฏิเสธ</h2>
           <p className="text-sm text-gray-500 mt-1">
-            สถานะ: 
+            สถานะ:
             <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
               รอการตรวจสอบ (แก้ไขแล้ว)
             </span>
@@ -214,21 +242,17 @@ export default function RejectedApplicationsV3() {
             </span>
           </p>
         </div>
-        <span className="text-sm text-gray-500">
-          ทั้งหมด {pagination.total} รายการ
-        </span>
+        <span className="text-sm text-gray-500">ทั้งหมด {pagination.total} รายการ</span>
       </div>
 
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg border border-gray-200">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              สถานะ
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">สถานะ</label>
             <select
               value={filters.status}
-              onChange={(e) => handleFilterChange('status', e.target.value)}
+              onChange={(e) => handleFilterChange("status", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">ทั้งหมด</option>
@@ -239,12 +263,10 @@ export default function RejectedApplicationsV3() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ประเภทสมาชิก
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ประเภทสมาชิก</label>
             <select
               value={filters.type}
-              onChange={(e) => handleFilterChange('type', e.target.value)}
+              onChange={(e) => handleFilterChange("type", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">ทั้งหมด</option>
@@ -255,13 +277,11 @@ export default function RejectedApplicationsV3() {
             </select>
           </div>
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ค้นหา
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">ค้นหา</label>
             <input
               type="text"
               value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
+              onChange={(e) => handleFilterChange("search", e.target.value)}
               placeholder="ค้นหาชื่อบริษัทหรือเลขประจำตัว..."
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
@@ -302,24 +322,36 @@ export default function RejectedApplicationsV3() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {applications.map((app) => (
-              <tr 
-                key={`${app.membershipType}-${app.id}`} 
+              <tr
+                key={`${app.membershipType}-${app.id}`}
                 className={`hover:bg-gray-50 transition-colors ${
-                  app.status === 'pending_review' ? 'bg-orange-50 hover:bg-orange-100' : ''
+                  app.status === "pending_review" ? "bg-orange-50 hover:bg-orange-100" : ""
                 }`}
               >
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getMembershipTypeBadge(app.membershipType)}`}>
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getMembershipTypeBadge(app.membershipType)}`}
+                  >
                     {app.membershipType.toUpperCase()}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center">
                     <div className="text-sm font-medium text-gray-900">{app.applicationName}</div>
-                    {app.status === 'pending_review' && (
+                    {app.status === "pending_review" && (
                       <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
-                        <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <svg
+                          className="w-3 h-3 mr-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
                         </svg>
                         ตรวจสอบ
                       </span>
@@ -335,7 +367,9 @@ export default function RejectedApplicationsV3() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getStatusBadge(app.status)}`}
+                    >
                       {getStatusIcon(app.status)}
                       {getStatusLabel(app.status)}
                     </span>
@@ -351,8 +385,18 @@ export default function RejectedApplicationsV3() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center text-sm text-gray-500">
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    <svg
+                      className="w-4 h-4 mr-1"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
                     </svg>
                     {app.conversationCount}
                     {app.unreadCount > 0 && (
@@ -398,24 +442,40 @@ export default function RejectedApplicationsV3() {
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> ถึง{" "}
-                <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> จาก{" "}
-                <span className="font-medium">{pagination.total}</span> รายการ
+                แสดง{" "}
+                <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span>{" "}
+                ถึง{" "}
+                <span className="font-medium">
+                  {Math.min(pagination.page * pagination.limit, pagination.total)}
+                </span>{" "}
+                จาก <span className="font-medium">{pagination.total}</span> รายการ
               </p>
             </div>
             <div>
-              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <nav
+                className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+                aria-label="Pagination"
+              >
                 <button
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page === 1}
                   className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="sr-only">Previous</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </button>
-                
+
                 {[...Array(pagination.totalPages)].map((_, i) => (
                   <button
                     key={i + 1}
@@ -429,15 +489,24 @@ export default function RejectedApplicationsV3() {
                     {i + 1}
                   </button>
                 ))}
-                
+
                 <button
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page === pagination.totalPages}
                   className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span className="sr-only">Next</span>
-                  <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </button>
               </nav>

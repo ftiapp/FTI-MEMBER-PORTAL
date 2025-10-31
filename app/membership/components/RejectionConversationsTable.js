@@ -19,7 +19,7 @@ export default function RejectionConversationsTable({ rejectionId }) {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/membership/rejected-applications/${rejectionId}/conversations`
+        `/api/membership/rejected-applications/${rejectionId}/conversations`,
       );
       const result = await response.json();
 
@@ -41,9 +41,7 @@ export default function RejectionConversationsTable({ rejectionId }) {
   };
 
   const getSenderBadgeColor = (senderType) => {
-    return senderType === "admin"
-      ? "bg-blue-100 text-blue-800"
-      : "bg-green-100 text-green-800";
+    return senderType === "admin" ? "bg-blue-100 text-blue-800" : "bg-green-100 text-green-800";
   };
 
   const formatDateTime = (dateString) => {
@@ -65,9 +63,7 @@ export default function RejectionConversationsTable({ rejectionId }) {
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
-        {error}
-      </div>
+      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">{error}</div>
     );
   }
 
@@ -84,15 +80,11 @@ export default function RejectionConversationsTable({ rejectionId }) {
       <table className="w-full border-collapse">
         <thead>
           <tr className="bg-gray-100 border-b-2 border-gray-300">
-            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-              ผู้ส่ง
-            </th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">ผู้ส่ง</th>
             <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
               วันที่ - เวลา
             </th>
-            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">
-              ข้อความ
-            </th>
+            <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700">ข้อความ</th>
           </tr>
         </thead>
         <tbody>
@@ -107,7 +99,7 @@ export default function RejectionConversationsTable({ rejectionId }) {
               <td className="px-4 py-3">
                 <span
                   className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getSenderBadgeColor(
-                    conv.sender_type
+                    conv.sender_type,
                   )}`}
                 >
                   {getSenderLabel(conv.sender_type)}
@@ -122,14 +114,10 @@ export default function RejectionConversationsTable({ rejectionId }) {
               {/* Message */}
               <td className="px-4 py-3 text-sm text-gray-700">
                 <div className="max-w-md">
-                  <p className="break-words whitespace-pre-wrap">
-                    {conv.message || "-"}
-                  </p>
+                  <p className="break-words whitespace-pre-wrap">{conv.message || "-"}</p>
                   {conv.attachments && conv.attachments.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-gray-200">
-                      <p className="text-xs text-gray-500 font-medium mb-1">
-                        ไฟล์แนบ:
-                      </p>
+                      <p className="text-xs text-gray-500 font-medium mb-1">ไฟล์แนบ:</p>
                       <div className="flex flex-wrap gap-2">
                         {conv.attachments.map((att, idx) => (
                           <a

@@ -8,7 +8,7 @@ import { submitICMembershipForm } from "@/app/membership/ic/components/ICFormSub
 
 /**
  * NEW RESUBMIT API v2 - Simple & Clean
- * 
+ *
  * Flow:
  * 1. Load rejection data
  * 2. Submit as NEW application (call submit functions directly)
@@ -26,19 +26,13 @@ export async function POST(request, { params }) {
 
     // Validate input
     if (!membershipType || !formData) {
-      return NextResponse.json(
-        { success: false, message: "ข้อมูลไม่ครบถ้วน" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
     }
 
     // Get user from session
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -50,7 +44,7 @@ export async function POST(request, { params }) {
         `SELECT membership_type, membership_id, rejection_data 
          FROM MemberRegist_Reject_DATA 
          WHERE id = ? AND user_id = ? AND is_active = 1`,
-        [id, user.id]
+        [id, user.id],
       );
 
       if (!rejectedApp.length) {
@@ -68,10 +62,9 @@ export async function POST(request, { params }) {
       };
 
       const mainTable = tableMap[membershipType];
-      const [oldApp] = await connection.execute(
-        `SELECT version FROM ${mainTable} WHERE id = ?`,
-        [oldMembershipId]
-      );
+      const [oldApp] = await connection.execute(`SELECT version FROM ${mainTable} WHERE id = ?`, [
+        oldMembershipId,
+      ]);
 
       const oldVersion = oldApp[0]?.version || 1;
       const newVersion = oldVersion + 1;
@@ -84,7 +77,7 @@ export async function POST(request, { params }) {
       };
 
       let submitResult;
-      
+
       if (membershipType === "ac") {
         submitResult = await submitACMembershipForm(enhancedFormData);
       } else if (membershipType === "oc") {
@@ -110,7 +103,7 @@ export async function POST(request, { params }) {
              resubmitted_at = NOW(),
              status = 3
          WHERE id = ?`,
-        [oldMembershipId]
+        [oldMembershipId],
       );
 
       // 5. Mark rejection_data as used
@@ -119,7 +112,7 @@ export async function POST(request, { params }) {
          SET is_active = 0,
              resubmitted_at = NOW()
          WHERE id = ?`,
-        [id]
+        [id],
       );
 
       // 6. Add user comment if provided
@@ -128,7 +121,7 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Comments 
            (membership_type, membership_id, user_id, comment_type, comment_text)
            VALUES (?, ?, ?, ?, ?)`,
-          [membershipType, newMembershipId, user.id, "user_resubmit", userComment]
+          [membershipType, newMembershipId, user.id, "user_resubmit", userComment],
         );
       }
 
@@ -136,19 +129,18 @@ export async function POST(request, { params }) {
 
       return NextResponse.json({
         success: true,
-        message: "ส่งใบสมัครใหม่เรียบร้อยแล้ว ข้อมูลของท่านได้รับการส่งไปยังผู้ดูแลระบบเพื่อพิจารณาใหม่",
+        message:
+          "ส่งใบสมัครใหม่เรียบร้อยแล้ว ข้อมูลของท่านได้รับการส่งไปยังผู้ดูแลระบบเพื่อพิจารณาใหม่",
         data: {
           newMembershipId,
           oldMembershipId,
           version: newVersion,
         },
       });
-
     } catch (error) {
       await connection.rollback();
       throw error;
     }
-
   } catch (error) {
     console.error("Error resubmitting application:", error);
     return NextResponse.json(
@@ -156,7 +148,7 @@ export async function POST(request, { params }) {
         success: false,
         message: error.message || "ไม่สามารถส่งใบสมัครใหม่ได้ กรุณาลองใหม่อีกครั้ง",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

@@ -14,7 +14,12 @@ const SearchBar = ({ value, onChange, onSubmit, placeholder = "ค้นหา..
         type="submit"
         className="absolute right-2 top-1/2 -translate-y-1/2 text-blue-400 hover:text-blue-600"
       >
-        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg
+          className="w-4 h-4 sm:w-5 sm:h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
           <path
             strokeLinecap="round"
             strokeLinejoin="round"

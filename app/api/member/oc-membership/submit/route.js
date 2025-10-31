@@ -430,20 +430,22 @@ export async function POST(request) {
     if (data.representatives) {
       const representatives = JSON.parse(data.representatives);
       console.log("🔍 DEBUG OC Representatives - Raw data:", representatives);
-      
+
       // Enforce English names for all representatives
       for (let i = 0; i < representatives.length; i++) {
         const r = representatives[i] || {};
         console.log(`🔍 DEBUG OC Representative ${i + 1}:`, r);
         console.log(`🔍 Available fields:`, Object.keys(r));
-        
+
         const firstTh = r.firstNameThai || r.firstNameTh || r.first_name_th;
         const lastTh = r.lastNameThai || r.lastNameTh || r.last_name_th;
         const firstEn = r.firstNameEnglish || r.firstNameEn || r.first_name_en;
         const lastEn = r.lastNameEnglish || r.lastNameEn || r.last_name_en;
-        
-        console.log(`🔍 Mapped fields - firstTh: ${firstTh}, lastTh: ${lastTh}, firstEn: ${firstEn}, lastEn: ${lastEn}`);
-        
+
+        console.log(
+          `🔍 Mapped fields - firstTh: ${firstTh}, lastTh: ${lastTh}, firstEn: ${firstEn}, lastEn: ${lastEn}`,
+        );
+
         // Validate Thai names (required)
         if (!firstTh || !String(firstTh).trim() || !lastTh || !String(lastTh).trim()) {
           await rollbackTransaction(trx);
@@ -452,7 +454,7 @@ export async function POST(request) {
             { status: 400 },
           );
         }
-        
+
         // Validate English names (required)
         if (!firstEn || !String(firstEn).trim() || !lastEn || !String(lastEn).trim()) {
           await rollbackTransaction(trx);
@@ -775,15 +777,17 @@ export async function POST(request) {
 
       if (taxIdFromData) {
         // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
-        const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
-        
+        const allMemberTypes = ["ic", "oc", "am", "ac"];
+
         for (const memberType of allMemberTypes) {
           const deleteDraftQuery =
             memberType === "ic"
               ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
               : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
-          
-          const deleteResult = await executeQueryWithoutTransaction(deleteDraftQuery, [taxIdFromData]);
+
+          const deleteResult = await executeQueryWithoutTransaction(deleteDraftQuery, [
+            taxIdFromData,
+          ]);
           const affectedRows = deleteResult.affectedRows || 0;
           deletedRows += affectedRows;
           console.log(
@@ -818,17 +822,17 @@ export async function POST(request) {
     }
 
     console.log("🎉 OC Membership submission completed successfully");
-    
+
     // Create history snapshot for initial submission
     try {
       console.log(`📸 Creating initial submission snapshot for OC ${mainId}`);
-      const historyId = await createSnapshot(trx, 'oc', mainId, 'manual', userId);
+      const historyId = await createSnapshot(trx, "oc", mainId, "manual", userId);
       console.log(`✅ OC initial submission snapshot created: ${historyId}`);
     } catch (snapshotError) {
       console.error("❌ Error creating history snapshot:", snapshotError);
       // Don't fail the submission if snapshot creation fails
     }
-    
+
     return NextResponse.json(
       {
         message: "การสมัครสมาชิก OC สำเร็จ",

@@ -953,7 +953,9 @@ export default function WasMember() {
       return (
         <div className="space-y-6">
           {/* Member Info Form */}
-          <div className={showTemporaryStatus || isSubmitting ? "opacity-50 pointer-events-none" : ""}>
+          <div
+            className={showTemporaryStatus || isSubmitting ? "opacity-50 pointer-events-none" : ""}
+          >
             <MemberInfoForm
               formData={formData}
               setFormData={setFormData}
@@ -1092,7 +1094,9 @@ export default function WasMember() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">ส่งข้อมูลเรียบร้อยแล้ว</h3>
+              <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 mb-2 sm:mb-3">
+                ส่งข้อมูลเรียบร้อยแล้ว
+              </h3>
               <p className="text-gray-600 mb-4 sm:mb-6 md:mb-8 text-sm sm:text-base md:text-lg">
                 เจ้าหน้าที่จะดำเนินการตรวจสอบข้อมูลของท่านภายในระยะเวลา 1-2 วันทำการ
               </p>

@@ -47,32 +47,18 @@ export default function ConfirmationModal({
               {/* Header */}
               <div
                 className={`px-6 py-4 flex items-center justify-between border-b ${
-                  isDangerous
-                    ? "bg-red-50 border-red-200"
-                    : "bg-blue-50 border-blue-200"
+                  isDangerous ? "bg-red-50 border-red-200" : "bg-blue-50 border-blue-200"
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div
-                    className={`p-2 rounded-full ${
-                      isDangerous
-                        ? "bg-red-100"
-                        : "bg-blue-100"
-                    }`}
-                  >
+                  <div className={`p-2 rounded-full ${isDangerous ? "bg-red-100" : "bg-blue-100"}`}>
                     <AlertCircle
-                      className={`w-6 h-6 ${
-                        isDangerous
-                          ? "text-red-600"
-                          : "text-blue-600"
-                      }`}
+                      className={`w-6 h-6 ${isDangerous ? "text-red-600" : "text-blue-600"}`}
                     />
                   </div>
                   <h2
                     className={`text-lg font-bold ${
-                      isDangerous
-                        ? "text-red-900"
-                        : "text-blue-900"
+                      isDangerous ? "text-red-900" : "text-blue-900"
                     }`}
                   >
                     {title}
@@ -88,9 +74,7 @@ export default function ConfirmationModal({
 
               {/* Content */}
               <div className="px-6 py-6">
-                <p className="text-gray-700 text-center leading-relaxed">
-                  {message}
-                </p>
+                <p className="text-gray-700 text-center leading-relaxed">{message}</p>
               </div>
 
               {/* Actions */}

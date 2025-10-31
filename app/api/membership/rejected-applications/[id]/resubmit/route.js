@@ -16,19 +16,19 @@ function validateDocuments(formData, membershipType) {
     if (!formData.companyRegistration) {
       errors.push("สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล");
     }
-    
+
     const hasCompanyStamp =
       formData.companyStamp &&
       (formData.companyStamp.file ||
         formData.companyStamp.url ||
         formData.companyStamp instanceof File);
-    
+
     const hasAuthorizedSignature =
       formData.authorizedSignature &&
       (formData.authorizedSignature.file ||
         formData.authorizedSignature.url ||
         formData.authorizedSignature instanceof File);
-    
+
     if (!hasCompanyStamp) {
       errors.push("รูปตราประทับบริษัท");
     }
@@ -43,19 +43,19 @@ function validateDocuments(formData, membershipType) {
     if (!formData.factoryLicense) {
       errors.push("สำเนาใบอนุญาตประกอบกิจการโรงงาน");
     }
-    
+
     const hasCompanyStamp =
       formData.companyStamp &&
       (formData.companyStamp.file ||
         formData.companyStamp.url ||
         formData.companyStamp instanceof File);
-    
+
     const hasAuthorizedSignature =
       formData.authorizedSignature &&
       (formData.authorizedSignature.file ||
         formData.authorizedSignature.url ||
         formData.authorizedSignature instanceof File);
-    
+
     if (!hasCompanyStamp) {
       errors.push("รูปตราประทับบริษัท");
     }
@@ -73,19 +73,19 @@ function validateDocuments(formData, membershipType) {
     if (!formData.memberList) {
       errors.push("รายชื่อสมาชิก");
     }
-    
+
     const hasCompanyStamp =
       formData.companyStamp &&
       (formData.companyStamp.file ||
         formData.companyStamp.url ||
         formData.companyStamp instanceof File);
-    
+
     const hasAuthorizedSignature =
       formData.authorizedSignature &&
       (formData.authorizedSignature.file ||
         formData.authorizedSignature.url ||
         formData.authorizedSignature instanceof File);
-    
+
     if (!hasCompanyStamp) {
       errors.push("รูปตราประทับสมาคม");
     }
@@ -97,13 +97,13 @@ function validateDocuments(formData, membershipType) {
     if (!formData.idCardDocument) {
       errors.push("สำเนาบัตรประชาชน");
     }
-    
+
     const hasAuthorizedSignature =
       formData.authorizedSignature &&
       (formData.authorizedSignature.file ||
         formData.authorizedSignature.url ||
         formData.authorizedSignature instanceof File);
-    
+
     if (!hasAuthorizedSignature) {
       errors.push("รูปลายเซ็นผู้มีอำนาจลงนาม");
     }
@@ -137,7 +137,7 @@ export async function POST(request, { params }) {
     try {
       // Debug: Log incoming parameters
       console.log("🔍 DEBUG Resubmit - ID:", id, "User ID:", userId);
-      
+
       // Verify ownership and get rejection data from MemberRegist_Rejections (new system)
       const [rejectData] = await connection.execute(
         `
@@ -168,9 +168,9 @@ export async function POST(request, { params }) {
           (rejection_id, sender_type, sender_id, message, created_at)
           VALUES (?, 'member', ?, ?, NOW())
           `,
-          [id, userId, userComment.trim()]
+          [id, userId, userComment.trim()],
         );
-        
+
         console.log("💬 Saved user comment to conversation");
       }
 
@@ -200,18 +200,24 @@ export async function POST(request, { params }) {
         await updateAMApplication(membership_id, formData, userId, id, userComment);
       } else if (membership_type === "ic" && formData) {
         await updateICApplication(membership_id, formData, userId, id, userComment);
-        
+
         // Create history snapshot for IC resubmission
         console.log(`📸 Creating resubmission snapshot for IC ${membership_id}`);
-        const historyId = await createSnapshot(connection, 'ic', membership_id, 'resubmission', userId);
+        const historyId = await createSnapshot(
+          connection,
+          "ic",
+          membership_id,
+          "resubmission",
+          userId,
+        );
         console.log(`✅ IC resubmission snapshot created: ${historyId}`);
-        
+
         // Update rejection record with history snapshot ID
         await connection.execute(
           `UPDATE MemberRegist_Rejections 
            SET history_snapshot_id = ?, updated_at = NOW()
            WHERE id = ?`,
-          [historyId, id]
+          [historyId, id],
         );
       } else {
         // ถ้าไม่มี formData ให้ทำแบบเดิม (แค่เปลี่ยนสถานะ)
@@ -293,14 +299,14 @@ async function legacyResubmit(connection, membership_type, membership_id, userId
     INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at)
     VALUES (?, 'resubmit_membership', ?, NOW())
   `,
-  [
-    userId,
-    JSON.stringify({
-      membershipType: membership_type,
-      membershipId: membership_id,
-      rejectionId,
-      method: "legacy",
-    }),
-  ],
-);
+    [
+      userId,
+      JSON.stringify({
+        membershipType: membership_type,
+        membershipId: membership_id,
+        rejectionId,
+        method: "legacy",
+      }),
+    ],
+  );
 }

@@ -95,7 +95,9 @@ export default function AdminLayout({ children }) {
           className="absolute inset-0 bg-gray-900 bg-opacity-50"
           onClick={() => setIsMobileMenuOpen(false)}
         ></div>
-        <div className={`relative flex flex-col w-72 sm:w-80 max-w-sm h-full bg-gray-800 shadow-xl transform transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}>
+        <div
+          className={`relative flex flex-col w-72 sm:w-80 max-w-sm h-full bg-gray-800 shadow-xl transform transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
           <div className="flex items-center justify-between p-4 border-b border-gray-700">
             <h2 className="text-white font-semibold text-lg">เมนู</h2>
             <button
@@ -164,7 +166,9 @@ export default function AdminLayout({ children }) {
                   </div>
                   {/* Page title - hide on mobile, show on lg+ */}
                   <div className="hidden lg:block border-l-2 border-gray-300 pl-4 ml-4">
-                    <h1 className="text-lg xl:text-xl font-semibold text-gray-800 truncate">{pageTitle}</h1>
+                    <h1 className="text-lg xl:text-xl font-semibold text-gray-800 truncate">
+                      {pageTitle}
+                    </h1>
                   </div>
                 </div>
               </div>
@@ -217,7 +221,9 @@ export default function AdminLayout({ children }) {
           <div className="mx-auto max-w-7xl">
             {/* Show page title on mobile at top of content */}
             <h1 className="lg:hidden text-xl font-semibold text-gray-800 mb-3 px-2">{pageTitle}</h1>
-            <div className="bg-white shadow-sm rounded-lg p-3 sm:p-4 lg:p-6 page-transition">{children}</div>
+            <div className="bg-white shadow-sm rounded-lg p-3 sm:p-4 lg:p-6 page-transition">
+              {children}
+            </div>
           </div>
         </main>
       </div>

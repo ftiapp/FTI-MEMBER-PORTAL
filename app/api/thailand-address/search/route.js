@@ -173,22 +173,26 @@ export async function GET(request) {
 
     // Deduplicate per type to avoid duplicate dropdown entries
     const seen = new Set();
-    const deduped = filteredData.filter((item) => {
-      let key = "";
-      if (type === "subdistrict") {
-        key = `${item.subdistrict}|${item.district}|${item.province}|${item.postalCode}`.toLowerCase();
-      } else if (type === "district") {
-        key = `${item.district}|${item.province}`.toLowerCase();
-      } else if (type === "province") {
-        key = item.province.toLowerCase();
-      } else if (type === "postalCode") {
-        key = `${item.postalCode}|${item.subdistrict}|${item.district}|${item.province}`.toLowerCase();
-      }
+    const deduped = filteredData
+      .filter((item) => {
+        let key = "";
+        if (type === "subdistrict") {
+          key =
+            `${item.subdistrict}|${item.district}|${item.province}|${item.postalCode}`.toLowerCase();
+        } else if (type === "district") {
+          key = `${item.district}|${item.province}`.toLowerCase();
+        } else if (type === "province") {
+          key = item.province.toLowerCase();
+        } else if (type === "postalCode") {
+          key =
+            `${item.postalCode}|${item.subdistrict}|${item.district}|${item.province}`.toLowerCase();
+        }
 
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 10);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 10);
 
     // แปลงข้อมูลให้อยู่ในรูปแบบที่ SearchableDropdown ต้องการ
     const formattedData = deduped.map((item) => {

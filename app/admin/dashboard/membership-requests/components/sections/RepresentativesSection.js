@@ -27,8 +27,8 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
 
   useEffect(() => {
     if (!isEditing && application?.representatives) {
-      console.log('🔍 DEBUG: Raw representatives from DB:', application.representatives);
-      console.log('🔍 DEBUG: First rep prename fields:', {
+      console.log("🔍 DEBUG: Raw representatives from DB:", application.representatives);
+      console.log("🔍 DEBUG: First rep prename fields:", {
         prename_th: application.representatives[0]?.prename_th,
         prenameTh: application.representatives[0]?.prenameTh,
         prename_other: application.representatives[0]?.prename_other,
@@ -60,8 +60,8 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
             phone_extension: rep.phone_extension || rep.phoneExtension || "",
           }))
         : [];
-      console.log('✅ DEBUG: Normalized representatives:', normalized);
-      console.log('✅ DEBUG: First normalized rep prename fields:', {
+      console.log("✅ DEBUG: Normalized representatives:", normalized);
+      console.log("✅ DEBUG: First normalized rep prename fields:", {
         prename_th: normalized[0]?.prename_th,
         prenameTh: normalized[0]?.prenameTh,
         prename_other: normalized[0]?.prename_other,
@@ -74,7 +74,7 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
   const addRep = () => {
     // IC can only have 1 rep
     if (isIC && reps.length >= 1) return;
-    
+
     setReps((prev) => [
       ...prev,
       {
@@ -141,8 +141,8 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
     }
     setIsSaving(true);
     try {
-      console.log('💾 DEBUG: Saving representatives data:', reps);
-      console.log('💾 DEBUG: First rep prename fields before save:', {
+      console.log("💾 DEBUG: Saving representatives data:", reps);
+      console.log("💾 DEBUG: First rep prename fields before save:", {
         prename_th: reps[0]?.prename_th,
         prenameTh: reps[0]?.prenameTh,
         prename_other: reps[0]?.prename_other,
@@ -151,7 +151,7 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
       await onUpdate("representatives", reps);
       setIsEditing(false);
     } catch (error) {
-      console.error('Error saving representatives:', error);
+      console.error("Error saving representatives:", error);
     } finally {
       setIsSaving(false);
     }
@@ -238,9 +238,25 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
             >
               {isSaving ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   กำลังบันทึก...
                 </>
@@ -262,9 +278,7 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
       {!isEditing ? (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {reps.map((rep, index) => {
-            const repType = isIC
-              ? "ผู้แทน"
-              : `ผู้แทน ${rep.order || index + 1}`;
+            const repType = isIC ? "ผู้แทน" : `ผู้แทน ${rep.order || index + 1}`;
             // Get prename values - if "อื่นๆ"/"Other", show the custom value instead
             const prenameTh = (() => {
               const th = (rep.prename_th || rep.prenameTh || "").trim();
@@ -275,7 +289,7 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
               }
               return th;
             })();
-            
+
             const prenameEn = (() => {
               const en = (rep.prename_en || rep.prenameEn || "").trim();
               const otherEn = (rep.prename_other_en || rep.prenameOtherEn || "").trim();
@@ -311,7 +325,9 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
-                      <p className="text-sm text-gray-900">{rep.firstNameTh || rep.first_name_th || "-"}</p>
+                      <p className="text-sm text-gray-900">
+                        {rep.firstNameTh || rep.first_name_th || "-"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (ไทย)</p>
@@ -324,7 +340,9 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
-                      <p className="text-sm text-gray-900">{rep.firstNameEn || rep.first_name_en || "-"}</p>
+                      <p className="text-sm text-gray-900">
+                        {rep.firstNameEn || rep.first_name_en || "-"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-sm font-semibold text-blue-700 mb-1">นามสกุล (อังกฤษ)</p>
@@ -376,7 +394,11 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
                           const currentRep = updated[idx];
                           updated.splice(idx, 1);
                           updated.splice(newOrder - 1, 0, { ...currentRep, order: newOrder });
-                          return updated.map((r, i) => ({ ...r, order: i + 1, isPrimary: i === 0 }));
+                          return updated.map((r, i) => ({
+                            ...r,
+                            order: i + 1,
+                            isPrimary: i === 0,
+                          }));
                         });
                       }}
                     >
@@ -406,8 +428,8 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
                     className="w-full px-3 py-2 border rounded-lg"
                     value={rep.prenameTh || rep.prename_th || ""}
                     onChange={(e) => {
-                      console.log('📝 DEBUG: Changing prenameTh to:', e.target.value);
-                      console.log('📝 DEBUG: Current rep data:', rep);
+                      console.log("📝 DEBUG: Changing prenameTh to:", e.target.value);
+                      console.log("📝 DEBUG: Current rep data:", rep);
                       updateRep(idx, "prenameTh", e.target.value);
                       updateRep(idx, "prename_th", e.target.value);
                       const mappedEn = thaiToEnglishMap[e.target.value] || "";

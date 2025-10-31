@@ -76,36 +76,39 @@ export default function ConnectDatabasePage() {
 
   // Fetch connected members with search/pagination
   const fetchConnectedMembers = async ({ page = 1, q = search }) => {
-    console.log('🔍 fetchConnectedMembers called with:', { page, q, limit: pagination.limit });
+    console.log("🔍 fetchConnectedMembers called with:", { page, q, limit: pagination.limit });
     try {
       setConnectedLoading(true);
       setConnectedError(null);
-      
+
       const params = new URLSearchParams({ page: String(page), limit: String(pagination.limit) });
       // API expects 'search' (not 'q') — support when value provided
       if ((q || "").trim() !== "") params.append("search", q.trim());
-      
+
       const url = `/api/admin/connect-database/connected?${params}`;
-      console.log('🌐 Fetching URL:', url);
+      console.log("🌐 Fetching URL:", url);
 
       const response = await fetch(url, {
         credentials: "include",
       });
 
-      console.log('📡 Response status:', response.status);
-      
+      console.log("📡 Response status:", response.status);
+
       if (!response.ok) {
         throw new Error("Failed to fetch connected members");
       }
 
       const data = await response.json();
-      console.log('📊 API Response:', data);
-      
+      console.log("📊 API Response:", data);
+
       // Support multiple response shapes
-      const items = Array.isArray(data) ? data
-                  : Array.isArray(data.members) ? data.members
-                  : Array.isArray(data.data) ? data.data
-                  : [];
+      const items = Array.isArray(data)
+        ? data
+        : Array.isArray(data.members)
+          ? data.members
+          : Array.isArray(data.data)
+            ? data.data
+            : [];
       setConnected(items);
 
       const incomingPag = data.pagination || {};
@@ -115,7 +118,7 @@ export default function ConnectDatabasePage() {
       const totalPages = incomingPag.totalPages ?? (limit > 0 ? Math.ceil(total / limit) : 0);
       setPagination({ page: currentPage, limit, total, totalPages });
     } catch (err) {
-      console.error('❌ Error:', err);
+      console.error("❌ Error:", err);
       setConnectedError(err.message);
     } finally {
       setConnectedLoading(false);
@@ -148,7 +151,7 @@ export default function ConnectDatabasePage() {
       }
 
       const result = await response.json();
-      
+
       // Resolve company name from API response or member data
       const resolvedCompanyName =
         result?.memberData?.COMPANY_NAME ||
@@ -212,9 +215,10 @@ export default function ConnectDatabasePage() {
   };
 
   const handlePagination = (direction) => {
-    const newPage = direction === "prev" 
-      ? Math.max(1, pagination.page - 1)
-      : Math.min(pagination.totalPages, pagination.page + 1);
+    const newPage =
+      direction === "prev"
+        ? Math.max(1, pagination.page - 1)
+        : Math.min(pagination.totalPages, pagination.page + 1);
     fetchConnectedMembers({ page: newPage });
   };
 

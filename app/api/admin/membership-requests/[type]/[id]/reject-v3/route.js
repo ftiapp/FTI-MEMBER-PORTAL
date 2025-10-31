@@ -4,7 +4,7 @@ import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 /**
  * Admin Reject API v3 - Conversation-based
- * 
+ *
  * Flow:
  * 1. Update Main table: status = 2 (rejected)
  * 2. Insert conversation record
@@ -23,7 +23,7 @@ export async function POST(request, { params }) {
     if (!message || !message.trim()) {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุเหตุผลในการปฏิเสธ" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,17 +31,14 @@ export async function POST(request, { params }) {
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { success: false, message: "ประเภทสมาชิกไม่ถูกต้อง" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get admin from session
     const admin = await getAdminFromSession();
     if (!admin) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -61,7 +58,7 @@ export async function POST(request, { params }) {
       // Get current status and user info
       const [appRows] = await connection.execute(
         `SELECT status, user_id FROM ${mainTable} WHERE id = ?`,
-        [id]
+        [id],
       );
 
       if (appRows.length === 0) {
@@ -79,11 +76,11 @@ export async function POST(request, { params }) {
              rejected_by = ?,
              rejected_at = NOW()
          WHERE id = ?`,
-        [message, admin.id, id]
+        [message, admin.id, id],
       );
 
       // Get admin name for conversation
-      const adminName = `${admin.firstname || ''} ${admin.lastname || ''}`.trim() || 'Admin';
+      const adminName = `${admin.firstname || ""} ${admin.lastname || ""}`.trim() || "Admin";
 
       // Insert conversation record
       await connection.execute(
@@ -95,15 +92,15 @@ export async function POST(request, { params }) {
         [
           type,
           id,
-          'rejection',
+          "rejection",
           message,
-          'admin',
+          "admin",
           admin.id,
           adminName,
           currentStatus,
           2, // rejected
-          isInternal ? 1 : 0
-        ]
+          isInternal ? 1 : 0,
+        ],
       );
 
       // Log admin action
@@ -118,7 +115,7 @@ export async function POST(request, { params }) {
           `ปฏิเสธใบสมัคร ${type.toUpperCase()} #${id}: ${message.substring(0, 100)}`,
           request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
           request.headers.get("user-agent") || "unknown",
-        ]
+        ],
       );
 
       await connection.commit();
@@ -132,15 +129,13 @@ export async function POST(request, { params }) {
         data: {
           status: 2,
           rejectedAt: new Date().toISOString(),
-          conversationId: null // Will be set after insert
-        }
+          conversationId: null, // Will be set after insert
+        },
       });
-
     } catch (error) {
       await connection.rollback();
       throw error;
     }
-
   } catch (error) {
     console.error("Error rejecting application:", error);
     return NextResponse.json(
@@ -148,7 +143,7 @@ export async function POST(request, { params }) {
         success: false,
         message: error.message || "ไม่สามารถปฏิเสธใบสมัครได้ กรุณาลองใหม่อีกครั้ง",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

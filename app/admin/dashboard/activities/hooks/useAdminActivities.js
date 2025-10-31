@@ -24,6 +24,7 @@ export default function useAdminActivities() {
     start: "",
     end: "",
   });
+  const [error, setError] = useState(null);
 
   // Cache state
   const [cache, setCache] = useState({});
@@ -55,6 +56,7 @@ export default function useAdminActivities() {
     async (skipCache = false) => {
       try {
         setIsLoading(true);
+        setError(null);
 
         const cacheKey = getCacheKey();
 
@@ -93,7 +95,7 @@ export default function useAdminActivities() {
 
         if (result.success) {
           // Update state with fetched data
-          setActivities(result.activities);
+          setActivities(result.activities || []);
           setTotalPages(result.pagination.totalPages || 1);
 
           // Update cache
@@ -105,10 +107,14 @@ export default function useAdminActivities() {
             },
           }));
         } else {
+          setError(result.message || "ไม่สามารถดึงข้อมูลได้");
+          setActivities([]);
           toast.error(result.message || "ไม่สามารถดึงข้อมูลได้");
         }
       } catch (error) {
         console.error("Error fetching activities:", error);
+        setError("เกิดข้อผิดพลาดในการดึงข้อมูล");
+        setActivities([]);
         toast.error("เกิดข้อผิดพลาดในการดึงข้อมูล");
       } finally {
         setIsLoading(false);
@@ -255,6 +261,7 @@ export default function useAdminActivities() {
   return {
     activities,
     isLoading,
+    error,
     filter,
     page,
     totalPages,

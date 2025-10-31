@@ -186,7 +186,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       companyRegistration: formData.companyRegistration || null,
       companyStamp: formData.companyStamp || null,
       authorizedSignature: formData.authorizedSignature || null,
-      attachmentDocument: formData.attachmentDocument || null,
     }),
     [],
   ); // Empty deps - calculate only once
@@ -1033,36 +1032,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                   </div>
                 </div>
               </div>
-
-            {/* Attachment Document Upload */}
-            <div className="space-y-3">
-              <SingleFileUploadZone
-                title="เอกสารแนบ"
-                description="หมายเหตุ : โปรดลงนาม และประทับตราทุกหน้า"
-                name="attachmentDocument"
-                file={selectedFiles.attachmentDocument}
-                icon={
-                  <svg
-                    className="w-8 h-8 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                }
-                iconColor="text-blue-600"
-                bgColor="bg-blue-100"
-                error={errors?.attachmentDocument}
-                isImageRequired={false}
-              />
             </div>
-          </div>
           </div>
         </div>
       </div>

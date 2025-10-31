@@ -1,12 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { 
-  hasFile, 
-  getFileName, 
-  getFileSize, 
-  viewFile 
-} from "./fileUtils";
+import { hasFile, getFileName, getFileSize, viewFile } from "./fileUtils";
 import {
   ErrorIcon,
   FileIcon,
@@ -14,12 +9,12 @@ import {
   EditIcon,
   DeleteIcon,
   UploadIcon,
-  SuccessIcon
+  SuccessIcon,
 } from "./IconComponents";
 
 /**
  * Reusable Single File Upload Zone Component
- * 
+ *
  * @param {Object} props
  * @param {string} props.title - Document title
  * @param {string} props.description - Document description
@@ -92,12 +87,8 @@ const SingleFileUploadZone = ({
       <div className="max-w-2xl mx-auto mb-8">
         {/* Header: show document title/description */}
         <div className="flex items-start mb-3">
-          <div
-            className={`flex items-center justify-center w-10 h-10 rounded ${bgColor}`}
-          >
-            <div className={`${iconColor}`}>
-              {icon || DocumentIcon}
-            </div>
+          <div className={`flex items-center justify-center w-10 h-10 rounded ${bgColor}`}>
+            <div className={`${iconColor}`}>{icon || DocumentIcon}</div>
           </div>
           <div className="ml-3">
             {title && <h3 className="text-sm font-semibold text-gray-900">{title}</h3>}

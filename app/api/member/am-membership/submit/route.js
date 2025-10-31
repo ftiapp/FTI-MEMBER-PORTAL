@@ -399,8 +399,10 @@ export async function POST(request) {
         const email = rep.email ?? null;
         const phone = rep.phone ?? null;
         const isPrimary = rep.isPrimary ? 1 : 0;
-        
-        console.log(`🔍 Mapped fields - firstNameTh: ${firstNameTh}, lastNameTh: ${lastNameTh}, firstNameEn: ${firstNameEn}, lastNameEn: ${lastNameEn}`);
+
+        console.log(
+          `🔍 Mapped fields - firstNameTh: ${firstNameTh}, lastNameTh: ${lastNameTh}, firstNameEn: ${firstNameEn}, lastNameEn: ${lastNameEn}`,
+        );
 
         // Require TH names and also EN names
         if (!firstNameTh || !lastNameTh) {
@@ -782,16 +784,18 @@ export async function POST(request) {
 
     // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
     try {
-      const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
-      
+      const allMemberTypes = ["ic", "oc", "am", "ac"];
+
       for (const memberType of allMemberTypes) {
         const deleteDraftQuery =
           memberType === "ic"
             ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
             : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
-        
+
         await executeQueryWithoutTransaction(deleteDraftQuery, [taxId]);
-        console.log(`🗑️ [AM] Deleted ALL drafts for ${memberType} with tax_id: ${taxId} (all users)`);
+        console.log(
+          `🗑️ [AM] Deleted ALL drafts for ${memberType} with tax_id: ${taxId} (all users)`,
+        );
       }
     } catch (draftError) {
       console.error("❌ [AM] Error deleting drafts:", draftError);

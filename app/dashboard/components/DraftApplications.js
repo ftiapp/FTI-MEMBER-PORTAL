@@ -16,14 +16,14 @@ export default function DraftApplications({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [allDrafts, setAllDrafts] = useState([]); // เก็บข้อมูลทั้งหมดสำหรับ pagination
-  
+
   // ป้องกัน API calls ซ้ำซ้อน
   const fetchingRef = useRef(false);
   const hasFetchedRef = useRef(false);
 
   useEffect(() => {
     if (user && !hasFetchedRef.current) {
-      console.log('✅ DraftApplications - Initial fetch for user:', user.id);
+      console.log("✅ DraftApplications - Initial fetch for user:", user.id);
       hasFetchedRef.current = true;
       fetchDrafts();
     }
@@ -32,7 +32,11 @@ export default function DraftApplications({
   // เมื่อ currentPage หรือ itemsPerPage เปลี่ยน ให้ทำ pagination ใหม่
   useEffect(() => {
     if (allDrafts.length > 0) {
-      console.log('📋 DraftApplications - Paginating data:', { currentPage, itemsPerPage, totalDrafts: allDrafts.length });
+      console.log("📋 DraftApplications - Paginating data:", {
+        currentPage,
+        itemsPerPage,
+        totalDrafts: allDrafts.length,
+      });
       paginateData(allDrafts);
     }
   }, [currentPage, itemsPerPage, allDrafts]);
@@ -46,10 +50,10 @@ export default function DraftApplications({
 
   const fetchDrafts = async () => {
     if (fetchingRef.current) {
-      console.log('⏳ DraftApplications - Already fetching, skipping...');
+      console.log("⏳ DraftApplications - Already fetching, skipping...");
       return;
     }
-    
+
     try {
       fetchingRef.current = true;
       setLoading(true);
@@ -60,9 +64,9 @@ export default function DraftApplications({
         throw new Error("Failed to fetch drafts");
       }
       const data = await response.json();
-      console.log("📥 DraftApplications - API response received:", { 
-        success: !!data.drafts, 
-        count: data.drafts?.length 
+      console.log("📥 DraftApplications - API response received:", {
+        success: !!data.drafts,
+        count: data.drafts?.length,
       });
 
       const fetchedDrafts = data.drafts || [];
@@ -85,7 +89,7 @@ export default function DraftApplications({
     } finally {
       fetchingRef.current = false;
       setLoading(false);
-      console.log('✅ DraftApplications - Fetch completed');
+      console.log("✅ DraftApplications - Fetch completed");
     }
   };
 
@@ -269,7 +273,9 @@ export default function DraftApplications({
                     />
                   </svg>
                   <span className="font-semibold">{getIdentifierLabel(draft.memberType)}:</span>
-                  <span className="ml-1 font-mono">{draft.memberType === "ic" ? getDraftIdCard(draft) : getDraftTaxId(draft)}</span>
+                  <span className="ml-1 font-mono">
+                    {draft.memberType === "ic" ? getDraftIdCard(draft) : getDraftTaxId(draft)}
+                  </span>
                 </div>
               </div>
 
@@ -282,7 +288,8 @@ export default function DraftApplications({
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900 text-lg">
-                    {getMemberTypeThai(draft.memberType)} - {getMemberTypeFullName(draft.memberType)}
+                    {getMemberTypeThai(draft.memberType)} -{" "}
+                    {getMemberTypeFullName(draft.memberType)}
                   </h4>
                   <p className="text-sm text-gray-600">
                     ขั้นตอนที่ {draft.currentStep} จากทั้งหมด 5 ขั้นตอน

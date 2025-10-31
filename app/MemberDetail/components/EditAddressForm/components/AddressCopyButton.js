@@ -8,11 +8,7 @@ import { toast } from "react-hot-toast";
 /**
  * Component for copying address data from other addresses
  */
-export default function AddressCopyButton({ 
-  addresses, 
-  currentAddrCode, 
-  onCopyAddress 
-}) {
+export default function AddressCopyButton({ addresses, currentAddrCode, onCopyAddress }) {
   const [isOpen, setIsOpen] = useState(false);
 
   // Get available addresses to copy from (excluding current address)
@@ -21,7 +17,7 @@ export default function AddressCopyButton({
     .map(([addrCode, addrData]) => ({
       code: addrCode,
       data: addrData,
-      label: getAddressLabel(addrCode, addrData)
+      label: getAddressLabel(addrCode, addrData),
     }));
 
   if (availableAddresses.length === 0) {
@@ -45,7 +41,7 @@ export default function AddressCopyButton({
       >
         <FaCopy className="mr-2" />
         คัดลอกที่อยู่
-        <FaChevronDown className={`ml-2 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <FaChevronDown className={`ml-2 transition-transform ${isOpen ? "rotate-180" : ""}`} />
       </motion.button>
 
       {isOpen && (
@@ -77,12 +73,7 @@ export default function AddressCopyButton({
       )}
 
       {/* Overlay to close dropdown when clicking outside */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+      {isOpen && <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />}
     </div>
   );
 }
@@ -90,23 +81,23 @@ export default function AddressCopyButton({
 function getAddressLabel(addrCode, addrData) {
   const labels = {
     "001": "ที่อยู่สำหรับติดต่อ (ทะเบียน)",
-    "002": "ที่อยู่สำหรับจัดส่งเอกสาร", 
-    "003": "ที่อยู่สำหรับออกใบกำกับภาษี"
+    "002": "ที่อยู่สำหรับจัดส่งเอกสาร",
+    "003": "ที่อยู่สำหรับออกใบกำกับภาษี",
   };
-  
+
   return labels[addrCode] || `ที่อยู่ ${addrCode}`;
 }
 
 function formatAddressPreview(addrData) {
   if (!addrData) return "-";
-  
+
   const parts = [
     addrData.ADDR_NO,
     addrData.ADDR_MOO && `หมู่ ${addrData.ADDR_MOO}`,
     addrData.ADDR_ROAD && `ถนน ${addrData.ADDR_ROAD}`,
     addrData.ADDR_DISTRICT && `อำเภอ ${addrData.ADDR_DISTRICT}`,
     addrData.ADDR_PROVINCE_NAME && `จังหวัด ${addrData.ADDR_PROVINCE_NAME}`,
-    addrData.ADDR_POSTCODE
+    addrData.ADDR_POSTCODE,
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(", ") : "-";

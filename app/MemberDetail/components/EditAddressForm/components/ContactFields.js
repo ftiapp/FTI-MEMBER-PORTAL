@@ -7,21 +7,15 @@ import { motion } from "framer-motion";
  * Handles Thai contact fields only
  */
 export default function ContactFields({ formData, handleChange, itemVariants }) {
-
   return (
     <>
       <div className="md:col-span-2 border-b border-gray-200 pb-2 mb-4 mt-6">
-        <h3 className="text-lg font-semibold text-gray-800">
-          ข้อมูลติดต่อ
-        </h3>
+        <h3 className="text-lg font-semibold text-gray-800">ข้อมูลติดต่อ</h3>
       </div>
 
       {/* Telephone */}
       <motion.div className="mb-4" variants={itemVariants}>
-        <label
-          className="block text-gray-700 font-medium mb-2"
-          htmlFor="ADDR_TELEPHONE"
-        >
+        <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_TELEPHONE">
           โทรศัพท์:
         </label>
         <input
@@ -36,10 +30,7 @@ export default function ContactFields({ formData, handleChange, itemVariants }) 
 
       {/* Fax */}
       <motion.div className="mb-4" variants={itemVariants}>
-        <label
-          className="block text-gray-700 font-medium mb-2"
-          htmlFor="ADDR_FAX"
-        >
+        <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_FAX">
           โทรสาร:
         </label>
         <input
@@ -54,10 +45,7 @@ export default function ContactFields({ formData, handleChange, itemVariants }) 
 
       {/* Email */}
       <motion.div className="mb-4" variants={itemVariants}>
-        <label
-          className="block text-gray-700 font-medium mb-2"
-          htmlFor="ADDR_EMAIL"
-        >
+        <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_EMAIL">
           อีเมล:
         </label>
         <input
@@ -72,10 +60,7 @@ export default function ContactFields({ formData, handleChange, itemVariants }) 
 
       {/* Website */}
       <motion.div className="mb-4" variants={itemVariants}>
-        <label
-          className="block text-gray-700 font-medium mb-2"
-          htmlFor="ADDR_WEBSITE"
-        >
+        <label className="block text-gray-700 font-medium mb-2" htmlFor="ADDR_WEBSITE">
           เว็บไซต์:
         </label>
         <input

@@ -15,7 +15,7 @@ export default function RejectedApplications({
   const [error, setError] = useState(null);
   const [totalItems, setTotalItems] = useState(0);
   const router = useRouter();
-  
+
   // ป้องกัน API calls ซ้ำซ้อน
   const fetchingRef = useRef(false);
   const lastFetchParamsRef = useRef(null);
@@ -23,14 +23,14 @@ export default function RejectedApplications({
   useEffect(() => {
     // สร้าง unique key สำหรับ fetch parameters
     const fetchKey = `${currentPage}-${itemsPerPage}`;
-    
+
     // ถ้ากำลัง fetch อยู่ หรือ parameters เหมือนเดิม ไม่ต้อง fetch ใหม่
     if (fetchingRef.current || lastFetchParamsRef.current === fetchKey) {
-      console.log('🚫 RejectedApplications - Skip duplicate fetch:', fetchKey);
+      console.log("🚫 RejectedApplications - Skip duplicate fetch:", fetchKey);
       return;
     }
-    
-    console.log('✅ RejectedApplications - Fetching with params:', { currentPage, itemsPerPage });
+
+    console.log("✅ RejectedApplications - Fetching with params:", { currentPage, itemsPerPage });
     lastFetchParamsRef.current = fetchKey;
     fetchRejectedApplications();
   }, [currentPage, itemsPerPage]);
@@ -44,23 +44,21 @@ export default function RejectedApplications({
 
   const fetchRejectedApplications = async () => {
     if (fetchingRef.current) {
-      console.log('⏳ RejectedApplications - Already fetching, skipping...');
+      console.log("⏳ RejectedApplications - Already fetching, skipping...");
       return;
     }
-    
+
     try {
       fetchingRef.current = true;
       setLoading(true);
-      console.log('📡 RejectedApplications - API call starting (v2 - no Reject_DATA)...');
-      const response = await fetch(
-        `/api/membership/rejected-applications-v2`,
-      );
+      console.log("📡 RejectedApplications - API call starting (v2 - no Reject_DATA)...");
+      const response = await fetch(`/api/membership/rejected-applications-v2`);
       const result = await response.json();
-      
-      console.log('📥 RejectedApplications - API response received:', {
+
+      console.log("📥 RejectedApplications - API response received:", {
         success: result.success,
         count: result.data?.length,
-        totalItems: result.pagination?.totalItems || result.totalItems
+        totalItems: result.pagination?.totalItems || result.totalItems,
       });
 
       if (result.success) {
@@ -79,7 +77,7 @@ export default function RejectedApplications({
     } finally {
       fetchingRef.current = false;
       setLoading(false);
-      console.log('✅ RejectedApplications - Fetch completed');
+      console.log("✅ RejectedApplications - Fetch completed");
     }
   };
 

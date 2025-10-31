@@ -180,7 +180,9 @@ export default function Alluser() {
   const renderStatistics = () => {
     return (
       <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 mb-4 sm:mb-6">
-        <h3 className="text-base sm:text-lg font-semibold text-[#1e3a8a] mb-3 sm:mb-4">สถิติผู้ใช้งาน</h3>
+        <h3 className="text-base sm:text-lg font-semibold text-[#1e3a8a] mb-3 sm:mb-4">
+          สถิติผู้ใช้งาน
+        </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
             <div className="flex justify-between items-center">
@@ -325,7 +327,9 @@ export default function Alluser() {
 
   return (
     <div className="p-2 sm:p-4">
-      <h2 className="text-xl sm:text-2xl font-bold text-[#1e3a8a] mb-4 sm:mb-6">ข้อมูลผู้ใช้ทั้งหมด</h2>
+      <h2 className="text-xl sm:text-2xl font-bold text-[#1e3a8a] mb-4 sm:mb-6">
+        ข้อมูลผู้ใช้ทั้งหมด
+      </h2>
 
       {renderStatistics()}
 
@@ -355,7 +359,9 @@ export default function Alluser() {
           <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
         </div>
       ) : error ? (
-        <div className="bg-red-50 p-3 sm:p-4 rounded-lg text-red-600 text-center text-sm sm:text-base">{error}</div>
+        <div className="bg-red-50 p-3 sm:p-4 rounded-lg text-red-600 text-center text-sm sm:text-base">
+          {error}
+        </div>
       ) : (
         <>
           <div className="bg-white rounded-lg shadow-md overflow-hidden">

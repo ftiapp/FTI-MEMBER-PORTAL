@@ -64,7 +64,7 @@ export async function GET(request) {
     const totalPages = Math.ceil(total / limit);
 
     // Format response data
-    const formattedData = rejectedApps.map(app => ({
+    const formattedData = rejectedApps.map((app) => ({
       id: app.reject_id,
       membershipType: app.membership_type,
       membershipId: app.membership_id,

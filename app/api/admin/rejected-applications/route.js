@@ -13,10 +13,7 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     const { searchParams } = new URL(request.url);
@@ -47,9 +44,7 @@ export async function GET(request) {
     }
 
     if (search) {
-      whereConditions.push(
-        "(v.application_name LIKE ? OR v.identifier LIKE ?)"
-      );
+      whereConditions.push("(v.application_name LIKE ? OR v.identifier LIKE ?)");
       queryParams.push(`%${search}%`, `%${search}%`);
     }
 
@@ -105,7 +100,7 @@ export async function GET(request) {
       const placeholders = userIds.map(() => "?").join(",");
       const [userResults] = await connection.execute(
         `SELECT id, firstname, lastname, email FROM FTI_Portal_User WHERE id IN (${placeholders})`,
-        userIds
+        userIds,
       );
 
       users = userResults.reduce((acc, user) => {
@@ -150,7 +145,7 @@ export async function GET(request) {
     console.error("Error fetching rejected applications (admin):", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูล" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

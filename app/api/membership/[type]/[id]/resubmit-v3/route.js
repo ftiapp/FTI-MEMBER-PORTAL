@@ -4,7 +4,7 @@ import { getUserFromSession } from "@/app/lib/userAuth";
 
 /**
  * User Resubmit API v3 - Conversation-based
- * 
+ *
  * Flow:
  * 1. Update Main table: status = 3 (resubmitted), increment resubmission_count
  * 2. Insert conversation record with user's message
@@ -24,17 +24,14 @@ export async function POST(request, { params }) {
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { success: false, message: "ประเภทสมาชิกไม่ถูกต้อง" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Get user from session
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -54,7 +51,7 @@ export async function POST(request, { params }) {
       // Verify user owns this application and it's rejected
       const [appRows] = await connection.execute(
         `SELECT user_id, status, resubmission_count FROM ${mainTable} WHERE id = ?`,
-        [id]
+        [id],
       );
 
       if (appRows.length === 0) {
@@ -79,11 +76,11 @@ export async function POST(request, { params }) {
              resubmission_count = ?,
              resubmitted_at = NOW()
          WHERE id = ?`,
-        [currentResubmissionCount + 1, id]
+        [currentResubmissionCount + 1, id],
       );
 
       // Get user name
-      const userName = `${user.firstname || ''} ${user.lastname || ''}`.trim() || 'ผู้ใช้';
+      const userName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้ใช้";
 
       // Insert conversation record
       await connection.execute(
@@ -95,14 +92,14 @@ export async function POST(request, { params }) {
         [
           type,
           id,
-          'resubmission',
+          "resubmission",
           message,
-          'user',
+          "user",
           user.id,
           userName,
           currentStatus,
-          3 // resubmitted
-        ]
+          3, // resubmitted
+        ],
       );
 
       await connection.commit();
@@ -116,15 +113,13 @@ export async function POST(request, { params }) {
         data: {
           status: 3,
           resubmissionCount: currentResubmissionCount + 1,
-          resubmittedAt: new Date().toISOString()
-        }
+          resubmittedAt: new Date().toISOString(),
+        },
       });
-
     } catch (error) {
       await connection.rollback();
       throw error;
     }
-
   } catch (error) {
     console.error("Error resubmitting application:", error);
     return NextResponse.json(
@@ -132,7 +127,7 @@ export async function POST(request, { params }) {
         success: false,
         message: error.message || "ไม่สามารถส่งใบสมัครใหม่ได้ กรุณาลองใหม่อีกครั้ง",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

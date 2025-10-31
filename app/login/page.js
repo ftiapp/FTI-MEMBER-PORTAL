@@ -107,7 +107,7 @@ export default function Login() {
         }
       }
     } catch (error) {
-      console.error('Error loading saved credentials:', error);
+      console.error("Error loading saved credentials:", error);
     }
   };
 
@@ -314,7 +314,6 @@ export default function Login() {
 
     setIsSubmitting(true);
     try {
-
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -380,7 +379,7 @@ export default function Login() {
 
       // Save credentials if remember me is checked
       saveCredentials();
-      
+
       login(data.user, rememberMe);
       try {
         const sessionId =
@@ -615,7 +614,10 @@ export default function Login() {
                           checked={rememberMe}
                           onChange={(e) => setRememberMe(e.target.checked)}
                         />
-                        <label htmlFor="rememberMe" className="ml-2 block text-sm text-gray-900 cursor-pointer">
+                        <label
+                          htmlFor="rememberMe"
+                          className="ml-2 block text-sm text-gray-900 cursor-pointer"
+                        >
                           จดจำฉัน
                         </label>
                       </div>

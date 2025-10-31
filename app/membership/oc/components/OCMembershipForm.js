@@ -127,23 +127,26 @@ export default function OCMembershipForm(props = {}) {
   }, []);
 
   // Wrapped checkTaxIdUniqueness with abort controller
-  const checkTaxId = useCallback(async (taxId) => {
-    // Skip Tax ID uniqueness check in rejected edit mode
-    if (props.isRejectedMode) {
-      console.log("⏭️ Skipping Tax ID uniqueness check in rejected edit mode");
-      return { isUnique: true, message: "" };
-    }
+  const checkTaxId = useCallback(
+    async (taxId) => {
+      // Skip Tax ID uniqueness check in rejected edit mode
+      if (props.isRejectedMode) {
+        console.log("⏭️ Skipping Tax ID uniqueness check in rejected edit mode");
+        return { isUnique: true, message: "" };
+      }
 
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
 
-    setTaxIdValidating(true);
-    const result = await checkTaxIdUniqueness(taxId, abortControllerRef.current);
-    setTaxIdValidating(false);
-    return result;
-  }, [props.isRejectedMode]);
+      setTaxIdValidating(true);
+      const result = await checkTaxIdUniqueness(taxId, abortControllerRef.current);
+      setTaxIdValidating(false);
+      return result;
+    },
+    [props.isRejectedMode],
+  );
 
   // Handle form submission - only for final step (step 5)
   const handleSubmit = useCallback(
@@ -278,14 +281,14 @@ export default function OCMembershipForm(props = {}) {
         console.log("🔵 OC: Checking Tax ID for:", formData.taxId);
         const taxIdResult = await checkTaxId(formData.taxId);
         console.log("🔍 OC: Tax ID result:", taxIdResult);
-        
+
         if (!taxIdResult.isUnique) {
           console.log("❌ OC: Tax ID NOT valid");
           setErrors((prev) => ({ ...prev, taxId: taxIdResult.message }));
           toast.error(taxIdResult.message);
           return;
         }
-        
+
         console.log("✅ OC: Tax ID is valid, proceeding to next step");
       } else if (currentStep === 1) {
         console.log("⚠️ OC: Step 1 but tax ID is missing or not 13 digits:", formData.taxId);
@@ -319,10 +322,10 @@ export default function OCMembershipForm(props = {}) {
     [handlePrevStep, props.currentStep, setCurrentStep, currentStep],
   );
 
-  const handleSaveDraft = useCallback(
-    createHandleSaveDraft(formData, currentStep),
-    [formData, currentStep]
-  );
+  const handleSaveDraft = useCallback(createHandleSaveDraft(formData, currentStep), [
+    formData,
+    currentStep,
+  ]);
 
   // Wrapper to handle popup
   const handleSaveDraftWithPopup = useCallback(async () => {

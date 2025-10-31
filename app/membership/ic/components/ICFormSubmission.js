@@ -89,10 +89,14 @@ export const submitICMembershipForm = async (formData) => {
   try {
     // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroupId และ provincialChapterId
     if (formData.industrialGroupId && Array.isArray(formData.industrialGroupId)) {
-      formData.industrialGroupId = formData.industrialGroupId.filter(id => id !== "000" && id !== 0);
+      formData.industrialGroupId = formData.industrialGroupId.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
     if (formData.provincialChapterId && Array.isArray(formData.provincialChapterId)) {
-      formData.provincialChapterId = formData.provincialChapterId.filter(id => id !== "000" && id !== 0);
+      formData.provincialChapterId = formData.provincialChapterId.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
 
     const formDataToSubmit = new FormData();

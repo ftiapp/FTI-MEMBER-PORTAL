@@ -422,7 +422,12 @@ export default function MembershipRequestDetail({ params }) {
                   className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-orange-500 hover:bg-orange-600 text-white rounded-lg transition-colors"
                   title="เปลี่ยนประเภทสมาชิก"
                 >
-                  <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="w-4 h-4 sm:w-5 sm:h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -438,7 +443,12 @@ export default function MembershipRequestDetail({ params }) {
                 onClick={handleDownload}
                 className="flex items-center justify-center gap-2 px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors"
               >
-                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4 sm:w-5 sm:h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -484,10 +494,7 @@ export default function MembershipRequestDetail({ params }) {
 
         {/* Conversation History Section */}
         <div className="mt-8">
-          <ConversationHistory 
-            applicationId={id} 
-            membershipType={type} 
-          />
+          <ConversationHistory applicationId={id} membershipType={type} />
         </div>
 
         {/* Reject Modal */}

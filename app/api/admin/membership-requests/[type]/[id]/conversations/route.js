@@ -24,14 +24,14 @@ export async function GET(request, { params }) {
         ORDER BY rejected_at DESC
         LIMIT 1
         `,
-        [type, id]
+        [type, id],
       );
 
       if (!rejectionData.length) {
         return NextResponse.json({
           success: true,
           data: [],
-          message: "ไม่พบข้อมูลการสื่อสาร"
+          message: "ไม่พบข้อมูลการสื่อสาร",
         });
       }
 
@@ -53,30 +53,28 @@ export async function GET(request, { params }) {
         WHERE rejection_id = ?
         ORDER BY created_at ASC
         `,
-        [rejectionId]
+        [rejectionId],
       );
 
       // Parse attachments JSON if exists
-      const processedConversations = conversations.map(conv => ({
+      const processedConversations = conversations.map((conv) => ({
         ...conv,
-        attachments: conv.attachments ? JSON.parse(conv.attachments) : null
+        attachments: conv.attachments ? JSON.parse(conv.attachments) : null,
       }));
 
       return NextResponse.json({
         success: true,
         data: processedConversations,
-        count: processedConversations.length
+        count: processedConversations.length,
       });
-
     } finally {
       connection.release();
     }
-
   } catch (error) {
     console.error("Error fetching conversations:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการดึงข้อมูลการสื่อสาร" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

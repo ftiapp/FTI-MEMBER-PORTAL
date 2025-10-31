@@ -17,7 +17,8 @@ const ApplicationStats = ({ applications, stats, currentStatus = "all", onClickS
     : applications.filter((app) => app.status === STATUS.REJECTED).length;
   const total = hasBackendStats ? overall.total : applications.length;
 
-  const cardBase = "bg-white p-3 sm:p-4 rounded-lg shadow-sm border cursor-pointer transition-colors";
+  const cardBase =
+    "bg-white p-3 sm:p-4 rounded-lg shadow-sm border cursor-pointer transition-colors";
   const isActive = (k) => currentStatus === k;
 
   return (

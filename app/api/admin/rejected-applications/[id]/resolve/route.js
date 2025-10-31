@@ -13,10 +13,7 @@ export async function POST(request, { params }) {
   try {
     const user = await getUserFromSession();
     if (!user || user.role !== "admin") {
-      return NextResponse.json(
-        { success: false, message: "ไม่มีสิทธิ์เข้าถึง" },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: "ไม่มีสิทธิ์เข้าถึง" }, { status: 403 });
     }
 
     const { id } = await params;
@@ -32,7 +29,7 @@ export async function POST(request, { params }) {
         `SELECT membership_type, membership_id, user_id 
          FROM MemberRegist_Reject_DATA 
          WHERE id = ? AND is_active = 1`,
-        [id]
+        [id],
       );
 
       if (!rejectData.length) {
@@ -46,7 +43,7 @@ export async function POST(request, { params }) {
         `UPDATE MemberRegist_Reject_DATA 
          SET status = 1, resolved_at = NOW(), updated_at = NOW() 
          WHERE id = ?`,
-        [id]
+        [id],
       );
 
       // Update main application status to approved (status = 1)
@@ -62,7 +59,7 @@ export async function POST(request, { params }) {
         `UPDATE ${mainTable} 
          SET status = 1, updated_at = NOW() 
          WHERE id = ?`,
-        [reject.membership_id]
+        [reject.membership_id],
       );
 
       // Add conversation message if provided
@@ -71,14 +68,14 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Reject_Conversations 
            (reject_id, sender_type, sender_id, message, is_read, created_at) 
            VALUES (?, 'admin', ?, ?, 0, NOW())`,
-          [id, user.id, message.trim()]
+          [id, user.id, message.trim()],
         );
 
         await connection.execute(
           `UPDATE MemberRegist_Reject_DATA 
            SET last_conversation_at = NOW() 
            WHERE id = ?`,
-          [id]
+          [id],
         );
       }
 
@@ -94,7 +91,7 @@ export async function POST(request, { params }) {
             membershipId: reject.membership_id,
             targetUserId: reject.user_id,
           }),
-        ]
+        ],
       );
 
       await connection.commit();
@@ -111,7 +108,7 @@ export async function POST(request, { params }) {
     console.error("Error resolving rejected application:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการอนุมัติใบสมัคร" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

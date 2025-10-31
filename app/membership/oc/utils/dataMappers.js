@@ -30,7 +30,7 @@ export function mapOCRejectionData(rejectionData) {
     addressesData: addresses,
     contactPersonsData: contactPersons,
     documentsData: documents,
-    signatureNameData: signatureName
+    signatureNameData: signatureName,
   });
 
   const getFileObject = (docUrl) =>
@@ -40,10 +40,11 @@ export function mapOCRejectionData(rejectionData) {
   let productionImages = [];
   if (main.production_process_images) {
     try {
-      const parsed = typeof main.production_process_images === 'string' 
-        ? JSON.parse(main.production_process_images) 
-        : main.production_process_images;
-      productionImages = (Array.isArray(parsed) ? parsed : []).map(url => ({
+      const parsed =
+        typeof main.production_process_images === "string"
+          ? JSON.parse(main.production_process_images)
+          : main.production_process_images;
+      productionImages = (Array.isArray(parsed) ? parsed : []).map((url) => ({
         name: `Existing Image - ${url.split("/").pop()}`,
         url: url,
       }));
@@ -83,10 +84,10 @@ export function mapOCRejectionData(rejectionData) {
     companyEmail: main.company_email || "",
     companyPhone: main.company_phone || "",
     companyPhoneExtension: main.phone_extension || "",
-    
+
     // Address info - use addressesObj for AddressSection component
     addresses: addressesObj,
-    
+
     // Also keep flat fields for backward compatibility
     addressNumber: addresses[0]?.address_number || main.address_number || "",
     street: addresses[0]?.street || main.street || "",
@@ -101,10 +102,13 @@ export function mapOCRejectionData(rejectionData) {
     totalAssets: "", // Not in OC history table
     totalRevenue: main.revenue_last_year ? String(main.revenue_last_year) : "",
     netProfit: "", // Not in OC history table
-    productionCapacity: main.production_capacity_value ? String(main.production_capacity_value) : "",
-    exportSalesRatio: main.sales_export && (main.sales_domestic || main.sales_export) 
-      ? String((main.sales_export / (main.sales_domestic + main.sales_export)) * 100) 
+    productionCapacity: main.production_capacity_value
+      ? String(main.production_capacity_value)
       : "",
+    exportSalesRatio:
+      main.sales_export && (main.sales_domestic || main.sales_export)
+        ? String((main.sales_export / (main.sales_domestic + main.sales_export)) * 100)
+        : "",
     debtToEquityRatio: "", // Not in OC history table
 
     // Representatives
@@ -130,7 +134,7 @@ export function mapOCRejectionData(rejectionData) {
       return acc;
     }, {}),
     otherBusinessTypeDetail: businessTypeOther?.detail || main.other_business_type_detail || "",
-    
+
     // Products
     products: products.map((p, index) => ({
       id: p.id || null,
@@ -149,35 +153,49 @@ export function mapOCRejectionData(rejectionData) {
       .filter((id) => id && id !== "000" && id !== 0),
 
     // Documents - map from documents history table
-    companyRegistration: documents.find(d => d.document_type === 'company_registration')
-      ? { 
-          name: documents.find(d => d.document_type === 'company_registration').file_name,
-          url: documents.find(d => d.document_type === 'company_registration').cloudinary_url || documents.find(d => d.document_type === 'company_registration').file_path
+    companyRegistration: documents.find((d) => d.document_type === "company_registration")
+      ? {
+          name: documents.find((d) => d.document_type === "company_registration").file_name,
+          url:
+            documents.find((d) => d.document_type === "company_registration").cloudinary_url ||
+            documents.find((d) => d.document_type === "company_registration").file_path,
         }
       : getFileObject(main.company_registration_doc),
-    factoryLicense: documents.find(d => d.document_type === 'factory_license')
+    factoryLicense: documents.find((d) => d.document_type === "factory_license")
       ? {
-          name: documents.find(d => d.document_type === 'factory_license').file_name,
-          url: documents.find(d => d.document_type === 'factory_license').cloudinary_url || documents.find(d => d.document_type === 'factory_license').file_path
+          name: documents.find((d) => d.document_type === "factory_license").file_name,
+          url:
+            documents.find((d) => d.document_type === "factory_license").cloudinary_url ||
+            documents.find((d) => d.document_type === "factory_license").file_path,
         }
       : getFileObject(main.factory_license_doc),
-    industrialEstateLicense: documents.find(d => d.document_type === 'industrial_estate_license')
+    industrialEstateLicense: documents.find((d) => d.document_type === "industrial_estate_license")
       ? {
-          name: documents.find(d => d.document_type === 'industrial_estate_license').file_name,
-          url: documents.find(d => d.document_type === 'industrial_estate_license').cloudinary_url || documents.find(d => d.document_type === 'industrial_estate_license').file_path
+          name: documents.find((d) => d.document_type === "industrial_estate_license").file_name,
+          url:
+            documents.find((d) => d.document_type === "industrial_estate_license").cloudinary_url ||
+            documents.find((d) => d.document_type === "industrial_estate_license").file_path,
         }
       : getFileObject(main.industrial_estate_license_doc),
-    productionImages: documents.filter(d => d.document_type === 'production_image').map(d => ({
-      name: d.file_name,
-      url: d.cloudinary_url || d.file_path
-    })).concat(productionImages),
-    
+    productionImages: documents
+      .filter((d) => d.document_type === "production_image")
+      .map((d) => ({
+        name: d.file_name,
+        url: d.cloudinary_url || d.file_path,
+      }))
+      .concat(productionImages),
+
     // Authorized Signatory Info - use signatureName if available, fallback to main
-    authorizedSignatoryPrenameTh: signatureName?.prename_th || main.authorized_signatory_prename_th || "",
-    authorizedSignatoryPrenameOther: signatureName?.prename_other || main.authorized_signatory_prename_other || "",
-    authorizedSignatoryFirstNameTh: signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
-    authorizedSignatoryLastNameTh: signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
-    authorizedSignatoryPositionTh: signatureName?.position_th || main.authorized_signatory_position_th || "",
+    authorizedSignatoryPrenameTh:
+      signatureName?.prename_th || main.authorized_signatory_prename_th || "",
+    authorizedSignatoryPrenameOther:
+      signatureName?.prename_other || main.authorized_signatory_prename_other || "",
+    authorizedSignatoryFirstNameTh:
+      signatureName?.first_name_th || main.authorized_signatory_first_name_th || "",
+    authorizedSignatoryLastNameTh:
+      signatureName?.last_name_th || main.authorized_signatory_last_name_th || "",
+    authorizedSignatoryPositionTh:
+      signatureName?.position_th || main.authorized_signatory_position_th || "",
 
     // Contact Persons - use field names that match OC form validation
     contactPersons: contactPersons.map((cp, idx) => ({
@@ -205,7 +223,7 @@ export function mapOCRejectionData(rejectionData) {
     street: result.street,
     province: result.province,
     contactPersonsCount: result.contactPersons.length,
-    contactPersonsSample: result.contactPersons[0]
+    contactPersonsSample: result.contactPersons[0],
   });
 
   return result;

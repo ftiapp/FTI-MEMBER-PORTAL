@@ -22,7 +22,7 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit")) || 5;
     const offset = (page - 1) * limit;
 
-    console.log('🔍 Fetching submitted applications - Page:', page, 'Limit:', limit);
+    console.log("🔍 Fetching submitted applications - Page:", page, "Limit:", limit);
 
     const allApplications = [];
 
@@ -49,7 +49,7 @@ export async function GET(request) {
       `;
 
       const icResults = await query(icQuery, [userId]);
-      console.log('📊 IC applications found:', icResults.length);
+      console.log("📊 IC applications found:", icResults.length);
 
       // Don't fetch additional data yet - just add to list
       allApplications.push(...icResults);
@@ -75,7 +75,7 @@ export async function GET(request) {
       `;
 
       const ocResults = await query(ocQuery, [userId]);
-      console.log('📊 OC applications found:', ocResults.length);
+      console.log("📊 OC applications found:", ocResults.length);
 
       // Don't fetch additional data yet - just add to list
       allApplications.push(...ocResults);
@@ -105,7 +105,7 @@ export async function GET(request) {
       `;
 
       const acResults = await query(acQuery, [userId]);
-      console.log('📊 AC applications found:', acResults.length);
+      console.log("📊 AC applications found:", acResults.length);
 
       // Don't fetch additional data yet - just add to list
       allApplications.push(...acResults);
@@ -136,7 +136,7 @@ export async function GET(request) {
       `;
 
       const amResults = await query(amQuery, [userId]);
-      console.log('📊 AM applications found:', amResults.length);
+      console.log("📊 AM applications found:", amResults.length);
 
       // Don't fetch additional data yet - just add to list
       allApplications.push(...amResults);
@@ -150,12 +150,24 @@ export async function GET(request) {
     // Apply pagination FIRST
     const totalItems = allApplications.length;
     const paginatedApplications = allApplications.slice(offset, offset + limit);
-    
-    console.log('✂️ Paginated:', paginatedApplications.length, 'out of', totalItems, 'total applications');
-    console.log('⚡ Performance: Reduced queries from', totalItems * 6, 'to', paginatedApplications.length * 0, '(no detail queries needed for list view)');
 
-    console.log('✅ Returning', paginatedApplications.length, 'applications');
-    
+    console.log(
+      "✂️ Paginated:",
+      paginatedApplications.length,
+      "out of",
+      totalItems,
+      "total applications",
+    );
+    console.log(
+      "⚡ Performance: Reduced queries from",
+      totalItems * 6,
+      "to",
+      paginatedApplications.length * 0,
+      "(no detail queries needed for list view)",
+    );
+
+    console.log("✅ Returning", paginatedApplications.length, "applications");
+
     return NextResponse.json({
       success: true,
       applications: paginatedApplications,

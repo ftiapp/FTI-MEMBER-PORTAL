@@ -392,7 +392,7 @@ export async function POST(request, { params }) {
       // Get current status and user_id from the main table
       const [appRows] = await connection.execute(
         `SELECT status, user_id FROM ${tableName} WHERE id = ?`,
-        [id]
+        [id],
       );
 
       if (appRows.length === 0) {
@@ -404,7 +404,7 @@ export async function POST(request, { params }) {
 
       // Create history snapshot FIRST
       console.log(`📸 Creating history snapshot for ${type} ${id}`);
-      const historyId = await createSnapshot(connection, type, id, 'rejection', adminData.id);
+      const historyId = await createSnapshot(connection, type, id, "rejection", adminData.id);
       console.log(`✅ History snapshot created: ${historyId}`);
 
       // Update Main table with rejection info
@@ -415,7 +415,7 @@ export async function POST(request, { params }) {
              rejected_by = ?,
              rejected_at = NOW()
          WHERE id = ?`,
-        [rejectionReason, adminData.id, id]
+        [rejectionReason, adminData.id, id],
       );
 
       // Create rejection record in MemberRegist_Rejections
@@ -424,7 +424,7 @@ export async function POST(request, { params }) {
           user_id, membership_type, membership_id, history_snapshot_id,
           rejected_by, rejection_reason, status
         ) VALUES (?, ?, ?, ?, ?, ?, 'pending_fix')`,
-        [userId, type, id, historyId, adminData.id, rejectionReason]
+        [userId, type, id, historyId, adminData.id, rejectionReason],
       );
 
       const rejectionId = rejectionResult.insertId;
@@ -436,14 +436,14 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Rejection_Conversations (
             rejection_id, sender_type, sender_id, message
           ) VALUES (?, 'admin', ?, ?)`,
-          [rejectionId, adminData.id, rejectionReason.trim()]
+          [rejectionId, adminData.id, rejectionReason.trim()],
         );
 
         await connection.execute(
           `UPDATE MemberRegist_Rejections 
            SET last_conversation_at = NOW(), unread_member_count = 1
            WHERE id = ?`,
-          [rejectionId]
+          [rejectionId],
         );
       }
 
@@ -453,10 +453,9 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Rejection_Conversations (
             rejection_id, sender_type, sender_id, message
           ) VALUES (?, 'admin', ?, ?)`,
-          [rejectionId, adminData.id, adminNote.trim()]
+          [rejectionId, adminData.id, adminNote.trim()],
         );
       }
-
 
       // Fetch applicant details for email notification and description
       let email = "";

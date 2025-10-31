@@ -12,7 +12,9 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
     >
-      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">ตรวจสอบข้อมูลและเอกสารทั้งหมด</h3>
+      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-3 sm:mb-4">
+        ตรวจสอบข้อมูลและเอกสารทั้งหมด
+      </h3>
 
       <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
         <p className="text-sm text-blue-700">
@@ -32,10 +34,14 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
           >
             <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200">
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                <span className="font-medium text-gray-900 text-sm sm:text-base">{company.memberNumber}</span>
+                <span className="font-medium text-gray-900 text-sm sm:text-base">
+                  {company.memberNumber}
+                </span>
                 <span className="text-xs sm:text-sm text-gray-500">({company.memberType})</span>
               </div>
-              <h4 className="text-sm sm:text-md font-medium text-gray-800 mt-1">{company.companyName}</h4>
+              <h4 className="text-sm sm:text-md font-medium text-gray-800 mt-1">
+                {company.companyName}
+              </h4>
             </div>
 
             <div className="p-3 sm:p-4">
@@ -58,7 +64,10 @@ const ReviewStep = ({ companies, onSubmit, onBack, isSubmitting, onViewDocument 
                           ? company.documentFile
                           : company.documentFile.name}
                       </span>
-                      <FaEye className="ml-1 sm:ml-2 text-green-600 flex-shrink-0" title="ดูเอกสาร" />
+                      <FaEye
+                        className="ml-1 sm:ml-2 text-green-600 flex-shrink-0"
+                        title="ดูเอกสาร"
+                      />
                     </div>
                   ) : (
                     <div className="flex items-center text-sm text-red-600">

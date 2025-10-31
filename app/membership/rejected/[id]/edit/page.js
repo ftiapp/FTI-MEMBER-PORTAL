@@ -50,16 +50,19 @@ export default function EditRejectedApplication() {
 
       if (result.success) {
         setRejectedApp(result.data);
-        
+
         // Map rejection data to form data based on membership type
         if (result.data.rejectionData) {
           console.log("📦 Raw rejectionData from API:", result.data.rejectionData);
-          const mapped = mapRejectionDataToForm(result.data.membershipType, result.data.rejectionData);
+          const mapped = mapRejectionDataToForm(
+            result.data.membershipType,
+            result.data.rejectionData,
+          );
           console.log("🎯 Mapped formData:", mapped);
           console.log("📍 Address fields:", {
             addressNumber: mapped.addressNumber,
             street: mapped.street,
-            province: mapped.province
+            province: mapped.province,
           });
           console.log("👥 ContactPersons:", mapped.contactPersons);
           setFormData(mapped);
@@ -286,7 +289,7 @@ export default function EditRejectedApplication() {
         <div className="py-8">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             {/* Rejection Header */}
-            <RejectedApplicationHeader 
+            <RejectedApplicationHeader
               rejectedApp={rejectedApp}
               membershipTypeLabel={getMembershipTypeLabel(rejectedApp.membershipType)}
             />
@@ -299,9 +302,7 @@ export default function EditRejectedApplication() {
               className="mb-8"
             >
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  ประวัติการสื่อสาร
-                </h2>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">ประวัติการสื่อสาร</h2>
                 <p className="text-gray-600 mb-6">
                   ข้อมูลการติดต่อระหว่างผู้สมัครและฝ่ายทะเบียนสมาชิก
                 </p>
@@ -310,7 +311,7 @@ export default function EditRejectedApplication() {
             </motion.div>
 
             {/* Form - Single Page View */}
-            <RejectedApplicationFormSinglePage 
+            <RejectedApplicationFormSinglePage
               membershipType={rejectedApp.membershipType}
               formData={formData}
               setFormData={setFormData}
@@ -318,7 +319,7 @@ export default function EditRejectedApplication() {
             />
 
             {/* Actions */}
-            <RejectedActions 
+            <RejectedActions
               rejectionId={rejectedApp.rejectId}
               membershipType={rejectedApp.membershipType}
               status={rejectedApp.status}

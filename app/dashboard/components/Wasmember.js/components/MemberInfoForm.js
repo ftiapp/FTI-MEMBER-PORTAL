@@ -125,7 +125,9 @@ export default function MemberInfoForm({
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">ประเภทสมาชิก</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1 sm:mb-2">
+              ประเภทสมาชิก
+            </label>
             <select
               name="memberType"
               value={formData.memberType}

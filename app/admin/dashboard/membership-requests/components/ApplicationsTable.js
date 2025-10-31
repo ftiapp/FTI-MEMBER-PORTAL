@@ -60,15 +60,18 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
               const isIC = app.type === "ic";
 
               // Debug: Log approved data for AM records
-              if (app.type === 'am' && app.status === 1) {
-                console.log('=== Frontend DEBUG: AM Record ===');
-                console.log('App data:', JSON.stringify(app, null, 2));
-                console.log('approvedByAdminName:', app.approvedByAdminName);
-                console.log('mainApprovedBy:', app.mainApprovedBy);
+              if (app.type === "am" && app.status === 1) {
+                console.log("=== Frontend DEBUG: AM Record ===");
+                console.log("App data:", JSON.stringify(app, null, 2));
+                console.log("approvedByAdminName:", app.approvedByAdminName);
+                console.log("mainApprovedBy:", app.mainApprovedBy);
               }
 
               return (
-                <tr key={`${app.type}-${app.id}-${app.status}-${app.createdAt || app.id}-${index}`} className="hover:bg-blue-50">
+                <tr
+                  key={`${app.type}-${app.id}-${app.status}-${app.createdAt || app.id}-${index}`}
+                  className="hover:bg-blue-50"
+                >
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <button
                       onClick={() => handleViewDetails(app.type, app.id)}
@@ -97,14 +100,14 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
                     </div>
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
-                    <div className="text-blue-800 font-mono">
-                      {isIC ? app.idCard : app.taxId}
-                    </div>
+                    <div className="text-blue-800 font-mono">{isIC ? app.idCard : app.taxId}</div>
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
                     <div className="max-w-xs">
                       <div className="text-gray-900 truncate">{app.email}</div>
-                      {app.phone && <div className="text-xs sm:text-sm text-gray-500">{app.phone}</div>}
+                      {app.phone && (
+                        <div className="text-xs sm:text-sm text-gray-500">{app.phone}</div>
+                      )}
                     </div>
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
@@ -125,7 +128,9 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                     <div className="text-gray-900">
                       {app.mainApprovedAt ? (
-                        <div className="text-xs text-gray-900">{formatThaiDate(app.mainApprovedAt)}</div>
+                        <div className="text-xs text-gray-900">
+                          {formatThaiDate(app.mainApprovedAt)}
+                        </div>
                       ) : (
                         "-"
                       )}

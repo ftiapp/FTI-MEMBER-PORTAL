@@ -1,12 +1,8 @@
-// Use dynamic import to avoid module parsing issues
-let mysql;
+// Use static import for better Next.js compatibility
+import mysql from "mysql2/promise";
 
-// Initialize mysql connection dynamically
+// Initialize mysql connection
 const initMysql = async () => {
-  if (!mysql) {
-    mysql = await import("mysql2/promise");
-    mysql = mysql.default || mysql;
-  }
   return mysql;
 };
 

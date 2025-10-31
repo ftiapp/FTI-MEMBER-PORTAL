@@ -8,7 +8,7 @@ import { submitICMembershipForm } from "@/app/membership/ic/components/ICFormSub
 
 /**
  * RESUBMIT API v2 - No Reject_DATA
- * 
+ *
  * Flow:
  * 1. Verify old application is rejected (status = 2)
  * 2. Submit NEW application
@@ -24,18 +24,12 @@ export async function POST(request, { params }) {
     const { formData, userComment } = body;
 
     if (!formData) {
-      return NextResponse.json(
-        { success: false, message: "ข้อมูลไม่ครบถ้วน" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "ข้อมูลไม่ครบถ้วน" }, { status: 400 });
     }
 
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -54,7 +48,7 @@ export async function POST(request, { params }) {
       const [oldApp] = await connection.execute(
         `SELECT id, version, status FROM ${mainTable} 
          WHERE id = ? AND user_id = ? AND status = 2 AND is_archived = 0`,
-        [id, user.id]
+        [id, user.id],
       );
 
       if (!oldApp.length) {
@@ -72,7 +66,7 @@ export async function POST(request, { params }) {
       };
 
       let submitResult;
-      
+
       if (type === "ac") {
         submitResult = await submitACMembershipForm(enhancedFormData);
       } else if (type === "oc") {
@@ -98,7 +92,7 @@ export async function POST(request, { params }) {
              resubmitted_at = NOW(),
              status = 3
          WHERE id = ?`,
-        [id]
+        [id],
       );
 
       // 4. Add user comment if provided
@@ -107,7 +101,7 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Comments 
            (membership_type, membership_id, user_id, comment_type, comment_text)
            VALUES (?, ?, ?, ?, ?)`,
-          [type, newMembershipId, user.id, "user_resubmit", userComment]
+          [type, newMembershipId, user.id, "user_resubmit", userComment],
         );
       }
 
@@ -122,12 +116,10 @@ export async function POST(request, { params }) {
           version: newVersion,
         },
       });
-
     } catch (error) {
       await connection.rollback();
       throw error;
     }
-
   } catch (error) {
     console.error("Error resubmitting application:", error);
     return NextResponse.json(
@@ -135,7 +127,7 @@ export async function POST(request, { params }) {
         success: false,
         message: error.message || "ไม่สามารถส่งใบสมัครใหม่ได้",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

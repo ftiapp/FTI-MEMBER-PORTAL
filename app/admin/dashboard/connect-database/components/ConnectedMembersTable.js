@@ -84,7 +84,7 @@ function ConnectedMembersTable({
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMemberTypeColorClasses(
-                          row.member_type
+                          row.member_type,
                         )}`}
                       >
                         {getMemberTypeDescription(row.member_type)}
@@ -125,8 +125,7 @@ function ConnectedMembersTable({
       {pagination.totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-gray-600">
-            หน้า {pagination.page} / {pagination.totalPages} • ทั้งหมด {pagination.total}{" "}
-            รายการ
+            หน้า {pagination.page} / {pagination.totalPages} • ทั้งหมด {pagination.total} รายการ
           </div>
           <div className="space-x-2">
             <button

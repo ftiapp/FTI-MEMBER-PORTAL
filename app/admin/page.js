@@ -78,11 +78,11 @@ export default function AdminLogin() {
   // Load saved credentials from localStorage
   const loadSavedCredentials = () => {
     try {
-      const savedUsername = localStorage.getItem('admin_remember_username');
-      const savedPassword = localStorage.getItem('admin_remember_password');
-      const savedRemember = localStorage.getItem('admin_remember_me');
+      const savedUsername = localStorage.getItem("admin_remember_username");
+      const savedPassword = localStorage.getItem("admin_remember_password");
+      const savedRemember = localStorage.getItem("admin_remember_me");
 
-      if (savedRemember === 'true' && savedUsername && savedPassword) {
+      if (savedRemember === "true" && savedUsername && savedPassword) {
         setFormData({
           username: decryptCredential(savedUsername),
           password: decryptCredential(savedPassword),
@@ -90,7 +90,7 @@ export default function AdminLogin() {
         setRememberMe(true);
       }
     } catch (error) {
-      console.error('Error loading saved credentials:', error);
+      console.error("Error loading saved credentials:", error);
     }
   };
 
@@ -98,17 +98,17 @@ export default function AdminLogin() {
   const saveCredentials = () => {
     try {
       if (rememberMe) {
-        localStorage.setItem('admin_remember_username', encryptCredential(formData.username));
-        localStorage.setItem('admin_remember_password', encryptCredential(formData.password));
-        localStorage.setItem('admin_remember_me', 'true');
+        localStorage.setItem("admin_remember_username", encryptCredential(formData.username));
+        localStorage.setItem("admin_remember_password", encryptCredential(formData.password));
+        localStorage.setItem("admin_remember_me", "true");
       } else {
         // Clear saved credentials if unchecked
-        localStorage.removeItem('admin_remember_username');
-        localStorage.removeItem('admin_remember_password');
-        localStorage.removeItem('admin_remember_me');
+        localStorage.removeItem("admin_remember_username");
+        localStorage.removeItem("admin_remember_password");
+        localStorage.removeItem("admin_remember_me");
       }
     } catch (error) {
-      console.error('Error saving credentials:', error);
+      console.error("Error saving credentials:", error);
     }
   };
 
@@ -249,7 +249,7 @@ export default function AdminLogin() {
       if (result.success) {
         // Save credentials if remember me is checked
         saveCredentials();
-        
+
         toast.success("เข้าสู่ระบบสำเร็จ");
         // Redirect based on admin level with smooth transition
         if (result.adminLevel === 5) {
@@ -471,7 +471,10 @@ export default function AdminLogin() {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 text-[#1e3a8a] focus:ring-[#1e3a8a] border-gray-300 rounded cursor-pointer"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 cursor-pointer">
+              <label
+                htmlFor="remember-me"
+                className="ml-2 block text-sm text-gray-700 cursor-pointer"
+              >
                 จดจำฉัน
               </label>
             </div>

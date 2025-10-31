@@ -3,6 +3,7 @@
 ## สรุปการเปลี่ยนแปลง
 
 เมื่อแก้ไขข้อมูลในแต่ละกล่อง (Section) และกดบันทึก ระบบจะ:
+
 1. ✅ บันทึกข้อมูลไปยัง API
 2. ✅ ดึงข้อมูลล่าสุดจาก Server กลับมาอัตโนมัติ
 3. ✅ อัปเดตเฉพาะกล่องที่แก้ไขโดยไม่ต้อง Refresh ทั้งหน้า
@@ -11,9 +12,11 @@
 ## ไฟล์ที่แก้ไข
 
 ### 1. DetailView.js
+
 **ตำแหน่ง:** `app/admin/dashboard/membership-requests/[type]/[id]/components/DetailView.js`
 
 **การเปลี่ยนแปลง:**
+
 - เพิ่มการ Refetch ข้อมูลจาก Server หลังจากบันทึกสำเร็จ
 - ใช้ `updateApplication()` เพื่ออัปเดต State ด้วยข้อมูลล่าสุด
 
@@ -21,11 +24,11 @@
 // หลังจากบันทึกสำเร็จ
 if (result && result.success) {
   console.log("✅ DEBUG: Section update succeeded");
-  
+
   // Refetch ข้อมูลจาก Server
   console.log("🔄 DEBUG: Refetching section data from server...");
   const refetchResponse = await fetch(`/api/admin/membership-requests/${type}/${application.id}`);
-  
+
   if (refetchResponse.ok) {
     const refetchData = JSON.parse(await refetchResponse.text());
     if (refetchData.success && refetchData.data) {
@@ -38,9 +41,11 @@ if (result && result.success) {
 ```
 
 ### 2. useApplicationData.js
+
 **ตำแหน่ง:** `app/admin/dashboard/membership-requests/hooks/useApplicationData.js`
 
 **การเปลี่ยนแปลง:**
+
 - ปรับปรุง `updateApplication()` ให้รองรับทั้ง Partial Update และ Full Data Replacement
 - ใช้ `normalizeApplicationData()` เพื่อให้ข้อมูลมีรูปแบบเดียวกัน
 
@@ -51,13 +56,13 @@ const updateApplication = (updates) => {
       // ถ้าไม่มีข้อมูลเดิม ให้ Normalize ข้อมูลใหม่
       return normalizeApplicationData(updates, type);
     }
-    
+
     // ตรวจสอบว่าเป็น Full Data Replacement หรือ Partial Update
     if (updates.id && updates.id === prev.id) {
       // Full Data Replacement - Normalize ข้อมูล
       return normalizeApplicationData(updates, type);
     }
-    
+
     // Partial Update - Merge กับข้อมูลเดิม
     return { ...prev, ...updates };
   });
@@ -65,9 +70,11 @@ const updateApplication = (updates) => {
 ```
 
 ### 3. CompanyInfoSection.js
+
 **ตำแหน่ง:** `app/admin/dashboard/membership-requests/components/sections/CompanyInfoSection.js`
 
 **การเปลี่ยนแปลง:**
+
 - เพิ่ม State `isSaving` เพื่อแสดงสถานะการบันทึก
 - อัปเดตปุ่มบันทึกให้แสดง Loading Spinner
 - Disable ปุ่มขณะกำลังบันทึก
@@ -89,6 +96,7 @@ const handleSave = async () => {
 ```
 
 **ปุ่มบันทึก:**
+
 ```jsx
 <button
   onClick={handleSave}
@@ -110,9 +118,11 @@ const handleSave = async () => {
 ```
 
 ### 4. BusinessTypesSection.js
+
 **ตำแหน่ง:** `app/admin/dashboard/membership-requests/components/sections/BusinessTypesSection.js`
 
 **การเปลี่ยนแปลง:**
+
 - เพิ่ม State `isSaving` และ Loading UI เหมือน CompanyInfoSection
 - เพิ่ม Error Handling ใน `handleSave()`
 
@@ -153,11 +163,13 @@ const handleSave = async () => {
 หากต้องการเพิ่ม Loading State ให้ Section อื่นๆ ทำตามขั้นตอนนี้:
 
 ### 1. เพิ่ม State
+
 ```javascript
 const [isSaving, setIsSaving] = useState(false);
 ```
 
 ### 2. อัปเดต handleSave
+
 ```javascript
 const handleSave = async () => {
   setIsSaving(true);
@@ -173,6 +185,7 @@ const handleSave = async () => {
 ```
 
 ### 3. อัปเดตปุ่มบันทึก
+
 ```jsx
 <button
   onClick={handleSave}
@@ -181,9 +194,25 @@ const handleSave = async () => {
 >
   {isSaving ? (
     <>
-      <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      <svg
+        className="animate-spin h-4 w-4"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        ></circle>
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
       </svg>
       กำลังบันทึก...
     </>

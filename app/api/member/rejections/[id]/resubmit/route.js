@@ -17,10 +17,7 @@ export async function POST(request, { params }) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     const { id } = await params;
@@ -34,7 +31,7 @@ export async function POST(request, { params }) {
       // Get rejection info
       const [rejections] = await connection.execute(
         `SELECT * FROM MemberRegist_Rejections WHERE id = ? AND user_id = ?`,
-        [id, user.id]
+        [id, user.id],
       );
 
       if (!rejections.length) {
@@ -47,18 +44,18 @@ export async function POST(request, { params }) {
       // Update application data if formData provided
       if (formData) {
         console.log(`📝 Updating ${membership_type} application ${membership_id}`);
-        
+
         switch (membership_type) {
-          case 'oc':
+          case "oc":
             await updateOCApplication(membership_id, formData, user.id, id, userComment);
             break;
-          case 'ac':
+          case "ac":
             await updateACApplication(membership_id, formData, user.id, id, userComment);
             break;
-          case 'am':
+          case "am":
             await updateAMApplication(membership_id, formData, user.id, id, userComment);
             break;
-          case 'ic':
+          case "ic":
             await updateICApplication(membership_id, formData, user.id, id, userComment);
             break;
           default:
@@ -68,7 +65,13 @@ export async function POST(request, { params }) {
 
       // Create new history snapshot for resubmission
       console.log(`📸 Creating resubmission snapshot for ${membership_type} ${membership_id}`);
-      const newHistoryId = await createSnapshot(connection, membership_type, membership_id, 'resubmission', user.id);
+      const newHistoryId = await createSnapshot(
+        connection,
+        membership_type,
+        membership_id,
+        "resubmission",
+        user.id,
+      );
       console.log(`✅ Resubmission snapshot created: ${newHistoryId}`);
 
       // Update main table status back to pending (0)
@@ -86,7 +89,7 @@ export async function POST(request, { params }) {
              resubmitted_at = NOW(),
              updated_at = NOW()
          WHERE id = ?`,
-        [membership_id]
+        [membership_id],
       );
 
       // Update rejection record
@@ -96,7 +99,7 @@ export async function POST(request, { params }) {
              history_snapshot_id = ?,
              updated_at = NOW()
          WHERE id = ?`,
-        [newHistoryId, id]
+        [newHistoryId, id],
       );
 
       // Add conversation message if provided
@@ -105,14 +108,14 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_Rejection_Conversations 
            (rejection_id, sender_type, sender_id, message) 
            VALUES (?, 'member', ?, ?)`,
-          [id, user.id, userComment.trim()]
+          [id, user.id, userComment.trim()],
         );
 
         await connection.execute(
           `UPDATE MemberRegist_Rejections 
            SET last_conversation_at = NOW(), unread_admin_count = unread_admin_count + 1
            WHERE id = ?`,
-          [id]
+          [id],
         );
       }
 
@@ -129,7 +132,7 @@ export async function POST(request, { params }) {
             newHistorySnapshotId: newHistoryId,
             resubmissionCount: rejection.resubmission_count + 1,
           }),
-        ]
+        ],
       );
 
       await connection.commit();
@@ -153,7 +156,7 @@ export async function POST(request, { params }) {
     console.error("Error resubmitting application:", error);
     return NextResponse.json(
       { success: false, message: error.message || "เกิดข้อผิดพลาดในการส่งใบสมัครใหม่" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

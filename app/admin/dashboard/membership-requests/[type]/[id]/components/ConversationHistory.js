@@ -17,9 +17,9 @@ export default function ConversationHistory({ applicationId, membershipType }) {
     try {
       setLoading(true);
       const response = await fetch(
-        `/api/admin/membership-requests/${membershipType}/${applicationId}/conversations`
+        `/api/admin/membership-requests/${membershipType}/${applicationId}/conversations`,
       );
-      
+
       if (response.ok) {
         const data = await response.json();
         setConversations(data.data || []);

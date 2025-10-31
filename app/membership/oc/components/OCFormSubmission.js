@@ -9,10 +9,12 @@ export async function submitOCMembershipForm(data) {
 
     // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroupIds และ provincialChapterIds
     if (data.industrialGroupIds && Array.isArray(data.industrialGroupIds)) {
-      data.industrialGroupIds = data.industrialGroupIds.filter(id => id !== "000" && id !== 0);
+      data.industrialGroupIds = data.industrialGroupIds.filter((id) => id !== "000" && id !== 0);
     }
     if (data.provincialChapterIds && Array.isArray(data.provincialChapterIds)) {
-      data.provincialChapterIds = data.provincialChapterIds.filter(id => id !== "000" && id !== 0);
+      data.provincialChapterIds = data.provincialChapterIds.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
 
     // Helper to append data, handles files, arrays, and objects

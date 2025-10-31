@@ -621,14 +621,14 @@ export async function POST(request) {
 
       if (idcardFromData) {
         // ลบ draft ทั้งหมดที่ใช้ id card เดียวกันในทุกประเภทสมาชิกและทุก user
-        const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
-        
+        const allMemberTypes = ["ic", "oc", "am", "ac"];
+
         for (const memberType of allMemberTypes) {
           const deleteDraftQuery =
             memberType === "ic"
               ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
               : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
-          
+
           const deleteResult = await executeQuery(trx, deleteDraftQuery, [idcardFromData]);
           console.log(
             `✅ Deleted ALL drafts for ${memberType} by idcard: ${idcardFromData}, affected rows: ${deleteResult.affectedRows || 0} (all users)`,
@@ -693,7 +693,7 @@ export async function POST(request) {
     // Create history snapshot for initial submission
     try {
       console.log(`📸 Creating initial submission snapshot for IC ${icMemberId}`);
-      const historyId = await createSnapshot(trx, 'ic', icMemberId, 'manual', userId);
+      const historyId = await createSnapshot(trx, "ic", icMemberId, "manual", userId);
       console.log(`✅ IC initial submission snapshot created: ${historyId}`);
     } catch (snapshotError) {
       console.error("❌ Error creating history snapshot:", snapshotError);

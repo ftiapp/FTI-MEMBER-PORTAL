@@ -101,18 +101,26 @@ export const submitACMembershipForm = async (data) => {
 
     // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroups และ industrialGroupIds
     if (mappedData.industrialGroups && Array.isArray(mappedData.industrialGroups)) {
-      mappedData.industrialGroups = mappedData.industrialGroups.filter(id => id !== "000" && id !== 0);
+      mappedData.industrialGroups = mappedData.industrialGroups.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
     if (mappedData.industrialGroupIds && Array.isArray(mappedData.industrialGroupIds)) {
-      mappedData.industrialGroupIds = mappedData.industrialGroupIds.filter(id => id !== "000" && id !== 0);
+      mappedData.industrialGroupIds = mappedData.industrialGroupIds.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
 
     // กรอง "000" (ไม่ระบุ) ออกจาก provincialChapters และ provincialChapterIds
     if (mappedData.provincialChapters && Array.isArray(mappedData.provincialChapters)) {
-      mappedData.provincialChapters = mappedData.provincialChapters.filter(id => id !== "000" && id !== 0);
+      mappedData.provincialChapters = mappedData.provincialChapters.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
     if (mappedData.provincialChapterIds && Array.isArray(mappedData.provincialChapterIds)) {
-      mappedData.provincialChapterIds = mappedData.provincialChapterIds.filter(id => id !== "000" && id !== 0);
+      mappedData.provincialChapterIds = mappedData.provincialChapterIds.filter(
+        (id) => id !== "000" && id !== 0,
+      );
     }
 
     // ตรวจสอบว่ามีข้อมูลชื่อกลุ่มอุตสาหกรรมหรือไม่

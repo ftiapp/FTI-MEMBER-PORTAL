@@ -24,12 +24,12 @@ export const createFileObject = (file) => {
  */
 export const hasFile = (fileObj) => {
   if (!fileObj) return false;
-  
+
   // Handle File objects directly
   if (fileObj instanceof File) {
     return true;
   }
-  
+
   // Handle wrapped file objects
   return !!(fileObj.file || fileObj.name || fileObj.url);
 };
@@ -41,21 +41,21 @@ export const hasFile = (fileObj) => {
  */
 export const getFileName = (fileObj) => {
   if (!fileObj) return "";
-  
+
   // Handle File objects directly
   if (fileObj instanceof File) {
     return fileObj.name;
   }
-  
+
   // Handle wrapped file objects
   if (fileObj.name) {
     return fileObj.name;
   }
-  
+
   if (fileObj.file && fileObj.file.name) {
     return fileObj.file.name;
   }
-  
+
   // Handle URL strings
   if (typeof fileObj === "string") {
     try {
@@ -64,7 +64,7 @@ export const getFileName = (fileObj) => {
       return "ไฟล์ที่อัปโหลด";
     }
   }
-  
+
   return "ไฟล์ที่อัปโหลด";
 };
 
@@ -75,9 +75,9 @@ export const getFileName = (fileObj) => {
  */
 export const getFileSize = (fileObj) => {
   if (!fileObj) return "";
-  
+
   let size;
-  
+
   // Handle File objects directly
   if (fileObj instanceof File) {
     size = fileObj.size;
@@ -85,11 +85,11 @@ export const getFileSize = (fileObj) => {
     // Handle wrapped file objects
     size = fileObj.size || (fileObj.file && fileObj.file.size);
   }
-  
+
   if (!size) return "ไฟล์ถูกอัปโหลดแล้ว";
-  
+
   if (size === 0) return "0 B";
-  
+
   const i = Math.floor(Math.log(size) / Math.log(1024));
   return `${parseFloat((size / Math.pow(1024, i)).toFixed(2))} ${["B", "KB", "MB", "GB", "TB"][i]}`;
 };
@@ -127,7 +127,7 @@ export const viewFile = (fileOrUrl) => {
       const w = window.open("");
       if (w && w.document) {
         w.document.write(
-          `<body style="margin:0; background:#222;"><img src="${url}" style="width:100%; height:auto; max-width:100vw; max-height:100vh; object-fit:contain; margin:auto; display:block;"></body>`
+          `<body style="margin:0; background:#222;"><img src="${url}" style="width:100%; height:auto; max-width:100vw; max-height:100vh; object-fit:contain; margin:auto; display:block;"></body>`,
         );
       }
     } else {

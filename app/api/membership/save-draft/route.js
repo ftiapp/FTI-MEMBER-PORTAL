@@ -155,17 +155,17 @@ export async function POST(request) {
     }
 
     // ตรวจสอบว่ามี draft อยู่แล้วหรือไม่ (ตรวจสอบข้ามทุกประเภทสมาชิก)
-    const allMemberTypes = ['ic', 'oc', 'am', 'ac'];
+    const allMemberTypes = ["ic", "oc", "am", "ac"];
     let existingDraft = null;
     let existingMemberType = null;
-    
+
     for (const type of allMemberTypes) {
       const checkQuery =
         type === "ic"
           ? `SELECT id, user_id FROM MemberRegist_${type.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
           : `SELECT id, user_id FROM MemberRegist_${type.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
       const draftResult = await query(checkQuery, [uniqueId]);
-      
+
       if (draftResult && draftResult.length > 0) {
         existingDraft = draftResult;
         existingMemberType = type;
@@ -181,7 +181,7 @@ export async function POST(request) {
           memberType.toLowerCase() === "ic" ? "หมายเลขบัตรประชาชน" : "เลขประจำตัวผู้เสียภาษี";
         const existingTypeName = getMemberTypeName(existingMemberType);
         const currentTypeName = getMemberTypeName(memberType);
-        
+
         return NextResponse.json(
           {
             success: false,
@@ -193,7 +193,7 @@ export async function POST(request) {
     }
 
     let result;
-    
+
     // ถ้าเจอ draft ใน user เดียวกันและประเภทเดียวกัน ให้อัปเดต
     if (existingDraft && existingDraft.length > 0 && existingMemberType === memberType) {
       // อัปเดต draft ที่มีอยู่ (ในตารางเดียวกัน)

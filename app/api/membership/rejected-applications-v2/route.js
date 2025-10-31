@@ -13,10 +13,7 @@ export async function GET(request) {
   try {
     const user = await getUserFromSession();
     if (!user) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเข้าสู่ระบบ" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "กรุณาเข้าสู่ระบบ" }, { status: 401 });
     }
 
     connection = await getConnection();
@@ -33,7 +30,7 @@ export async function GET(request) {
        FROM MemberRegist_OC_Main 
        WHERE user_id = ? AND status = 2 AND is_archived = 0
        ORDER BY rejected_at DESC`,
-      [user.id]
+      [user.id],
     );
 
     const [acApps] = await connection.execute(
@@ -47,7 +44,7 @@ export async function GET(request) {
        FROM MemberRegist_AC_Main 
        WHERE user_id = ? AND status = 2 AND is_archived = 0
        ORDER BY rejected_at DESC`,
-      [user.id]
+      [user.id],
     );
 
     const [amApps] = await connection.execute(
@@ -61,7 +58,7 @@ export async function GET(request) {
        FROM MemberRegist_AM_Main 
        WHERE user_id = ? AND status = 2 AND is_archived = 0
        ORDER BY rejected_at DESC`,
-      [user.id]
+      [user.id],
     );
 
     const [icApps] = await connection.execute(
@@ -75,18 +72,18 @@ export async function GET(request) {
        FROM MemberRegist_IC_Main 
        WHERE user_id = ? AND status = 2 AND is_archived = 0
        ORDER BY rejected_at DESC`,
-      [user.id]
+      [user.id],
     );
 
     // Combine all
-    const allRejected = [...ocApps, ...acApps, ...amApps, ...icApps]
-      .sort((a, b) => new Date(b.rejected_at) - new Date(a.rejected_at));
+    const allRejected = [...ocApps, ...acApps, ...amApps, ...icApps].sort(
+      (a, b) => new Date(b.rejected_at) - new Date(a.rejected_at),
+    );
 
     return NextResponse.json({
       success: true,
       data: allRejected,
     });
-
   } catch (error) {
     console.error("Error fetching rejected applications:", error);
     return NextResponse.json(
@@ -94,7 +91,7 @@ export async function GET(request) {
         success: false,
         message: "ไม่สามารถโหลดข้อมูลได้",
       },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

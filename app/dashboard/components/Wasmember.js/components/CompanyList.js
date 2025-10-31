@@ -57,11 +57,17 @@ const CompanyList = ({
               >
                 <div className="flex-1 w-full sm:w-auto">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                    <span className="font-medium text-gray-900 text-sm sm:text-base">{company.memberNumber}</span>
+                    <span className="font-medium text-gray-900 text-sm sm:text-base">
+                      {company.memberNumber}
+                    </span>
                     <span className="text-xs sm:text-sm text-gray-500">({company.memberType})</span>
                   </div>
-                  <h4 className="text-sm sm:text-md font-medium text-gray-800 mt-1">{company.companyName}</h4>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1">เลขประจำตัวผู้เสียภาษี: {company.taxId}</p>
+                  <h4 className="text-sm sm:text-md font-medium text-gray-800 mt-1">
+                    {company.companyName}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                    เลขประจำตัวผู้เสียภาษี: {company.taxId}
+                  </p>
 
                   {company.documentFile && (
                     <div

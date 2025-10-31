@@ -61,9 +61,7 @@ const WasMemberStepIndicator = ({ currentStep }) => {
         })()}
 
         {/* Mobile: Vertical connector line */}
-        <div
-          className="md:hidden absolute left-6 top-0 bottom-0 w-1 bg-gray-200 rounded-full z-0"
-        />
+        <div className="md:hidden absolute left-6 top-0 bottom-0 w-1 bg-gray-200 rounded-full z-0" />
 
         {/* Mobile: Completed vertical progress line */}
         {(() => {

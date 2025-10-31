@@ -14,8 +14,8 @@ export default function MembershipDocuments() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [submittedPagination, setSubmittedPagination] = useState(null);
-  
-  const isProduction = process.env.NODE_ENV === 'production';
+
+  const isProduction = process.env.NODE_ENV === "production";
 
   // เพิ่มตัวเลือกจำนวนรายการต่อหน้า
   const [itemsPerPage, setItemsPerPage] = useState(5); // เปลี่ยนกลับเป็น 5 รายการ
@@ -26,24 +26,24 @@ export default function MembershipDocuments() {
 
   // ฟังก์ชันสำหรับรับ totalItems จาก child components
   const handleTotalItemsChange = (total) => {
-    console.log('📊 MembershipDocuments - Total items updated:', total);
+    console.log("📊 MembershipDocuments - Total items updated:", total);
     setTotalItems(total);
   };
 
   // ลบ useEffect เดิมที่เรียก API เพื่อนับจำนวน เพราะจะให้ child components ส่งมาแทน
 
   const handleTabChange = (section) => {
-    console.log('🔄 MembershipDocuments - Tab changing to:', section);
+    console.log("🔄 MembershipDocuments - Tab changing to:", section);
     setActiveSection(section);
     setCurrentPage(1); // reset หน้าเป็น 1 เมื่อเปลี่ยน tab
     setTotalItems(0); // reset totalItems เมื่อเปลี่ยน tab
-    console.log('✅ MembershipDocuments - Tab changed, states reset');
+    console.log("✅ MembershipDocuments - Tab changed, states reset");
   };
-  
+
   // Reset to drafts tab if rejected is selected in production
   useEffect(() => {
-    if (isProduction && activeSection === 'rejected') {
-      setActiveSection('drafts');
+    if (isProduction && activeSection === "rejected") {
+      setActiveSection("drafts");
     }
   }, [isProduction, activeSection]);
 
@@ -157,7 +157,12 @@ export default function MembershipDocuments() {
                 : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
             }`}
           >
-            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-3 h-3 sm:w-4 sm:h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -199,7 +204,12 @@ export default function MembershipDocuments() {
           >
             <span className="hidden sm:inline">ถัดไป</span>
             <span className="sm:hidden">»</span>
-            <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-3 h-3 sm:w-4 sm:h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -325,8 +335,6 @@ export default function MembershipDocuments() {
                     <h2 className="text-xl font-bold text-gray-900">
                       เอกสารสมัครสมาชิกทีบันทึกร่าง
                     </h2>
-                    
-                   
                   </div>
                 </div>
 
@@ -365,7 +373,6 @@ export default function MembershipDocuments() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">เอกสารรอการแก้ไข</h2>
-                    
                   </div>
                 </div>
 
@@ -394,7 +401,6 @@ export default function MembershipDocuments() {
                   </div>
                   <div>
                     <h2 className="text-xl font-bold text-gray-900">เอกสารสมัครสมาชิกที่ส่งแล้ว</h2>
-                   
                   </div>
                 </div>
 
