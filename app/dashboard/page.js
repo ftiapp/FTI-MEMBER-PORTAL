@@ -359,7 +359,7 @@ export default function Dashboard() {
                 <div className="bg-gradient-to-r from-blue-700 to-blue-600 p-6 text-white">
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="text-xl font-bold">เมนูหลัก</h3>
+                      <h3 className="text-xl font-bold">เมนูหลัก(ทดสอบ)</h3>
                       <p className="text-blue-100 mt-1">จัดการข้อมูลและบริการ</p>
                     </div>
                     <button
