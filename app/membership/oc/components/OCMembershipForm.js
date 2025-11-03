@@ -160,19 +160,25 @@ export default function OCMembershipForm(props = {}) {
       }
 
       // Re-validate all fields before final submission
-      const formErrors = validateOCForm(formData, STEPS.length);
-      setErrors(formErrors);
+      const allErrors = {};
+      STEPS.forEach(step => {
+        const stepErrors = validateOCForm(formData, step.id);
+        Object.assign(allErrors, stepErrors);
+      });
+      
+      console.log("🔍 Final submission validation - All errors:", allErrors);
+      setErrors(allErrors);
 
-      if (Object.keys(formErrors).length > 0) {
-        console.log("❌ Validation errors:", formErrors);
+      if (Object.keys(allErrors).length > 0) {
+        console.log("❌ Validation errors:", allErrors);
 
         if (typeof setShowErrors === "function") {
           setShowErrors(true);
         }
 
         // Build error message
-        const firstErrorKey = getFirstErrorKey(formErrors) || "representativeErrors";
-        const errorMessage = buildErrorToastMessage(formErrors, firstErrorKey);
+        const firstErrorKey = getFirstErrorKey(allErrors) || "representativeErrors";
+        const errorMessage = buildErrorToastMessage(allErrors, firstErrorKey);
 
         // Find first error step
         const firstErrorStep = STEPS.find(

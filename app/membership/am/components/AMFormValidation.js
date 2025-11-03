@@ -188,7 +188,8 @@ const validateAssociationInfo = (formData, errors) => {
       }
 
       // ตรวจสอบอีเมล (ไม่บังคับ - ตรวจสอบเฉพาะรูปแบบถ้ามีการกรอก)
-      if (address.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+      const emailVal = address.email || address[`email-${type}`] || "";
+      if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 

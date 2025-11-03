@@ -102,7 +102,6 @@ const RepresentativeCard = ({ representative, index }) => {
                 representative.last_name_th ||
                 "-";
               const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
-              console.log(`🔍 Mapped Thai name for rep ${index + 1}:`, { pre, first, last, name });
               return name || "-";
             })()}
           </p>
@@ -117,22 +116,18 @@ const RepresentativeCard = ({ representative, index }) => {
                   ? representative.prenameOtherEn || representative.prename_other_en
                   : representative.prenameEn || representative.prename_en || "";
               const first =
+                representative.firstNameEng ||
                 representative.firstNameEnglish ||
                 representative.firstNameEn ||
                 representative.first_name_en ||
                 "-";
               const last =
+                representative.lastNameEng ||
                 representative.lastNameEnglish ||
                 representative.lastNameEn ||
                 representative.last_name_en ||
                 "-";
               const name = `${pre ? pre + " " : ""}${first} ${last}`.trim();
-              console.log(`🔍 Mapped English name for rep ${index + 1}:`, {
-                pre,
-                first,
-                last,
-                name,
-              });
               return name || "-";
             })()}
           </p>

@@ -189,6 +189,27 @@ export async function POST(request) {
     trx = await beginTransaction();
     console.log("🔄 [AM Membership Submit] Transaction started");
 
+    // Extract company email and phone from document delivery address (type 2)
+    let companyEmail = "";
+    let companyPhone = "";
+    let companyPhoneExtension = "";
+
+    // If using multi-address structure, get email and phone from document delivery address (type 2)
+    if (data.addresses) {
+      try {
+        const addresses = JSON.parse(data.addresses);
+        const documentAddress = addresses["2"]; // Document delivery address
+        if (documentAddress) {
+          // Support dynamic keys like email-2, phone-2, phoneExtension-2 with fallback to generic keys
+          companyEmail = documentAddress["email-2"] || documentAddress.email || "";
+          companyPhone = documentAddress["phone-2"] || documentAddress.phone || "";
+          companyPhoneExtension = documentAddress["phoneExtension-2"] || documentAddress.phoneExtension || "";
+        }
+      } catch (error) {
+        console.error("Error parsing addresses:", error);
+      }
+    }
+
     // Insert main data (status ใช้ 0 = pending)
     // Sanitize DECIMAL fields
     let registeredCapital = null;
@@ -261,16 +282,20 @@ export async function POST(request) {
     const mainInsertResult = await executeQuery(
       trx,
       `INSERT INTO MemberRegist_AM_Main (
-        user_id, company_name_th, company_name_en, tax_id, number_of_member,
+        user_id, company_name_th, company_name_en, tax_id, 
+        company_email, company_phone, company_phone_extension, number_of_member,
         number_of_employees, registered_capital, production_capacity_value, production_capacity_unit,
         sales_domestic, sales_export, revenue_last_year, revenue_previous_year, shareholder_thai_percent, shareholder_foreign_percent,
         factory_type, status, created_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NOW())`,
       [
         userId,
         associationName,
         associationNameEn,
         taxId,
+        companyEmail,
+        companyPhone,
+        companyPhoneExtension,
         memberCount,
         numberOfEmployees,
         registeredCapital,

@@ -215,7 +215,7 @@ export async function POST(request) {
     // Step 3: Extract company email and phone from document delivery address (type 2)
     let companyEmail = data.companyEmail || "";
     let companyPhone = data.companyPhone || "";
-    let companyPhoneExtension = data.companyPhoneExtension || null;
+    let companyPhoneExtension = data.companyPhoneExtension || "";
 
     // If using multi-address structure, get email and phone from document delivery address (type 2)
     if (data.addresses) {
@@ -224,112 +224,47 @@ export async function POST(request) {
         const documentAddress = addresses["2"]; // Document delivery address
         if (documentAddress) {
           companyEmail = documentAddress.email || companyEmail;
-          companyPhone = documentAddress.phone || companyPhone;
-          companyPhoneExtension = documentAddress.phoneExtension || companyPhoneExtension;
+          // Handle both "phone" and "phone-2" field names
+          companyPhone = documentAddress.phone || documentAddress["phone-2"] || companyPhone;
+          companyPhoneExtension = documentAddress.phoneExtension || documentAddress["phoneExtension-2"] || companyPhoneExtension;
         }
       } catch (error) {
         console.error("Error parsing addresses:", error);
       }
     }
 
+    // Ensure email and phone are not null (use empty string if not provided)
+    companyEmail = companyEmail || "";
+    companyPhone = companyPhone || "";
+    companyPhoneExtension = companyPhoneExtension || "";
+    
+    console.log("📧 [AC] Extracted contact info:", {
+      companyEmail,
+      companyPhone,
+      companyPhoneExtension,
+      hasAddresses: !!data.addresses
+    });
+
     // Step 4: Insert Main Data
     console.log("💾 [AC] Inserting main data...");
-    // Sanitize decimal inputs
-    let registeredCapital = null;
-    let productionCapacityValue = null;
-    let salesDomestic = null;
-    let salesExport = null;
-    let revenueLastYear = null;
-    let revenuePreviousYear = null;
-    let shareholderThaiPercent = null;
-    let shareholderForeignPercent = null;
-
-    try {
-      registeredCapital = sanitizeDecimal(data.registeredCapital, {
-        field: "registeredCapital",
-        min: 0,
-        max: 9999999999999.99,
-        scale: 2,
-        allowNull: true,
-      });
-      productionCapacityValue = sanitizeDecimal(data.productionCapacityValue, {
-        field: "productionCapacityValue",
-        min: 0,
-        max: 9999999999999.99,
-        scale: 2,
-        allowNull: true,
-      });
-      salesDomestic = sanitizeDecimal(data.salesDomestic, {
-        field: "salesDomestic",
-        min: 0,
-        max: 9999999999999.99,
-        scale: 2,
-        allowNull: true,
-      });
-      salesExport = sanitizeDecimal(data.salesExport, {
-        field: "salesExport",
-        min: 0,
-        max: 9999999999999.99,
-        scale: 2,
-        allowNull: true,
-      });
-      revenueLastYear = sanitizeDecimal(data.revenueLastYear, {
-        field: "revenueLastYear",
-        min: 0,
-        max: 9999999999999.99,
-        scale: 2,
-        allowNull: true,
-      });
-      revenuePreviousYear = sanitizeDecimal(data.revenuePreviousYear, {
-        field: "revenuePreviousYear",
-        min: 0,
-        max: 9999999999999.99,
-        scale: 2,
-        allowNull: true,
-      });
-      shareholderThaiPercent = sanitizePercent(data.shareholderThaiPercent, {
-        field: "shareholderThaiPercent",
-        allowNull: true,
-      });
-      shareholderForeignPercent = sanitizePercent(data.shareholderForeignPercent, {
-        field: "shareholderForeignPercent",
-        allowNull: true,
-      });
-    } catch (numErr) {
-      await rollbackTransaction(trx);
-      return NextResponse.json(
-        { error: "ข้อมูลตัวเลขไม่ถูกต้อง", details: String(numErr.message) },
-        { status: 400 },
-      );
-    }
 
     const mainResult = await executeQuery(
       trx,
       `INSERT INTO MemberRegist_AC_Main (
         user_id, company_name_th, company_name_en, tax_id, 
-        company_email, company_phone, company_phone_extension, company_website, number_of_employees,
-        registered_capital, production_capacity_value, production_capacity_unit,
-        sales_domestic, sales_export, revenue_last_year, revenue_previous_year, shareholder_thai_percent, shareholder_foreign_percent, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
+        company_email, company_phone, company_phone_extension, company_website, factory_type, number_of_employees, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0);`,
       [
         userId,
         data.companyName || null,
         data.companyNameEn || null,
         data.taxId || null,
-        companyEmail || null,
-        companyPhone || null,
-        companyPhoneExtension || null,
-        data.companyWebsite || null,
+        companyEmail || "",
+        companyPhone || "",
+        companyPhoneExtension || "",
+        data.companyWebsite || "",
+        data.factoryType || null,
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
-        registeredCapital,
-        productionCapacityValue,
-        data.productionCapacityUnit || null,
-        salesDomestic,
-        salesExport,
-        revenueLastYear,
-        revenuePreviousYear,
-        shareholderThaiPercent,
-        shareholderForeignPercent,
       ],
     );
     const mainId = mainResult.insertId;

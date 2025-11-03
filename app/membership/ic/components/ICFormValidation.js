@@ -217,23 +217,26 @@ const validateApplicantInfo = (formData) => {
       }
 
       // ตรวจสอบอีเมล (ไม่บังคับกรอก แต่ถ้ามีต้องเป็นรูปแบบที่ถูกต้อง)
-      if (address.email && address.email.trim() !== "") {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(address.email)) {
+      const email = address.email || address[`email-${type}`] || "";
+      if (email && email.trim() !== "") {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
           errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
         }
       }
 
       // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
-      if (!address.phone) {
+      const phone = address.phone || address[`phone-${type}`] || "";
+      if (!phone) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
-      } else if (address.phone.length > 50) {
+      } else if (phone.length > 50) {
         errors[`address_${type}_phone`] = `เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร (${label})`;
       }
 
       // ตรวจสอบเว็บไซต์ถ้ามี
-      if (address.website && address.website.trim() !== "") {
+      const website = address.website || address[`website-${type}`] || "";
+      if (website && website.trim() !== "") {
         try {
-          new URL(address.website);
+          new URL(website);
         } catch (e) {
           errors[`address_${type}_website`] = `รูปแบบเว็บไซต์ไม่ถูกต้อง (${label})`;
         }

@@ -353,22 +353,7 @@ export async function POST(request) {
     // Step 5: Insert Contact Persons (with type support)
     if (data.contactPersons) {
       const contactPersons = JSON.parse(data.contactPersons);
-      // Enforce English names for all contact persons
-      for (let i = 0; i < contactPersons.length; i++) {
-        const c = contactPersons[i] || {};
-        if (
-          !c.firstNameEn ||
-          !String(c.firstNameEn).trim() ||
-          !c.lastNameEn ||
-          !String(c.lastNameEn).trim()
-        ) {
-          await rollbackTransaction(trx);
-          return NextResponse.json(
-            { error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้ติดต่อคนที่ ${i + 1}` },
-            { status: 400 },
-          );
-        }
-      }
+      // English names are now optional for contact persons - no validation required
       for (let index = 0; index < contactPersons.length; index++) {
         const contact = contactPersons[index];
         await executeQuery(
@@ -455,14 +440,7 @@ export async function POST(request) {
           );
         }
 
-        // Validate English names (required)
-        if (!firstEn || !String(firstEn).trim() || !lastEn || !String(lastEn).trim()) {
-          await rollbackTransaction(trx);
-          return NextResponse.json(
-            { error: `กรุณากรอกชื่อ-นามสกุลภาษาอังกฤษของผู้แทนคนที่ ${i + 1}` },
-            { status: 400 },
-          );
-        }
+        // English names are now optional - no validation required
       }
       for (let index = 0; index < representatives.length; index++) {
         const rep = representatives[index];
