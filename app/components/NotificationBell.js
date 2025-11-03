@@ -284,7 +284,7 @@ export default function NotificationBell() {
 
             <div className="p-2 border-t border-gray-200 text-center">
               <Link
-                href="/dashboard/FTI_Portal_User_Notifications"
+                href="/dashboard/notifications"
                 className="text-xs text-blue-600 hover:text-blue-800"
                 onClick={() => setIsOpen(false)}
               >

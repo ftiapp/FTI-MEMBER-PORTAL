@@ -7,17 +7,22 @@ const initMysql = async () => {
 };
 
 // ตรวจสอบว่ามี environment variables ครบถ้วน
-if (!process.env.DB_HOST) {
-  throw new Error("DB_HOST environment variable is not set");
-}
-if (!process.env.DB_USER) {
-  throw new Error("DB_USER environment variable is not set");
-}
-if (!process.env.DB_PASSWORD) {
-  throw new Error("DB_PASSWORD environment variable is not set");
-}
-if (!process.env.DB_NAME) {
-  throw new Error("DB_NAME environment variable is not set");
+// Skip validation during build time if env vars are not available
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || process.env.NODE_ENV === 'production' && !process.env.DB_HOST;
+
+if (!isBuildTime) {
+  if (!process.env.DB_HOST) {
+    console.warn("DB_HOST environment variable is not set");
+  }
+  if (!process.env.DB_USER) {
+    console.warn("DB_USER environment variable is not set");
+  }
+  if (!process.env.DB_PASSWORD) {
+    console.warn("DB_PASSWORD environment variable is not set");
+  }
+  if (!process.env.DB_NAME) {
+    console.warn("DB_NAME environment variable is not set");
+  }
 }
 
 // Log environment variables (mask sensitive data)
@@ -31,14 +36,29 @@ console.log("Database connection attempt:", {
 });
 
 // กำหนดค่า connection (ไม่มี fallback values)
-let dbConfig = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT || "3306",
-  ssl: false, // ถ้า MySQL รองรับ SSL ควรเปลี่ยนเป็น true
-};
+// Skip connection config during build time
+let dbConfig = null;
+
+if (!isBuildTime && process.env.DB_HOST) {
+  dbConfig = {
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    port: process.env.DB_PORT || "3306",
+    ssl: false, // ถ้า MySQL รองรับ SSL ควรเปลี่ยนเป็น true
+  };
+} else {
+  // During build time, create a dummy config that won't be used
+  dbConfig = {
+    host: 'localhost',
+    user: 'dummy',
+    password: 'dummy',
+    database: 'dummy',
+    port: "3306",
+    ssl: false,
+  };
+}
 
 // เพิ่ม connection options
 dbConfig = {
@@ -67,6 +87,12 @@ const initPool = async () => {
 
 // Test connection on startup with retry
 async function testConnection() {
+  // Skip connection test during build time
+  if (isBuildTime) {
+    console.log('Skipping database connection test during build time');
+    return true;
+  }
+
   const maxRetries = 5;
   let retryCount = 0;
 
@@ -107,6 +133,12 @@ testConnection();
 // Helper function สำหรับ execute queries with retry
 // Export the query function
 export async function query(sql, params) {
+  // Skip database queries during build time
+  if (isBuildTime) {
+    console.log('Skipping database query during build time:', sql);
+    return [];
+  }
+
   const maxRetries = 3;
   let retryCount = 0;
   let lastError = null;

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 export const useNotifications = (user) => {
   const [FTI_Portal_User_Notifications, setNotifications] = useState([]);
@@ -11,7 +11,7 @@ export const useNotifications = (user) => {
 
       try {
         setLoading(true);
-        const response = await fetch(`/api/FTI_Portal_User_Notifications?userId=${user.id}`, {
+        const response = await fetch(`/api/notifications?userId=${user.id}`, {
           method: "GET",
           credentials: "include",
           headers: {
@@ -40,7 +40,7 @@ export const useNotifications = (user) => {
     if (!user?.id) return;
 
     try {
-      const response = await fetch("/api/FTI_Portal_User_Notifications/mark-read", {
+      const response = await fetch("/api/notifications/mark-read", {
         method: "POST",
         credentials: "include",
         headers: {
@@ -72,7 +72,7 @@ export const useNotifications = (user) => {
     if (!user?.id) return;
 
     try {
-      const response = await fetch("/api/FTI_Portal_User_Notifications/mark-all-read", {
+      const response = await fetch("/api/notifications/mark-all-read", {
         method: "POST",
         credentials: "include",
         headers: {

@@ -35,16 +35,16 @@ export const renderStepComponent = ({
     ),
     2: (
       <RepresentativeInfoSection
-        mode="single"
+        mode="multiple"
         formData={formData}
         setFormData={setFormData}
         errors={errors}
         config={{
           headerTitle: "ข้อมูลผู้แทน",
           headerSubtitle: "ข้อมูลผู้ที่สามารถติดต่อได้",
-          positionPlaceholder: "",
-          infoMessage: "กรอกข้อมูลผู้แทนที่สามารถติดต่อได้",
-          toastId: "ic-representative-errors",
+          positionPlaceholder: "ประธาน, รองประธาน... / President, Vice President...",
+          infoMessage: "สามารถเพิ่มผู้แทนได้สูงสุด 3 ท่าน ควรเป็นผู้มีอำนาจลงนามตามหนังสือรับรอง",
+          toastId: "oc-representative-errors",
           fieldNames: {
             firstNameTh: "firstNameThai",
             lastNameTh: "lastNameThai",

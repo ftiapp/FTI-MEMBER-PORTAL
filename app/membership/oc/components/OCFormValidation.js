@@ -237,13 +237,24 @@ export const validateOCForm = (formData, step) => {
     }
   } else if (step === 2) {
     // ตรวจสอบข้อมูลผู้แทน
+    console.log("🔍 DEBUG OC Step 2 - Checking representatives:", {
+      hasRepresentatives: !!formData.representatives,
+      representativesLength: formData.representatives?.length,
+      representatives: formData.representatives,
+      hasRepresentative: !!formData.representative,
+      representative: formData.representative,
+    });
+    
     if (!formData.representatives || formData.representatives.length === 0) {
       errors.representatives = "กรุณาเพิ่มข้อมูลผู้แทนอย่างน้อย 1 คน";
+      console.log("❌ ERROR: No representatives found, adding error");
     } else {
+      console.log("✅ OK: Found representatives, validating each");
       // ตรวจสอบข้อมูลผู้แทนแต่ละคน
       const representativeErrors = [];
 
       formData.representatives.forEach((rep, index) => {
+        console.log(`🔍 DEBUG: Validating representative ${index}:`, rep);
         const repError = {};
         const repPrenameTh = rep.prename_th ?? rep.prenameTh;
         const repPrenameEn = rep.prename_en ?? rep.prenameEn;
@@ -319,6 +330,9 @@ export const validateOCForm = (formData, step) => {
       // ถ้ามีข้อผิดพลาดในผู้แทนคนใดคนหนึ่ง
       if (representativeErrors.length > 0) {
         errors.representativeErrors = representativeErrors;
+        console.log("❌ Found representative errors:", representativeErrors);
+      } else {
+        console.log("✅ No representative errors found");
       }
     }
   } else if (step === 3) {
@@ -468,5 +482,6 @@ export const validateOCForm = (formData, step) => {
     // Removed validation for English position
   }
 
+  console.log(`🔍 DEBUG validateOCForm - Step ${step} returning errors:`, errors);
   return errors;
 };

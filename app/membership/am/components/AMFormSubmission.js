@@ -151,7 +151,7 @@ export const submitAMMembershipForm = async (formData) => {
               applicantName: `${formData.firstNameTh || ""} ${formData.lastNameTh || ""}`.trim(),
             };
 
-            await fetch("/api/FTI_Portal_User_Notifications/membership", {
+            await fetch("/api/notifications/membership", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({

@@ -106,6 +106,10 @@ export async function sendAdminInviteEmail(email, token, options = {}) {
             FTI service Center: <strong>1453 กด 2</strong><br/>
             Email: <strong>member@fti.or.th</strong>
           </p>
+          
+          <p style="margin-top: 24px;">
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+          </p>
         `,
       }),
       TextBody: `
@@ -121,6 +125,8 @@ export async function sendAdminInviteEmail(email, token, options = {}) {
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
       `,
       MessageStream: "outbound",
     });
@@ -165,6 +171,10 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
             FTI service Center: <strong>1453 กด 2</strong><br/>
             Email: <strong>member@fti.or.th</strong>
           </p>
+          
+          <p style="margin-top: 24px;">
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+          </p>
         `,
       }),
       TextBody: `
@@ -181,6 +191,8 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
       `,
       MessageStream: "outbound",
     });
@@ -305,6 +317,10 @@ export async function sendMembershipConfirmationEmail(email, name, membershipTyp
             FTI service Center: <strong>1453 กด 2</strong><br/>
             Email: <strong>member@fti.or.th</strong>
           </p>
+          
+          <p style="margin-top: 24px;">
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+          </p>
         `,
       }),
       TextBody: `
@@ -325,6 +341,8 @@ export async function sendMembershipConfirmationEmail(email, name, membershipTyp
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 FTI Portal. สงวนลิขสิทธิ์.
       `,
@@ -413,6 +431,10 @@ export async function sendAddressUpdateRequestEmail(
             FTI service Center: <strong>1453 กด 2</strong><br/>
             Email: <strong>member@fti.or.th</strong>
           </p>
+          
+          <p style="margin-top: 24px;">
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+          </p>
         `,
       }),
       TextBody: `
@@ -438,6 +460,8 @@ export async function sendAddressUpdateRequestEmail(
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -560,6 +584,8 @@ export async function sendExistingMemberVerificationEmail(
       FTI service Center: 1453 กด 2
       Email: member@fti.or.th
       
+      ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+      
       © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
     `,
       MessageStream: "outbound",
@@ -649,6 +675,8 @@ export async function sendExistingMemberApprovalEmail(
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -751,6 +779,8 @@ export async function sendExistingMemberRejectionEmail(
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
         
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+        
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
       MessageStream: "outbound",
@@ -829,6 +859,8 @@ export async function sendProfileUpdateRequestEmail(email, firstname, lastname) 
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
         
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+        
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
       MessageStream: "outbound",
@@ -906,6 +938,8 @@ export async function sendProfileUpdateApprovalEmail(email, firstname, lastname)
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -986,6 +1020,8 @@ export async function sendProfileUpdateRejectionEmail(email, firstname, lastname
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -1085,6 +1121,8 @@ export async function sendProductUpdateRequestEmail(
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
         
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+        
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
       MessageStream: "outbound",
@@ -1182,6 +1220,8 @@ export async function sendProductUpdateApprovalEmail(
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -1283,6 +1323,8 @@ export async function sendProductUpdateRejectionEmail(
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -1395,7 +1437,7 @@ export async function sendApprovalEmail(
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
         
-        ขอบคุณที่เป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -1464,7 +1506,7 @@ export async function sendMemberConnectionEmail(email, userName, memberData) {
           </div>
           
           <p style="margin-top: 32px;">
-            ขอบคุณสำหรับการร่วมเป็นส่วนนึงในการขับเคลื่อน อุตสาหกรรมไทย พ้อมรับสิทธิปะโยชน์ ให้ธุรกิจไปได้ไกลยิ่ขึ้น
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
           </p>
           
           <p style="margin-top: 24px;">
@@ -1492,11 +1534,13 @@ export async function sendMemberConnectionEmail(email, userName, memberData) {
         
         เข้าสู่เว็บไซต์: ${dashboardLink}
         
-        ขอบคุณสำหรับการร่วมเป็นส่วนนึงในการขับเคลื่อน อุตสาหกรรมไทย พ้อมรับสิทธิปะโยชน์ ให้ธุรกิจไปได้ไกลยิ่ขึ้น
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         สอบถามข้อมูลเพิ่มเติม
         FTI service Center: 1453 กด 2
         Email: member@fti.or.th
+        
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
       `,
@@ -1539,64 +1583,63 @@ export async function sendRejectionEmail(
       HtmlBody: getFTIEmailHtmlTemplate({
         title: "แจ้งผลการพิจารณาการสมัครสมาชิก",
         bodyContent: `
-          <p>เรียน คุณ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า <strong>การสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ</strong></p>
+          <p>เรียน ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า การสมัครสมาชิกของท่าน ยังไม่ได้รับการพิจารณา</p>
           
           <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
             <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
-              ข้อมูลที่ท่านยื่น:
+              ข้อมูลใบสมัคร
             </p>
-            <p style="margin: 5px 0;"><strong>บริษัท:</strong> ${companyName}</p>
+            <p style="margin: 5px 0;"><strong>ชื่อผู้สมัคร :</strong> ${companyName}</p>
             ${memberCode ? `<p style="margin: 5px 0;"><strong>หมายเลขสมาชิก:</strong> ${memberCode}</p>` : ""}
           </div>
           
           <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
             <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626; font-size: 16px;">
-              เหตุผลที่ไม่ได้รับการอนุมัติ:
+              สภาอุตสาหกรรมแห่งประเทศไทย ขอให้ท่านดำเนินการดังนี้
             </p>
             <p style="margin: 0; color: #374151;">${reason || "ไม่ระบุเหตุผล"}</p>
           </div>
           
-          <p>ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย</p>
+          <p>เพื่อให้การพิจารณาสมาชิกของท่านเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น กรณีต้องการสอบถามรายละเอียดเพิ่มเติม ติดต่อได้ที่ 1453 กด 2</p>
           
           <div style="text-align: center; margin: 28px 0;">
             <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-              เข้าสู่เว็บไซต์
+              เข้าสู่ระบบ
             </a>
           </div>
           
-          <p style="color: #6b7280; font-size: 14px; margin-top: 24px;">
-            หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+          <p style="margin-top: 32px;">
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
           </p>
           
           <p style="margin-top: 24px;">
-            <strong>สอบถามข้อมูลเพิ่มเติม</strong><br/>
-            FTI service Center: <strong>1453 กด 2</strong><br/>
-            Email: <strong>member@fti.or.th</strong>
+            <strong>FTI Service Center :</strong> <strong>1453 กด 2</strong><br/>
+            <strong>Email:</strong> <strong>member@fti.or.th</strong>
           </p>
         `,
       }),
       TextBody: `
         แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย
         
-        เรียน คุณ${fullName}
+        เรียน ${fullName}
         
-        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่าการสมัครสมาชิกของท่านไม่ได้รับการอนุมัติ
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า การสมัครสมาชิกของท่าน ยังไม่ได้รับการพิจารณา
         
-        ข้อมูลที่ท่านยื่น:
-        บริษัท: ${companyName}
+        ข้อมูลใบสมัคร
+        ชื่อผู้สมัคร : ${companyName}
         ${memberCode ? `หมายเลขสมาชิก: ${memberCode}` : ""}
         
-        เหตุผลที่ไม่ได้รับการอนุมัติ: ${reason || "ไม่ระบุเหตุผล"}
+        สภาอุตสาหกรรมแห่งประเทศไทย ขอให้ท่านดำเนินการดังนี้
+        ${reason || "ไม่ระบุเหตุผล"}
         
-        ท่านสามารถแก้ไขข้อมูลและส่งใบสมัครใหม่ได้ หากมีข้อสงสัยประการใด กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        เพื่อให้การพิจารณาสมาชิกของท่านเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น กรณีต้องการสอบถามรายละเอียดเพิ่มเติม ติดต่อได้ที่ 1453 กด 2
         
-        เข้าสู่เว็บไซต์: ${dashboardLink}
+        เข้าสู่ระบบ: ${dashboardLink}
         
-        หากท่านมีข้อสงสัยหรือต้องการความช่วยเหลือเพิ่มเติม กรุณาติดต่อเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
         
-        สอบถามข้อมูลเพิ่มเติม
-        FTI service Center: 1453 กด 2
+        FTI Service Center : 1453 กด 2
         Email: member@fti.or.th
         
         © 2025 สภาอุตสาหกรรมแห่งประเทศไทย. สงวนลิขสิทธิ์.
