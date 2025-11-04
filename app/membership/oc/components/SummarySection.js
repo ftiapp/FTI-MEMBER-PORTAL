@@ -807,6 +807,35 @@ export default function SummarySectionComponent({
         </Section>
       )}
 
+      {/* ข้อมูลผู้มีอำนาจลงนาม */}
+      {(formData?.authorizedSignatoryFirstNameTh || formData?.authorizedSignatoryLastNameTh) && (
+        <Section title="ข้อมูลผู้มีอำนาจลงนาม" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* คำนำหน้าภาษาไทย */}
+            <InfoCard
+              title="คำนำหน้า"
+              value={(() => {
+                const prename = formData?.authorizedSignatoryPrenameTh || "";
+                if (prename === "อื่นๆ" || prename === "อื่น ๆ") {
+                  return formData?.authorizedSignatoryPrenameOther || prename;
+                }
+                return prename;
+              })()}
+            />
+            {/* ชื่อ-นามสกุลภาษาไทย */}
+            <InfoCard
+              title="ชื่อ-นามสกุล"
+              value={`${formData?.authorizedSignatoryFirstNameTh || ""} ${formData?.authorizedSignatoryLastNameTh || ""}`.trim() || "-"}
+            />
+            {/* ตำแหน่งภาษาไทย */}
+            <InfoCard
+              title="ตำแหน่ง"
+              value={formData?.authorizedSignatoryPositionTh || "-"}
+            />
+          </div>
+        </Section>
+      )}
+
       {/* ข้อมูลธุรกิจ */}
       <Section title="ข้อมูลธุรกิจ" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

@@ -8,6 +8,7 @@ import IndustrialGroupsSection from "../../../components/sections/IndustrialGrou
 import FinancialInfoSection from "../../../components/sections/FinancialInfoSection";
 import BusinessInfoSection from "../../../components/sections/BusinessInfoSection";
 import DocumentsSection from "../../../components/sections/DocumentsSection";
+import AuthorizedSignatorySection from "../../../components/sections/AuthorizedSignatorySection";
 import AdminActionsSection from "../../../components/sections/AdminActionsSection";
 
 const DetailView = ({
@@ -136,6 +137,7 @@ const DetailView = ({
       <AddressSection application={application} onUpdate={handleSectionUpdate} />
       <BusinessInfoSection application={application} onUpdate={handleSectionUpdate} />
       <DocumentsSection application={application} onViewDocument={onViewDocument} type={type} />
+      <AuthorizedSignatorySection application={application} type={type} onUpdate={handleSectionUpdate} />
       <ApplicantInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
       <AdminActionsSection
         application={application}

@@ -334,17 +334,7 @@ export async function POST(request) {
       const sigPosEn =
         data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || null;
 
-      if ((sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim()) {
-        // Enforce at least one position (TH/EN)
-        if (!((sigPosTh && String(sigPosTh).trim()) || (sigPosEn && String(sigPosEn).trim()))) {
-          await rollbackTransaction(trx);
-          return NextResponse.json(
-            {
-              error: "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)",
-            },
-            { status: 400 },
-          );
-        }
+      if ((sigFirstTh + sigLastTh).trim()) {
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_IC_Signature_Name (
@@ -352,14 +342,14 @@ export async function POST(request) {
           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [icMemberId, sigFirstTh, sigLastTh, sigFirstEn, sigLastEn, sigPosTh, sigPosEn],
         );
-        console.log("Saved authorized signatory name:", {
+        console.log("✅ Saved authorized signatory name:", {
           sigFirstTh,
           sigLastTh,
           sigFirstEn,
           sigLastEn,
         });
       } else {
-        console.log("No authorized signatory name provided. Skipping insert.");
+        console.log("⚠️ No authorized signatory Thai names provided. Skipping insert.");
       }
     } catch (sigErr) {
       console.error("Error inserting authorized signatory name:", sigErr.message);

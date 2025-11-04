@@ -314,31 +314,12 @@ export async function POST(request) {
     const mainId = mainInsertResult.insertId;
     console.log("✅ [AM Membership Submit] Main data inserted with ID:", mainId);
 
-    // Insert authorized signatory name fields if all are provided
+    // Insert authorized signatory name fields if Thai names are provided
     if (
       authorizedSignatoryFirstNameTh &&
-      authorizedSignatoryLastNameTh &&
-      authorizedSignatoryFirstNameEn &&
-      authorizedSignatoryLastNameEn
+      authorizedSignatoryLastNameTh
     ) {
       console.log("📝 [AM Membership Submit] Inserting authorized signatory names...");
-
-      // Enforce at least one of TH/EN position
-      if (
-        !(
-          (authorizedSignatoryPositionTh && String(authorizedSignatoryPositionTh).trim()) ||
-          (authorizedSignatoryPositionEn && String(authorizedSignatoryPositionEn).trim())
-        )
-      ) {
-        await rollbackTransaction(trx);
-        return NextResponse.json(
-          {
-            success: false,
-            error: "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)",
-          },
-          { status: 400 },
-        );
-      }
 
       await executeQuery(
         trx,
@@ -363,8 +344,9 @@ export async function POST(request) {
             : null,
         ],
       );
-
       console.log("✅ [AM Membership Submit] Authorized signatory names inserted");
+    } else {
+      console.log("⚠️ [AM Membership Submit] No authorized signatory Thai names provided, skipping signature name insertion");
     }
 
     // Process addresses

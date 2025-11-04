@@ -51,12 +51,37 @@ export async function submitOCMembershipForm(data) {
       }
     };
 
+    // Debug: Log representatives before conversion
+    if (data.representatives) {
+      console.log("🔍 [OCFormSubmission] Representatives before FormData conversion:", data.representatives);
+      data.representatives.forEach((rep, i) => {
+        console.log(`  Rep ${i + 1}:`, {
+          prenameTh: rep.prenameTh,
+          prenameEn: rep.prenameEn,
+          firstNameTh: rep.firstNameTh,
+          firstNameEn: rep.firstNameEn,
+          lastNameTh: rep.lastNameTh,
+          lastNameEn: rep.lastNameEn,
+        });
+      });
+    }
+
     // Convert the plain object to FormData
     for (const key in data) {
       if (Object.prototype.hasOwnProperty.call(data, key)) {
         appendToFormData(key, data[key]);
       }
     }
+
+    // Ensure authorized signatory prename fields are included
+    if (data.authorizedSignatoryPrenameTh)
+      formData.append("authorizedSignatoryPrenameTh", data.authorizedSignatoryPrenameTh);
+    if (data.authorizedSignatoryPrenameEn)
+      formData.append("authorizedSignatoryPrenameEn", data.authorizedSignatoryPrenameEn);
+    if (data.authorizedSignatoryPrenameOther)
+      formData.append("authorizedSignatoryPrenameOther", data.authorizedSignatoryPrenameOther);
+    if (data.authorizedSignatoryPrenameOtherEn)
+      formData.append("authorizedSignatoryPrenameOtherEn", data.authorizedSignatoryPrenameOtherEn);
 
     // Ensure authorized signatory name fields are included
     if (data.authorizedSignatoryFirstNameTh)

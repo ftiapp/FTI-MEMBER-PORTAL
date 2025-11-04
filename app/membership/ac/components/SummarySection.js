@@ -788,6 +788,35 @@ export default function SummarySectionComponent({
         </Section>
       )}
 
+      {/* ข้อมูลผู้มีอำนาจลงนาม */}
+      {(formData?.authorizedSignatoryFirstNameTh || formData?.authorizedSignatoryLastNameTh) && (
+        <Section title="ข้อมูลผู้มีอำนาจลงนาม" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* คำนำหน้าภาษาไทย */}
+            <InfoCard
+              title="คำนำหน้า"
+              value={(() => {
+                const prename = formData?.authorizedSignatoryPrenameTh || "";
+                if (prename === "อื่นๆ" || prename === "อื่น ๆ") {
+                  return formData?.authorizedSignatoryPrenameOther || prename;
+                }
+                return prename;
+              })()}
+            />
+            {/* ชื่อ-นามสกุลภาษาไทย */}
+            <InfoCard
+              title="ชื่อ-นามสกุล"
+              value={`${formData?.authorizedSignatoryFirstNameTh || ""} ${formData?.authorizedSignatoryLastNameTh || ""}`.trim() || "-"}
+            />
+            {/* ตำแหน่งภาษาไทย */}
+            <InfoCard
+              title="ตำแหน่ง"
+              value={formData?.authorizedSignatoryPositionTh || "-"}
+            />
+          </div>
+        </Section>
+      )}
+
       {/* ข้อมูลธุรกิจ */}
       <Section title="ข้อมูลธุรกิจ" className="mt-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -841,51 +870,6 @@ export default function SummarySectionComponent({
           />
         </div>
       </Section>
-
-      {/* เอกสารใบอนุญาต */}
-      {formData?.factoryType && (
-        <Section title="เอกสารใบอนุญาต" className="mt-6">
-          <div className="space-y-4">
-            <InfoCard title="ประเภทโรงงาน" value={getFactoryTypeLabel()} />
-
-            {formData?.factoryType === "type1" && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">เอกสารใบอนุญาต</h4>
-                <FileCard
-                  fileName={getFileName(formData?.factoryLicense)}
-                  fileUrl={getFileUrl(formData?.factoryLicense)}
-                  description="ใบอนุญาตประกอบกิจการโรงงาน (รง.4)"
-                />
-                <FileCard
-                  fileName={getFileName(formData?.industrialEstateLicense)}
-                  fileUrl={getFileUrl(formData?.industrialEstateLicense)}
-                  description="ใบอนุญาตให้ใช้ที่ดินและประกอบกิจการในนิคมอุตสาหกรรม (กนอ.)"
-                />
-              </div>
-            )}
-
-            {formData?.factoryType === "type2" && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">เอกสารการผลิต</h4>
-                {formData?.productionImages && formData.productionImages.length > 0 ? (
-                  <div className="space-y-2">
-                    {formData.productionImages.map((image, index) => (
-                      <FileCard
-                        key={index}
-                        fileName={image.fileName || image.name || `ไฟล์ที่ ${index + 1}`}
-                        fileUrl={image.fileUrl || image.cloudinary_url}
-                        description={`รูปภาพการผลิต ${index + 1}`}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <FileCard fileName="ไม่ได้อัปโหลด" description="รูปภาพหรือเอกสารการผลิต" />
-                )}
-              </div>
-            )}
-          </div>
-        </Section>
-      )}
 
       {/* เอกสารแนบพื้นฐาน */}
       <Section title="เอกสารแนบ" className="mt-6">

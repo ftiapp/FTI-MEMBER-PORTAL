@@ -1,5 +1,44 @@
 import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./constants";
 
+const normalizeSignatureName = (signature) => {
+  if (!signature) return null;
+
+  const prenameTh = signature.prenameTh ?? signature.prename_th ?? null;
+  const prenameOther = signature.prenameOther ?? signature.prename_other ?? null;
+  const firstNameTh = signature.firstNameTh ?? signature.first_name_th ?? null;
+  const lastNameTh = signature.lastNameTh ?? signature.last_name_th ?? null;
+  const positionTh = signature.positionTh ?? signature.position_th ?? null;
+
+  const prenameEn = signature.prenameEn ?? signature.prename_en ?? null;
+  const prenameOtherEn = signature.prenameOtherEn ?? signature.prename_other_en ?? null;
+  const firstNameEn = signature.firstNameEn ?? signature.first_name_en ?? null;
+  const lastNameEn = signature.lastNameEn ?? signature.last_name_en ?? null;
+  const positionEn = signature.positionEn ?? signature.position_en ?? null;
+
+  return {
+    prenameTh,
+    prenameOther,
+    firstNameTh,
+    lastNameTh,
+    positionTh,
+    prenameEn,
+    prenameOtherEn,
+    firstNameEn,
+    lastNameEn,
+    positionEn,
+    prename_th: prenameTh,
+    prename_other: prenameOther,
+    first_name_th: firstNameTh,
+    last_name_th: lastNameTh,
+    position_th: positionTh,
+    prename_en: prenameEn,
+    prename_other_en: prenameOtherEn,
+    first_name_en: firstNameEn,
+    last_name_en: lastNameEn,
+    position_en: positionEn,
+  };
+};
+
 export const normalizeApplicationData = (application, type) => {
   if (!application) return null;
 
@@ -83,6 +122,11 @@ export const normalizeApplicationData = (application, type) => {
 
     // Documents
     documents: normalizeDocuments(application),
+
+    // Authorized Signatory
+    signatureName: normalizeSignatureName(
+      application.signatureName || application.signature_name || application.signature
+    ),
 
     // Admin
     adminNote: application.adminNote || application.admin_note,

@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { createPasswordResetToken } from "@/app/lib/token";
 import { sendPasswordResetEmail } from "@/app/lib/postmark";
@@ -77,11 +77,12 @@ export async function POST(request) {
       [email],
     );
 
-    // Always return success even if user doesn't exist (for security)
+    // If user doesn't exist, return specific message
     if (FTI_Portal_User.length === 0) {
       return NextResponse.json({
-        message: "หากอีเมลนี้มีอยู่ในระบบ เราจะส่งลิงก์สำหรับรีเซ็ตรหัสผ่านไปยังอีเมลของคุณ",
-      });
+        error: "ท่านไม่ได้เป็นสมาชิกของเว็บไซต์ กรุณาสมัครสมาชิกเว็บไซต์ก่อนเข้าใช้งาน",
+        requiresRegistration: true,
+      }, { status: 404 });
     }
 
     const user = FTI_Portal_User[0];

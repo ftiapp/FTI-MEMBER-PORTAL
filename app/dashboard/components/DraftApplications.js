@@ -10,6 +10,8 @@ export default function DraftApplications({
   itemsPerPage = 5, // เปลี่ยน default เป็น 5
   onPageChange,
   onTotalItemsChange,
+  searchQuery = "",
+  membershipTypeFilter = "all",
 }) {
   const { user } = useAuth();
   const [drafts, setDrafts] = useState([]);
@@ -40,6 +42,18 @@ export default function DraftApplications({
       paginateData(allDrafts);
     }
   }, [currentPage, itemsPerPage, allDrafts]);
+
+  // เมื่อ searchQuery หรือ membershipTypeFilter เปลี่ยน ให้ filter ข้อมูล
+  useEffect(() => {
+    if (allDrafts.length > 0) {
+      console.log("🔍 DraftApplications - Filtering data:", {
+        searchQuery,
+        membershipTypeFilter,
+        totalDrafts: allDrafts.length,
+      });
+      filterAndPaginateData();
+    }
+  }, [searchQuery, membershipTypeFilter, allDrafts]);
 
   // ส่ง totalItems กลับไปให้ parent component เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
@@ -108,6 +122,47 @@ export default function DraftApplications({
     }); // Debug log
 
     setDrafts(paginatedDrafts);
+  };
+
+  const filterAndPaginateData = () => {
+    let filteredDrafts = [...allDrafts];
+
+    // Filter by membership type
+    if (membershipTypeFilter !== "all") {
+      filteredDrafts = filteredDrafts.filter(draft => draft.memberType.toLowerCase() === membershipTypeFilter.toLowerCase());
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredDrafts = filteredDrafts.filter(draft => {
+        const companyName = draft.companyName || "";
+        const taxId = getDraftTaxId(draft) || "";
+        const idCard = getDraftIdCard(draft) || "";
+        const memberTypeLabel = getMemberTypeFullName(draft.memberType) || "";
+
+        return companyName.toLowerCase().includes(query) ||
+               taxId.includes(query) ||
+               idCard.includes(query) ||
+               memberTypeLabel.toLowerCase().includes(query);
+      });
+    }
+
+    console.log("Filtered results:", {
+      originalCount: allDrafts.length,
+      filteredCount: filteredDrafts.length,
+      searchQuery,
+      membershipTypeFilter,
+    });
+
+    // Reset to page 1 if current page is out of bounds
+    const maxPage = Math.ceil(filteredDrafts.length / itemsPerPage);
+    if (currentPage > maxPage && maxPage > 0) {
+      onPageChange && onPageChange(1);
+      return;
+    }
+
+    paginateData(filteredDrafts);
   };
 
   const getMemberTypeThai = (type) => {
@@ -256,8 +311,11 @@ export default function DraftApplications({
         >
           <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
             <div className="flex-1">
-              {/* เลข Tax ID หรือ ID Card ไว้ด้านบนสุด */}
+              {/* ชื่อบริษัท (แสดงเป็นหัวข้อหลัก) */}
               <div className="mb-3">
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                  {draft.companyName || "ไม่มีชื่อบริษัท"}
+                </h4>
                 <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
                   <svg
                     className="w-4 h-4 mr-2"

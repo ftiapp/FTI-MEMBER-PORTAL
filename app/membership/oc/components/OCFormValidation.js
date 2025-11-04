@@ -285,12 +285,21 @@ export const validateOCForm = (formData, step) => {
           }
         }
 
-        if (rep.firstNameEnglish && !/^[a-zA-Z\s]+$/.test(rep.firstNameEnglish)) {
-          repError.firstNameEnglish = "กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น";
+        // Check both field name variants (firstNameEng/firstNameEnglish, lastNameEng/lastNameEnglish)
+        const firstNameEn = rep.firstNameEng || rep.firstNameEnglish || rep.firstNameEn;
+        const lastNameEn = rep.lastNameEng || rep.lastNameEnglish || rep.lastNameEn;
+        
+        // English names: REQUIRED (บังคับกรอก)
+        if (!firstNameEn || firstNameEn.trim() === "") {
+          repError.firstNameEn = "กรุณากรอกชื่อภาษาอังกฤษ";
+        } else if (!/^[a-zA-Z\s]+$/.test(firstNameEn)) {
+          repError.firstNameEn = "กรุณากรอกชื่อเป็นภาษาอังกฤษเท่านั้น";
         }
 
-        if (rep.lastNameEnglish && !/^[a-zA-Z\s]+$/.test(rep.lastNameEnglish)) {
-          repError.lastNameEnglish = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
+        if (!lastNameEn || lastNameEn.trim() === "") {
+          repError.lastNameEn = "กรุณากรอกนามสกุลภาษาอังกฤษ";
+        } else if (!/^[a-zA-Z\s]+$/.test(lastNameEn)) {
+          repError.lastNameEn = "กรุณากรอกนามสกุลเป็นภาษาอังกฤษเท่านั้น";
         }
 
         // ตรวจสอบตำแหน่ง (ไม่บังคับกรอก - เอาออกแล้ว)
@@ -418,6 +427,17 @@ export const validateOCForm = (formData, step) => {
 
     if (!hasAuthorizedSignature) {
       errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
+    }
+
+    // ตรวจสอบหนังสือรับรองบริษัท (บังคับ)
+    const hasCompanyCertificate =
+      formData.companyCertificate &&
+      (formData.companyCertificate.file ||
+        formData.companyCertificate.url ||
+        formData.companyCertificate instanceof File);
+
+    if (!hasCompanyCertificate) {
+      errors.companyCertificate = "กรุณาอัพโหลดหนังสือรับรองบริษัท";
     }
 
     // ตรวจสอบคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับ

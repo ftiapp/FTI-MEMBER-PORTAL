@@ -171,11 +171,11 @@ export const submitICMembershipForm = async (formData) => {
       );
       formDataToSubmit.append(
         "representativeFirstNameEn",
-        formData.representative.firstNameEng || "",
+        formData.representative.firstNameEn || "",
       );
       formDataToSubmit.append(
         "representativeLastNameEn",
-        formData.representative.lastNameEng || "",
+        formData.representative.lastNameEn || "",
       );
       formDataToSubmit.append("representativeEmail", formData.representative.email || "");
       formDataToSubmit.append("representativePhone", formData.representative.phone || "");
@@ -362,6 +362,52 @@ export const submitICMembershipForm = async (formData) => {
     // ✅ Phase 3: Send files directly to backend - Remove frontend Cloudinary upload
     // Files are now handled by the backend API route like OC
     console.log("=== Preparing files for backend upload ===");
+
+    // ✅ Authorized signatory prename fields (Thai/English)
+    if (typeof formData.authorizedSignatoryPrenameTh === "string") {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameTh",
+        formData.authorizedSignatoryPrenameTh,
+      );
+      // snake_case for compatibility
+      formDataToSubmit.append(
+        "authorized_signatory_prename_th",
+        formData.authorizedSignatoryPrenameTh,
+      );
+    }
+    if (typeof formData.authorizedSignatoryPrenameEn === "string") {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameEn",
+        formData.authorizedSignatoryPrenameEn,
+      );
+      // snake_case for compatibility
+      formDataToSubmit.append(
+        "authorized_signatory_prename_en",
+        formData.authorizedSignatoryPrenameEn,
+      );
+    }
+    if (typeof formData.authorizedSignatoryPrenameOther === "string") {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameOther",
+        formData.authorizedSignatoryPrenameOther,
+      );
+      // snake_case for compatibility
+      formDataToSubmit.append(
+        "authorized_signatory_prename_other",
+        formData.authorizedSignatoryPrenameOther,
+      );
+    }
+    if (typeof formData.authorizedSignatoryPrenameOtherEn === "string") {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameOtherEn",
+        formData.authorizedSignatoryPrenameOtherEn,
+      );
+      // snake_case for compatibility
+      formDataToSubmit.append(
+        "authorized_signatory_prename_other_en",
+        formData.authorizedSignatoryPrenameOtherEn,
+      );
+    }
 
     // ✅ Authorized signatory name fields
     if (typeof formData.authorizedSignatoryFirstNameTh === "string") {

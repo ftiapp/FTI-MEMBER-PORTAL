@@ -1,16 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { motion } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
-import { useAuth } from "./contexts/AuthContext";
 import Image from "next/image";
 
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
-  const { user } = useAuth();
 
   // Check mobile screen size
   useEffect(() => {
@@ -119,22 +116,6 @@ export default function Home() {
               ให้สามารถแข่งขันได้ในระดับสากล
             </motion.p>
 
-            {!user && (
-              <motion.div
-                className="flex justify-center mt-8"
-                variants={fadeIn}
-                initial="hidden"
-                animate="visible"
-                transition={{ delay: 0.4 }}
-              >
-                <Link
-                  href="/register"
-                  className="inline-block px-8 py-3 bg-white text-blue-700 rounded-xl font-semibold hover:bg-blue-50 transition-colors duration-200 shadow-lg"
-                >
-                  สมัครสมาชิก
-                </Link>
-              </motion.div>
-            )}
           </div>
         </motion.div>
 

@@ -147,10 +147,12 @@ export const useRepresentatives = ({
   useEffect(() => {
     if (mode === "single") {
       if (isInitialized.current || !formData.representative) {
+        console.log("🔄 [useRepresentatives] Syncing single representative to formData:", representatives[0]);
         setFormData((prev) => ({ ...prev, representative: representatives[0] }));
       }
     } else {
       if (isInitialized.current || !formData.representatives?.length) {
+        console.log("🔄 [useRepresentatives] Syncing multiple representatives to formData:", representatives);
         setFormData((prev) => ({ ...prev, representatives }));
       }
     }
@@ -372,12 +374,14 @@ export const useRepresentatives = ({
 
   // Update representative field
   const updateRepresentative = (idOrIndex, field, value) => {
+    console.log(`📝 [useRepresentatives] Updating field "${field}" to:`, value);
     setRepresentatives((prev) =>
       prev.map((rep, index) => {
         const shouldUpdate = mode === "single" ? index === 0 : rep.id === idOrIndex;
 
         if (shouldUpdate) {
           const updatedRep = { ...rep, [field]: value };
+          console.log(`✅ [useRepresentatives] Updated representative:`, updatedRep);
 
           // Auto-sync prenames and clear prenameOther when not "อื่นๆ"/"Other"
           if (field === "prenameTh") {

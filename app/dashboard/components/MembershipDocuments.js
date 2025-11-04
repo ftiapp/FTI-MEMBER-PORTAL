@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useAuth } from "../../contexts/AuthContext";
 import { LoadingOverlay } from "./shared";
 import DraftApplications from "./DraftApplications";
 import SubmittedApplications from "./SubmittedApplications";
@@ -10,6 +11,14 @@ import ApplicationsList from "../../components/member/ApplicationsList";
 import ApplicationDetailView from "./ApplicationDetailView";
 
 export default function MembershipDocuments() {
+  const { user } = useAuth();
+  const userId = user?.id;
+  
+  console.log("👤 MembershipDocuments - Auth state:", {
+    hasUser: !!user,
+    userId: userId,
+    user: user
+  });
   const [activeSection, setActiveSection] = useState("drafts");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
@@ -232,6 +241,10 @@ export default function MembershipDocuments() {
     );
   };
 
+  // Add search and filter states after existing useState declarations
+  const [searchQuery, setSearchQuery] = useState("");
+  const [membershipTypeFilter, setMembershipTypeFilter] = useState("all");
+
   // If detail parameter exists, show detail view
   if (detail) {
     return <ApplicationDetailView />;
@@ -313,6 +326,152 @@ export default function MembershipDocuments() {
           {/* Loading Indicator */}
           {loading && <LoadingOverlay isVisible={true} message="กำลังโหลด..." inline={true} />}
 
+          {/* Search and Filter UI - ส่วนที่ปรับปรุงใหม่ */}
+          <div className="bg-gray-50 border-b border-gray-200 px-6 py-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              {/* Search Input */}
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  placeholder="ค้นหาตามชื่อบริษัทหรือเลขทะเบียน"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                  >
+                    <svg
+                      className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* Filter Dropdown */}
+              <div className="sm:w-48 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"
+                    />
+                  </svg>
+                </div>
+                <select
+                  value={membershipTypeFilter}
+                  onChange={(e) => setMembershipTypeFilter(e.target.value)}
+                  className="block w-full pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white cursor-pointer"
+                >
+                  <option value="all">ประเภทสมาชิก: ทั้งหมด</option>
+                  <option value="OC">สามัญ-โรงงาน (สน)</option>
+                  <option value="AM">สามัญ-สมาคมการค้า (สส)</option>
+                  <option value="AC">สมทบ-นิติบุคคล (ทน)</option>
+                  <option value="IC">สมทบ-บุคคลธรรมดา (ทบ)</option>
+                </select>
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-4 w-4 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Active Filters Display */}
+            {(searchQuery || membershipTypeFilter !== "all") && (
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <span className="text-xs text-gray-500">กรองโดย:</span>
+                {searchQuery && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
+                    ค้นหา: "{searchQuery}"
+                    <button
+                      onClick={() => setSearchQuery("")}
+                      className="hover:bg-blue-200 rounded-full p-0.5"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+                {membershipTypeFilter !== "all" && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
+                    ประเภท: {membershipTypeFilter}
+                    <button
+                      onClick={() => setMembershipTypeFilter("all")}
+                      className="hover:bg-purple-200 rounded-full p-0.5"
+                    >
+                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path
+                          fillRule="evenodd"
+                          d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </button>
+                  </span>
+                )}
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setMembershipTypeFilter("all");
+                  }}
+                  className="text-xs text-gray-500 hover:text-gray-700 underline"
+                >
+                  ล้างทั้งหมด
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Content Area */}
           <div className="p-6">
             {activeSection === "drafts" ? (
@@ -339,6 +498,8 @@ export default function MembershipDocuments() {
                 </div>
 
                 <DraftApplications
+                  searchQuery={searchQuery}
+                  membershipTypeFilter={membershipTypeFilter}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}
@@ -377,7 +538,10 @@ export default function MembershipDocuments() {
                 </div>
 
                 {/* V3: ใช้ระบบ Conversations ใหม่ - มี pagination ในตัวแล้ว */}
-                <RejectedApplicationsV3 />
+                <RejectedApplicationsV3
+                  searchQuery={searchQuery}
+                  membershipTypeFilter={membershipTypeFilter}
+                />
               </div>
             ) : (
               <div>
@@ -405,6 +569,9 @@ export default function MembershipDocuments() {
                 </div>
 
                 <SubmittedApplications
+                  userId={userId}
+                  searchQuery={searchQuery}
+                  membershipTypeFilter={membershipTypeFilter}
                   currentPage={currentPage}
                   itemsPerPage={itemsPerPage}
                   onPageChange={setCurrentPage}

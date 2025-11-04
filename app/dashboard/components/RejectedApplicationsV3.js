@@ -11,10 +11,14 @@ import { LoadingOverlay } from "./shared";
  * Click to view details and conversations
  */
 
-export default function RejectedApplicationsV3() {
+export default function RejectedApplicationsV3({
+  searchQuery = "",
+  membershipTypeFilter = "all",
+}) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [allApplications, setAllApplications] = useState([]); // Store all applications for filtering
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
@@ -25,8 +29,18 @@ export default function RejectedApplicationsV3() {
   const router = useRouter();
 
   useEffect(() => {
-    fetchApplications();
-  }, [pagination.page]);
+    if (allApplications.length === 0) {
+      fetchApplications();
+    } else {
+      filterApplications();
+    }
+  }, [pagination.page, searchQuery, membershipTypeFilter]);
+
+  useEffect(() => {
+    if (allApplications.length > 0 && (searchQuery || membershipTypeFilter !== "all")) {
+      filterApplications();
+    }
+  }, [allApplications, searchQuery, membershipTypeFilter]);
 
   const fetchApplications = async () => {
     try {
@@ -37,11 +51,17 @@ export default function RejectedApplicationsV3() {
       const result = await response.json();
 
       if (result.success) {
-        setApplications(result.data || []);
-        setPagination((prev) => ({
-          ...prev,
-          ...result.pagination,
-        }));
+        // Store all applications for filtering
+        setAllApplications(result.data || []);
+        
+        // If no filtering is applied, show the paginated results directly
+        if (!searchQuery && membershipTypeFilter === "all") {
+          setApplications(result.data || []);
+          setPagination((prev) => ({
+            ...prev,
+            ...result.pagination,
+          }));
+        }
       } else {
         setError(result.message || "ไม่สามารถโหลดข้อมูลได้");
       }
@@ -51,6 +71,52 @@ export default function RejectedApplicationsV3() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const filterApplications = () => {
+    let filteredApps = [...allApplications];
+
+    // Filter by membership type
+    if (membershipTypeFilter !== "all") {
+      filteredApps = filteredApps.filter(app => app.type?.toLowerCase() === membershipTypeFilter.toLowerCase());
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredApps = filteredApps.filter(app => {
+        const displayName = app.name || ""; // API returns 'name', not 'displayName'
+        const companyName = app.companyName || "";
+        const idCardNumber = app.identifier || ""; // API returns 'identifier', not 'idCardNumber'
+        const taxId = app.identifier || ""; // Same field
+        const memberType = app.type || ""; // API returns 'type', not 'memberType'
+
+        return displayName.toLowerCase().includes(query) ||
+               companyName.toLowerCase().includes(query) ||
+               idCardNumber.includes(query) ||
+               taxId.includes(query) ||
+               memberType.toLowerCase().includes(query);
+      });
+    }
+
+    console.log("Filtered rejected applications:", {
+      originalCount: allApplications.length,
+      filteredCount: filteredApps.length,
+      searchQuery,
+      membershipTypeFilter,
+    });
+
+    // Manual pagination for filtered results
+    const startIndex = (pagination.page - 1) * pagination.limit;
+    const endIndex = startIndex + pagination.limit;
+    const paginatedApps = filteredApps.slice(startIndex, endIndex);
+
+    setApplications(paginatedApps);
+    setPagination(prev => ({
+      ...prev,
+      total: filteredApps.length,
+      totalPages: Math.ceil(filteredApps.length / prev.limit),
+    }));
   };
 
   const getMembershipTypeLabel = (type) => {

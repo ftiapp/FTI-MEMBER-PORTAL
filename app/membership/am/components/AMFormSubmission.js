@@ -67,6 +67,32 @@ export const submitAMMembershipForm = async (formData) => {
       }
     }
 
+    // Ensure authorized signatory prename fields are included
+    if (formData.authorizedSignatoryPrenameTh) {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameTh",
+        formData.authorizedSignatoryPrenameTh,
+      );
+    }
+    if (formData.authorizedSignatoryPrenameEn) {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameEn",
+        formData.authorizedSignatoryPrenameEn,
+      );
+    }
+    if (formData.authorizedSignatoryPrenameOther) {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameOther",
+        formData.authorizedSignatoryPrenameOther,
+      );
+    }
+    if (formData.authorizedSignatoryPrenameOtherEn) {
+      formDataToSubmit.append(
+        "authorizedSignatoryPrenameOtherEn",
+        formData.authorizedSignatoryPrenameOtherEn,
+      );
+    }
+
     // Ensure authorized signatory name fields are included
     if (formData.authorizedSignatoryFirstNameTh) {
       formDataToSubmit.append(

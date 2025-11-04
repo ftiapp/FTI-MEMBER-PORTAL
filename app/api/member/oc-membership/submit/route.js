@@ -90,6 +90,15 @@ export async function POST(request) {
 
     console.log("📁 Files detected:", Object.keys(files));
     console.log("📄 Data fields:", Object.keys(data));
+    
+    // Debug: Check if signature name fields are received
+    console.log("🔍 DEBUG - Signature Name Fields:");
+    console.log("  authorizedSignatoryPrenameTh:", data.authorizedSignatoryPrenameTh);
+    console.log("  authorizedSignatoryPrenameEn:", data.authorizedSignatoryPrenameEn);
+    console.log("  authorizedSignatoryPrenameOther:", data.authorizedSignatoryPrenameOther);
+    console.log("  authorizedSignatoryPrenameOtherEn:", data.authorizedSignatoryPrenameOtherEn);
+    console.log("  authorizedSignatoryFirstNameTh:", data.authorizedSignatoryFirstNameTh);
+    console.log("  authorizedSignatoryLastNameTh:", data.authorizedSignatoryLastNameTh);
 
     // Validation: Require authorized signatory position if names are provided
     try {
@@ -424,8 +433,8 @@ export async function POST(request) {
 
         const firstTh = r.firstNameThai || r.firstNameTh || r.first_name_th;
         const lastTh = r.lastNameThai || r.lastNameTh || r.last_name_th;
-        const firstEn = r.firstNameEnglish || r.firstNameEn || r.first_name_en;
-        const lastEn = r.lastNameEnglish || r.lastNameEn || r.last_name_en;
+        const firstEn = r.firstNameEn || r.first_name_en || r.firstNameEnglish; // Check firstNameEn first (what form sends)
+        const lastEn = r.lastNameEn || r.last_name_en || r.lastNameEnglish; // Check lastNameEn first (what form sends)
 
         console.log(
           `🔍 Mapped fields - firstTh: ${firstTh}, lastTh: ${lastTh}, firstEn: ${firstEn}, lastEn: ${lastEn}`,
@@ -458,8 +467,8 @@ export async function POST(request) {
             rep.prenameOtherEn || rep.prename_other_en || null,
             rep.firstNameThai || rep.firstNameTh || rep.first_name_th || null,
             rep.lastNameThai || rep.lastNameTh || rep.last_name_th || null,
-            rep.firstNameEnglish || rep.firstNameEn || rep.first_name_en || null,
-            rep.lastNameEnglish || rep.lastNameEn || rep.last_name_en || null,
+            rep.firstNameEn || rep.first_name_en || rep.firstNameEnglish || null,
+            rep.lastNameEn || rep.last_name_en || rep.lastNameEnglish || null,
             rep.position || null,
             rep.email || null,
             rep.phone || null,
@@ -570,21 +579,21 @@ export async function POST(request) {
     // Step 11: Insert Authorized Signatory Names
     if (
       data.authorizedSignatoryFirstNameTh &&
-      data.authorizedSignatoryLastNameTh &&
-      data.authorizedSignatoryFirstNameEn &&
-      data.authorizedSignatoryLastNameEn
+      data.authorizedSignatoryLastNameTh
     ) {
       const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
       const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
-      if (!((posTh && String(posTh).trim()) || (posEn && String(posEn).trim()))) {
-        await rollbackTransaction(trx);
-        return NextResponse.json(
-          {
-            error: "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)",
-          },
-          { status: 400 },
-        );
-      }
+      
+      // Debug: Log values before inserting
+      console.log("🔍 DEBUG - About to insert signature name:");
+      console.log("  mainId:", mainId);
+      console.log("  prename_th:", data.authorizedSignatoryPrenameTh);
+      console.log("  prename_en:", data.authorizedSignatoryPrenameEn);
+      console.log("  prename_other:", data.authorizedSignatoryPrenameOther);
+      console.log("  prename_other_en:", data.authorizedSignatoryPrenameOtherEn);
+      console.log("  first_name_th:", data.authorizedSignatoryFirstNameTh);
+      console.log("  last_name_th:", data.authorizedSignatoryLastNameTh);
+      
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_OC_Signature_Name (
@@ -605,6 +614,8 @@ export async function POST(request) {
         ],
       );
       console.log("✅ Authorized signatory names inserted");
+    } else {
+      console.log("⚠️ No authorized signatory Thai names provided, skipping signature name insertion");
     }
 
     // Step 12: Handle Document Uploads

@@ -54,6 +54,48 @@ function convertFieldNames(data, type) {
   }
   // Keep firstname and lastname as is since they're already in the correct format
 
+  // Authorized Signatory field conversions
+  if (converted.prename_th !== undefined) {
+    converted.prenameTh = converted.prename_th;
+    delete converted.prename_th;
+  }
+  if (converted.prename_other !== undefined) {
+    converted.prenameOther = converted.prename_other;
+    delete converted.prename_other;
+  }
+  if (converted.first_name_th !== undefined) {
+    converted.firstNameTh = converted.first_name_th;
+    delete converted.first_name_th;
+  }
+  if (converted.last_name_th !== undefined) {
+    converted.lastNameTh = converted.last_name_th;
+    delete converted.last_name_th;
+  }
+  if (converted.position_th !== undefined) {
+    converted.positionTh = converted.position_th;
+    delete converted.position_th;
+  }
+  if (converted.prename_en !== undefined) {
+    converted.prenameEn = converted.prename_en;
+    delete converted.prename_en;
+  }
+  if (converted.prename_other_en !== undefined) {
+    converted.prenameOtherEn = converted.prename_other_en;
+    delete converted.prename_other_en;
+  }
+  if (converted.first_name_en !== undefined) {
+    converted.firstNameEn = converted.first_name_en;
+    delete converted.first_name_en;
+  }
+  if (converted.last_name_en !== undefined) {
+    converted.lastNameEn = converted.last_name_en;
+    delete converted.last_name_en;
+  }
+  if (converted.position_en !== undefined) {
+    converted.positionEn = converted.position_en;
+    delete converted.position_en;
+  }
+
   // Type-specific conversions based on actual database schema
   switch (type) {
     case "oc":
@@ -645,11 +687,43 @@ export async function GET(request, { params }) {
       additionalData.documents = [];
     }
 
+    // For all types: Get authorized signatory data
+    try {
+      const signatureStart = Date.now();
+      let signatureTableName, signatureIdField;
+
+      if (type === "ic") {
+        signatureTableName = "MemberRegist_IC_Signature_Name";
+        signatureIdField = "ic_main_id";
+      } else {
+        signatureTableName = `MemberRegist_${type.toUpperCase()}_Signature_Name`;
+        signatureIdField = "main_id";
+      }
+
+      const [signatureRecords] = await connection.execute(
+        `SELECT * FROM ${signatureTableName} WHERE ${signatureIdField} = ?`,
+        [id],
+      );
+      console.log(`[PERF] Signature query took: ${Date.now() - signatureStart}ms`);
+      console.log("🔍 DEBUG Raw signature records:", signatureRecords);
+      additionalData.signatureName = signatureRecords.length > 0 ? signatureRecords[0] : null;
+    } catch (signatureError) {
+      console.error("Error fetching authorized signatory:", signatureError);
+      additionalData.signatureName = null;
+    }
+
     console.log(`[PERF] Additional data queries took: ${Date.now() - additionalDataStart}ms`);
 
     // Convert snake_case to camelCase for frontend compatibility
     const mainData = result[0];
     const convertedMainData = convertFieldNames(mainData, type);
+
+    // Also convert signatureName fields if they exist
+    if (additionalData.signatureName) {
+      console.log("🔍 DEBUG Converting signatureName fields:", additionalData.signatureName);
+      additionalData.signatureName = convertFieldNames(additionalData.signatureName, type);
+      console.log("🔍 DEBUG Converted signatureName:", additionalData.signatureName);
+    }
 
     // Normalize field names for frontend expectations
     // Ensure contactPersons (plural) is always present for UI components

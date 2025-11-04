@@ -11,34 +11,41 @@ export default function SubmittedApplications({
   itemsPerPage = 5, // เปลี่ยน default เป็น 5
   onPaginationChange,
   onTotalItemsChange,
+  searchQuery = "",
+  membershipTypeFilter = "all",
 }) {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState(null);
   const [error, setError] = useState(null);
+  const [allApplications, setAllApplications] = useState([]); // Store all applications for filtering
 
   // ป้องกัน API calls ซ้ำซ้อน
   const fetchingRef = useRef(false);
   const lastFetchParamsRef = useRef(null);
 
   useEffect(() => {
-    // สร้าง unique key สำหรับ fetch parameters
-    const fetchKey = `${userId}-${currentPage}-${itemsPerPage}`;
-
-    // ถ้ากำลัง fetch อยู่ หรือ parameters เหมือนเดิม ไม่ต้อง fetch ใหม่
-    if (fetchingRef.current || lastFetchParamsRef.current === fetchKey) {
-      console.log("🚫 SubmittedApplications - Skip duplicate fetch:", fetchKey);
-      return;
-    }
-
-    console.log("✅ SubmittedApplications - Fetching with params:", {
-      userId,
+    console.log("🔄 SubmittedApplications - useEffect triggered:", {
+      allApplicationsLength: allApplications.length,
+      hasUserId: !!userId,
+      userId: userId,
       currentPage,
       itemsPerPage,
+      searchQuery,
+      membershipTypeFilter
     });
-    lastFetchParamsRef.current = fetchKey;
-    fetchApplications();
-  }, [userId, currentPage, itemsPerPage]);
+    
+    // Only fetch if we don't have all applications yet
+    if (allApplications.length === 0 && userId) {
+      console.log("📡 Calling fetchAllApplications...");
+      fetchAllApplications();
+    } else if (allApplications.length > 0) {
+      console.log("🔍 Filtering existing applications...");
+      filterAndPaginateApplications();
+    } else {
+      console.log("⚠️ No userId provided");
+    }
+  }, [userId, currentPage, itemsPerPage, searchQuery, membershipTypeFilter, allApplications]);
 
   // ส่ง totalItems กลับไปให้ parent component เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
@@ -47,7 +54,7 @@ export default function SubmittedApplications({
     }
   }, [pagination, onTotalItemsChange]);
 
-  const fetchApplications = async () => {
+  const fetchAllApplications = async () => {
     if (fetchingRef.current) {
       console.log("⏳ SubmittedApplications - Already fetching, skipping...");
       return;
@@ -60,9 +67,10 @@ export default function SubmittedApplications({
 
       console.log("📡 SubmittedApplications - API call starting...");
 
+      // Fetch all applications without pagination for client-side filtering
       const params = new URLSearchParams({
-        page: currentPage?.toString() || "1",
-        limit: itemsPerPage?.toString() || "10",
+        page: "1",
+        limit: "1000", // Large limit to get all applications
       });
 
       const response = await fetch(`/api/membership/submitted-applications?${params}`);
@@ -72,10 +80,11 @@ export default function SubmittedApplications({
         success: data.success,
         count: data.applications?.length,
         totalItems: data.pagination?.totalItems,
+        applications: data.applications,
       });
 
       if (data.success) {
-        setApplications(data.applications || []);
+        setAllApplications(data.applications || []);
         setPagination(data.pagination || null);
 
         // ส่ง pagination data กลับไปยัง parent component
@@ -84,18 +93,77 @@ export default function SubmittedApplications({
         }
       } else {
         setError(data.message || "ไม่สามารถโหลดข้อมูลได้");
-        setApplications([]);
+        setAllApplications([]);
         setPagination(null);
       }
     } catch (error) {
       console.error("❌ SubmittedApplications - Error fetching applications:", error);
       setError("เกิดข้อผิดพลาดในการโหลดข้อมูล");
-      setApplications([]);
+      setAllApplications([]);
       setPagination(null);
     } finally {
       fetchingRef.current = false;
       setLoading(false);
       console.log("✅ SubmittedApplications - Fetch completed");
+    }
+  };
+
+  const filterAndPaginateApplications = () => {
+    let filteredApps = [...allApplications];
+
+    // Filter by membership type
+    if (membershipTypeFilter !== "all") {
+      filteredApps = filteredApps.filter(app => app.memberType.toLowerCase() === membershipTypeFilter.toLowerCase());
+    }
+
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filteredApps = filteredApps.filter(app => {
+        const displayName = app.displayName || "";
+        const companyName = app.companyNameEn || ""; // English company name
+        const idCardNumber = app.idCardNumber || "";
+        const taxId = app.taxId || "";
+        const email = app.email || app.company_email || "";
+        const memberTypeText = getMemberTypeInfo(app.memberType).text || "";
+
+        return displayName.toLowerCase().includes(query) ||
+               companyName.toLowerCase().includes(query) ||
+               idCardNumber.includes(query) ||
+               taxId.includes(query) ||
+               email.toLowerCase().includes(query) ||
+               memberTypeText.toLowerCase().includes(query);
+      });
+    }
+
+    console.log("Filtered applications:", {
+      originalCount: allApplications.length,
+      filteredCount: filteredApps.length,
+      searchQuery,
+      membershipTypeFilter,
+    });
+
+    // Manual pagination
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedApps = filteredApps.slice(startIndex, endIndex);
+
+    // Update pagination info
+    const totalItems = filteredApps.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+    setApplications(paginatedApps);
+    setPagination({
+      currentPage,
+      totalItems,
+      totalPages,
+      itemsPerPage,
+    });
+
+    // Reset to page 1 if current page is out of bounds
+    if (currentPage > totalPages && totalPages > 0) {
+      // This will trigger another useEffect call
+      return;
     }
   };
 
@@ -194,6 +262,13 @@ export default function SubmittedApplications({
       </div>
     );
   }
+
+  console.log("🔍 Checking empty state:", {
+      applicationsLength: applications.length,
+      pagination: pagination,
+      totalItems: pagination?.totalItems,
+      allApplicationsLength: allApplications.length
+    });
 
   if (applications.length === 0 && (!pagination || pagination.totalItems === 0)) {
     return (

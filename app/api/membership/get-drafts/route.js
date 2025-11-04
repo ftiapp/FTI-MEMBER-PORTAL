@@ -2,6 +2,29 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/app/lib/session";
 import { query } from "@/app/lib/db";
 
+function getDisplayName(memberType, draftData) {
+  switch (memberType) {
+    case 'ic':
+      // For IC (Individual), show the person's name
+      const firstName = draftData.firstNameTh || draftData.firstNameThai || draftData.first_name_th;
+      const lastName = draftData.lastNameTh || draftData.lastNameThai || draftData.last_name_th;
+      if (firstName && lastName) {
+        return `${firstName} ${lastName}`;
+      }
+      return draftData.firstNameTh || draftData.firstNameThai || "ไม่มีชื่อ";
+
+    case 'am':
+      // For AM (Associate Member), show association name
+      return draftData.associationName || draftData.association_name || draftData.companyName || draftData.company_name || "ไม่มีชื่อสมาคม";
+
+    case 'oc':
+    case 'ac':
+    default:
+      // For OC/AC (Organization/Corporate), show company name
+      return draftData.companyName || draftData.company_name || "ไม่มีชื่อบริษัท";
+  }
+}
+
 export async function GET(request) {
   try {
     const session = await getSession();
@@ -92,7 +115,7 @@ export async function GET(request) {
               currentStep: draft.current_step,
               createdAt: draft.created_at,
               updatedAt: draft.updated_at,
-              companyName: draftData.companyName || draftData.company_name || "ไม่มีชื่อบริษัท",
+              companyName: getDisplayName(type.toLowerCase(), draftData),
               lastUpdated: draft.updated_at,
               warning: warning,
               warningType: warningType,

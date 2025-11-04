@@ -710,21 +710,11 @@ export async function POST(request) {
     // Step 11: Insert Authorized Signatory Names
     if (
       data.authorizedSignatoryFirstNameTh &&
-      data.authorizedSignatoryLastNameTh &&
-      data.authorizedSignatoryFirstNameEn &&
-      data.authorizedSignatoryLastNameEn
+      data.authorizedSignatoryLastNameTh
     ) {
       const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
       const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
-      if (!((posTh && String(posTh).trim()) || (posEn && String(posEn).trim()))) {
-        await rollbackTransaction(trx);
-        return NextResponse.json(
-          {
-            error: "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทยหรือภาษาอังกฤษ)",
-          },
-          { status: 400 },
-        );
-      }
+      
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_AC_Signature_Name (
@@ -736,21 +726,24 @@ export async function POST(request) {
           data.authorizedSignatoryPrenameEn || null,
           data.authorizedSignatoryPrenameOther || null,
           data.authorizedSignatoryPrenameOtherEn || null,
-          data.authorizedSignatoryFirstNameTh,
-          data.authorizedSignatoryLastNameTh,
-          data.authorizedSignatoryFirstNameEn,
-          data.authorizedSignatoryLastNameEn,
+          data.authorizedSignatoryFirstNameTh || null,
+          data.authorizedSignatoryLastNameTh || null,
+          data.authorizedSignatoryFirstNameEn || null,
+          data.authorizedSignatoryLastNameEn || null,
           posTh && String(posTh).trim() ? posTh : null,
           posEn && String(posEn).trim() ? posEn : null,
         ],
       );
       console.log("✅ [AC] Authorized signatory names inserted");
+    } else {
+      console.log("⚠️ [AC] No authorized signatory Thai names provided, skipping signature name insertion");
     }
 
     // Step 12: Handle Document Uploads
     console.log("📤 [AC] Processing document uploads...");
     const uploadedDocuments = {};
 
+// ... (rest of the code remains the same)
     for (const fieldName of Object.keys(files)) {
       const fileValue = files[fieldName];
 

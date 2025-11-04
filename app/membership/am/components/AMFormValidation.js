@@ -278,6 +278,7 @@ const validateRepresentatives = (formData, errors) => {
       repError.lastNameTh = "กรุณากรอกเฉพาะภาษาไทยเท่านั้น";
     }
 
+    // English names: REQUIRED (บังคับกรอก)
     if (!rep.firstNameEn || rep.firstNameEn.trim() === "") {
       repError.firstNameEn = "กรุณากรอกชื่อภาษาอังกฤษ";
     } else if (!/^[a-zA-Z\s]+$/.test(rep.firstNameEn)) {

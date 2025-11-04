@@ -182,6 +182,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     productionImages: formData.productionImages || [],
     companyStamp: formData.companyStamp || null,
     authorizedSignature: formData.authorizedSignature || null,
+    companyCertificate: formData.companyCertificate || null,
     attachmentDocument: formData.attachmentDocument || null,
   });
 
@@ -209,6 +210,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       productionImages: formData.productionImages || [],
       companyStamp: formData.companyStamp || null,
       authorizedSignature: formData.authorizedSignature || null,
+      companyCertificate: formData.companyCertificate || null,
       attachmentDocument: formData.attachmentDocument || null,
     });
     setFactoryType(formData.factoryType || "");
@@ -642,8 +644,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
             เอกสารใบอนุญาต / License Documents
           </h2>
           <p className="text-blue-100 text-sm mt-1">
-            เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ / Select factory type and upload supporting
-            documents
+            เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ (ทั้งหมด 4 เอกสาร) / Select factory type and upload supporting documents (4 documents total)
           </p>
         </div>
 
@@ -834,6 +835,28 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                   เอกสารที่จำเป็นต้องอัปโหลด (บังคับ)
                 </span>
               </div>
+            </div>
+
+            {/* Company Certificate Upload */}
+            <div className="space-y-3">
+              <SingleFileUploadZone
+                title="หนังสือรับรองบริษัท *"
+                description="สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล ออกโดยกระทรวงพาณิชย์ อายุไม่เกิน 6 เดือน"
+                name="companyCertificate"
+                file={selectedFiles.companyCertificate}
+                icon={
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                }
+                iconColor="text-blue-600"
+                bgColor="bg-blue-100"
+              />
             </div>
 
             {/* Company Stamp Upload */}
@@ -1241,8 +1264,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               </div>
             </div>
 
-           
-          </div>
+            </div>
 
           {/* Empty State */}
         </div>
