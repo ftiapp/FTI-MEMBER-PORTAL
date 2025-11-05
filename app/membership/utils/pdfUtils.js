@@ -1,4 +1,4 @@
-﻿// ติดตั้ง: npm install html2pdf.js
+// ติดตั้ง: npm install html2pdf.js
 import html2pdf from "html2pdf.js";
 
 // Format Thai date
@@ -431,6 +431,16 @@ const processData = (app) => {
         app.prename_th,
         app.prenameTh,
       );
+      console.log("🔍 DEBUG PDF - prenameTh values checked:", {
+        authorizedSignatoryPrenameTh: app.authorizedSignatoryPrenameTh,
+        authorizedSignaturePrenameTh: app.authorizedSignaturePrenameTh,
+        authorized_signatory_prename_th: app.authorized_signatory_prename_th,
+        "sigContainer?.prename_th": sigContainer?.prename_th,
+        "sigContainer?.prenameTh": sigContainer?.prenameTh,
+        "app.prename_th": app.prename_th,
+        "app.prenameTh": app.prenameTh,
+        "final prenameTh": prenameTh
+      });
       const prenameEn = pick(
         app.authorizedSignatoryPrenameEn,
         app.authorizedSignaturePrenameEn,
@@ -449,6 +459,16 @@ const processData = (app) => {
         app.prename_other,
         app.prenameOther,
       );
+      console.log("🔍 DEBUG PDF - prenameOther values checked:", {
+        authorizedSignatoryPrenameOther: app.authorizedSignatoryPrenameOther,
+        authorizedSignaturePrenameOther: app.authorizedSignaturePrenameOther,
+        authorized_signatory_prename_other: app.authorized_signatory_prename_other,
+        "sigContainer?.prename_other": sigContainer?.prename_other,
+        "sigContainer?.prenameOther": sigContainer?.prenameOther,
+        "app.prename_other": app.prename_other,
+        "app.prenameOther": app.prenameOther,
+        "final prenameOther": prenameOther
+      });
 
       // Possible flat fields
       const thFirst = pick(
@@ -878,11 +898,13 @@ export const generateMembershipPDF = async (
 
     // Simple CSS
     const styles = `
+      @page { margin: 8mm; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Sarabun', sans-serif; font-size: 11px; line-height: 1.3; padding: 6px; }
+      body { font-family: 'Sarabun', sans-serif; font-size: 11px; line-height: 1.3; padding: 6px 6px 30px 6px; position: relative; }
       .logo-wrap { text-align: center; margin-bottom: 0px; display: flex; justify-content: center; }
       .logo-wrap img { height: 42px; object-fit: contain; display: block; margin: 0 auto; }
       .header { text-align: center; font-size: 11.5px; font-weight: bold; margin-top: -10px; margin-bottom: 0px; padding-bottom: 4px; border-bottom: 1px solid #333; line-height: 2.5; }
+      .created-date { position: absolute; top: 6px; right: 6px; font-size: 8px; color: #999; }
       .section { border: 1px solid #ddd; margin-bottom: 4px; padding: 5px; }
       .section-title { font-weight: bold; font-size: 10px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
       .field { margin-bottom: 2px; font-size: 10px; }
@@ -899,7 +921,6 @@ export const generateMembershipPDF = async (
       .signature-img { border: 1px dashed #999; height: 50px; width: 100px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
       .stamp-box { border: 1px solid #ddd; padding: 10px; text-align: center; min-width: 130px; }
       .stamp-img { border: 1px dashed #999; width: 100px; height: 50px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
-      .footer { text-align: center; font-size: 8.5px; color: #999; margin-top: 8px; }
       .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
       .list-2col .span-all { grid-column: 1 / -1; }
       .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; row-gap: 4px; align-items: start; }
@@ -915,6 +936,9 @@ export const generateMembershipPDF = async (
         <style>${styles}</style>
       </head>
       <body>
+        <div class="created-date">
+          สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString("th-TH")}
+        </div>
         <div class="logo-wrap">
           <img src="${logoSrc}" alt="FTI Logo" crossorigin="anonymous" />
         </div>
@@ -1300,10 +1324,6 @@ export const generateMembershipPDF = async (
           </div>
         `
         }
-        
-        <div class="footer">
-          สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString("th-TH")}
-        </div>
       </body>
       </html>
     `;

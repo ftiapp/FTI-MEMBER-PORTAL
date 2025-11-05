@@ -325,12 +325,28 @@ export async function GET(request, { params }) {
       phone: applicantUser?.phone || null,
 
       // Authorized signatory (names & positions)
+      authorizedSignatoryPrenameTh: signatureName?.prename_th || null,
+      authorizedSignatoryPrenameEn: signatureName?.prename_en || null,
+      authorizedSignatoryPrenameOther: signatureName?.prename_other || null,
       authorizedSignatoryFirstNameTh: signatureName?.first_name_th || null,
       authorizedSignatoryLastNameTh: signatureName?.last_name_th || null,
       authorizedSignatoryFirstNameEn: signatureName?.first_name_en || null,
       authorizedSignatoryLastNameEn: signatureName?.last_name_en || null,
       authorizedSignatoryPositionTh: signatureName?.position_th || null,
       authorizedSignatoryPositionEn: signatureName?.position_en || null,
+
+      // Signature name object for PDF utility
+      signatureName: signatureName ? {
+        prenameTh: signatureName.prename_th,
+        prenameEn: signatureName.prename_en,
+        prenameOther: signatureName.prename_other,
+        firstNameTh: signatureName.first_name_th,
+        lastNameTh: signatureName.last_name_th,
+        firstNameEn: signatureName.first_name_en,
+        lastNameEn: signatureName.last_name_en,
+        positionTh: signatureName.position_th,
+        positionEn: signatureName.position_en,
+      } : null,
 
       // ✅ Industry Groups / Province Chapters
       // Keep arrays of IDs for backward compatibility

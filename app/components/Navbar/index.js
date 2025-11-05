@@ -29,12 +29,15 @@ export default function Navbar() {
       { name: "หน้าแรก", href: "/" },
       { name: "เกี่ยวกับเรา", href: "/about" },
       { name: "ประเภทสมาชิก", href: "/membership" },
-      { name: "ติดต่อเรา", href: "/contact" },
     ];
 
-    // Show all menu items for both logged in and guest users
+    // Add "ติดต่อเรา" only for guest users
+    if (!user) {
+      items.push({ name: "ติดต่อเรา", href: "/contact" });
+    }
+
     return items;
-  }, []);
+  }, [user]);
 
   const handleLogout = useCallback(() => {
     setShowLogoutModal(true);
@@ -135,13 +138,13 @@ export default function Navbar() {
 
       <nav className="bg-white/95 backdrop-blur-md shadow-lg w-full fixed top-0 left-0 right-0 z-[9999] border-b border-gray-100">
         <div className="container-custom px-4 max-w-7xl mx-auto">
-          <div className="flex justify-between items-center py-4">
+          <div className="flex justify-between items-center py-4 gap-4">
             {/* Logo */}
-            <Logo />
-
-            {/* Desktop Menu */}
-            <div className="hidden lg:flex items-center justify-between flex-1 ml-8">
-              <div className="flex items-center space-x-3">
+            <div className="flex items-center gap-6">
+              <Logo />
+              
+              {/* Main Menu Items */}
+              <div className="hidden lg:flex items-center gap-6">
                 {menuItems.map((item) => (
                   <MenuItem
                     key={item.name}
@@ -150,9 +153,12 @@ export default function Navbar() {
                   />
                 ))}
               </div>
+            </div>
 
+            {/* Action Buttons - Right Side */}
+            <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
               {user ? (
-                <div className="flex items-center space-x-3">
+                <>
                   {/* Search Button */}
                   <ActionButton
                     href="https://membersearch.fti.or.th/"
@@ -191,9 +197,21 @@ export default function Navbar() {
 
                   {/* User Menu */}
                   <UserMenu user={user} onLogout={handleLogout} />
-                </div>
+                </>
               ) : (
-                <div className="flex items-center space-x-3">
+                <>
+                  {/* Search Button for Guest */}
+                  <ActionButton
+                    href="https://membersearch.fti.or.th/"
+                    variant="search"
+                    external={true}
+                  >
+                    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    ค้นหาสมาชิก
+                  </ActionButton>
+
                   {/* Payment Button for Guest */}
                   <ActionButton
                     href="https://epayment.fti.or.th/"
@@ -216,7 +234,7 @@ export default function Navbar() {
                     </svg>
                     สมัครสมาชิก
                   </ActionButton>
-                </div>
+                </>
               )}
             </div>
 

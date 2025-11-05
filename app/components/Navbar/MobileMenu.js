@@ -82,8 +82,20 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
             {/* สำหรับผู้ไม่ได้ล็อกอิน */}
             <div className="space-y-1 pt-3 border-t border-gray-200">
               <div className="px-4 mb-1">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">เข้าสู่ระบบ</h3>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">บริการ</h3>
               </div>
+              <a
+                href="https://membersearch.fti.or.th/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center px-6 py-3 rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+              >
+                <svg className="w-5 h-5 mr-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span className="text-sm font-medium">ค้นหาสมาชิก</span>
+              </a>
+
               <a
                 href="https://epayment.fti.or.th/"
                 target="_blank"
@@ -95,7 +107,12 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
                 </svg>
                 <span className="text-sm font-medium">ชำระเงินออนไลน์</span>
               </a>
+            </div>
 
+            <div className="space-y-1 pt-3 border-t border-gray-200">
+              <div className="px-4 mb-1">
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">เข้าสู่ระบบ</h3>
+              </div>
               <a
                 href="/login"
                 className="flex items-center px-6 py-3 rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"

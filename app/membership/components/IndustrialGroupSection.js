@@ -24,9 +24,9 @@ export default function IndustrialGroupSection({
     infoTitle: "การเลือกกลุ่มอุตสาหกรรม",
     infoMessage:
       "สามารถเลือกได้มากกว่า 1 รายการ เพื่อระบุกลุ่มอุตสาหกรรมและสภาอุตสาหกรรมจังหวัดที่บริษัทมีส่วนเกี่ยวข้อง",
-    industrialGroupLabel: "กลุ่มอุตสาหกรรม / Industrial Groups",
+    industrialGroupLabel: "กลุ่มอุตสาหกรรม (อัตราค่าสมาชิกแตกต่างกัน) / Industrial Groups",
     industrialGroupPlaceholder: "-- เลือกกลุ่มอุตสาหกรรม / Select Industrial Groups --",
-    provincialChapterLabel: "สภาอุตสาหกรรมจังหวัด / Provincial Chapters",
+    provincialChapterLabel: "สภาอุตสาหกรรมจังหวัด (อัตราค่าสมาชิกแตกต่างกัน) / Provincial Chapters",
     provincialChapterPlaceholder: "-- เลือกสภาอุตสาหกรรมจังหวัด / Select Provincial Chapters --",
     industrialGroupFieldName: "industrialGroupIds",
     provincialChapterFieldName: "provincialChapterIds",

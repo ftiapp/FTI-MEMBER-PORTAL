@@ -310,6 +310,9 @@ export async function GET(request, { params }) {
       })),
 
       // ชื่อผู้มีอำนาจลงนาม (flattened fields for compatibility)
+      authorizedSignatoryPrenameTh: signatureNameResult?.[0]?.prename_th || null,
+      authorizedSignatoryPrenameEn: signatureNameResult?.[0]?.prename_en || null,
+      authorizedSignatoryPrenameOther: signatureNameResult?.[0]?.prename_other || null,
       authorizedSignatoryFirstNameTh: signatureNameResult?.[0]?.first_name_th || null,
       authorizedSignatoryLastNameTh: signatureNameResult?.[0]?.last_name_th || null,
       authorizedSignatoryFirstNameEn: signatureNameResult?.[0]?.first_name_en || null,
@@ -322,6 +325,19 @@ export async function GET(request, { params }) {
       authorizedSignatoryFullNameEn:
         `${signatureNameResult?.[0]?.first_name_en || ""} ${signatureNameResult?.[0]?.last_name_en || ""}`.trim() ||
         null,
+
+      // Signature name object for PDF utility
+      signatureName: signatureNameResult?.[0] ? {
+        prenameTh: signatureNameResult[0].prename_th,
+        prenameEn: signatureNameResult[0].prename_en,
+        prenameOther: signatureNameResult[0].prename_other,
+        firstNameTh: signatureNameResult[0].first_name_th,
+        lastNameTh: signatureNameResult[0].last_name_th,
+        firstNameEn: signatureNameResult[0].first_name_en,
+        lastNameEn: signatureNameResult[0].last_name_en,
+        positionTh: signatureNameResult[0].position_th,
+        positionEn: signatureNameResult[0].position_en,
+      } : null,
 
       // ID Card document (existing)
       idCardDocument: documentsResult?.find((doc) => doc.document_type === "idCard")

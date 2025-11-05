@@ -434,6 +434,19 @@ export async function GET(request, { params }) {
       authorizedSignatoryLastNameEn: signatureName?.last_name_en || null,
       authorizedSignatoryPositionTh: signatureName?.position_th || null,
       authorizedSignatoryPositionEn: signatureName?.position_en || null,
+
+      // Signature name object for PDF utility
+      signatureName: signatureName ? {
+        prenameTh: signatureName.prename_th,
+        prenameEn: signatureName.prename_en,
+        prenameOther: signatureName.prename_other,
+        firstNameTh: signatureName.first_name_th,
+        lastNameTh: signatureName.last_name_th,
+        firstNameEn: signatureName.first_name_en,
+        lastNameEn: signatureName.last_name_en,
+        positionTh: signatureName.position_th,
+        positionEn: signatureName.position_en,
+      } : null,
     };
 
     // Add applicant account info for PDF
