@@ -187,9 +187,11 @@ const validateAssociationInfo = (formData, errors) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมล (ไม่บังคับ - ตรวจสอบเฉพาะรูปแบบถ้ามีการกรอก)
+      // ตรวจสอบอีเมล (บังคับกรอก)
       const emailVal = address.email || address[`email-${type}`] || "";
-      if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+      if (!emailVal || emailVal.trim() === "") {
+        errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 

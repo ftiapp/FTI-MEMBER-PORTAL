@@ -1068,17 +1068,11 @@ export const generateMembershipPDF = async (
               <div class="col">${field("จังหวัด", data.address2.province)}</div>
               <div class="col">${field("รหัสไปรษณีย์", data.address2.postalCode)}</div>
             </div>
-            ${
-              data.addressType2Phone || data.addressType2Email || data.addressType2Website
-                ? `
-              <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
-                ${data.addressType2Phone ? `<div class=\"col\">${field("โทรศัพท์", data.addressType2Phone)}${data.addressType2PhoneExt ? ` ต่อ ${data.addressType2PhoneExt}` : ""}</div>` : '<div class=\"col\"></div>'}
-                ${data.addressType2Email ? `<div class=\"col\">${field("อีเมล", data.addressType2Email)}</div>` : '<div class=\"col\"></div>'}
-                ${data.addressType2Website ? `<div class=\"col\">${field("เว็บไซต์", data.addressType2Website)}</div>` : '<div class=\"col\"></div>'}
-              </div>
-            `
-                : ""
-            }
+            <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+              <div class="col">${field("โทรศัพท์", data.addressType2Phone ? `${data.addressType2Phone}${data.addressType2PhoneExt ? ` ต่อ ${data.addressType2PhoneExt}` : ""}` : "")}</div>
+              <div class="col">${field("อีเมล", data.addressType2Email || "")}</div>
+              <div class="col">${field("เว็บไซต์", data.addressType2Website || "")}</div>
+            </div>
           `,
               )
             : section(
@@ -1096,17 +1090,11 @@ export const generateMembershipPDF = async (
               <div class="col">${field("จังหวัด", data.province)}</div>
               <div class="col">${field("รหัสไปรษณีย์", data.postalCode)}</div>
             </div>
-            ${
-              data.phone || data.email || data.website
-                ? `
-              <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
-                ${data.phone ? `<div class=\"col\">${field("โทรศัพท์", data.phone)}${data.phoneExtension ? ` ต่อ ${data.phoneExtension}` : ""}</div>` : '<div class=\"col\"></div>'}
-                ${data.email ? `<div class=\"col\">${field("อีเมล", data.email)}</div>` : '<div class=\"col\"></div>'}
-                ${data.website ? `<div class=\"col\">${field("เว็บไซต์", data.website)}</div>` : '<div class=\"col\"></div>'}
-              </div>
-            `
-                : ""
-            }
+            <div class="row" style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+              <div class="col">${field("โทรศัพท์", data.phone ? `${data.phone}${data.phoneExtension ? ` ต่อ ${data.phoneExtension}` : ""}` : "")}</div>
+              <div class="col">${field("อีเมล", data.email || "")}</div>
+              <div class="col">${field("เว็บไซต์", data.website || "")}</div>
+            </div>
           `,
               )
         }

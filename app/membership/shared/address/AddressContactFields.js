@@ -90,7 +90,8 @@ export default function AddressContactFields({
       {showEmail && (
         <div className="space-y-2">
           <label htmlFor={`email-${activeTab}`} className="block text-sm font-medium text-gray-900">
-            อีเมล / Email {activeTab === "1" ? "(ถ้ามี / if any)" : ""}
+            อีเมล / Email
+            <span className="text-red-500 ml-1">*</span>
           </label>
           <input
             type="email"

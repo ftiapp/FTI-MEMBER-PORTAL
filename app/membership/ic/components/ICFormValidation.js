@@ -216,12 +216,12 @@ const validateApplicantInfo = (formData) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมล (ไม่บังคับกรอก แต่ถ้ามีต้องเป็นรูปแบบที่ถูกต้อง)
+      // ตรวจสอบอีเมล (บังคับกรอก)
       const email = address.email || address[`email-${type}`] || "";
-      if (email && email.trim() !== "") {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
-        }
+      if (!email || email.trim() === "") {
+        errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
       // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)

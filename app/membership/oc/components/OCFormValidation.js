@@ -107,11 +107,11 @@ export const validateOCForm = (formData, step) => {
         const phoneRaw = address.phone ?? address[`phone-${type}`];
         const phoneVal = typeof phoneRaw === "string" ? phoneRaw.replace(/[-\s]/g, "") : phoneRaw;
 
-        // อีเมลไม่บังคับ: ตรวจรูปแบบเฉพาะเมื่อมีค่า
-        if (emailVal) {
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-            errors[`addresses.${type}.email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
-          }
+        // อีเมลบังคับกรอก: ตรวจรูปแบบเสมอ
+        if (!emailVal) {
+          errors[`addresses.${type}.email`] = `กรุณากรอกอีเมล (${label})`;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+          errors[`addresses.${type}.email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
         }
 
         // เบอร์โทรศัพท์บังคับ (รองรับ 9-10 หลัก)

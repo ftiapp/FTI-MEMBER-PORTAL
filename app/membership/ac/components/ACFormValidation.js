@@ -6,7 +6,7 @@
  * @param {number} step ขั้นตอนปัจจุบันที่ต้องการตรวจสอบ
  * @returns {Object} ข้อความแสดงข้อผิดพลาด (ถ้ามี)
  */
-export const validateACForm = (formData, step) => {
+export const validateACForm = (formData, step, selectedFiles) => {
   const errors = {};
 
   if (step === 1) {
@@ -90,10 +90,13 @@ export const validateACForm = (formData, step) => {
             }
           }
 
-          // อีเมล: ไม่บังคับ แต่ถ้ากรอกต้องถูกรูปแบบ
+          // อีเมล: บังคับกรอก และตรวจรูปแบบ
           const emailKey = `email-${type}`;
           const emailValue = address[emailKey] || address.email || "";
-          if (emailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
+          if (!emailValue || emailValue.trim() === "") {
+            typeErrors.email = `กรุณากรอกอีเมล (${label})`;
+            hasAddressErrors = true;
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue)) {
             typeErrors.email = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
             hasAddressErrors = true;
           }
@@ -346,62 +349,124 @@ export const validateACForm = (formData, step) => {
       errors.authorizedSignature = "กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม";
     }
 
-    // ตรวจสอบคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับ
-    if (!formData.authorizedSignatoryPrenameTh) {
-      errors.authorizedSignatoryPrenameTh = "กรุณาเลือกคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย)";
+    // ตรวจสอบข้อมูลผู้มีอำนาจลงนาม (หลายคน)
+    if (!formData.signatories || formData.signatories.length === 0) {
+      errors.signatories = "กรุณาระบุข้อมูลผู้มีอำนาจลงนามอย่างน้อย 1 ท่าน";
+    } else {
+      // ตรวจสอบแต่ละคน
+      formData.signatories.forEach((signatory, index) => {
+        // คำนำหน้า (ภาษาไทย) - บังคับ
+        if (!signatory.prenameTh) {
+          errors[`signatories[${index}].prenameTh`] = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
+        }
+
+        // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
+        if (signatory.prenameTh === "อื่นๆ") {
+          if (!signatory.prenameOther || signatory.prenameOther.trim() === "") {
+            errors[`signatories[${index}].prenameOther`] = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ) ภาษาไทย";
+          }
+        }
+
+        // ชื่อ (ภาษาไทย) - บังคับ
+        if (!signatory.firstNameTh) {
+          errors[`signatories[${index}].firstNameTh`] = "กรุณากรอกชื่อ (ภาษาไทย)";
+        } else if (!/^[ก-๙\.\s]+$/.test(signatory.firstNameTh)) {
+          errors[`signatories[${index}].firstNameTh`] = "ชื่อภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+        }
+
+        // นามสกุล (ภาษาไทย) - บังคับ
+        if (!signatory.lastNameTh) {
+          errors[`signatories[${index}].lastNameTh`] = "กรุณากรอกนามสกุล (ภาษาไทย)";
+        } else if (!/^[ก-๙\.\s]+$/.test(signatory.lastNameTh)) {
+          errors[`signatories[${index}].lastNameTh`] = "นามสกุลภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+        }
+
+        // ตำแหน่ง (ภาษาไทย) - ไม่บังคับแต่ถ้ากรอกต้องเป็นภาษาไทย
+        if (signatory.positionTh && signatory.positionTh.trim() !== "") {
+          if (!/^[ก-๙\.\s]+$/.test(signatory.positionTh)) {
+            errors[`signatories[${index}].positionTh`] = "ตำแหน่งภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+          }
+        }
+
+        // คำนำหน้า (ภาษาอังกฤษ) - ไม่บังคับ
+        if (signatory.prenameEn === "Other") {
+          if (!signatory.prenameOtherEn || signatory.prenameOtherEn.trim() === "") {
+            errors[`signatories[${index}].prenameOtherEn`] = "กรุณาระบุคำนำหน้าชื่อ (Other) ภาษาอังกฤษ";
+          }
+        }
+
+        // ชื่อ/นามสกุล/ตำแหน่ง (ภาษาอังกฤษ) - ไม่บังคับ ไม่ตรวจสอบ
+      });
     }
 
-    // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
-    if (formData.authorizedSignatoryPrenameTh === "อื่นๆ") {
-      if (
-        !formData.authorizedSignatoryPrenameOther ||
-        formData.authorizedSignatoryPrenameOther.trim() === ""
-      ) {
-        errors.authorizedSignatoryPrenameOther = "กรุณาระบุคำนำหน้า (อื่นๆ) ภาษาไทย";
+    // ตรวจสอบลายเซ็นของผู้มีอำนาจลงนาม (หลายคน)
+    if (formData.signatories && formData.signatories.length > 0) {
+      formData.signatories.forEach((signatory, index) => {
+        const signatureFile = selectedFiles?.authorizedSignatures?.[index];
+        if (!signatureFile) {
+          errors[`authorizedSignature_${index}`] = `กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
+        }
+      });
+    }
+
+    // ตรวจสอบคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย) - บังคับ (Fallback สำหรับระบบเก่า)
+    if (!formData.signatories || formData.signatories.length === 0) {
+      if (!formData.authorizedSignatoryPrenameTh) {
+        errors.authorizedSignatoryPrenameTh = "กรุณาเลือกคำนำหน้าผู้มีอำนาจลงนาม (ภาษาไทย)";
       }
+
+      // ถ้าเลือก "อื่นๆ" ต้องระบุรายละเอียด
+      if (formData.authorizedSignatoryPrenameTh === "อื่นๆ") {
+        if (
+          !formData.authorizedSignatoryPrenameOther ||
+          formData.authorizedSignatoryPrenameOther.trim() === ""
+        ) {
+          errors.authorizedSignatoryPrenameOther = "กรุณาระบุคำนำหน้า (อื่นๆ) ภาษาไทย";
+        }
+      }
+
+      // คำนำหน้าภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ
+      // Removed validation for English prename fields
+
+      // ตรวจสอบข้อมูลผู้มีอำนาจลงนาม (ชื่อ-นามสกุล และตำแหน่ง)
+      // ภาษาไทย: ต้องมีเฉพาะอักษรไทยและเว้นวรรค
+      if (
+        !formData.authorizedSignatoryFirstNameTh ||
+        formData.authorizedSignatoryFirstNameTh.trim() === ""
+      ) {
+        errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
+      } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
+        errors.authorizedSignatoryFirstNameTh =
+          "ชื่อผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+      }
+
+      if (
+        !formData.authorizedSignatoryLastNameTh ||
+        formData.authorizedSignatoryLastNameTh.trim() === ""
+      ) {
+        errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)";
+      } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
+        errors.authorizedSignatoryLastNameTh =
+          "นามสกุลผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+      }
+
+      // ภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
+      // Removed validation for English fields
+
+      // ตำแหน่ง (บังคับเฉพาะภาษาไทย)
+      if (
+        !formData.authorizedSignatoryPositionTh ||
+        formData.authorizedSignatoryPositionTh.trim() === ""
+      ) {
+        errors.authorizedSignatoryPositionTh = "กรุณากรอกตำแหน่ง (ภาษาไทย) ของผู้มีอำนาจลงนาม";
+      } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryPositionTh)) {
+        errors.authorizedSignatoryPositionTh =
+          "ตำแหน่ง (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+      }
+
+      // ตำแหน่งภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
+      // Removed validation for English position
     }
-
-    // คำนำหน้าภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ
-    // Removed validation for English prename fields
-
-    // ตรวจสอบข้อมูลผู้มีอำนาจลงนาม (ชื่อ-นามสกุล และตำแหน่ง)
-    // ภาษาไทย: ต้องมีเฉพาะอักษรไทยและเว้นวรรค
-    if (
-      !formData.authorizedSignatoryFirstNameTh ||
-      formData.authorizedSignatoryFirstNameTh.trim() === ""
-    ) {
-      errors.authorizedSignatoryFirstNameTh = "กรุณากรอกชื่อผู้มีอำนาจลงนาม (ภาษาไทย)";
-    } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryFirstNameTh)) {
-      errors.authorizedSignatoryFirstNameTh =
-        "ชื่อผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
-    }
-
-    if (
-      !formData.authorizedSignatoryLastNameTh ||
-      formData.authorizedSignatoryLastNameTh.trim() === ""
-    ) {
-      errors.authorizedSignatoryLastNameTh = "กรุณากรอกนามสกุลผู้มีอำนาจลงนาม (ภาษาไทย)";
-    } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryLastNameTh)) {
-      errors.authorizedSignatoryLastNameTh =
-        "นามสกุลผู้มีอำนาจลงนาม (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
-    }
-
-    // ภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
-    // Removed validation for English fields
-
-    // ตำแหน่ง (บังคับเฉพาะภาษาไทย)
-    if (
-      !formData.authorizedSignatoryPositionTh ||
-      formData.authorizedSignatoryPositionTh.trim() === ""
-    ) {
-      errors.authorizedSignatoryPositionTh = "กรุณากรอกตำแหน่ง (ภาษาไทย) ของผู้มีอำนาจลงนาม";
-    } else if (!/^[ก-๙\.\s]+$/.test(formData.authorizedSignatoryPositionTh)) {
-      errors.authorizedSignatoryPositionTh =
-        "ตำแหน่ง (ภาษาไทย) ต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
-    }
-
-    // ตำแหน่งภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
-    // Removed validation for English position
   }
 
   return errors;

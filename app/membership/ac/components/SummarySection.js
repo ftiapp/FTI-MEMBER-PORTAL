@@ -789,10 +789,60 @@ export default function SummarySectionComponent({
       )}
 
       {/* ข้อมูลผู้มีอำนาจลงนาม */}
-      {(formData?.authorizedSignatoryFirstNameTh || formData?.authorizedSignatoryLastNameTh) && (
+      {formData?.signatories && formData.signatories.length > 0 && (
+        <Section title="ข้อมูลผู้มีอำนาจลงนาม" className="mt-6">
+          <div className="space-y-6">
+            {formData.signatories.map((signatory, index) => (
+              <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="mb-3">
+                  <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                    <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium mr-2">
+                      {index + 1}
+                    </span>
+                    ผู้มีอำนาจลงนามท่านที่ {index + 1}
+                  </h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* คำนำหน้าภาษาไทย */}
+                  <InfoCard
+                    title="คำนำหน้า"
+                    value={(() => {
+                      const prename = signatory?.prenameTh || "";
+                      if (prename === "อื่นๆ" || prename === "อื่น ๆ") {
+                        return signatory?.prenameOther || prename;
+                      }
+                      return prename;
+                    })()}
+                  />
+                  {/* ชื่อ-นามสกุลภาษาไทย */}
+                  <InfoCard
+                    title="ชื่อ-นามสกุล"
+                    value={`${signatory?.firstNameTh || ""} ${signatory?.lastNameTh || ""}`.trim() || "-"}
+                  />
+                  {/* ตำแหน่งภาษาไทย */}
+                  <InfoCard
+                    title="ตำแหน่ง"
+                    value={signatory?.positionTh || "-"}
+                  />
+                  {/* ไฟล์ลายเซ็น */}
+                  <div className="md:col-span-2">
+                    <FileCard
+                      fileName={getFileName(formData?.authorizedSignatures?.[index])}
+                      fileUrl={getFileUrl(formData?.authorizedSignatures?.[index])}
+                      description={`รูปลายเซ็นผู้มีอำนาจลงนาม ท่านที่ ${index + 1}`}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Section>
+      )}
+
+      {/* ข้อมูลผู้มีอำนาจลงนามเดี่ยว (Fallback สำหรับระบบเก่า) */}
+      {(!formData?.signatories || formData.signatories.length === 0) && formData?.authorizedSignatoryFirstNameTh && (
         <Section title="ข้อมูลผู้มีอำนาจลงนาม" className="mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* คำนำหน้าภาษาไทย */}
             <InfoCard
               title="คำนำหน้า"
               value={(() => {
@@ -803,16 +853,21 @@ export default function SummarySectionComponent({
                 return prename;
               })()}
             />
-            {/* ชื่อ-นามสกุลภาษาไทย */}
             <InfoCard
               title="ชื่อ-นามสกุล"
               value={`${formData?.authorizedSignatoryFirstNameTh || ""} ${formData?.authorizedSignatoryLastNameTh || ""}`.trim() || "-"}
             />
-            {/* ตำแหน่งภาษาไทย */}
             <InfoCard
               title="ตำแหน่ง"
               value={formData?.authorizedSignatoryPositionTh || "-"}
             />
+            <div className="md:col-span-2">
+              <FileCard
+                fileName={getFileName(formData?.authorizedSignatures?.[0])}
+                fileUrl={getFileUrl(formData?.authorizedSignatures?.[0])}
+                description="รูปลายเซ็นผู้มีอำนาจลงนาม"
+              />
+            </div>
           </div>
         </Section>
       )}
