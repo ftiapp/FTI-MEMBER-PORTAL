@@ -39,6 +39,7 @@ function sanitizePercent(raw, { field = "percent", allowNull = true } = {}) {
 
 export async function POST(request) {
   let trx;
+  let signatoriesToInsert = []; // Declare at function level to make it accessible throughout
 
   try {
     const session = await getSession();
@@ -91,31 +92,73 @@ export async function POST(request) {
     console.log("📁 Files detected:", Object.keys(files));
     console.log("📄 Data fields:", Object.keys(data));
     
-    // Debug: Check if signature name fields are received
-    console.log("🔍 DEBUG - Signature Name Fields:");
-    console.log("  authorizedSignatoryPrenameTh:", data.authorizedSignatoryPrenameTh);
-    console.log("  authorizedSignatoryPrenameEn:", data.authorizedSignatoryPrenameEn);
-    console.log("  authorizedSignatoryPrenameOther:", data.authorizedSignatoryPrenameOther);
-    console.log("  authorizedSignatoryPrenameOtherEn:", data.authorizedSignatoryPrenameOtherEn);
-    console.log("  authorizedSignatoryFirstNameTh:", data.authorizedSignatoryFirstNameTh);
-    console.log("  authorizedSignatoryLastNameTh:", data.authorizedSignatoryLastNameTh);
+    // Debug: Check if signatories array is received
+    if (data.signatories) {
+      console.log("🔍 DEBUG - Signatories Array:");
+      try {
+        const signatories = JSON.parse(data.signatories);
+        console.log("  Number of signatories:", signatories.length);
+        signatories.forEach((sig, i) => {
+          console.log(`  Signatory ${i + 1}:`, {
+            prenameTh: sig.prenameTh,
+            prenameOther: sig.prenameOther,
+            firstNameTh: sig.firstNameTh,
+            lastNameTh: sig.lastNameTh,
+            positionTh: sig.positionTh,
+          });
+        });
+      } catch (e) {
+        console.error("  Error parsing signatories:", e);
+      }
+    } else {
+      // Fallback: Check old single signatory fields
+      console.log("🔍 DEBUG - Signature Name Fields (Legacy):");
+      console.log("  authorizedSignatoryPrenameTh:", data.authorizedSignatoryPrenameTh);
+      console.log("  authorizedSignatoryPrenameEn:", data.authorizedSignatoryPrenameEn);
+      console.log("  authorizedSignatoryPrenameOther:", data.authorizedSignatoryPrenameOther);
+      console.log("  authorizedSignatoryPrenameOtherEn:", data.authorizedSignatoryPrenameOtherEn);
+      console.log("  authorizedSignatoryFirstNameTh:", data.authorizedSignatoryFirstNameTh);
+      console.log("  authorizedSignatoryLastNameTh:", data.authorizedSignatoryLastNameTh);
+    }
 
     // Validation: Require authorized signatory position if names are provided
     try {
-      const sigFirstTh =
-        data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || "";
-      const sigLastTh =
-        data.authorizedSignatoryLastNameTh || data.authorizedSignatureLastNameTh || "";
-      const sigFirstEn =
-        data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || "";
-      const sigLastEn =
-        data.authorizedSignatoryLastNameEn || data.authorizedSignatureLastNameEn || "";
-      const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
-      const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
-
-      const hasNames = (sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim().length > 0;
-      const hasPosition = (posTh && posTh.trim().length > 0) || (posEn && posEn.trim().length > 0);
-      if (hasNames && !hasPosition) {
+      let hasSignatoryNames = false;
+      let hasSignatoryPosition = false;
+      
+      // Check if we have new signatories array format
+      if (data.signatories) {
+        try {
+          const signatories = JSON.parse(data.signatories);
+          hasSignatoryNames = signatories.some(sig => 
+            (sig.firstNameTh && sig.firstNameTh.trim()) || 
+            (sig.lastNameTh && sig.lastNameTh.trim())
+          );
+          hasSignatoryPosition = signatories.some(sig => 
+            (sig.positionTh && sig.positionTh.trim()) || 
+            (sig.positionEn && sig.positionEn.trim())
+          );
+        } catch (e) {
+          console.error("Error parsing signatories for validation:", e);
+        }
+      } else {
+        // Legacy format: single signatory fields
+        const sigFirstTh =
+          data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || "";
+        const sigLastTh =
+          data.authorizedSignatoryLastNameTh || data.authorizedSignatureLastNameTh || "";
+        const sigFirstEn =
+          data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || "";
+        const sigLastEn =
+          data.authorizedSignatoryLastNameEn || data.authorizedSignatureLastNameEn || "";
+        const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
+        const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
+        
+        hasSignatoryNames = (sigFirstTh + sigLastTh + sigFirstEn + sigLastEn).trim().length > 0;
+        hasSignatoryPosition = (posTh && posTh.trim().length > 0) || (posEn && posEn.trim().length > 0);
+      }
+      
+      if (hasSignatoryNames && !hasSignatoryPosition) {
         await rollbackTransaction(trx);
         return NextResponse.json(
           {
@@ -374,13 +417,13 @@ export async function POST(request) {
           [
             mainId,
             contact.prenameTh || null,
-            contact.prenameEn || null,
+            contact.prenameEn || "",
             contact.prenameOther || null,
             contact.prenameOtherEn || null,
             contact.firstNameTh || null,
             contact.lastNameTh || null,
-            contact.firstNameEn || null,
-            contact.lastNameEn || null,
+            contact.firstNameEn || "",
+            contact.lastNameEn || "",
             contact.position || null,
             contact.email || null,
             contact.phone || null,
@@ -402,13 +445,13 @@ export async function POST(request) {
         [
           mainId,
           null,
-          null,
+          "",
           null,
           null,
           data.contactPersonFirstName || null,
           data.contactPersonLastName || null,
-          data.contactPersonFirstNameEng || null,
-          data.contactPersonLastNameEng || null,
+          data.contactPersonFirstNameEng || "",
+          data.contactPersonLastNameEng || "",
           data.contactPersonPosition || null,
           data.contactPersonEmail || null,
           data.contactPersonPhone || null,
@@ -435,9 +478,10 @@ export async function POST(request) {
         const lastTh = r.lastNameThai || r.lastNameTh || r.last_name_th;
         const firstEn = r.firstNameEn || r.first_name_en || r.firstNameEnglish; // Check firstNameEn first (what form sends)
         const lastEn = r.lastNameEn || r.last_name_en || r.lastNameEnglish; // Check lastNameEn first (what form sends)
+        const prenameEn = r.prenameEn || r.prename_en; // Check prenameEn
 
         console.log(
-          `🔍 Mapped fields - firstTh: ${firstTh}, lastTh: ${lastTh}, firstEn: ${firstEn}, lastEn: ${lastEn}`,
+          `🔍 Mapped fields - prenameEn: ${prenameEn}, firstTh: ${firstTh}, lastTh: ${lastTh}, firstEn: ${firstEn}, lastEn: ${lastEn}`,
         );
 
         // Validate Thai names (required)
@@ -453,6 +497,15 @@ export async function POST(request) {
       }
       for (let index = 0; index < representatives.length; index++) {
         const rep = representatives[index];
+        
+        console.log(`🔍 INSERTING Rep ${index + 1}:`, {
+          prenameEn: rep.prenameEn || rep.prename_en,
+          firstNameEn: rep.firstNameEn || rep.first_name_en || rep.firstNameEnglish,
+          lastNameEn: rep.lastNameEn || rep.last_name_en || rep.lastNameEnglish,
+          firstNameThai: rep.firstNameThai || rep.firstNameTh || rep.first_name_th,
+          lastNameThai: rep.lastNameThai || rep.lastNameTh || rep.last_name_th,
+        });
+        
         await executeQuery(
           trx,
           `INSERT INTO MemberRegist_OC_Representatives (
@@ -462,13 +515,13 @@ export async function POST(request) {
           [
             mainId,
             rep.prenameTh || rep.prename_th || null,
-            rep.prenameEn || rep.prename_en || null,
+            rep.prenameEn || rep.prename_en || "",
             rep.prenameOther || rep.prename_other || null,
             rep.prenameOtherEn || rep.prename_other_en || null,
             rep.firstNameThai || rep.firstNameTh || rep.first_name_th || null,
             rep.lastNameThai || rep.lastNameTh || rep.last_name_th || null,
-            rep.firstNameEn || rep.first_name_en || rep.firstNameEnglish || null,
-            rep.lastNameEn || rep.last_name_en || rep.lastNameEnglish || null,
+            rep.firstNameEn || rep.first_name_en || rep.firstNameEnglish || "",
+            rep.lastNameEn || rep.last_name_en || rep.lastNameEnglish || "",
             rep.position || null,
             rep.email || null,
             rep.phone || null,
@@ -577,45 +630,74 @@ export async function POST(request) {
     }
 
     // Step 11: Insert Authorized Signatory Names
-    if (
-      data.authorizedSignatoryFirstNameTh &&
-      data.authorizedSignatoryLastNameTh
-    ) {
+    console.log("Inserting authorized signatory names...");
+    
+    // Check if we have new signatories array or old single signatory fields
+    if (data.signatories) {
+      // New format: signatories array
+      try {
+        signatoriesToInsert = JSON.parse(data.signatories);
+        console.log("✅ Using signatories array with", signatoriesToInsert.length, "signatories");
+      } catch (e) {
+        console.error("Error parsing signatories array:", e);
+        signatoriesToInsert = [];
+      }
+    } else {
+      // Legacy format: single signatory fields
+      const sigFirstTh =
+        data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || "";
+      const sigLastTh =
+        data.authorizedSignatoryLastNameTh || data.authorizedSignatureLastNameTh || "";
+      const sigFirstEn =
+        data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || "";
+      const sigLastEn =
+        data.authorizedSignatoryLastNameEn || data.authorizedSignatureLastNameEn || "";
       const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
       const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
       
-      // Debug: Log values before inserting
-      console.log("🔍 DEBUG - About to insert signature name:");
-      console.log("  mainId:", mainId);
-      console.log("  prename_th:", data.authorizedSignatoryPrenameTh);
-      console.log("  prename_en:", data.authorizedSignatoryPrenameEn);
-      console.log("  prename_other:", data.authorizedSignatoryPrenameOther);
-      console.log("  prename_other_en:", data.authorizedSignatoryPrenameOtherEn);
-      console.log("  first_name_th:", data.authorizedSignatoryFirstNameTh);
-      console.log("  last_name_th:", data.authorizedSignatoryLastNameTh);
-      
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_OC_Signature_Name (
-          main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [
-          mainId,
-          data.authorizedSignatoryPrenameTh || null,
-          data.authorizedSignatoryPrenameEn || null,
-          data.authorizedSignatoryPrenameOther || null,
-          data.authorizedSignatoryPrenameOtherEn || null,
-          data.authorizedSignatoryFirstNameTh || null,
-          data.authorizedSignatoryLastNameTh || null,
-          data.authorizedSignatoryFirstNameEn || null,
-          data.authorizedSignatoryLastNameEn || null,
-          posTh && String(posTh).trim() ? posTh : null,
-          posEn && String(posEn).trim() ? posEn : null,
-        ],
-      );
-      console.log("✅ Authorized signatory names inserted");
+      if (sigFirstTh && sigLastTh) {
+        signatoriesToInsert = [{
+          prenameTh: data.authorizedSignatoryPrenameTh || null,
+          prenameEn: data.authorizedSignatoryPrenameEn || "",
+          prenameOther: data.authorizedSignatoryPrenameOther || null,
+          prenameOtherEn: data.authorizedSignatoryPrenameOtherEn || null,
+          firstNameTh: sigFirstTh,
+          lastNameTh: sigLastTh,
+          firstNameEn: sigFirstEn || "",
+          lastNameEn: sigLastEn || "",
+          positionTh: posTh || null,
+          positionEn: posEn || "",
+        }];
+        console.log("✅ Using legacy single signatory format");
+      }
+    }
+    
+    // Insert all signatories
+    if (signatoriesToInsert.length > 0) {
+      for (const signatory of signatoriesToInsert) {
+        await executeQuery(
+          trx,
+          `INSERT INTO MemberRegist_OC_Signature_Name (
+            main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId,
+            signatory.prenameTh || null,
+            signatory.prenameEn || "",
+            signatory.prenameOther || null,
+            signatory.prenameOtherEn || null,
+            signatory.firstNameTh || null,
+            signatory.lastNameTh || null,
+            signatory.firstNameEn || "",
+            signatory.lastNameEn || "",
+            signatory.positionTh && String(signatory.positionTh).trim() ? signatory.positionTh : null,
+            signatory.positionEn && String(signatory.positionEn).trim() ? signatory.positionEn : "",
+          ],
+        );
+      }
+      console.log(`✅ Inserted ${signatoriesToInsert.length} authorized signatory(ies)`);
     } else {
-      console.log("⚠️ No authorized signatory Thai names provided, skipping signature name insertion");
+      console.log("⚠️ No authorized signatory data provided, skipping signature name insertion");
     }
 
     // Step 12: Handle Document Uploads
@@ -659,6 +741,43 @@ export async function POST(request) {
             }
           } catch (uploadError) {
             console.error(`❌ Error uploading production image ${index + 1}:`, uploadError);
+          }
+        }
+      }
+      // ✅ จัดการ authorizedSignatures (multiple files)
+      else if (fieldName.startsWith("authorizedSignatures[") && fileValue instanceof File) {
+        // Extract index from field name like "authorizedSignatures[0]"
+        const indexMatch = fieldName.match(/authorizedSignatures\[(\d+)\]/);
+        if (indexMatch) {
+          const signatoryIndex = parseInt(indexMatch[1], 10);
+          try {
+            console.log(`📤 Uploading signature for signatory ${signatoryIndex + 1}: ${fileValue.name}`);
+            const buffer = await fileValue.arrayBuffer();
+            const result = await uploadToCloudinary(
+              Buffer.from(buffer),
+              fileValue.name,
+              "FTI_PORTAL_OC_member_DOC",
+            );
+
+            // ✅ ตรวจสอบผลลัพธ์การอัปโหลด
+            if (result.success) {
+              const documentKey = `authorizedSignatures_${signatoryIndex}`;
+              uploadedDocuments[documentKey] = {
+                document_type: "authorizedSignatures",
+                file_name: fileValue.name,
+                file_path: result.url,
+                file_size: fileValue.size,
+                mime_type: fileValue.type,
+                cloudinary_id: result.public_id,
+                cloudinary_url: result.url,
+                signatory_index: signatoryIndex, // Track which signatory this belongs to
+              };
+              console.log(`✅ Successfully uploaded signature for signatory ${signatoryIndex + 1}: ${result.url}`);
+            } else {
+              console.error(`❌ Failed to upload signature for signatory ${signatoryIndex + 1}:`, result.error);
+            }
+          } catch (uploadError) {
+            console.error(`❌ Error uploading signature for signatory ${signatoryIndex + 1}:`, uploadError);
           }
         }
       }
@@ -713,13 +832,54 @@ export async function POST(request) {
     console.log(
       `💾 Inserting ${Object.keys(uploadedDocuments).length} documents into database (post-commit)`,
     );
+    
+    // Get signature name IDs for linking signature files
+    const signatureNameIds = [];
+    if (signatoriesToInsert.length > 0) {
+      try {
+        const signatureRecords = await executeQueryWithoutTransaction(
+          `SELECT id, prename_th, first_name_th, last_name_th 
+           FROM MemberRegist_OC_Signature_Name 
+           WHERE main_id = ? 
+           ORDER BY id`,
+          [mainId]
+        );
+        
+        // Map signature records by their order
+        signatoriesToInsert.forEach((signatory, index) => {
+          const matchingRecord = signatureRecords.find(record => {
+            // Match by name fields
+            return record.prename_th === signatory.prenameTh &&
+                   record.first_name_th === signatory.firstNameTh &&
+                   record.last_name_th === signatory.lastNameTh;
+          });
+          
+          if (matchingRecord) {
+            signatureNameIds[index] = matchingRecord.id;
+          }
+        });
+        
+        console.log("🔗 Signature name IDs for linking:", signatureNameIds);
+      } catch (error) {
+        console.error("❌ Error fetching signature name IDs:", error);
+      }
+    }
+    
     for (const documentKey in uploadedDocuments) {
       const doc = uploadedDocuments[documentKey];
       try {
+        let signatureNameId = null;
+        
+        // Link signature files to signature names
+        if (doc.document_type === "authorizedSignatures" && doc.signatory_index !== undefined) {
+          signatureNameId = signatureNameIds[doc.signatory_index] || null;
+          console.log(`🔗 Linking signature file for signatory ${doc.signatory_index + 1} to signature_name_id: ${signatureNameId}`);
+        }
+        
         const insertResult = await executeQueryWithoutTransaction(
           `INSERT INTO MemberRegist_OC_Documents 
-            (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url) 
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
+            (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url, signature_name_id) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
           [
             mainId,
             doc.document_type,
@@ -729,9 +889,10 @@ export async function POST(request) {
             doc.mime_type,
             doc.cloudinary_id,
             doc.cloudinary_url,
+            signatureNameId,
           ],
         );
-        console.log(`✅ Document inserted: ${doc.document_type} - ID: ${insertResult.insertId}`);
+        console.log(`✅ Document inserted: ${doc.document_type} - ID: ${insertResult.insertId}${signatureNameId ? ` (linked to signature_name_id: ${signatureNameId})` : ""}`);
       } catch (dbError) {
         console.error(`❌ Error inserting document ${documentKey} into database:`, dbError);
       }

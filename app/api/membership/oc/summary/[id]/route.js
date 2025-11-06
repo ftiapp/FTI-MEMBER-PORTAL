@@ -193,6 +193,20 @@ export async function GET(request, { params }) {
     const signatureName =
       Array.isArray(signatureNameRows) && signatureNameRows.length ? signatureNameRows[0] : null;
 
+    // Fetch multiple signatories for signature support
+    const signatoryRows = await query(
+      "SELECT id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_OC_Signature_Name WHERE main_id = ? ORDER BY id ASC",
+      [id],
+    );
+    const signatories = normalizeDbResult(signatoryRows);
+
+    // Fetch signature files for multiple signatories
+    const signatureFileRows = await query(
+      "SELECT * FROM MemberRegist_OC_Documents WHERE main_id = ? AND document_type LIKE 'authorizedSignature%' ORDER BY id ASC",
+      [id],
+    );
+    const signatureFiles = normalizeDbResult(signatureFileRows);
+
     // ✅ Process industry groups - ใช้ industry_group_name จากตารางโดยตรง
     const industryGroupsWithNames = relatedData.industryGroupsRows.map((ig) => ({
       id: ig.industry_group_id,
@@ -447,6 +461,24 @@ export async function GET(request, { params }) {
         positionTh: signatureName.position_th,
         positionEn: signatureName.position_en,
       } : null,
+
+      // Multiple signatories for PDF generation
+      signatories: signatories.map(sig => ({
+        id: sig.id,
+        prenameTh: sig.prename_th || "",
+        prenameEn: sig.prename_en || "",
+        prenameOther: sig.prename_other || "",
+        prenameOtherEn: sig.prename_other_en || "",
+        firstNameTh: sig.first_name_th || "",
+        lastNameTh: sig.last_name_th || "",
+        firstNameEn: sig.first_name_en || "",
+        lastNameEn: sig.last_name_en || "",
+        positionTh: sig.position_th || "",
+        positionEn: sig.position_en || "",
+      })),
+
+      // Signature files for multiple signatories
+      authorizedSignatures: signatureFiles.map(file => formatDocumentForResponse(file)),
     };
 
     // Add applicant account info for PDF
@@ -473,6 +505,8 @@ export async function GET(request, { params }) {
     console.log("Production Images:", response.productionImages);
     console.log("Company Stamp:", response.companyStamp);
     console.log("Authorized Signature:", response.authorizedSignature);
+    console.log("Signatories Found:", response.signatories?.length || 0);
+    console.log("Signature Files Found:", response.authorizedSignatures?.length || 0);
     console.log(
       "All Documents Found:",
       relatedData.documents.map((doc) => ({ type: doc.document_type, name: doc.file_name })),

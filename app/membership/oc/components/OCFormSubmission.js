@@ -62,6 +62,8 @@ export async function submitOCMembershipForm(data) {
           firstNameEn: rep.firstNameEn,
           lastNameTh: rep.lastNameTh,
           lastNameEn: rep.lastNameEn,
+          firstNameEng: rep.firstNameEng,
+          lastNameEng: rep.lastNameEng,
         });
       });
     }
@@ -73,25 +75,60 @@ export async function submitOCMembershipForm(data) {
       }
     }
 
-    // Ensure authorized signatory prename fields are included
-    if (data.authorizedSignatoryPrenameTh)
-      formData.append("authorizedSignatoryPrenameTh", data.authorizedSignatoryPrenameTh);
-    if (data.authorizedSignatoryPrenameEn)
-      formData.append("authorizedSignatoryPrenameEn", data.authorizedSignatoryPrenameEn);
-    if (data.authorizedSignatoryPrenameOther)
-      formData.append("authorizedSignatoryPrenameOther", data.authorizedSignatoryPrenameOther);
-    if (data.authorizedSignatoryPrenameOtherEn)
-      formData.append("authorizedSignatoryPrenameOtherEn", data.authorizedSignatoryPrenameOtherEn);
+    // Handle multiple signatories array
+    if (data.signatories && Array.isArray(data.signatories)) {
+      console.log("🔍 [OCFormSubmission] Signatories before FormData conversion:", data.signatories);
+      data.signatories.forEach((signatory, i) => {
+        console.log(`  Signatory ${i + 1}:`, {
+          prenameTh: signatory.prenameTh,
+          prenameOther: signatory.prenameOther,
+          firstNameTh: signatory.firstNameTh,
+          lastNameTh: signatory.lastNameTh,
+          positionTh: signatory.positionTh,
+        });
+      });
+    }
+    
+    // Handle authorizedSignatures array of files
+    if (data.authorizedSignatures && Array.isArray(data.authorizedSignatures)) {
+      console.log("🔍 [OCFormSubmission] Authorized Signatures files before FormData conversion:", data.authorizedSignatures);
+      data.authorizedSignatures.forEach((fileObj, index) => {
+        if (fileObj && fileObj.file instanceof File) {
+          formData.append(
+            `authorizedSignatures[${index}]`,
+            fileObj.file,
+            fileObj.name || fileObj.file.name,
+          );
+          console.log(`  Signature ${index + 1}: File(${fileObj.file.name}, ${fileObj.file.size} bytes)`);
+        } else if (fileObj instanceof File) {
+          formData.append(`authorizedSignatures[${index}]`, fileObj, fileObj.name);
+          console.log(`  Signature ${index + 1}: File(${fileObj.name}, ${fileObj.size} bytes)`);
+        }
+      });
+    }
+    
+    // Fallback: Handle old single signatory fields for backward compatibility
+    else {
+      // Ensure authorized signatory prename fields are included
+      if (data.authorizedSignatoryPrenameTh)
+        formData.append("authorizedSignatoryPrenameTh", data.authorizedSignatoryPrenameTh);
+      if (data.authorizedSignatoryPrenameEn)
+        formData.append("authorizedSignatoryPrenameEn", data.authorizedSignatoryPrenameEn);
+      if (data.authorizedSignatoryPrenameOther)
+        formData.append("authorizedSignatoryPrenameOther", data.authorizedSignatoryPrenameOther);
+      if (data.authorizedSignatoryPrenameOtherEn)
+        formData.append("authorizedSignatoryPrenameOtherEn", data.authorizedSignatoryPrenameOtherEn);
 
-    // Ensure authorized signatory name fields are included
-    if (data.authorizedSignatoryFirstNameTh)
-      formData.append("authorizedSignatoryFirstNameTh", data.authorizedSignatoryFirstNameTh);
-    if (data.authorizedSignatoryLastNameTh)
-      formData.append("authorizedSignatoryLastNameTh", data.authorizedSignatoryLastNameTh);
-    if (data.authorizedSignatoryFirstNameEn)
-      formData.append("authorizedSignatoryFirstNameEn", data.authorizedSignatoryFirstNameEn);
-    if (data.authorizedSignatoryLastNameEn)
-      formData.append("authorizedSignatoryLastNameEn", data.authorizedSignatoryLastNameEn);
+      // Ensure authorized signatory name fields are included
+      if (data.authorizedSignatoryFirstNameTh)
+        formData.append("authorizedSignatoryFirstNameTh", data.authorizedSignatoryFirstNameTh);
+      if (data.authorizedSignatoryLastNameTh)
+        formData.append("authorizedSignatoryLastNameTh", data.authorizedSignatoryLastNameTh);
+      if (data.authorizedSignatoryFirstNameEn)
+        formData.append("authorizedSignatoryFirstNameEn", data.authorizedSignatoryFirstNameEn);
+      if (data.authorizedSignatoryLastNameEn)
+        formData.append("authorizedSignatoryLastNameEn", data.authorizedSignatoryLastNameEn);
+    }
 
     // Debug: Log what's being sent
     console.log("📤 Sending form data to API...");

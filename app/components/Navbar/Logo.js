@@ -7,11 +7,11 @@ export default function Logo() {
       <Image
         src="/FTI-MasterLogo-Naming_RGB-forLightBG.png"
         alt="สภาอุตสาหกรรมแห่งประเทศไทย (FTI Portal)"
-        width={300}
-        height={63}
+        width={240}
+        height={50}
         priority
-        className="h-16 w-auto"
-        sizes="(max-width: 1024px) 240px, 300px"
+        className="h-12 w-auto"
+        sizes="(max-width: 1024px) 200px, 240px"
       />
     </Link>
   );

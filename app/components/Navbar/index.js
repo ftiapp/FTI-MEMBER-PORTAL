@@ -31,10 +31,7 @@ export default function Navbar() {
       { name: "ประเภทสมาชิก", href: "/membership" },
     ];
 
-    // Add "ติดต่อเรา" only for guest users
-    if (!user) {
-      items.push({ name: "ติดต่อเรา", href: "/contact" });
-    }
+    // "ติดต่อเรา" removed for guest users to prevent UI crowding
 
     return items;
   }, [user]);
@@ -138,25 +135,23 @@ export default function Navbar() {
 
       <nav className="bg-white/95 backdrop-blur-md shadow-lg w-full fixed top-0 left-0 right-0 z-[9999] border-b border-gray-100">
         <div className="container-custom px-4 max-w-7xl mx-auto">
-          <div className="flex justify-between items-center py-4 gap-4">
+          <div className="flex justify-center items-center py-3 gap-3">
             {/* Logo */}
-            <div className="flex items-center gap-6">
-              <Logo />
-              
-              {/* Main Menu Items */}
-              <div className="hidden lg:flex items-center gap-6">
-                {menuItems.map((item) => (
-                  <MenuItem
-                    key={item.name}
-                    item={item}
-                    isActive={pathname === item.href}
-                  />
-                ))}
-              </div>
+            <Logo />
+            
+            {/* Main Menu Items */}
+            <div className="hidden lg:flex items-center gap-3">
+              {menuItems.map((item) => (
+                <MenuItem
+                  key={item.name}
+                  item={item}
+                  isActive={pathname === item.href}
+                />
+              ))}
             </div>
 
-            {/* Action Buttons - Right Side */}
-            <div className="hidden lg:flex items-center gap-2 flex-shrink-0">
+            {/* Action Buttons */}
+            <div className="hidden lg:flex items-center gap-1.5 flex-shrink-0">
               {user ? (
                 <>
                   {/* Search Button */}
@@ -224,16 +219,17 @@ export default function Navbar() {
                     ชำระเงินออนไลน์
                   </ActionButton>
                   
-                  <MenuItem
-                    item={{ name: "เข้าสู่ระบบ", href: "/login" }}
-                    isActive={pathname === "/login"}
-                  />
                   <ActionButton href="/register" variant="primary">
                     <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
                     สมัครสมาชิก
                   </ActionButton>
+                  
+                  <MenuItem
+                    item={{ name: "เข้าสู่ระบบ", href: "/login" }}
+                    isActive={pathname === "/login"}
+                  />
                 </>
               )}
             </div>
@@ -241,7 +237,7 @@ export default function Navbar() {
             {/* Mobile Menu Button */}
             <button
               ref={menuButtonRef}
-              className="lg:hidden p-2 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 relative z-[9999]"
+              className="lg:hidden p-1.5 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 relative z-[9999]"
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >

@@ -104,6 +104,9 @@ export async function POST(request) {
 
     // Small helper to convert undefined to SQL NULL
     const toNull = (v) => (v === undefined ? null : v);
+    
+    // Helper for English fields - return empty string instead of null to satisfy DB constraints
+    const toEmptyString = (v) => (v === undefined || v === null ? "" : v);
 
     // Validation: Require authorized signatory position if names are provided
     try {
@@ -329,19 +332,19 @@ export async function POST(request) {
         [
           mainId,
           toNull(authorizedSignatoryPrenameTh),
-          toNull(authorizedSignatoryPrenameEn),
+          toEmptyString(authorizedSignatoryPrenameEn),
           toNull(authorizedSignatoryPrenameOther),
           toNull(authorizedSignatoryPrenameOtherEn),
           toNull(authorizedSignatoryFirstNameTh),
           toNull(authorizedSignatoryLastNameTh),
-          toNull(authorizedSignatoryFirstNameEn),
-          toNull(authorizedSignatoryLastNameEn),
+          toEmptyString(authorizedSignatoryFirstNameEn),
+          toEmptyString(authorizedSignatoryLastNameEn),
           authorizedSignatoryPositionTh && String(authorizedSignatoryPositionTh).trim()
             ? authorizedSignatoryPositionTh
             : null,
           authorizedSignatoryPositionEn && String(authorizedSignatoryPositionEn).trim()
             ? authorizedSignatoryPositionEn
-            : null,
+            : "",
         ],
       );
       console.log("✅ [AM Membership Submit] Authorized signatory names inserted");
@@ -443,13 +446,13 @@ export async function POST(request) {
           [
             mainId,
             toNull(rep.prenameTh ?? rep.prename_th),
-            toNull(rep.prenameEn ?? rep.prename_en),
+            toEmptyString(rep.prenameEn ?? rep.prename_en),
             toNull(rep.prenameOther ?? rep.prename_other),
             toNull(rep.prenameOtherEn ?? rep.prename_other_en),
             toNull(firstNameTh),
             toNull(lastNameTh),
-            toNull(firstNameEn),
-            toNull(lastNameEn),
+            toEmptyString(firstNameEn),
+            toEmptyString(lastNameEn),
             toNull(position),
             toNull(email),
             toNull(phone),
@@ -536,13 +539,13 @@ export async function POST(request) {
           [
             mainId,
             toNull(cp.prenameTh),
-            toNull(cp.prenameEn),
+            toEmptyString(cp.prenameEn),
             toNull(cp.prenameOther),
             toNull(cp.prenameOtherEn),
             firstNameTh,
             lastNameTh,
-            toNull(firstNameEn),
-            toNull(lastNameEn),
+            toEmptyString(firstNameEn),
+            toEmptyString(lastNameEn),
             toNull(position),
             email,
             phone,

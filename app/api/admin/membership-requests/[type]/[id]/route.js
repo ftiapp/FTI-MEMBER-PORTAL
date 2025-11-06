@@ -706,10 +706,16 @@ export async function GET(request, { params }) {
       );
       console.log(`[PERF] Signature query took: ${Date.now() - signatureStart}ms`);
       console.log("🔍 DEBUG Raw signature records:", signatureRecords);
+      
+      // Return all signatories as an array for multiple signatory support
+      additionalData.signatories = signatureRecords || [];
+      
+      // Keep signatureName for backward compatibility (first record)
       additionalData.signatureName = signatureRecords.length > 0 ? signatureRecords[0] : null;
     } catch (signatureError) {
       console.error("Error fetching authorized signatory:", signatureError);
       additionalData.signatureName = null;
+      additionalData.signatories = [];
     }
 
     console.log(`[PERF] Additional data queries took: ${Date.now() - additionalDataStart}ms`);
@@ -723,6 +729,15 @@ export async function GET(request, { params }) {
       console.log("🔍 DEBUG Converting signatureName fields:", additionalData.signatureName);
       additionalData.signatureName = convertFieldNames(additionalData.signatureName, type);
       console.log("🔍 DEBUG Converted signatureName:", additionalData.signatureName);
+    }
+
+    // Convert field names for all signatories in the array
+    if (additionalData.signatories && Array.isArray(additionalData.signatories)) {
+      console.log("🔍 DEBUG Converting signatories array:", additionalData.signatories.length);
+      additionalData.signatories = additionalData.signatories.map(signatory => 
+        convertFieldNames(signatory, type)
+      );
+      console.log("🔍 DEBUG Converted signatories:", additionalData.signatories);
     }
 
     // Normalize field names for frontend expectations

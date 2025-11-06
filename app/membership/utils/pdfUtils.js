@@ -381,6 +381,10 @@ const processData = (app) => {
     // Documents
     authorizedSignature: app.authorizedSignature || findDoc("authorizedSignature") || null,
     companyStamp: app.companyStamp || findDoc("companyStamp") || null,
+    // Multiple signatories data (for OC forms)
+    signatories: app.signatories || [],
+    signatureNames: app.signatureNames || [], // From MemberRegist_OC_Signature_Name table
+    authorizedSignatures: app.authorizedSignatures || [], // Array of signature files
     // Representatives (normalize to a consistent array)
     representatives: (() => {
       let reps = app.representatives || app.reps || [];
@@ -581,6 +585,54 @@ const field = (label, value, style = "") =>
 // Create section HTML
 const section = (title, content) =>
   `<div class="section"><div class="section-title">${title}</div>${content}</div>`;
+
+// Helper function to build signatory signature HTML with preloaded signatures
+const buildSignatorySignature = (signatory, preloadedSignature, index) => {
+  // Get signatory name with prename
+  const getSignatoryName = (sig) => {
+    const prenameTh = sig.prenameTh || sig.prename_th || "";
+    const prenameOther = sig.prenameOther || sig.prename_other || "";
+    const firstNameTh = sig.firstNameTh || sig.first_name_th || "";
+    const lastNameTh = sig.lastNameTh || sig.last_name_th || "";
+    
+    let displayPrename = prenameTh;
+    if (prenameTh === "อื่นๆ" && prenameOther) {
+      displayPrename = prenameOther;
+    }
+    
+    const fullName = [displayPrename, firstNameTh, lastNameTh]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+    
+    return fullName || `ผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
+  };
+  
+  const signatoryName = getSignatoryName(signatory);
+  const position = signatory.positionTh || signatory.position_th || "";
+  
+  // Handle signature image with preloaded data
+  let signatureHtml = "";
+  if (preloadedSignature) {
+    signatureHtml = `<img src="${preloadedSignature}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`;
+  } else {
+    signatureHtml = "(ลายเซ็น)";
+  }
+  
+  return `
+    <div class="signature-box" style="min-width: 100px;">
+      <div style="font-size: 10px; font-weight: bold; margin-bottom: 3px;">ลายเซ็นผู้มีอำนาจ</div>
+      <div class="signature-img">
+        ${signatureHtml}
+      </div>
+      <div style="font-size: 8px; margin-top: 3px; border-top: 1px solid #999; padding-top: 3px;">
+        (${signatoryName})
+        ${position ? `<div style="margin-top: 1px; color: #555;">ตำแหน่ง: ${position}</div>` : ""}
+        <div style="margin-top: 1px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
+      </div>
+    </div>
+  `;
+};
 
 // Main PDF generation function
 export const generateMembershipPDF = async (
@@ -867,32 +919,51 @@ export const generateMembershipPDF = async (
       applicantFullName = thai || eng || "";
     }
 
-    // Preload signature image as data URL if possible (for Cloudinary or other origins)
-    // Log document info for debugging signature rendering
-    console.debug("[PDF] authorizedSignature doc:", data.authorizedSignature);
-    const sigUrlCandidate = data.authorizedSignature?.fileUrl || "";
-    let signatureImgSrc = "";
-    if (sigUrlCandidate) {
+    // Preload signature images for single and multiple signatories
+    const preloadSignature = async (signatureDoc) => {
+      if (!signatureDoc || !signatureDoc.fileUrl) return null;
+      
+      const sigUrlCandidate = signatureDoc.fileUrl;
       const maybeCld = transformCloudinaryUrl(sigUrlCandidate);
       console.debug("[PDF] signature URL (original):", sigUrlCandidate);
       console.debug("[PDF] signature URL (transformed):", maybeCld);
+      
       // Try to fetch as data URL first (best for CORS safety)
       const dataUrl = await loadImageAsDataURL(maybeCld);
       if (dataUrl) {
-        signatureImgSrc = dataUrl;
         console.debug("[PDF] signature loaded as data URL (length):", dataUrl.length);
+        return dataUrl;
       } else {
         // If fetch failed (CORS/format), fallback to raw URL if it looks like an image
         const looksLikeImg =
           /\.(png|jpe?g|webp|gif|bmp|svg)(\?|$)/i.test(maybeCld) ||
-          data.authorizedSignature?.mimeType?.startsWith?.("image/") ||
-          data.authorizedSignature?.fileType?.startsWith?.("image/");
+          signatureDoc.mimeType?.startsWith?.("image/") ||
+          signatureDoc.fileType?.startsWith?.("image/");
         if (looksLikeImg) {
-          signatureImgSrc = maybeCld;
           console.debug("[PDF] signature fallback to URL");
+          return maybeCld;
         } else {
           console.warn("[PDF] signature appears non-image, skipping <img>");
+          return null;
         }
+      }
+    };
+
+    // Preload single signature (fallback)
+    console.debug("[PDF] authorizedSignature doc:", data.authorizedSignature);
+    let signatureImgSrc = "";
+    if (data.authorizedSignature) {
+      signatureImgSrc = await preloadSignature(data.authorizedSignature);
+    }
+
+    // Preload multiple signatures
+    const preloadedSignatures = [];
+    if (data.authorizedSignatures && Array.isArray(data.authorizedSignatures)) {
+      console.debug("[PDF] Preloading", data.authorizedSignatures.length, "signature files");
+      for (let i = 0; i < data.authorizedSignatures.length; i++) {
+        const signatureFile = data.authorizedSignatures[i];
+        const preloaded = await preloadSignature(signatureFile);
+        preloadedSignatures.push(preloaded);
       }
     }
 
@@ -904,7 +975,8 @@ export const generateMembershipPDF = async (
       .logo-wrap { text-align: center; margin-bottom: 0px; display: flex; justify-content: center; }
       .logo-wrap img { height: 42px; object-fit: contain; display: block; margin: 0 auto; }
       .header { text-align: center; font-size: 11.5px; font-weight: bold; margin-top: -10px; margin-bottom: 0px; padding-bottom: 4px; border-bottom: 1px solid #333; line-height: 2.5; }
-      .created-date { position: absolute; top: 6px; right: 6px; font-size: 8px; color: #999; }
+      .created-date { position: absolute; top: 40px; right: 6px; font-size: 8px; color: #999; }
+      .member-number { position: absolute; top: 6px; right: 6px; font-size: 8px; color: #000; font-weight: bold; }
       .section { border: 1px solid #ddd; margin-bottom: 4px; padding: 5px; }
       .section-title { font-weight: bold; font-size: 10px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
       .field { margin-bottom: 2px; font-size: 10px; }
@@ -916,11 +988,11 @@ export const generateMembershipPDF = async (
       .rep-box { border: 1px solid #e0e0e0; padding: 5px; background: #fafafa; }
       .rep-title { font-weight: bold; font-size: 9.5px; color: #0066cc; margin-bottom: 2px; }
       .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 9.5px; margin: 1px; }
-      .signature-area { display: flex; gap: 12px; margin-top: 6px; }
-      .signature-box { flex: 1; border: 1px solid #ddd; padding: 10px; text-align: center; min-width: 130px; }
-      .signature-img { border: 1px dashed #999; height: 50px; width: 100px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
-      .stamp-box { border: 1px solid #ddd; padding: 10px; text-align: center; min-width: 130px; }
-      .stamp-img { border: 1px dashed #999; width: 100px; height: 50px; margin: 6px auto; display: flex; align-items: center; justify-content: center; }
+      .signature-area { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; justify-content: flex-end; }
+      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 6px; text-align: center; min-width: 100px; max-width: 150px; }
+      .signature-img { border: 1px dashed #999; height: 40px; width: 80px; margin: 4px auto; display: flex; align-items: center; justify-content: center; }
+      .stamp-box { border: 1px solid #ddd; padding: 6px; text-align: center; min-width: 100px; }
+      .stamp-img { border: 1px dashed #999; width: 80px; height: 40px; margin: 4px auto; display: flex; align-items: center; justify-content: center; }
       .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
       .list-2col .span-all { grid-column: 1 / -1; }
       .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; row-gap: 4px; align-items: start; }
@@ -936,6 +1008,9 @@ export const generateMembershipPDF = async (
         <style>${styles}</style>
       </head>
       <body>
+        <div class="member-number">
+          หมายเลขสมาชิก:<br><br>................................................
+        </div>
         <div class="created-date">
           สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString("th-TH")}
         </div>
@@ -1267,39 +1342,72 @@ export const generateMembershipPDF = async (
 
         ${
           ["oc", "ac", "am"].includes(type)
-            ? `
-          <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-            <div style="display: flex; gap: 20px; font-size: 12px;">
-              <div class="signature-box">
-                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
-                <div class="signature-img">
-                  ${
-                    signatureImgSrc
-                      ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
-                      : data.authorizedSignature?.fileUrl
-                        ? "แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)"
-                        : "(ลายเซ็น)"
-                  }
-                </div>
-                <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
-                  (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
-                  ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ""}
-                  <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
-                </div>
-              </div>
-              <div class="stamp-box">
-                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
-                <div class="stamp-img">
-                  ${
-                    companyStampImgSrc
-                      ? `<img src="${companyStampImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Company Stamp" />`
-                      : `<img src="${logoSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="FTI Logo" />`
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        `
+            ? (() => {
+                // Check if we have multiple signatories data
+                const hasMultipleSignatories = data.signatories && Array.isArray(data.signatories) && data.signatories.length > 0;
+                const authorizedSignatures = data.authorizedSignatures || [];
+
+                if (hasMultipleSignatories) {
+                  // Multiple signatories - display all with their names
+                  const signaturesHtml = data.signatories.map((signatory, index) => {
+                    const preloadedSignature = preloadedSignatures[index] || null;
+                    return buildSignatorySignature(signatory, preloadedSignature, index);
+                  }).join('');
+
+                  return `
+                    <div class="signature-area">
+                      ${signaturesHtml}
+                      ${type === "oc" ? `
+                        <div class="stamp-box">
+                          <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
+                          <div class="stamp-img">
+                            ${
+                              companyStampImgSrc
+                                ? `<img src="${companyStampImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Company Stamp" />`
+                                : `<img src="${logoSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="FTI Logo" />`
+                            }
+                          </div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                } else {
+                  // Single signatory - fallback to original behavior
+                  return `
+                    <div class="signature-area">
+                      <div class="signature-box">
+                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
+                        <div class="signature-img">
+                          ${
+                            signatureImgSrc
+                              ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
+                              : data.authorizedSignature?.fileUrl
+                                ? "แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)"
+                                : "(ลายเซ็น)"
+                          }
+                        </div>
+                        <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
+                          (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
+                          ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ""}
+                          <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
+                        </div>
+                      </div>
+                      ${type === "oc" ? `
+                        <div class="stamp-box">
+                          <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
+                          <div class="stamp-img">
+                            ${
+                              companyStampImgSrc
+                                ? `<img src="${companyStampImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Company Stamp" />`
+                                : `<img src="${logoSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="FTI Logo" />`
+                            }
+                          </div>
+                        </div>
+                      ` : ''}
+                    </div>
+                  `;
+                }
+              })()
             : `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <div style="display: flex; gap: 20px; font-size: 12px;">

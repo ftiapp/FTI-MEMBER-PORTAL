@@ -3,77 +3,82 @@ import { toast } from "react-hot-toast";
 
 const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({
-    prename_th: "",
-    prename_other: "",
-    first_name_th: "",
-    last_name_th: "",
-    position_th: "",
-  });
+  const [formData, setFormData] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState({});
 
-  // Initialize form data with existing signature data
+  // Initialize form data with existing signatories data
   useEffect(() => {
+    console.log("🔍 DEBUG AuthorizedSignatorySection - application.signatories:", application?.signatories);
     console.log("🔍 DEBUG AuthorizedSignatorySection - application.signatureName:", application?.signatureName);
-    if (application?.signatureName) {
-      setFormData({
+    
+    // Use new signatories array if available, otherwise convert old signatureName to array
+    if (application?.signatories && application.signatories.length > 0) {
+      setFormData(application.signatories);
+    } else if (application?.signatureName) {
+      // Convert old single signature to array format
+      setFormData([{
         prename_th: application.signatureName.prenameTh || "",
         prename_other: application.signatureName.prenameOther || "",
         first_name_th: application.signatureName.firstNameTh || "",
         last_name_th: application.signatureName.lastNameTh || "",
         position_th: application.signatureName.positionTh || "",
-      });
+      }]);
+    } else {
+      setFormData([]);
     }
-  }, [application?.signatureName]);
+  }, [application?.signatories, application?.signatureName]);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (index, e) => {
     const { name, value } = e.target;
     
-    // Handle prename selection with auto-clear for "อื่นๆ"
-    if (name === "prename_th") {
-      setFormData((prev) => ({
-        ...prev,
-        prename_th: value,
-        prename_other: value === "อื่นๆ" ? prev.prename_other || "" : "",
-      }));
-    } else {
-      // For other fields, just update the value
-      setFormData((prev) => ({
-        ...prev,
-        [name]: value,
-      }));
-    }
+    setFormData((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index] };
+      
+      // Handle prename selection with auto-clear for "อื่นๆ"
+      if (name === "prename_th") {
+        updated[index].prename_th = value;
+        updated[index].prename_other = value === "อื่นๆ" ? updated[index].prename_other || "" : "";
+      } else {
+        // For other fields, just update the value
+        updated[index][name] = value;
+      }
+      
+      return updated;
+    });
     
     // Clear errors when user starts typing
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: "" }));
+    if (errors[`${index}_${name}`]) {
+      setErrors((prev) => ({ ...prev, [`${index}_${name}`]: "" }));
     }
   };
 
   const validateForm = () => {
     const newErrors = {};
     
-    // Thai fields validation
-    if (!formData.prename_th || formData.prename_th.trim() === "") {
-      newErrors.prename_th = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
-    }
-    
-    if (formData.prename_th === "อื่นๆ" && (!formData.prename_other || formData.prename_other.trim() === "")) {
-      newErrors.prename_other = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
-    }
-    
-    if (!formData.first_name_th || formData.first_name_th.trim() === "") {
-      newErrors.first_name_th = "กรุณาระบุชื่อ (ภาษาไทย)";
-    }
-    
-    if (!formData.last_name_th || formData.last_name_th.trim() === "") {
-      newErrors.last_name_th = "กรุณาระบุนามสกุล (ภาษาไทย)";
-    }
-    
-    if (!formData.position_th || formData.position_th.trim() === "") {
-      newErrors.position_th = "กรุณาระบุตำแหน่ง (ภาษาไทย)";
-    }
+    formData.forEach((signatory, index) => {
+      // Thai fields validation
+      if (!signatory.prename_th || signatory.prename_th.trim() === "") {
+        newErrors[`${index}_prename_th`] = "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)";
+      }
+      
+      if (signatory.prename_th === "อื่นๆ" && (!signatory.prename_other || signatory.prename_other.trim() === "")) {
+        newErrors[`${index}_prename_other`] = "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)";
+      }
+      
+      if (!signatory.first_name_th || signatory.first_name_th.trim() === "") {
+        newErrors[`${index}_first_name_th`] = "กรุณาเลือกชื่อ (ภาษาไทย)";
+      }
+      
+      if (!signatory.last_name_th || signatory.last_name_th.trim() === "") {
+        newErrors[`${index}_last_name_th`] = "กรุณาระบุนามสกุล (ภาษาไทย)";
+      }
+      
+      if (!signatory.position_th || signatory.position_th.trim() === "") {
+        newErrors[`${index}_position_th`] = "กรุณาระบุตำแหน่ง (ภาษาไทย)";
+      }
+    });
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -119,23 +124,29 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
 
   const handleCancel = () => {
     // Reset form to original data
-    if (application?.signatureName) {
-      setFormData({
+    if (application?.signatories && application.signatories.length > 0) {
+      setFormData(application.signatories);
+    } else if (application?.signatureName) {
+      setFormData([{
         prename_th: application.signatureName.prenameTh || "",
         prename_other: application.signatureName.prenameOther || "",
         first_name_th: application.signatureName.firstNameTh || "",
         last_name_th: application.signatureName.lastNameTh || "",
         position_th: application.signatureName.positionTh || "",
-      });
+      }]);
+    } else {
+      setFormData([]);
     }
     setErrors({});
     setIsEditing(false);
   };
 
-  const hasExistingData = application?.signatureName && (
-    application.signatureName.prenameTh ||
-    application.signatureName.firstNameTh ||
-    application.signatureName.lastNameTh
+  const hasExistingData = (application?.signatories && application.signatories.length > 0) || (
+    application?.signatureName && (
+      application.signatureName.prenameTh ||
+      application.signatureName.firstNameTh ||
+      application.signatureName.lastNameTh
+    )
   );
 
   return (
@@ -161,31 +172,74 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
         // Display mode
         <div className="space-y-4">
           {hasExistingData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="text-sm font-semibold text-gray-600 mb-3">ข้อมูลผู้มีอำนาจลงนาม</h4>
-                <div className="space-y-2">
-                  <div className="flex">
-                    <span className="text-sm font-medium text-gray-500 w-24">คำนำหน้า:</span>
-                    <span className="text-sm text-gray-900">
-                      {application.signatureName.prenameTh}
-                      {application.signatureName.prenameTh === "อื่นๆ" && ` ${application.signatureName.prenameOther}`}
-                    </span>
+            <div className="space-y-6">
+              {/* Display new signatories array if available */}
+              {application?.signatories && application.signatories.length > 0 ? (
+                application.signatories.map((signatory, index) => (
+                  <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="mb-2">
+                      <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                        <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium mr-2">
+                          {index + 1}
+                        </span>
+                        ผู้มีอำนาจลงนามคนที่ {index + 1}
+                      </h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <h5 className="text-xs font-semibold text-gray-600 mb-2">ข้อมูลภาษาไทย</h5>
+                        <div className="space-y-1">
+                          <div className="flex">
+                            <span className="text-xs font-medium text-gray-500 w-20">คำนำหน้า:</span>
+                            <span className="text-xs text-gray-900">
+                              {signatory.prenameTh || signatory.prename_th}
+                              {(signatory.prenameTh === "อื่นๆ" || signatory.prename_th === "อื่นๆ") && ` ${signatory.prenameOther || signatory.prename_other}`}
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-xs font-medium text-gray-500 w-20">ชื่อ-นามสกุล:</span>
+                            <span className="text-xs text-gray-900">
+                              {(signatory.firstNameTh || signatory.first_name_th) || ""} {(signatory.lastNameTh || signatory.last_name_th) || ""}
+                            </span>
+                          </div>
+                          <div className="flex">
+                            <span className="text-xs font-medium text-gray-500 w-20">ตำแหน่ง:</span>
+                            <span className="text-xs text-gray-900">{signatory.positionTh || signatory.position_th}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex">
-                    <span className="text-sm font-medium text-gray-500 w-24">ชื่อ:</span>
-                    <span className="text-sm text-gray-900">{application.signatureName.firstNameTh}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-sm font-medium text-gray-500 w-24">นามสกุล:</span>
-                    <span className="text-sm text-gray-900">{application.signatureName.lastNameTh}</span>
-                  </div>
-                  <div className="flex">
-                    <span className="text-sm font-medium text-gray-500 w-24">ตำแหน่ง:</span>
-                    <span className="text-sm text-gray-900">{application.signatureName.positionTh}</span>
+                ))
+              ) : (
+                /* Fallback to old single signature display */
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-600 mb-3">ข้อมูลผู้มีอำนาจลงนาม</h4>
+                    <div className="space-y-2">
+                      <div className="flex">
+                        <span className="text-sm font-medium text-gray-500 w-24">คำนำหน้า:</span>
+                        <span className="text-sm text-gray-900">
+                          {application.signatureName.prenameTh}
+                          {application.signatureName.prenameTh === "อื่นๆ" && ` ${application.signatureName.prenameOther}`}
+                        </span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-sm font-medium text-gray-500 w-24">ชื่อ:</span>
+                        <span className="text-sm text-gray-900">{application.signatureName.firstNameTh}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-sm font-medium text-gray-500 w-24">นามสกุล:</span>
+                        <span className="text-sm text-gray-900">{application.signatureName.lastNameTh}</span>
+                      </div>
+                      <div className="flex">
+                        <span className="text-sm font-medium text-gray-500 w-24">ตำแหน่ง:</span>
+                        <span className="text-sm text-gray-900">{application.signatureName.positionTh}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-8">
@@ -200,7 +254,17 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
       ) : (
         // Edit mode
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {formData.map((signatory, index) => (
+            <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="mb-4">
+                <h4 className="text-sm font-medium text-gray-700 flex items-center">
+                  <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium mr-2">
+                    {index + 1}
+                  </span>
+                  ผู้มีอำนาจลงนามคนที่ {index + 1}
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Prename Thai */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -208,10 +272,10 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
               </label>
               <select
                 name="prename_th"
-                value={formData.prename_th || ""}
-                onChange={handleInputChange}
+                value={signatory.prename_th || ""}
+                onChange={(e) => handleInputChange(index, e)}
                 className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                  errors.prename_th ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                  errors[`${index}_prename_th`] ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
                 }`}
               >
                 <option value="">เลือก</option>
@@ -220,28 +284,28 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
                 <option value="นางสาว">นางสาว</option>
                 <option value="อื่นๆ">อื่นๆ</option>
               </select>
-              {errors.prename_th && (
+              {errors[`${index}_prename_th`] && (
                 <p className="mt-1 text-xs text-red-600 flex items-center">
                   <span className="mr-1">*</span>
-                  {errors.prename_th}
+                  {errors[`${index}_prename_th`]}
                 </p>
               )}
-              {formData.prename_th === "อื่นๆ" && (
+              {signatory.prename_th === "อื่นๆ" && (
                 <div className="mt-2">
                   <input
                     type="text"
                     name="prename_other"
-                    value={formData.prename_other || ""}
-                    onChange={handleInputChange}
+                    value={signatory.prename_other || ""}
+                    onChange={(e) => handleInputChange(index, e)}
                     placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
                     className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                      errors.prename_other ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                      errors[`${index}_prename_other`] ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
                     }`}
                   />
-                  {errors.prename_other && (
+                  {errors[`${index}_prename_other`] && (
                     <p className="mt-1 text-xs text-red-600 flex items-center">
                       <span className="mr-1">*</span>
-                      {errors.prename_other}
+                      {errors[`${index}_prename_other`]}
                     </p>
                   )}
                 </div>
@@ -256,17 +320,17 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
               <input
                 type="text"
                 name="first_name_th"
-                value={formData.first_name_th || ""}
-                onChange={handleInputChange}
+                value={signatory.first_name_th || ""}
+                onChange={(e) => handleInputChange(index, e)}
                 placeholder="เช่น สมชาย"
                 className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                  errors.first_name_th ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                  errors[`${index}_first_name_th`] ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
                 }`}
               />
-              {errors.first_name_th && (
+              {errors[`${index}_first_name_th`] && (
                 <p className="mt-1 text-xs text-red-600 flex items-center">
                   <span className="mr-1">*</span>
-                  {errors.first_name_th}
+                  {errors[`${index}_first_name_th`]}
                 </p>
               )}
             </div>
@@ -279,17 +343,17 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
               <input
                 type="text"
                 name="last_name_th"
-                value={formData.last_name_th || ""}
-                onChange={handleInputChange}
+                value={signatory.last_name_th || ""}
+                onChange={(e) => handleInputChange(index, e)}
                 placeholder="เช่น ใจดี"
                 className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                  errors.last_name_th ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                  errors[`${index}_last_name_th`] ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
                 }`}
               />
-              {errors.last_name_th && (
+              {errors[`${index}_last_name_th`] && (
                 <p className="mt-1 text-xs text-red-600 flex items-center">
                   <span className="mr-1">*</span>
-                  {errors.last_name_th}
+                  {errors[`${index}_last_name_th`]}
                 </p>
               )}
             </div>
@@ -302,20 +366,59 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
               <input
                 type="text"
                 name="position_th"
-                value={formData.position_th || ""}
-                onChange={handleInputChange}
+                value={signatory.position_th || ""}
+                onChange={(e) => handleInputChange(index, e)}
                 placeholder="เช่น กรรมการผู้จัดการ"
                 className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                  errors.position_th ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
+                  errors[`${index}_position_th`] ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"
                 }`}
               />
-              {errors.position_th && (
+              {errors[`${index}_position_th`] && (
                 <p className="mt-1 text-xs text-red-600 flex items-center">
                   <span className="mr-1">*</span>
-                  {errors.position_th}
+                  {errors[`${index}_position_th`]}
                 </p>
               )}
             </div>
+              </div>
+            </div>
+          ))}
+
+          {/* Add/Remove Signatory Buttons */}
+          <div className="flex justify-between items-center">
+            <button
+              type="button"
+              onClick={() => {
+                setFormData(prev => [...prev, {
+                  prename_th: "",
+                  prename_other: "",
+                  first_name_th: "",
+                  last_name_th: "",
+                  position_th: "",
+                }]);
+              }}
+              className="px-4 py-2 text-green-600 bg-green-50 border border-green-200 rounded-lg hover:bg-green-100 transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              เพิ่มผู้มีอำนาจลงนาม
+            </button>
+            
+            {formData.length > 1 && (
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData(prev => prev.slice(0, -1));
+                }}
+                className="px-4 py-2 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                ลบผู้มีอำนาจลงนามคนสุดท้าย
+              </button>
+            )}
           </div>
 
           {/* Action Buttons */}

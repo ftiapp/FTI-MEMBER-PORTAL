@@ -48,8 +48,8 @@ export const renderStepComponent = ({
           fieldNames: {
             firstNameTh: "firstNameThai",
             lastNameTh: "lastNameThai",
-            firstNameEn: "firstNameEng",
-            lastNameEn: "lastNameEng",
+            firstNameEn: "firstNameEn",
+            lastNameEn: "lastNameEn",
           },
         }}
       />

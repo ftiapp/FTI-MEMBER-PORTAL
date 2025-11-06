@@ -23,12 +23,8 @@ export async function GET(request) {
     // Simple approach: Get all messages first
     try {
       let allMessagesQuery = `
-        SELECT gcm.*, 
-               read_admin.name as read_by_admin_name,
-               reply_admin.name as replied_by_admin_name
+        SELECT gcm.*
         FROM FTI_Portal_Guest_Contact_Messages gcm
-        LEFT JOIN FTI_Portal_Admin_Users read_admin ON gcm.read_by_admin_id = read_admin.id
-        LEFT JOIN FTI_Portal_Admin_Users reply_admin ON gcm.replied_by_admin_id = reply_admin.id
       `;
 
       // Add simple WHERE clause if needed

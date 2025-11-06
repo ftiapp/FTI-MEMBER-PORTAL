@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import FactoryTypeSelector from "../../components/FactoryTypeSelector";
 import MultipleFileManager from "../../components/MultipleFileManager";
+import MultipleSignatories from "./MultipleSignatories";
 
 // Image Editor Modal Component for Company Stamp and Signature
 const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
@@ -181,7 +182,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     industrialEstateLicense: formData.industrialEstateLicense || null,
     productionImages: formData.productionImages || [],
     companyStamp: formData.companyStamp || null,
-    authorizedSignature: formData.authorizedSignature || null,
+    authorizedSignatures: formData.authorizedSignatures || [],
     companyCertificate: formData.companyCertificate || null,
     attachmentDocument: formData.attachmentDocument || null,
   });
@@ -192,15 +193,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [editingImage, setEditingImage] = useState(null);
   const [editingType, setEditingType] = useState(""); // 'companyStamp' or 'authorizedSignature'
+  const [editingSignatoryIndex, setEditingSignatoryIndex] = useState(null); // Track which signatory's signature is being edited
 
   // Debug: เพิ่ม useEffect เพื่อ debug
   useEffect(() => {
     console.log("=== DEBUG OC DocumentUploadSection ===");
     console.log("formData.companyStamp:", formData.companyStamp);
-    console.log("formData.authorizedSignature:", formData.authorizedSignature);
+    console.log("formData.authorizedSignatures:", formData.authorizedSignatures);
     console.log("selectedFiles:", selectedFiles);
     console.log("errors:", errors);
-  }, [formData.companyStamp, formData.authorizedSignature, selectedFiles, errors]);
+  }, [formData.companyStamp, formData.authorizedSignatures, selectedFiles, errors]);
 
   // Sync selectedFiles with formData when component mounts or formData changes
   useEffect(() => {
@@ -209,7 +211,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       industrialEstateLicense: formData.industrialEstateLicense || null,
       productionImages: formData.productionImages || [],
       companyStamp: formData.companyStamp || null,
-      authorizedSignature: formData.authorizedSignature || null,
+      authorizedSignatures: formData.authorizedSignatures || [],
       companyCertificate: formData.companyCertificate || null,
       attachmentDocument: formData.attachmentDocument || null,
     });
@@ -246,7 +248,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     }));
   };
 
-  const handleFileChange = (e, documentType) => {
+  const handleFileChange = (e, documentType, signatoryIndex = null) => {
     const { files } = e.target;
     if (files && files[0]) {
       const file = files[0];
@@ -257,32 +259,68 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       }
 
       // สำหรับ companyStamp และ authorizedSignature บังคับเป็นไฟล์รูปภาพเท่านั้น
-      if (documentType === "companyStamp" || documentType === "authorizedSignature") {
-        if (!file.type || !file.type.startsWith("image/")) {
-          alert("ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)");
-          return;
-        }
+      if (documentType === "companyStamp") {
+        const fileObject = createFileObject(file);
+        setSelectedFiles((prev) => ({ ...prev, [documentType]: fileObject }));
+        setFormData((prev) => ({ ...prev, [documentType]: fileObject }));
 
-        // เปิด Image Editor สำหรับไฟล์รูปภาพ
+        // Open image editor
         setEditingImage(file);
         setEditingType(documentType);
         setShowImageEditor(true);
+      } else if (documentType === "authorizedSignature") {
+        // Handle authorized signature for specific signatory
+        const fileObject = createFileObject(file);
+        const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
+        
+        // Ensure array has enough slots
+        while (currentSignatures.length <= signatoryIndex) {
+          currentSignatures.push(null);
+        }
+        
+        currentSignatures[signatoryIndex] = fileObject;
+        setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+        setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+
+        // Open image editor
+        setEditingImage(file);
+        setEditingType("authorizedSignature");
+        setEditingSignatoryIndex(signatoryIndex);
+        setShowImageEditor(true);
       } else {
-        // สำหรับเอกสารอื่นๆ
-        const fileObj = createFileObject(file);
-        setSelectedFiles((prev) => ({ ...prev, [documentType]: fileObj }));
-        setFormData((prev) => ({ ...prev, [documentType]: fileObj }));
+        // Handle other single files
+        const fileObject = createFileObject(file);
+        setSelectedFiles((prev) => ({ ...prev, [documentType]: fileObject }));
+        setFormData((prev) => ({ ...prev, [documentType]: fileObject }));
       }
     }
   };
 
   const handleImageSave = (blob) => {
     const file = new File([blob], `${editingType}.png`, { type: "image/png" });
-    setSelectedFiles((prev) => ({ ...prev, [editingType]: file }));
-    setFormData((prev) => ({ ...prev, [editingType]: file }));
+    
+    if (editingType === "authorizedSignature" && editingSignatoryIndex !== null) {
+      // Handle signature for specific signatory
+      const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
+      
+      // Ensure array has enough slots
+      while (currentSignatures.length <= editingSignatoryIndex) {
+        currentSignatures.push(null);
+      }
+      
+      currentSignatures[editingSignatoryIndex] = createFileObject(file);
+      setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+      setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+    } else {
+      // Handle other files
+      setSelectedFiles((prev) => ({ ...prev, [editingType]: createFileObject(file) }));
+      setFormData((prev) => ({ ...prev, [editingType]: createFileObject(file) }));
+    }
+    
     setShowImageEditor(false);
     setEditingImage(null);
     setEditingType("");
+    setEditingSignatoryIndex(null);
   };
 
   const editImage = (documentType) => {
@@ -447,14 +485,24 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     bgColor,
     isImageRequired = false,
     disabled = false,
+    signatoryIndex = null,
   }) => {
     const handleSingleFileChange = (e) => {
-      handleFileChange(e, name);
+      handleFileChange(e, name, signatoryIndex);
     };
 
     const removeSingleFile = () => {
-      setSelectedFiles((prev) => ({ ...prev, [name]: null }));
-      setFormData((prev) => ({ ...prev, [name]: null }));
+      if (name === "authorizedSignature" && signatoryIndex !== null) {
+        // Remove signature for specific signatory
+        const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
+        currentSignatures[signatoryIndex] = null;
+        setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+        setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+      } else {
+        // Remove other files
+        setSelectedFiles((prev) => ({ ...prev, [name]: null }));
+        setFormData((prev) => ({ ...prev, [name]: null }));
+      }
     };
 
     return (
@@ -560,7 +608,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                   (file.type?.startsWith("image/") || file instanceof File) && (
                     <button
                       type="button"
-                      onClick={() => editImage(name)}
+                      onClick={() => {
+                        setEditingImage(file);
+                        setEditingType(name);
+                        setEditingSignatoryIndex(signatoryIndex);
+                        setShowImageEditor(true);
+                      }}
                       className="p-2 text-blue-600 bg-blue-100 rounded-full hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors duration-200"
                       title="ปรับแต่งรูปภาพ"
                     >
@@ -624,15 +677,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     setFormData((prev) => ({ ...prev, productionImages: updatedFiles }));
   };
 
-  const getImageEditorTitle = (type) => {
-    switch (type) {
-      case "companyStamp":
-        return "ปรับแต่งตราประทับบริษัท";
-      case "authorizedSignature":
-        return "ปรับแต่งลายเซ็นผู้มีอำนาจลงนาม";
-      default:
-        return "ปรับแต่งรูปภาพ";
+  const getImageEditorTitle = (documentType, signatoryIndex = null) => {
+    if (documentType === "authorizedSignature" && signatoryIndex !== null) {
+      return `แก้ไขรูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${signatoryIndex + 1}`;
     }
+    const titles = {
+      companyStamp: "แก้ไขรูปตราประทับบริษัท",
+      authorizedSignature: "แก้ไขรูปลายเซ็นผู้มีอำนาจลงนาม",
+    };
+    return titles[documentType] || "แก้ไขรูปภาพ";
   };
 
   return (
@@ -912,358 +965,27 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               </div>
             </div>
 
-            {/* Authorized Signatory Name Inputs */}
-            <div className="bg-white border border-gray-200 rounded-xl p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">ข้อมูลผู้มีอำนาจลงนาม</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* Prename Thai */}
-                <div>
-                  <label
-                    htmlFor="authorizedSignatoryPrenameTh"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    คำนำหน้า (ไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    id="authorizedSignatoryPrenameTh"
-                    name="authorizedSignatoryPrenameTh"
-                    value={formData.authorizedSignatoryPrenameTh || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const mapThToEn = { นาย: "Mr", นาง: "Mrs", นางสาว: "Ms", อื่นๆ: "Other" };
-                      const mappedEn = mapThToEn[value] || "";
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPrenameTh: value,
-                        authorizedSignatoryPrenameEn: mappedEn,
-                        authorizedSignatoryPrenameOther:
-                          value === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
-                        authorizedSignatoryPrenameOtherEn:
-                          mappedEn === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
-                      }));
-                    }}
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                    required
-                  >
-                    <option value="">เลือก</option>
-                    <option value="นาย">นาย</option>
-                    <option value="นาง">นาง</option>
-                    <option value="นางสาว">นางสาว</option>
-                    <option value="อื่นๆ">อื่นๆ</option>
-                  </select>
-                  {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                    <div className="mt-2">
-                      <input
-                        type="text"
-                        name="authorizedSignatoryPrenameOther"
-                        value={formData.authorizedSignatoryPrenameOther || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryPrenameOther: e.target.value.replace(
-                              /[^ก-๙\.\s]/g,
-                              "",
-                            ),
-                          }))
-                        }
-                        placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                        className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                        required
-                      />
-                      {errors?.authorizedSignatoryPrenameOther && (
-                        <p className="mt-1 text-xs text-red-600 flex items-center">
-                          <span className="mr-1">*</span>
-                          {errors.authorizedSignatoryPrenameOther}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="authorizedSignatoryFirstNameTh"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="authorizedSignatoryFirstNameTh"
-                    name="authorizedSignatoryFirstNameTh"
-                    type="text"
-                    value={formData.authorizedSignatoryFirstNameTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryFirstNameTh: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryFirstNameTh ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="เช่น สมชาย"
-                    required
-                  />
-                  {errors?.authorizedSignatoryFirstNameTh && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryFirstNameTh}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="authorizedSignatoryLastNameTh"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="authorizedSignatoryLastNameTh"
-                    name="authorizedSignatoryLastNameTh"
-                    type="text"
-                    value={formData.authorizedSignatoryLastNameTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryLastNameTh: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryLastNameTh ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="เช่น ใจดี"
-                    required
-                  />
-                  {errors?.authorizedSignatoryLastNameTh && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryLastNameTh}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label
-                    htmlFor="authorizedSignatoryPositionTh"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    ตำแหน่ง (ภาษาไทย) <span className="text-red-600">*</span>
-                  </label>
-                  <input
-                    id="authorizedSignatoryPositionTh"
-                    name="authorizedSignatoryPositionTh"
-                    type="text"
-                    value={formData.authorizedSignatoryPositionTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPositionTh: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${(showErrors && !formData.authorizedSignatoryPositionTh) || errors?.authorizedSignatoryPositionTh ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="เช่น กรรมการผู้จัดการ"
-                  />
-                  {((showErrors && !formData.authorizedSignatoryPositionTh) ||
-                    errors?.authorizedSignatoryPositionTh) && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors?.authorizedSignatoryPositionTh ||
-                        "กรุณาระบุตำแหน่งผู้มีอำนาจลงนาม (ภาษาไทย)"}
-                    </p>
-                  )}
-                </div>
-                {/* Prename English - Hidden */}
-                <div className="hidden">
-                  <label
-                    htmlFor="authorizedSignatoryPrenameEn"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Prename (EN)
-                  </label>
-                  <select
-                    id="authorizedSignatoryPrenameEn"
-                    name="authorizedSignatoryPrenameEn"
-                    value={formData.authorizedSignatoryPrenameEn || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const mapEnToTh = { Mr: "นาย", Mrs: "นาง", Ms: "นางสาว", Other: "อื่นๆ" };
-                      const mappedTh = mapEnToTh[value] || "";
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPrenameEn: value,
-                        authorizedSignatoryPrenameTh: mappedTh,
-                        authorizedSignatoryPrenameOtherEn:
-                          value === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
-                        authorizedSignatoryPrenameOther:
-                          mappedTh === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
-                      }));
-                    }}
-                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                  >
-                    <option value="">Select</option>
-                    <option value="Mr">Mr</option>
-                    <option value="Mrs">Mrs</option>
-                    <option value="Ms">Ms</option>
-                    <option value="Other">Other</option>
-                  </select>
-                  {formData.authorizedSignatoryPrenameEn === "Other" && (
-                    <input
-                      type="text"
-                      name="authorizedSignatoryPrenameOtherEn"
-                      value={formData.authorizedSignatoryPrenameOtherEn || ""}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          authorizedSignatoryPrenameOtherEn: e.target.value.replace(
-                            /[^a-zA-Z\.\s]/g,
-                            "",
-                          ),
-                        }))
-                      }
-                      placeholder="e.g., Assoc. Prof., Dr."
-                      className="mt-2 block w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                      required
-                    />
-                  )}
-                </div>
-                <div className="hidden">
-                  <label
-                    htmlFor="authorizedSignatoryFirstNameEn"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    ชื่อ (อังกฤษ)
-                  </label>
-                  <input
-                    id="authorizedSignatoryFirstNameEn"
-                    name="authorizedSignatoryFirstNameEn"
-                    type="text"
-                    value={formData.authorizedSignatoryFirstNameEn || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryFirstNameEn: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryFirstNameEn ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="e.g. Somchai"
-                  />
-                  {errors?.authorizedSignatoryFirstNameEn && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryFirstNameEn}
-                    </p>
-                  )}
-                </div>
-                <div className="hidden">
-                  <label
-                    htmlFor="authorizedSignatoryLastNameEn"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Last Name (EN)
-                  </label>
-                  <input
-                    id="authorizedSignatoryLastNameEn"
-                    name="authorizedSignatoryLastNameEn"
-                    type="text"
-                    value={formData.authorizedSignatoryLastNameEn || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryLastNameEn: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryLastNameEn ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="e.g. Jaidee"
-                  />
-                  {errors?.authorizedSignatoryLastNameEn && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryLastNameEn}
-                    </p>
-                  )}
-                </div>
-                <div className="hidden">
-                  <label
-                    htmlFor="authorizedSignatoryPositionEn"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Position (EN)
-                  </label>
-                  <input
-                    id="authorizedSignatoryPositionEn"
-                    name="authorizedSignatoryPositionEn"
-                    type="text"
-                    value={formData.authorizedSignatoryPositionEn || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPositionEn: e.target.value,
-                      }))
-                    }
-                    className={`mt-1 block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${errors?.authorizedSignatoryPositionEn ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-200"}`}
-                    placeholder="e.g. Managing Director"
-                  />
-                  {errors?.authorizedSignatoryPositionEn && (
-                    <p className="mt-1 text-xs text-red-600 flex items-center">
-                      <span className="mr-1">*</span>
-                      {errors.authorizedSignatoryPositionEn}
-                    </p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Authorized Signature Upload */}
-            <div className="space-y-3">
-              <SingleFileUploadZone
-                title="รูปลายเซ็นผู้มีอำนาจลงนาม *"
-                description="อัปโหลดรูปลายเซ็นของผู้มีอำนาจลงนามในการดำเนินธุรกิจ"
-                name="authorizedSignature"
-                file={selectedFiles.authorizedSignature}
-                icon={
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
-                }
-                isImageRequired={true}
-              />
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <svg
-                    className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div className="text-xs">
-                    <p className="font-medium text-blue-800 mb-2">
-                      ขนาดแนะนำ: 120x60 พิกเซล, พื้นหลังโปร่งใส (PNG)
-                    </p>
-                    <div className="flex gap-4">
-                      <a
-                        href="/images/FTI-SIGNATUREsample.jpg"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        ดูตัวอย่างลายเซ็น
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
+            {/* Multiple Signatories Section */}
+            <MultipleSignatories 
+              formData={formData} 
+              setFormData={setFormData} 
+              errors={errors}
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              handleFileChange={handleFileChange}
+              viewFile={viewFile}
+              hasFile={hasFile}
+              getFileName={getFileName}
+              getFileSize={getFileSize}
+              ErrorIcon={ErrorIcon}
+              FileIcon={FileIcon}
+              ViewIcon={ViewIcon}
+              EditIcon={EditIcon}
+              DeleteIcon={DeleteIcon}
+              UploadIcon={UploadIcon}
+              SingleFileUploadZone={SingleFileUploadZone}
+            />
+            
             </div>
 
           {/* Empty State */}
@@ -1277,10 +999,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
           setShowImageEditor(false);
           setEditingImage(null);
           setEditingType("");
+          setEditingSignatoryIndex(null);
         }}
         onSave={handleImageSave}
         initialImage={editingImage}
-        title={getImageEditorTitle(editingType)}
+        title={getImageEditorTitle(editingType, editingSignatoryIndex)}
       />
     </>
   );
