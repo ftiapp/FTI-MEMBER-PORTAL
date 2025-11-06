@@ -680,7 +680,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
 
   const getImageEditorTitle = (documentType, signatoryIndex = null) => {
     if (documentType === "authorizedSignature" && signatoryIndex !== null) {
-      return `แก้ไขรูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${signatoryIndex + 1}`;
+      return `แก้ไขรูปลายเซ็นผู้มีอำนาจลงนาม ท่านที่ ${signatoryIndex + 1}`;
     }
     const titles = {
       companyStamp: "แก้ไขรูปตราประทับบริษัท",

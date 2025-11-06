@@ -79,7 +79,7 @@ const RepresentativeCard = ({ representative, index }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-4">
       <div className="mb-2">
-        <h4 className="text-sm font-medium text-gray-700">ผู้แทนคนที่ {index + 1}</h4>
+        <h4 className="text-sm font-medium text-gray-700">ผู้แทนท่านที่ {index + 1}</h4>
       </div>
       <div className="space-y-3">
         <div>
@@ -818,7 +818,7 @@ export default function SummarySectionComponent({
                     <span className="w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs font-medium mr-2">
                       {index + 1}
                     </span>
-                    ผู้มีอำนาจลงนามคนที่ {index + 1}
+                    ผู้มีอำนาจลงนามท่านที่ {index + 1}
                   </h4>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -848,7 +848,7 @@ export default function SummarySectionComponent({
                     <FileCard
                       fileName={getFileName(formData?.authorizedSignatures?.[index])}
                       fileUrl={getFileUrl(formData?.authorizedSignatures?.[index])}
-                      description={`รูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`}
+                      description={`รูปลายเซ็นผู้มีอำนาจลงนาม ท่านที่ ${index + 1}`}
                     />
                   </div>
                 </div>
@@ -1017,7 +1017,7 @@ export default function SummarySectionComponent({
                   key={index}
                   fileName={getFileName(formData?.authorizedSignatures?.[index])}
                   fileUrl={getFileUrl(formData?.authorizedSignatures?.[index])}
-                  description={`รูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`}
+                  description={`รูปลายเซ็นผู้มีอำนาจลงนาม ท่านที่ ${index + 1}`}
                 />
               ))}
             </div>
