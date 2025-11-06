@@ -486,6 +486,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     isImageRequired = false,
     disabled = false,
     signatoryIndex = null,
+    error = null,
   }) => {
     const handleSingleFileChange = (e) => {
       handleFileChange(e, name, signatoryIndex);
@@ -535,7 +536,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
           className={`border-2 border-dashed rounded-lg p-6 transition-colors duration-200 ${
             disabled
               ? "border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed"
-              : errors?.[name]
+              : error
                 ? "border-red-300 bg-red-50"
                 : "border-gray-300 hover:border-blue-400"
           }`}
@@ -634,15 +635,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         </div>
 
         {/* Error message */}
-        {errors?.[name] && (
+        {error && (
           <p className="mt-2 text-sm text-red-600 flex items-center">
             {ErrorIcon}
-            <span className="ml-1">{errors[name]}</span>
+            <span className="ml-1">{error}</span>
           </p>
         )}
 
         {/* Success message */}
-        {hasFile(file) && !errors?.[name] && (
+        {hasFile(file) && !error && (
           <div className="mt-2 flex items-center text-sm text-green-600">
             <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -891,75 +892,81 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
             </div>
 
             {/* Company Certificate Upload */}
-            <div className="space-y-3">
-              <SingleFileUploadZone
-                title="หนังสือรับรองบริษัท *"
-                description="สำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล ออกโดยกระทรวงพาณิชย์ อายุไม่เกิน 6 เดือน"
-                name="companyCertificate"
-                file={selectedFiles.companyCertificate}
-                icon={
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                }
-                iconColor="text-blue-600"
-                bgColor="bg-blue-100"
-              />
-            </div>
-
+            <SingleFileUploadZone
+              title="หนังสือรับรองบริษัท"
+              description="หนังสือรับรองบริษัท อายุไม่เกิน 3 เดือน พร้อมลงนาม + ประทับตราบริษัท (ถ้ามี)"
+              name="companyCertificate"
+              file={selectedFiles.companyCertificate}
+              icon={
+                <svg
+                  className="w-8 h-8 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              }
+              iconColor="text-blue-600"
+              bgColor="bg-blue-100"
+              error={errors?.companyCertificate}
+            />
             {/* Company Stamp Upload */}
-            <div className="space-y-3">
-              <SingleFileUploadZone
-                title="รูปตราประทับบริษัท *"
-                description="อัปโหลดรูปตราประทับบริษัท หากไม่มีตราประทับสามารถใช้รูปลายเซ็นแทนได้"
-                name="companyStamp"
-                file={selectedFiles.companyStamp}
-                icon={
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
-                    />
-                  </svg>
-                }
-                isImageRequired={true}
-              />
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <svg
-                    className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div className="text-xs">
-                    <p className="font-medium text-blue-800 mb-2">
-                      ขนาดแนะนำ: 300x300 พิกเซล, พื้นหลังโปร่งใส (PNG)
-                    </p>
-                    <div className="flex gap-4">
-                      <a
-                        href="/images/FTI-LOGOsample.png"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        ดูตัวอย่างตราประทับ
-                      </a>
-                    </div>
+            <SingleFileUploadZone
+              title="รูปตราประทับบริษัท *"
+              description="อัปโหลดรูปตราประทับบริษัท หากไม่มีตราประทับสามารถใช้รูปลายเซ็นแทนได้"
+              name="companyStamp"
+              file={selectedFiles.companyStamp}
+              icon={
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                  />
+                </svg>
+              }
+              isImageRequired={true}
+            />
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-start gap-2">
+                <svg
+                  className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="text-xs">
+                  <p className="font-medium text-blue-800 mb-2">
+                    ขนาดแนะนำ: 300x300 พิกเซล, พื้นหลังโปร่งใส (PNG)
+                  </p>
+                  <div className="flex gap-4">
+                    <a
+                      href="/images/FTI-LOGOsample.png"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline"
+                    >
+                      ดูตัวอย่างตราประทับ
+                    </a>
                   </div>
                 </div>
               </div>
