@@ -37,10 +37,11 @@ export default function VerifyMembers() {
   const [sortField, setSortField] = useState("created_at");
   const [sortOrder, setSortOrder] = useState("desc");
 
-  // Status labels for display based on email_verified
+  // Status labels for display
   const statusLabels = {
-    0: "ยังไม่ยืนยันอีเมล",
-    1: "ยืนยันอีเมลแล้ว",
+    0: "รอการอนุมัติ",
+    1: "อนุมัติแล้ว",
+    2: "ปฏิเสธแล้ว",
   };
 
   const handleSearchSubmit = (val) => {
@@ -68,7 +69,7 @@ export default function VerifyMembers() {
   const fetchMembers = async () => {
     try {
       setIsLoading(true);
-      let url = `/api/admin/members?page=${pagination.page}&limit=${pagination.limit}&email_verified=${statusParam}`;
+      let url = `/api/admin/members?page=${pagination.page}&limit=${pagination.limit}&status=${statusParam}`;
       const term = activeTerm || "";
       if (term.length >= 2) url += `&term=${encodeURIComponent(term)}`;
       if (dateRange.from) url += `&from=${dateRange.from}`;
@@ -290,7 +291,7 @@ export default function VerifyMembers() {
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
-              ยังไม่ยืนยันอีเมล
+              รอการอนุมัติ
             </button>
             <button
               onClick={() => handleStatusChange("1")}
@@ -300,7 +301,17 @@ export default function VerifyMembers() {
                   : "border-transparent text-gray-500 hover:text-gray-700"
               }`}
             >
-              ยืนยันอีเมลแล้ว
+              อนุมัติแล้ว
+            </button>
+            <button
+              onClick={() => handleStatusChange("2")}
+              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+                statusParam === "2"
+                  ? "border-[#1e3a8a] text-[#1e3a8a]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              ปฏิเสธแล้ว
             </button>
           </div>
           {/* Search & Filter Bar */}
@@ -367,7 +378,7 @@ export default function VerifyMembers() {
                         }}
                       />
                       <SortableHeader
-                        field="email_verified"
+                        field="Admin_Submit"
                         label="สถานะ"
                         sortField={sortField}
                         sortOrder={sortOrder}
@@ -421,14 +432,18 @@ export default function VerifyMembers() {
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                           ${
-                            member.email_verified === 1
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
+                            member.Admin_Submit === 0
+                              ? "bg-yellow-100 text-yellow-800"
+                              : member.Admin_Submit === 1
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
                           }`}
                           >
-                            {member.email_verified === 1
-                              ? "ยืนยันอีเมลแล้ว"
-                              : "ยังไม่ยืนยันอีเมล"}
+                            {member.Admin_Submit === 0
+                              ? "รอการอนุมัติ"
+                              : member.Admin_Submit === 1
+                                ? "อนุมัติแล้ว"
+                                : "ปฏิเสธแล้ว"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
