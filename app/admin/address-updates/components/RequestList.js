@@ -84,7 +84,7 @@ export default function RequestList({ requests, selectedRequestId, onViewRequest
 
         return (
           <motion.div
-            key={`${request.id}-${request.addr_code}-${request.addr_lang}-${index}`}
+            key={`${request.id}-${request.addr_code}-${request.addr_lang}`}
             className={`bg-white rounded-lg shadow-md p-4 cursor-pointer hover:bg-blue-50 transition-colors ${
               selectedRequestId === request.id ? "border-l-4 border-blue-500 bg-blue-50" : ""
             }`}

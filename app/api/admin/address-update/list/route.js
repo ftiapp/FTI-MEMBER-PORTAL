@@ -54,9 +54,9 @@ export async function GET(request) {
     const countResults = await dbQuery(countSQL, queryParams);
     const total = countResults[0]?.total || 0;
 
-    // สร้าง SQL สำหรับดึงข้อมูล
+    // สร้าง SQL สำหรับดึงข้อมูล - ใช้ DISTINCT เพื่อป้องกันข้อมูลซ้ำ
     const dataSQL = `
-      SELECT 
+      SELECT DISTINCT
         pau.id,
         pau.user_id,
         pau.member_code,
