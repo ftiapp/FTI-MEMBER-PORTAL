@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Image from "next/image";
+import YouTubeAutoplay from "./components/YouTubeAutoplay";
 
 export default function Home() {
   const [isMobile, setIsMobile] = useState(false);
@@ -118,6 +119,40 @@ export default function Home() {
 
           </div>
         </motion.div>
+
+        {/* Video Section */}
+        <section className="bg-gray-50 py-16">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                วิธีการสมัครใช้งาน
+              </h2>
+              <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                วิดีโอแนะนำวิธีการสมัครสมาชิกและยืนยันสมาชิกเดิม
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              viewport={{ once: true }}
+              className="max-w-4xl mx-auto"
+            >
+              <YouTubeAutoplay 
+                videoId="oynt-orKzyE" 
+                title="วิธีการสมัครใช้งาน สภาอุตสาหกรรมแห่งประเทศไทย"
+              />
+            </motion.div>
+          </div>
+        </section>
 
         {/* White section under hero with centered image */}
         <section className="bg-white">
