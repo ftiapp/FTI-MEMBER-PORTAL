@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
+import { mssqlQuery } from "@/app/lib/mssql";
 
-// Helper function to check tax ID in database (ตรวจสอบทั้ง OC, AC และ AM)
+// Helper function to check tax ID in database (ตรวจสอบทั้ง OC, AC, AM และ BI_MEMBER)
 async function checkTaxIdInDatabase(taxId) {
   try {
+    // 0. ตรวจสอบในตาราง BI_MEMBER (MSSQL) ก่อน - สมาชิกเดิม
+    const biMemberResult = await mssqlQuery(
+      "SELECT TOP (1000) [TAX_ID] FROM [FTI].[dbo].[BI_MEMBER] WHERE [TAX_ID] = @param0",
+      [taxId],
+    );
+    if (biMemberResult && biMemberResult.length > 0) {
+      return { exists: true, isExistingMember: true, status: 'existing_member', memberType: "BI_MEMBER" };
+    }
+
     // 1. ตรวจสอบในตาราง OC (MemberRegist_OC_Main)
     const ocResult = await query(
       "SELECT status FROM MemberRegist_OC_Main WHERE tax_id = ? AND (status = 0 OR status = 1) LIMIT 1",
@@ -33,6 +43,7 @@ async function checkTaxIdInDatabase(taxId) {
 
     return {
       exists: false,
+      isExistingMember: false,
       status: null,
       memberType: null,
     };
@@ -56,7 +67,12 @@ function validateTaxId(taxId) {
 }
 
 // Helper function to generate response messages
-function generateResponseMessage(taxId, status, memberType) {
+function generateResponseMessage(taxId, status, memberType, isExistingMember = false) {
+  // Special case for existing members from BI_MEMBER
+  if (isExistingMember || status === 'existing_member') {
+    return "เลขทะเบียนนิติบุคคลนี้เป็นสมาชิก ส.อ.ท. แล้ว โปรดใช้เมนู 'ยืนยันสมาชิกเดิม'";
+  }
+
   const memberTypeThai = {
     OC: "สมาชิกสามัญ (โรงงาน)",
     AC: "สมาชิกสมทบ (นิติบุคคล)",
@@ -106,9 +122,10 @@ export async function GET(request) {
         {
           valid: false,
           exists: true,
+          isExistingMember: result.isExistingMember || false,
           status: result.status,
           memberType: result.memberType,
-          message: generateResponseMessage(taxId, result.status, result.memberType),
+          message: generateResponseMessage(taxId, result.status, result.memberType, result.isExistingMember),
         },
         { status: 409 },
       );
@@ -118,7 +135,8 @@ export async function GET(request) {
       {
         valid: true,
         exists: false,
-        message: generateResponseMessage(taxId, "available", null),
+        isExistingMember: false,
+        message: generateResponseMessage(taxId, "available", null, false),
       },
       { status: 200 },
     );
@@ -162,9 +180,10 @@ export async function POST(request) {
         {
           valid: false,
           exists: true,
+          isExistingMember: result.isExistingMember || false,
           status: result.status,
           memberType: result.memberType,
-          message: generateResponseMessage(taxId, result.status, result.memberType),
+          message: generateResponseMessage(taxId, result.status, result.memberType, result.isExistingMember),
         },
         { status: 409 },
       );
@@ -175,7 +194,8 @@ export async function POST(request) {
       {
         valid: true,
         exists: false,
-        message: generateResponseMessage(taxId, "available", null),
+        isExistingMember: false,
+        message: generateResponseMessage(taxId, "available", null, false),
       },
       { status: 200 },
     );
