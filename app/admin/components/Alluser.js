@@ -18,9 +18,9 @@ export default function Alluser() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [stats, setStats] = useState({
-    totalActiveUsers: 0,
-    totalInactiveUsers: 0,
-    totalPendingUsers: 0,
+    totalUsers: 0,
+    verifiedUsers: 0,
+    notVerifiedUsers: 0,
     averageLoginCount: 0,
     mostActiveUser: null,
   });
@@ -212,8 +212,8 @@ export default function Alluser() {
           <div className="bg-green-50 p-4 rounded-lg border border-green-100">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-500">ผู้ใช้ที่ใช้งานอยู่</p>
-                <p className="text-2xl font-bold text-green-600">{stats.totalActiveUsers}</p>
+                <p className="text-sm text-gray-500">ผู้ใช้ที่ยืนยันอีเมลแล้ว</p>
+                <p className="text-2xl font-bold text-green-600">{stats.verifiedUsers}</p>
               </div>
               <div className="bg-green-100 p-2 rounded-full">
                 <svg
@@ -237,8 +237,8 @@ export default function Alluser() {
           <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-gray-500">ผู้ใช้รอการยืนยัน</p>
-                <p className="text-2xl font-bold text-yellow-600">{stats.totalPendingUsers}</p>
+                <p className="text-sm text-gray-500">ผู้ใช้ที่ยังไม่ยืนยันอีเมล</p>
+                <p className="text-2xl font-bold text-yellow-600">{stats.notVerifiedUsers}</p>
               </div>
               <div className="bg-yellow-100 p-2 rounded-full">
                 <svg
@@ -437,18 +437,14 @@ export default function Alluser() {
                         <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap">
                           <span
                             className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                              user.status === "active"
+                              user.email_verified === 1
                                 ? "bg-green-100 text-green-800"
-                                : user.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
+                                : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {user.status === "active"
-                              ? "ใช้งาน"
-                              : user.status === "pending"
-                                ? "รอการยืนยัน"
-                                : "ไม่ใช้งาน"}
+                            {user.email_verified === 1
+                              ? "ยืนยันอีเมลแล้ว"
+                              : "ยังไม่ยืนยันอีเมล"}
                           </span>
                         </td>
                         <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-gray-500">

@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
@@ -23,32 +23,23 @@ export async function GET(request) {
     const totalUsersResult = await query(totalUsersQuery);
     const totalUsers = parseInt(totalUsersResult[0]?.total) || 0;
 
-    // Get pending FTI_Portal_User
-    const pendingUsersQuery = `
+    // Get FTI_Portal_User with email_verified = 1 (verified)
+    const verifiedUsersQuery = `
       SELECT COUNT(*) as count
       FROM FTI_Portal_User
-      WHERE status = 'pending'
+      WHERE email_verified = 1
     `;
-    const pendingUsersResult = await query(pendingUsersQuery);
-    const pendingUsers = parseInt(pendingUsersResult[0]?.count) || 0;
+    const verifiedUsersResult = await query(verifiedUsersQuery);
+    const verifiedUsers = parseInt(verifiedUsersResult[0]?.count) || 0;
 
-    // Get active FTI_Portal_User
-    const activeUsersQuery = `
+    // Get FTI_Portal_User with email_verified = 0 (not verified)
+    const notVerifiedUsersQuery = `
       SELECT COUNT(*) as count
       FROM FTI_Portal_User
-      WHERE status = 'active'
+      WHERE email_verified = 0
     `;
-    const activeUsersResult = await query(activeUsersQuery);
-    const activeUsers = parseInt(activeUsersResult[0]?.count) || 0;
-
-    // Get inactive FTI_Portal_User
-    const inactiveUsersQuery = `
-      SELECT COUNT(*) as count
-      FROM FTI_Portal_User
-      WHERE status = 'inactive'
-    `;
-    const inactiveUsersResult = await query(inactiveUsersQuery);
-    const inactiveUsers = parseInt(inactiveUsersResult[0]?.count) || 0;
+    const notVerifiedUsersResult = await query(notVerifiedUsersQuery);
+    const notVerifiedUsers = parseInt(notVerifiedUsersResult[0]?.count) || 0;
 
     // Get FTI_Portal_User by role
     const usersByRoleQuery = `
@@ -74,9 +65,8 @@ export async function GET(request) {
       success: true,
       counts: {
         total: totalUsers,
-        pending: pendingUsers,
-        active: activeUsers,
-        inactive: inactiveUsers,
+        verified: verifiedUsers,
+        notVerified: notVerifiedUsers,
         roleCounts,
       },
     });

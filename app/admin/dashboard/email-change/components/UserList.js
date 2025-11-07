@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
@@ -191,24 +191,15 @@ export default function UserList({ onSelectUser }) {
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
                       ${
-                        user.status === "active"
+                        user.email_verified === 1
                           ? "bg-green-100 text-green-800"
-                          : user.status === "inactive"
-                            ? "bg-red-100 text-red-800"
-                            : "bg-yellow-100 text-yellow-800"
+                          : "bg-yellow-100 text-yellow-800"
                       }`}
                     >
-                      {user.status === "active"
-                        ? "ใช้งาน"
-                        : user.status === "inactive"
-                          ? "ไม่ใช้งาน"
-                          : "รอยืนยัน"}
+                      {user.email_verified === 1
+                        ? "ยืนยันอีเมลแล้ว"
+                        : "ยังไม่ยืนยันอีเมล"}
                     </span>
-                    {user.email_verified === 0 && (
-                      <span className="ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                        ยังไม่ยืนยันอีเมล
-                      </span>
-                    )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <button

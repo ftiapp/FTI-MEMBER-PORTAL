@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
@@ -21,9 +21,8 @@ export async function GET() {
     // Query to get user status counts
     const statusCountsQuery = `
       SELECT 
-        SUM(CASE WHEN status = 'active' AND email_verified = 1 THEN 1 ELSE 0 END) as totalActiveUsers,
-        SUM(CASE WHEN status = 'inactive' THEN 1 ELSE 0 END) as totalInactiveUsers,
-        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as totalPendingUsers,
+        SUM(CASE WHEN email_verified = 1 THEN 1 ELSE 0 END) as verifiedUsers,
+        SUM(CASE WHEN email_verified = 0 OR email_verified IS NULL THEN 1 ELSE 0 END) as notVerifiedUsers,
         COUNT(*) as totalUsers
       FROM FTI_Portal_User
     `;
@@ -51,9 +50,8 @@ export async function GET() {
     const stats = {
       success: true,
       totalUsers: parseInt(statusCounts[0].totalUsers || 0),
-      totalActiveUsers: parseInt(statusCounts[0].totalActiveUsers || 0),
-      totalInactiveUsers: parseInt(statusCounts[0].totalInactiveUsers || 0),
-      totalPendingUsers: parseInt(statusCounts[0].totalPendingUsers || 0),
+      verifiedUsers: parseInt(statusCounts[0].verifiedUsers || 0),
+      notVerifiedUsers: parseInt(statusCounts[0].notVerifiedUsers || 0),
       averageLoginCount: parseFloat(avgLoginResult[0].averageLoginCount || 0),
       mostActiveUser:
         mostActiveUserResult.length > 0

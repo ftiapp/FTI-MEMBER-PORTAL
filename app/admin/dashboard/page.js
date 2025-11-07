@@ -100,8 +100,8 @@ const api = {
       stats: {
         pendingUpdates,
         totalUsers: userStatsData.success ? userStatsData.counts.total : 0,
-        activeUsers: userStatsData.success ? userStatsData.counts.active : 0,
-        pendingUsers: userStatsData.success ? userStatsData.counts.pending : 0,
+        verifiedUsers: userStatsData.success ? userStatsData.counts.verified : 0,
+        notVerifiedUsers: userStatsData.success ? userStatsData.counts.notVerified : 0,
       },
       adminInfo: dashData.success ? dashData.admin : null,
     };
@@ -151,8 +151,8 @@ export default function AdminDashboard() {
       dashboardData?.stats || {
         pendingUpdates: 0,
         totalUsers: 0,
-        activeUsers: 0,
-        pendingUsers: 0,
+        verifiedUsers: 0,
+        notVerifiedUsers: 0,
       },
     [dashboardData],
   );
@@ -365,11 +365,10 @@ export default function AdminDashboard() {
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
             <StatCard
-              title="จำนวนผู้ใช้งานทั้งหมด"
+              title="จำนวนผู้ใช้ทั้งหมด"
               value={stats.totalUsers}
               color="from-blue-500 to-blue-600"
               href="/admin/dashboard/verify?status=0"
-              subtitle="total"
               icon={
                 <svg
                   className="w-8 h-8 text-white"
@@ -411,10 +410,9 @@ export default function AdminDashboard() {
             />
 
             <StatCard
-              title="ผู้ใช้งานที่ยืนยันแล้ว"
-              value={stats.activeUsers}
+              title="ผู้ใช้ที่ยืนยันอีเมลแล้ว"
+              value={stats.verifiedUsers}
               color="from-purple-500 to-purple-600"
-              subtitle="active"
               icon={
                 <svg
                   className="w-8 h-8 text-white"
@@ -433,10 +431,9 @@ export default function AdminDashboard() {
             />
 
             <StatCard
-              title="ผู้ใช้งานรอการอนุมัติ"
-              value={stats.pendingUsers}
+              title="ผู้ใช้ที่ยังไม่ยืนยันอีเมล"
+              value={stats.notVerifiedUsers}
               color="from-orange-500 to-red-500"
-              subtitle="pending"
               icon={
                 <svg
                   className="w-8 h-8 text-white"

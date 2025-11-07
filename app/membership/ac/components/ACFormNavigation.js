@@ -50,6 +50,7 @@ export const useACFormNavigation = (
   // ใช้ค่าจากภายนอกถ้ามี หรือสร้าง state ใหม่ถ้าไม่มี
   const [internalCurrentStep, setInternalCurrentStep] = useState(1);
   const [internalTotalSteps] = useState(4);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currentStep = externalCurrentStep ?? internalCurrentStep;
   const setCurrentStep = externalSetCurrentStep ?? setInternalCurrentStep;

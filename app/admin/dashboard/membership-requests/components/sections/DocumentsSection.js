@@ -363,6 +363,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
         { value: "productionImages", label: "รูปภาพการผลิต/เอกสารการผลิต" },
         { value: "companyStamp", label: "รูปตราประทับบริษัท" },
         { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        { value: "companyCertificate", label: "หนังสือรับรองบริษัท" },
         { value: "other", label: "เอกสารอื่นๆ" },
       ],
       AC: [
