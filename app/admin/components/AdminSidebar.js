@@ -53,7 +53,7 @@ function AdminSidebar({ onNavigate }) {
   // If still loading admin data, show a simple loading indicator
   if (isLoading) {
     return (
-      <aside className="bg-gray-800 text-white w-72 min-h-screen h-full flex items-center justify-center fade-in">
+      <aside className="bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900 text-white w-72 min-h-screen h-full flex items-center justify-center fade-in">
         <LoadingSpinner size={8} color="white" />
       </aside>
     );
@@ -61,20 +61,20 @@ function AdminSidebar({ onNavigate }) {
 
   return (
     <aside
-      className={`bg-gray-800 text-white ${collapsed ? "w-20" : "w-72"} transition-all duration-300 ease-in-out min-h-screen h-full flex flex-col ${mounted ? "fade-in" : ""}`}
+      className={`bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900 text-white ${collapsed ? "w-20" : "w-72"} transition-all duration-300 ease-in-out min-h-screen h-full flex flex-col ${mounted ? "fade-in" : ""}`}
     >
       {/* Header */}
-      <div className="p-4 flex justify-between items-center">
+      <div className="p-4 flex justify-between items-center border-b border-slate-700/50">
         <div className={`flex items-center ${collapsed ? "justify-center w-full" : ""}`}>
           {!collapsed && (
             <div className="ml-3">
-              <div className="font-semibold text-sm">Menu</div>
+              <div className="font-semibold text-sm text-slate-200">Menu</div>
             </div>
           )}
         </div>
         <button
           onClick={toggleCollapse}
-          className={`text-white p-1 rounded-full hover:bg-gray-700 ${collapsed ? "hidden" : "block"}`}
+          className={`text-gray-300 p-1 rounded-full hover:bg-slate-700/50 transition-colors ${collapsed ? "hidden" : "block"}`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -106,11 +106,11 @@ function AdminSidebar({ onNavigate }) {
                 .map((_, index) => (
                   <div
                     key={index}
-                    className="mb-2 px-4 py-2 rounded-md bg-gray-700 bg-opacity-40 menu-item-loading"
+                    className="mb-2 px-4 py-2 rounded-md bg-slate-700/30 bg-opacity-40 menu-item-loading border border-slate-600/20"
                   >
                     <div className="flex items-center">
-                      <div className="w-5 h-5 mr-3 rounded-md bg-gray-600"></div>
-                      {!collapsed && <div className="w-24 h-4 rounded-md bg-gray-600"></div>}
+                      <div className="w-5 h-5 mr-3 rounded-md bg-slate-600/40"></div>
+                      {!collapsed && <div className="w-24 h-4 rounded-md bg-slate-600/40"></div>}
                     </div>
                   </div>
                 ))
@@ -129,14 +129,14 @@ function AdminSidebar({ onNavigate }) {
       </div>
 
       {/* Logout Button */}
-      <div className="mt-auto sticky bottom-0 w-full border-t border-gray-700">
+      <div className="mt-auto sticky bottom-0 w-full border-t border-slate-700/50">
         <button
           onClick={(e) => {
             e.preventDefault();
             if (loading) return;
             setShowLogoutConfirmation(true);
           }}
-          className={`flex items-center ${collapsed ? "justify-center" : "px-4"} w-full p-4 text-base font-medium hover:bg-red-700 bg-gray-700 transition-colors ${loading && activePath === "logout" ? "menu-item-loading cursor-not-allowed" : ""}`}
+          className={`flex items-center ${collapsed ? "justify-center" : "px-4"} w-full p-4 text-base font-medium hover:bg-gradient-to-r hover:from-red-600 hover:to-red-700 bg-gradient-to-r from-red-500/20 to-red-600/20 transition-all duration-200 border-t border-slate-700/50 ${loading && activePath === "logout" ? "menu-item-loading cursor-not-allowed" : ""}`}
           disabled={loading}
           title="ออกจากระบบ"
         >

@@ -66,14 +66,14 @@ export default function AdminHeader({ title }) {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-gradient-to-r from-white to-blue-50/80 backdrop-blur-sm shadow-lg border-b border-blue-100">
       <div className="flex justify-between items-center px-6 py-4">
         <div className="flex items-center space-x-4">
           <div className="relative">
-            <button className="p-2 rounded-full hover:bg-gray-100">
+            <button className="p-2 rounded-full hover:bg-blue-100 transition-colors">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6 text-gray-600"
+                className="h-6 w-6 text-blue-600"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -89,23 +89,23 @@ export default function AdminHeader({ title }) {
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold shadow-lg">
               {admin?.username?.charAt(0) || "A"}
             </div>
             <div className="hidden md:block">
-              <p className="font-medium">{admin?.username || "Admin"}</p>
-              <p className="text-xs text-gray-500">{adminLevel}</p>
+              <p className="font-medium text-gray-800">{admin?.username || "Admin"}</p>
+              <p className="text-xs text-blue-600">{adminLevel}</p>
             </div>
 
             <button
               onClick={handleLogout}
-              className={`flex items-center justify-center px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded transition-colors ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+              className={`flex items-center justify-center px-3 py-2 bg-gradient-to-r from-red-50 to-pink-50 hover:from-red-100 hover:to-pink-100 text-red-700 rounded-lg transition-all duration-200 border border-red-200 shadow-sm ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
               disabled={loading}
               title="ออกจากระบบ"
             >
               {loading ? (
                 <svg
-                  className="animate-spin h-5 w-5 text-gray-600"
+                  className="animate-spin h-5 w-5 text-red-600"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"

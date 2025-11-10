@@ -414,12 +414,15 @@ export default function ActionCounts({ title }) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8 border border-blue-100">
+        <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 sm:mb-4">
           {title || "สถิติการดำเนินการ"}
         </h2>
         <div className="flex justify-center items-center h-24 sm:h-32">
-          <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1e3a8a]"></div>
+          <div className="relative">
+            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+            <div className="absolute inset-0 rounded-full h-8 w-8 border-2 border-blue-200 animate-ping opacity-20"></div>
+          </div>
         </div>
       </div>
     );
@@ -427,11 +430,11 @@ export default function ActionCounts({ title }) {
 
   if (error) {
     return (
-      <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
-        <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8 border border-blue-100">
+        <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 sm:mb-4">
           {title || "สถิติการดำเนินการ"}
         </h2>
-        <div className="bg-red-50 p-3 sm:p-4 rounded-lg text-red-600 text-sm sm:text-base">
+        <div className="bg-gradient-to-r from-red-50 to-pink-50 p-3 sm:p-4 rounded-xl text-red-700 text-sm sm:text-base border border-red-200">
           <p>เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}</p>
         </div>
       </div>
@@ -439,13 +442,13 @@ export default function ActionCounts({ title }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8">
-      <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-3 sm:mb-4">
+    <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8 border border-blue-100">
+      <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent mb-3 sm:mb-4">
         {title || "สถิติการดำเนินการ"}
       </h2>
 
       {Object.keys(actionCounts).length === 0 ? (
-        <div className="bg-gray-50 p-3 sm:p-4 rounded-lg text-gray-600 text-sm sm:text-base">
+        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-3 sm:p-4 rounded-xl text-blue-700 text-sm sm:text-base border border-blue-200">
           <p>ไม่พบข้อมูลการดำเนินการ</p>
         </div>
       ) : (
@@ -457,16 +460,16 @@ export default function ActionCounts({ title }) {
             return (
               <div
                 key={action}
-                className="bg-white border rounded-lg shadow-sm p-3 sm:p-4 hover:shadow-md transition-shadow"
+                className="bg-white border border-blue-100 rounded-xl shadow-sm p-3 sm:p-4 hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-blue-200"
               >
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
-                  <div className={`${baseInfo.bgColor} p-2 sm:p-3 rounded-full flex-shrink-0`}>
+                  <div className={`${baseInfo.bgColor} p-2 sm:p-3 rounded-xl flex-shrink-0 shadow-sm`}>
                     {baseInfo.icon}
                   </div>
                   <p className={`text-2xl sm:text-3xl font-bold ${baseInfo.textColor}`}>{count}</p>
                 </div>
                 <p className="text-base sm:text-lg font-semibold text-gray-700 truncate">{title}</p>
-                <p className="text-xs sm:text-sm text-gray-500 truncate">{action}</p>
+                <p className="text-xs sm:text-sm text-blue-500 truncate font-mono">{action}</p>
               </div>
             );
           })}

@@ -74,14 +74,17 @@ export default function AdminLayout({ children }) {
 
   if (loading || !adminData) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-100 fade-in">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 fade-in">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+          <div className="absolute inset-0 rounded-full h-12 w-12 border-2 border-blue-200 animate-ping opacity-20"></div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <AdminSidebar />
@@ -92,17 +95,17 @@ export default function AdminLayout({ children }) {
         className={`fixed inset-0 z-20 transition-opacity duration-300 ${isMobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
       >
         <div
-          className="absolute inset-0 bg-gray-900 bg-opacity-50"
+          className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-indigo-900/20 backdrop-blur-sm"
           onClick={() => setIsMobileMenuOpen(false)}
         ></div>
         <div
-          className={`relative flex flex-col w-72 sm:w-80 max-w-sm h-full bg-gray-800 shadow-xl transform transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
+          className={`relative flex flex-col w-72 sm:w-80 max-w-sm h-full bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900 shadow-2xl transform transition-transform duration-300 ${isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center justify-between p-4 border-b border-slate-700/50">
             <h2 className="text-white font-semibold text-lg">เมนู</h2>
             <button
               onClick={() => setIsMobileMenuOpen(false)}
-              className="text-gray-400 hover:text-white p-1 rounded-md hover:bg-gray-700 transition-colors"
+              className="text-slate-300 hover:text-white p-1 rounded-md hover:bg-slate-700/50 transition-colors"
             >
               <svg
                 className="h-6 w-6"
@@ -127,13 +130,13 @@ export default function AdminLayout({ children }) {
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Navigation */}
-        <header className="bg-white shadow-sm z-10">
+        <header className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 shadow-xl z-10 border-b border-slate-700/50">
           <div className="px-2 sm:px-4 lg:px-8">
             <div className="flex justify-between items-center h-14 sm:h-16">
               <div className="flex items-center min-w-0 flex-1">
                 <button
                   onClick={() => setIsMobileMenuOpen(true)}
-                  className="p-2 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 md:hidden"
+                  className="p-2 text-white focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-400 md:hidden"
                 >
                   <span className="sr-only">Open sidebar</span>
                   <svg
@@ -153,20 +156,20 @@ export default function AdminLayout({ children }) {
                 </button>
                 <div className="flex items-center ml-2 sm:ml-0 min-w-0">
                   <img
-                    src="/FTI-MasterLogo_RGB_forLightBG.png"
+                    src="\FTI-MasterLogo_RGB-White.png"
                     alt="FTI Logo"
                     className="h-8 sm:h-10 w-auto flex-shrink-0"
                   />
                   {/* Hide text on mobile, show on md+ */}
                   <div className="hidden md:block ml-3 mr-4">
-                    <div className="font-semibold text-sm text-gray-800">
+                    <div className="font-semibold text-sm text-white">
                       สภาอุตสาหกรรมแห่งประเทศไทย
                     </div>
-                    <div className="text-xs text-gray-500">The Federation of Thai Industries</div>
+                    <div className="text-xs text-slate-300">The Federation of Thai Industries</div>
                   </div>
                   {/* Page title - hide on mobile, show on lg+ */}
-                  <div className="hidden lg:block border-l-2 border-gray-300 pl-4 ml-4">
-                    <h1 className="text-lg xl:text-xl font-semibold text-gray-800 truncate">
+                  <div className="hidden lg:block border-l-2 border-slate-500 pl-4 ml-4">
+                    <h1 className="text-lg xl:text-xl font-semibold text-white truncate">
                       {pageTitle}
                     </h1>
                   </div>
@@ -175,8 +178,8 @@ export default function AdminLayout({ children }) {
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Admin badge - hide name on mobile */}
                 <div className="hidden sm:flex flex-shrink-0">
-                  <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-blue-100 text-blue-800">
-                    <span className="mr-1 sm:mr-2 h-2 w-2 rounded-full bg-blue-500"></span>
+                  <span className="inline-flex items-center px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium bg-gradient-to-r from-slate-700 to-slate-800 text-slate-200 border border-slate-600">
+                    <span className="mr-1 sm:mr-2 h-2 w-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-700 animate-pulse"></span>
                     {adminData?.name ? (
                       <>
                         <span className="hidden lg:inline">{adminData.name}</span>
@@ -195,7 +198,7 @@ export default function AdminLayout({ children }) {
                     if (navLoading) return;
                     setShowLogoutConfirmation(true);
                   }}
-                  className={`flex items-center justify-center px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium bg-red-50 text-red-700 hover:bg-red-100 transition-colors ${navLoading && activePath === "logout" ? "menu-item-loading cursor-not-allowed" : ""}`}
+                  className={`flex items-center justify-center px-2 sm:px-3 py-1 rounded-md text-xs sm:text-sm font-medium bg-gradient-to-r from-red-600 to-red-700 text-white hover:from-red-700 hover:to-red-800 border border-red-500/50 transition-all duration-200 ${navLoading && activePath === "logout" ? "menu-item-loading cursor-not-allowed" : ""}`}
                   disabled={navLoading}
                   title="ออกจากระบบ"
                 >
@@ -204,7 +207,7 @@ export default function AdminLayout({ children }) {
                 </button>
 
                 <div className="hidden sm:block">
-                  <button className="flex max-w-xs items-center rounded-full bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                  <button className="flex max-w-xs items-center rounded-full bg-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 focus:ring-offset-slate-900">
                     <span className="sr-only">Open user menu</span>
                     <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
                       {adminData?.username?.charAt(0) || "A"}
@@ -217,11 +220,11 @@ export default function AdminLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-auto bg-gray-50 p-2 sm:p-4 lg:p-6">
+        <main className="flex-1 overflow-auto bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-2 sm:p-4 lg:p-6">
           <div className="mx-auto max-w-7xl">
             {/* Show page title on mobile at top of content */}
-            <h1 className="lg:hidden text-xl font-semibold text-gray-800 mb-3 px-2">{pageTitle}</h1>
-            <div className="bg-white shadow-sm rounded-lg p-3 sm:p-4 lg:p-6 page-transition">
+            <h1 className="lg:hidden text-xl font-semibold text-white mb-3 px-2">{pageTitle}</h1>
+            <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 shadow-2xl rounded-2xl p-3 sm:p-4 lg:p-6 page-transition border border-slate-700/50 text-white">
               {children}
             </div>
           </div>
