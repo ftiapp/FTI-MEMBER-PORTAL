@@ -73,10 +73,10 @@ export default function RequestDetail({
             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
           />
         </svg>
-        <p className="text-gray-600 font-semibold text-lg">
+        <p className="text-black font-semibold text-lg">
           เลือกคำขอแก้ไขที่อยู่เพื่อดูรายละเอียด
         </p>
-        <p className="text-gray-500 text-sm mt-2">คลิกที่รายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม</p>
+        <p className="text-black text-sm mt-2">คลิกที่รายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม</p>
       </motion.div>
     );
   }
@@ -176,12 +176,12 @@ export default function RequestDetail({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Header - Improved */}
-      <div className="bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] text-white p-6">
+      {/* Header - Improved with Black Text */}
+      <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-b-2 border-gray-200 p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <div className="p-2 bg-white bg-opacity-20 rounded-lg">
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="p-2 bg-blue-100 rounded-lg">
+              <svg className="w-6 h-6 text-[#1e3a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -197,8 +197,8 @@ export default function RequestDetail({
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">รายละเอียดคำขอแก้ไขที่อยู่</h2>
-              <p className="text-sm opacity-90 mt-1">ตรวจสอบและดำเนินการกับคำขอแก้ไขที่อยู่</p>
+              <h2 className="text-xl font-bold text-black">รายละเอียดคำขอแก้ไขที่อยู่</h2>
+              <p className="text-sm text-black mt-1">ตรวจสอบและดำเนินการกับคำขอแก้ไขที่อยู่</p>
             </div>
           </div>
           <div>{getStatusBadge()}</div>

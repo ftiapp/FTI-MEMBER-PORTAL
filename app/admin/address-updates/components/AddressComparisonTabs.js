@@ -51,8 +51,8 @@ export default function AddressComparisonTabs({
             </svg>
           </div>
           <div>
-            <h3 className="font-bold text-lg text-gray-800">เปรียบเทียบที่อยู่</h3>
-            <p className="text-sm text-gray-600">ตรวจสอบข้อมูลที่อยู่เดิมและที่อยู่ใหม่</p>
+            <h3 className="font-bold text-lg text-black">เปรียบเทียบที่อยู่</h3>
+            <p className="text-sm text-black">ตรวจสอบข้อมูลที่อยู่เดิมและที่อยู่ใหม่</p>
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export default function AddressComparisonTabs({
                       />
                     </svg>
                   </div>
-                  <h4 className="font-semibold text-gray-800">ที่อยู่เดิม</h4>
+                  <h4 className="font-semibold text-black">ที่อยู่เดิม</h4>
                 </div>
                 <div className="bg-red-50 p-4 rounded-lg border border-red-200">
                   {formatFullAddress(oldAddress)}
@@ -165,7 +165,7 @@ export default function AddressComparisonTabs({
                       />
                     </svg>
                   </div>
-                  <h4 className="font-semibold text-gray-800">ที่อยู่ใหม่</h4>
+                  <h4 className="font-semibold text-black">ที่อยู่ใหม่</h4>
                 </div>
                 {isEditing ? (
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
@@ -226,7 +226,7 @@ export default function AddressComparisonTabs({
                       />
                     </svg>
                   </div>
-                  <h4 className="font-semibold text-gray-800">การเปลี่ยนแปลง</h4>
+                  <h4 className="font-semibold text-black">การเปลี่ยนแปลง</h4>
                 </div>
                 {changes.length > 0 ? (
                   <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
@@ -235,7 +235,7 @@ export default function AddressComparisonTabs({
                         <thead>
                           <tr className="bg-purple-100">
                             <th className="px-4 py-3 text-left text-xs font-semibold text-purple-800 uppercase">
-                              ฟิลด์
+                              FIELD
                             </th>
                             <th className="px-4 py-3 text-left text-xs font-semibold text-purple-800 uppercase">
                               ค่าเดิม
@@ -251,13 +251,13 @@ export default function AddressComparisonTabs({
                               key={index}
                               className={index % 2 === 0 ? "bg-white" : "bg-purple-50"}
                             >
-                              <td className="px-4 py-3 text-sm font-semibold text-gray-900">
+                              <td className="px-4 py-3 text-sm font-semibold text-black">
                                 {change.field}
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 bg-red-50 font-medium">
+                              <td className="px-4 py-3 text-sm text-black bg-red-50 font-medium">
                                 {change.oldValue}
                               </td>
-                              <td className="px-4 py-3 text-sm text-gray-600 bg-green-50 font-medium">
+                              <td className="px-4 py-3 text-sm text-black bg-green-50 font-medium">
                                 {change.newValue}
                               </td>
                             </tr>
@@ -281,8 +281,8 @@ export default function AddressComparisonTabs({
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                       />
                     </svg>
-                    <p className="text-gray-600 font-medium">ไม่พบการเปลี่ยนแปลงข้อมูล</p>
-                    <p className="text-gray-500 text-sm mt-1">ที่อยู่เดิมและที่อยู่ใหม่เหมือนกัน</p>
+                    <p className="text-black font-medium">ไม่พบการเปลี่ยนแปลงข้อมูล</p>
+                    <p className="text-black text-sm mt-1">ที่อยู่เดิมและที่อยู่ใหม่เหมือนกัน</p>
                   </div>
                 )}
               </div>

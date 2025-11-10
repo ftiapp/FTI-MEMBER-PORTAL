@@ -81,9 +81,9 @@ export const formatFullAddress = (address) => {
 
   return (
     <div>
-      <p className="mb-2">{parts.join(" ")}</p>
+      <p className="mb-2 text-black">{parts.join(" ")}</p>
       {contactInfo.length > 0 && (
-        <div className="mt-2 text-sm text-gray-600">
+        <div className="mt-2 text-sm text-black">
           {contactInfo.map((info, index) => (
             <p key={index}>{info}</p>
           ))}

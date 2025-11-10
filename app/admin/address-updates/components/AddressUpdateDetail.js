@@ -63,7 +63,7 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
     return (
       <div className="grid grid-cols-2 gap-4 mb-2">
         <div>
-          <span className="text-gray-600 text-sm">{label}:</span>
+          <span className="text-black text-sm">{label}:</span>
           <div
             className={`p-2 rounded ${hasChanged ? "bg-red-50 border border-red-100" : "bg-gray-50"}`}
           >
@@ -71,7 +71,7 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
           </div>
         </div>
         <div>
-          <span className="text-gray-600 text-sm">{label}:</span>
+          <span className="text-black text-sm">{label}:</span>
           <div
             className={`p-2 rounded ${hasChanged ? "bg-green-50 border border-green-100" : "bg-gray-50"}`}
           >
@@ -93,7 +93,7 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">รายละเอียดคำขอแก้ไขที่อยู่</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-black hover:text-gray-700">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="h-6 w-6"
@@ -115,23 +115,23 @@ export default function AddressUpdateDetail({ update, onClose, onApprove, onReje
           <h3 className="font-semibold text-blue-800 mb-2">ข้อมูลคำขอ</h3>
           <div className="grid grid-cols-3 gap-4">
             <div>
-              <p className="text-sm text-gray-600">MEMBER_CODE:</p>
+              <p className="text-sm text-black">MEMBER_CODE:</p>
               <p className="font-medium">{update.member_code}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">MEMBER_MAIN_TYPE_CODE:</p>
+              <p className="text-sm text-black">MEMBER_MAIN_TYPE_CODE:</p>
               <p className="font-medium">{update.member_type}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">MEMBER_GROUP:</p>
+              <p className="text-sm text-black">MEMBER_GROUP:</p>
               <p className="font-medium">{update.member_group_code}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">ประเภทที่อยู่:</p>
+              <p className="text-sm text-black">ประเภทที่อยู่:</p>
               <p className="font-medium">{addressType}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-600">วันที่ขอแก้ไข:</p>
+              <p className="text-sm text-black">วันที่ขอแก้ไข:</p>
               <p className="font-medium">{requestDate}</p>
             </div>
             <div>

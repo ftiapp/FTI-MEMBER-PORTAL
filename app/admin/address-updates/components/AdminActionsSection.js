@@ -189,7 +189,7 @@ export default function AdminActionsSection({
                 </div>
                 <div>
                   <p className="text-sm font-medium text-gray-600">วันที่ดำเนินการ</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="font-semibold text-black">
                     {formatDate(selectedRequest.processed_date)}
                   </p>
                 </div>
@@ -214,7 +214,7 @@ export default function AdminActionsSection({
                   </div>
                   <div>
                     <p className="text-sm font-medium text-gray-600">ดำเนินการโดย</p>
-                    <p className="font-semibold text-gray-900">
+                    <p className="font-semibold text-black">
                       {selectedRequest.approved_by_admin_name}
                     </p>
                   </div>
@@ -240,7 +240,7 @@ export default function AdminActionsSection({
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-600">บันทึกของผู้ดูแลระบบ</p>
-                    <p className="font-semibold text-gray-900 bg-yellow-50 p-3 rounded-lg">
+                    <p className="font-semibold text-black bg-yellow-50 p-3 rounded-lg">
                       {selectedRequest.admin_notes}
                     </p>
                   </div>
@@ -266,7 +266,7 @@ export default function AdminActionsSection({
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-600">เหตุผลที่ปฏิเสธ</p>
-                    <p className="font-semibold text-red-800 bg-red-50 p-3 rounded-lg">
+                    <p className="font-semibold text-black bg-red-50 p-3 rounded-lg">
                       {selectedRequest.admin_comment}
                     </p>
                   </div>

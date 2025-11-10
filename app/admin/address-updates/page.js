@@ -35,12 +35,32 @@ const AddressUpdatesPage = () => {
     getStatusName,
   } = useAddressUpdateRequests();
 
-  // Count requests by status for cards (simplified - you may want to fetch actual counts)
+  // Count requests by status for cards
   const [statusCounts, setStatusCounts] = useState({
     pending: 0,
     approved: 0,
     rejected: 0,
   });
+
+  // Fetch counts for all statuses
+  const fetchAllCounts = async () => {
+    try {
+      const statuses = ['pending', 'approved', 'rejected'];
+      const counts = {};
+      
+      await Promise.all(
+        statuses.map(async (s) => {
+          const response = await fetch(`/api/admin/address-update/list?status=${s}&limit=1`);
+          const data = await response.json();
+          counts[s] = data.pagination?.total || 0;
+        })
+      );
+      
+      setStatusCounts(counts);
+    } catch (error) {
+      console.error('Error fetching status counts:', error);
+    }
+  };
 
   // Check admin session and fetch requests when component mounts or status changes
   useEffect(() => {
@@ -59,6 +79,8 @@ const AddressUpdatesPage = () => {
 
         // Fetch requests with the current status
         fetchRequests(status);
+        // Fetch all counts for display
+        fetchAllCounts();
       } catch (error) {
         console.error("Error checking admin session:", error);
         router.push("/admin/login");
@@ -67,16 +89,6 @@ const AddressUpdatesPage = () => {
 
     checkAdminSession();
   }, [status]);
-
-  // Update counts when requests change
-  useEffect(() => {
-    if (status === "pending")
-      setStatusCounts((prev) => ({ ...prev, pending: pagination.total || requests.length }));
-    if (status === "approved")
-      setStatusCounts((prev) => ({ ...prev, approved: pagination.total || requests.length }));
-    if (status === "rejected")
-      setStatusCounts((prev) => ({ ...prev, rejected: pagination.total || requests.length }));
-  }, [requests, pagination.total, status]);
 
   const handleStatusChange = (newStatus) => {
     // Reset selection and search when switching status
@@ -118,6 +130,8 @@ const AddressUpdatesPage = () => {
     if (success) {
       // Refetch the current status data after successful approval
       fetchRequests(status, pagination.page, searchTerm, true);
+      // Refresh counts
+      fetchAllCounts();
     }
   };
 
@@ -126,6 +140,8 @@ const AddressUpdatesPage = () => {
     if (success) {
       // Refetch the current status data after successful rejection
       fetchRequests(status, pagination.page, searchTerm, true);
+      // Refresh counts
+      fetchAllCounts();
     }
   };
 
@@ -169,7 +185,10 @@ const AddressUpdatesPage = () => {
 
             {/* Refresh button */}
             <button
-              onClick={() => fetchRequests(status, pagination.page, searchTerm, true)}
+              onClick={() => {
+                fetchRequests(status, pagination.page, searchTerm, true);
+                fetchAllCounts();
+              }}
               className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center gap-2 shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105"
               disabled={loading}
             >
@@ -192,16 +211,9 @@ const AddressUpdatesPage = () => {
           </div>
         </div>
 
-        {/* Status Cards */}
+        {/* Status Cards - Display Only (Not Clickable) */}
         <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div
-            className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-105 ${
-              status === "pending"
-                ? "border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-md"
-                : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
-            }`}
-            onClick={() => handleStatusChange("pending")}
-          >
+          <div className="p-5 rounded-xl border-2 border-gray-200 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
@@ -217,9 +229,7 @@ const AddressUpdatesPage = () => {
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{statusCounts.pending}</div>
               </div>
-              <div
-                className={`p-3 rounded-full ${status === "pending" ? "bg-yellow-400" : "bg-gray-200"}`}
-              >
+              <div className="p-3 rounded-full bg-yellow-400">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -237,14 +247,7 @@ const AddressUpdatesPage = () => {
             </div>
           </div>
 
-          <div
-            className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-105 ${
-              status === "approved"
-                ? "border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md"
-                : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
-            }`}
-            onClick={() => handleStatusChange("approved")}
-          >
+          <div className="p-5 rounded-xl border-2 border-gray-200 bg-gradient-to-br from-green-50 to-emerald-50 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
@@ -260,9 +263,7 @@ const AddressUpdatesPage = () => {
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{statusCounts.approved}</div>
               </div>
-              <div
-                className={`p-3 rounded-full ${status === "approved" ? "bg-green-500" : "bg-gray-200"}`}
-              >
+              <div className="p-3 rounded-full bg-green-500">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -280,14 +281,7 @@ const AddressUpdatesPage = () => {
             </div>
           </div>
 
-          <div
-            className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-105 ${
-              status === "rejected"
-                ? "border-red-400 bg-gradient-to-br from-red-50 to-rose-50 shadow-md"
-                : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
-            }`}
-            onClick={() => handleStatusChange("rejected")}
-          >
+          <div className="p-5 rounded-xl border-2 border-gray-200 bg-gradient-to-br from-red-50 to-rose-50 shadow-sm">
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
@@ -303,9 +297,7 @@ const AddressUpdatesPage = () => {
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{statusCounts.rejected}</div>
               </div>
-              <div
-                className={`p-3 rounded-full ${status === "rejected" ? "bg-red-500" : "bg-gray-200"}`}
-              >
+              <div className="p-3 rounded-full bg-red-500">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -324,7 +316,7 @@ const AddressUpdatesPage = () => {
           </div>
         </div>
 
-        {/* Tab Switch - Improved design */}
+        {/* Tab Switch - Main Filter */}
         <div className="flex gap-2 mb-6 bg-gray-50 p-2 rounded-lg">
           <button
             onClick={() => handleStatusChange("pending")}
@@ -343,7 +335,7 @@ const AddressUpdatesPage = () => {
                   d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              รอการอนุมัติ
+              รอการอนุมัติ ({statusCounts.pending})
             </div>
           </button>
           <button
@@ -363,7 +355,7 @@ const AddressUpdatesPage = () => {
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              อนุมัติแล้ว
+              อนุมัติแล้ว ({statusCounts.approved})
             </div>
           </button>
           <button
@@ -383,7 +375,7 @@ const AddressUpdatesPage = () => {
                   d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              ปฏิเสธแล้ว
+              ปฏิเสธแล้ว ({statusCounts.rejected})
             </div>
           </button>
         </div>

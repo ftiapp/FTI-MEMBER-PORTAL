@@ -28,8 +28,8 @@ export default function MemberInfoSection({ selectedRequest }) {
           </svg>
         </div>
         <div>
-          <h3 className="font-bold text-lg text-gray-800">ข้อมูลสมาชิก</h3>
-          <p className="text-sm text-gray-600">ข้อมูลทั่วไปของสมาชิกที่ขอแก้ไขที่อยู่</p>
+          <h3 className="font-bold text-lg text-black">ข้อมูลสมาชิก</h3>
+          <p className="text-sm text-black">ข้อมูลทั่วไปของสมาชิกที่ขอแก้ไขที่อยู่</p>
         </div>
       </div>
 
@@ -49,7 +49,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">รหัสสมาชิก</p>
+            <p className="text-sm font-medium text-black">รหัสสมาชิก</p>
           </div>
           <p className="font-semibold text-gray-900">{selectedRequest.member_code}</p>
         </div>
@@ -69,7 +69,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">ชื่อบริษัท</p>
+            <p className="text-sm font-medium text-black">ชื่อบริษัท</p>
           </div>
           <p className="font-semibold text-gray-900">{selectedRequest.company_name || "-"}</p>
         </div>
@@ -89,7 +89,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">รหัสบุคคล</p>
+            <p className="text-sm font-medium text-black">รหัสบุคคล</p>
           </div>
           <p className="font-semibold text-gray-900">{selectedRequest.comp_person_code || "-"}</p>
         </div>
@@ -109,7 +109,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">ประเภทสมาชิก</p>
+            <p className="text-sm font-medium text-black">ประเภทสมาชิก</p>
           </div>
           <p className="font-semibold text-gray-900">
             {getMemberTypeName(selectedRequest.member_type)}
@@ -131,7 +131,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">ประเภทสมาชิกย่อย</p>
+            <p className="text-sm font-medium text-black">ประเภทสมาชิกย่อย</p>
           </div>
           <p className="font-semibold text-gray-900">
             {getMemberSubtypeName(selectedRequest.type_code)}
@@ -159,7 +159,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">ประเภทที่อยู่</p>
+            <p className="text-sm font-medium text-black">ประเภทที่อยู่</p>
           </div>
           <p className="font-semibold text-gray-900">
             {getAddressTypeName(selectedRequest.addr_code)}
@@ -181,7 +181,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">ภาษา</p>
+            <p className="text-sm font-medium text-black">ภาษา</p>
           </div>
           <p className="font-semibold text-gray-900">
             {getLanguageLabel(selectedRequest.addr_lang)}
@@ -203,7 +203,7 @@ export default function MemberInfoSection({ selectedRequest }) {
                 d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <p className="text-sm font-medium text-gray-600">วันที่ขอแก้ไข</p>
+            <p className="text-sm font-medium text-black">วันที่ขอแก้ไข</p>
           </div>
           <p className="font-semibold text-gray-900">{formatDate(selectedRequest.request_date)}</p>
         </div>
