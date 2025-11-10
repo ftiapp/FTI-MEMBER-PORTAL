@@ -272,12 +272,12 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         // Handle authorized signature for specific signatory
         const fileObject = createFileObject(file);
         const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
-        
+
         // Ensure array has enough slots
         while (currentSignatures.length <= signatoryIndex) {
           currentSignatures.push(null);
         }
-        
+
         currentSignatures[signatoryIndex] = fileObject;
         setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
         setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
@@ -298,16 +298,16 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
 
   const handleImageSave = (blob) => {
     const file = new File([blob], `${editingType}.png`, { type: "image/png" });
-    
+
     if (editingType === "authorizedSignature" && editingSignatoryIndex !== null) {
       // Handle signature for specific signatory
       const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
-      
+
       // Ensure array has enough slots
       while (currentSignatures.length <= editingSignatoryIndex) {
         currentSignatures.push(null);
       }
-      
+
       currentSignatures[editingSignatoryIndex] = createFileObject(file);
       setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
       setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
@@ -316,7 +316,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       setSelectedFiles((prev) => ({ ...prev, [editingType]: createFileObject(file) }));
       setFormData((prev) => ({ ...prev, [editingType]: createFileObject(file) }));
     }
-    
+
     setShowImageEditor(false);
     setEditingImage(null);
     setEditingType("");
@@ -698,7 +698,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
             เอกสารใบอนุญาต / License Documents
           </h2>
           <p className="text-blue-100 text-sm mt-1">
-            เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ (ทั้งหมด 4 เอกสาร) / Select factory type and upload supporting documents (4 documents total)
+            เลือกประเภทโรงงานและอัปโหลดเอกสารประกอบ (ทั้งหมด 4 เอกสาร) / Select factory type and
+            upload supporting documents (4 documents total)
           </p>
         </div>
 
@@ -923,12 +924,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               name="companyStamp"
               file={selectedFiles.companyStamp}
               icon={
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -973,9 +969,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
             </div>
 
             {/* Multiple Signatories Section */}
-            <MultipleSignatories 
-              formData={formData} 
-              setFormData={setFormData} 
+            <MultipleSignatories
+              formData={formData}
+              setFormData={setFormData}
               errors={errors}
               selectedFiles={selectedFiles}
               setSelectedFiles={setSelectedFiles}
@@ -992,8 +988,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               UploadIcon={UploadIcon}
               SingleFileUploadZone={SingleFileUploadZone}
             />
-            
-            </div>
+          </div>
 
           {/* Empty State */}
         </div>

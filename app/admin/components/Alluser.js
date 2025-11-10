@@ -442,9 +442,7 @@ export default function Alluser() {
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {user.email_verified === 1
-                              ? "ยืนยันอีเมลแล้ว"
-                              : "ยังไม่ยืนยันอีเมล"}
+                            {user.email_verified === 1 ? "ยืนยันอีเมลแล้ว" : "ยังไม่ยืนยันอีเมล"}
                           </span>
                         </td>
                         <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4 whitespace-nowrap text-gray-500">

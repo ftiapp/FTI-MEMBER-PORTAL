@@ -75,11 +75,13 @@ export default function ForgotPassword() {
             <div className="p-6">
               {status === "success" ? (
                 <div className="space-y-6">
-                  <div className={`p-4 border rounded-lg ${requiresRegistration ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-green-50 border-green-100 text-green-600'}`}>
+                  <div
+                    className={`p-4 border rounded-lg ${requiresRegistration ? "bg-orange-50 border-orange-100 text-orange-600" : "bg-green-50 border-green-100 text-green-600"}`}
+                  >
                     <div className="flex">
                       <div className="flex-shrink-0">
                         <svg
-                          className={`h-5 w-5 ${requiresRegistration ? 'text-orange-500' : 'text-green-500'}`}
+                          className={`h-5 w-5 ${requiresRegistration ? "text-orange-500" : "text-green-500"}`}
                           xmlns="http://www.w3.org/2000/svg"
                           viewBox="0 0 20 20"
                           fill="currentColor"

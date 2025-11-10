@@ -327,17 +327,19 @@ export async function GET(request, { params }) {
         null,
 
       // Signature name object for PDF utility
-      signatureName: signatureNameResult?.[0] ? {
-        prenameTh: signatureNameResult[0].prename_th,
-        prenameEn: signatureNameResult[0].prename_en,
-        prenameOther: signatureNameResult[0].prename_other,
-        firstNameTh: signatureNameResult[0].first_name_th,
-        lastNameTh: signatureNameResult[0].last_name_th,
-        firstNameEn: signatureNameResult[0].first_name_en,
-        lastNameEn: signatureNameResult[0].last_name_en,
-        positionTh: signatureNameResult[0].position_th,
-        positionEn: signatureNameResult[0].position_en,
-      } : null,
+      signatureName: signatureNameResult?.[0]
+        ? {
+            prenameTh: signatureNameResult[0].prename_th,
+            prenameEn: signatureNameResult[0].prename_en,
+            prenameOther: signatureNameResult[0].prename_other,
+            firstNameTh: signatureNameResult[0].first_name_th,
+            lastNameTh: signatureNameResult[0].last_name_th,
+            firstNameEn: signatureNameResult[0].first_name_en,
+            lastNameEn: signatureNameResult[0].last_name_en,
+            positionTh: signatureNameResult[0].position_th,
+            positionEn: signatureNameResult[0].position_en,
+          }
+        : null,
 
       // ID Card document (existing)
       idCardDocument: documentsResult?.find((doc) => doc.document_type === "idCard")

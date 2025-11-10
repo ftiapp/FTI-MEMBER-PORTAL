@@ -66,9 +66,16 @@ export default function RequestDetail({
             strokeWidth={2}
             d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
           />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+          />
         </svg>
-        <p className="text-gray-600 font-semibold text-lg">เลือกคำขอแก้ไขที่อยู่เพื่อดูรายละเอียด</p>
+        <p className="text-gray-600 font-semibold text-lg">
+          เลือกคำขอแก้ไขที่อยู่เพื่อดูรายละเอียด
+        </p>
         <p className="text-gray-500 text-sm mt-2">คลิกที่รายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม</p>
       </motion.div>
     );
@@ -106,10 +113,15 @@ export default function RequestDetail({
         text: "text-yellow-800",
         icon: (
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
-        label: "รอการอนุมัติ"
+        label: "รอการอนุมัติ",
       },
       approved: {
         bg: "bg-gradient-to-r from-green-100 to-emerald-100",
@@ -117,10 +129,15 @@ export default function RequestDetail({
         text: "text-green-800",
         icon: (
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
-        label: "อนุมัติแล้ว"
+        label: "อนุมัติแล้ว",
       },
       rejected: {
         bg: "bg-gradient-to-r from-red-100 to-rose-100",
@@ -128,17 +145,24 @@ export default function RequestDetail({
         text: "text-red-800",
         icon: (
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         ),
-        label: "ปฏิเสธแล้ว"
-      }
+        label: "ปฏิเสธแล้ว",
+      },
     };
 
     const config = statusConfig[status] || statusConfig.pending;
 
     return (
-      <span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${config.bg} ${config.border} ${config.text} border-2 font-semibold text-sm`}>
+      <span
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${config.bg} ${config.border} ${config.text} border-2 font-semibold text-sm`}
+      >
         {config.icon}
         {config.label}
       </span>
@@ -158,20 +182,26 @@ export default function RequestDetail({
           <div className="flex items-start gap-3">
             <div className="p-2 bg-white bg-opacity-20 rounded-lg">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                />
               </svg>
             </div>
             <div>
               <h2 className="text-xl font-bold">รายละเอียดคำขอแก้ไขที่อยู่</h2>
-              <p className="text-sm opacity-90 mt-1">
-                ตรวจสอบและดำเนินการกับคำขอแก้ไขที่อยู่
-              </p>
+              <p className="text-sm opacity-90 mt-1">ตรวจสอบและดำเนินการกับคำขอแก้ไขที่อยู่</p>
             </div>
           </div>
-          <div>
-            {getStatusBadge()}
-          </div>
+          <div>{getStatusBadge()}</div>
         </div>
       </div>
 
@@ -179,10 +209,7 @@ export default function RequestDetail({
       <MemberInfoSection selectedRequest={selectedRequest} />
 
       {/* Document Display Section */}
-      <DocumentDisplaySection 
-        selectedRequest={selectedRequest} 
-        onPreviewOpen={openPreview} 
-      />
+      <DocumentDisplaySection selectedRequest={selectedRequest} onPreviewOpen={openPreview} />
 
       {/* Address Comparison Tabs */}
       <AddressComparisonTabs

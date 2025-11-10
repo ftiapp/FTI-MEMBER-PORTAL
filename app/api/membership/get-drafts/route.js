@@ -4,7 +4,7 @@ import { query } from "@/app/lib/db";
 
 function getDisplayName(memberType, draftData) {
   switch (memberType) {
-    case 'ic':
+    case "ic":
       // For IC (Individual), show the person's name
       const firstName = draftData.firstNameTh || draftData.firstNameThai || draftData.first_name_th;
       const lastName = draftData.lastNameTh || draftData.lastNameThai || draftData.last_name_th;
@@ -13,12 +13,18 @@ function getDisplayName(memberType, draftData) {
       }
       return draftData.firstNameTh || draftData.firstNameThai || "ไม่มีชื่อ";
 
-    case 'am':
+    case "am":
       // For AM (Associate Member), show association name
-      return draftData.associationName || draftData.association_name || draftData.companyName || draftData.company_name || "ไม่มีชื่อสมาคม";
+      return (
+        draftData.associationName ||
+        draftData.association_name ||
+        draftData.companyName ||
+        draftData.company_name ||
+        "ไม่มีชื่อสมาคม"
+      );
 
-    case 'oc':
-    case 'ac':
+    case "oc":
+    case "ac":
     default:
       // For OC/AC (Organization/Corporate), show company name
       return draftData.companyName || draftData.company_name || "ไม่มีชื่อบริษัท";

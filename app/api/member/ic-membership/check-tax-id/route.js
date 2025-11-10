@@ -35,7 +35,7 @@ export async function POST(request) {
 
     // Check tax ID in BI_MEMBER table (MSSQL) first
     const biMemberResult = await mssqlQuery(
-      "SELECT TOP (1000) [TAX_ID] FROM [FTI].[dbo].[BI_MEMBER] WHERE [TAX_ID] = @param0",
+      "SELECT TOP (1000) [TAX_ID] FROM [FTI].[dbo].[BI_MEMBER] WHERE [TAX_ID] = @param0 AND [MEMBER_STATUS_CODE] = 'A'",
       [taxId],
     );
 

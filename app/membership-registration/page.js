@@ -31,35 +31,35 @@ export default function MembershipRegistration() {
         "เข้าร่วมกิจกรรมของสภา",
         "รับข้อมูลข่าวสารอุตสาหกรรม",
         "สิทธิประโยชน์สำหรับสมาชิก",
-        "เครือข่ายผู้ประกอบการ"
+        "เครือข่ายผู้ประกอบการ",
       ],
-      color: "blue"
+      color: "blue",
     },
     {
       id: "oc",
-      title: "Organization Membership", 
+      title: "Organization Membership",
       subtitle: "สมาชิกนิติบุคคล",
       description: "สำหรับบริษัท ห้างหุ้นส่วน หรือนิติบุคคลอื่นๆ",
       features: [
         "สิทธิประโยชน์สำหรับองค์กร",
         "รับเอกสารรับรองสมาชิก",
         "เข้าร่วมการประชุมสมาชิก",
-        "บริการด้านกฎหมายและภาษี"
+        "บริการด้านกฎหมายและภาษี",
       ],
-      color: "green"
+      color: "green",
     },
     {
       id: "am",
       title: "Associate Member",
-      subtitle: "สมาชิกสมทบ", 
+      subtitle: "สมาชิกสมทบ",
       description: "สำหรับผู้ที่สนใจเข้าร่วมเป็นสมาชิกสมทบ",
       features: [
         "เข้าร่วมกิจกรรมบางประเภท",
         "รับข้อมูลข่าวสาร",
         "สิทธิประโยชน์เบื้องต้น",
-        "เครือข่ายเชื่อมต่อ"
+        "เครือข่ายเชื่อมต่อ",
       ],
-      color: "purple"
+      color: "purple",
     },
     {
       id: "ac",
@@ -70,10 +70,10 @@ export default function MembershipRegistration() {
         "เข้าร่วมกิจกรรมระดับสาขา",
         "รับการสนับสนุนจากสภา",
         "เครือข่ายในพื้นที่",
-        "บริการด้านการปรึกษา"
+        "บริการด้านการปรึกษา",
       ],
-      color: "orange"
-    }
+      color: "orange",
+    },
   ];
 
   const getColorClasses = (color) => {
@@ -83,29 +83,29 @@ export default function MembershipRegistration() {
         hover: "hover:bg-blue-700",
         text: "text-blue-600",
         border: "border-blue-200",
-        light: "bg-blue-50"
+        light: "bg-blue-50",
       },
       green: {
-        bg: "bg-green-600", 
+        bg: "bg-green-600",
         hover: "hover:bg-green-700",
         text: "text-green-600",
         border: "border-green-200",
-        light: "bg-green-50"
+        light: "bg-green-50",
       },
       purple: {
         bg: "bg-purple-600",
-        hover: "hover:bg-purple-700", 
+        hover: "hover:bg-purple-700",
         text: "text-purple-600",
         border: "border-purple-200",
-        light: "bg-purple-50"
+        light: "bg-purple-50",
       },
       orange: {
         bg: "bg-orange-600",
         hover: "hover:bg-orange-700",
-        text: "text-orange-600", 
+        text: "text-orange-600",
         border: "border-orange-200",
-        light: "bg-orange-50"
-      }
+        light: "bg-orange-50",
+      },
     };
     return colors[color];
   };
@@ -171,17 +171,11 @@ export default function MembershipRegistration() {
                     <div className={`h-2 ${colors.bg}`}></div>
                     <div className="p-8">
                       <div className="text-center mb-6">
-                        <h3 className={`text-2xl font-bold ${colors.text} mb-2`}>
-                          {type.title}
-                        </h3>
-                        <p className="text-lg text-gray-600 font-medium">
-                          {type.subtitle}
-                        </p>
+                        <h3 className={`text-2xl font-bold ${colors.text} mb-2`}>{type.title}</h3>
+                        <p className="text-lg text-gray-600 font-medium">{type.subtitle}</p>
                       </div>
-                      
-                      <p className="text-gray-700 mb-6 text-center">
-                        {type.description}
-                      </p>
+
+                      <p className="text-gray-700 mb-6 text-center">{type.description}</p>
 
                       <ul className="space-y-3 mb-8">
                         {type.features.map((feature, idx) => (
@@ -220,19 +214,12 @@ export default function MembershipRegistration() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="text-center mt-12"
             >
-              <p className="text-gray-600 mb-4">
-                มีข้อสงสัยเกี่ยวกับการสมัครสมาชิก?
-              </p>
+              <p className="text-gray-600 mb-4">มีข้อสงสัยเกี่ยวกับการสมัครสมาชิก?</p>
               <Link
                 href="/contact"
                 className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
               >
-                <svg
-                  className="w-5 h-5 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

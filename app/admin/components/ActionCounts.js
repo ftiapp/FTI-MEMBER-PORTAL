@@ -463,7 +463,9 @@ export default function ActionCounts({ title }) {
                 className="bg-white border border-blue-100 rounded-xl shadow-sm p-3 sm:p-4 hover:shadow-lg hover:scale-105 transition-all duration-300 hover:border-blue-200"
               >
                 <div className="flex items-center justify-between mb-2 sm:mb-3">
-                  <div className={`${baseInfo.bgColor} p-2 sm:p-3 rounded-xl flex-shrink-0 shadow-sm`}>
+                  <div
+                    className={`${baseInfo.bgColor} p-2 sm:p-3 rounded-xl flex-shrink-0 shadow-sm`}
+                  >
                     {baseInfo.icon}
                   </div>
                   <p className={`text-2xl sm:text-3xl font-bold ${baseInfo.textColor}`}>{count}</p>

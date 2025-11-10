@@ -16,7 +16,7 @@ export default function YouTubeAutoplay({ videoId, title = "YouTube video" }) {
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     if (iframeRef.current) {
@@ -40,7 +40,7 @@ export default function YouTubeAutoplay({ videoId, title = "YouTube video" }) {
           </div>
         </div>
       )}
-      
+
       <iframe
         ref={iframeRef}
         src={isLoaded ? getYouTubeEmbedUrl(videoId) : null}

@@ -4,7 +4,7 @@ import { checkAdminSession } from "@/app/lib/auth";
 
 export async function POST(request, { params }) {
   let connection;
-  
+
   try {
     // Verify admin session
     const adminData = await checkAdminSession();
@@ -13,13 +13,13 @@ export async function POST(request, { params }) {
     }
 
     const { type, id } = await params;
-    
+
     // Validate type parameter
     const validTypes = ["oc", "am", "ac", "ic"];
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { success: false, message: "Invalid membership type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,47 +30,41 @@ export async function POST(request, { params }) {
 
     // Parse request body
     const body = await request.json();
-    const {
-      prename_th,
-      prename_other,
-      first_name_th,
-      last_name_th,
-      position_th,
-    } = body;
+    const { prename_th, prename_other, first_name_th, last_name_th, position_th } = body;
 
     // Validate required Thai fields
     if (!prename_th || prename_th.trim() === "") {
       return NextResponse.json(
         { success: false, message: "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (prename_th === "อื่นๆ" && (!prename_other || prename_other.trim() === "")) {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!first_name_th || first_name_th.trim() === "") {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุชื่อ (ภาษาไทย)" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!last_name_th || last_name_th.trim() === "") {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุนามสกุล (ภาษาไทย)" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (!position_th || position_th.trim() === "") {
       return NextResponse.json(
         { success: false, message: "กรุณาระบุตำแหน่ง (ภาษาไทย)" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -103,7 +97,7 @@ export async function POST(request, { params }) {
     // Check if signature record already exists
     const [existingRecords] = await connection.execute(
       `SELECT id FROM ${signatureTable} WHERE ${mainIdColumn} = ?`,
-      [id]
+      [id],
     );
 
     let result;
@@ -115,14 +109,7 @@ export async function POST(request, { params }) {
              prename_en = '', prename_other_en = '', first_name_en = '', last_name_en = '', position_en = '',
              updated_at = NOW()
          WHERE ${mainIdColumn} = ?`,
-        [
-          prename_th,
-          prename_other || "",
-          first_name_th,
-          last_name_th,
-          position_th,
-          id,
-        ]
+        [prename_th, prename_other || "", first_name_th, last_name_th, position_th, id],
       );
     } else {
       // Insert new record
@@ -132,14 +119,7 @@ export async function POST(request, { params }) {
           prename_en, prename_other_en, first_name_en, last_name_en, position_en,
           created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, '', '', '', '', '', NOW(), NOW())`,
-        [
-          id,
-          prename_th,
-          prename_other || "",
-          first_name_th,
-          last_name_th,
-          position_th,
-        ]
+        [id, prename_th, prename_other || "", first_name_th, last_name_th, position_th],
       );
     }
 
@@ -154,20 +134,22 @@ export async function POST(request, { params }) {
         `อัปเดตข้อมูลผู้มีอำนาจลงนามสำหรับคำข้สมัครประเภท ${type.toUpperCase()} ID: ${id}`,
         request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
         request.headers.get("user-agent") || "unknown",
-      ]
+      ],
     );
 
     return NextResponse.json({
       success: true,
-      message: existingRecords.length > 0 ? "อัปเดตข้อมูลผู้มีอำนาจลงนามสำเร็จ" : "เพิ่มข้อมูลผู้มีอำนาจลงนามสำเร็จ",
+      message:
+        existingRecords.length > 0
+          ? "อัปเดตข้อมูลผู้มีอำนาจลงนามสำเร็จ"
+          : "เพิ่มข้อมูลผู้มีอำนาจลงนามสำเร็จ",
       action: existingRecords.length > 0 ? "updated" : "created",
     });
-
   } catch (error) {
     console.error("Error saving authorized signatory:", error);
     return NextResponse.json(
       { success: false, message: "Failed to save authorized signatory data" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {
@@ -182,7 +164,7 @@ export async function POST(request, { params }) {
 
 export async function GET(request, { params }) {
   let connection;
-  
+
   try {
     // Verify admin session
     const adminData = await checkAdminSession();
@@ -191,13 +173,13 @@ export async function GET(request, { params }) {
     }
 
     const { type, id } = await params;
-    
+
     // Validate type parameter
     const validTypes = ["oc", "am", "ac", "ic"];
     if (!validTypes.includes(type)) {
       return NextResponse.json(
         { success: false, message: "Invalid membership type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -235,7 +217,7 @@ export async function GET(request, { params }) {
     // Fetch signature data
     const [signatureRecords] = await connection.execute(
       `SELECT * FROM ${signatureTable} WHERE ${mainIdColumn} = ?`,
-      [id]
+      [id],
     );
 
     const signatureData = signatureRecords.length > 0 ? signatureRecords[0] : null;
@@ -244,12 +226,11 @@ export async function GET(request, { params }) {
       success: true,
       data: signatureData,
     });
-
   } catch (error) {
     console.error("Error fetching authorized signatory:", error);
     return NextResponse.json(
       { success: false, message: "Failed to fetch authorized signatory data" },
-      { status: 500 }
+      { status: 500 },
     );
   } finally {
     if (connection) {

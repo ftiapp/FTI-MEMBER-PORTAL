@@ -22,7 +22,9 @@ function MenuItem({ item, pathname, collapsed, loading, activePath, onNavigation
       <Link
         href={item.path}
         className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-          isActive ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white shadow-lg" : "text-gray-200 hover:bg-gradient-to-r hover:from-gray-600/30 hover:to-gray-700/30 hover:text-white"
+          isActive
+            ? "bg-gradient-to-r from-gray-700 to-gray-800 text-white shadow-lg"
+            : "text-gray-200 hover:bg-gradient-to-r hover:from-gray-600/30 hover:to-gray-700/30 hover:text-white"
         } ${isLoading ? "menu-item-loading cursor-not-allowed" : ""}`}
         onClick={(e) => onNavigation(e, item.path)}
       >

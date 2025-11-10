@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo } from "react";
-import MultipleSignatories from "./MultipleSignatories";
 
 // Image Editor Modal Component for Company Stamp and Signature
 const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
@@ -187,8 +186,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       companyRegistration: formData.companyRegistration || null,
       companyStamp: formData.companyStamp || null,
       authorizedSignature: formData.authorizedSignature || null,
-      companyCertificate: formData.companyCertificate || null,
-      authorizedSignatures: formData.authorizedSignatures || [],
     }),
     [],
   ); // Empty deps - calculate only once
@@ -200,60 +197,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
   const [editingImage, setEditingImage] = useState(null);
   const [editingType, setEditingType] = useState(""); // 'companyStamp' or 'authorizedSignature'
 
-  // Clear errors when files are uploaded
-  useEffect(() => {
-    if (setErrors && errors) {
-      const newErrors = { ...errors };
-      let hasChanges = false;
-
-      // Clear companyStamp error if file exists
-      if (
-        formData.companyStamp &&
-        (formData.companyStamp.file ||
-          formData.companyStamp.url ||
-          formData.companyStamp instanceof File) &&
-        errors.companyStamp
-      ) {
-        delete newErrors.companyStamp;
-        hasChanges = true;
-      }
-
-      // Clear authorizedSignature error if file exists
-      if (
-        formData.authorizedSignature &&
-        (formData.authorizedSignature.file ||
-          formData.authorizedSignature.url ||
-          formData.authorizedSignature instanceof File) &&
-        errors.authorizedSignature
-      ) {
-        delete newErrors.authorizedSignature;
-        hasChanges = true;
-      }
-
-      // Clear companyRegistration error if file exists
-      if (formData.companyRegistration && errors.companyRegistration) {
-        delete newErrors.companyRegistration;
-        hasChanges = true;
-      }
-
-      // Clear companyCertificate error if file exists
-      if (formData.companyCertificate && errors.companyCertificate) {
-        delete newErrors.companyCertificate;
-        hasChanges = true;
-      }
-
-      if (hasChanges) {
-        setErrors(newErrors);
-      }
-    }
-  }, [
-    formData.companyStamp,
-    formData.authorizedSignature,
-    formData.companyRegistration,
-    formData.companyCertificate,
-    errors,
-    setErrors,
-  ]);
+  // Removed auto-clear errors useEffect - errors will be cleared only when Next button is clicked
 
   // Helper function to create consistent file object
   const createFileObject = (file) => {
@@ -305,37 +249,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
   const handleImageSave = (blob) => {
     const file = new File([blob], `${editingType}.png`, { type: "image/png" });
     const fileObj = createFileObject(file);
-    
-    if (editingType.startsWith('authorizedSignature_')) {
-      // Handle multiple signatures
-      const index = parseInt(editingType.split('_')[1]);
-      const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
-      currentSignatures[index] = fileObj;
-      setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
-      setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
-    } else {
-      // Handle single files
-      setSelectedFiles((prev) => ({ ...prev, [editingType]: fileObj }));
-      setFormData((prev) => ({ ...prev, [editingType]: fileObj }));
-    }
-    
+    setSelectedFiles((prev) => ({ ...prev, [editingType]: fileObj }));
+    setFormData((prev) => ({ ...prev, [editingType]: fileObj }));
     setShowImageEditor(false);
     setEditingImage(null);
     setEditingType("");
   };
 
   const editImage = (documentType) => {
-    let file;
-    
-    if (documentType.startsWith('authorizedSignature_')) {
-      // Handle multiple signatures
-      const index = parseInt(documentType.split('_')[1]);
-      file = selectedFiles.authorizedSignatures?.[index];
-    } else {
-      // Handle single files
-      file = selectedFiles[documentType];
-    }
-    
+    const file = selectedFiles[documentType];
     if (file) {
       setEditingImage(file);
       setEditingType(documentType);
@@ -383,11 +305,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
   };
 
   const getImageEditorTitle = (type) => {
-    if (type.startsWith('authorizedSignature_')) {
-      const index = parseInt(type.split('_')[1]);
-      return `ปรับแต่งลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
-    }
-    
     switch (type) {
       case "companyStamp":
         return "ปรับแต่งตราประทับบริษัท";
@@ -482,26 +399,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     [],
   );
 
-  // File icon component
-  const FileIcon = useMemo(
-    () => (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-        />
-      </svg>
-    ),
-    [],
-  );
-
   // Helper function for single file upload with drag & drop UI
   const SingleFileUploadZone = ({
     title,
@@ -521,19 +418,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     };
 
     const removeSingleFile = () => {
-      if (name.startsWith('authorizedSignature_')) {
-        // Handle multiple signatures
-        const index = parseInt(name.split('_')[1]);
-        const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
-        currentSignatures[index] = null;
-        setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
-        setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
-      } else {
-        // Handle single files
-        setSelectedFiles((prev) => ({ ...prev, [name]: null }));
-        setFormData((prev) => ({ ...prev, [name]: null }));
-      }
-      
+      setSelectedFiles((prev) => ({ ...prev, [name]: null }));
+      setFormData((prev) => ({ ...prev, [name]: null }));
       // Reset file input value
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
@@ -779,32 +665,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               bgColor="bg-blue-100"
               error={errors?.companyRegistration}
             />
-
-            {/* Company Certificate Upload */}
-            <SingleFileUploadZone
-              title="หนังสือรับรองบริษัท"
-              description="หนังสือรับรองบริษัท อายุไม่เกิน 3 เดือน พร้อมลงนาม + ประทับตราบริษัท (ถ้ามี)"
-              name="companyCertificate"
-              file={selectedFiles.companyCertificate}
-              icon={
-                <svg
-                  className="w-8 h-8 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                  />
-                </svg>
-              }
-              iconColor="text-blue-600"
-              bgColor="bg-blue-100"
-              error={errors?.companyCertificate}
-            />
           </div>
 
           {/* Required Company Documents - Always visible */}
@@ -830,30 +690,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               </div>
             </div>
 
-            {/* Multiple Signatories Section */}
-            <MultipleSignatories
-              formData={formData}
-              setFormData={setFormData}
-              errors={errors}
-              selectedFiles={selectedFiles}
-              setSelectedFiles={setSelectedFiles}
-              handleFileChange={handleFileChange}
-              viewFile={viewFile}
-              hasFile={hasFile}
-              getFileName={getFileName}
-              getFileSize={getFileSize}
-              ErrorIcon={ErrorIcon}
-              FileIcon={FileIcon}
-              ViewIcon={ViewIcon}
-              EditIcon={EditIcon}
-              DeleteIcon={DeleteIcon}
-              UploadIcon={UploadIcon}
-              SingleFileUploadZone={SingleFileUploadZone}
-            />
-
-            {/* Fallback: Single Authorized Signatory Name Inputs (for backward compatibility) */}
-            {!formData.signatories || formData.signatories.length === 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+            {/* Authorized Signatory Name Inputs */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                   <svg
@@ -1025,12 +863,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                 {/* ซ่อนฟิลด์ภาษาอังกฤษ - ไม่ใช้งาน */}
               </div>
 
-            <div></div>
+              <div></div>
             </div>
-          )}
-
-          {/* Company Stamp Upload */}
-          <div className="space-y-3">
 
             {/* Company Stamp Upload */}
             <div className="space-y-3">
@@ -1149,15 +983,14 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                         ดูตัวอย่างลายเซ็น
                       </a>
                     </div>
-                 </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-</div>
-        </div>
-    
+
       {/* Image Editor Modal */}
       <ImageEditor
         isOpen={showImageEditor}

@@ -79,10 +79,13 @@ export async function POST(request) {
 
     // If user doesn't exist, return specific message
     if (FTI_Portal_User.length === 0) {
-      return NextResponse.json({
-        error: "ท่านไม่ได้เป็นสมาชิกของเว็บไซต์ กรุณาสมัครสมาชิกเว็บไซต์ก่อนเข้าใช้งาน",
-        requiresRegistration: true,
-      }, { status: 404 });
+      return NextResponse.json(
+        {
+          error: "ท่านไม่ได้เป็นสมาชิกของเว็บไซต์ กรุณาสมัครสมาชิกเว็บไซต์ก่อนเข้าใช้งาน",
+          requiresRegistration: true,
+        },
+        { status: 404 },
+      );
     }
 
     const user = FTI_Portal_User[0];

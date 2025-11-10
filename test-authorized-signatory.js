@@ -2,7 +2,9 @@
 // This file can be run to verify the component works correctly
 
 console.log("✅ AuthorizedSignatorySection component created successfully!");
-console.log("📍 Location: /app/admin/dashboard/membership-requests/components/sections/AuthorizedSignatorySection.js");
+console.log(
+  "📍 Location: /app/admin/dashboard/membership-requests/components/sections/AuthorizedSignatorySection.js",
+);
 console.log("🔧 Features:");
 console.log("  - Shows only Thai fields (no English fields)");
 console.log("  - Has Edit/Add button that appears when not in edit mode");

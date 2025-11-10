@@ -116,7 +116,6 @@ export default function Home() {
               <br />
               ให้สามารถแข่งขันได้ในระดับสากล
             </motion.p>
-
           </div>
         </motion.div>
 
@@ -146,8 +145,8 @@ export default function Home() {
               viewport={{ once: true }}
               className="max-w-4xl mx-auto"
             >
-              <YouTubeAutoplay 
-                videoId="oynt-orKzyE" 
+              <YouTubeAutoplay
+                videoId="oynt-orKzyE"
                 title="วิธีการสมัครใช้งาน สภาอุตสาหกรรมแห่งประเทศไทย"
               />
             </motion.div>

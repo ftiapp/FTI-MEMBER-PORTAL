@@ -443,7 +443,7 @@ const processData = (app) => {
         "sigContainer?.prenameTh": sigContainer?.prenameTh,
         "app.prename_th": app.prename_th,
         "app.prenameTh": app.prenameTh,
-        "final prenameTh": prenameTh
+        "final prenameTh": prenameTh,
       });
       const prenameEn = pick(
         app.authorizedSignatoryPrenameEn,
@@ -471,7 +471,7 @@ const processData = (app) => {
         "sigContainer?.prenameOther": sigContainer?.prenameOther,
         "app.prename_other": app.prename_other,
         "app.prenameOther": app.prenameOther,
-        "final prenameOther": prenameOther
+        "final prenameOther": prenameOther,
       });
 
       // Possible flat fields
@@ -594,23 +594,20 @@ const buildSignatorySignature = (signatory, preloadedSignature, index) => {
     const prenameOther = sig.prenameOther || sig.prename_other || "";
     const firstNameTh = sig.firstNameTh || sig.first_name_th || "";
     const lastNameTh = sig.lastNameTh || sig.last_name_th || "";
-    
+
     let displayPrename = prenameTh;
     if (prenameTh === "อื่นๆ" && prenameOther) {
       displayPrename = prenameOther;
     }
-    
-    const fullName = [displayPrename, firstNameTh, lastNameTh]
-      .filter(Boolean)
-      .join(" ")
-      .trim();
-    
+
+    const fullName = [displayPrename, firstNameTh, lastNameTh].filter(Boolean).join(" ").trim();
+
     return fullName || `ผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
   };
-  
+
   const signatoryName = getSignatoryName(signatory);
   const position = signatory.positionTh || signatory.position_th || "";
-  
+
   // Handle signature image with preloaded data
   let signatureHtml = "";
   if (preloadedSignature) {
@@ -618,7 +615,7 @@ const buildSignatorySignature = (signatory, preloadedSignature, index) => {
   } else {
     signatureHtml = "(ลายเซ็น)";
   }
-  
+
   return `
     <div class="signature-box" style="min-width: 100px;">
       <div style="font-size: 10px; font-weight: bold; margin-bottom: 3px;">ลายเซ็นผู้มีอำนาจ</div>
@@ -922,12 +919,12 @@ export const generateMembershipPDF = async (
     // Preload signature images for single and multiple signatories
     const preloadSignature = async (signatureDoc) => {
       if (!signatureDoc || !signatureDoc.fileUrl) return null;
-      
+
       const sigUrlCandidate = signatureDoc.fileUrl;
       const maybeCld = transformCloudinaryUrl(sigUrlCandidate);
       console.debug("[PDF] signature URL (original):", sigUrlCandidate);
       console.debug("[PDF] signature URL (transformed):", maybeCld);
-      
+
       // Try to fetch as data URL first (best for CORS safety)
       const dataUrl = await loadImageAsDataURL(maybeCld);
       if (dataUrl) {
@@ -1332,20 +1329,27 @@ export const generateMembershipPDF = async (
           ["oc", "ac", "am"].includes(type)
             ? (() => {
                 // Check if we have multiple signatories data
-                const hasMultipleSignatories = data.signatories && Array.isArray(data.signatories) && data.signatories.length > 0;
+                const hasMultipleSignatories =
+                  data.signatories &&
+                  Array.isArray(data.signatories) &&
+                  data.signatories.length > 0;
                 const authorizedSignatures = data.authorizedSignatures || [];
 
                 if (hasMultipleSignatories) {
                   // Multiple signatories - display all with their names
-                  const signaturesHtml = data.signatories.map((signatory, index) => {
-                    const preloadedSignature = preloadedSignatures[index] || null;
-                    return buildSignatorySignature(signatory, preloadedSignature, index);
-                  }).join('');
+                  const signaturesHtml = data.signatories
+                    .map((signatory, index) => {
+                      const preloadedSignature = preloadedSignatures[index] || null;
+                      return buildSignatorySignature(signatory, preloadedSignature, index);
+                    })
+                    .join("");
 
                   return `
                     <div class="signature-area">
                       ${signaturesHtml}
-                      ${type === "oc" ? `
+                      ${
+                        type === "oc"
+                          ? `
                         <div class="stamp-box">
                           <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
                           <div class="stamp-img">
@@ -1356,7 +1360,9 @@ export const generateMembershipPDF = async (
                             }
                           </div>
                         </div>
-                      ` : ''}
+                      `
+                          : ""
+                      }
                     </div>
                   `;
                 } else {
@@ -1380,7 +1386,9 @@ export const generateMembershipPDF = async (
                           <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
                         </div>
                       </div>
-                      ${type === "oc" ? `
+                      ${
+                        type === "oc"
+                          ? `
                         <div class="stamp-box">
                           <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
                           <div class="stamp-img">
@@ -1391,7 +1399,9 @@ export const generateMembershipPDF = async (
                             }
                           </div>
                         </div>
-                      ` : ''}
+                      `
+                          : ""
+                      }
                     </div>
                   `;
                 }

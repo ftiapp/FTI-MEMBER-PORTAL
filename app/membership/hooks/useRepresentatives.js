@@ -147,12 +147,18 @@ export const useRepresentatives = ({
   useEffect(() => {
     if (mode === "single") {
       if (isInitialized.current || !formData.representative) {
-        console.log("🔄 [useRepresentatives] Syncing single representative to formData:", representatives[0]);
+        console.log(
+          "🔄 [useRepresentatives] Syncing single representative to formData:",
+          representatives[0],
+        );
         setFormData((prev) => ({ ...prev, representative: representatives[0] }));
       }
     } else {
       if (isInitialized.current || !formData.representatives?.length) {
-        console.log("🔄 [useRepresentatives] Syncing multiple representatives to formData:", representatives);
+        console.log(
+          "🔄 [useRepresentatives] Syncing multiple representatives to formData:",
+          representatives,
+        );
         setFormData((prev) => ({ ...prev, representatives }));
       }
     }
@@ -180,11 +186,7 @@ export const useRepresentatives = ({
             lastScrolledErrorRef.current = errorKey;
             const errorMessage = representativeErrors[firstErrorField];
 
-            // Show toast
-            toast.error(`ข้อมูลผู้แทน: ${errorMessage}`, {
-              duration: 5000,
-              id: toastId,
-            });
+            // Toast removed - only show when Next button is clicked in ACFormNavigation.js
 
             // Scroll to error field
             setTimeout(() => {
@@ -270,10 +272,7 @@ export const useRepresentatives = ({
               lastScrolledErrorRef.current = errorKey;
               const errorMessage = errors[firstErrorField];
 
-              toast.error(`ผู้แทนคนที่ ${errorIndex + 1}: ${errorMessage}`, {
-                duration: 5000,
-                id: toastId,
-              });
+              // Toast removed - only show when Next button is clicked in ACFormNavigation.js
 
               // Scroll to error field
               setTimeout(() => {

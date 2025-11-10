@@ -32,9 +32,9 @@ export default function SubmittedApplications({
       currentPage,
       itemsPerPage,
       searchQuery,
-      membershipTypeFilter
+      membershipTypeFilter,
     });
-    
+
     // Only fetch if we don't have all applications yet
     if (allApplications.length === 0 && userId) {
       console.log("📡 Calling fetchAllApplications...");
@@ -113,13 +113,15 @@ export default function SubmittedApplications({
 
     // Filter by membership type
     if (membershipTypeFilter !== "all") {
-      filteredApps = filteredApps.filter(app => app.memberType.toLowerCase() === membershipTypeFilter.toLowerCase());
+      filteredApps = filteredApps.filter(
+        (app) => app.memberType.toLowerCase() === membershipTypeFilter.toLowerCase(),
+      );
     }
 
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filteredApps = filteredApps.filter(app => {
+      filteredApps = filteredApps.filter((app) => {
         const displayName = app.displayName || "";
         const companyName = app.companyNameEn || ""; // English company name
         const idCardNumber = app.idCardNumber || "";
@@ -127,12 +129,14 @@ export default function SubmittedApplications({
         const email = app.email || app.company_email || "";
         const memberTypeText = getMemberTypeInfo(app.memberType).text || "";
 
-        return displayName.toLowerCase().includes(query) ||
-               companyName.toLowerCase().includes(query) ||
-               idCardNumber.includes(query) ||
-               taxId.includes(query) ||
-               email.toLowerCase().includes(query) ||
-               memberTypeText.toLowerCase().includes(query);
+        return (
+          displayName.toLowerCase().includes(query) ||
+          companyName.toLowerCase().includes(query) ||
+          idCardNumber.includes(query) ||
+          taxId.includes(query) ||
+          email.toLowerCase().includes(query) ||
+          memberTypeText.toLowerCase().includes(query)
+        );
       });
     }
 
@@ -264,11 +268,11 @@ export default function SubmittedApplications({
   }
 
   console.log("🔍 Checking empty state:", {
-      applicationsLength: applications.length,
-      pagination: pagination,
-      totalItems: pagination?.totalItems,
-      allApplicationsLength: allApplications.length
-    });
+    applicationsLength: applications.length,
+    pagination: pagination,
+    totalItems: pagination?.totalItems,
+    allApplicationsLength: allApplications.length,
+  });
 
   if (applications.length === 0 && (!pagination || pagination.totalItems === 0)) {
     return (

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
-import Image from 'next/image';
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 
 // Optimized lazy loading image component
 export default function LazyImage({
@@ -35,7 +35,7 @@ export default function LazyImage({
       {
         threshold: 0.1,
         rootMargin: "50px", // Start loading 50px before image comes into view
-      }
+      },
     );
 
     observer.observe(imgRef.current);
@@ -49,14 +49,14 @@ export default function LazyImage({
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext("2d");
-    
+
     // Create gradient placeholder
     const gradient = ctx.createLinearGradient(0, 0, w, h);
     gradient.addColorStop(0, "#f3f4f6");
     gradient.addColorStop(1, "#e5e7eb");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, w, h);
-    
+
     return canvas.toDataURL();
   };
 
@@ -93,12 +93,7 @@ export default function LazyImage({
         style={{ width, height }}
         {...props}
       >
-        <svg
-          className="w-8 h-8"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -122,14 +117,12 @@ export default function LazyImage({
         placeholder={placeholder}
         blurDataURL={blurDataURL}
         sizes={sizes}
-        className={`transition-opacity duration-300 ${
-          isLoaded ? "opacity-100" : "opacity-0"
-        }`}
+        className={`transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}
         onLoad={handleLoad}
         onError={handleError}
         {...props}
       />
-      
+
       {/* Loading skeleton */}
       {!isLoaded && (
         <div
@@ -142,14 +135,7 @@ export default function LazyImage({
 }
 
 // Optimized avatar component
-export function LazyAvatar({
-  src,
-  alt,
-  size = 40,
-  className = "",
-  fallback,
-  ...props
-}) {
+export function LazyAvatar({ src, alt, size = 40, className = "", fallback, ...props }) {
   const [hasError, setHasError] = useState(false);
 
   const handleError = () => {
@@ -165,11 +151,7 @@ export function LazyAvatar({
         {...props}
       >
         {fallback || (
-          <svg
-            className="w-1/2 h-1/2"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
+          <svg className="w-1/2 h-1/2" fill="currentColor" viewBox="0 0 20 20">
             <path
               fillRule="evenodd"
               d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
@@ -195,7 +177,7 @@ export function LazyAvatar({
 }
 
 // Gallery component with virtual scrolling for large image lists
-import { FixedSizeList as List } from 'react-window';
+import { FixedSizeList as List } from "react-window";
 
 export function LazyImageGallery({
   images,
@@ -217,21 +199,12 @@ export function LazyImageGallery({
   );
 
   if (images.length === 0) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        No images to display
-      </div>
-    );
+    return <div className="text-center py-8 text-gray-500">No images to display</div>;
   }
 
   return (
     <div className={className}>
-      <List
-        height={containerHeight}
-        itemCount={images.length}
-        itemSize={itemHeight}
-        width="100%"
-      >
+      <List height={containerHeight} itemCount={images.length} itemSize={itemHeight} width="100%">
         {Row}
       </List>
     </div>
@@ -253,9 +226,9 @@ export function useImagePreloader(imageUrls) {
 
       try {
         await Promise.all(promises);
-        console.log('All images preloaded successfully');
+        console.log("All images preloaded successfully");
       } catch (error) {
-        console.error('Error preloading images:', error);
+        console.error("Error preloading images:", error);
       }
     };
 

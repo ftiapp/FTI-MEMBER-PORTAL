@@ -8,7 +8,9 @@ const initMysql = async () => {
 
 // ตรวจสอบว่ามี environment variables ครบถ้วน
 // Skip validation during build time if env vars are not available
-const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build' || process.env.NODE_ENV === 'production' && !process.env.DB_HOST;
+const isBuildTime =
+  process.env.NEXT_PHASE === "phase-production-build" ||
+  (process.env.NODE_ENV === "production" && !process.env.DB_HOST);
 
 if (!isBuildTime) {
   if (!process.env.DB_HOST) {
@@ -51,10 +53,10 @@ if (!isBuildTime && process.env.DB_HOST) {
 } else {
   // During build time, create a dummy config that won't be used
   dbConfig = {
-    host: 'localhost',
-    user: 'dummy',
-    password: 'dummy',
-    database: 'dummy',
+    host: "localhost",
+    user: "dummy",
+    password: "dummy",
+    database: "dummy",
     port: "3306",
     ssl: false,
   };
@@ -89,7 +91,7 @@ const initPool = async () => {
 async function testConnection() {
   // Skip connection test during build time
   if (isBuildTime) {
-    console.log('Skipping database connection test during build time');
+    console.log("Skipping database connection test during build time");
     return true;
   }
 
@@ -135,7 +137,7 @@ testConnection();
 export async function query(sql, params) {
   // Skip database queries during build time
   if (isBuildTime) {
-    console.log('Skipping database query during build time:', sql);
+    console.log("Skipping database query during build time:", sql);
     return [];
   }
 

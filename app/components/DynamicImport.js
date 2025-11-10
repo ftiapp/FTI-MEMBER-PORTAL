@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useState } from 'react';
+import { Suspense, lazy, useState } from "react";
 
 // Loading components for different contexts
 const FormSkeleton = () => (
@@ -46,12 +46,12 @@ const ModalSkeleton = () => (
 );
 
 // Generic loading spinner
-const LoadingSpinner = ({ size = 'md' }) => {
+const LoadingSpinner = ({ size = "md" }) => {
   const sizeClasses = {
-    sm: 'w-4 h-4',
-    md: 'w-6 h-6',
-    lg: 'w-8 h-8',
-    xl: 'w-12 h-12',
+    sm: "w-4 h-4",
+    md: "w-6 h-6",
+    lg: "w-8 h-8",
+    xl: "w-12 h-12",
   };
 
   return (
@@ -64,22 +64,22 @@ const LoadingSpinner = ({ size = 'md' }) => {
 };
 
 // Dynamic import wrapper with loading states
-export function createLazyImport(importFunc, loadingType = 'spinner', customLoader = null) {
+export function createLazyImport(importFunc, loadingType = "spinner", customLoader = null) {
   const LazyComponent = lazy(importFunc);
 
   const getLoadingComponent = () => {
     if (customLoader) return customLoader;
-    
+
     switch (loadingType) {
-      case 'form':
+      case "form":
         return <FormSkeleton />;
-      case 'table':
+      case "table":
         return <TableSkeleton />;
-      case 'chart':
+      case "chart":
         return <ChartSkeleton />;
-      case 'modal':
+      case "modal":
         return <ModalSkeleton />;
-      case 'spinner':
+      case "spinner":
       default:
         return <LoadingSpinner size="lg" />;
     }
@@ -93,87 +93,63 @@ export function createLazyImport(importFunc, loadingType = 'spinner', customLoad
 }
 
 // Pre-defined lazy components for common use cases
-export const LazyPDFViewer = createLazyImport(
-  () => import('./PDFViewer'),
-  'spinner'
-);
+export const LazyPDFViewer = createLazyImport(() => import("./PDFViewer"), "spinner");
 
-export const LazyImageEditor = createLazyImport(
-  () => import('./ImageEditor'),
-  'spinner'
-);
+export const LazyImageEditor = createLazyImport(() => import("./ImageEditor"), "spinner");
 
-export const LazyChart = createLazyImport(
-  () => import('./Chart'),
-  'chart'
-);
+export const LazyChart = createLazyImport(() => import("./Chart"), "chart");
 
-export const LazyDataTable = createLazyImport(
-  () => import('./DataTable'),
-  'table'
-);
+export const LazyDataTable = createLazyImport(() => import("./DataTable"), "table");
 
-export const LazyModal = createLazyImport(
-  () => import('./Modal'),
-  'modal'
-);
+export const LazyModal = createLazyImport(() => import("./Modal"), "modal");
 
-export const LazyForm = createLazyImport(
-  () => import('./Form'),
-  'form'
-);
+export const LazyForm = createLazyImport(() => import("./Form"), "form");
 
 // Admin dashboard components (lazy loaded)
 export const LazyAdminDashboard = createLazyImport(
-  () => import('../admin/dashboard/page'),
-  'spinner'
+  () => import("../admin/dashboard/page"),
+  "spinner",
 );
 
 export const LazyMembershipRequests = createLazyImport(
-  () => import('../admin/dashboard/membership-requests/page'),
-  'table'
+  () => import("../admin/dashboard/membership-requests/page"),
+  "table",
 );
 
 export const LazyUserManagement = createLazyImport(
-  () => import('../admin/dashboard/users/page'),
-  'table'
+  () => import("../admin/dashboard/users/page"),
+  "table",
 );
 
 // Member dashboard components (lazy loaded)
-export const LazyMemberDashboard = createLazyImport(
-  () => import('../dashboard/page'),
-  'spinner'
-);
+export const LazyMemberDashboard = createLazyImport(() => import("../dashboard/page"), "spinner");
 
-export const LazyMemberProfile = createLazyImport(
-  () => import('../MemberDetail/page'),
-  'form'
-);
+export const LazyMemberProfile = createLazyImport(() => import("../MemberDetail/page"), "form");
 
 export const LazyDocumentUpload = createLazyImport(
-  () => import('../dashboard/components/ManageDocuments'),
-  'form'
+  () => import("../dashboard/components/ManageDocuments"),
+  "form",
 );
 
 // Membership form components (lazy loaded)
 export const LazyICMembershipForm = createLazyImport(
-  () => import('../membership/ic/components/ICMembershipForm'),
-  'form'
+  () => import("../membership/ic/components/ICMembershipForm"),
+  "form",
 );
 
 export const LazyOCMembershipForm = createLazyImport(
-  () => import('../membership/oc/components/OCMembershipForm'),
-  'form'
+  () => import("../membership/oc/components/OCMembershipForm"),
+  "form",
 );
 
 export const LazyAMMembershipForm = createLazyImport(
-  () => import('../membership/am/components/AMMembershipForm'),
-  'form'
+  () => import("../membership/am/components/AMMembershipForm"),
+  "form",
 );
 
 export const LazyACMembershipForm = createLazyImport(
-  () => import('../membership/ac/components/ACMembershipForm'),
-  'form'
+  () => import("../membership/ac/components/ACMembershipForm"),
+  "form",
 );
 
 // Hook for preloading components
@@ -185,9 +161,9 @@ export function usePreloadComponent(importFunc, trigger = false) {
       try {
         await importFunc();
         setIsPreloaded(true);
-        console.log('Component preloaded successfully');
+        console.log("Component preloaded successfully");
       } catch (error) {
-        console.error('Error preloading component:', error);
+        console.error("Error preloading component:", error);
       }
     }
   };
@@ -205,7 +181,7 @@ export function LazyOnIntersection({
   children,
   importFunc,
   fallback = <LoadingSpinner size="lg" />,
-  rootMargin = '50px',
+  rootMargin = "50px",
   threshold = 0.1,
 }) {
   const [isVisible, setIsVisible] = useState(false);
@@ -220,7 +196,7 @@ export function LazyOnIntersection({
           observer.disconnect();
         }
       },
-      { rootMargin, threshold }
+      { rootMargin, threshold },
     );
 
     if (elementRef.current) {
@@ -238,15 +214,11 @@ export function LazyOnIntersection({
     }
   }, [isVisible, Component, importFunc]);
 
-  return (
-    <div ref={elementRef}>
-      {Component ? <Component /> : fallback}
-    </div>
-  );
+  return <div ref={elementRef}>{Component ? <Component /> : fallback}</div>;
 }
 
 // Progressive loading for multiple components
-export function ProgressiveLoader({ components, loadingOrder = 'sequential' }) {
+export function ProgressiveLoader({ components, loadingOrder = "sequential" }) {
   const [loadedComponents, setLoadedComponents] = useState({});
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -256,18 +228,18 @@ export function ProgressiveLoader({ components, loadingOrder = 'sequential' }) {
     const loadComponent = async () => {
       try {
         const component = await components[currentIndex].importFunc();
-        setLoadedComponents(prev => ({
+        setLoadedComponents((prev) => ({
           ...prev,
-          [currentIndex]: component.default
+          [currentIndex]: component.default,
         }));
 
-        if (loadingOrder === 'sequential') {
-          setCurrentIndex(prev => prev + 1);
+        if (loadingOrder === "sequential") {
+          setCurrentIndex((prev) => prev + 1);
         }
       } catch (error) {
         console.error(`Error loading component ${currentIndex}:`, error);
-        if (loadingOrder === 'sequential') {
-          setCurrentIndex(prev => prev + 1);
+        if (loadingOrder === "sequential") {
+          setCurrentIndex((prev) => prev + 1);
         }
       }
     };
@@ -277,13 +249,13 @@ export function ProgressiveLoader({ components, loadingOrder = 'sequential' }) {
 
   // Parallel loading
   useEffect(() => {
-    if (loadingOrder === 'parallel') {
+    if (loadingOrder === "parallel") {
       components.forEach(async (component, index) => {
         try {
           const module = await component.importFunc();
-          setLoadedComponents(prev => ({
+          setLoadedComponents((prev) => ({
             ...prev,
-            [index]: module.default
+            [index]: module.default,
           }));
         } catch (error) {
           console.error(`Error loading component ${index}:`, error);
@@ -296,23 +268,19 @@ export function ProgressiveLoader({ components, loadingOrder = 'sequential' }) {
     <div>
       {components.map((component, index) => {
         const LoadedComponent = loadedComponents[index];
-        
+
         if (LoadedComponent) {
           return <LoadedComponent key={index} {...component.props} />;
         }
-        
-        return (
-          <div key={index}>
-            {component.fallback || <LoadingSpinner size="lg" />}
-          </div>
-        );
+
+        return <div key={index}>{component.fallback || <LoadingSpinner size="lg" />}</div>;
       })}
     </div>
   );
 }
 
 // Error boundary for lazy loaded components
-import { Component } from 'react';
+import { Component } from "react";
 
 class LazyLoadErrorBoundary extends Component {
   constructor(props) {
@@ -325,26 +293,38 @@ class LazyLoadErrorBoundary extends Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Lazy load error:', error, errorInfo);
+    console.error("Lazy load error:", error, errorInfo);
   }
 
   render() {
     if (this.state.hasError) {
-      return this.props.fallback || (
-        <div className="text-center py-8">
-          <div className="text-red-500 mb-2">
-            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+      return (
+        this.props.fallback || (
+          <div className="text-center py-8">
+            <div className="text-red-500 mb-2">
+              <svg
+                className="w-12 h-12 mx-auto"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+            </div>
+            <p className="text-gray-600">Failed to load component</p>
+            <button
+              onClick={() => this.setState({ hasError: false, error: null })}
+              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Retry
+            </button>
           </div>
-          <p className="text-gray-600">Failed to load component</p>
-          <button
-            onClick={() => this.setState({ hasError: false, error: null })}
-            className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            Retry
-          </button>
-        </div>
+        )
       );
     }
 
@@ -354,9 +334,5 @@ class LazyLoadErrorBoundary extends Component {
 
 // Wrapper for lazy components with error boundary
 export function SafeLazyComponent({ children, fallback }) {
-  return (
-    <LazyLoadErrorBoundary fallback={fallback}>
-      {children}
-    </LazyLoadErrorBoundary>
-  );
+  return <LazyLoadErrorBoundary fallback={fallback}>{children}</LazyLoadErrorBoundary>;
 }

@@ -3,7 +3,26 @@
 import { useState } from "react";
 import MultipleFileManager from "../../components/MultipleFileManager";
 
-const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, setSelectedFiles, handleFileChange, viewFile, hasFile, getFileName, getFileSize, ErrorIcon, FileIcon, ViewIcon, EditIcon, DeleteIcon, UploadIcon, SingleFileUploadZone }) => {
+const MultipleSignatories = ({
+  formData,
+  setFormData,
+  errors,
+  selectedFiles,
+  setSelectedFiles,
+  handleFileChange,
+  viewFile,
+  editImage,
+  hasFile,
+  getFileName,
+  getFileSize,
+  ErrorIcon,
+  FileIcon,
+  ViewIcon,
+  EditIcon,
+  DeleteIcon,
+  UploadIcon,
+  SingleFileUploadZone,
+}) => {
   // Initialize signatories array with at least one signatory
   const [signatories, setSignatories] = useState(
     formData.signatories || [
@@ -14,14 +33,14 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
         firstNameTh: "",
         lastNameTh: "",
         positionTh: "",
-      }
-    ]
+      },
+    ],
   );
 
   // Add new signatory (max 4)
   const addSignatory = () => {
     if (signatories.length >= 4) return;
-    
+
     const newSignatory = {
       id: Date.now(),
       prenameTh: "",
@@ -30,36 +49,36 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
       lastNameTh: "",
       positionTh: "",
     };
-    
+
     const updatedSignatories = [...signatories, newSignatory];
     setSignatories(updatedSignatories);
-    setFormData(prev => ({ ...prev, signatories: updatedSignatories }));
+    setFormData((prev) => ({ ...prev, signatories: updatedSignatories }));
   };
 
   // Remove signatory (keep at least one)
   const removeSignatory = (id) => {
     if (signatories.length <= 1) return;
-    
-    const updatedSignatories = signatories.filter(sig => sig.id !== id);
+
+    const updatedSignatories = signatories.filter((sig) => sig.id !== id);
     setSignatories(updatedSignatories);
-    setFormData(prev => ({ ...prev, signatories: updatedSignatories }));
+    setFormData((prev) => ({ ...prev, signatories: updatedSignatories }));
   };
 
   // Update signatory field
   const updateSignatory = (id, field, value) => {
-    const updatedSignatories = signatories.map(sig => {
+    const updatedSignatories = signatories.map((sig) => {
       if (sig.id === id) {
         // Clear prenameOther when switching away from "อื่นๆ"
-        if (field === 'prenameTh' && value !== 'อื่นๆ') {
-          return { ...sig, [field]: value, prenameOther: '' };
+        if (field === "prenameTh" && value !== "อื่นๆ") {
+          return { ...sig, [field]: value, prenameOther: "" };
         }
         return { ...sig, [field]: value };
       }
       return sig;
     });
-    
+
     setSignatories(updatedSignatories);
-    setFormData(prev => ({ ...prev, signatories: updatedSignatories }));
+    setFormData((prev) => ({ ...prev, signatories: updatedSignatories }));
   };
 
   // Get error message for specific signatory
@@ -83,10 +102,8 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
 
   // Handle signature file edit for specific signatory
   const editSignatureFile = (signatoryIndex) => {
-    const file = selectedFiles.authorizedSignatures?.[signatoryIndex];
-    if (file) {
-      // This will be handled by the parent component
-      console.log('Edit signature for signatory:', signatoryIndex);
+    if (editImage) {
+      editImage("authorizedSignature", signatoryIndex);
     }
   };
 
@@ -108,7 +125,12 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             เพิ่มผู้มีอำนาจลงนาม
           </button>
@@ -118,9 +140,7 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
       {signatories.map((signatory, index) => (
         <div key={signatory.id} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-md font-medium text-gray-900">
-              ผู้มีอำนาจลงนาม คนที่ {index + 1}
-            </h4>
+            <h4 className="text-md font-medium text-gray-900">ผู้มีอำนาจลงนาม คนที่ {index + 1}</h4>
             {signatories.length > 1 && (
               <button
                 type="button"
@@ -128,7 +148,12 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
                 className="text-red-600 hover:text-red-800 transition-colors flex items-center gap-1"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
                 </svg>
                 ลบ
               </button>
@@ -140,16 +165,14 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {/* คำนำหน้า (Thai) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  คำนำหน้า *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">คำนำหน้า *</label>
                 <select
                   value={signatory.prenameTh}
-                  onChange={(e) => updateSignatory(signatory.id, 'prenameTh', e.target.value)}
+                  onChange={(e) => updateSignatory(signatory.id, "prenameTh", e.target.value)}
                   className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                    getSignatoryError(index, 'prenameTh')
-                      ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-300 focus:ring-blue-200'
+                    getSignatoryError(index, "prenameTh")
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-gray-300 focus:ring-blue-200"
                   }`}
                 >
                   <option value="">เลือก</option>
@@ -158,13 +181,15 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
                   <option value="นางสาว">นางสาว</option>
                   <option value="อื่นๆ">อื่นๆ</option>
                 </select>
-                {getSignatoryError(index, 'prenameTh') && (
-                  <p className="mt-1 text-xs text-red-600">{getSignatoryError(index, 'prenameTh')}</p>
+                {getSignatoryError(index, "prenameTh") && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {getSignatoryError(index, "prenameTh")}
+                  </p>
                 )}
               </div>
 
               {/* คำนำหน้าอื่นๆ (Thai) */}
-              {signatory.prenameTh === 'อื่นๆ' ? (
+              {signatory.prenameTh === "อื่นๆ" ? (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     ระบุคำนำหน้า *
@@ -172,71 +197,71 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
                   <input
                     type="text"
                     value={signatory.prenameOther}
-                    onChange={(e) => updateSignatory(signatory.id, 'prenameOther', e.target.value)}
+                    onChange={(e) => updateSignatory(signatory.id, "prenameOther", e.target.value)}
                     className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                      getSignatoryError(index, 'prenameOther')
-                        ? 'border-red-300 focus:ring-red-200'
-                        : 'border-gray-300 focus:ring-blue-200'
+                      getSignatoryError(index, "prenameOther")
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-gray-300 focus:ring-blue-200"
                     }`}
                     placeholder="ระบุคำนำหน้าอื่นๆ"
                   />
-                  {getSignatoryError(index, 'prenameOther') && (
-                    <p className="mt-1 text-xs text-red-600">{getSignatoryError(index, 'prenameOther')}</p>
+                  {getSignatoryError(index, "prenameOther") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {getSignatoryError(index, "prenameOther")}
+                    </p>
                   )}
                 </div>
               ) : (
                 /* ชื่อ (Thai) */
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    ชื่อ *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อ *</label>
                   <input
                     type="text"
                     value={signatory.firstNameTh}
-                    onChange={(e) => updateSignatory(signatory.id, 'firstNameTh', e.target.value)}
+                    onChange={(e) => updateSignatory(signatory.id, "firstNameTh", e.target.value)}
                     className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                      getSignatoryError(index, 'firstNameTh')
-                        ? 'border-red-300 focus:ring-red-200'
-                        : 'border-gray-300 focus:ring-blue-200'
+                      getSignatoryError(index, "firstNameTh")
+                        ? "border-red-300 focus:ring-red-200"
+                        : "border-gray-300 focus:ring-blue-200"
                     }`}
                     placeholder="ชื่อภาษาไทย"
                   />
-                  {getSignatoryError(index, 'firstNameTh') && (
-                    <p className="mt-1 text-xs text-red-600">{getSignatoryError(index, 'firstNameTh')}</p>
+                  {getSignatoryError(index, "firstNameTh") && (
+                    <p className="mt-1 text-xs text-red-600">
+                      {getSignatoryError(index, "firstNameTh")}
+                    </p>
                   )}
                 </div>
               )}
 
               {/* นามสกุล (Thai) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  นามสกุล *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">นามสกุล *</label>
                 <input
                   type="text"
                   value={signatory.lastNameTh}
-                  onChange={(e) => updateSignatory(signatory.id, 'lastNameTh', e.target.value)}
+                  onChange={(e) => updateSignatory(signatory.id, "lastNameTh", e.target.value)}
                   className={`w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 ${
-                    getSignatoryError(index, 'lastNameTh')
-                      ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-300 focus:ring-blue-200'
+                    getSignatoryError(index, "lastNameTh")
+                      ? "border-red-300 focus:ring-red-200"
+                      : "border-gray-300 focus:ring-blue-200"
                   }`}
                   placeholder="นามสกุลภาษาไทย"
                 />
-                {getSignatoryError(index, 'lastNameTh') && (
-                  <p className="mt-1 text-xs text-red-600">{getSignatoryError(index, 'lastNameTh')}</p>
+                {getSignatoryError(index, "lastNameTh") && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {getSignatoryError(index, "lastNameTh")}
+                  </p>
                 )}
               </div>
 
               {/* ตำแหน่ง (Thai) */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  ตำแหน่ง
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">ตำแหน่ง</label>
                 <input
                   type="text"
                   value={signatory.positionTh}
-                  onChange={(e) => updateSignatory(signatory.id, 'positionTh', e.target.value)}
+                  onChange={(e) => updateSignatory(signatory.id, "positionTh", e.target.value)}
                   className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-200"
                   placeholder="ตำแหน่งภาษาไทย"
                 />
@@ -281,13 +306,9 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
                   <div className="text-center">
                     {UploadIcon}
                     <div className="flex flex-col items-center mt-4">
-                      <p className="text-sm text-gray-500">
-                        ลากไฟล์มาวางที่นี่ หรือ
-                      </p>
+                      <p className="text-sm text-gray-500">ลากไฟล์มาวางที่นี่ หรือ</p>
                       <label htmlFor={`signature-${index}`} className="mt-2 cursor-pointer">
-                        <span
-                          className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-purple-600 hover:bg-purple-700 transition-colors duration-200"
-                        >
+                        <span className="px-4 py-2 text-sm font-medium text-white rounded-lg bg-purple-600 hover:bg-purple-700 transition-colors duration-200">
                           เลือกไฟล์
                         </span>
                         <input
@@ -295,7 +316,7 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
                           name="authorizedSignature"
                           type="file"
                           accept=".jpg,.jpeg,.png"
-                          onChange={(e) => handleFileChange(e, 'authorizedSignature', index)}
+                          onChange={(e) => handleFileChange(e, "authorizedSignature", index)}
                           className="hidden"
                         />
                       </label>
@@ -320,7 +341,9 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
                     <div className="flex space-x-2">
                       <button
                         type="button"
-                        onClick={() => viewFile(selectedFiles.authorizedSignatures?.[index] || null)}
+                        onClick={() =>
+                          viewFile(selectedFiles.authorizedSignatures?.[index] || null)
+                        }
                         className="p-2 text-purple-600 bg-purple-100 rounded-full hover:bg-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-500"
                         title="ดูไฟล์"
                       >
@@ -356,18 +379,19 @@ const MultipleSignatories = ({ formData, setFormData, errors, selectedFiles, set
               )}
 
               {/* Success message */}
-              {hasFile(selectedFiles.authorizedSignatures?.[index] || null) && !getSignatureError(index) && (
-                <div className="mt-2 flex items-center text-sm text-green-600">
-                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                  ไฟล์ถูกอัพโหลดเรียบร้อยแล้ว
-                </div>
-              )}
+              {hasFile(selectedFiles.authorizedSignatures?.[index] || null) &&
+                !getSignatureError(index) && (
+                  <div className="mt-2 flex items-center text-sm text-green-600">
+                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    ไฟล์ถูกอัพโหลดเรียบร้อยแล้ว
+                  </div>
+                )}
 
               {/* Signature guidelines */}
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">

@@ -340,7 +340,15 @@ export async function POST(request) {
           `INSERT INTO MemberRegist_IC_Signature_Name (
             main_id, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
           ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [icMemberId, sigFirstTh, sigLastTh, sigFirstEn || "", sigLastEn || "", sigPosTh, sigPosEn || ""],
+          [
+            icMemberId,
+            sigFirstTh,
+            sigLastTh,
+            sigFirstEn || "",
+            sigLastEn || "",
+            sigPosTh,
+            sigPosEn || "",
+          ],
         );
         console.log("✅ Saved authorized signatory name:", {
           sigFirstTh,

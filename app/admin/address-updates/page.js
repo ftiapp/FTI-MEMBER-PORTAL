@@ -70,9 +70,12 @@ const AddressUpdatesPage = () => {
 
   // Update counts when requests change
   useEffect(() => {
-    if (status === "pending") setStatusCounts((prev) => ({ ...prev, pending: pagination.total || requests.length }));
-    if (status === "approved") setStatusCounts((prev) => ({ ...prev, approved: pagination.total || requests.length }));
-    if (status === "rejected") setStatusCounts((prev) => ({ ...prev, rejected: pagination.total || requests.length }));
+    if (status === "pending")
+      setStatusCounts((prev) => ({ ...prev, pending: pagination.total || requests.length }));
+    if (status === "approved")
+      setStatusCounts((prev) => ({ ...prev, approved: pagination.total || requests.length }));
+    if (status === "rejected")
+      setStatusCounts((prev) => ({ ...prev, rejected: pagination.total || requests.length }));
   }, [requests, pagination.total, status]);
 
   const handleStatusChange = (newStatus) => {
@@ -140,17 +143,30 @@ const AddressUpdatesPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                <svg className="w-7 h-7 text-[#1e3a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                <svg
+                  className="w-7 h-7 text-[#1e3a8a]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
                 </svg>
                 คำขอแก้ไขที่อยู่
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
-                จัดการคำขอแก้ไขที่อยู่ของสมาชิก
-              </p>
+              <p className="text-sm text-gray-500 mt-1">จัดการคำขอแก้ไขที่อยู่ของสมาชิก</p>
             </div>
-            
+
             {/* Refresh button */}
             <button
               onClick={() => fetchRequests(status, pagination.page, searchTerm, true)}
@@ -159,7 +175,7 @@ const AddressUpdatesPage = () => {
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`}
+                className={`h-4 w-4 ${loading ? "animate-spin" : ""}`}
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -190,15 +206,32 @@ const AddressUpdatesPage = () => {
               <div>
                 <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   รอการอนุมัติ
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{statusCounts.pending}</div>
               </div>
-              <div className={`p-3 rounded-full ${status === "pending" ? "bg-yellow-400" : "bg-gray-200"}`}>
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <div
+                className={`p-3 rounded-full ${status === "pending" ? "bg-yellow-400" : "bg-gray-200"}`}
+              >
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
             </div>
@@ -216,15 +249,32 @@ const AddressUpdatesPage = () => {
               <div>
                 <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   อนุมัติแล้ว
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{statusCounts.approved}</div>
               </div>
-              <div className={`p-3 rounded-full ${status === "approved" ? "bg-green-500" : "bg-gray-200"}`}>
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div
+                className={`p-3 rounded-full ${status === "approved" ? "bg-green-500" : "bg-gray-200"}`}
+              >
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               </div>
             </div>
@@ -242,15 +292,32 @@ const AddressUpdatesPage = () => {
               <div>
                 <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   ปฏิเสธแล้ว
                 </div>
                 <div className="text-3xl font-bold text-gray-900">{statusCounts.rejected}</div>
               </div>
-              <div className={`p-3 rounded-full ${status === "rejected" ? "bg-red-500" : "bg-gray-200"}`}>
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <div
+                className={`p-3 rounded-full ${status === "rejected" ? "bg-red-500" : "bg-gray-200"}`}
+              >
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               </div>
             </div>
@@ -269,7 +336,12 @@ const AddressUpdatesPage = () => {
           >
             <div className="flex items-center justify-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               รอการอนุมัติ
             </div>
@@ -284,7 +356,12 @@ const AddressUpdatesPage = () => {
           >
             <div className="flex items-center justify-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               อนุมัติแล้ว
             </div>
@@ -299,7 +376,12 @@ const AddressUpdatesPage = () => {
           >
             <div className="flex items-center justify-center gap-2">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
               ปฏิเสธแล้ว
             </div>
@@ -310,8 +392,18 @@ const AddressUpdatesPage = () => {
         <form onSubmit={handleSearch} className="mb-6 flex gap-3">
           <div className="flex-1 relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
               </svg>
             </div>
             <input
@@ -327,7 +419,12 @@ const AddressUpdatesPage = () => {
             className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg font-medium flex items-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
             </svg>
             ค้นหา
           </button>
@@ -367,9 +464,24 @@ const AddressUpdatesPage = () => {
           </div>
         ) : requests.length === 0 ? (
           <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
-            <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="mx-auto h-16 w-16 text-gray-400 mb-4"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             <p className="text-gray-600 font-medium text-lg">
               ไม่พบคำขอแก้ไขที่อยู่ที่มีสถานะ {getStatusName(status)}
@@ -391,10 +503,12 @@ const AddressUpdatesPage = () => {
                 <div className="bg-white p-4 rounded-lg shadow-md border border-gray-200">
                   <div className="flex items-center justify-between mb-3">
                     <div className="text-sm text-gray-600">
-                      หน้า <span className="font-bold text-[#1e3a8a]">{pagination.page}</span> / {pagination.totalPages}
+                      หน้า <span className="font-bold text-[#1e3a8a]">{pagination.page}</span> /{" "}
+                      {pagination.totalPages}
                     </div>
                     <div className="text-sm text-gray-600">
-                      ทั้งหมด <span className="font-bold text-[#1e3a8a]">{pagination.total}</span> รายการ
+                      ทั้งหมด <span className="font-bold text-[#1e3a8a]">{pagination.total}</span>{" "}
+                      รายการ
                     </div>
                   </div>
                   <div className="flex justify-center items-center gap-2">

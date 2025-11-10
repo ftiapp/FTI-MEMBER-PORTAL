@@ -1,4 +1,4 @@
-﻿import crypto from "crypto";
+import crypto from "crypto";
 import { query } from "./db";
 import bcrypt from "bcryptjs";
 
@@ -18,7 +18,7 @@ export function generateToken() {
 export async function createVerificationToken(userId) {
   const token = generateToken();
   const expiresAt = new Date();
-  expiresAt.setMinutes(expiresAt.getMinutes() + 15); // Token expires in 15 minutes
+  expiresAt.setHours(expiresAt.getHours() + 1); // Token expires in 1 hour
 
   // Store token in database
   await query(

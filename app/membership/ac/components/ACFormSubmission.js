@@ -173,9 +173,15 @@ export const submitACMembershipForm = async (data) => {
     if (data.authorizedSignatoryPrenameEn)
       formDataToSend.append("authorizedSignatoryPrenameEn", data.authorizedSignatoryPrenameEn);
     if (data.authorizedSignatoryPrenameOther)
-      formDataToSend.append("authorizedSignatoryPrenameOther", data.authorizedSignatoryPrenameOther);
+      formDataToSend.append(
+        "authorizedSignatoryPrenameOther",
+        data.authorizedSignatoryPrenameOther,
+      );
     if (data.authorizedSignatoryPrenameOtherEn)
-      formDataToSend.append("authorizedSignatoryPrenameOtherEn", data.authorizedSignatoryPrenameOtherEn);
+      formDataToSend.append(
+        "authorizedSignatoryPrenameOtherEn",
+        data.authorizedSignatoryPrenameOtherEn,
+      );
 
     // Ensure authorized signatory name fields are included
     if (data.authorizedSignatoryFirstNameTh)

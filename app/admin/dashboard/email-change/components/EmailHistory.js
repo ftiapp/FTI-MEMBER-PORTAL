@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { th } from "date-fns/locale";
 
-const UserEmailHistory = ({ userId }) => {
+const EmailHistory = ({ userId }) => {
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState({ emailChanges: [], emailLogs: [] });
   const [error, setError] = useState(null);
@@ -145,4 +145,4 @@ const UserEmailHistory = ({ userId }) => {
   );
 };
 
-export default UserEmailHistory;
+export default EmailHistory;

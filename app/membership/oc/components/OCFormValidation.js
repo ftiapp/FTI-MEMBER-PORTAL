@@ -287,7 +287,7 @@ export const validateOCForm = (formData, step) => {
         // Check both field name variants (firstNameEn/firstNameEnglish, lastNameEn/lastNameEnglish)
         const firstNameEn = rep.firstNameEn || rep.firstNameEnglish || rep.firstNameEng;
         const lastNameEn = rep.lastNameEn || rep.lastNameEnglish || rep.lastNameEng;
-        
+
         // English names: REQUIRED (บังคับกรอก)
         if (!firstNameEn || firstNameEn.trim() === "") {
           repError.firstNameEn = "กรุณากรอกชื่อภาษาอังกฤษ";
@@ -414,13 +414,12 @@ export const validateOCForm = (formData, step) => {
         formData.companyStamp.url ||
         formData.companyStamp instanceof File);
 
-    const hasAuthorizedSignatures = formData.authorizedSignatures && 
-      formData.authorizedSignatures.length > 0 && 
-      formData.authorizedSignatures.some(sig => sig && (
-        sig.file ||
-        sig.url ||
-        sig instanceof File
-      ));
+    const hasAuthorizedSignatures =
+      formData.authorizedSignatures &&
+      formData.authorizedSignatures.length > 0 &&
+      formData.authorizedSignatures.some(
+        (sig) => sig && (sig.file || sig.url || sig instanceof File),
+      );
 
     if (!hasCompanyStamp) {
       errors.companyStamp = "กรุณาอัพโหลดรูปตราประทับบริษัท (หรือรูปลายเซ็นหากไม่มีตราประทับ)";
@@ -463,27 +462,31 @@ export const validateOCForm = (formData, step) => {
         if (!signatory.firstNameTh) {
           errors[`signatories[${index}].firstNameTh`] = "กรุณากรอกชื่อ (ภาษาไทย)";
         } else if (!/^[ก-๙\.\s]+$/.test(signatory.firstNameTh)) {
-          errors[`signatories[${index}].firstNameTh`] = "ชื่อภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+          errors[`signatories[${index}].firstNameTh`] =
+            "ชื่อภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
         }
 
         // นามสกุล (ภาษาไทย) - บังคับ
         if (!signatory.lastNameTh) {
           errors[`signatories[${index}].lastNameTh`] = "กรุณากรอกนามสกุล (ภาษาไทย)";
         } else if (!/^[ก-๙\.\s]+$/.test(signatory.lastNameTh)) {
-          errors[`signatories[${index}].lastNameTh`] = "นามสกุลภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+          errors[`signatories[${index}].lastNameTh`] =
+            "นามสกุลภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
         }
 
         // ตำแหน่ง (ภาษาไทย) - ไม่บังคับแต่ถ้ากรอกต้องเป็นภาษาไทย
         if (signatory.positionTh && signatory.positionTh.trim() !== "") {
           if (!/^[ก-๙\.\s]+$/.test(signatory.positionTh)) {
-            errors[`signatories[${index}].positionTh`] = "ตำแหน่งภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
+            errors[`signatories[${index}].positionTh`] =
+              "ตำแหน่งภาษาไทยต้องเป็นภาษาไทยเท่านั้น (สามารถใส่ . ได้)";
           }
         }
 
         // คำนำหน้า (ภาษาอังกฤษ) - ไม่บังคับ
         if (signatory.prenameEn === "Other") {
           if (!signatory.prenameOtherEn || signatory.prenameOtherEn.trim() === "") {
-            errors[`signatories[${index}].prenameOtherEn`] = "กรุณาระบุคำนำหน้าชื่อ (Other) ภาษาอังกฤษ";
+            errors[`signatories[${index}].prenameOtherEn`] =
+              "กรุณาระบุคำนำหน้าชื่อ (Other) ภาษาอังกฤษ";
           }
         }
 
@@ -491,14 +494,15 @@ export const validateOCForm = (formData, step) => {
 
         // ตรวจสอบลายเซ็นของแต่ละคน
         const authorizedSignature = formData.authorizedSignatures?.[index];
-        const hasSignatureFile = authorizedSignature && (
-          authorizedSignature.file ||
-          authorizedSignature.url ||
-          authorizedSignature instanceof File
-        );
+        const hasSignatureFile =
+          authorizedSignature &&
+          (authorizedSignature.file ||
+            authorizedSignature.url ||
+            authorizedSignature instanceof File);
 
         if (!hasSignatureFile) {
-          errors[`authorizedSignature_${index}`] = `กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
+          errors[`authorizedSignature_${index}`] =
+            `กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
         }
       });
     }

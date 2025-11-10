@@ -3,12 +3,14 @@
 ## 1. Database Connection Optimization ✅
 
 ### Current Status
+
 - **MySQL Pool**: Connection limit 20, maxIdle 10, idleTimeout 30s
 - **MSSQL Pool**: max 10, min 0, idleTimeout 30s
 - **Retry Logic**: 3-5 retries with exponential backoff
 - **Connection Health Checks**: Implemented
 
 ### Optimizations Applied
+
 ```javascript
 // MySQL Pool Settings (db.js)
 connectionLimit: 20,
@@ -30,6 +32,7 @@ pool: {
 ## 2. Bundle Size Optimization
 
 ### Current Issues Identified
+
 - Large dependency list (56 packages)
 - Heavy libraries: `puppeteer`, `pdf-lib`, `@react-pdf/renderer`
 - Multiple UI libraries: `lucide-react`, `react-icons`, `@heroicons/react`
@@ -37,20 +40,22 @@ pool: {
 ### Optimization Strategies
 
 #### A. Dynamic Imports for Heavy Components
+
 ```javascript
 // Replace static imports with dynamic imports
-const PDFDownloadButton = dynamic(() => import('./PDFDownloadButton'), {
+const PDFDownloadButton = dynamic(() => import("./PDFDownloadButton"), {
   loading: () => <div>Loading PDF...</div>,
-  ssr: false
+  ssr: false,
 });
 
-const ImageEditor = dynamic(() => import('./ImageEditor'), {
+const ImageEditor = dynamic(() => import("./ImageEditor"), {
   loading: () => <div>Loading editor...</div>,
-  ssr: false
+  ssr: false,
 });
 ```
 
 #### B. Route-based Code Splitting
+
 ```javascript
 // Already implemented by Next.js, but ensure proper loading states
 export default function MembershipPage() {
@@ -63,9 +68,10 @@ export default function MembershipPage() {
 ```
 
 #### C. Optimize Imports
+
 ```javascript
 // Instead of importing entire library
-import { User, Lock, Mail } from 'lucide-react';
+import { User, Lock, Mail } from "lucide-react";
 
 // Tree-shaking will only include used icons
 ```
@@ -73,6 +79,7 @@ import { User, Lock, Mail } from 'lucide-react';
 ## 3. Memory Management
 
 ### Current Issues
+
 - Large form state objects (500+ lines)
 - Multiple useEffect hooks without cleanup
 - File uploads stored in memory
@@ -80,6 +87,7 @@ import { User, Lock, Mail } from 'lucide-react';
 ### Solutions
 
 #### A. Form State Optimization
+
 ```javascript
 // Split large form state into smaller chunks
 const [personalInfo, setPersonalInfo] = useState(PERSONAL_INITIAL);
@@ -93,23 +101,24 @@ const validateForm = useCallback(() => {
 ```
 
 #### B. Cleanup Effects
+
 ```javascript
 useEffect(() => {
   const controller = new AbortController();
-  
+
   const fetchData = async () => {
     try {
       const response = await fetch(url, { signal: controller.signal });
       // Process response
     } catch (error) {
-      if (error.name !== 'AbortError') {
+      if (error.name !== "AbortError") {
         console.error(error);
       }
     }
   };
-  
+
   fetchData();
-  
+
   return () => controller.abort();
 }, [dependencies]);
 ```
@@ -117,6 +126,7 @@ useEffect(() => {
 ## 4. Caching Strategy
 
 ### A. API Response Caching
+
 ```javascript
 // Implement simple in-memory cache
 const cache = new Map();
@@ -125,40 +135,41 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 export async function fetchWithCache(url, options = {}) {
   const cacheKey = `${url}-${JSON.stringify(options)}`;
   const cached = cache.get(cacheKey);
-  
+
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
     return cached.data;
   }
-  
+
   const response = await fetch(url, options);
   const data = await response.json();
-  
+
   cache.set(cacheKey, { data, timestamp: Date.now() });
   return data;
 }
 ```
 
 ### B. Static Asset Caching
+
 ```javascript
 // next.config.js
 const nextConfig = {
   async headers() {
     return [
       {
-        source: '/images/:path*',
+        source: "/images/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/_next/static/:path*',
+        source: "/_next/static/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
@@ -170,26 +181,28 @@ const nextConfig = {
 ## 5. Performance Monitoring
 
 ### A. Core Web Vitals Tracking
+
 ```javascript
 // Add to app/layout.js
 export function reportWebVitals(metric) {
   // Send to analytics service
-  if (process.env.NODE_ENV === 'production') {
-    gtag('event', metric.name, {
+  if (process.env.NODE_ENV === "production") {
+    gtag("event", metric.name, {
       value: Math.round(metric.value),
-      event_category: 'Web Vitals',
+      event_category: "Web Vitals",
     });
   }
 }
 ```
 
 ### B. Custom Performance Metrics
+
 ```javascript
 // Track component render times
 function usePerformanceTracking(componentName) {
   useEffect(() => {
     const startTime = performance.now();
-    
+
     return () => {
       const endTime = performance.now();
       console.log(`${componentName} render time: ${endTime - startTime}ms`);
@@ -201,13 +214,15 @@ function usePerformanceTracking(componentName) {
 ## 6. Image Optimization
 
 ### Current Setup
+
 - Using Cloudinary for image uploads
 - Sharp for image processing
 
 ### Optimizations
+
 ```javascript
 // Optimize image loading
-import Image from 'next/image';
+import Image from "next/image";
 
 // Use blur placeholder for better UX
 <Image
@@ -216,18 +231,19 @@ import Image from 'next/image';
   placeholder="blur"
   blurDataURL="data:image/jpeg;base64,..."
   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-/>
+/>;
 ```
 
 ## 7. Server-Side Optimizations
 
 ### A. API Route Optimization
+
 ```javascript
 // Implement response compression
-import compression from 'compression';
+import compression from "compression";
 
 // Rate limiting to prevent abuse
-import rateLimit from 'express-rate-limit';
+import rateLimit from "express-rate-limit";
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -236,6 +252,7 @@ const limiter = rateLimit({
 ```
 
 ### B. Database Query Optimization
+
 ```javascript
 // Use indexes for frequently queried columns
 // Implement pagination for large datasets
@@ -253,53 +270,46 @@ const getMembers = async (page = 1, limit = 20) => {
 ## 8. Client-Side Optimizations
 
 ### A. Virtual Scrolling for Large Lists
+
 ```javascript
-import { FixedSizeList as List } from 'react-window';
+import { FixedSizeList as List } from "react-window";
 
-const Row = ({ index, style }) => (
-  <div style={style}>
-    {/* Row content */}
-  </div>
-);
+const Row = ({ index, style }) => <div style={style}>{/* Row content */}</div>;
 
-<List
-  height={600}
-  itemCount={1000}
-  itemSize={50}
->
+<List height={600} itemCount={1000} itemSize={50}>
   {Row}
-</List>
+</List>;
 ```
 
 ### B. Debounce Search Inputs
+
 ```javascript
-import { useDebouncedCallback } from 'use-debounce';
+import { useDebouncedCallback } from "use-debounce";
 
-const debouncedSearch = useDebouncedCallback(
-  (value) => {
-    // Perform search
-    searchAPI(value);
-  },
-  300
-);
+const debouncedSearch = useDebouncedCallback((value) => {
+  // Perform search
+  searchAPI(value);
+}, 300);
 
-<input onChange={(e) => debouncedSearch(e.target.value)} />
+<input onChange={(e) => debouncedSearch(e.target.value)} />;
 ```
 
 ## 9. Monitoring & Alerting
 
 ### A. Error Tracking
+
 ```javascript
 // Implement global error boundary
 class ErrorBoundary extends React.Component {
   componentDidCatch(error, errorInfo) {
     // Send error to monitoring service
-    console.error('Application error:', error, errorInfo);
+    console.error("Application error:", error, errorInfo);
   }
 }
 ```
 
 ### B. Performance Budget
+
 ```javascript
 // Set performance budgets in next.config.js
 const nextConfig = {
@@ -316,6 +326,7 @@ const nextConfig = {
 ## 10. Deployment Optimizations
 
 ### A. Build Optimization
+
 ```bash
 # Analyze bundle size
 npm run build
@@ -326,9 +337,10 @@ NODE_ENV=production npm run build
 ```
 
 ### B. CDN Configuration
+
 ```javascript
 // Configure CDN for static assets
-const CDN_URL = process.env.CDN_URL || '';
+const CDN_URL = process.env.CDN_URL || "";
 
 const nextConfig = {
   assetPrefix: CDN_URL,

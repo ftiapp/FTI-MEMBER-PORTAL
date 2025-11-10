@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { debounce } from 'lodash';
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { debounce } from "lodash";
 
 // Optimized form component with performance enhancements
 export default function OptimizedForm({
@@ -32,7 +32,7 @@ export default function OptimizedForm({
         setErrors(validationErrors);
       }
     }, 300),
-    [validationSchema]
+    [validationSchema],
   );
 
   // Debounced autosave function
@@ -41,13 +41,13 @@ export default function OptimizedForm({
       if (autosave && isDirty) {
         try {
           await saveFormData(data);
-          console.log('Form auto-saved successfully');
+          console.log("Form auto-saved successfully");
         } catch (error) {
-          console.error('Auto-save failed:', error);
+          console.error("Auto-save failed:", error);
         }
       }
     }, autosaveDelay),
-    [autosave, autosaveDelay, isDirty]
+    [autosave, autosaveDelay, isDirty],
   );
 
   // Handle input changes with optimization
@@ -60,41 +60,41 @@ export default function OptimizedForm({
 
       setFormData((prev) => {
         const newData = { ...prev, [name]: value };
-        
+
         // Trigger debounced validation
         debouncedValidation(newData);
-        
+
         // Trigger debounced autosave
         debouncedAutosave(newData);
-        
+
         return newData;
       });
 
       setIsDirty(true);
       setTouched((prev) => ({ ...prev, [name]: true }));
     },
-    [debouncedValidation, debouncedAutosave]
+    [debouncedValidation, debouncedAutosave],
   );
 
   // Handle field blur for validation
   const handleFieldBlur = useCallback(
     (name) => {
       setTouched((prev) => ({ ...prev, [name]: true }));
-      
+
       // Validate immediately on blur
       if (validationSchema) {
         const fieldErrors = validateField(formData[name], validationSchema[name]);
         setErrors((prev) => ({ ...prev, [name]: fieldErrors }));
       }
     },
-    [formData, validationSchema]
+    [formData, validationSchema],
   );
 
   // Optimized form submission
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      
+
       if (isSubmitting) return;
 
       // Cancel any pending requests
@@ -120,19 +120,19 @@ export default function OptimizedForm({
         // Submit form
         await onSubmit(formData, abortControllerRef.current.signal);
         setIsDirty(false);
-        
+
         // Clear autosave timeout after successful submission
         debouncedAutosave.cancel();
       } catch (error) {
-        if (error.name !== 'AbortError') {
-          console.error('Form submission error:', error);
+        if (error.name !== "AbortError") {
+          console.error("Form submission error:", error);
         }
       } finally {
         setIsSubmitting(false);
         abortControllerRef.current = null;
       }
     },
-    [formData, isSubmitting, onSubmit, validationSchema, debouncedAutosave]
+    [formData, isSubmitting, onSubmit, validationSchema, debouncedAutosave],
   );
 
   // Reset form with cleanup
@@ -141,7 +141,7 @@ export default function OptimizedForm({
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
-    
+
     // Cancel debounced functions
     debouncedValidation.cancel();
     debouncedAutosave.cancel();
@@ -160,7 +160,7 @@ export default function OptimizedForm({
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-      
+
       // Cancel debounced functions
       debouncedValidation.cancel();
       debouncedAutosave.cancel();
@@ -172,12 +172,12 @@ export default function OptimizedForm({
     const handleBeforeUnload = (e) => {
       if (isDirty && autosave) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = "";
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [isDirty, autosave]);
 
   // Context value for form components
@@ -203,17 +203,12 @@ export default function OptimizedForm({
       handleFieldBlur,
       handleSubmit,
       resetForm,
-    ]
+    ],
   );
 
   return (
     <FormContext.Provider value={formContext}>
-      <form
-        ref={formRef}
-        onSubmit={handleSubmit}
-        className={`space-y-4 ${className}`}
-        noValidate
-      >
+      <form ref={formRef} onSubmit={handleSubmit} className={`space-y-4 ${className}`} noValidate>
         {children}
       </form>
     </FormContext.Provider>
@@ -221,7 +216,7 @@ export default function OptimizedForm({
 }
 
 // Form context for child components
-import { createContext } from 'react';
+import { createContext } from "react";
 
 export const FormContext = createContext();
 
@@ -229,7 +224,7 @@ export const FormContext = createContext();
 export function useFormContext() {
   const context = FormContext.useContext();
   if (!context) {
-    throw new Error('useFormContext must be used within an OptimizedForm');
+    throw new Error("useFormContext must be used within an OptimizedForm");
   }
   return context;
 }
@@ -238,24 +233,24 @@ export function useFormContext() {
 export function OptimizedInput({
   name,
   label,
-  type = 'text',
-  placeholder = '',
+  type = "text",
+  placeholder = "",
   required = false,
-  className = '',
+  className = "",
   ...props
 }) {
   const { formData, errors, touched, handleInputChange, handleFieldBlur } = useFormContext();
   const [isFocused, setIsFocused] = useState(false);
 
-  const value = formData[name] || '';
-  const error = touched[name] ? errors[name] : '';
+  const value = formData[name] || "";
+  const error = touched[name] ? errors[name] : "";
   const hasError = !!error;
 
   const handleChange = useCallback(
     (e) => {
       handleInputChange(name, e.target.value);
     },
-    [name, handleInputChange]
+    [name, handleInputChange],
   );
 
   const handleBlur = useCallback(() => {
@@ -274,15 +269,13 @@ export function OptimizedInput({
       {label && (
         <label
           htmlFor={inputId}
-          className={`block text-sm font-medium ${
-            hasError ? 'text-red-600' : 'text-gray-700'
-          }`}
+          className={`block text-sm font-medium ${hasError ? "text-red-600" : "text-gray-700"}`}
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      
+
       <input
         id={inputId}
         type={type}
@@ -294,14 +287,14 @@ export function OptimizedInput({
         required={required}
         className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${
           hasError
-            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+            ? "border-red-300 focus:ring-red-500 focus:border-red-500"
             : isFocused
-            ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
-            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+              ? "border-blue-300 focus:ring-blue-500 focus:border-blue-500"
+              : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
         }`}
         {...props}
       />
-      
+
       {hasError && (
         <p className="text-sm text-red-600" role="alert">
           {error}
@@ -317,22 +310,22 @@ export function OptimizedSelect({
   label,
   options = [],
   required = false,
-  placeholder = 'Select an option',
-  className = '',
+  placeholder = "Select an option",
+  className = "",
   ...props
 }) {
   const { formData, errors, touched, handleInputChange, handleFieldBlur } = useFormContext();
   const [isFocused, setIsFocused] = useState(false);
 
-  const value = formData[name] || '';
-  const error = touched[name] ? errors[name] : '';
+  const value = formData[name] || "";
+  const error = touched[name] ? errors[name] : "";
   const hasError = !!error;
 
   const handleChange = useCallback(
     (e) => {
       handleInputChange(name, e.target.value);
     },
-    [name, handleInputChange]
+    [name, handleInputChange],
   );
 
   const handleBlur = useCallback(() => {
@@ -351,15 +344,13 @@ export function OptimizedSelect({
       {label && (
         <label
           htmlFor={selectId}
-          className={`block text-sm font-medium ${
-            hasError ? 'text-red-600' : 'text-gray-700'
-          }`}
+          className={`block text-sm font-medium ${hasError ? "text-red-600" : "text-gray-700"}`}
         >
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
-      
+
       <select
         id={selectId}
         value={value}
@@ -369,10 +360,10 @@ export function OptimizedSelect({
         required={required}
         className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${
           hasError
-            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+            ? "border-red-300 focus:ring-red-500 focus:border-red-500"
             : isFocused
-            ? 'border-blue-300 focus:ring-blue-500 focus:border-blue-500'
-            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+              ? "border-blue-300 focus:ring-blue-500 focus:border-blue-500"
+              : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
         }`}
         {...props}
       >
@@ -383,7 +374,7 @@ export function OptimizedSelect({
           </option>
         ))}
       </select>
-      
+
       {hasError && (
         <p className="text-sm text-red-600" role="alert">
           {error}
@@ -396,41 +387,41 @@ export function OptimizedSelect({
 // Utility functions
 function validateForm(data, schema) {
   const errors = {};
-  
+
   for (const [field, rules] of Object.entries(schema)) {
     const value = data[field];
     const fieldErrors = validateField(value, rules);
-    
+
     if (fieldErrors) {
       errors[field] = fieldErrors;
     }
   }
-  
+
   return errors;
 }
 
 function validateField(value, rules) {
-  if (rules.required && (!value || value.toString().trim() === '')) {
-    return 'This field is required';
+  if (rules.required && (!value || value.toString().trim() === "")) {
+    return "This field is required";
   }
-  
+
   if (rules.minLength && value.length < rules.minLength) {
     return `Must be at least ${rules.minLength} characters`;
   }
-  
+
   if (rules.maxLength && value.length > rules.maxLength) {
     return `Must be no more than ${rules.maxLength} characters`;
   }
-  
+
   if (rules.pattern && !rules.pattern.test(value)) {
-    return rules.message || 'Invalid format';
+    return rules.message || "Invalid format";
   }
-  
+
   return null;
 }
 
 async function saveFormData(data) {
   // Implement your autosave logic here
   // This could be an API call to save draft
-  console.log('Saving form data:', data);
+  console.log("Saving form data:", data);
 }

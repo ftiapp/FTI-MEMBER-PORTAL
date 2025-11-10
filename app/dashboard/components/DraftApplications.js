@@ -129,22 +129,26 @@ export default function DraftApplications({
 
     // Filter by membership type
     if (membershipTypeFilter !== "all") {
-      filteredDrafts = filteredDrafts.filter(draft => draft.memberType.toLowerCase() === membershipTypeFilter.toLowerCase());
+      filteredDrafts = filteredDrafts.filter(
+        (draft) => draft.memberType.toLowerCase() === membershipTypeFilter.toLowerCase(),
+      );
     }
 
     // Filter by search query
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filteredDrafts = filteredDrafts.filter(draft => {
+      filteredDrafts = filteredDrafts.filter((draft) => {
         const companyName = draft.companyName || "";
         const taxId = getDraftTaxId(draft) || "";
         const idCard = getDraftIdCard(draft) || "";
         const memberTypeLabel = getMemberTypeFullName(draft.memberType) || "";
 
-        return companyName.toLowerCase().includes(query) ||
-               taxId.includes(query) ||
-               idCard.includes(query) ||
-               memberTypeLabel.toLowerCase().includes(query);
+        return (
+          companyName.toLowerCase().includes(query) ||
+          taxId.includes(query) ||
+          idCard.includes(query) ||
+          memberTypeLabel.toLowerCase().includes(query)
+        );
       });
     }
 

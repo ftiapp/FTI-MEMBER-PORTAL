@@ -49,26 +49,21 @@ export const useACFormNavigation = (
 ) => {
   // ใช้ค่าจากภายนอกถ้ามี หรือสร้าง state ใหม่ถ้าไม่มี
   const [internalCurrentStep, setInternalCurrentStep] = useState(1);
-  const [internalTotalSteps] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const currentStep = externalCurrentStep ?? internalCurrentStep;
-  const setCurrentStep = externalSetCurrentStep ?? setInternalCurrentStep;
-  const totalSteps = externalTotalSteps ?? internalTotalSteps;
-
-  const validateCurrentStep = (formData, selectedFiles) => {
-    const errors = validateForm(formData, currentStep, selectedFiles);
-    return errors;
-  };
+  // ใช้ค่าจากภายนอกถ้ามี
+  const currentStep = externalCurrentStep !== undefined ? externalCurrentStep : internalCurrentStep;
+  const setCurrentStep = externalSetCurrentStep || setInternalCurrentStep;
+  const totalSteps = externalTotalSteps || 5;
 
   /**
    * ไปยังขั้นตอนถัดไป พร้อมตรวจสอบข้อมูล
    * @param {Object} formData ข้อมูลฟอร์มทั้งหมด
    * @param {Function} setErrors ฟังก์ชันสำหรับกำหนดข้อผิดพลาด
    */
-  const handleNextStep = async (formData, setErrors, selectedFiles) => {
+  const handleNextStep = async (formData, setErrors) => {
     // ตรวจสอบความถูกต้องของข้อมูลในขั้นตอนปัจจุบัน
-    const errors = validateCurrentStep(formData, selectedFiles);
+    const errors = validateForm(formData, currentStep);
     setErrors(errors);
 
     if (Object.keys(errors).length > 0) {

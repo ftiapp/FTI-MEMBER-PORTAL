@@ -104,7 +104,7 @@ export async function POST(request) {
 
     // Small helper to convert undefined to SQL NULL
     const toNull = (v) => (v === undefined ? null : v);
-    
+
     // Helper for English fields - return empty string instead of null to satisfy DB constraints
     const toEmptyString = (v) => (v === undefined || v === null ? "" : v);
 
@@ -206,7 +206,8 @@ export async function POST(request) {
           // Support dynamic keys like email-2, phone-2, phoneExtension-2 with fallback to generic keys
           companyEmail = documentAddress["email-2"] || documentAddress.email || "";
           companyPhone = documentAddress["phone-2"] || documentAddress.phone || "";
-          companyPhoneExtension = documentAddress["phoneExtension-2"] || documentAddress.phoneExtension || "";
+          companyPhoneExtension =
+            documentAddress["phoneExtension-2"] || documentAddress.phoneExtension || "";
         }
       } catch (error) {
         console.error("Error parsing addresses:", error);
@@ -318,10 +319,7 @@ export async function POST(request) {
     console.log("✅ [AM Membership Submit] Main data inserted with ID:", mainId);
 
     // Insert authorized signatory name fields if Thai names are provided
-    if (
-      authorizedSignatoryFirstNameTh &&
-      authorizedSignatoryLastNameTh
-    ) {
+    if (authorizedSignatoryFirstNameTh && authorizedSignatoryLastNameTh) {
       console.log("📝 [AM Membership Submit] Inserting authorized signatory names...");
 
       await executeQuery(
@@ -349,7 +347,9 @@ export async function POST(request) {
       );
       console.log("✅ [AM Membership Submit] Authorized signatory names inserted");
     } else {
-      console.log("⚠️ [AM Membership Submit] No authorized signatory Thai names provided, skipping signature name insertion");
+      console.log(
+        "⚠️ [AM Membership Submit] No authorized signatory Thai names provided, skipping signature name insertion",
+      );
     }
 
     // Process addresses

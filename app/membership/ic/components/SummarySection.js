@@ -714,13 +714,13 @@ export default function SummarySection({
             {/* ชื่อ-นามสกุลภาษาไทย */}
             <InfoCard
               title="ชื่อ-นามสกุล"
-              value={`${formData?.authorizedSignatoryFirstNameTh || ""} ${formData?.authorizedSignatoryLastNameTh || ""}`.trim() || "-"}
+              value={
+                `${formData?.authorizedSignatoryFirstNameTh || ""} ${formData?.authorizedSignatoryLastNameTh || ""}`.trim() ||
+                "-"
+              }
             />
             {/* ตำแหน่งภาษาไทย */}
-            <InfoCard
-              title="ตำแหน่ง"
-              value={formData?.authorizedSignatoryPositionTh || "-"}
-            />
+            <InfoCard title="ตำแหน่ง" value={formData?.authorizedSignatoryPositionTh || "-"} />
           </div>
         </Section>
       )}

@@ -161,11 +161,11 @@ export default function OCMembershipForm(props = {}) {
 
       // Re-validate all fields before final submission
       const allErrors = {};
-      STEPS.forEach(step => {
+      STEPS.forEach((step) => {
         const stepErrors = validateOCForm(formData, step.id);
         Object.assign(allErrors, stepErrors);
       });
-      
+
       console.log("🔍 Final submission validation - All errors:", allErrors);
       setErrors(allErrors);
 

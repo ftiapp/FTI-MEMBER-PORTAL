@@ -3,27 +3,30 @@ import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./c
 const normalizeSignatories = (application) => {
   // Check for new signatories array structure
   let signatories = application.signatories || [];
-  
+
   // If we have the old single signature structure, convert it to array
   if (!signatories || signatories.length === 0) {
-    const oldSignature = application.signatureName || application.signature_name || application.signature;
+    const oldSignature =
+      application.signatureName || application.signature_name || application.signature;
     if (oldSignature) {
-      signatories = [{
-        prenameTh: oldSignature.prenameTh || oldSignature.prename_th,
-        prenameOther: oldSignature.prenameOther || oldSignature.prename_other,
-        firstNameTh: oldSignature.firstNameTh || oldSignature.first_name_th,
-        lastNameTh: oldSignature.lastNameTh || oldSignature.last_name_th,
-        positionTh: oldSignature.positionTh || oldSignature.position_th,
-        // Also include snake_case for compatibility
-        prename_th: oldSignature.prename_th || oldSignature.prenameTh,
-        prename_other: oldSignature.prename_other || oldSignature.prenameOther,
-        first_name_th: oldSignature.first_name_th || oldSignature.firstNameTh,
-        last_name_th: oldSignature.last_name_th || oldSignature.lastNameTh,
-        position_th: oldSignature.position_th || oldSignature.positionTh,
-      }];
+      signatories = [
+        {
+          prenameTh: oldSignature.prenameTh || oldSignature.prename_th,
+          prenameOther: oldSignature.prenameOther || oldSignature.prename_other,
+          firstNameTh: oldSignature.firstNameTh || oldSignature.first_name_th,
+          lastNameTh: oldSignature.lastNameTh || oldSignature.last_name_th,
+          positionTh: oldSignature.positionTh || oldSignature.position_th,
+          // Also include snake_case for compatibility
+          prename_th: oldSignature.prename_th || oldSignature.prenameTh,
+          prename_other: oldSignature.prename_other || oldSignature.prenameOther,
+          first_name_th: oldSignature.first_name_th || oldSignature.firstNameTh,
+          last_name_th: oldSignature.last_name_th || oldSignature.lastNameTh,
+          position_th: oldSignature.position_th || oldSignature.positionTh,
+        },
+      ];
     }
   }
-  
+
   return signatories.map((signatory, index) => ({
     ...signatory,
     // Ensure both camelCase and snake_case are available
@@ -166,7 +169,7 @@ export const normalizeApplicationData = (application, type) => {
     // Authorized Signatories - support multiple signatories
     signatories: normalizeSignatories(application),
     signatureName: normalizeSignatureName(
-      application.signatureName || application.signature_name || application.signature
+      application.signatureName || application.signature_name || application.signature,
     ),
 
     // Admin
@@ -555,11 +558,14 @@ export const normalizeDocuments = (application) => {
     application.oc_documents ||
     application.am_documents ||
     [];
-  
+
   // Also check for multiple signature files
   const signatureDocs = application.authorizedSignatures || [];
-  
-  const allDocs = [...(Array.isArray(docs) ? docs : [docs]), ...(Array.isArray(signatureDocs) ? signatureDocs : [signatureDocs])];
+
+  const allDocs = [
+    ...(Array.isArray(docs) ? docs : [docs]),
+    ...(Array.isArray(signatureDocs) ? signatureDocs : [signatureDocs]),
+  ];
 
   return allDocs.map((doc) => ({
     // Preserve identifiers for admin actions like delete/replace

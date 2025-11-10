@@ -1,6 +1,7 @@
 // Simple in-memory cache with TTL support
 class MemoryCache {
-  constructor(ttl = 5 * 60 * 1000) { // Default 5 minutes TTL
+  constructor(ttl = 5 * 60 * 1000) {
+    // Default 5 minutes TTL
     this.cache = new Map();
     this.ttl = ttl;
   }
@@ -67,18 +68,21 @@ export const staticCache = new MemoryCache(60 * 60 * 1000); // 1 hour for static
 export const userCache = new MemoryCache(30 * 60 * 1000); // 30 minutes for user data
 
 // Cleanup expired entries every 5 minutes
-setInterval(() => {
-  apiCache.cleanup();
-  staticCache.cleanup();
-  userCache.cleanup();
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    apiCache.cleanup();
+    staticCache.cleanup();
+    userCache.cleanup();
+  },
+  5 * 60 * 1000,
+);
 
 // Enhanced fetch with caching
 export async function fetchWithCache(url, options = {}, cacheInstance = apiCache) {
-  const cacheKey = `${url}-${JSON.stringify(options)}-${options.method || 'GET'}`;
-  
+  const cacheKey = `${url}-${JSON.stringify(options)}-${options.method || "GET"}`;
+
   // Only cache GET requests
-  if (options.method && options.method !== 'GET') {
+  if (options.method && options.method !== "GET") {
     return fetch(url, options);
   }
 
@@ -92,16 +96,16 @@ export async function fetchWithCache(url, options = {}, cacheInstance = apiCache
   try {
     console.log(`Fetching: ${url}`);
     const response = await fetch(url, options);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
     const data = await response.json();
-    
+
     // Cache successful responses
     cacheInstance.set(cacheKey, data);
-    
+
     return data;
   } catch (error) {
     console.error(`Fetch error for ${url}:`, error);
@@ -110,7 +114,7 @@ export async function fetchWithCache(url, options = {}, cacheInstance = apiCache
 }
 
 // React hook for caching
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 export function useCachedFetch(url, options = {}, cacheInstance = apiCache) {
   const [data, setData] = useState(null);
@@ -124,8 +128,8 @@ export function useCachedFetch(url, options = {}, cacheInstance = apiCache) {
     setError(null);
 
     try {
-      const cacheKey = `${url}-${JSON.stringify(options)}-${options.method || 'GET'}`;
-      
+      const cacheKey = `${url}-${JSON.stringify(options)}-${options.method || "GET"}`;
+
       // Check cache first
       const cached = cacheInstance.get(cacheKey);
       if (cached) {
@@ -150,7 +154,7 @@ export function useCachedFetch(url, options = {}, cacheInstance = apiCache) {
 
   // Function to manually refetch
   const refetch = useCallback(() => {
-    const cacheKey = `${url}-${JSON.stringify(options)}-${options.method || 'GET'}`;
+    const cacheKey = `${url}-${JSON.stringify(options)}-${options.method || "GET"}`;
     cacheInstance.delete(cacheKey);
     fetchData();
   }, [url, options, cacheInstance, fetchData]);
@@ -160,7 +164,7 @@ export function useCachedFetch(url, options = {}, cacheInstance = apiCache) {
 
 // Debounced fetch for search inputs
 export function useDebouncedFetch(url, delay = 300) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -177,7 +181,7 @@ export function useDebouncedFetch(url, delay = 300) {
         const result = await fetchWithCache(searchUrl);
         setData(result);
       } catch (error) {
-        console.error('Search error:', error);
+        console.error("Search error:", error);
         setData([]);
       } finally {
         setLoading(false);
@@ -194,15 +198,15 @@ export function useDebouncedFetch(url, delay = 300) {
 export const cacheUtils = {
   // Cache user session
   cacheUserSession: (userData) => {
-    userCache.set('user-session', userData, 30 * 60 * 1000); // 30 minutes
+    userCache.set("user-session", userData, 30 * 60 * 1000); // 30 minutes
   },
 
   getUserSession: () => {
-    return userCache.get('user-session');
+    return userCache.get("user-session");
   },
 
   clearUserSession: () => {
-    userCache.delete('user-session');
+    userCache.delete("user-session");
   },
 
   // Cache form data
@@ -230,7 +234,7 @@ export const cacheUtils = {
   // Invalidate cache by pattern
   invalidatePattern: (pattern) => {
     const stats = apiCache.getStats();
-    stats.keys.forEach(key => {
+    stats.keys.forEach((key) => {
       if (key.includes(pattern)) {
         apiCache.delete(key);
       }

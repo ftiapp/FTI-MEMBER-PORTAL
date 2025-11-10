@@ -7,7 +7,7 @@ const nextConfig = {
       allowedOrigins: ["*"],
     },
     optimizeCss: true,
-    optimizePackageImports: ['lucide-react', 'react-icons'],
+    optimizePackageImports: ["lucide-react", "react-icons"],
   },
   compiler: {
     // Remove console logs in production
@@ -23,87 +23,87 @@ const nextConfig = {
   // Performance optimizations
   poweredByHeader: false,
   compress: true,
-  
+
   // Static optimization
   generateEtags: true,
-  
+
   // Image optimization
   images: {
-    domains: ['res.cloudinary.com'],
-    formats: ['image/webp', 'image/avif'],
+    domains: ["res.cloudinary.com"],
+    formats: ["image/webp", "image/avif"],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
-  
+
   // Security headers
   async headers() {
     return [
       {
-        source: '/(.*)',
+        source: "/(.*)",
         headers: [
           {
-            key: 'X-Frame-Options',
-            value: 'DENY',
+            key: "X-Frame-Options",
+            value: "DENY",
           },
           {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
+            key: "X-Content-Type-Options",
+            value: "nosniff",
           },
           {
-            key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin",
           },
           {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
+            key: "X-XSS-Protection",
+            value: "1; mode=block",
           },
         ],
       },
       {
-        source: '/images/:path*',
+        source: "/images/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/_next/static/:path*',
+        source: "/_next/static/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/fonts/:path*',
+        source: "/fonts/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
           },
         ],
       },
       {
-        source: '/api/:path*',
+        source: "/api/:path*",
         headers: [
           {
-            key: 'Cache-Control',
-            value: 'no-store, must-revalidate',
+            key: "Cache-Control",
+            value: "no-store, must-revalidate",
           },
         ],
       },
     ];
   },
-  
+
   // Redirects for SEO and performance
   async redirects() {
     return [
       // Add any redirects here if needed
     ];
   },
-  
+
   // Webpack optimizations
   webpack: (config, { isServer, dev, webpack }) => {
     config.resolve.alias["@"] = path.resolve(__dirname, "./");
@@ -132,17 +132,17 @@ const nextConfig = {
       config.optimization = {
         ...config.optimization,
         splitChunks: {
-          chunks: 'all',
+          chunks: "all",
           cacheGroups: {
             vendor: {
               test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
+              name: "vendors",
+              chunks: "all",
             },
             common: {
-              name: 'common',
+              name: "common",
               minChunks: 2,
-              chunks: 'all',
+              chunks: "all",
               enforce: true,
             },
           },
@@ -158,8 +158,8 @@ const nextConfig = {
     if (!dev) {
       config.performance = {
         maxEntrypointSize: 512000, // 512KB
-        maxAssetSize: 512000,      // 512KB
-        hints: 'warning',
+        maxAssetSize: 512000, // 512KB
+        hints: "warning",
       };
     }
 
@@ -169,25 +169,24 @@ const nextConfig = {
     }
 
     // Bundle analyzer
-    if (process.env.ANALYZE === 'true') {
-      const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+    if (process.env.ANALYZE === "true") {
+      const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
       config.plugins.push(
         new BundleAnalyzerPlugin({
-          analyzerMode: 'static',
+          analyzerMode: "static",
           openAnalyzer: false,
-        })
+        }),
       );
     }
 
     return config;
   },
-  
+
   // Experimental features for better performance
-  swcMinify: true,
-  
+
   // Output configuration
-  output: 'standalone',
-  
+  output: "standalone",
+
   // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,

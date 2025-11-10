@@ -187,13 +187,13 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   // Test file accessibility
   const testFileAccess = async (filePath) => {
     try {
-      const response = await fetch(filePath, { method: 'HEAD' });
+      const response = await fetch(filePath, { method: "HEAD" });
       console.log("🌐 File access test:", {
         url: filePath,
         status: response.status,
         ok: response.ok,
-        contentType: response.headers.get('content-type'),
-        contentLength: response.headers.get('content-length')
+        contentType: response.headers.get("content-type"),
+        contentLength: response.headers.get("content-length"),
       });
       return response.ok;
     } catch (error) {
@@ -206,50 +206,54 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   const handlePreview = async (filePath, fileName) => {
     console.log("🔍 Preview clicked:", { filePath, fileName });
     console.log("🔍 File exists check:", !!filePath);
-    console.log("🔍 File extension:", filePath?.split('.').pop());
-    
+    console.log("🔍 File extension:", filePath?.split(".").pop());
+
     if (!filePath) {
       console.error("❌ No file path provided");
       toast.error("ไม่พบพาธของไฟล์");
       return;
     }
-    
+
     // Convert relative path to absolute URL if needed
     let fullFilePath = filePath;
-    if (filePath && !filePath.startsWith('http') && !filePath.startsWith('/')) {
+    if (filePath && !filePath.startsWith("http") && !filePath.startsWith("/")) {
       // If it's a relative path, make it absolute
       fullFilePath = `/${filePath}`;
     }
-    if (filePath && filePath.startsWith('/uploads')) {
+    if (filePath && filePath.startsWith("/uploads")) {
       // Already starts with /uploads, use as is
       fullFilePath = filePath;
     }
-    
+
     console.log("🌐 Full file path:", fullFilePath);
-    
+
     // Test if file is accessible
     const isAccessible = await testFileAccess(fullFilePath);
     if (!isAccessible) {
       toast.error("ไม่สามารถเข้าถึงไฟล์ได้ กรุณาตรวจสอบพาธของไฟล์");
       return;
     }
-    
+
     if (canPreview(fullFilePath || fileName)) {
       setIsPreviewLoading(true);
       const isImg = isImage(fullFilePath || fileName);
       console.log("🖼️ Is image:", isImg);
-      
+
       // For PDFs, ensure proper URL encoding
       let fileUrl = fullFilePath;
       if (!isImg && fullFilePath) {
         // Add timestamp to prevent caching issues
-        const separator = fullFilePath.includes('?') ? '&' : '?';
+        const separator = fullFilePath.includes("?") ? "&" : "?";
         fileUrl = `${fullFilePath}${separator}t=${Date.now()}`;
         console.log("📄 PDF URL with timestamp:", fileUrl);
       }
-      
-      console.log("🌐 Setting preview file:", { path: fileUrl, name: fileName, type: isImg ? "image" : "pdf" });
-      
+
+      console.log("🌐 Setting preview file:", {
+        path: fileUrl,
+        name: fileName,
+        type: isImg ? "image" : "pdf",
+      });
+
       setPreviewFile({
         path: fileUrl,
         name: fileName,
@@ -257,14 +261,17 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
       });
       setZoomLevel(1);
       setPosition({ x: 0, y: 0 });
-      
+
       // Clear loading state after a short delay for images, longer for PDFs
-      setTimeout(() => {
-        if (isPreviewLoading) {
-          console.log("⏰ Loading timeout reached");
-          setIsPreviewLoading(false);
-        }
-      }, isImg ? 500 : 5000);
+      setTimeout(
+        () => {
+          if (isPreviewLoading) {
+            console.log("⏰ Loading timeout reached");
+            setIsPreviewLoading(false);
+          }
+        },
+        isImg ? 500 : 5000,
+      );
     } else {
       console.log("❌ File cannot be previewed:", fullFilePath);
       toast.error("ไม่สามารถแสดงตัวอย่างไฟล์นี้ได้");
@@ -662,11 +669,13 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
               {doc.filePath && (
                 <div className="flex flex-wrap gap-2 w-full justify-start border-t border-blue-200 pt-3">
                   {/* Debug button - only in development */}
-                  {process.env.NODE_ENV === 'development' && (
+                  {process.env.NODE_ENV === "development" && (
                     <button
                       onClick={() => {
                         console.log("🐛 Debug file info:", doc);
-                        alert(`File Path: ${doc.filePath}\nFull URL: ${window.location.origin}${doc.filePath.startsWith('/') ? '' : '/'}${doc.filePath}`);
+                        alert(
+                          `File Path: ${doc.filePath}\nFull URL: ${window.location.origin}${doc.filePath.startsWith("/") ? "" : "/"}${doc.filePath}`,
+                        );
                       }}
                       className="flex items-center gap-2 px-2 py-1 bg-gray-600 text-white text-xs rounded hover:bg-gray-700 transition-colors"
                       title="Debug info"
@@ -896,12 +905,22 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                   {!isPreviewLoading && previewFile.type === "pdf" && (
                     <div className="absolute top-4 right-4">
                       <button
-                        onClick={() => window.open(previewFile.path, '_blank')}
+                        onClick={() => window.open(previewFile.path, "_blank")}
                         className="px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-lg"
                         title="เปิดในแท็บใหม่"
                       >
-                        <svg className="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        <svg
+                          className="w-4 h-4 inline mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
                         </svg>
                         เปิดในแท็บใหม่
                       </button>
@@ -929,7 +948,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                 <p className="text-sm text-gray-400 mt-2">{previewFile.name}</p>
                 {previewFile.type === "pdf" && (
                   <button
-                    onClick={() => window.open(previewFile.path, '_blank')}
+                    onClick={() => window.open(previewFile.path, "_blank")}
                     className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                   >
                     เปิดในแท็บใหม่
@@ -968,7 +987,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
                     Esc: ปิด | หากไม่แสดงผล ให้ใช้ปุ่มด้านล่าง
                   </p>
                   <button
-                    onClick={() => window.open(previewFile.path, '_blank')}
+                    onClick={() => window.open(previewFile.path, "_blank")}
                     className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
                   >
                     เปิดในแท็บใหม่

@@ -7,11 +7,16 @@ async function checkTaxIdInDatabase(taxId) {
   try {
     // 0. ตรวจสอบในตาราง BI_MEMBER (MSSQL) ก่อน - สมาชิกเดิม
     const biMemberResult = await mssqlQuery(
-      "SELECT TOP (1000) [TAX_ID] FROM [FTI].[dbo].[BI_MEMBER] WHERE [TAX_ID] = @param0",
+      "SELECT TOP (1000) [TAX_ID] FROM [FTI].[dbo].[BI_MEMBER] WHERE [TAX_ID] = @param0 AND [MEMBER_STATUS_CODE] = 'A'",
       [taxId],
     );
     if (biMemberResult && biMemberResult.length > 0) {
-      return { exists: true, isExistingMember: true, status: 'existing_member', memberType: "BI_MEMBER" };
+      return {
+        exists: true,
+        isExistingMember: true,
+        status: "existing_member",
+        memberType: "BI_MEMBER",
+      };
     }
 
     // 1. ตรวจสอบในตาราง OC (MemberRegist_OC_Main)
@@ -69,7 +74,7 @@ function validateTaxId(taxId) {
 // Helper function to generate response messages
 function generateResponseMessage(taxId, status, memberType, isExistingMember = false) {
   // Special case for existing members from BI_MEMBER
-  if (isExistingMember || status === 'existing_member') {
+  if (isExistingMember || status === "existing_member") {
     return "เลขทะเบียนนิติบุคคลนี้เป็นสมาชิก ส.อ.ท. แล้ว โปรดใช้เมนู 'ยืนยันสมาชิกเดิม'";
   }
 
@@ -124,7 +129,12 @@ export async function GET(request) {
           exists: true,
           isExistingMember: result.isExistingMember || false,
           status: result.status,
-          message: generateResponseMessage(taxId, result.status, result.memberType, result.isExistingMember),
+          message: generateResponseMessage(
+            taxId,
+            result.status,
+            result.memberType,
+            result.isExistingMember,
+          ),
         },
         { status: 409 },
       );
@@ -181,7 +191,12 @@ export async function POST(request) {
           exists: true,
           isExistingMember: result.isExistingMember || false,
           status: result.status,
-          message: generateResponseMessage(taxId, result.status, result.memberType, result.isExistingMember),
+          message: generateResponseMessage(
+            taxId,
+            result.status,
+            result.memberType,
+            result.isExistingMember,
+          ),
         },
         { status: 409 },
       );

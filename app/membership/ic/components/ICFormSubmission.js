@@ -173,10 +173,7 @@ export const submitICMembershipForm = async (formData) => {
         "representativeFirstNameEn",
         formData.representative.firstNameEn || "",
       );
-      formDataToSubmit.append(
-        "representativeLastNameEn",
-        formData.representative.lastNameEn || "",
-      );
+      formDataToSubmit.append("representativeLastNameEn", formData.representative.lastNameEn || "");
       formDataToSubmit.append("representativeEmail", formData.representative.email || "");
       formDataToSubmit.append("representativePhone", formData.representative.phone || "");
       formDataToSubmit.append(

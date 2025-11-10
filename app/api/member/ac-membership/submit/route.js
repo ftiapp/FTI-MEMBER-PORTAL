@@ -226,7 +226,10 @@ export async function POST(request) {
           companyEmail = documentAddress.email || companyEmail;
           // Handle both "phone" and "phone-2" field names
           companyPhone = documentAddress.phone || documentAddress["phone-2"] || companyPhone;
-          companyPhoneExtension = documentAddress.phoneExtension || documentAddress["phoneExtension-2"] || companyPhoneExtension;
+          companyPhoneExtension =
+            documentAddress.phoneExtension ||
+            documentAddress["phoneExtension-2"] ||
+            companyPhoneExtension;
         }
       } catch (error) {
         console.error("Error parsing addresses:", error);
@@ -237,12 +240,12 @@ export async function POST(request) {
     companyEmail = companyEmail || "";
     companyPhone = companyPhone || "";
     companyPhoneExtension = companyPhoneExtension || "";
-    
+
     console.log("📧 [AC] Extracted contact info:", {
       companyEmail,
       companyPhone,
       companyPhoneExtension,
-      hasAddresses: !!data.addresses
+      hasAddresses: !!data.addresses,
     });
 
     // Step 4: Insert Main Data
@@ -708,13 +711,10 @@ export async function POST(request) {
     }
 
     // Step 11: Insert Authorized Signatory Names
-    if (
-      data.authorizedSignatoryFirstNameTh &&
-      data.authorizedSignatoryLastNameTh
-    ) {
+    if (data.authorizedSignatoryFirstNameTh && data.authorizedSignatoryLastNameTh) {
       const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
       const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
-      
+
       await executeQuery(
         trx,
         `INSERT INTO MemberRegist_AC_Signature_Name (
@@ -736,14 +736,16 @@ export async function POST(request) {
       );
       console.log("✅ [AC] Authorized signatory names inserted");
     } else {
-      console.log("⚠️ [AC] No authorized signatory Thai names provided, skipping signature name insertion");
+      console.log(
+        "⚠️ [AC] No authorized signatory Thai names provided, skipping signature name insertion",
+      );
     }
 
     // Step 12: Handle Document Uploads
     console.log("📤 [AC] Processing document uploads...");
     const uploadedDocuments = {};
 
-// ... (rest of the code remains the same)
+    // ... (rest of the code remains the same)
     for (const fieldName of Object.keys(files)) {
       const fileValue = files[fieldName];
 

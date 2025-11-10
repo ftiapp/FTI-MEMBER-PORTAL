@@ -450,20 +450,22 @@ export async function GET(request, { params }) {
       authorizedSignatoryPositionEn: signatureName?.position_en || null,
 
       // Signature name object for PDF utility
-      signatureName: signatureName ? {
-        prenameTh: signatureName.prename_th,
-        prenameEn: signatureName.prename_en,
-        prenameOther: signatureName.prename_other,
-        firstNameTh: signatureName.first_name_th,
-        lastNameTh: signatureName.last_name_th,
-        firstNameEn: signatureName.first_name_en,
-        lastNameEn: signatureName.last_name_en,
-        positionTh: signatureName.position_th,
-        positionEn: signatureName.position_en,
-      } : null,
+      signatureName: signatureName
+        ? {
+            prenameTh: signatureName.prename_th,
+            prenameEn: signatureName.prename_en,
+            prenameOther: signatureName.prename_other,
+            firstNameTh: signatureName.first_name_th,
+            lastNameTh: signatureName.last_name_th,
+            firstNameEn: signatureName.first_name_en,
+            lastNameEn: signatureName.last_name_en,
+            positionTh: signatureName.position_th,
+            positionEn: signatureName.position_en,
+          }
+        : null,
 
       // Multiple signatories for PDF generation
-      signatories: signatories.map(sig => ({
+      signatories: signatories.map((sig) => ({
         id: sig.id,
         prenameTh: sig.prename_th || "",
         prenameEn: sig.prename_en || "",
@@ -478,7 +480,7 @@ export async function GET(request, { params }) {
       })),
 
       // Signature files for multiple signatories
-      authorizedSignatures: signatureFiles.map(file => formatDocumentForResponse(file)),
+      authorizedSignatures: signatureFiles.map((file) => formatDocumentForResponse(file)),
     };
 
     // Add applicant account info for PDF

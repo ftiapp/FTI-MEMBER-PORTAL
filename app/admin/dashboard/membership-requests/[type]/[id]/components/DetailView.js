@@ -137,7 +137,11 @@ const DetailView = ({
       <AddressSection application={application} onUpdate={handleSectionUpdate} />
       <BusinessInfoSection application={application} onUpdate={handleSectionUpdate} />
       <DocumentsSection application={application} onViewDocument={onViewDocument} type={type} />
-      <AuthorizedSignatorySection application={application} type={type} onUpdate={handleSectionUpdate} />
+      <AuthorizedSignatorySection
+        application={application}
+        type={type}
+        onUpdate={handleSectionUpdate}
+      />
       <ApplicantInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
       <AdminActionsSection
         application={application}

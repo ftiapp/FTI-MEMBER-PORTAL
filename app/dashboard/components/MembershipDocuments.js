@@ -13,11 +13,11 @@ import ApplicationDetailView from "./ApplicationDetailView";
 export default function MembershipDocuments() {
   const { user } = useAuth();
   const userId = user?.id;
-  
+
   console.log("👤 MembershipDocuments - Auth state:", {
     hasUser: !!user,
     userId: userId,
-    user: user
+    user: user,
   });
   const [activeSection, setActiveSection] = useState("drafts");
   const [currentPage, setCurrentPage] = useState(1);

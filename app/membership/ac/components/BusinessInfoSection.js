@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import toast from "react-hot-toast";
 import PropTypes from "prop-types";
 import {
   BusinessTypesField,
@@ -73,10 +72,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
       if (errorKey !== lastScrolledErrorRef.current) {
         lastScrolledErrorRef.current = errorKey;
         firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        toast.error(errorMessage, {
-          id: "ac-business-errors",
-          duration: 5000,
-        });
+        // Toast removed - only show when Next button is clicked in ACFormNavigation.js
       }
     } else {
       lastScrolledErrorRef.current = null;

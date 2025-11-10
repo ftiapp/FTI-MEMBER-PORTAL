@@ -116,20 +116,25 @@ export default function useAddressUpdateRequests() {
         if (data && data.success === true) {
           if (Array.isArray(data.updates)) {
             // Remove duplicates based on unique combination of id, addr_code, and addr_lang
-            const uniqueUpdates = data.updates.filter((request, index, self) =>
-              index === self.findIndex((r) => 
-                r.id === request.id && 
-                r.addr_code === request.addr_code && 
-                r.addr_lang === request.addr_lang
-              )
+            const uniqueUpdates = data.updates.filter(
+              (request, index, self) =>
+                index ===
+                self.findIndex(
+                  (r) =>
+                    r.id === request.id &&
+                    r.addr_code === request.addr_code &&
+                    r.addr_lang === request.addr_lang,
+                ),
             );
-            
+
             // Debug logging
             if (data.updates.length !== uniqueUpdates.length) {
-              console.log(`🔍 Address Updates: Removed ${data.updates.length - uniqueUpdates.length} duplicates`);
+              console.log(
+                `🔍 Address Updates: Removed ${data.updates.length - uniqueUpdates.length} duplicates`,
+              );
               console.log(`Original: ${data.updates.length}, Unique: ${uniqueUpdates.length}`);
             }
-            
+
             setRequests(uniqueUpdates);
 
             // อัปเดตข้อมูลการแบ่งหน้า

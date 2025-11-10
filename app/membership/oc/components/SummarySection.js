@@ -836,13 +836,12 @@ export default function SummarySectionComponent({
                   {/* ชื่อ-นามสกุลภาษาไทย */}
                   <InfoCard
                     title="ชื่อ-นามสกุล"
-                    value={`${signatory?.firstNameTh || ""} ${signatory?.lastNameTh || ""}`.trim() || "-"}
+                    value={
+                      `${signatory?.firstNameTh || ""} ${signatory?.lastNameTh || ""}`.trim() || "-"
+                    }
                   />
                   {/* ตำแหน่งภาษาไทย */}
-                  <InfoCard
-                    title="ตำแหน่ง"
-                    value={signatory?.positionTh || "-"}
-                  />
+                  <InfoCard title="ตำแหน่ง" value={signatory?.positionTh || "-"} />
                   {/* ไฟล์ลายเซ็น */}
                   <div className="md:col-span-2">
                     <FileCard

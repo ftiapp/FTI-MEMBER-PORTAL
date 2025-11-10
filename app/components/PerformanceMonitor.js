@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 // Performance monitoring component
 export default function PerformanceMonitor() {
@@ -13,7 +13,7 @@ export default function PerformanceMonitor() {
 
   useEffect(() => {
     // Only run in production and if browser supports Performance API
-    if (process.env.NODE_ENV !== 'production' || typeof window === 'undefined') {
+    if (process.env.NODE_ENV !== "production" || typeof window === "undefined") {
       return;
     }
 
@@ -21,21 +21,21 @@ export default function PerformanceMonitor() {
     const measureFCP = () => {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        const fcpEntry = entries.find(entry => entry.name === 'first-contentful-paint');
+        const fcpEntry = entries.find((entry) => entry.name === "first-contentful-paint");
         if (fcpEntry) {
           metricsRef.current.fcp = fcpEntry.startTime;
           console.log(`FCP: ${fcpEntry.startTime}ms`);
-          
+
           // Send to analytics if needed
           if (window.gtag) {
-            window.gtag('event', 'first_contentful_paint', {
+            window.gtag("event", "first_contentful_paint", {
               value: Math.round(fcpEntry.startTime),
-              event_category: 'Web Vitals'
+              event_category: "Web Vitals",
             });
           }
         }
       });
-      observer.observe({ entryTypes: ['paint'] });
+      observer.observe({ entryTypes: ["paint"] });
     };
 
     // Measure Largest Contentful Paint
@@ -45,34 +45,34 @@ export default function PerformanceMonitor() {
         const lastEntry = entries[entries.length - 1];
         metricsRef.current.lcp = lastEntry.startTime;
         console.log(`LCP: ${lastEntry.startTime}ms`);
-        
+
         if (window.gtag) {
-          window.gtag('event', 'largest_contentful_paint', {
+          window.gtag("event", "largest_contentful_paint", {
             value: Math.round(lastEntry.startTime),
-            event_category: 'Web Vitals'
+            event_category: "Web Vitals",
           });
         }
       });
-      observer.observe({ entryTypes: ['largest-contentful-paint'] });
+      observer.observe({ entryTypes: ["largest-contentful-paint"] });
     };
 
     // Measure First Input Delay
     const measureFID = () => {
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           metricsRef.current.fid = entry.processingStart - entry.startTime;
           console.log(`FID: ${metricsRef.current.fid}ms`);
-          
+
           if (window.gtag) {
-            window.gtag('event', 'first_input_delay', {
+            window.gtag("event", "first_input_delay", {
               value: Math.round(metricsRef.current.fid),
-              event_category: 'Web Vitals'
+              event_category: "Web Vitals",
             });
           }
         });
       });
-      observer.observe({ entryTypes: ['first-input'] });
+      observer.observe({ entryTypes: ["first-input"] });
     };
 
     // Measure Cumulative Layout Shift
@@ -80,32 +80,32 @@ export default function PerformanceMonitor() {
       let clsValue = 0;
       const observer = new PerformanceObserver((list) => {
         const entries = list.getEntries();
-        entries.forEach(entry => {
+        entries.forEach((entry) => {
           if (!entry.hadRecentInput) {
             clsValue += entry.value;
           }
         });
         metricsRef.current.cls = clsValue;
         console.log(`CLS: ${clsValue}`);
-        
+
         if (window.gtag) {
-          window.gtag('event', 'cumulative_layout_shift', {
+          window.gtag("event", "cumulative_layout_shift", {
             value: Math.round(clsValue * 1000),
-            event_category: 'Web Vitals'
+            event_category: "Web Vitals",
           });
         }
       });
-      observer.observe({ entryTypes: ['layout-shift'] });
+      observer.observe({ entryTypes: ["layout-shift"] });
     };
 
     // Memory usage monitoring
     const measureMemory = () => {
-      if ('memory' in performance) {
+      if ("memory" in performance) {
         const memory = performance.memory;
-        console.log('Memory Usage:', {
-          used: Math.round(memory.usedJSHeapSize / 1048576) + ' MB',
-          total: Math.round(memory.totalJSHeapSize / 1048576) + ' MB',
-          limit: Math.round(memory.jsHeapSizeLimit / 1048576) + ' MB'
+        console.log("Memory Usage:", {
+          used: Math.round(memory.usedJSHeapSize / 1048576) + " MB",
+          total: Math.round(memory.totalJSHeapSize / 1048576) + " MB",
+          limit: Math.round(memory.jsHeapSizeLimit / 1048576) + " MB",
         });
       }
     };
@@ -121,7 +121,7 @@ export default function PerformanceMonitor() {
 
     // Log performance summary every 60 seconds
     const summaryInterval = setInterval(() => {
-      console.log('Performance Summary:', metricsRef.current);
+      console.log("Performance Summary:", metricsRef.current);
     }, 60000);
 
     return () => {
@@ -142,8 +142,8 @@ export function usePerformanceTracking(componentName) {
   useEffect(() => {
     renderCount.current += 1;
     const renderTime = Date.now() - renderStartTime.current;
-    
-    if (process.env.NODE_ENV === 'development') {
+
+    if (process.env.NODE_ENV === "development") {
       console.log(`${componentName} rendered ${renderCount.current} times in ${renderTime}ms`);
     }
 
@@ -163,11 +163,11 @@ export function useAsyncPerformanceTracker(operationName) {
     try {
       const result = await asyncFn();
       const duration = performance.now() - startTime;
-      
-      if (process.env.NODE_ENV === 'development') {
+
+      if (process.env.NODE_ENV === "development") {
         console.log(`${operationName} completed in ${duration.toFixed(2)}ms`);
       }
-      
+
       return result;
     } catch (error) {
       const duration = performance.now() - startTime;
