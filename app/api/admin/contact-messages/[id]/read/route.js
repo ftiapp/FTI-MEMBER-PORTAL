@@ -4,8 +4,8 @@ import { getAdminFromSession } from "@/app/lib/adminAuth";
 
 export async function PUT(request, { params }) {
   try {
-    // ใช้ params โดยไม่ต้อง await เพราะ params ไม่ใช่ Promise
-    const id = params?.id;
+    // Await params as required by Next.js 15
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json({ success: false, message: "ไม่พบ ID ข้อความ" }, { status: 400 });

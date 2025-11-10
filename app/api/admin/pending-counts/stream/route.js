@@ -13,8 +13,10 @@ export async function GET(request) {
     const stream = new ReadableStream({
       start(controller) {
         const encoder = new TextEncoder();
+        let isClosed = false;
 
         const send = (obj) => {
+          if (isClosed) return; // Prevent sending after controller is closed
           const chunk = `data: ${JSON.stringify(obj)}\n\n`;
           controller.enqueue(encoder.encode(chunk));
         };
@@ -63,6 +65,7 @@ export async function GET(request) {
 
         if (signal) {
           signal.addEventListener("abort", () => {
+            isClosed = true;
             clearInterval(intervalId);
             controller.close();
           });

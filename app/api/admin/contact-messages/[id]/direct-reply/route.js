@@ -10,10 +10,11 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: false, message: "ไม่พบพารามิเตอร์" }, { status: 400 });
     }
 
-    // ใช้ parseInt เพื่อแปลง id เป็นตัวเลข
-    const id = parseInt(await params.id, 10);
+    // Await params as required by Next.js 15
+    const { id } = await params;
+    const messageId = parseInt(id, 10);
 
-    if (isNaN(id)) {
+    if (isNaN(messageId)) {
       return NextResponse.json({ success: false, message: "ID ไม่ถูกต้อง" }, { status: 400 });
     }
 
@@ -33,7 +34,7 @@ export async function POST(request, { params }) {
     const adminId = admin.id;
     const adminName = admin.name || "Admin";
 
-    if (!id) {
+    if (!messageId) {
       return NextResponse.json({ success: false, message: "ไม่พบ ID ข้อความ" }, { status: 400 });
     }
 
@@ -46,7 +47,7 @@ export async function POST(request, { params }) {
 
     // Get message details
     const messages = await query(`SELECT * FROM FTI_Portal_User_Contact_Messages WHERE id = ?`, [
-      id,
+      messageId,
     ]);
 
     if (!messages || messages.length === 0) {
@@ -61,7 +62,7 @@ export async function POST(request, { params }) {
     try {
       await query(
         `INSERT INTO FTI_Portal_User_Contact_Message_Replies (message_id, user_id, reply_text) VALUES (?, ?, ?)`,
-        [id, adminId, reply_message],
+        [messageId, adminId, reply_message],
       );
     } catch (error) {
       console.error("Error inserting into contact_message_replies:", error);
@@ -84,7 +85,7 @@ export async function POST(request, { params }) {
         await query(
           `INSERT INTO FTI_Portal_User_Contact_Message_Responses (message_id, admin_id, response_text) VALUES (?, ?, ?)`,
           [
-            id,
+            messageId,
             adminId,
             admin_response ||
               `ตอบกลับโดยตรงถึงผู้ใช้: ${reply_message.substring(0, 50)}${reply_message.length > 50 ? "..." : ""}`,
@@ -105,7 +106,7 @@ export async function POST(request, { params }) {
            replied_at = NOW(), 
            updated_at = NOW() 
        WHERE id = ?`,
-      [adminId, id],
+      [adminId, messageId],
     );
 
     // Log admin action
@@ -115,10 +116,10 @@ export async function POST(request, { params }) {
        VALUES (?, 'contact_message_direct_reply', ?, ?, ?, ?, NOW())`,
       [
         adminId,
-        id,
+        messageId,
         JSON.stringify({
           action: "CONTACT_MESSAGE_DIRECT_REPLY",
-          message_id: id,
+          message_id: messageId,
           message_subject: message.subject,
           reply_message:
             reply_message.substring(0, 100) + (reply_message.length > 100 ? "..." : ""),
@@ -138,7 +139,7 @@ export async function POST(request, { params }) {
           message.user_id,
           "contact_direct_reply",
           `ข้อความติดต่อของคุณเรื่อง "${message.subject}" ได้รับการตอบกลับโดยตรงแล้ว`,
-          `/dashboard?tab=contact&messageId=${id}&reply=true`,
+          `/dashboard?tab=contact&messageId=${messageId}&reply=true`,
         );
         console.log("Contact direct reply notification created for user:", message.user_id);
       } catch (notificationError) {

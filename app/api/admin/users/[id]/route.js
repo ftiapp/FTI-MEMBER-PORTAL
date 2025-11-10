@@ -16,7 +16,8 @@ export async function GET(request, { params }) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
-    const userId = params.id;
+    // Await params as required by Next.js 15
+    const { id: userId } = await params;
 
     // Query to get user by ID
     const userQuery = `

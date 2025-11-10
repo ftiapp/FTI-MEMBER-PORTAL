@@ -19,9 +19,11 @@ export async function GET(request, { params }) {
       return NextResponse.json({ success: false, message: "ไม่พบพารามิเตอร์" }, { status: 400 });
     }
 
-    const id = parseInt(await params.id, 10);
+    // Await params as required by Next.js 15
+    const { id } = await params;
+    const messageId = parseInt(id, 10);
 
-    if (isNaN(id)) {
+    if (isNaN(messageId)) {
       return NextResponse.json({ success: false, message: "ID ไม่ถูกต้อง" }, { status: 400 });
     }
 
@@ -34,7 +36,7 @@ export async function GET(request, { params }) {
        LEFT JOIN FTI_Portal_Admin_Users a1 ON cm.read_by_admin_id = a1.id
        LEFT JOIN FTI_Portal_Admin_Users a2 ON cm.replied_by_admin_id = a2.id
        WHERE cm.id = ?`,
-      [id],
+      [messageId],
     );
 
     if (!messages || messages.length === 0) {
@@ -53,7 +55,7 @@ export async function GET(request, { params }) {
          LEFT JOIN FTI_Portal_Admin_Users au ON cmr.admin_id = au.id
          WHERE cmr.message_id = ?
          ORDER BY cmr.created_at ASC`,
-        [id],
+        [messageId],
       );
     } catch (error) {
       console.log("Error fetching admin responses, table might not exist:", error);
@@ -69,7 +71,7 @@ export async function GET(request, { params }) {
          FROM FTI_Portal_User_Contact_Message_Replies
          WHERE message_id = ?
          ORDER BY created_at ASC`,
-        [id],
+        [messageId],
       );
     } catch (error) {
       console.log("Error fetching user replies, table might not exist:", error);
@@ -141,7 +143,7 @@ export async function GET(request, { params }) {
              read_at = NOW(), 
              updated_at = NOW() 
          WHERE id = ?`,
-        [admin.id, id],
+        [admin.id, messageId],
       );
 
       // Log admin action
@@ -151,10 +153,10 @@ export async function GET(request, { params }) {
          VALUES (?, 'contact_message_read', ?, ?, ?, ?, NOW())`,
         [
           admin.id,
-          id,
+          messageId,
           JSON.stringify({
             action: "CONTACT_MESSAGE_READ",
-            message_id: id,
+            message_id: messageId,
             message_subject: message.subject,
             user_email: message.email,
             userId: message.user_id || null,

@@ -276,44 +276,70 @@ export default function VerifyMembers() {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 24 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
-          className="bg-white shadow-md rounded-lg p-6 border border-[#1e3a8a] border-opacity-20"
+          className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"
         >
-          <h2 className="text-xl font-semibold mb-4 text-[#1e3a8a] border-b pb-2 border-[#1e3a8a] border-opacity-20">
-            สมาชิก - {statusLabels[statusParam]}
-          </h2>
-          {/* Status filter tabs */}
-          <div className="flex border-b mb-6">
+          {/* Header with gradient */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <svg className="w-7 h-7 text-[#1e3a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+              จัดการสมาชิก
+            </h2>
+            <p className="text-sm text-gray-500 mt-1">
+              สถานะ: <span className="font-semibold text-[#1e3a8a]">{statusLabels[statusParam]}</span>
+            </p>
+          </div>
+
+          {/* Status filter tabs - Improved design */}
+          <div className="flex gap-2 mb-6 bg-gray-50 p-2 rounded-lg">
             <button
               onClick={() => handleStatusChange("0")}
-              className={`py-2 px-4 font-medium text-sm border-b-2 mr-4 transition-colors ${
+              className={`flex-1 py-3 px-4 font-medium text-sm rounded-lg transition-all duration-200 ${
                 statusParam === "0"
-                  ? "border-[#1e3a8a] text-[#1e3a8a]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-md transform scale-105"
+                  : "text-gray-600 hover:bg-white hover:shadow-sm"
               }`}
             >
-              รอการอนุมัติ
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                รอการอนุมัติ
+              </div>
             </button>
             <button
               onClick={() => handleStatusChange("1")}
-              className={`py-2 px-4 font-medium text-sm border-b-2 mr-4 transition-colors ${
+              className={`flex-1 py-3 px-4 font-medium text-sm rounded-lg transition-all duration-200 ${
                 statusParam === "1"
-                  ? "border-[#1e3a8a] text-[#1e3a8a]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-md transform scale-105"
+                  : "text-gray-600 hover:bg-white hover:shadow-sm"
               }`}
             >
-              อนุมัติแล้ว
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                อนุมัติแล้ว
+              </div>
             </button>
             <button
               onClick={() => handleStatusChange("2")}
-              className={`py-2 px-4 font-medium text-sm border-b-2 transition-colors ${
+              className={`flex-1 py-3 px-4 font-medium text-sm rounded-lg transition-all duration-200 ${
                 statusParam === "2"
-                  ? "border-[#1e3a8a] text-[#1e3a8a]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "bg-gradient-to-r from-red-500 to-rose-500 text-white shadow-md transform scale-105"
+                  : "text-gray-600 hover:bg-white hover:shadow-sm"
               }`}
             >
-              ปฏิเสธแล้ว
+              <div className="flex items-center justify-center gap-2">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                ปฏิเสธแล้ว
+              </div>
             </button>
           </div>
+
           {/* Search & Filter Bar */}
           <SearchBar
             value={searchTerm}
@@ -323,20 +349,32 @@ export default function VerifyMembers() {
             onDateChange={setDateRange}
             placeholder="ค้นหา: หมายเลขสมาชิก / ชื่อบริษัท / ชื่อ-นามสกุล / อีเมล"
           />
+
           {isLoading ? (
-            <div className="flex justify-center items-center h-64">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1e3a8a]"></div>
+            <div className="flex flex-col justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#1e3a8a]"></div>
+              <p className="mt-4 text-gray-500">กำลังโหลดข้อมูล...</p>
             </div>
           ) : members.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 border border-dashed border-gray-300 rounded-lg bg-gray-50">
-              <p className="text-[#1e3a8a] font-medium">ไม่พบข้อมูลสมาชิก</p>
+            <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100">
+              <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+              <p className="text-gray-600 font-medium text-lg">ไม่พบข้อมูลสมาชิก</p>
+              <p className="text-gray-500 text-sm mt-1">ลองปรับเปลี่ยนเงื่อนไขการค้นหาหรือกรองข้อมูล</p>
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-[#1e3a8a] divide-opacity-10 border border-[#1e3a8a] border-opacity-20 rounded-lg overflow-hidden">
-                  <thead className="bg-[#1e3a8a] text-white">
+              <div className="overflow-x-auto shadow-md rounded-xl">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] text-white">
                     <tr>
+                      <th
+                        scope="col"
+                        className="px-4 py-4 text-left text-xs font-semibold uppercase tracking-wider w-40"
+                      >
+                        การดำเนินการ
+                      </th>
                       <SortableHeader
                         field="company_name"
                         label="บริษัท"
@@ -389,77 +427,32 @@ export default function VerifyMembers() {
                       />
                       <th
                         scope="col"
-                        className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                        className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
                       >
                         ผู้ดำเนินการ
-                      </th>
-                      <th
-                        scope="col"
-                        className="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider"
-                      >
-                        การดำเนินการ
                       </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {members.map((member) => (
+                    {members.map((member, index) => (
                       <tr
                         key={member.id}
-                        className="hover:bg-[#1e3a8a] hover:bg-opacity-5 transition-colors"
+                        className={`transition-all duration-200 hover:bg-blue-50 ${
+                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                        }`}
                       >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {member.company_name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {member.MEMBER_CODE || "ยังไม่มีรหัสสมาชิก"}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {member.firstname} {member.lastname}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{member.email}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {new Date(member.created_at).toLocaleDateString("th-TH")}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span
-                            className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                          ${
-                            member.Admin_Submit === 0
-                              ? "bg-yellow-100 text-yellow-800"
-                              : member.Admin_Submit === 1
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                          }`}
-                          >
-                            {member.Admin_Submit === 0
-                              ? "รอการอนุมัติ"
-                              : member.Admin_Submit === 1
-                                ? "อนุมัติแล้ว"
-                                : "ปฏิเสธแล้ว"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {(member.Admin_Submit === 1 || member.Admin_Submit === 2) &&
-                            member.admin_name
-                              ? member.admin_name
-                              : "-"}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <div className="flex space-x-2 justify-end">
+                        {/* Action buttons - NOW FIRST COLUMN */}
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex gap-2">
                             <button
                               onClick={() => handleViewDetails(member)}
-                              className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              className="flex items-center gap-1 px-3 py-2 text-xs font-medium bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                              title="ดูรายละเอียด"
                             >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
                               ดูรายละเอียด
                             </button>
 
@@ -467,10 +460,109 @@ export default function VerifyMembers() {
                             {member.Admin_Submit === 2 && (
                               <button
                                 onClick={() => handleDeleteMember(member.id)}
-                                className="px-3 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                className="flex items-center gap-1 px-3 py-2 text-xs font-medium bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                                title="ลบข้อมูล"
                               >
-                                ลบข้อมูล
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                ลบ
                               </button>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Company info */}
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="text-sm font-semibold text-gray-900">
+                              {member.company_name}
+                            </div>
+                            <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                              </svg>
+                              {member.MEMBER_CODE || "ยังไม่มีรหัสสมาชิก"}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Name */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {member.firstname} {member.lastname}
+                          </div>
+                        </td>
+
+                        {/* Email */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-600 flex items-center gap-1">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                            {member.email}
+                          </div>
+                        </td>
+
+                        {/* Registration date */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-600 flex items-center gap-1">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {new Date(member.created_at).toLocaleDateString("th-TH", {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })}
+                          </div>
+                        </td>
+
+                        {/* Status badge */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full ${
+                              member.Admin_Submit === 0
+                                ? "bg-gradient-to-r from-yellow-100 to-orange-100 text-yellow-800 border border-yellow-200"
+                                : member.Admin_Submit === 1
+                                  ? "bg-gradient-to-r from-green-100 to-emerald-100 text-green-800 border border-green-200"
+                                  : "bg-gradient-to-r from-red-100 to-rose-100 text-red-800 border border-red-200"
+                            }`}
+                          >
+                            {member.Admin_Submit === 0 ? (
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            ) : member.Admin_Submit === 1 ? (
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            ) : (
+                              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                            )}
+                            {member.Admin_Submit === 0
+                              ? "รอการอนุมัติ"
+                              : member.Admin_Submit === 1
+                                ? "อนุมัติแล้ว"
+                                : "ปฏิเสธแล้ว"}
+                          </span>
+                        </td>
+
+                        {/* Admin name */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-700 flex items-center gap-1">
+                            {(member.Admin_Submit === 1 || member.Admin_Submit === 2) &&
+                            member.admin_name ? (
+                              <>
+                                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                {member.admin_name}
+                              </>
+                            ) : (
+                              <span className="text-gray-400">-</span>
                             )}
                           </div>
                         </td>
@@ -480,27 +572,44 @@ export default function VerifyMembers() {
                 </table>
               </div>
 
-              {/* Pagination */}
+              {/* Pagination - Improved design */}
               {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-6">
-                  <div className="text-sm text-gray-600">
-                    หน้า {pagination.page} / {pagination.totalPages} • ทั้งหมด {pagination.total}{" "}
-                    รายการ
+                <div className="flex items-center justify-between mt-6 px-2">
+                  <div className="text-sm text-gray-600 bg-gray-50 px-4 py-2 rounded-lg border border-gray-200">
+                    <span className="font-semibold text-[#1e3a8a]">หน้า {pagination.page}</span> 
+                    <span className="mx-1">จาก</span>
+                    <span className="font-semibold text-[#1e3a8a]">{pagination.totalPages}</span>
+                    <span className="mx-2">•</span>
+                    <span>ทั้งหมด <span className="font-semibold text-[#1e3a8a]">{pagination.total}</span> รายการ</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handlePageChange(pagination.page - 1)}
                       disabled={pagination.page === 1}
-                      className={`px-3 py-2 text-sm border border-gray-300 rounded-md bg-white ${pagination.page === 1 ? "text-gray-300 cursor-not-allowed" : "text-[#1e3a8a] hover:bg-blue-50"}`}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        pagination.page === 1
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-white text-[#1e3a8a] border-2 border-[#1e3a8a] hover:bg-[#1e3a8a] hover:text-white shadow-sm hover:shadow-md"
+                      }`}
                     >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
                       ย้อนกลับ
                     </button>
                     <button
                       onClick={() => handlePageChange(pagination.page + 1)}
                       disabled={pagination.page === pagination.totalPages}
-                      className={`px-3 py-2 text-sm border border-gray-300 rounded-md bg-white ${pagination.page === pagination.totalPages ? "text-gray-300 cursor-not-allowed" : "text-[#1e3a8a] hover:bg-blue-50"}`}
+                      className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                        pagination.page === pagination.totalPages
+                          ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                          : "bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] text-white hover:from-[#2563eb] hover:to-[#1e3a8a] shadow-sm hover:shadow-md"
+                      }`}
                     >
                       ถัดไป
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -526,13 +635,13 @@ export default function VerifyMembers() {
 
         {/* Existing Member Modal */}
         {showExistingMemberModal && selectedMember && (
-          <div className="fixed inset-0 bg-[#1e3a8a] bg-opacity-40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full overflow-y-auto border border-gray-200">
-              <div className="px-6 py-4 border-b flex justify-between items-center">
-                <h3 className="text-lg font-semibold">ยืนยันสมาชิกเดิม</h3>
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full overflow-y-auto border border-gray-200">
+              <div className="px-6 py-4 border-b bg-gradient-to-r from-[#1e3a8a] to-[#2563eb] flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-white">ยืนยันสมาชิกเดิม</h3>
                 <button
                   onClick={() => setShowExistingMemberModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-white hover:text-gray-200 transition-colors"
                 >
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
