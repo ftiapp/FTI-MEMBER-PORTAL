@@ -362,6 +362,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   // Document type options per membership type
   const getDocumentTypeOptions = () => {
     const typeUpper = String(type).toUpperCase();
+    const signatories = application?.signatories || [];
 
     const documentTypes = {
       OC: [
@@ -369,7 +370,11 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
         { value: "industrialEstateLicense", label: "ใบอนุญาตนิคมอุตสาหกรรม (กนอ.)" },
         { value: "productionImages", label: "รูปภาพการผลิต/เอกสารการผลิต" },
         { value: "companyStamp", label: "รูปตราประทับบริษัท" },
-        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        // Dynamic authorized signature options
+        ...signatories.map((_, index) => ({
+          value: `authorizedSignature${index + 1}`,
+          label: `ลายเซ็นผู้มีอำนาจลงนาม ${index + 1}`,
+        })),
         { value: "companyCertificate", label: "หนังสือรับรองบริษัท" },
         { value: "other", label: "เอกสารอื่นๆ" },
       ],
@@ -377,7 +382,11 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
         { value: "companyRegistration", label: "หนังสือรับรองการจดทะเบียนนิติบุคคล" },
         { value: "productionImages", label: "รูปภาพการผลิต/เอกสารการผลิต" },
         { value: "companyStamp", label: "รูปตราประทับบริษัท" },
-        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        // Dynamic authorized signature options
+        ...signatories.map((_, index) => ({
+          value: `authorizedSignature${index + 1}`,
+          label: `ลายเซ็นผู้มีอำนาจลงนาม ${index + 1}`,
+        })),
         { value: "other", label: "เอกสารอื่นๆ" },
       ],
       AM: [
@@ -385,14 +394,22 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
         { value: "memberList", label: "รายชื่อสมาชิก" },
         { value: "productionImage", label: "รูปภาพกิจกรรม/เอกสารประกอบ" },
         { value: "companyStamp", label: "รูปตราประทับสมาคม" },
-        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        // Dynamic authorized signature options
+        ...signatories.map((_, index) => ({
+          value: `authorizedSignature${index + 1}`,
+          label: `ลายเซ็นผู้มีอำนาจลงนาม ${index + 1}`,
+        })),
         { value: "other", label: "เอกสารอื่นๆ" },
       ],
       IC: [
         { value: "idCardDocument", label: "สำเนาบัตรประชาชน" },
         { value: "companyRegistrationDocument", label: "หนังสือรับรองการจดทะเบียนบริษัท" },
         { value: "taxRegistrationDocument", label: "ทะเบียนภาษี" },
-        { value: "authorizedSignature", label: "รูปลายเซ็นผู้มีอำนาจลงนาม" },
+        // Dynamic authorized signature options
+        ...signatories.map((_, index) => ({
+          value: `authorizedSignature${index + 1}`,
+          label: `ลายเซ็นผู้มีอำนาจลงนาม ${index + 1}`,
+        })),
         { value: "other", label: "เอกสารอื่นๆ" },
       ],
     };
@@ -404,12 +421,19 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   const getDocumentTypeLabel = (docType) => {
     const opts = getDocumentTypeOptions();
     const found = opts.find((o) => o.value === docType);
-    // Fallback to capitalized type or 'ไม่ระบุ'
-    if (!found) {
-      if (!docType) return "ไม่ระบุ";
-      return docType.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase());
+    if (found) {
+      return found.label;
     }
-    return found.label;
+    
+    // Handle dynamic authorized signature types
+    if (docType?.startsWith("authorizedSignature")) {
+      const num = docType.replace("authorizedSignature", "");
+      return `ลายเซ็นผู้มีอำนาจลงนาม ${num}`;
+    }
+    
+    // Fallback to capitalized type or 'ไม่ระบุ'
+    if (!docType) return "ไม่ระบุ";
+    return docType.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase());
   };
 
   const handleNewUpload = () => {
@@ -428,12 +452,12 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
   };
 
   const isImageDocument = (docType) => {
-    return docType === "companyStamp" || docType === "authorizedSignature";
+    return docType === "companyStamp" || docType?.startsWith("authorizedSignature");
   };
 
   const getImageEditorTitle = (docType) => {
     if (docType === "companyStamp") return "ปรับแต่งตราประทับบริษัท";
-    if (docType === "authorizedSignature") return "ปรับแต่งลายเซ็นผู้มีอำนาจลงนาม";
+    if (docType?.startsWith("authorizedSignature")) return "ปรับแต่งลายเซ็นผู้มีอำนาจลงนาม";
     return "ปรับแต่งรูปภาพ";
   };
 

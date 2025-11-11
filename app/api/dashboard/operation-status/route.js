@@ -59,10 +59,10 @@ async function fetchOperationStatus(userId) {
       ),
       // Product updates
       query(
-        `SELECT id, user_id, member_code, status, request_date as created_at 
+        `SELECT id, user_id, member_code, status, created_at 
          FROM FTI_Original_Membership_Pending_Product_Updates 
          WHERE user_id = ? 
-         ORDER BY request_date DESC`,
+         ORDER BY created_at DESC`,
         [userId],
       ),
       // Social media updates from log

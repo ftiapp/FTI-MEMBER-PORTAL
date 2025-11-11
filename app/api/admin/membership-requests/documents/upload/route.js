@@ -1,4 +1,4 @@
-﻿import { query } from "../../../../../lib/db";
+import { query } from "../../../../../lib/db";
 import { getAdminFromSession } from "../../../../../lib/adminAuth";
 import { v2 as cloudinary } from "cloudinary";
 
@@ -76,11 +76,28 @@ export async function POST(request) {
       );
     }
 
+    // Check if this is an authorized signature document
+    let signatureNameId = null;
+    if (documentType.startsWith("authorizedSignature")) {
+      const signatureIndex = parseInt(documentType.replace("authorizedSignature", "")) - 1; // Convert to 0-based index
+      
+      // Get the signature record at this index
+      const signatureTable = `MemberRegist_${membershipType}_Signature_Name`;
+      const signatures = await query(
+        `SELECT id FROM ${signatureTable} WHERE main_id = ? ORDER BY id ASC LIMIT ? OFFSET ?`,
+        [applicationId, 1, signatureIndex],
+      );
+      
+      if (signatures.length > 0) {
+        signatureNameId = signatures[0].id;
+      }
+    }
+
     // Insert new document record
     await query(
       `INSERT INTO MemberRegist_${membershipType}_Documents 
-       (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url, created_at) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
+       (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url, signature_name_id, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())`,
       [
         applicationId,
         documentType,
@@ -90,6 +107,7 @@ export async function POST(request) {
         file.type,
         uploadResult.public_id,
         uploadResult.secure_url,
+        signatureNameId,
       ],
     );
 

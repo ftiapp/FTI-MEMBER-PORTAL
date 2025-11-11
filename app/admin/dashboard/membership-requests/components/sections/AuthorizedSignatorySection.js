@@ -123,11 +123,8 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
       toast.success("บันทึกข้อมูลผู้มีอำนาจลงนามสำเร็จ");
       setIsEditing(false);
 
-      // Call onUpdate to refresh the parent component
-      if (onUpdate) {
-        // Use the DetailView's handleSectionUpdate format
-        await onUpdate("authorizedSignatory", formData);
-      }
+      // Refresh the page to show updated data
+      window.location.reload();
     } catch (error) {
       console.error("Error saving authorized signatory:", error);
       toast.error(error.message || "ไม่สามารถบันทึกข้อมูลได้");

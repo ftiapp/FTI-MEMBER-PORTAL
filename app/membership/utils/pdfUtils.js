@@ -55,10 +55,25 @@ const transformCloudinaryUrl = (url) => {
   }
 };
 
-// Load remote image as Data URL to avoid CORS issues in html2canvas
+// Load remote image as Data URL to avoid CORS issues in html2canvas (enhanced for production compatibility)
 const loadImageAsDataURL = async (url) => {
+  if (!url) return null;
+  console.debug(`[PDF] Attempting to load image as data URL: ${url}`);
   try {
-    const res = await fetch(url, { mode: "cors" });
+    // First attempt: Try without CORS mode (works better in production for some cases)
+    let res;
+    try {
+      console.debug(`[PDF] Trying fetch without CORS mode...`);
+      res = await fetch(url);
+      if (!res.ok) {
+        console.warn(`[PDF] Fetch without CORS failed (${res.status}), trying with CORS mode...`);
+        // Second attempt: Try with CORS mode
+        res = await fetch(url, { mode: "cors" });
+      }
+    } catch (err) {
+      console.warn(`[PDF] Fetch without CORS failed with error, trying with CORS mode...`, err);
+      res = await fetch(url, { mode: "cors" });
+    }
     if (!res.ok) return null;
     const blob = await res.blob();
     // Only proceed if content is actually an image
@@ -918,7 +933,11 @@ export const generateMembershipPDF = async (
 
     // Preload signature images for single and multiple signatories
     const preloadSignature = async (signatureDoc) => {
-      if (!signatureDoc || !signatureDoc.fileUrl) return null;
+      console.log("[PDF] Preloading signature image...");
+      if (!signatureDoc || !signatureDoc.fileUrl) {
+        console.log("[PDF] Signature document is missing or has no file URL.");
+        return null;
+      }
 
       const sigUrlCandidate = signatureDoc.fileUrl;
       const maybeCld = transformCloudinaryUrl(sigUrlCandidate);
@@ -928,7 +947,7 @@ export const generateMembershipPDF = async (
       // Try to fetch as data URL first (best for CORS safety)
       const dataUrl = await loadImageAsDataURL(maybeCld);
       if (dataUrl) {
-        console.debug("[PDF] signature loaded as data URL (length):", dataUrl.length);
+        console.debug(`[PDF] ✅ Signature successfully preloaded as data URL (${dataUrl.length} chars)`);
         return dataUrl;
       } else {
         // If fetch failed (CORS/format), fallback to raw URL if it looks like an image
@@ -937,10 +956,10 @@ export const generateMembershipPDF = async (
           signatureDoc.mimeType?.startsWith?.("image/") ||
           signatureDoc.fileType?.startsWith?.("image/");
         if (looksLikeImg) {
-          console.debug("[PDF] signature fallback to URL");
+          console.debug(`[PDF] ⚠️ Signature data URL failed, falling back to raw URL: ${maybeCld}`);
           return maybeCld;
         } else {
-          console.warn("[PDF] signature appears non-image, skipping <img>");
+          console.warn(`[PDF] ❌ Signature appears non-image, skipping <img> for: ${maybeCld}`);
           return null;
         }
       }
@@ -1348,7 +1367,7 @@ export const generateMembershipPDF = async (
                     <div class="signature-area">
                       ${signaturesHtml}
                       ${
-                        type === "oc"
+                        type === "oc" || type === "ac" || type === "am"
                           ? `
                         <div class="stamp-box">
                           <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
@@ -1387,7 +1406,7 @@ export const generateMembershipPDF = async (
                         </div>
                       </div>
                       ${
-                        type === "oc"
+                        type === "oc" || type === "ac" || type === "am"
                           ? `
                         <div class="stamp-box">
                           <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
@@ -1442,7 +1461,7 @@ export const generateMembershipPDF = async (
       margin: 5,
       filename: `${type?.toUpperCase()}_${data.companyNameTh || data.firstNameTh || "APPLICATION"}_${new Date().toISOString().split("T")[0]}.pdf`,
       image: { type: "jpeg", quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, allowTaint: true, imageTimeout: 10000 },
+      html2canvas: { scale: 2, useCORS: true, allowTaint: true, imageTimeout: 15000, foreignObjectRendering: false },
       jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       pagebreak: { mode: ["css", "avoid-all"] },
     };

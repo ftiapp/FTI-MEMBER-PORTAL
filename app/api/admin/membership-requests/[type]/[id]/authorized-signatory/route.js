@@ -28,44 +28,50 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: false, message: "Invalid ID" }, { status: 400 });
     }
 
-    // Parse request body
+    // Parse request body - handle both single object and array format
     const body = await request.json();
-    const { prename_th, prename_other, first_name_th, last_name_th, position_th } = body;
+    let signatories = Array.isArray(body) ? body : [body];
+    
+    // Validate all signatories
+    for (let i = 0; i < signatories.length; i++) {
+      const signatory = signatories[i];
+      const { prename_th, prename_other, first_name_th, last_name_th, position_th } = signatory;
 
-    // Validate required Thai fields
-    if (!prename_th || prename_th.trim() === "") {
-      return NextResponse.json(
-        { success: false, message: "กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)" },
-        { status: 400 },
-      );
-    }
+      // Validate required Thai fields
+      if (!prename_th || prename_th.trim() === "") {
+        return NextResponse.json(
+          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)` },
+          { status: 400 },
+        );
+      }
 
-    if (prename_th === "อื่นๆ" && (!prename_other || prename_other.trim() === "")) {
-      return NextResponse.json(
-        { success: false, message: "กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)" },
-        { status: 400 },
-      );
-    }
+      if (prename_th === "อื่นๆ" && (!prename_other || prename_other.trim() === "")) {
+        return NextResponse.json(
+          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)` },
+          { status: 400 },
+        );
+      }
 
-    if (!first_name_th || first_name_th.trim() === "") {
-      return NextResponse.json(
-        { success: false, message: "กรุณาระบุชื่อ (ภาษาไทย)" },
-        { status: 400 },
-      );
-    }
+      if (!first_name_th || first_name_th.trim() === "") {
+        return NextResponse.json(
+          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาระบุชื่อ (ภาษาไทย)` },
+          { status: 400 },
+        );
+      }
 
-    if (!last_name_th || last_name_th.trim() === "") {
-      return NextResponse.json(
-        { success: false, message: "กรุณาระบุนามสกุล (ภาษาไทย)" },
-        { status: 400 },
-      );
-    }
+      if (!last_name_th || last_name_th.trim() === "") {
+        return NextResponse.json(
+          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาระบุนามสกุล (ภาษาไทย)` },
+          { status: 400 },
+        );
+      }
 
-    if (!position_th || position_th.trim() === "") {
-      return NextResponse.json(
-        { success: false, message: "กรุณาระบุตำแหน่ง (ภาษาไทย)" },
-        { status: 400 },
-      );
+      if (!position_th || position_th.trim() === "") {
+        return NextResponse.json(
+          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาระบุตำแหน่ง (ภาษาไทย)` },
+          { status: 400 },
+        );
+      }
     }
 
     // Get database connection
@@ -101,25 +107,35 @@ export async function POST(request, { params }) {
     );
 
     let result;
-    if (existingRecords.length > 0) {
-      // Update existing record
-      result = await connection.execute(
-        `UPDATE ${signatureTable} 
-         SET prename_th = ?, prename_other = ?, first_name_th = ?, last_name_th = ?, position_th = ?,
-             prename_en = '', prename_other_en = '', first_name_en = '', last_name_en = '', position_en = '',
-             updated_at = NOW()
-         WHERE ${mainIdColumn} = ?`,
-        [prename_th, prename_other || "", first_name_th, last_name_th, position_th, id],
-      );
-    } else {
-      // Insert new record
+    
+    // Before deleting signatories, set signature_name_id to NULL in related documents
+    // to avoid foreign key constraint violations
+    const documentTable = `MemberRegist_${type.toUpperCase()}_Documents`;
+    await connection.execute(
+      `UPDATE ${documentTable} SET signature_name_id = NULL WHERE main_id = ? AND signature_name_id IS NOT NULL`,
+      [id],
+    );
+    
+    // Delete existing signatories for this application
+    await connection.execute(`DELETE FROM ${signatureTable} WHERE ${mainIdColumn} = ?`, [id]);
+    
+    // Insert all signatories
+    for (let i = 0; i < signatories.length; i++) {
+      const signatory = signatories[i];
       result = await connection.execute(
         `INSERT INTO ${signatureTable} (
           ${mainIdColumn}, prename_th, prename_other, first_name_th, last_name_th, position_th,
           prename_en, prename_other_en, first_name_en, last_name_en, position_en,
           created_at, updated_at
         ) VALUES (?, ?, ?, ?, ?, ?, '', '', '', '', '', NOW(), NOW())`,
-        [id, prename_th, prename_other || "", first_name_th, last_name_th, position_th],
+        [
+          id,
+          signatory.prename_th,
+          signatory.prename_other || "",
+          signatory.first_name_th,
+          signatory.last_name_th,
+          signatory.position_th,
+        ],
       );
     }
 
@@ -129,7 +145,7 @@ export async function POST(request, { params }) {
        VALUES (?, ?, ?, ?, ?, ?, NOW())`,
       [
         adminData.id,
-        "update_authorized_signatory",
+        "Admin_Update_MemberRegist",
         id,
         `อัปเดตข้อมูลผู้มีอำนาจลงนามสำหรับคำข้สมัครประเภท ${type.toUpperCase()} ID: ${id}`,
         request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
@@ -139,11 +155,9 @@ export async function POST(request, { params }) {
 
     return NextResponse.json({
       success: true,
-      message:
-        existingRecords.length > 0
-          ? "อัปเดตข้อมูลผู้มีอำนาจลงนามสำเร็จ"
-          : "เพิ่มข้อมูลผู้มีอำนาจลงนามสำเร็จ",
-      action: existingRecords.length > 0 ? "updated" : "created",
+      message: `เพิ่มข้อมูลผู้มีอำนาจลงนาม ${signatories.length} คนสำเร็จ`,
+      action: "created",
+      count: signatories.length,
     });
   } catch (error) {
     console.error("Error saving authorized signatory:", error);
@@ -214,17 +228,15 @@ export async function GET(request, { params }) {
         throw new Error("Unsupported membership type");
     }
 
-    // Fetch signature data
+    // Fetch signature data (multiple records)
     const [signatureRecords] = await connection.execute(
-      `SELECT * FROM ${signatureTable} WHERE ${mainIdColumn} = ?`,
+      `SELECT * FROM ${signatureTable} WHERE ${mainIdColumn} = ? ORDER BY id ASC`,
       [id],
     );
 
-    const signatureData = signatureRecords.length > 0 ? signatureRecords[0] : null;
-
     return NextResponse.json({
       success: true,
-      data: signatureData,
+      data: signatureRecords, // Return array of signatories
     });
   } catch (error) {
     console.error("Error fetching authorized signatory:", error);

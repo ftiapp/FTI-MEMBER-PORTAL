@@ -538,15 +538,3 @@ export default function MembershipRequestDetail({ params }) {
   );
 }
 
-// Modal mount at page bottom to avoid z-index/context issues
-export function SwitchTypeModalMount({ isOpen, onClose, application, currentType, onSuccess }) {
-  return (
-    <SwitchTypeModal
-      isOpen={isOpen}
-      onClose={onClose}
-      application={application}
-      currentType={currentType}
-      onSuccess={onSuccess}
-    />
-  );
-}

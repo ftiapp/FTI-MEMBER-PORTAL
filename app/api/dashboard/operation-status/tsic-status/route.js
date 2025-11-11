@@ -1,11 +1,11 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
 /**
  * API route to get TSIC code update status for a user
  * @route GET /api/dashboard/operation-status/tsic-status
  * @param {string} userId - The user ID to get TSIC code update status for
- * @returns {Array} - Array of TSIC code update status objects
+ * @returns {Promise<Response>} - JSON response with tsicUpdates array
  */
 export async function GET(request) {
   try {

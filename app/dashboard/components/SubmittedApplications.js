@@ -24,28 +24,28 @@ export default function SubmittedApplications({
   const fetchingRef = useRef(false);
   const lastFetchParamsRef = useRef(null);
 
+  // Fetch all applications when userId is available (only once per userId change)
   useEffect(() => {
     console.log("🔄 SubmittedApplications - useEffect triggered:", {
       allApplicationsLength: allApplications.length,
       hasUserId: !!userId,
       userId: userId,
-      currentPage,
-      itemsPerPage,
-      searchQuery,
-      membershipTypeFilter,
     });
 
     // Only fetch if we don't have all applications yet
     if (allApplications.length === 0 && userId) {
       console.log("📡 Calling fetchAllApplications...");
       fetchAllApplications();
-    } else if (allApplications.length > 0) {
+    }
+  }, [userId]);
+
+  // Separate effect for filtering and pagination
+  useEffect(() => {
+    if (allApplications.length > 0) {
       console.log("🔍 Filtering existing applications...");
       filterAndPaginateApplications();
-    } else {
-      console.log("⚠️ No userId provided");
     }
-  }, [userId, currentPage, itemsPerPage, searchQuery, membershipTypeFilter, allApplications]);
+  }, [allApplications, currentPage, itemsPerPage, searchQuery, membershipTypeFilter]);
 
   // ส่ง totalItems กลับไปให้ parent component เมื่อมีการเปลี่ยนแปลง
   useEffect(() => {
@@ -164,9 +164,18 @@ export default function SubmittedApplications({
       itemsPerPage,
     });
 
-    // Reset to page 1 if current page is out of bounds
-    if (currentPage > totalPages && totalPages > 0) {
-      // This will trigger another useEffect call
+    // Reset to page 1 if current page is out of bounds (but don't call recursively)
+    if (currentPage > totalPages && totalPages > 0 && currentPage !== 1) {
+      console.log(`🔄 Page ${currentPage} out of bounds, resetting to page 1`);
+      // Don't call filterAndPaginateApplications recursively, let parent handle it
+      if (onPaginationChange) {
+        onPaginationChange({
+          currentPage: 1,
+          totalItems,
+          totalPages,
+          itemsPerPage,
+        });
+      }
       return;
     }
   };
@@ -258,7 +267,7 @@ export default function SubmittedApplications({
           <p className="text-sm text-gray-600 mt-1">{error}</p>
         </div>
         <button
-          onClick={fetchApplications}
+          onClick={fetchAllApplications}
           className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
         >
           ลองใหม่
@@ -463,7 +472,12 @@ export default function SubmittedApplications({
         <div className="text-center py-8 text-gray-500">
           <p>ไม่มีข้อมูลในหน้านี้</p>
           <button
-            onClick={() => onPageChange && onPageChange(1)}
+            onClick={() => {
+              // Reset page to 1 when going back to first page
+              if (onPaginationChange && pagination) {
+                onPaginationChange({ ...pagination, currentPage: 1 });
+              }
+            }}
             className="mt-2 text-blue-600 hover:text-blue-800 underline"
           >
             กลับไปหน้าแรก
