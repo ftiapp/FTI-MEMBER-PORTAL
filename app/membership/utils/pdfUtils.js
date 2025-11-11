@@ -213,19 +213,31 @@ const processData = (app) => {
     }
   }
 
-  // Extract authorized signature and company stamp from documents if present
+  // Extract documents from various possible sources
   let documents =
     app.documents ||
-    app.memberDocuments ||
+    app.memberDocs ||
     app.MemberDocuments ||
     app.icDocuments ||
     app.ICDocuments ||
     app.member_docs ||
     app.memberDocs ||
     [];
+  // Also check if documents are in the root (from normalized data)
+  if (!documents || documents.length === 0) {
+    documents = app.documents || [];
+  }
   if (!Array.isArray(documents) && documents?.data && Array.isArray(documents.data)) {
     documents = documents.data;
   }
+  
+  // Debug logging
+  console.debug("[PDF] All documents sources checked:");
+  console.debug("- app.documents:", app.documents);
+  console.debug("- app.memberDocs:", app.memberDocs);
+  console.debug("- Final documents array:", documents);
+  console.debug("- Documents length:", documents?.length);
+  
   const findDoc = (type) => {
     // normalize and support multiple aliases from different flows
     const aliasesMap = {
@@ -243,7 +255,11 @@ const processData = (app) => {
       const tLower = t.toLowerCase();
       return aliases.some((a) => t === a || tLower === a.toLowerCase());
     });
-    if (!doc) return null;
+    if (!doc) {
+      console.debug(`[PDF] ${type} not found in documents. Available types:`, documents.map(d => d.document_type || d.type));
+      return null;
+    }
+    console.debug(`[PDF] Found ${type}:`, doc);
     return {
       fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path || doc.url,
       mimeType: doc.mime_type || doc.mimeType || doc.type || "",
@@ -394,8 +410,16 @@ const processData = (app) => {
     industrialGroupIds: app.industrialGroups || app.industrialGroupIds || [],
     provincialChapterIds: app.provincialCouncils || app.provincialChapterIds || [],
     // Documents
-    authorizedSignature: app.authorizedSignature || findDoc("authorizedSignature") || null,
-    companyStamp: app.companyStamp || findDoc("companyStamp") || null,
+    authorizedSignature: (() => {
+      const sig = app.authorizedSignature || findDoc("authorizedSignature") || null;
+      console.debug("[PDF] authorizedSignature found:", sig);
+      return sig;
+    })(),
+    companyStamp: (() => {
+      const stamp = app.companyStamp || findDoc("companyStamp") || null;
+      console.debug("[PDF] companyStamp found:", stamp);
+      return stamp;
+    })(),
     // Multiple signatories data (for OC forms)
     signatories: app.signatories || [],
     signatureNames: app.signatureNames || [], // From MemberRegist_OC_Signature_Name table
@@ -602,7 +626,7 @@ const section = (title, content) =>
   `<div class="section"><div class="section-title">${title}</div>${content}</div>`;
 
 // Helper function to build signatory signature HTML with preloaded signatures
-const buildSignatorySignature = (signatory, preloadedSignature, index) => {
+const buildSignatorySignature = (signatory, preloadedSignature, index, signatureFile) => {
   // Get signatory name with prename
   const getSignatoryName = (sig) => {
     const prenameTh = sig.prenameTh || sig.prename_th || "";
@@ -623,10 +647,12 @@ const buildSignatorySignature = (signatory, preloadedSignature, index) => {
   const signatoryName = getSignatoryName(signatory);
   const position = signatory.positionTh || signatory.position_th || "";
 
-  // Handle signature image with preloaded data
+  // Handle signature image with preloaded data or file URL fallback
   let signatureHtml = "";
   if (preloadedSignature) {
     signatureHtml = `<img src="${preloadedSignature}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`;
+  } else if (signatureFile && signatureFile.fileUrl) {
+    signatureHtml = `<img src="${signatureFile.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`;
   } else {
     signatureHtml = "(ลายเซ็น)";
   }
@@ -967,9 +993,11 @@ export const generateMembershipPDF = async (
 
     // Preload single signature (fallback)
     console.debug("[PDF] authorizedSignature doc:", data.authorizedSignature);
+    console.debug("[PDF] authorizedSignature fileUrl:", data.authorizedSignature?.fileUrl);
     let signatureImgSrc = "";
     if (data.authorizedSignature) {
       signatureImgSrc = await preloadSignature(data.authorizedSignature);
+      console.debug("[PDF] signatureImgSrc after preload:", signatureImgSrc);
     }
 
     // Preload multiple signatures
@@ -1359,7 +1387,8 @@ export const generateMembershipPDF = async (
                   const signaturesHtml = data.signatories
                     .map((signatory, index) => {
                       const preloadedSignature = preloadedSignatures[index] || null;
-                      return buildSignatorySignature(signatory, preloadedSignature, index);
+                      const signatureFile = authorizedSignatures[index] || null;
+                      return buildSignatorySignature(signatory, preloadedSignature, index, signatureFile);
                     })
                     .join("");
 
@@ -1391,13 +1420,13 @@ export const generateMembershipPDF = async (
                       <div class="signature-box">
                         <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
                         <div class="signature-img">
-                          ${
-                            signatureImgSrc
-                              ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
-                              : data.authorizedSignature?.fileUrl
-                                ? "แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)"
-                                : "(ลายเซ็น)"
-                          }
+                            ${
+                              signatureImgSrc
+                                ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
+                                : data.authorizedSignature?.fileUrl
+                                  ? `<img src="${data.authorizedSignature.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`
+                                  : "(ลายเซ็น)"
+                            }
                         </div>
                         <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
                           (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
@@ -1435,7 +1464,7 @@ export const generateMembershipPDF = async (
                     signatureImgSrc
                       ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
                       : data.authorizedSignature?.fileUrl
-                        ? "แนบไฟล์: ลายเซ็น (ไม่ใช่รูปภาพ)"
+                        ? `<img src="${data.authorizedSignature.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`
                         : "(ลายเซ็น)"
                   }
                 </div>
