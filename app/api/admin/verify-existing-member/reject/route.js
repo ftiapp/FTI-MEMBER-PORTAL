@@ -1,4 +1,4 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 import { logAdminAction } from "@/app/lib/adminAuth";
@@ -12,6 +12,18 @@ export async function POST(request) {
     if (!admin) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
+
+    // Fetch admin details from database to get the name
+    const adminDetails = await query(
+      "SELECT name FROM FTI_Portal_Admin_Users WHERE id = ? LIMIT 1",
+      [admin.id],
+    );
+
+    if (adminDetails.length === 0) {
+      return NextResponse.json({ success: false, message: "ไม่พบข้อมูลผู้ดูแลระบบ" }, { status: 404 });
+    }
+
+    const adminName = adminDetails[0].name;
 
     // รับข้อมูลจาก request
     const data = await request.json();
@@ -61,8 +73,8 @@ export async function POST(request) {
     try {
       // อัปเดตสถานะใน FTI_Original_Membership เป็นปฏิเสธ (Admin_Submit = 2)
       await query(
-        "UPDATE FTI_Original_Membership SET Admin_Submit = 2, reject_reason = ?, updated_at = NOW() WHERE id = ?",
-        [reason, companyId],
+        "UPDATE FTI_Original_Membership SET Admin_Submit = 2, reject_reason = ?, admin_id = ?, admin_name = ?, updated_at = NOW() WHERE id = ?",
+        [reason, admin.id, adminName, companyId],
       );
 
       // Commit transaction

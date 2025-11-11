@@ -37,6 +37,13 @@ export default function VerifyMembers() {
   const [sortField, setSortField] = useState("created_at");
   const [sortOrder, setSortOrder] = useState("desc");
 
+  // Status counts for static cards
+  const [statusCounts, setStatusCounts] = useState({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+
   // Status labels for display
   const statusLabels = {
     0: "รอการอนุมัติ",
@@ -62,6 +69,11 @@ export default function VerifyMembers() {
     sortOrder,
     activeTerm,
   ]);
+
+  // Fetch status counts on component mount
+  useEffect(() => {
+    fetchStatusCounts();
+  }, []);
 
   /**
    * Fetches members based on status filter
@@ -100,6 +112,23 @@ export default function VerifyMembers() {
       toast.error("เกิดข้อผิดพลาดในการดึงข้อมูล");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  /**
+   * Fetches status counts for static cards
+   */
+  const fetchStatusCounts = async () => {
+    try {
+      const response = await fetch("/api/admin/verify-status-counts");
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setStatusCounts(result.counts);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching status counts:", error);
     }
   };
 
@@ -159,6 +188,7 @@ export default function VerifyMembers() {
       if (result.success) {
         toast.success("อนุมัติสมาชิกเรียบร้อยแล้ว");
         fetchMembers();
+        fetchStatusCounts();
         setSelectedMember(null);
       } else {
         toast.error(result.message || "ไม่สามารถอนุมัติสมาชิกได้");
@@ -203,6 +233,7 @@ export default function VerifyMembers() {
         toast.success("ปฏิเสธการยืนยันสมาชิกเดิมเรียบร้อยแล้ว");
         setShowRejectModal(false);
         fetchMembers();
+        fetchStatusCounts();
         setSelectedMember(null);
       } else {
         toast.error(result.message || "ไม่สามารถปฏิเสธการยืนยันสมาชิกเดิมได้");
@@ -300,6 +331,138 @@ export default function VerifyMembers() {
               สถานะ:{" "}
               <span className="font-semibold text-[#1e3a8a]">{statusLabels[statusParam]}</span>
             </p>
+          </div>
+
+          {/* Status Cards */}
+          <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div
+              className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-105 ${
+                statusParam === "0"
+                  ? "border-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50 shadow-md"
+                  : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
+              }`}
+              onClick={() => handleStatusChange("0")}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    รอการอนุมัติ
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900">{statusCounts.pending}</div>
+                </div>
+                <div
+                  className={`p-3 rounded-full ${statusParam === "0" ? "bg-yellow-400" : "bg-gray-200"}`}
+                >
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-105 ${
+                statusParam === "1"
+                  ? "border-green-400 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md"
+                  : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
+              }`}
+              onClick={() => handleStatusChange("1")}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    อนุมัติแล้ว
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900">{statusCounts.approved}</div>
+                </div>
+                <div
+                  className={`p-3 rounded-full ${statusParam === "1" ? "bg-green-500" : "bg-gray-200"}`}
+                >
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className={`p-5 rounded-xl border-2 cursor-pointer transition-all duration-200 transform hover:scale-105 ${
+                statusParam === "2"
+                  ? "border-red-400 bg-gradient-to-br from-red-50 to-rose-50 shadow-md"
+                  : "border-gray-200 hover:border-gray-300 bg-white hover:shadow-md"
+              }`}
+              onClick={() => handleStatusChange("2")}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-sm text-gray-600 font-medium mb-1 flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    ปฏิเสธแล้ว
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900">{statusCounts.rejected}</div>
+                </div>
+                <div
+                  className={`p-3 rounded-full ${statusParam === "2" ? "bg-red-500" : "bg-gray-200"}`}
+                >
+                  <svg
+                    className="w-6 h-6 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Status filter tabs - Improved design */}
