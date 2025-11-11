@@ -22,17 +22,17 @@ const MessageListItem = ({ message, isSelected, onClick }) => {
           {STATUS_LABELS[message.status]}
         </span>
       </div>
-      <p className="text-sm text-gray-600 truncate">{message.name}</p>
+      <p className="text-sm text-gray-900 truncate">{message.name}</p>
       {message.status !== "unread" && message.read_by_admin_name && (
-        <p className="text-xs text-gray-500 truncate">อ่านโดย: {message.read_by_admin_name}</p>
+        <p className="text-xs text-gray-900 truncate">อ่านโดย: {message.read_by_admin_name}</p>
       )}
       {message.status === "replied" && message.replied_by_admin_name && (
-        <p className="text-xs text-gray-500 truncate">
+        <p className="text-xs text-gray-900 truncate">
           ตอบกลับโดย: {message.replied_by_admin_name}
         </p>
       )}
       <div className="flex justify-between items-center mt-2">
-        <span className="text-xs text-gray-500">{formatDate(message.created_at)}</span>
+        <span className="text-xs text-gray-900">{formatDate(message.created_at)}</span>
         {message.priority && (
           <span className={`text-xs px-2 py-1 rounded-full ${PRIORITY_COLORS[message.priority]}`}>
             {PRIORITY_LABELS[message.priority]}

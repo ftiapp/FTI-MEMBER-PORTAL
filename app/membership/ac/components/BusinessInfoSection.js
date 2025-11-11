@@ -24,9 +24,15 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
   const productsRef = useRef(null);
   const lastScrolledErrorRef = useRef(null);
 
-  // Scroll to error fields when errors change
+  // ใน BusinessInfoSection.js
   useEffect(() => {
-    // Check for per-item product errors
+    // เช็คว่า component กำลังแสดงอยู่จริงๆ หรือไม่
+    const section = document.querySelector('[data-section="business-info"]');
+    if (!section) {
+      // ถ้าไม่มี section นี้ใน DOM แสดงว่าไม่ได้แสดงอยู่
+      return;
+    }
+
     const hasProductItemErrors = Array.isArray(errors.productErrors)
       ? errors.productErrors.some((e) => e && Object.keys(e).length > 0)
       : false;
@@ -45,9 +51,15 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
     const firstErrorField = errorFields.find((field) => field.error && field.ref.current);
 
     if (firstErrorField) {
-      // Use actual error message if it's a string, otherwise build field names list
-      let errorMessage;
+      // Check if the element is actually visible
+      const element = firstErrorField.ref.current;
+      const isVisible = element && element.offsetParent !== null;
 
+      if (!isVisible) {
+        return; // Don't scroll if element is not visible
+      }
+
+      let errorMessage;
       if (typeof errors.products === "string") {
         errorMessage = errors.products;
       } else if (typeof errors.businessTypes === "string") {
@@ -59,7 +71,6 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
       } else if (hasProductItemErrors && firstErrorField.ref === productsRef) {
         errorMessage = "กรุณากรอกข้อมูลสินค้า/บริการ อย่างน้อย 1 รายการ";
       } else {
-        // Fallback: build field names list
         const errorFieldNames = errorFields
           .filter((field) => field.error)
           .map((field) => field.name)
@@ -72,13 +83,11 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
       if (errorKey !== lastScrolledErrorRef.current) {
         lastScrolledErrorRef.current = errorKey;
         firstErrorField.ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
-        // Toast removed - only show when Next button is clicked in ACFormNavigation.js
       }
     } else {
       lastScrolledErrorRef.current = null;
     }
   }, [errors]);
-
   return (
     <div
       className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10"

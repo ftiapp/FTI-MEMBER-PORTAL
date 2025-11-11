@@ -7,6 +7,9 @@
  * @returns {Object} ข้อความแสดงข้อผิดพลาด (ถ้ามี)
  */
 export const validateACForm = (formData, step) => {
+  console.log("✅ [validateACForm] Called - step:", step);
+  console.log("✅ formData:", formData);
+
   const errors = {};
 
   if (step === 1) {
@@ -320,6 +323,9 @@ export const validateACForm = (formData, step) => {
     // - salesDomestic, salesExport (ยอดจำหน่าย)
     // - shareholderThaiPercent, shareholderForeignPercent (สัดส่วนผู้ถือหุ้น)
   } else if (step === 4) {
+    console.log("✅ [validateACForm] Step 4 validation START");
+    console.log("✅ authorizedSignatoryPrenameTh:", formData.authorizedSignatoryPrenameTh);
+
     // ตรวจสอบเอกสารแนบ - เฉพาะสำเนาหนังสือรับรองการจดทะเบียนนิติบุคคลเท่านั้น
     if (!formData.companyRegistration)
       errors.companyRegistration = "กรุณาอัพโหลดสำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล";
@@ -402,7 +408,10 @@ export const validateACForm = (formData, step) => {
 
     // ตำแหน่งภาษาอังกฤษ: ไม่บังคับกรอกและไม่ตรวจสอบ (ซ่อนไว้)
     // Removed validation for English position
+
+    console.log("✅ [validateACForm] Step 4 errors:", errors);
   }
 
+  console.log("✅ [validateACForm] Final errors:", errors);
   return errors;
 };

@@ -211,6 +211,9 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
   };
 
   const handleFileChange = (e, documentType) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     const { files } = e.target;
     if (files && files[0]) {
       const file = files[0];
@@ -242,15 +245,53 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         const fileObj = createFileObject(file);
         setSelectedFiles((prev) => ({ ...prev, [documentType]: fileObj }));
         setFormData((prev) => ({ ...prev, [documentType]: fileObj }));
+
+        // เคลียร์เฉพาะ error ของ field ที่เพิ่งอัปโหลด
+        if (setErrors && errors?.[documentType]) {
+          console.log("🖼️ Clearing error for:", documentType);
+          setErrors((prev) => {
+            const newErrors = { ...prev };
+            delete newErrors[documentType];
+            return newErrors;
+          });
+        }
       }
     }
   };
 
   const handleImageSave = (blob) => {
+    console.log("🖼️ [handleImageSave] START");
+    console.log("🖼️ editingType:", editingType);
+    console.log("🖼️ errors BEFORE:", errors);
+
     const file = new File([blob], `${editingType}.png`, { type: "image/png" });
     const fileObj = createFileObject(file);
-    setSelectedFiles((prev) => ({ ...prev, [editingType]: fileObj }));
-    setFormData((prev) => ({ ...prev, [editingType]: fileObj }));
+
+    console.log("🖼️ fileObj:", fileObj);
+
+    setSelectedFiles((prev) => {
+      console.log("🖼️ setSelectedFiles prev:", prev);
+      return { ...prev, [editingType]: fileObj };
+    });
+
+    setFormData((prev) => {
+      console.log("🖼️ setFormData prev:", prev);
+      console.log("🖼️ setFormData updating field:", editingType);
+      return { ...prev, [editingType]: fileObj };
+    });
+
+    // เคลียร์เฉพาะ error ของ field ที่เพิ่งอัปโหลด
+    if (setErrors && errors?.[editingType]) {
+      console.log("🖼️ Clearing error for:", editingType);
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[editingType];
+        return newErrors;
+      });
+    }
+
+    console.log("🖼️ [handleImageSave] END");
+
     setShowImageEditor(false);
     setEditingImage(null);
     setEditingType("");

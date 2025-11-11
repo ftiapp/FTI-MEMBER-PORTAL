@@ -45,20 +45,20 @@ const AddressUpdatesPage = () => {
   // Fetch counts for all statuses
   const fetchAllCounts = async () => {
     try {
-      const statuses = ['pending', 'approved', 'rejected'];
+      const statuses = ["pending", "approved", "rejected"];
       const counts = {};
-      
+
       await Promise.all(
         statuses.map(async (s) => {
           const response = await fetch(`/api/admin/address-update/list?status=${s}&limit=1`);
           const data = await response.json();
           counts[s] = data.pagination?.total || 0;
-        })
+        }),
       );
-      
+
       setStatusCounts(counts);
     } catch (error) {
-      console.error('Error fetching status counts:', error);
+      console.error("Error fetching status counts:", error);
     }
   };
 

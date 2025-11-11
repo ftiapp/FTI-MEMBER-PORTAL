@@ -12,8 +12,8 @@ import ReplyForm from "./ReplyForm";
 const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
   if (!selectedMessage) {
     return (
-      <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-4">
-        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+      <div className="lg:col-span-2 bg-gray-100 rounded-lg shadow-md p-4">
+        <div className="flex flex-col items-center justify-center h-64 text-gray-900">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-12 w-12 mb-2"
@@ -35,7 +35,7 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
   }
 
   return (
-    <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-4">
+    <div className="lg:col-span-2 bg-gray-100 rounded-lg shadow-md p-4">
       <div>
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-semibold">{selectedMessage.subject}</h2>
@@ -57,11 +57,11 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
-            <p className="text-sm text-gray-600">จาก</p>
+            <p className="text-sm text-gray-900">จาก</p>
             <p className="font-medium">{selectedMessage.name}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">อีเมล</p>
+            <p className="text-sm text-gray-900">อีเมล</p>
             <p className="font-medium">
               <a
                 href={`mailto:${selectedMessage.email}?subject=Re: ${selectedMessage.subject}`}
@@ -80,29 +80,29 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
             </p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">เบอร์โทรศัพท์</p>
+            <p className="text-sm text-gray-900">เบอร์โทรศัพท์</p>
             <p className="font-medium">{selectedMessage.phone || "-"}</p>
           </div>
           <div>
-            <p className="text-sm text-gray-600">วันที่ส่ง</p>
+            <p className="text-sm text-gray-900">วันที่ส่ง</p>
             <p className="font-medium">{formatDate(selectedMessage.created_at)}</p>
           </div>
           {selectedMessage.status !== "unread" && selectedMessage.read_by_admin_name && (
             <div>
-              <p className="text-sm text-gray-600">อ่านโดย</p>
+              <p className="text-sm text-gray-900">อ่านโดย</p>
               <p className="font-medium">{selectedMessage.read_by_admin_name}</p>
             </div>
           )}
           {selectedMessage.status === "replied" && selectedMessage.replied_by_admin_name && (
             <div>
-              <p className="text-sm text-gray-600">ตอบกลับโดย</p>
+              <p className="text-sm text-gray-900">ตอบกลับโดย</p>
               <p className="font-medium">{selectedMessage.replied_by_admin_name}</p>
             </div>
           )}
         </div>
 
         <div className="mb-6">
-          <p className="text-sm text-gray-600 mb-1">ข้อความ</p>
+          <p className="text-sm text-gray-900 mb-1">ข้อความ</p>
           <div className="p-3 bg-gray-50 rounded-md whitespace-pre-wrap">
             {selectedMessage.message}
           </div>
@@ -110,14 +110,14 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
 
         {selectedMessage.assigned_to ? (
           <div className="mb-4">
-            <p className="text-sm text-gray-600">ผู้รับผิดชอบ</p>
+            <p className="text-sm text-gray-900">ผู้รับผิดชอบ</p>
             <p className="font-medium">{selectedMessage.assigned_to}</p>
           </div>
         ) : (
           <div className="mb-4">
             <button
               onClick={() => onAssign(selectedMessage.id)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-gray-900 rounded-md hover:bg-blue-700"
             >
               รับผิดชอบข้อความนี้
             </button>
@@ -126,7 +126,7 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
 
         {selectedMessage.reply_message && (
           <div className="mb-6">
-            <p className="text-sm text-gray-600 mb-1">
+            <p className="text-sm text-gray-900 mb-1">
               ข้อความตอบกลับ ({formatDate(selectedMessage.replied_at)})
             </p>
             <div className="p-3 bg-green-50 rounded-md whitespace-pre-wrap">
@@ -140,7 +140,7 @@ const MessageDetail = ({ selectedMessage, onReply, onClose, onAssign }) => {
         )}
 
         {selectedMessage.closed_at && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-900">
             ปิดการติดต่อเมื่อ {formatDate(selectedMessage.closed_at)}
           </div>
         )}

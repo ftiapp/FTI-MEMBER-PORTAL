@@ -68,6 +68,9 @@ export default function ACMembershipForm({
   const [submissionResult, setSubmissionResult] = useState(null);
   const [consentAgreed, setConsentAgreed] = useState(false);
 
+  // เพิ่ม flag สำหรับตรวจสอบว่าผู้ใช้กดปุ่ม Next เองหรือไม่
+  const [hasAttemptedSubmit, setHasAttemptedSubmit] = useState(false);
+
   // Determine which form data and setters to use
   const isExternal = externalFormData !== undefined;
   const formData = isExternal ? externalFormData : internalFormData;
@@ -110,9 +113,11 @@ export default function ACMembershipForm({
   const handleNextStep = internalNavigation.handleNextStep;
   const handlePrevStep = internalNavigation.handlePrevStep;
 
-  // Debug: เพิ่ม console.log เพื่อตรวจสอบค่า
-  console.log("AC Current Step:", currentStep);
-  console.log("AC Total Steps:", totalSteps);
+  // เพิ่ม console.log เพื่อตรวจสอบค่า
+  console.log("🔄 [ACMembershipForm] RENDER");
+  console.log("🔄 currentStep:", currentStep);
+  console.log("🔄 errors:", errors);
+  console.log("🔄 formData keys:", Object.keys(formData));
 
   // Cleanup on unmount
   useEffect(() => {
@@ -205,6 +210,8 @@ export default function ACMembershipForm({
       setSubmissionResult,
       setShowSuccessModal,
       router,
+      hasAttemptedSubmit,
+      setHasAttemptedSubmit,
     }),
     [
       formData,
@@ -219,6 +226,7 @@ export default function ACMembershipForm({
       industrialGroups,
       provincialChapters,
       router,
+      hasAttemptedSubmit,
     ],
   );
 
@@ -271,7 +279,7 @@ export default function ACMembershipForm({
   return (
     <div className="relative max-w-7xl mx-auto px-6 py-8">
       <LoadingOverlay isVisible={isSubmitting} message="กำลังส่งข้อมูล..." />
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form method="post" action="#" onSubmit={(e) => e.preventDefault()} className="space-y-8">
         {/* Error Messages - Using shared component */}
         <FormErrorBox errors={errors} excludeKeys={["representativeErrors"]} />
 

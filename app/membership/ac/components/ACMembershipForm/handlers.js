@@ -61,21 +61,42 @@ export const createHandleSubmit =
     setSubmissionResult,
     setShowSuccessModal,
     router,
+    hasAttemptedSubmit,
+    setHasAttemptedSubmit,
   }) =>
   async (e) => {
+    console.log("🚀 [createHandleSubmit] CALLED with event:", e);
+    console.log("🚀 [createHandleSubmit] hasAttemptedSubmit:", hasAttemptedSubmit);
+    console.trace("🚀 [createHandleSubmit] Stack trace:");
+
     if (e) e.preventDefault();
+
+    // ตั้งค่า flag เมื่อ user กดปุ่มจริงๆ
+    if (e && !hasAttemptedSubmit) {
+      setHasAttemptedSubmit(true);
+    }
+
     setIsSubmitting(true);
 
     try {
       // ถ้าอยู่ในโหมดแบ่งขั้นตอน และไม่ใช่ขั้นตอนสุดท้าย ให้ไปขั้นตอนถัดไป
       if (!isSinglePageLayout && currentStep < totalSteps) {
+        console.log("🔍 [createHandleSubmit] Step", currentStep, "validation START");
         const formErrors = validateACForm(formData, currentStep);
         console.log("🔍 AC Form validation errors for step", currentStep, ":", formErrors);
         setErrors(formErrors);
 
         if (Object.keys(formErrors).length > 0) {
+          console.log(
+            "❌ [createHandleSubmit] Validation errors found, checking step:",
+            currentStep,
+          );
+
           // If representative step has errors, let the child component handle scroll AND toast (avoid duplicate)
           if (currentStep === 2 && formErrors.representativeErrors) {
+            console.log(
+              "🔄 [createHandleSubmit] Step 2 representative errors - delegating to child component",
+            );
             // Child component (RepresentativeInfoSection) will handle both scroll and toast
             setIsSubmitting(false);
             return;
@@ -89,15 +110,35 @@ export const createHandleSubmit =
               formErrors.products ||
               formErrors.productErrors)
           ) {
+            console.log(
+              "🔄 [createHandleSubmit] Step 3 business errors - delegating to child component",
+            );
             // Child component (BusinessInfoSection) will handle both scroll and toast
             setIsSubmitting(false);
             return;
           }
 
+          console.log("🔍 [createHandleSubmit] Processing general errors for step:", currentStep);
           const { key: firstSpecificKey, message: firstSpecificMessage } =
             getFirstFieldError(formErrors);
           const firstMessage = firstSpecificMessage || "กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง";
-          toast.error(firstMessage);
+          console.log("🔍 [createHandleSubmit] First error:", {
+            firstSpecificKey,
+            firstSpecificMessage,
+            firstMessage,
+          });
+
+          // แสดง toast เฉพาะเมื่อ user กดปุ่มจริงๆ (มี event)
+          if (e) {
+            console.log("🍞 [createHandleSubmit] USER CLICKED - showing toast:", firstMessage);
+            toast.error(firstMessage);
+            console.log("🍞 [createHandleSubmit] Toast shown successfully");
+          } else {
+            console.log(
+              "🚫 [createHandleSubmit] NO USER ACTION - skipping toast for:",
+              firstMessage,
+            );
+          }
 
           // ถ้า error แรกเป็นฟิลด์ข้อมูลบริษัท ให้เลื่อนไปที่ฟิลด์นั้นก่อนเลย (มีความสำคัญสูงสุด)
           const companyBasicFields = [

@@ -21,7 +21,7 @@ const MessageList = ({
 }) => {
   if (loading) {
     return (
-      <div className="lg:col-span-1 bg-white rounded-lg shadow-md p-4">
+      <div className="lg:col-span-1 bg-gray-100 rounded-lg shadow-md p-4">
         <h2 className="text-lg font-semibold mb-4">รายการข้อความ</h2>
         <div className="flex justify-center items-center h-64">
           <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
@@ -31,7 +31,7 @@ const MessageList = ({
   }
 
   return (
-    <div className="lg:col-span-1 bg-white rounded-lg shadow-md p-4">
+    <div className="lg:col-span-1 bg-gray-100 rounded-lg shadow-md p-4">
       <div className="mb-4">
         <h2 className="text-lg font-semibold mb-2">รายการข้อความ</h2>
 
@@ -49,11 +49,11 @@ const MessageList = ({
             <p>เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}</p>
           </div>
         ) : messages.length === 0 ? (
-          <div className="bg-gray-50 p-4 rounded-lg text-gray-600 text-center">
+          <div className="bg-gray-50 p-4 rounded-lg text-black text-center">
             <p className="mb-4">ไม่พบข้อความติดต่อ</p>
             <button
               onClick={onAddSampleData}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-black rounded-md hover:bg-blue-700"
             >
               เพิ่มข้อมูลตัวอย่าง
             </button>

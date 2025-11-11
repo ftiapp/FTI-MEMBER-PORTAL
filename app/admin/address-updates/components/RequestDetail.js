@@ -73,9 +73,7 @@ export default function RequestDetail({
             d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
           />
         </svg>
-        <p className="text-black font-semibold text-lg">
-          เลือกคำขอแก้ไขที่อยู่เพื่อดูรายละเอียด
-        </p>
+        <p className="text-black font-semibold text-lg">เลือกคำขอแก้ไขที่อยู่เพื่อดูรายละเอียด</p>
         <p className="text-black text-sm mt-2">คลิกที่รายการด้านซ้ายเพื่อดูข้อมูลเพิ่มเติม</p>
       </motion.div>
     );
@@ -181,7 +179,12 @@ export default function RequestDetail({
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <svg className="w-6 h-6 text-[#1e3a8a]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-6 h-6 text-[#1e3a8a]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
