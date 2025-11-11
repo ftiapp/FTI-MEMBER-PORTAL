@@ -291,7 +291,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
       {/* สินค้าและบริการ - โหมดดู */}
       {!isEditing && (
         <div>
-          <h4 className="text-lg font-medium mb-3 text-gray-700">สินค้าและบริการ</h4>
+          <h4 className="text-lg font-medium mb-3 text-black">สินค้าและบริการ</h4>
           {(productsData || []).length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(productsData || []).map((product, index) => {
@@ -319,7 +319,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
       {isEditing && (
         <div>
           <div className="flex justify-between items-center mb-3">
-            <h4 className="text-lg font-medium text-gray-700">สินค้าและบริการ</h4>
+            <h4 className="text-lg font-medium text-black">สินค้าและบริการ</h4>
             <button
               onClick={addProduct}
               className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
