@@ -7,7 +7,7 @@ const client = new postmark.ServerClient(process.env.POSTMARK_API_KEY);
 /**
  * Common sender for all emails
  */
-const defaultSender = "noreply@fti.or.th";
+const defaultSender = process.env.POSTMARK_FROM_EMAIL || "noreply@fti.or.th";
 
 /**
  * Send verification email to user
@@ -1109,7 +1109,7 @@ export async function sendProductUpdateRequestEmail(
         หมายเลขสมาชิก: ${memberCode}
         ชื่อบริษัท: ${companyName}
         
-        ระยะเวลาในการพิจารณา: เจ้าหน้าที่จะใช้เวลาในการตรวจสอบและพิจารณา 1-2 วันทำการ
+      
         
         ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า "ตรวจสอบสถานะการดำเนินการ" ในแดชบอร์ดของท่าน
         

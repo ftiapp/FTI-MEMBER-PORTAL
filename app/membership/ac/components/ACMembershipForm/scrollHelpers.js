@@ -132,40 +132,67 @@ export const scrollToErrorField = (errorKey) => {
     }
   }
 
-  // Authorized Signatory fields (in DocumentUploadSection)
-  if (errorKey.startsWith("authorizedSignatory")) {
-    setTimeout(() => {
-      const selectors = [
-        `#${errorKey}`,
-        `[name="${errorKey}"]`,
-        `input[id="${errorKey}"]`,
-        `input[name="${errorKey}"]`,
-        `select[id="${errorKey}"]`,
-        `select[name="${errorKey}"]`,
-      ];
+  // Authorized Signatory fields (in DocumentUploadSection) - now using signatories array
+  if (errorKey.startsWith("signatories[")) {
+    const match = errorKey.match(/signatories\[(\d+)\]\.(.+)$/);
+    if (match) {
+      const signatoryIndex = match[1];
+      const field = match[2];
 
-      let el = null;
-      for (const selector of selectors) {
-        el = document.querySelector(selector);
-        if (el) break;
-      }
+      setTimeout(() => {
+        // Try selectors for signatory fields
+        const selectors = [
+          `[data-signatory="${signatoryIndex}"][data-field="${field}"]`,
+          `[name="signatories[${signatoryIndex}][${field}]"]`,
+          `input[name="signatories[${signatoryIndex}][${field}]"]`,
+          `select[name="signatories[${signatoryIndex}][${field}]"]`,
+        ];
 
-      if (el) {
-        el.scrollIntoView({ behavior: "smooth", block: "center" });
-        setTimeout(() => {
-          try {
-            el.focus({ preventScroll: true });
-          } catch (e) {}
-        }, 100);
-      } else {
-        // Fallback: scroll to document upload section
-        const section =
-          document.querySelector('[data-section="documents"]') ||
-          document.querySelector('[data-section="document-upload"]');
-        if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 100);
-    return;
+        let el = null;
+        for (const selector of selectors) {
+          el = document.querySelector(selector);
+          if (el) break;
+        }
+
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+          setTimeout(() => {
+            try {
+              el.focus({ preventScroll: true });
+            } catch (e) {}
+          }, 100);
+        } else {
+          // Fallback: scroll to document upload section
+          const section =
+            document.querySelector('[data-section="documents"]') ||
+            document.querySelector('[data-section="document-upload"]');
+          if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      return;
+    }
+  }
+
+  // Authorized Signature files (in DocumentUploadSection)
+  if (errorKey.startsWith("authorizedSignature_")) {
+    const match = errorKey.match(/authorizedSignature_(\d+)$/);
+    if (match) {
+      const signatoryIndex = match[1];
+      setTimeout(() => {
+        // Try to find the signature upload zone for this signatory
+        const el = document.querySelector(`[data-signatory-signature="${signatoryIndex}"]`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        } else {
+          // Fallback: scroll to document upload section
+          const section =
+            document.querySelector('[data-section="documents"]') ||
+            document.querySelector('[data-section="document-upload"]');
+          if (section) section.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      return;
+    }
   }
 
   // Non-address fields: try matching by id or name
@@ -324,28 +351,34 @@ export const getFirstFieldError = (errs) => {
     if (typeof v === "string") return { key: k, message: v };
   }
 
-  // 4) Authorized Signatory fields (in DocumentUploadSection - step 3)
-  const authorizedSignatoryPriority = [
-    "authorizedSignatoryPrenameTh",
-    "authorizedSignatoryPrenameOther",
-    "authorizedSignatoryPrenameEn",
-    "authorizedSignatoryPrenameOtherEn",
-    "authorizedSignatoryFirstNameTh",
-    "authorizedSignatoryLastNameTh",
-    "authorizedSignatoryFirstNameEn",
-    "authorizedSignatoryLastNameEn",
-    "authorizedSignatoryPositionTh",
-    "authorizedSignatoryPositionEn",
-  ];
-  for (const k of authorizedSignatoryPriority) {
-    if (typeof errs[k] === "string") {
-      return { key: k, message: errs[k] };
+  // 4) Signatories array errors: signatories[index].field
+  if (errs.signatories && Array.isArray(errs.signatories)) {
+    for (let i = 0; i < errs.signatories.length; i++) {
+      const signatoryErrors = errs.signatories[i];
+      if (signatoryErrors && typeof signatoryErrors === "object") {
+        const fieldKeys = Object.keys(signatoryErrors);
+        if (fieldKeys.length > 0) {
+          const field = fieldKeys[0];
+          const message = signatoryErrors[field];
+          if (typeof message === "string") {
+            return { key: `signatories[${i}].${field}`, message };
+          }
+        }
+      }
     }
+  }
+
+  // 5) Authorized signature file errors: authorizedSignature_index
+  const authorizedSignatureKeys = Object.keys(errs).filter((k) => k.startsWith("authorizedSignature_"));
+  if (authorizedSignatureKeys.length > 0) {
+    const k = authorizedSignatureKeys[0];
+    const v = errs[k];
+    if (typeof v === "string") return { key: k, message: v };
   }
 
   // Note: Representative errors are handled specially in submit handlers via representativeErrors
 
-  // 5) Fallback: first flat string error key or first leaf string in a nested object
+  // 6) Fallback: first flat string error key or first leaf string in a nested object
   for (const [k, v] of Object.entries(errs)) {
     if (typeof v === "string") return { key: k, message: v };
     if (v && typeof v === "object") {

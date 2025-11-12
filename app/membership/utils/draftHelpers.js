@@ -1,9 +1,40 @@
-/**
- * Shared utilities for draft management
- * Used by all membership forms (AC, OC, IC, AM)
- */
-
 import { toast } from "react-hot-toast";
+
+/**
+ * Filter out file-related fields from formData to prevent saving file objects in drafts
+ * Files cannot be properly restored from drafts, so we exclude them entirely
+ * @param {object} formData - The complete form data
+ * @returns {object} - Form data with file fields removed
+ */
+export const filterFileFieldsForDraft = (formData) => {
+  if (!formData || typeof formData !== 'object') {
+    return formData;
+  }
+
+  // Create a copy of formData to avoid mutating the original
+  const filteredData = { ...formData };
+
+  // List of file-related fields to exclude from draft saving
+  const fileFieldsToExclude = [
+    'companyRegistration',
+    'vatRegistration',
+    'idCard',
+    'authorityLetter',
+    'companyStamp',
+    'authorizedSignature',
+    'authorizedSignatures', // Array of signature files
+    // Add any other file fields that might exist
+  ];
+
+  // Remove file fields
+  fileFieldsToExclude.forEach(field => {
+    if (filteredData.hasOwnProperty(field)) {
+      delete filteredData[field];
+    }
+  });
+
+  return filteredData;
+};
 
 /**
  * Delete a draft by tax ID
@@ -102,6 +133,9 @@ export const saveDraftData = async (
   }
 
   try {
+    // Filter out file fields before saving draft
+    const filteredFormData = filterFileFieldsForDraft(formData);
+
     const response = await fetch("/api/membership/save-draft", {
       method: "POST",
       headers: {
@@ -109,7 +143,7 @@ export const saveDraftData = async (
       },
       body: JSON.stringify({
         memberType,
-        draftData: formData,
+        draftData: filteredFormData,
         currentStep,
       }),
     });

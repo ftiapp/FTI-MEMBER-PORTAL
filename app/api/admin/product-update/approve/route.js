@@ -1,7 +1,7 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminSession } from "@/app/lib/auth";
-import { pool } from "@/app/lib/db";
+import { query } from "@/app/lib/db";
 import { createNotification } from "@/app/lib/notifications";
 import { sendProductUpdateApprovalEmail } from "@/app/lib/postmark";
 
@@ -40,11 +40,11 @@ export async function POST(request) {
     }
 
     // Start a transaction
-    await pool.query("START TRANSACTION");
+    await query("START TRANSACTION");
 
     try {
       // Get the request details
-      const [requests] = await pool.query(
+      const [requests] = await query(
         `
         SELECT * FROM FTI_Original_Membership_Pending_Product_Updates WHERE id = ?
       `,
@@ -52,7 +52,7 @@ export async function POST(request) {
       );
 
       if (requests.length === 0) {
-        await pool.query("ROLLBACK");
+        await query("ROLLBACK");
         return NextResponse.json(
           {
             success: false,
@@ -63,9 +63,12 @@ export async function POST(request) {
       }
 
       const productUpdateRequest = requests[0];
+      console.log("DEBUG: productUpdateRequest =", JSON.stringify(productUpdateRequest));
+      console.log("DEBUG: productUpdateRequest type =", typeof productUpdateRequest);
+      console.log("DEBUG: requests =", JSON.stringify(requests));
 
       // Update the request status
-      await pool.query(
+      await query(
         `
         UPDATE FTI_Original_Membership_Pending_Product_Updates
         SET status = 'approved', admin_id = ?, admin_notes = ?, updated_at = NOW()
@@ -82,12 +85,12 @@ export async function POST(request) {
       // Format the details for logging
       const logDetails = JSON.stringify({
         request_id: id,
-        member_code: productUpdateRequest.member_code,
-        company_name: productUpdateRequest.company_name,
+        member_code: productUpdateRequest?.member_code || "unknown",
+        company_name: productUpdateRequest?.company_name || "unknown",
         admin_notes: admin_notes || "",
       });
 
-      await pool.query(
+      await query(
         `
         INSERT INTO FTI_Portal_Admin_Actions_Logs
         (admin_id, action_type, target_id, description, ip_address, user_agent)
@@ -97,34 +100,34 @@ export async function POST(request) {
       );
 
       // Create notification for the user
-      if (productUpdateRequest.user_id) {
-        const notificationMessage = `คำขอแก้ไขข้อมูลสินค้าของ ${productUpdateRequest.company_name} (${productUpdateRequest.member_code}) ได้รับการอนุมัติแล้ว`;
+      if (productUpdateRequest?.user_id) {
+        const notificationMessage = `คำขอแก้ไขข้อมูลสินค้าของ ${productUpdateRequest?.company_name || "บริษัทไม่ระบุ"} (${productUpdateRequest?.member_code || "ไม่ระบุ"}) ได้รับการอนุมัติแล้ว`;
         await createNotification({
           user_id: productUpdateRequest.user_id,
           message: notificationMessage,
           type: "user",
-          link: `/MemberDetail?memberCode=${encodeURIComponent(productUpdateRequest.member_code)}&memberType=${productUpdateRequest.member_type}&member_group_code=${productUpdateRequest.member_group_code}&typeCode=${productUpdateRequest.type_code}&tab=products`,
+          link: `/MemberDetail?memberCode=${encodeURIComponent(productUpdateRequest?.member_code || "")}&memberType=${productUpdateRequest?.member_type || ""}&member_group_code=${productUpdateRequest?.member_group_code || ""}&typeCode=${productUpdateRequest?.type_code || ""}&tab=products`,
           status: "approved",
         });
       }
 
       // Commit the transaction
-      await pool.query("COMMIT");
+      await query("COMMIT");
 
       // ส่งอีเมลแจ้งเตือนผู้ใช้
       try {
         // ดึงข้อมูลผู้ใช้
-        const [userData] = await pool.query(
+        const [userData] = await query(
           "SELECT email, firstname, lastname FROM FTI_Portal_User WHERE id = ?",
-          [productUpdateRequest.user_id],
+          [productUpdateRequest?.user_id],
         );
         if (userData && userData.length > 0 && userData[0].email) {
           await sendProductUpdateApprovalEmail(
             userData[0].email,
             userData[0].firstname || "",
             userData[0].lastname || "",
-            productUpdateRequest.member_code,
-            productUpdateRequest.company_name || "ไม่ระบุ",
+            productUpdateRequest?.member_code || "ไม่ระบุ",
+            productUpdateRequest?.company_name || "ไม่ระบุ",
           );
           console.log("Product update approval email sent to:", userData[0].email);
         }
@@ -139,7 +142,7 @@ export async function POST(request) {
       });
     } catch (error) {
       // Rollback the transaction if there's an error
-      await pool.query("ROLLBACK");
+      await query("ROLLBACK");
       throw error;
     }
   } catch (error) {

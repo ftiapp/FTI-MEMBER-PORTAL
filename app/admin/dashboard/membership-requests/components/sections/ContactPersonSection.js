@@ -130,6 +130,9 @@ const ContactPersonSection = ({ application, onUpdate }) => {
   ]);
 
   const handleAdd = () => {
+    // Find the "ผู้ประสานงานรอง" type (ID = 2) as default for additional contacts
+    const defaultType = contactTypes.find((type) => type.id === 2);
+
     // Default blank contact structure (snake_case preferred for backend)
     const newContact = {
       prename_th: "",
@@ -144,8 +147,8 @@ const ContactPersonSection = ({ application, onUpdate }) => {
       email: "",
       phone: "",
       phone_extension: "",
-      type_contact_id: "",
-      type_contact_name: "",
+      type_contact_id: defaultType ? String(defaultType.id) : "",
+      type_contact_name: defaultType ? defaultType.type_name_th : "",
       type_contact_other_detail: "",
     };
     const updated = [...contacts, newContact];

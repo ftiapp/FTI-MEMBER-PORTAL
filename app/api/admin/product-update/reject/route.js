@@ -1,7 +1,7 @@
-﻿import { NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { checkAdminSession } from "../../../../lib/auth";
-import { pool } from "../../../../lib/db";
+import { query } from "../../../../lib/db";
 import { createNotification } from "../../../../lib/notifications";
 import { sendProductUpdateRejectionEmail } from "../../../../lib/postmark";
 
@@ -40,11 +40,11 @@ export async function POST(request) {
     }
 
     // Start a transaction
-    await pool.query("START TRANSACTION");
+    await query("START TRANSACTION");
 
     try {
       // Get the request details with all necessary information
-      const [requests] = await pool.query(
+      const [requests] = await query(
         `
         SELECT p.*, u.firstname, u.lastname, u.email, u.phone 
         FROM FTI_Original_Membership_Pending_Product_Updates p
@@ -55,7 +55,7 @@ export async function POST(request) {
       );
 
       if (requests.length === 0) {
-        await pool.query("ROLLBACK");
+        await query("ROLLBACK");
         return NextResponse.json(
           {
             success: false,
@@ -68,7 +68,7 @@ export async function POST(request) {
       const request = requests[0];
 
       // Update the request status
-      await pool.query(
+      await query(
         `
         UPDATE FTI_Original_Membership_Pending_Product_Updates
         SET status = 'rejected', admin_id = ?, reject_reason = ?, updated_at = NOW()
@@ -99,21 +99,21 @@ export async function POST(request) {
 
       // Format the details for logging with complete user information
       const logDetails = JSON.stringify({
-        message: `Product update rejected - Member Code: ${request.member_code}, Company: ${request.company_name}, Reason: ${reject_reason}`,
+        message: `Product update rejected - Member Code: ${request?.member_code || "unknown"}, Company: ${request?.company_name || "unknown"}, Reason: ${reject_reason}`,
         request_id: id,
-        userId: request.user_id,
-        firstname: request.firstname || "",
-        lastname: request.lastname || "",
-        email: request.email || "",
-        phone: request.phone || "",
-        member_code: request.member_code,
-        company_name: request.company_name,
+        userId: request?.user_id || null,
+        firstname: request?.firstname || "",
+        lastname: request?.lastname || "",
+        email: request?.email || "",
+        phone: request?.phone || "",
+        member_code: request?.member_code || "unknown",
+        company_name: request?.company_name || "unknown",
         old_data: oldData,
         new_data: newData,
         reject_reason: reject_reason,
       });
 
-      await pool.query(
+      await query(
         `
         INSERT INTO FTI_Portal_Admin_Actions_Logs
         (admin_id, action_type, target_id, description, ip_address, user_agent)
@@ -123,8 +123,8 @@ export async function POST(request) {
       );
 
       // Create notification for the user
-      if (request.user_id) {
-        const notificationMessage = `คำขอแก้ไขข้อมูลสินค้าของ ${request.company_name} (${request.member_code}) ถูกปฏิเสธ: ${reject_reason}`;
+      if (request?.user_id) {
+        const notificationMessage = `คำขอแก้ไขข้อมูลสินค้าของ ${request?.company_name || "บริษัทไม่ระบุ"} (${request?.member_code || "ไม่ระบุ"}) ถูกปฏิเสธ: ${reject_reason}`;
         await createNotification({
           user_id: request.user_id,
           message: notificationMessage,
@@ -135,17 +135,17 @@ export async function POST(request) {
       }
 
       // Commit the transaction
-      await pool.query("COMMIT");
+      await query("COMMIT");
 
       // ส่งอีเมลแจ้งเตือนผู้ใช้
       try {
-        if (request.email) {
+        if (request?.email) {
           await sendProductUpdateRejectionEmail(
             request.email,
-            request.firstname || "",
-            request.lastname || "",
-            request.member_code,
-            request.company_name || "ไม่ระบุ",
+            request?.firstname || "",
+            request?.lastname || "",
+            request?.member_code || "ไม่ระบุ",
+            request?.company_name || "ไม่ระบุ",
             reject_reason,
           );
           console.log("Product update rejection email sent to:", request.email);
@@ -161,7 +161,7 @@ export async function POST(request) {
       });
     } catch (error) {
       // Rollback the transaction if there's an error
-      await pool.query("ROLLBACK");
+      await query("ROLLBACK");
       throw error;
     }
   } catch (error) {

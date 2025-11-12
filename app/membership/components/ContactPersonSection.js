@@ -146,6 +146,9 @@ const ContactPersonSection = ({
   const addContactPerson = () => {
     if (contactPersons.length < 4) {
       // 1 main + 3 additional
+      // Find the "ผู้ประสานงานรอง" type (ID = 2) as default for additional contacts
+      const defaultType = contactTypes.find((type) => type.id === 2);
+
       const newContact = {
         id: Date.now(),
         prenameTh: "",
@@ -159,8 +162,8 @@ const ContactPersonSection = ({
         position: "",
         email: "",
         phone: "",
-        typeContactId: null,
-        typeContactName: "",
+        typeContactId: defaultType ? defaultType.id : null,
+        typeContactName: defaultType ? defaultType.type_name_th : "",
         typeContactOtherDetail: "",
         isMain: false,
       };

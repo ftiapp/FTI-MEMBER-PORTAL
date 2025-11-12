@@ -333,7 +333,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
               {products.map((product, index) => (
                 <div key={index} className="border border-blue-200 rounded-lg p-3 bg-blue-50">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-sm">สินค้า/บริการ #{index + 1}</span>
+                    <span className="font-semibold text-sm text-black">สินค้า/บริการ #{index + 1}</span>
                     <button
                       onClick={() => removeProduct(index)}
                       className="text-red-600 hover:text-red-800 text-sm"
@@ -344,7 +344,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                   </div>
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-sm mb-1">ชื่อ (ไทย)</label>
+                      <label className="block text-sm mb-1 text-black">ชื่อ (ไทย)</label>
                       <input
                         type="text"
                         value={product.name_th || ""}
@@ -355,7 +355,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-1">ชื่อ (อังกฤษ)</label>
+                      <label className="block text-sm mb-1 text-black">ชื่อ (อังกฤษ)</label>
                       <input
                         type="text"
                         value={product.name_en || ""}

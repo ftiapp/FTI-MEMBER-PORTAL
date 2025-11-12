@@ -224,7 +224,7 @@ export default function AdminLayout({ children }) {
           <div className="mx-auto max-w-7xl">
             {/* Show page title on mobile at top of content */}
             <h1 className="lg:hidden text-xl font-semibold text-white mb-3 px-2">{pageTitle}</h1>
-            <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 shadow-2xl rounded-2xl p-3 sm:p-4 lg:p-6 page-transition border border-slate-700/50 text-white">
+            <div className="bg-gradient-to-r from-slate-900 via-blue-900 to-slate-900 shadow-2xl rounded-2xl p-3 sm:p-4 lg:p-6 page-transition border border-slate-700/50">
               {children}
             </div>
           </div>

@@ -128,11 +128,11 @@ const ProductsSection = ({ application, onUpdate }) => {
           <h4 className="text-xl font-semibold mb-4 text-gray-800">สินค้าและบริการ</h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {(isEditing ? editData.products : application.products).map((product, index) => (
-              <div key={index} className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h5 className="text-lg font-bold text-blue-900 mb-3">สินค้า/บริการ {index + 1}</h5>
+              <div key={index} className="bg-blue-100 border border-blue-200 rounded-lg p-4">
+                <h5 className="text-lg font-bold text-black mb-3">สินค้า/บริการ {index + 1}</h5>
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (ไทย)</p>
+                    <p className="text-sm font-semibold text-black mb-1">ชื่อ (ไทย)</p>
                     {isEditing ? (
                       <input
                         type="text"
@@ -146,7 +146,7 @@ const ProductsSection = ({ application, onUpdate }) => {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-blue-700 mb-1">ชื่อ (อังกฤษ)</p>
+                    <p className="text-sm font-semibold text-black mb-1">ชื่อ (อังกฤษ)</p>
                     {isEditing ? (
                       <input
                         type="text"
@@ -161,7 +161,7 @@ const ProductsSection = ({ application, onUpdate }) => {
                   </div>
                   {product.description && (
                     <div>
-                      <p className="text-sm font-semibold text-blue-700 mb-1">รายละเอียด</p>
+                      <p className="text-sm font-semibold text-black mb-1">รายละเอียด</p>
                       {isEditing ? (
                         <textarea
                           value={product.description || ""}

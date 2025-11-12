@@ -359,21 +359,21 @@ export async function GET(request, { params }) {
 
       // Authorized signature document (new required document - IC only has this, no company stamp)
       authorizedSignature: documentsResult?.find(
-        (doc) => doc.document_type === "authorizedSignature",
+        (doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures",
       )
         ? {
             name:
-              documentsResult.find((doc) => doc.document_type === "authorizedSignature")
+              documentsResult.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
                 ?.file_name || "ไฟล์ถูกอัปโหลดแล้ว",
             fileUrl:
-              documentsResult.find((doc) => doc.document_type === "authorizedSignature")
+              documentsResult.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
                 ?.cloudinary_url ||
-              documentsResult.find((doc) => doc.document_type === "authorizedSignature")?.file_path,
-            fileType: documentsResult.find((doc) => doc.document_type === "authorizedSignature")
+              documentsResult.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")?.file_path,
+            fileType: documentsResult.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
               ?.mime_type,
-            fileSize: documentsResult.find((doc) => doc.document_type === "authorizedSignature")
+            fileSize: documentsResult.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
               ?.file_size,
-            cloudinaryId: documentsResult.find((doc) => doc.document_type === "authorizedSignature")
+            cloudinaryId: documentsResult.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
               ?.cloudinary_id,
           }
         : null,

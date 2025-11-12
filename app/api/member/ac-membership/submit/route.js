@@ -35,6 +35,14 @@ function sanitizePercent(raw, { field = "percent", allowNull = true } = {}) {
 
 export async function POST(request) {
   let trx;
+  let mainId;
+  let userId;
+  // ✅ FIX 1: ย้ายการประกาศออกมานอก try block
+  let uploadedDocuments = {};
+  let signatoriesToInsert = [];
+  // ✅ FIX 4: เก็บค่า data ที่ต้องการใช้ใน post-commit
+  let taxId;
+  let companyName;
 
   try {
     const session = await getSession();
@@ -42,7 +50,7 @@ export async function POST(request) {
       return NextResponse.json({ error: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
-    const userId = session.user.id;
+    userId = session.user.id;
 
     let formData;
     try {
@@ -126,7 +134,10 @@ export async function POST(request) {
     const files = {};
     const productionImages = [];
 
+    console.log("🔍 [AC] Parsing FormData entries...");
     for (const [key, value] of formData.entries()) {
+      console.log(`  - ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value);
+      
       if (value instanceof File && value.size > 0) {
         if (key.startsWith("productionImages[")) {
           productionImages.push(value);
@@ -176,8 +187,9 @@ export async function POST(request) {
 
     // Step 2: Check for duplicate Tax ID (cross-table AM/AC/OC)
     const { taxId } = data;
+    taxId = taxId; // assign to function level variable
+    companyName = data.companyName; // assign to function level variable
     if (!taxId) {
-      await rollbackTransaction(trx);
       return NextResponse.json({ error: "กรุณาระบุเลขประจำตัวผู้เสียภาษี" }, { status: 400 });
     }
 
@@ -270,7 +282,7 @@ export async function POST(request) {
         data.numberOfEmployees ? parseInt(data.numberOfEmployees, 10) : null,
       ],
     );
-    const mainId = mainResult.insertId;
+    mainId = mainResult.insertId;
     console.log("✅ [AC] Main record created with ID:", mainId);
 
     // Step 5: Insert Addresses (Multi-address support)
@@ -711,41 +723,83 @@ export async function POST(request) {
     }
 
     // Step 11: Insert Authorized Signatory Names
-    if (data.authorizedSignatoryFirstNameTh && data.authorizedSignatoryLastNameTh) {
+    console.log("Inserting authorized signatory names...");
+
+    // Check if we have new signatories array or old single signatory fields
+    if (data.signatories) {
+      // New format: signatories array
+      try {
+        signatoriesToInsert = JSON.parse(data.signatories);
+        console.log("✅ Using signatories array with", signatoriesToInsert.length, "signatories");
+      } catch (e) {
+        console.error("Error parsing signatories array:", e);
+        signatoriesToInsert = [];
+      }
+    } else {
+      // Legacy format: single signatory fields
+      const sigFirstTh =
+        data.authorizedSignatoryFirstNameTh || data.authorizedSignatureFirstNameTh || "";
+      const sigLastTh =
+        data.authorizedSignatoryLastNameTh || data.authorizedSignatureLastNameTh || "";
+      const sigFirstEn =
+        data.authorizedSignatoryFirstNameEn || data.authorizedSignatureFirstNameEn || "";
+      const sigLastEn =
+        data.authorizedSignatoryLastNameEn || data.authorizedSignatureLastNameEn || "";
       const posTh = data.authorizedSignatoryPositionTh || data.authorizedSignaturePositionTh || "";
       const posEn = data.authorizedSignatoryPositionEn || data.authorizedSignaturePositionEn || "";
 
-      await executeQuery(
-        trx,
-        `INSERT INTO MemberRegist_AC_Signature_Name (
-          main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-        [
-          mainId,
-          data.authorizedSignatoryPrenameTh || null,
-          data.authorizedSignatoryPrenameEn || "",
-          data.authorizedSignatoryPrenameOther || null,
-          data.authorizedSignatoryPrenameOtherEn || null,
-          data.authorizedSignatoryFirstNameTh || null,
-          data.authorizedSignatoryLastNameTh || null,
-          data.authorizedSignatoryFirstNameEn || "",
-          data.authorizedSignatoryLastNameEn || "",
-          posTh && String(posTh).trim() ? posTh : null,
-          posEn && String(posEn).trim() ? posEn : "",
-        ],
-      );
-      console.log("✅ [AC] Authorized signatory names inserted");
-    } else {
-      console.log(
-        "⚠️ [AC] No authorized signatory Thai names provided, skipping signature name insertion",
-      );
+      if (sigFirstTh && sigLastTh) {
+        signatoriesToInsert = [
+          {
+            prenameTh: data.authorizedSignatoryPrenameTh || null,
+            prenameEn: data.authorizedSignatoryPrenameEn || "",
+            prenameOther: data.authorizedSignatoryPrenameOther || null,
+            prenameOtherEn: data.authorizedSignatoryPrenameOtherEn || null,
+            firstNameTh: sigFirstTh,
+            lastNameTh: sigLastTh,
+            firstNameEn: sigFirstEn || "",
+            lastNameEn: sigLastEn || "",
+            positionTh: posTh || null,
+            positionEn: posEn || "",
+          },
+        ];
+        console.log("✅ Using legacy single signatory format");
+      }
     }
 
-    // Step 12: Handle Document Uploads
-    console.log("📤 [AC] Processing document uploads...");
-    const uploadedDocuments = {};
+    // Insert all signatories
+    if (signatoriesToInsert.length > 0) {
+      for (const signatory of signatoriesToInsert) {
+        await executeQuery(
+          trx,
+          `INSERT INTO MemberRegist_AC_Signature_Name (
+            main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId,
+            signatory.prenameTh || null,
+            signatory.prenameEn || "",
+            signatory.prenameOther || null,
+            signatory.prenameOtherEn || null,
+            signatory.firstNameTh || null,
+            signatory.lastNameTh || null,
+            signatory.firstNameEn || "",
+            signatory.lastNameEn || "",
+            signatory.positionTh && String(signatory.positionTh).trim()
+              ? signatory.positionTh
+              : null,
+            signatory.positionEn && String(signatory.positionEn).trim() ? signatory.positionEn : "",
+          ],
+        );
+      }
+      console.log(`✅ Inserted ${signatoriesToInsert.length} authorized signatory(ies)`);
+    } else {
+      console.log("⚠️ No authorized signatory data provided, skipping signature name insertion");
+    }
 
-    // ... (rest of the code remains the same)
+    // ✅ FIX 2: อัปโหลดไฟล์ก่อน commit (เหมือน OC)
+    console.log("📤 [AC] Processing document uploads...");
+
     for (const fieldName of Object.keys(files)) {
       const fileValue = files[fieldName];
 
@@ -777,7 +831,56 @@ export async function POST(request) {
             console.error(`❌ [AC] Error uploading production image ${index + 1}:`, uploadError);
           }
         }
-      } else if (fileValue instanceof File) {
+      }
+      // ✅ จัดการ authorizedSignatures (multiple files)
+      else if (fieldName.startsWith("authorizedSignatures[") && fileValue instanceof File) {
+        // Extract index from field name like "authorizedSignatures[0]"
+        const indexMatch = fieldName.match(/authorizedSignatures\[(\d+)\]/);
+        if (indexMatch) {
+          const signatoryIndex = parseInt(indexMatch[1], 10);
+          try {
+            console.log(
+              `📤 Uploading signature for signatory ${signatoryIndex + 1}: ${fileValue.name}`,
+            );
+            const buffer = await fileValue.arrayBuffer();
+            const result = await uploadToCloudinary(
+              Buffer.from(buffer),
+              fileValue.name,
+              "FTI_PORTAL_AC_member_DOC",
+            );
+
+            // ✅ ตรวจสอบผลลัพธ์การอัปโหลด
+            if (result.success) {
+              const documentKey = `authorizedSignatures_${signatoryIndex}`;
+              uploadedDocuments[documentKey] = {
+                document_type: "authorizedSignatures",
+                file_name: fileValue.name,
+                file_path: result.url,
+                file_size: fileValue.size,
+                mime_type: fileValue.type,
+                cloudinary_id: result.public_id,
+                cloudinary_url: result.url,
+                signatory_index: signatoryIndex, // Track which signatory this belongs to
+              };
+              console.log(
+                `✅ Successfully uploaded signature for signatory ${signatoryIndex + 1}: ${result.url}`,
+              );
+            } else {
+              console.error(
+                `❌ Failed to upload signature for signatory ${signatoryIndex + 1}:`,
+                result.error,
+              );
+            }
+          } catch (uploadError) {
+            console.error(
+              `❌ Error uploading signature for signatory ${signatoryIndex + 1}:`,
+              uploadError,
+            );
+          }
+        }
+      }
+      // ✅ จัดการไฟล์เดี่ยว
+      else if (fileValue instanceof File) {
         console.log(`📄 [AC] Processing file: ${fieldName} -> ${fileValue.name}`);
         try {
           const buffer = await fileValue.arrayBuffer();
@@ -804,36 +907,13 @@ export async function POST(request) {
       }
     }
 
-    console.log(
-      `💾 [AC] Inserting ${Object.keys(uploadedDocuments).length} documents into database`,
-    );
-    for (const documentKey in uploadedDocuments) {
-      const doc = uploadedDocuments[documentKey];
-      try {
-        await executeQuery(
-          trx,
-          `INSERT INTO MemberRegist_AC_Documents (
-            main_id, document_type, file_name, file_path, file_size, 
-            mime_type, cloudinary_id, cloudinary_url
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);`,
-          [
-            mainId,
-            doc.document_type,
-            doc.file_name,
-            doc.file_path,
-            doc.file_size,
-            doc.mime_type,
-            doc.cloudinary_id,
-            doc.cloudinary_url,
-          ],
-        );
-        console.log(`✅ [AC] Inserted document record: ${documentKey}`);
-      } catch (dbError) {
-        console.error(`❌ [AC] Error inserting document ${documentKey} into database:`, dbError);
-      }
+    console.log(`📊 [AC] Total uploadedDocuments: ${Object.keys(uploadedDocuments).length}`);
+    console.log("📋 [AC] uploadedDocuments keys:", Object.keys(uploadedDocuments));
+    for (const [key, doc] of Object.entries(uploadedDocuments)) {
+      console.log(`  - ${key}: ${doc.document_type} - ${doc.file_name}`);
     }
 
-    // Step 12: Add status log
+    // Step 12: Add status log (before commit)
     console.log("📝 [AC] Adding status log...");
     await executeQuery(
       trx,
@@ -849,6 +929,101 @@ export async function POST(request) {
     await commitTransaction(trx);
     console.log("🎉 [AC] Transaction committed successfully");
 
+  } catch (transactionError) {
+    console.error("❌ [AC] Error in AC membership submission:", transactionError);
+
+    if (trx) {
+      await rollbackTransaction(trx);
+      console.log("🔄 [AC] Transaction rolled back due to error");
+    }
+
+    return NextResponse.json(
+      {
+        error: "เกิดข้อผิดพลาดในการสมัครสมาชิก AC",
+        details: transactionError.message,
+      },
+      { status: 500 },
+    );
+  }
+
+  // ✅ FIX 3: Post-commit operations (uploadedDocuments ยังใช้งานได้)
+  try {
+    // ✅ Insert uploaded document info into the database AFTER commit
+    console.log(
+      `💾 Inserting ${Object.keys(uploadedDocuments).length} documents into database (post-commit)`,
+    );
+
+    // Get signature name IDs for linking signature files
+    const signatureNameIds = [];
+    if (signatoriesToInsert.length > 0) {
+      try {
+        const signatureRecords = await executeQueryWithoutTransaction(
+          `SELECT id, prename_th, first_name_th, last_name_th
+           FROM MemberRegist_AC_Signature_Name
+           WHERE main_id = ?
+           ORDER BY id`,
+          [mainId],
+        );
+
+        // Map signature records by their order
+        signatoriesToInsert.forEach((signatory, index) => {
+          const matchingRecord = signatureRecords.find((record) => {
+            // Match by name fields
+            return (
+              record.prename_th === signatory.prenameTh &&
+              record.first_name_th === signatory.firstNameTh &&
+              record.last_name_th === signatory.lastNameTh
+            );
+          });
+
+          if (matchingRecord) {
+            signatureNameIds[index] = matchingRecord.id;
+          }
+        });
+
+        console.log("🔗 Signature name IDs for linking:", signatureNameIds);
+      } catch (error) {
+        console.error("❌ Error fetching signature name IDs:", error);
+      }
+    }
+
+    for (const documentKey in uploadedDocuments) {
+      const doc = uploadedDocuments[documentKey];
+      try {
+        let signatureNameId = null;
+
+        // Link signature files to signature names
+        if (doc.document_type === "authorizedSignatures" && doc.signatory_index !== undefined) {
+          signatureNameId = signatureNameIds[doc.signatory_index] || null;
+          console.log(
+            `🔗 Linking signature file for signatory ${doc.signatory_index + 1} to signature_name_id: ${signatureNameId}`,
+          );
+        }
+
+        const insertResult = await executeQueryWithoutTransaction(
+          `INSERT INTO MemberRegist_AC_Documents
+            (main_id, document_type, file_name, file_path, file_size, mime_type, cloudinary_id, cloudinary_url, signature_name_id)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+          [
+            mainId,
+            doc.document_type,
+            doc.file_name,
+            doc.file_path,
+            doc.file_size,
+            doc.mime_type,
+            doc.cloudinary_id,
+            doc.cloudinary_url,
+            signatureNameId,
+          ],
+        );
+        console.log(
+          `✅ Document inserted: ${doc.document_type} - ID: ${insertResult.insertId}${signatureNameId ? ` (linked to signature_name_id: ${signatureNameId})` : ""}`,
+        );
+      } catch (dbError) {
+        console.error(`❌ Error inserting document ${documentKey} into database:`, dbError);
+      }
+    }
+
     // ลบ draft ทั้งหมดที่ใช้ tax id เดียวกันในทุกประเภทสมาชิกและทุก user (หลังจากส่งข้อมูลสำเร็จ)
     try {
       const allMemberTypes = ["ic", "oc", "am", "ac"];
@@ -859,9 +1034,11 @@ export async function POST(request) {
             ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
             : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
 
-        await executeQueryWithoutTransaction(deleteDraftQuery, [data.taxId]);
+        const deleteResult = await executeQueryWithoutTransaction(deleteDraftQuery, [
+          taxId,
+        ]);
         console.log(
-          `🗑️ [AC] Deleted ALL drafts for ${memberType} with tax_id: ${data.taxId} (all users)`,
+          `🗑️ [AC] Deleted ALL drafts for ${memberType} with tax_id: ${taxId} (all users)`,
         );
       }
     } catch (draftError) {
@@ -871,9 +1048,8 @@ export async function POST(request) {
 
     // บันทึก user log สำหรับการสมัครสมาชิก AC
     try {
-      const logDetails = `TAX_ID: ${data.taxId} - ${data.companyName}`;
-      await executeQuery(
-        trx,
+      const logDetails = `TAX_ID: ${taxId} - ${companyName}`;
+      await executeQueryWithoutTransaction(
         "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, ip_address, user_agent) VALUES (?, ?, ?, ?, ?)",
         [
           userId,
@@ -898,9 +1074,9 @@ export async function POST(request) {
         const user = userResult[0];
         const userEmail = user.email;
         const userName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
-        const companyName = data.companyName || "บริษัท";
+        const emailCompanyName = companyName || "บริษัท";
 
-        await sendMembershipConfirmationEmail(userEmail, userName, "AC", companyName);
+        await sendMembershipConfirmationEmail(userEmail, userName, "AC", emailCompanyName);
         console.log("✅ [AC] Membership confirmation email sent to:", userEmail);
       }
     } catch (emailError) {
@@ -913,20 +1089,15 @@ export async function POST(request) {
       message: "สมัครสมาชิก AC สำเร็จ",
       memberId: mainId,
     });
-  } catch (error) {
-    console.error("❌ [AC] Error in AC membership submission:", error);
-
-    if (trx) {
-      await rollbackTransaction(trx);
-      console.log("🔄 [AC] Transaction rolled back due to error");
-    }
-
-    return NextResponse.json(
-      {
-        error: "เกิดข้อผิดพลาดในการสมัครสมาชิก AC",
-        details: error.message,
-      },
-      { status: 500 },
-    );
+  } catch (postCommitError) {
+    console.error("❌ [AC] Error in post-commit operations:", postCommitError);
+    // Post-commit operations failed, but main data is already saved
+    // Return success anyway since transaction was committed
+    return NextResponse.json({
+      success: true,
+      message: "สมัครสมาชิก AC สำเร็จ (บางขั้นตอนหลังการบันทึกอาจมีปัญหา)",
+      memberId: mainId,
+      warning: "Post-commit operations failed: " + postCommitError.message,
+    });
   }
 }

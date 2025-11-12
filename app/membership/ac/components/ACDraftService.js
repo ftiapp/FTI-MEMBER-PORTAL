@@ -1,6 +1,39 @@
 // Service for handling draft operations in AC membership form
 import { toast } from "react-hot-toast";
 
+/**
+ * Filter out file-related fields from formData to prevent saving file objects in drafts
+ * Files cannot be properly restored from drafts, so we exclude them entirely
+ */
+const filterFileFieldsForDraft = (formData) => {
+  if (!formData || typeof formData !== 'object') {
+    return formData;
+  }
+
+  // Create a copy of formData to avoid mutating the original
+  const filteredData = { ...formData };
+
+  // List of file-related fields to exclude from draft saving
+  const fileFieldsToExclude = [
+    'companyRegistration',
+    'vatRegistration',
+    'idCard',
+    'authorityLetter',
+    'companyStamp',
+    'authorizedSignature',
+    'authorizedSignatures', // Array of signature files
+  ];
+
+  // Remove file fields
+  fileFieldsToExclude.forEach(field => {
+    if (filteredData.hasOwnProperty(field)) {
+      delete filteredData[field];
+    }
+  });
+
+  return filteredData;
+};
+
 export async function saveDraft(draftData) {
   // ตรวจสอบว่ามี Tax ID หรือไม่ (AC ใช้ Tax ID)
   if (!draftData.taxId || draftData.taxId.trim() === "") {
@@ -15,6 +48,9 @@ export async function saveDraft(draftData) {
   }
 
   try {
+    // Filter out file fields before saving draft
+    const filteredDraftData = filterFileFieldsForDraft(draftData);
+
     const response = await fetch("/api/membership/save-draft", {
       method: "POST",
       headers: {
@@ -22,7 +58,7 @@ export async function saveDraft(draftData) {
       },
       body: JSON.stringify({
         memberType: "ac",
-        draftData: draftData,
+        draftData: filteredDraftData,
         currentStep: draftData.currentStep || 1,
       }),
     });

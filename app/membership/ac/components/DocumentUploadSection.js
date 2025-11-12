@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 
+import MultipleSignatories from './MultipleSignatories';
+
 // Image Editor Modal Component for Company Stamp and Signature
 const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
   const canvasRef = useRef(null);
@@ -185,7 +187,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     () => ({
       companyRegistration: formData.companyRegistration || null,
       companyStamp: formData.companyStamp || null,
-      authorizedSignature: formData.authorizedSignature || null,
+      authorizedSignatures: formData.authorizedSignatures || [],
     }),
     [],
   ); // Empty deps - calculate only once
@@ -196,8 +198,102 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [editingImage, setEditingImage] = useState(null);
   const [editingType, setEditingType] = useState(""); // 'companyStamp' or 'authorizedSignature'
+  const [editingSignatoryIndex, setEditingSignatoryIndex] = useState(null); // Track which signatory's signature is being edited
 
   // Removed auto-clear errors useEffect - errors will be cleared only when Next button is clicked
+
+  // Icon components - defined at the top to be available throughout the component
+  const ErrorIcon = useMemo(
+    () => (
+      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    [],
+  );
+
+  const FileIcon = useMemo(
+    () => (
+      <svg className="w-8 h-8 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    [],
+  );
+
+  const ViewIcon = useMemo(
+    () => (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+        />
+      </svg>
+    ),
+    [],
+  );
+
+  const EditIcon = useMemo(
+    () => (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="2"
+          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+        />
+      </svg>
+    ),
+    [],
+  );
+
+  const DeleteIcon = useMemo(
+    () => (
+      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <path
+          fillRule="evenodd"
+          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+          clipRule="evenodd"
+        />
+      </svg>
+    ),
+    [],
+  );
+
+  const UploadIcon = useMemo(
+    () => (
+      <svg
+        className="mx-auto h-12 w-12 text-gray-400"
+        stroke="currentColor"
+        fill="none"
+        viewBox="0 0 48 48"
+      >
+        <path
+          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+    [],
+  );
 
   // Helper function to create consistent file object
   const createFileObject = (file) => {
@@ -210,10 +306,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     };
   };
 
-  const handleFileChange = (e, documentType) => {
-    e.preventDefault();
-    e.stopPropagation();
-
+  const handleFileChange = (e, documentType, signatoryIndex = null) => {
     const { files } = e.target;
     if (files && files[0]) {
       const file = files[0];
@@ -224,7 +317,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       }
 
       // สำหรับ companyStamp และ authorizedSignature บังคับเป็นไฟล์รูปภาพเท่านั้น
-      if (documentType === "companyStamp" || documentType === "authorizedSignature") {
+      if (documentType === "companyStamp") {
         if (!file.type || !file.type.startsWith("image/")) {
           alert("ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)");
           return;
@@ -233,6 +326,30 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         // เปิด Image Editor สำหรับไฟล์รูปภาพ
         setEditingImage(file);
         setEditingType(documentType);
+        setShowImageEditor(true);
+      } else if (documentType === "authorizedSignature") {
+        // Handle authorized signature for specific signatory
+        if (!file.type || !file.type.startsWith("image/")) {
+          alert("ประเภทไฟล์ไม่ถูกต้อง กรุณาเลือกไฟล์ภาพเท่านั้น (JPG, JPEG หรือ PNG)");
+          return;
+        }
+
+        const fileObject = createFileObject(file);
+        const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
+
+        // Ensure array has enough slots
+        while (currentSignatures.length <= signatoryIndex) {
+          currentSignatures.push(null);
+        }
+
+        currentSignatures[signatoryIndex] = fileObject;
+        setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+        setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+
+        // Open image editor
+        setEditingImage(file);
+        setEditingType("authorizedSignature");
+        setEditingSignatoryIndex(signatoryIndex);
         setShowImageEditor(true);
       } else {
         // สำหรับเอกสารอื่นๆ รองรับทั้ง PDF และรูปภาพ
@@ -245,56 +362,35 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
         const fileObj = createFileObject(file);
         setSelectedFiles((prev) => ({ ...prev, [documentType]: fileObj }));
         setFormData((prev) => ({ ...prev, [documentType]: fileObj }));
-
-        // เคลียร์เฉพาะ error ของ field ที่เพิ่งอัปโหลด
-        if (setErrors && errors?.[documentType]) {
-          console.log("🖼️ Clearing error for:", documentType);
-          setErrors((prev) => {
-            const newErrors = { ...prev };
-            delete newErrors[documentType];
-            return newErrors;
-          });
-        }
       }
     }
   };
 
   const handleImageSave = (blob) => {
-    console.log("🖼️ [handleImageSave] START");
-    console.log("🖼️ editingType:", editingType);
-    console.log("🖼️ errors BEFORE:", errors);
-
     const file = new File([blob], `${editingType}.png`, { type: "image/png" });
-    const fileObj = createFileObject(file);
 
-    console.log("🖼️ fileObj:", fileObj);
+    if (editingType === "authorizedSignature" && editingSignatoryIndex !== null) {
+      // Handle signature for specific signatory
+      const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
 
-    setSelectedFiles((prev) => {
-      console.log("🖼️ setSelectedFiles prev:", prev);
-      return { ...prev, [editingType]: fileObj };
-    });
+      // Ensure array has enough slots
+      while (currentSignatures.length <= editingSignatoryIndex) {
+        currentSignatures.push(null);
+      }
 
-    setFormData((prev) => {
-      console.log("🖼️ setFormData prev:", prev);
-      console.log("🖼️ setFormData updating field:", editingType);
-      return { ...prev, [editingType]: fileObj };
-    });
-
-    // เคลียร์เฉพาะ error ของ field ที่เพิ่งอัปโหลด
-    if (setErrors && errors?.[editingType]) {
-      console.log("🖼️ Clearing error for:", editingType);
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[editingType];
-        return newErrors;
-      });
+      currentSignatures[editingSignatoryIndex] = createFileObject(file);
+      setSelectedFiles((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+      setFormData((prev) => ({ ...prev, authorizedSignatures: currentSignatures }));
+    } else {
+      // Handle other files
+      setSelectedFiles((prev) => ({ ...prev, [editingType]: createFileObject(file) }));
+      setFormData((prev) => ({ ...prev, [editingType]: createFileObject(file) }));
     }
-
-    console.log("🖼️ [handleImageSave] END");
 
     setShowImageEditor(false);
     setEditingImage(null);
     setEditingType("");
+    setEditingSignatoryIndex(null);
   };
 
   const editImage = (documentType) => {
@@ -345,8 +441,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     return size ? `${(size / 1024 / 1024).toFixed(2)} MB` : "ไฟล์ถูกอัปโหลดแล้ว";
   };
 
-  const getImageEditorTitle = (type) => {
-    switch (type) {
+  const getImageEditorTitle = (documentType, signatoryIndex = null) => {
+    if (documentType === "authorizedSignature" && signatoryIndex !== null) {
+      return `แก้ไขรูปลายเซ็นผู้มีอำนาจลงนาม ท่านที่ ${signatoryIndex + 1}`;
+    }
+    switch (documentType) {
       case "companyStamp":
         return "ปรับแต่งตราประทับบริษัท";
       case "authorizedSignature":
@@ -356,91 +455,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
     }
   };
 
-  // Error icon component
-  const ErrorIcon = useMemo(
-    () => (
-      <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fillRule="evenodd"
-          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  // View icon component
-  const ViewIcon = useMemo(
-    () => (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  // Edit icon component
-  const EditIcon = useMemo(
-    () => (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2"
-          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  // Delete icon component
-  const DeleteIcon = useMemo(
-    () => (
-      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-        <path
-          fillRule="evenodd"
-          d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-          clipRule="evenodd"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  // Upload icon component
-  const UploadIcon = useMemo(
-    () => (
-      <svg
-        className="mx-auto h-12 w-12 text-gray-400"
-        stroke="currentColor"
-        fill="none"
-        viewBox="0 0 48 48"
-      >
-        <path
-          d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    ),
-    [],
-  );
-
-  // Helper function for single file upload with drag & drop UI
   const SingleFileUploadZone = ({
     title,
     description,
@@ -731,181 +745,27 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               </div>
             </div>
 
-            {/* Authorized Signatory Name Inputs */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                    />
-                  </svg>
-                </div>
-                <h3 className="text-lg font-semibold text-blue-800">ข้อมูลผู้มีอำนาจลงนาม</h3>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                {/* แถวที่ 1: ภาษาไทย */}
-                {/* คำนำหน้า (ไทย) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    คำนำหน้า (ไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={formData.authorizedSignatoryPrenameTh || ""}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      const mapThToEn = { นาย: "Mr", นาง: "Mrs", นางสาว: "Ms", อื่นๆ: "Other" };
-                      const mappedEn = mapThToEn[value] || "";
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPrenameTh: value,
-                        authorizedSignatoryPrenameEn: mappedEn,
-                        authorizedSignatoryPrenameOther:
-                          value === "อื่นๆ" ? prev.authorizedSignatoryPrenameOther || "" : "",
-                        authorizedSignatoryPrenameOtherEn:
-                          mappedEn === "Other" ? prev.authorizedSignatoryPrenameOtherEn || "" : "",
-                      }));
-                    }}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">เลือก</option>
-                    <option value="นาย">นาย</option>
-                    <option value="นาง">นาง</option>
-                    <option value="นางสาว">นางสาว</option>
-                    <option value="อื่นๆ">อื่นๆ</option>
-                  </select>
-                  {formData.authorizedSignatoryPrenameTh === "อื่นๆ" && (
-                    <div className="mt-2">
-                      <input
-                        type="text"
-                        value={formData.authorizedSignatoryPrenameOther || ""}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            authorizedSignatoryPrenameOther: e.target.value.replace(
-                              /[^ก-๙\.\s]/g,
-                              "",
-                            ),
-                          }))
-                        }
-                        placeholder="ระบุคำนำหน้า เช่น ผศ.ดร."
-                        className={`w-full px-4 py-3 border rounded-lg focus:ring-2 ${errors?.authorizedSignatoryPrenameOther ? "border-red-300 focus:ring-red-200" : "border-gray-300 focus:ring-blue-500"}`}
-                        required
-                      />
-                      {errors?.authorizedSignatoryPrenameOther && (
-                        <p className="mt-1 text-xs text-red-600 flex items-center">
-                          <span className="mr-1">*</span>
-                          {errors.authorizedSignatoryPrenameOther}
-                        </p>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* ชื่อ (ไทย) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ชื่อ (ภาษาไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="authorizedSignatoryFirstNameTh"
-                    name="authorizedSignatoryFirstNameTh"
-                    value={formData.authorizedSignatoryFirstNameTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryFirstNameTh: e.target.value,
-                      }))
-                    }
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors?.authorizedSignatoryFirstNameTh
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="เช่น สมชาย"
-                  />
-                  {errors?.authorizedSignatoryFirstNameTh && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.authorizedSignatoryFirstNameTh}
-                    </p>
-                  )}
-                </div>
-
-                {/* นามสกุล (ไทย) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    นามสกุล (ภาษาไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="authorizedSignatoryLastNameTh"
-                    name="authorizedSignatoryLastNameTh"
-                    value={formData.authorizedSignatoryLastNameTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryLastNameTh: e.target.value,
-                      }))
-                    }
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors?.authorizedSignatoryLastNameTh
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="เช่น ใจดี"
-                  />
-                  {errors?.authorizedSignatoryLastNameTh && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.authorizedSignatoryLastNameTh}
-                    </p>
-                  )}
-                </div>
-
-                {/* ตำแหน่ง (ไทย) */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    ตำแหน่ง (ภาษาไทย) <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="authorizedSignatoryPositionTh"
-                    name="authorizedSignatoryPositionTh"
-                    value={formData.authorizedSignatoryPositionTh || ""}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        authorizedSignatoryPositionTh: e.target.value,
-                      }))
-                    }
-                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
-                      errors?.authorizedSignatoryPositionTh
-                        ? "border-red-300 bg-red-50"
-                        : "border-gray-300"
-                    }`}
-                    placeholder="เช่น กรรมการผู้จัดการ"
-                  />
-                  {errors?.authorizedSignatoryPositionTh && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {errors.authorizedSignatoryPositionTh}
-                    </p>
-                  )}
-                </div>
-
-                {/* ซ่อนฟิลด์ภาษาอังกฤษ - ไม่ใช้งาน */}
-              </div>
-
-              <div></div>
-            </div>
+            {/* Multiple Signatories Section */}
+            <MultipleSignatories
+              formData={formData}
+              setFormData={setFormData}
+              errors={errors}
+              selectedFiles={selectedFiles}
+              setSelectedFiles={setSelectedFiles}
+              handleFileChange={handleFileChange}
+              viewFile={viewFile}
+              hasFile={hasFile}
+              getFileName={getFileName}
+              getFileSize={getFileSize}
+              ErrorIcon={ErrorIcon}
+              FileIcon={FileIcon}
+              ViewIcon={ViewIcon}
+              EditIcon={EditIcon}
+              DeleteIcon={DeleteIcon}
+              UploadIcon={UploadIcon}
+              SingleFileUploadZone={SingleFileUploadZone}
+              editImage={editImage}
+            />
 
             {/* Company Stamp Upload */}
             <div className="space-y-3">
@@ -968,66 +828,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
               </div>
             </div>
 
-            {/* Authorized Signature Upload */}
-            <div className="space-y-3">
-              <SingleFileUploadZone
-                title="รูปลายเซ็นผู้มีอำนาจลงนาม *"
-                description="อัปโหลดรูปลายเซ็นของผู้มีอำนาจลงนามในการดำเนินธุรกิจ"
-                name="authorizedSignature"
-                file={selectedFiles.authorizedSignature}
-                icon={
-                  <svg
-                    className="w-8 h-8 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                    />
-                  </svg>
-                }
-                iconColor="text-blue-600"
-                bgColor="bg-blue-100"
-                error={errors?.authorizedSignature}
-                isImageRequired={true}
-              />
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex items-start gap-2">
-                  <svg
-                    className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  <div className="text-xs">
-                    <p className="font-medium text-blue-800 mb-2">
-                      ขนาดแนะนำ: 120x60 พิกเซล, พื้นหลังโปร่งใส (PNG)
-                    </p>
-                    <div className="flex gap-4">
-                      <a
-                        href="/images/FTI-SIGNATUREsample.jpg"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:text-blue-800 underline"
-                      >
-                        ดูตัวอย่างลายเซ็น
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
@@ -1039,10 +839,11 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
           setShowImageEditor(false);
           setEditingImage(null);
           setEditingType("");
+          setEditingSignatoryIndex(null);
         }}
         onSave={handleImageSave}
         initialImage={editingImage}
-        title={getImageEditorTitle(editingType)}
+        title={getImageEditorTitle(editingType, editingSignatoryIndex)}
       />
     </div>
   );

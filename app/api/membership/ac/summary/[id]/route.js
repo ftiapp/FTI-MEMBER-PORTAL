@@ -101,15 +101,19 @@ export async function GET(request, { params }) {
     ]);
     const productsRows = productsQuery || [];
 
-    // Fetch authorized signatory name & position
-    const signatureNameRows = await query(
-      "SELECT prename_th, prename_en, prename_other, first_name_th, last_name_th, first_name_en, last_name_en, position_th, position_en FROM MemberRegist_AC_Signature_Name WHERE main_id = ? ORDER BY id DESC LIMIT 1",
+    // Fetch authorized signatory names & signatures (multiple)
+    const signatureNamesQuery = await query(
+      "SELECT * FROM MemberRegist_AC_Signature_Name WHERE main_id = ? ORDER BY id",
       [id],
     );
-    const signatureName =
-      Array.isArray(signatureNameRows) && signatureNameRows.length > 0
-        ? signatureNameRows[0]
-        : null;
+    const signatureNamesResult = signatureNamesQuery || [];
+
+    // Fetch signature documents with their linked signatory names
+    const signatureDocumentsQuery = await query(
+      "SELECT d.*, sn.prename_th, sn.first_name_th, sn.last_name_th, sn.position_th FROM MemberRegist_AC_Documents d LEFT JOIN MemberRegist_AC_Signature_Name sn ON d.signature_name_id = sn.id WHERE d.main_id = ? AND d.document_type = 'authorizedSignatures' ORDER BY d.id",
+      [id],
+    );
+    const signatureDocumentsResult = signatureDocumentsQuery || [];
 
     // Fetch industry groups - ใช้ข้อมูลจากตารางโดยตรง
     const industryGroupsQuery = await query(
@@ -310,31 +314,37 @@ export async function GET(request, { params }) {
       shareholderThaiPercent: acData.shareholder_thai_percent || "",
       shareholderForeignPercent: acData.shareholder_foreign_percent || "",
 
-      // Authorized signatory (names & positions)
-      authorizedSignatoryPrenameTh: signatureName?.prename_th || null,
-      authorizedSignatoryPrenameEn: signatureName?.prename_en || null,
-      authorizedSignatoryPrenameOther: signatureName?.prename_other || null,
-      authorizedSignatoryFirstNameTh: signatureName?.first_name_th || null,
-      authorizedSignatoryLastNameTh: signatureName?.last_name_th || null,
-      authorizedSignatoryFirstNameEn: signatureName?.first_name_en || null,
-      authorizedSignatoryLastNameEn: signatureName?.last_name_en || null,
-      authorizedSignatoryPositionTh: signatureName?.position_th || null,
-      authorizedSignatoryPositionEn: signatureName?.position_en || null,
+      // Authorized signatory (single - for backward compatibility)
+      authorizedSignatoryPrenameTh: signatureNamesResult[0]?.prename_th || null,
+      authorizedSignatoryPrenameEn: signatureNamesResult[0]?.prename_en || null,
+      authorizedSignatoryPrenameOther: signatureNamesResult[0]?.prename_other || null,
+      authorizedSignatoryFirstNameTh: signatureNamesResult[0]?.first_name_th || null,
+      authorizedSignatoryLastNameTh: signatureNamesResult[0]?.last_name_th || null,
+      authorizedSignatoryFirstNameEn: signatureNamesResult[0]?.first_name_en || null,
+      authorizedSignatoryLastNameEn: signatureNamesResult[0]?.last_name_en || null,
+      authorizedSignatoryPositionTh: signatureNamesResult[0]?.position_th || null,
+      authorizedSignatoryPositionEn: signatureNamesResult[0]?.position_en || null,
 
-      // Signature name object for PDF utility
-      signatureName: signatureName
-        ? {
-            prenameTh: signatureName.prename_th,
-            prenameEn: signatureName.prename_en,
-            prenameOther: signatureName.prename_other,
-            firstNameTh: signatureName.first_name_th,
-            lastNameTh: signatureName.last_name_th,
-            firstNameEn: signatureName.first_name_en,
-            lastNameEn: signatureName.last_name_en,
-            positionTh: signatureName.position_th,
-            positionEn: signatureName.position_en,
-          }
-        : null,
+      // Multiple signatories (for PDF generation)
+      signatories: signatureNamesResult.map(sig => ({
+        prenameTh: sig.prename_th,
+        prenameEn: sig.prename_en,
+        prenameOther: sig.prename_other,
+        firstNameTh: sig.first_name_th,
+        lastNameTh: sig.last_name_th,
+        firstNameEn: sig.first_name_en,
+        lastNameEn: sig.last_name_en,
+        positionTh: sig.position_th,
+        positionEn: sig.position_en,
+      })),
+
+      // Multiple authorized signatures
+      authorizedSignatures: signatureDocumentsResult.map(doc => ({
+        fileUrl: doc.cloudinary_url || doc.file_path,
+        mimeType: doc.mime_type,
+        fileName: doc.file_name,
+        signatureNameId: doc.signature_name_id,
+      })),
 
       // Industry Groups - ใช้ข้อมูลจากตารางโดยตรง
       industrialGroups: industryGroupsRows.map((ig) => ({
@@ -397,20 +407,20 @@ export async function GET(request, { params }) {
         : null,
 
       // Authorized signature document (new required document)
-      authorizedSignature: documentsRows.find((doc) => doc.document_type === "authorizedSignature")
+      authorizedSignature: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
         ? {
             name:
-              documentsRows.find((doc) => doc.document_type === "authorizedSignature")?.file_name ||
+              documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")?.file_name ||
               "ไฟล์ถูกอัปโหลดแล้ว",
             fileUrl:
-              documentsRows.find((doc) => doc.document_type === "authorizedSignature")
+              documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
                 ?.cloudinary_url ||
-              documentsRows.find((doc) => doc.document_type === "authorizedSignature")?.file_path,
-            fileType: documentsRows.find((doc) => doc.document_type === "authorizedSignature")
+              documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")?.file_path,
+            fileType: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
               ?.mime_type,
-            fileSize: documentsRows.find((doc) => doc.document_type === "authorizedSignature")
+            fileSize: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
               ?.file_size,
-            cloudinaryId: documentsRows.find((doc) => doc.document_type === "authorizedSignature")
+            cloudinaryId: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
               ?.cloudinary_id,
           }
         : null,
