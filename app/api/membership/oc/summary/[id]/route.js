@@ -308,7 +308,7 @@ export async function GET(request, { params }) {
       (doc) => doc.document_type === "companyStamp",
     );
     const authorizedSignatureDoc = relatedData.documents.find(
-      (doc) => doc.document_type === "authorizedSignature",
+      (doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures",
     );
 
     // Build response in the format that SummarySection expects

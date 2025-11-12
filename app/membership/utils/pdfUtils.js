@@ -238,32 +238,52 @@ const processData = (app) => {
   console.debug("- Final documents array:", documents);
   console.debug("- Documents length:", documents?.length);
   
+  // Enhanced document finder with comprehensive signature handling
   const findDoc = (type) => {
-    // normalize and support multiple aliases from different flows
     const aliasesMap = {
       authorizedSignature: [
         "authorizedSignature",
+        "authorizedSignatures",      // Support multiple signatures
         "authorized_signature",
         "signature",
         "authorizedSign",
       ],
       companyStamp: ["companyStamp", "company_stamp", "stamp"],
     };
+    
     const aliases = aliasesMap[type] || [type];
-    const doc = documents.find((d) => {
+    
+    // Find all documents that match aliases
+    const matchedDocs = documents.filter((d) => {
       const t = (d.document_type || d.documentType || d.type || "").toString().trim();
       const tLower = t.toLowerCase();
       return aliases.some((a) => t === a || tLower === a.toLowerCase());
     });
-    if (!doc) {
-      console.debug(`[PDF] ${type} not found in documents. Available types:`, documents.map(d => d.document_type || d.type));
+    
+    if (matchedDocs.length === 0) {
+      console.debug(`[PDF] ${type} not found. Available types:`, documents.map(d => d.document_type || d.type));
       return null;
     }
+    
+    // If multiple matches for authorizedSignature, return array
+    if (matchedDocs.length > 1 && type === 'authorizedSignature') {
+      console.debug(`[PDF] Found ${matchedDocs.length} ${type} files`);
+      return matchedDocs.map(doc => ({
+        fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path || doc.url,
+        mimeType: doc.mime_type || doc.mimeType || doc.type || "",
+        fileName: doc.file_name || doc.fileName || doc.name || "",
+        signatureNameId: doc.signature_name_id || doc.signatureNameId,
+      }));
+    }
+    
+    // Single match - return object
+    const doc = matchedDocs[0];
     console.debug(`[PDF] Found ${type}:`, doc);
     return {
       fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path || doc.url,
       mimeType: doc.mime_type || doc.mimeType || doc.type || "",
       fileName: doc.file_name || doc.fileName || doc.name || "",
+      signatureNameId: doc.signature_name_id || doc.signatureNameId,
     };
   };
 
@@ -409,21 +429,72 @@ const processData = (app) => {
     numberOfMember: app.number_of_member || app.numberOfMember,
     industrialGroupIds: app.industrialGroups || app.industrialGroupIds || [],
     provincialChapterIds: app.provincialCouncils || app.provincialChapterIds || [],
-    // Documents
+    
+    // Enhanced signature handling for all cases
+    // Single signature (takes first from multiple if available)
     authorizedSignature: (() => {
       const sig = app.authorizedSignature || findDoc("authorizedSignature") || null;
+      
+      // If array returned, take first one
+      if (Array.isArray(sig) && sig.length > 0) {
+        console.debug("[PDF] Found multiple signatures, using first one for single display");
+        return sig[0];
+      }
+      
       console.debug("[PDF] authorizedSignature found:", sig);
       return sig;
     })(),
+
+    // Multiple signatures array (comprehensive handling)
+    authorizedSignatures: (() => {
+      let sigs = app.authorizedSignatures || [];
+      
+      // If no signatures in app, search from documents
+      if (!sigs || sigs.length === 0) {
+        const foundSigs = findDoc("authorizedSignature");
+        
+        // If array returned from findDoc
+        if (Array.isArray(foundSigs)) {
+          sigs = foundSigs;
+        } 
+        // If single object returned, convert to array
+        else if (foundSigs) {
+          sigs = [foundSigs];
+        }
+      }
+      
+      // Find additional signatures with numbered suffixes (authorizedSignature2, authorizedSignature3, etc.)
+      const additionalSigs = documents
+        .filter(d => {
+          const type = (d.document_type || d.documentType || d.type || "").toString();
+          return /^authorizedSignature\d+$/.test(type);
+        })
+        .map(doc => ({
+          fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path || doc.url,
+          mimeType: doc.mime_type || doc.mimeType || doc.type || "",
+          fileName: doc.file_name || doc.fileName || doc.name || "",
+          signatureNameId: doc.signature_name_id || doc.signatureNameId,
+        }));
+      
+      // Combine all signatures
+      if (additionalSigs.length > 0) {
+        sigs = [...sigs, ...additionalSigs];
+      }
+      
+      console.debug("[PDF] Total authorizedSignatures found:", sigs.length);
+      return sigs;
+    })(),
+    
     companyStamp: (() => {
       const stamp = app.companyStamp || findDoc("companyStamp") || null;
       console.debug("[PDF] companyStamp found:", stamp);
       return stamp;
     })(),
+    
     // Multiple signatories data (for OC forms)
     signatories: app.signatories || [],
     signatureNames: app.signatureNames || [], // From MemberRegist_OC_Signature_Name table
-    authorizedSignatures: app.authorizedSignatures || [], // Array of signature files
+    
     // Representatives (normalize to a consistent array)
     representatives: (() => {
       let reps = app.representatives || app.reps || [];
@@ -440,13 +511,16 @@ const processData = (app) => {
       }
       return reps;
     })(),
+    
     // Address type 2 contact information
     addressType2Phone,
     addressType2PhoneExt,
     addressType2Email,
     addressType2Website,
+    
     // Address type 2 full data
     address2,
+    
     // Compute authorized signatory name WITH PRENAME (prefer Thai, fallback to English, then representative)
     // Accept multiple possible shapes from API/frontend until APIs are unified
     authorizedSignatoryName: (() => {
@@ -474,16 +548,6 @@ const processData = (app) => {
         app.prename_th,
         app.prenameTh,
       );
-      console.log("🔍 DEBUG PDF - prenameTh values checked:", {
-        authorizedSignatoryPrenameTh: app.authorizedSignatoryPrenameTh,
-        authorizedSignaturePrenameTh: app.authorizedSignaturePrenameTh,
-        authorized_signatory_prename_th: app.authorized_signatory_prename_th,
-        "sigContainer?.prename_th": sigContainer?.prename_th,
-        "sigContainer?.prenameTh": sigContainer?.prenameTh,
-        "app.prename_th": app.prename_th,
-        "app.prenameTh": app.prenameTh,
-        "final prenameTh": prenameTh,
-      });
       const prenameEn = pick(
         app.authorizedSignatoryPrenameEn,
         app.authorizedSignaturePrenameEn,
@@ -502,16 +566,6 @@ const processData = (app) => {
         app.prename_other,
         app.prenameOther,
       );
-      console.log("🔍 DEBUG PDF - prenameOther values checked:", {
-        authorizedSignatoryPrenameOther: app.authorizedSignatoryPrenameOther,
-        authorizedSignaturePrenameOther: app.authorizedSignaturePrenameOther,
-        authorized_signatory_prename_other: app.authorized_signatory_prename_other,
-        "sigContainer?.prename_other": sigContainer?.prename_other,
-        "sigContainer?.prenameOther": sigContainer?.prenameOther,
-        "app.prename_other": app.prename_other,
-        "app.prenameOther": app.prenameOther,
-        "final prenameOther": prenameOther,
-      });
 
       // Possible flat fields
       const thFirst = pick(
@@ -594,6 +648,7 @@ const processData = (app) => {
       }
       return pick(app.representativeName, "ผู้มีอำนาจลงนาม");
     })(),
+    
     // Compute authorized signatory position (prefer Thai, fallback to English, then representative position)
     authorizedSignatoryPosition: (() => {
       const pick = (...vals) => vals.find((v) => typeof v === "string" && v.trim());
@@ -613,6 +668,39 @@ const processData = (app) => {
       if (posEn) return posEn;
       if (app.representatives?.[0]?.position) return app.representatives[0].position;
       return "";
+    })(),
+    
+    // Debug logging for signature detection
+    ...(() => {
+      console.log("🔍 [PDF] Documents available:", documents);
+      console.log("🔍 [PDF] authorizedSignature result:", app.authorizedSignature || findDoc("authorizedSignature"));
+      console.log("🔍 [PDF] authorizedSignatures result:", (() => {
+        let sigs = app.authorizedSignatures || [];
+        if (!sigs || sigs.length === 0) {
+          const foundSigs = findDoc("authorizedSignature");
+          if (Array.isArray(foundSigs)) {
+            sigs = foundSigs;
+          } else if (foundSigs) {
+            sigs = [foundSigs];
+          }
+        }
+        const additionalSigs = documents
+          .filter(d => {
+            const type = (d.document_type || d.documentType || d.type || "").toString();
+            return /^authorizedSignature\d+$/.test(type);
+          })
+          .map(doc => ({
+            fileUrl: doc.cloudinary_url || doc.file_url || doc.fileUrl || doc.file_path || doc.url,
+            mimeType: doc.mime_type || doc.mimeType || doc.type || "",
+            fileName: doc.file_name || doc.fileName || doc.name || "",
+            signatureNameId: doc.signature_name_id || doc.signatureNameId,
+          }));
+        if (additionalSigs.length > 0) {
+          sigs = [...sigs, ...additionalSigs];
+        }
+        return sigs;
+      })());
+      return {}; // Empty object to spread, just for logging
     })(),
   };
 };
@@ -654,16 +742,16 @@ const buildSignatorySignature = (signatory, preloadedSignature, index, signature
   } else if (signatureFile && signatureFile.fileUrl) {
     signatureHtml = `<img src="${signatureFile.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`;
   } else {
-    signatureHtml = "(ลายเซ็น)";
+    signatureHtml = `<div style="color: #999; font-size: 10px; font-style: italic;">ไม่มีลายเซ็น</div>`;
   }
 
   return `
-    <div class="signature-box" style="min-width: 100px;">
-      <div style="font-size: 10px; font-weight: bold; margin-bottom: 3px;">ลายเซ็นผู้มีอำนาจ</div>
+    <div class="signature-box" style="min-width: 90px;">
+      <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
       <div class="signature-img">
         ${signatureHtml}
       </div>
-      <div style="font-size: 8px; margin-top: 3px; border-top: 1px solid #999; padding-top: 3px;">
+      <div style="font-size: 7px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
         (${signatoryName})
         ${position ? `<div style="margin-top: 1px; color: #555;">ตำแหน่ง: ${position}</div>` : ""}
         <div style="margin-top: 1px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
@@ -961,7 +1049,7 @@ export const generateMembershipPDF = async (
     const preloadSignature = async (signatureDoc) => {
       console.log("[PDF] Preloading signature image...");
       if (!signatureDoc || !signatureDoc.fileUrl) {
-        console.log("[PDF] Signature document is missing or has no file URL.");
+        console.log("[PDF] ❌ Signature document is missing or has no file URL.");
         return null;
       }
 
@@ -992,12 +1080,17 @@ export const generateMembershipPDF = async (
     };
 
     // Preload single signature (fallback)
+    console.debug("[PDF] === SIGNATURE DEBUG START ===");
     console.debug("[PDF] authorizedSignature doc:", data.authorizedSignature);
     console.debug("[PDF] authorizedSignature fileUrl:", data.authorizedSignature?.fileUrl);
+    console.debug("[PDF] authorizedSignatures array:", data.authorizedSignatures);
+    console.debug("[PDF] signatories array:", data.signatories);
     let signatureImgSrc = "";
     if (data.authorizedSignature) {
       signatureImgSrc = await preloadSignature(data.authorizedSignature);
-      console.debug("[PDF] signatureImgSrc after preload:", signatureImgSrc);
+      console.debug("[PDF] signatureImgSrc after preload:", signatureImgSrc ? "SUCCESS" : "FAILED");
+    } else {
+      console.debug("[PDF] No single authorizedSignature found");
     }
 
     // Preload multiple signatures
@@ -1006,10 +1099,15 @@ export const generateMembershipPDF = async (
       console.debug("[PDF] Preloading", data.authorizedSignatures.length, "signature files");
       for (let i = 0; i < data.authorizedSignatures.length; i++) {
         const signatureFile = data.authorizedSignatures[i];
+        console.debug(`[PDF] Loading signature ${i + 1}:`, signatureFile);
         const preloaded = await preloadSignature(signatureFile);
         preloadedSignatures.push(preloaded);
+        console.debug(`[PDF] Signature ${i + 1} result:`, preloaded ? "SUCCESS" : "FAILED");
       }
+    } else {
+      console.debug("[PDF] No multiple authorizedSignatures array found");
     }
+    console.debug("[PDF] === SIGNATURE DEBUG END ===");
 
     // Simple CSS
     const styles = `
@@ -1033,10 +1131,10 @@ export const generateMembershipPDF = async (
       .rep-title { font-weight: bold; font-size: 9.5px; color: #0066cc; margin-bottom: 2px; }
       .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 9.5px; margin: 1px; }
       .signature-area { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; justify-content: flex-end; }
-      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 6px; text-align: center; min-width: 100px; max-width: 150px; }
-      .signature-img { border: 1px dashed #999; height: 40px; width: 80px; margin: 4px auto; display: flex; align-items: center; justify-content: center; }
-      .stamp-box { border: 1px solid #ddd; padding: 6px; text-align: center; min-width: 100px; }
-      .stamp-img { border: 1px dashed #999; width: 80px; height: 40px; margin: 4px auto; display: flex; align-items: center; justify-content: center; }
+      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 110px; max-width: 140px; }
+      .signature-img { border: 1px dashed #999; height: 45px; width: 90px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
+      .stamp-box { border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 110px; }
+      .stamp-img { border: 1px dashed #999; width: 90px; height: 45px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
       .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
       .list-2col .span-all { grid-column: 1 / -1; }
       .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; row-gap: 4px; align-items: start; }
@@ -1418,17 +1516,17 @@ export const generateMembershipPDF = async (
                   return `
                     <div class="signature-area">
                       <div class="signature-box">
-                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
+                        <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
                         <div class="signature-img">
                             ${
                               signatureImgSrc
                                 ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
                                 : data.authorizedSignature?.fileUrl
                                   ? `<img src="${data.authorizedSignature.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`
-                                  : "(ลายเซ็น)"
+                                : `<div style="color: #999; font-size: 10px; font-style: italic;">ไม่มีลายเซ็น</div>`
                             }
                         </div>
-                        <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
+                        <div style="font-size: 7px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
                           (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
                           ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ""}
                           <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
@@ -1458,17 +1556,17 @@ export const generateMembershipPDF = async (
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
             <div style="display: flex; gap: 20px; font-size: 12px;">
               <div class="signature-box">
-                <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ลายเซ็นผู้มีอำนาจ</div>
+                <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
                 <div class="signature-img">
                   ${
                     signatureImgSrc
                       ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
                       : data.authorizedSignature?.fileUrl
                         ? `<img src="${data.authorizedSignature.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`
-                        : "(ลายเซ็น)"
+                        : `<div style="color: #999; font-size: 10px; font-style: italic;">ไม่มีลายเซ็น</div>`
                   }
                 </div>
-                <div style="font-size: 10px; margin-top: 5px; border-top: 1px solid #999; padding-top: 5px;">
+                <div style="font-size: 7px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
                   (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
                   ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ""}
                   <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
