@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import RepresentativeCard from "./RepresentativeCard";
+import RepresentativeCard from "./Rejected_Document/RepresentativeCard";
 
 /**
  * Representative Form Component

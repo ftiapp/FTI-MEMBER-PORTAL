@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { sanitizePhone } from "../utils/representativeValidation";
+import { sanitizePhone } from "../../utils/representativeValidation";
 
 /**
  * Representative Contact Fields Component

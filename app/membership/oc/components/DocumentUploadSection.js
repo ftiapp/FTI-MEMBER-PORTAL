@@ -341,9 +341,15 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
       return;
     }
 
-    // Handle file objects that might have a URL (from rejection data)
+    // Handle file objects that might have a URL (from rejection data or summary API)
     if (fileOrUrl.url && typeof fileOrUrl.url === "string") {
       window.open(fileOrUrl.url, "_blank");
+      return;
+    }
+
+    // Handle file objects that use fileUrl (from summary API's formatDocumentForResponse)
+    if (fileOrUrl.fileUrl && typeof fileOrUrl.fileUrl === "string") {
+      window.open(fileOrUrl.fileUrl, "_blank");
       return;
     }
 

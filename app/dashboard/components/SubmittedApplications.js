@@ -418,6 +418,17 @@ export default function SubmittedApplications({
                   ดูรายละเอียด
                 </button>
 
+                {app.memberType === "OC" && app.status === 2 && (
+                  <button
+                    onClick={() => {
+                      window.location.href = `/membership/oc/edit-v4/${app.id}`;
+                    }}
+                    className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors text-center font-medium shadow-sm"
+                  >
+                    แก้ไขข้อมูล (V4)
+                  </button>
+                )}
+
                 {/* แสดงสถานะ */}
                 <div className="w-full md:w-28">
                   <div className="flex justify-between text-xs text-gray-600 mb-2">

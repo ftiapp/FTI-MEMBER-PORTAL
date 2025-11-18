@@ -202,6 +202,19 @@ export default function OCMembershipForm(props = {}) {
         return;
       }
 
+      // Require comment to admin in rejected edit mode
+      if (props.isRejectedMode) {
+        const comment = formData.userResubmissionComment;
+        if (!comment || !String(comment).trim()) {
+          toast.error("กรุณาระบุข้อความถึงผู้ดูแลระบบก่อนยืนยันการส่ง", { duration: 6000 });
+          setErrors((prev) => ({
+            ...prev,
+            userResubmissionComment: "กรุณาระบุข้อความถึงผู้ดูแลระบบ",
+          }));
+          return;
+        }
+      }
+
       // Check consent
       if (!consentAgreed) {
         toast.error("กรุณายอมรับข้อตกลงการคุ้มครองข้อมูลส่วนบุคคลก่อนยืนยันการสมัคร", {
@@ -215,7 +228,9 @@ export default function OCMembershipForm(props = {}) {
       setIsSubmitting(true);
 
       try {
-        const result = await submitOCMembershipForm(formData);
+        const result = props.onSubmitOverride
+          ? await props.onSubmitOverride(formData)
+          : await submitOCMembershipForm(formData);
 
         if (result.success) {
           await deleteDraft(formData.taxId);
@@ -427,6 +442,7 @@ export default function OCMembershipForm(props = {}) {
           handleSaveDraft: handleSaveDraftWithPopup,
           isSubmitting,
           consentAgreed,
+          disableSaveDraft: props.disableSaveDraft,
         })}
 
         {/* Document preparation hint */}
@@ -454,6 +470,12 @@ export default function OCMembershipForm(props = {}) {
           taxId: formData.taxId,
           companyNameTh: formData.companyName,
         }}
+        customTitle={props.isRejectedMode ? "ส่งคำขอแก้ไขข้อมูลสำเร็จ" : undefined}
+        customIntro={
+          props.isRejectedMode
+            ? "ท่านได้ส่งคำขอแก้ไขข้อมูลใบสมัครสมาชิกประเภท สามัญ-โรงงาน (สน) สำเร็จ"
+            : undefined
+        }
         onConfirm={() => {
           setShowSuccessModal(false);
           router.push("/dashboard?tab=documents");

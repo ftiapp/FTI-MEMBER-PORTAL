@@ -225,7 +225,7 @@ export default function MembershipRequestDetail({ params }) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
-      const response = await fetch(`/api/admin/membership-requests/${type}/${id}/reject`, {
+      const response = await fetch(`/api/admin/membership-requests-v4/${type}/${id}/reject`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ adminNote, rejectionReason }),

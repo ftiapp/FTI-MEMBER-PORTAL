@@ -31,6 +31,7 @@ export default function ThaiNameFields({
   handlePrenameThaiChange,
   isLoading
 }) {
+  console.log("[ThaiNameFields] prename_th/prenameTh:", formData.prename_th, formData.prenameTh);
   return (
     <div className="space-y-4 mb-6">
       <h5 className="text-sm font-medium text-gray-700 border-b border-gray-200 pb-2">
@@ -47,7 +48,7 @@ export default function ThaiNameFields({
           <select
             id="prename_th"
             name="prename_th"
-            value={formData.prename_th || ""}
+            value={formData.prename_th || formData.prenameTh || ""}
             onChange={(e) => handlePrenameThaiChange(e.target.value)}
             disabled={isLoading}
             className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.prename_th ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
@@ -125,7 +126,7 @@ export default function ThaiNameFields({
             <p className="text-sm text-red-600 mt-1">{errors.prename_other}</p>
           )}
           <p className="text-xs text-gray-500 mt-1">
-            กรุณากรอกคำนำหน้าที่ต้องการใช้ เช่น ตำแหน่งทางวิชาการ หรือยศทหาร
+            กรุณากรอกคำนำหน้าที่ต้องการใช้ 
           </p>
         </div>
       )}

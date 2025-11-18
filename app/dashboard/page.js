@@ -17,7 +17,7 @@ import RecentActivities from "./components/RecentActivities";
 import CheckStatusOperation from "./components/CheckStatusOperation/page";
 import UpgradeMembership from "./components/UpgradeMembership";
 import MembershipCertificate from "./components/MembershipCertificate/page";
-import MembershipDocuments from "./components/MembershipDocuments";
+import MembershipDocuments from "./components/MembershipDocuments/index";
 
 export default function Dashboard() {
   const router = useRouter();

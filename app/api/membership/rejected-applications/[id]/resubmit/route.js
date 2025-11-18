@@ -189,6 +189,181 @@ export async function POST(request, { params }) {
         }
       }
 
+      // Helper: map IC rejected formData into structure expected by updateICApplication
+      const mapICFormDataToUpdatePayload = (rawFormData = {}) => {
+        const {
+          // Main applicant info
+          firstNameThai,
+          lastNameThai,
+          firstNameEng,
+          lastNameEng,
+          firstNameTh,
+          lastNameTh,
+          firstNameEn,
+          lastNameEn,
+          phone,
+          email,
+          website,
+
+          // Address (single address for IC)
+          addressNumber,
+          moo,
+          soi,
+          street,
+          road,
+          subDistrict,
+          district,
+          province,
+          postalCode,
+
+          // Representative (IC uses single representative)
+          representative,
+
+          // Business types & products
+          businessTypes,
+          otherBusinessTypeDetail,
+          products,
+
+          // Industry groups / provincial chapters (IDs & names)
+          industrialGroupIds,
+          industrialGroupNames,
+          provincialChapterIds,
+          provincialChapterNames,
+
+          // Authorized signatory (from IC documents step)
+          authorizedSignatoryPrenameTh,
+          authorizedSignatoryPrenameEn,
+          authorizedSignatoryPrenameOther,
+          authorizedSignatoryPrenameOtherEn,
+          authorizedSignatoryFirstNameTh,
+          authorizedSignatoryLastNameTh,
+          authorizedSignatoryFirstNameEn,
+          authorizedSignatoryLastNameEn,
+          authorizedSignatoryPositionTh,
+          authorizedSignatoryPositionEn,
+
+          // Documents (already normalized in frontend rejection flow)
+          documents,
+        } = rawFormData;
+
+        // Main block
+        const main = {
+          firstNameTh: firstNameThai || firstNameTh || "",
+          lastNameTh: lastNameThai || lastNameTh || "",
+          firstNameEn: firstNameEng || firstNameEn || "",
+          lastNameEn: lastNameEng || lastNameEn || "",
+          phone: phone || "",
+          email: email || "",
+          website: website || "",
+        };
+
+        // Address block (IC currently keeps single address for resubmit)
+        const address = {
+          addressNumber: addressNumber || "",
+          moo: moo || "",
+          soi: soi || "",
+          road: street || road || "",
+          subDistrict: subDistrict || "",
+          district: district || "",
+          province: province || "",
+          postalCode: postalCode || "",
+        };
+
+        // Representative: prefer nested representative object if present
+        const repSource = representative || {};
+        const representativeMapped = repSource && Object.keys(repSource).length > 0
+          ? {
+              prenameTh: repSource.prenameTh || null,
+              prenameEn: repSource.prenameEn || null,
+              prenameOther: repSource.prenameOther || null,
+              prenameOtherEn: repSource.prenameOtherEn || null,
+              firstNameThai: repSource.firstNameThai || "",
+              lastNameThai: repSource.lastNameThai || "",
+              firstNameEng: repSource.firstNameEn || "",
+              lastNameEng: repSource.lastNameEn || "",
+              position: repSource.position || null,
+              email: repSource.email || null,
+              phone: repSource.phone || null,
+              phoneExtension: repSource.phoneExtension || null,
+              isPrimary: repSource.isPrimary ?? true,
+            }
+          : null;
+
+        // Business types: backend expects array of raw type IDs/keys
+        const mappedBusinessTypes = Array.isArray(businessTypes)
+          ? businessTypes
+              .map((t) => (typeof t === "string" || typeof t === "number" ? t : t?.id))
+              .filter((t) => t !== undefined && t !== null && `${t}`.trim() !== "")
+          : [];
+
+        const mappedProducts = Array.isArray(products)
+          ? products.map((p) => ({
+              nameTh: p.nameTh || p.name_th || p.product_name || "",
+              nameEn: p.nameEn || p.name_en || "",
+            }))
+          : [];
+
+        const businessTypesArray = mappedBusinessTypes;
+        const businessTypeOther = otherBusinessTypeDetail || null;
+
+        // Industry groups: map ID + name
+        const industryGroups = (() => {
+          const ids = Array.isArray(industrialGroupIds) ? industrialGroupIds : [];
+          const names = Array.isArray(industrialGroupNames) ? industrialGroupNames : [];
+          return ids
+            .map((id, idx) => ({
+              id,
+              name: names[idx] || null,
+            }))
+            .filter((g) => g.id && `${g.id}`.trim() !== "" && g.id !== "000" && g.id !== 0);
+        })();
+
+        // Provincial chapters: map ID + name
+        const provinceChapters = (() => {
+          const ids = Array.isArray(provincialChapterIds) ? provincialChapterIds : [];
+          const names = Array.isArray(provincialChapterNames) ? provincialChapterNames : [];
+          return ids
+            .map((id, idx) => ({
+              id,
+              name: names[idx] || null,
+            }))
+            .filter((c) => c.id && `${c.id}`.trim() !== "" && c.id !== "000" && c.id !== 0);
+        })();
+
+        // Signature name for IC (authorized signatory)
+        const signatureName =
+          authorizedSignatoryFirstNameTh || authorizedSignatoryLastNameTh
+            ? {
+                prename_th: authorizedSignatoryPrenameTh || null,
+                prename_en: authorizedSignatoryPrenameEn || null,
+                prename_other: authorizedSignatoryPrenameOther || null,
+                prename_other_en: authorizedSignatoryPrenameOtherEn || null,
+                first_name_th: authorizedSignatoryFirstNameTh || null,
+                last_name_th: authorizedSignatoryLastNameTh || null,
+                first_name_en: authorizedSignatoryFirstNameEn || null,
+                last_name_en: authorizedSignatoryLastNameEn || null,
+                position_th: authorizedSignatoryPositionTh || null,
+                position_en: authorizedSignatoryPositionEn || null,
+              }
+            : null;
+
+        // Documents: pass through if already normalized array
+        const normalizedDocuments = Array.isArray(documents) ? documents : [];
+
+        return {
+          main,
+          address,
+          representative: representativeMapped,
+          businessTypes: businessTypesArray,
+          businessTypeOther,
+          products: mappedProducts,
+          industryGroups,
+          provinceChapters,
+          documents: normalizedDocuments,
+          signatureName,
+        };
+      };
+
       // อัปเดตข้อมูลตามประเภทสมาชิก
       if (membership_type === "ac" && formData) {
         // ใช้ utility function สำหรับ AC
@@ -199,7 +374,8 @@ export async function POST(request, { params }) {
       } else if (membership_type === "am" && formData) {
         await updateAMApplication(membership_id, formData, userId, id, userComment);
       } else if (membership_type === "ic" && formData) {
-        await updateICApplication(membership_id, formData, userId, id, userComment);
+        const mappedICData = mapICFormDataToUpdatePayload(formData);
+        await updateICApplication(membership_id, mappedICData, userId, id, userComment);
 
         // Create history snapshot for IC resubmission
         console.log(`📸 Creating resubmission snapshot for IC ${membership_id}`);

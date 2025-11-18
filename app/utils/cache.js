@@ -1,4 +1,6 @@
 // Simple in-memory cache with TTL support
+const isDev = process.env.NODE_ENV !== "production";
+
 class MemoryCache {
   constructor(ttl = 5 * 60 * 1000) {
     // Default 5 minutes TTL
@@ -7,6 +9,9 @@ class MemoryCache {
   }
 
   set(key, value, customTtl) {
+    if (isDev) {
+      return;
+    }
     const item = {
       value,
       timestamp: Date.now(),
@@ -16,6 +21,9 @@ class MemoryCache {
   }
 
   get(key) {
+    if (isDev) {
+      return null;
+    }
     const item = this.cache.get(key);
     if (!item) return null;
 
@@ -36,6 +44,9 @@ class MemoryCache {
   }
 
   clear() {
+    if (isDev) {
+      return;
+    }
     this.cache.clear();
   }
 
@@ -70,9 +81,11 @@ export const userCache = new MemoryCache(30 * 60 * 1000); // 30 minutes for user
 // Cleanup expired entries every 5 minutes
 setInterval(
   () => {
-    apiCache.cleanup();
-    staticCache.cleanup();
-    userCache.cleanup();
+    if (!isDev) {
+      apiCache.cleanup();
+      staticCache.cleanup();
+      userCache.cleanup();
+    }
   },
   5 * 60 * 1000,
 );
@@ -84,6 +97,23 @@ export async function fetchWithCache(url, options = {}, cacheInstance = apiCache
   // Only cache GET requests
   if (options.method && options.method !== "GET") {
     return fetch(url, options);
+  }
+
+  if (isDev) {
+    try {
+      console.log(`Fetching (dev, no cache): ${url}`);
+      const response = await fetch(url, options);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error(`Fetch error for ${url}:`, error);
+      throw error;
+    }
   }
 
   // Check cache first

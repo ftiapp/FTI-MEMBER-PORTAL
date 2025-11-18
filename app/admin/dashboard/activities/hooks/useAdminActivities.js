@@ -29,6 +29,7 @@ export default function useAdminActivities() {
   // Cache state
   const [cache, setCache] = useState({});
   const CACHE_TTL = 5 * 60 * 1000; // 5 minutes cache TTL
+  const isDev = process.env.NODE_ENV !== "production";
 
   /**
    * Generate a cache key based on current filter parameters
@@ -42,11 +43,12 @@ export default function useAdminActivities() {
    */
   const isCacheValid = useCallback(
     (cacheKey) => {
+      if (isDev) return false;
       if (!cache[cacheKey]) return false;
       const now = new Date().getTime();
       return now - cache[cacheKey].timestamp < CACHE_TTL;
     },
-    [cache],
+    [cache, isDev],
   );
 
   /**

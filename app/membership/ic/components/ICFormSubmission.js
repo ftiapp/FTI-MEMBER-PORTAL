@@ -569,3 +569,79 @@ export const submitICMembershipForm = async (formData) => {
     };
   }
 };
+
+export const submitICMembershipDocumentsUpdate = async (data, mainId) => {
+  try {
+    const formData = new FormData();
+
+    const appendToFormData = (key, value) => {
+      if (value && typeof value === "object" && value.file instanceof File) {
+        formData.append(key, value.file, value.name || value.file.name);
+      } else if (value instanceof File) {
+        formData.append(key, value, value.name);
+      } else if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== null && value !== undefined && value !== "") {
+        formData.append(key, String(value));
+      }
+    };
+
+    for (const key in data) {
+      if (!Object.prototype.hasOwnProperty.call(data, key)) continue;
+      if (key === "idCardDocument" || key === "authorizedSignature") continue;
+      appendToFormData(key, data[key]);
+    }
+
+    if (data.idCardDocument && data.idCardDocument instanceof File) {
+      formData.append("idCardDocument", data.idCardDocument, data.idCardDocument.name);
+    }
+
+    if (data.authorizedSignature && data.authorizedSignature instanceof File) {
+      formData.append("authorizedSignature", data.authorizedSignature, data.authorizedSignature.name);
+    }
+
+    if (
+      data.companyRegistrationDocument &&
+      data.companyRegistrationDocument instanceof File
+    ) {
+      formData.append(
+        "companyRegistrationDocument",
+        data.companyRegistrationDocument,
+        data.companyRegistrationDocument.name,
+      );
+    }
+
+    if (data.taxRegistrationDocument && data.taxRegistrationDocument instanceof File) {
+      formData.append(
+        "taxRegistrationDocument",
+        data.taxRegistrationDocument,
+        data.taxRegistrationDocument.name,
+      );
+    }
+
+    const response = await fetch(`/api/member/ic-membership/update-documents/${mainId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        message: result.message || "ไม่สามารถอัปเดตเอกสารแนบได้",
+      };
+    }
+
+    return {
+      success: true,
+      message: result.message || "อัปเดตเอกสารแนบเรียบร้อยแล้ว",
+    };
+  } catch (error) {
+    console.error("❌ Error updating IC membership documents:", error);
+    return {
+      success: false,
+      message: "ไม่สามารถอัปเดตเอกสารแนบได้",
+    };
+  }
+};

@@ -10,7 +10,7 @@ import BenefitsComparison from "./MembershiplandingPage/components/BenefitsCompa
 import SummaryStatistics from "./MembershiplandingPage/components/SummaryStatistics";
 import FAQSection from "./MembershiplandingPage/components/FAQSection";
 import MemberCountBanner from "./MembershiplandingPage/components/MemberCountBanner";
-import AdditionalInfo from "./MembershiplandingPage/components/AdditionalInfo";
+
 
 export default function Membership() {
   return (
@@ -32,7 +32,7 @@ export default function Membership() {
           <SummaryStatistics />
           <FAQSection />
           <MemberCountBanner />
-          <AdditionalInfo />
+         
         </div>
       </div>
       <Footer />

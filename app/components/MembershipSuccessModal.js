@@ -9,6 +9,8 @@ export default function MembershipSuccessModal({
   membershipType,
   memberData,
   onConfirm,
+  customTitle,
+  customIntro,
 }) {
   const [isVisible, setIsVisible] = useState(false);
 
@@ -81,7 +83,7 @@ export default function MembershipSuccessModal({
               </div>
             </div>
             <h2 className="mt-3 text-center text-xl font-bold text-white">
-              สมัครสมาชิก ส.อ.ท. สำเร็จ
+              {customTitle || "สมัครสมาชิก ส.อ.ท. สำเร็จ"}
             </h2>
           </div>
 
@@ -89,11 +91,17 @@ export default function MembershipSuccessModal({
           <div className="px-6 py-5">
             <div className="text-center">
               <p className="text-lg text-gray-800 mb-6">
-                ท่านได้ทำการสมัคร
-                <span className="font-semibold text-green-600">
-                  {getMembershipTypeName(membershipType)}
-                </span>
-                สำเร็จ
+                {customIntro ? (
+                  customIntro
+                ) : (
+                  <>
+                    ท่านได้ทำการสมัคร
+                    <span className="font-semibold text-green-600">
+                      {getMembershipTypeName(membershipType)}
+                    </span>
+                    สำเร็จ
+                  </>
+                )}
               </p>
 
               {/* Member Details */}
@@ -200,8 +208,12 @@ MembershipSuccessModal.propTypes = {
     applicantName: PropTypes.string,
   }),
   onConfirm: PropTypes.func.isRequired,
+  customTitle: PropTypes.string,
+  customIntro: PropTypes.string,
 };
 
 MembershipSuccessModal.defaultProps = {
   memberData: {},
+  customTitle: undefined,
+  customIntro: undefined,
 };

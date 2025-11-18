@@ -6,9 +6,9 @@ import { toast } from "react-hot-toast";
 import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 import ResubmitSuccessModal from "./ResubmitSuccessModal";
 import ResubmitModal from "./ResubmitModal";
-import ConfirmationModal from "./ConfirmationModal";
+import ConfirmationModal from "../ConfirmationModal";
 
-export default function RejectedActions({ rejectionId, membershipType, status, formData }) {
+export default function RejectedActions({ rejectionId, membershipType, membershipId, status, formData }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -27,19 +27,21 @@ export default function RejectedActions({ rejectionId, membershipType, status, f
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(
-        `/api/membership/rejected-applications/${rejectionId}/resubmit`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            formData: formData,
-            userComment: userMessage,
-          }),
+      const url =
+        membershipType === "oc"
+          ? `/api/membership/rejected-applications/${rejectionId}/resubmit`
+          : `/api/membership/rejected-applications-v2/${membershipType}/${membershipId}/resubmit`;
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          formData: formData,
+          userComment: userMessage,
+        }),
+      });
 
       const result = await response.json();
 

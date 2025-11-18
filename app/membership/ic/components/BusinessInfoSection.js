@@ -4,12 +4,20 @@ import { useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import PropTypes from "prop-types";
 import { BusinessTypesField, ProductsListField } from "../../components/business-fields";
+import IndustrialGroupSection from "../../components/IndustrialGroupSection";
 
 /**
  * BusinessInfoSection for IC (สามัญ-บุคคลธรรมดา) membership
- * Simplified version - Only Business Types and Products (no Employee Count, no Financial Info)
+ * Simplified version - Only Business Types, Industrial Groups/Provincial Chapters and Products
  */
-export default function BusinessInfoSection({ formData, setFormData, errors, businessTypes }) {
+export default function BusinessInfoSection({
+  formData,
+  setFormData,
+  errors,
+  businessTypes,
+  industrialGroups = [],
+  provincialChapters = [],
+}) {
   // Refs for scrolling to error sections
   const businessTypesRef = useRef(null);
   const otherBusinessTypeDetailRef = useRef(null);
@@ -99,6 +107,15 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
           otherFieldRef={otherBusinessTypeDetailRef}
         />
 
+        {/* Industrial Groups and Provincial Chapters */}
+        <IndustrialGroupSection
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+          industrialGroups={industrialGroups}
+          provincialChapters={provincialChapters}
+        />
+
         {/* Products - IC only has Business Types and Products */}
         <ProductsListField
           ref={productsRef}
@@ -133,4 +150,6 @@ BusinessInfoSection.propTypes = {
     products: PropTypes.oneOfType([PropTypes.string, PropTypes.bool]),
   }).isRequired,
   businessTypes: PropTypes.array,
+  industrialGroups: PropTypes.array,
+  provincialChapters: PropTypes.array,
 };

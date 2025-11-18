@@ -7,12 +7,12 @@ import { Toaster } from "react-hot-toast";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import LoadingOverlay from "../../../components/LoadingOverlay";
-import RejectedApplicationHeader from "../../../components/RejectedApplicationHeader";
-import RejectedApplicationForm from "../../../components/RejectedApplicationForm";
-import RejectedApplicationFormSinglePage from "../../../components/RejectedApplicationFormSinglePage";
-import RejectedConversations from "../../../components/RejectedConversations";
-import RejectionConversationsTable from "../../../components/RejectionConversationsTable";
-import RejectedActions from "../../../components/RejectedActions";
+import RejectedApplicationHeader from "../../../components/Rejected_Document/RejectedApplicationHeader";
+import RejectedApplicationForm from "../../../components/Rejected_Document/RejectedApplicationForm";
+import RejectedApplicationFormSinglePage from "../../../components/Rejected_Document/RejectedApplicationFormSinglePage";
+import RejectedConversations from "../../../components/Rejected_Document/RejectedConversations";
+import RejectionConversationsTable from "../../../components/Rejected_Document/RejectionConversationsTable";
+import RejectedActions from "../../../components/Rejected_Document/RejectedActions";
 
 // Centralized data mapping function
 import { mapRejectionDataToForm } from "../../../utils/rejectionDataMappers";
@@ -322,7 +322,9 @@ export default function EditRejectedApplication() {
             <RejectedActions
               rejectionId={rejectedApp.rejectId}
               membershipType={rejectedApp.membershipType}
+              membershipId={rejectedApp.membershipId}
               status={rejectedApp.status}
+              formData={formData}
             />
           </div>
         </div>

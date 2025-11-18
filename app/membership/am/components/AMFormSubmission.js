@@ -223,16 +223,23 @@ export const submitAMMembershipForm = async (formData) => {
           );
           await new Promise((resolve) => setTimeout(resolve, delay));
           retryCount++;
-          continue;
+        } else {
+          console.error("❌ [AM] Network error, no more retries:", error);
+          throw error;
         }
-        throw error;
       }
     }
-  } catch (error) {
-    console.error("💥 [AM] Error submitting AM membership form:", error);
+
+    // If we exit the loop without returning, treat as a failure
     return {
       success: false,
-      message: error.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง",
+      message: "ไม่สามารถส่งข้อมูลได้ กรุณาลองใหม่อีกครั้ง",
+    };
+  } catch (error) {
+    console.error("❌ [AM] Unexpected error during form submission:", error);
+    return {
+      success: false,
+      message: error.message || "เกิดข้อผิดพลาดในการส่งข้อมูล",
     };
   }
 };
@@ -289,7 +296,7 @@ export const validateAMFormData = (formData) => {
     errors.products = "กรุณากรอกข้อมูลผลิตภัณฑ์/บริการอย่างน้อย 1 รายการ";
   }
 
-  // ✅ ตรวจสอบเอกสารที่จำเป็น
+  // ตรวจสอบเอกสารที่จำเป็น
   if (!formData.associationCertificate) {
     errors.associationCertificate = "กรุณาอัปโหลดหนังสือรับรองการจดทะเบียนสมาคมการค้า";
   }
@@ -302,4 +309,84 @@ export const validateAMFormData = (formData) => {
     isValid: Object.keys(errors).length === 0,
     errors,
   };
+};
+
+export const submitAMMembershipDocumentsUpdate = async (data, mainId) => {
+  try {
+    const formData = new FormData();
+
+    const appendToFormData = (key, value) => {
+      if (value && typeof value === "object" && value.file instanceof File) {
+        formData.append(key, value.file, value.name || value.file.name);
+      } else if (value instanceof File) {
+        formData.append(key, value, value.name);
+      } else if (key === "productionImages" && Array.isArray(value)) {
+        value.forEach((fileObj, index) => {
+          if (fileObj && fileObj.file instanceof File) {
+            formData.append(
+              `productionImages[${index}]`,
+              fileObj.file,
+              fileObj.name || fileObj.file.name,
+            );
+          } else if (fileObj instanceof File) {
+            formData.append(`productionImages[${index}]`, fileObj, fileObj.name);
+          }
+        });
+      } else if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== null && value !== undefined && value !== "") {
+        formData.append(key, String(value));
+      }
+    };
+
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        if (key === "productionImages" || key === "authorizedSignatures") continue;
+        appendToFormData(key, data[key]);
+      }
+    }
+
+    if (data.productionImages && Array.isArray(data.productionImages)) {
+      appendToFormData("productionImages", data.productionImages);
+    }
+
+    if (data.authorizedSignatures && Array.isArray(data.authorizedSignatures)) {
+      data.authorizedSignatures.forEach((fileObj, index) => {
+        if (fileObj && fileObj.file instanceof File) {
+          formData.append(
+            `authorizedSignatures[${index}]`,
+            fileObj.file,
+            fileObj.name || fileObj.file.name,
+          );
+        } else if (fileObj instanceof File) {
+          formData.append(`authorizedSignatures[${index}]`, fileObj, fileObj.name);
+        }
+      });
+    }
+
+    const response = await fetch(`/api/member/am-membership/update-documents/${mainId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        message: result.message || "ไม่สามารถอัปเดตเอกสารแนบได้",
+      };
+    }
+
+    return {
+      success: true,
+      message: result.message || "อัปเดตเอกสารแนบเรียบร้อยแล้ว",
+    };
+  } catch (error) {
+    console.error("❌ Error updating AM membership documents:", error);
+    return {
+      success: false,
+      message: "ไม่สามารถอัปเดตเอกสารแนบได้",
+    };
+  }
 };

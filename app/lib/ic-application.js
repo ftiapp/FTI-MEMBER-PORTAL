@@ -47,15 +47,17 @@ export async function updateICApplication(
     await connection.execute("DELETE FROM MemberRegist_IC_Address WHERE main_id = ?", [
       membershipId,
     ]);
+    // NOTE: Table uses `street` column (not `road`)
+    const streetValue = address.street || address.road || "";
     await connection.execute(
-      `INSERT INTO MemberRegist_IC_Address (main_id, address_number, moo, soi, road, sub_district, district, province, postal_code, address_type) 
+      `INSERT INTO MemberRegist_IC_Address (main_id, address_number, moo, soi, street, sub_district, district, province, postal_code, address_type) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         membershipId,
         address.addressNumber,
         address.moo,
         address.soi,
-        address.road,
+        streetValue,
         address.subDistrict,
         address.district,
         address.province,
@@ -187,7 +189,7 @@ export async function updateICApplication(
           main_id, prename_th, prename_en, prename_other, prename_other_en,
           first_name_th, last_name_th, first_name_en, last_name_en,
           position_th, position_en
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           membershipId,
           signatureName.prename_th || null,
@@ -212,7 +214,7 @@ export async function updateICApplication(
       membershipId,
       userId,
       null,
-      "user_resubmission",
+      "user_resubmit",
       commentText,
       null,
       JSON.stringify(updatedData),

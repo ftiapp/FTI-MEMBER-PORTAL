@@ -581,7 +581,20 @@ export function mapICRejectionData(rejectionData) {
   if (!rejectionData) return {};
 
   if (rejectionData.firstNameThai || rejectionData.idCardNumber) {
-    return rejectionData;
+    return {
+      // Ensure Thai prename aliases exist for ICApplicantInfo
+      prename_th:
+        rejectionData.prename_th ||
+        rejectionData.prenameTh ||
+        "",
+      prenameTh:
+        rejectionData.prenameTh ||
+        rejectionData.prename_th ||
+        "",
+
+      // Keep all existing fields
+      ...rejectionData,
+    };
   }
 
   const main = rejectionData.main || {};
@@ -603,15 +616,29 @@ export function mapICRejectionData(rejectionData) {
   const addressesObj = convertAddressesToObject(addresses);
 
   return {
+    // Thai prename
+    prename_th: main.prename_th || "",
     prenameTh: main.prename_th || "",
+
+    // English prename
     prenameEn: main.prename_en || "",
     prenameOther: main.prename_other || "",
     prenameOtherEn: main.prename_other_en || "",
 
+    // Aliases for form fields used by ICApplicantInfo (English prename)
+    prename_en: main.prename_en || "",
+    prename_other_en: main.prename_other_en || "",
+
     firstNameThai: main.first_name_th || "",
     lastNameThai: main.last_name_th || "",
+
+    // Original English name fields (kept for backward compatibility)
     firstNameEnglish: main.first_name_en || "",
     lastNameEnglish: main.last_name_en || "",
+
+    // Aliases for current IC EnglishNameFields (firstNameEng / lastNameEng)
+    firstNameEng: main.first_name_en || "",
+    lastNameEng: main.last_name_en || "",
 
     idCardNumber: main.id_card_number || "",
     email: main.email || "",

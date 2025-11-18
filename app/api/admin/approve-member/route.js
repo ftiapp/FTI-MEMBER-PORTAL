@@ -1,7 +1,11 @@
 ﻿import { NextResponse } from "next/server";
 import { query } from "../../../lib/db";
 import { getAdminFromSession, logAdminAction } from "../../../lib/adminAuth";
-import { sendApprovalEmail, sendRejectionEmail } from "../../../lib/postmark";
+import {
+  sendApprovalEmail,
+  sendRejectionEmail,
+  sendExistingMemberApprovalEmail,
+} from "../../../lib/postmark";
 import { createNotification } from "../../../lib/notifications";
 
 export async function POST(request) {
@@ -201,7 +205,14 @@ export async function POST(request) {
           const { MEMBER_CODE, company_name, firstname, lastname } = companyResult[0];
 
           if (action === "approve") {
-            await sendApprovalEmail(email, firstname, lastname, MEMBER_CODE, company_name, comment);
+            // For this verify flow, use the existing-member approval email template
+            await sendExistingMemberApprovalEmail(
+              email,
+              firstname,
+              lastname,
+              MEMBER_CODE,
+              company_name,
+            );
 
             // สร้างการแจ้งเตือนในระบบเมื่ออนุมัติ
             try {

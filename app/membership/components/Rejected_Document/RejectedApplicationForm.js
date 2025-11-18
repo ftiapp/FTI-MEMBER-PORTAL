@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import OCMembershipForm from "../oc/components/OCMembershipForm";
-import ACMembershipForm from "../ac/components/ACMembershipForm";
-import AMMembershipForm from "../am/components/AMMembershipForm";
-import ICMembershipForm from "../ic/components/ICMembershipForm";
-import OCStepIndicator from "../oc/components/OCStepIndicator";
-import ACStepIndicator from "../ac/components/ACStepIndicator";
-import AMStepIndicator from "../am/components/AMStepIndicator";
-import ICStepIndicator from "../ic/components/ICStepIndicator";
+import OCMembershipForm from "../../oc/components/OCMembershipForm";
+import ACMembershipForm from "../../ac/components/ACMembershipForm";
+import AMMembershipForm from "../../am/components/AMMembershipForm";
+import ICMembershipForm from "../../ic/components/ICMembershipForm";
+import OCStepIndicator from "../../oc/components/OCStepIndicator";
+import ACStepIndicator from "../../ac/components/ACStepIndicator";
+import AMStepIndicator from "../../am/components/AMStepIndicator";
+import ICStepIndicator from "../../ic/components/ICStepIndicator";
 
 export default function RejectedApplicationForm({
   membershipType,

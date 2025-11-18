@@ -7,10 +7,10 @@ import { Toaster } from "react-hot-toast";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import LoadingOverlay from "../../../components/LoadingOverlay";
-import RejectedApplicationHeader from "../../../components/RejectedApplicationHeader";
-import RejectedApplicationFormSinglePage from "../../../components/RejectedApplicationFormSinglePage";
-import RejectionConversationsTable from "../../../components/RejectionConversationsTable";
-import RejectedActions from "../../../components/RejectedActions";
+import RejectedApplicationHeader from "../../../components/Rejected_Document/RejectedApplicationHeader";
+import RejectedApplicationFormSinglePage from "../../../components/Rejected_Document/RejectedApplicationFormSinglePage";
+import RejectionConversationsTable from "../../../components/Rejected_Document/RejectionConversationsTable";
+import RejectedActions from "../../../components/Rejected_Document/RejectedActions";
 
 // Centralized data mapping function
 import { mapRejectionDataToForm } from "../../../utils/rejectionDataMappers";

@@ -71,6 +71,95 @@ export async function sendVerificationEmail(email, name, verificationToken) {
 }
 
 /**
+ * Send OC membership edit (resubmission) confirmation email
+ * @param {string} email - Applicant's email address
+ * @param {string} name - Applicant's display name
+ * @param {string} membershipType - Membership type code (e.g. 'OC')
+ * @param {string} companyName - Company/Association name
+ * @returns {Promise}
+ */
+export async function sendOCMembershipEditConfirmationEmail(email, name, membershipType, companyName) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
+  const statusUrl = `${baseUrl}/member/dashboard`;
+
+  const membershipTypeMap = {
+    OC: "สามัญ (นิติบุคคล)",
+    AC: "สมทบ (นิติบุคคล)",
+    IC: "สามัญ (บุคคลธรรมดา)",
+    AM: "สมาคม",
+  };
+
+  const membershipTypeThai = membershipTypeMap[membershipType] || membershipType;
+
+  try {
+    const response = await client.sendEmail({
+      From: defaultSender,
+      To: email,
+      Subject: "แจ้งผลการส่งแก้ไขข้อมูลสมัครสมาชิกสำเร็จ - FTI Portal",
+      HtmlBody: getFTIEmailHtmlTemplate({
+        title: "แจ้งผลการส่งแก้ไขข้อมูลสมัครสำเร็จ",
+        bodyContent: `
+          <p>เรียน ${name},</p>
+          <p>ขอบคุณที่ท่านได้ทำการแก้ไขเอกสารสมัครสมาชิกกับสภาอุตสาหกรรมแห่งประเทศไทย</p>
+
+          <div style="background-color: #f0f9ff; border-left: 4px solid #1a56db; padding: 16px; margin: 24px 0; border-radius: 4px;">
+            <p style="margin: 0 0 8px 0;"><strong>ประเภทสมาชิก:</strong> ${membershipTypeThai}</p>
+            <p style="margin: 0;"><strong>ชื่อบริษัท/สมาคม:</strong> ${companyName}</p>
+          </div>
+
+          <p><strong>ท่านจะได้รับการพิจารณาอนุมัติการแก้ไขนี้ภายใน 3-5 วันทำการ</strong></p>
+
+          <p>ท่านสามารถติดตามความคืบหน้าได้ที่:</p>
+          <div style="text-align: center; margin: 24px 0;">
+            <a href="${statusUrl}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
+          </div>
+
+          <p style="font-size: 14px; color: #6b7280;">หรือเข้าไปที่เมนู <strong>"สถานะดำเนินการ"</strong> ในเมนู <strong>"จัดการสมาชิก"</strong></p>
+
+          <p style="margin-top: 32px;">
+            <strong>สอบถามข้อมูลเพิ่มเติม</strong><br/>
+            FTI service Center: <strong>1453 กด 2</strong><br/>
+            Email: <strong>member@fti.or.th</strong>
+          </p>
+
+          <p style="margin-top: 24px;">
+            ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+          </p>
+        `,
+      }),
+      TextBody: `
+        แจ้งผลการส่งแก้ไขข้อมูลสมัครสมาชิกสำเร็จ - FTI Portal
+
+        เรียน ${name},
+
+        ขอบคุณที่ท่านได้ทำการแก้ไขเอกสารสมัครสมาชิกกับสภาอุตสาหกรรมแห่งประเทศไทย
+
+        ประเภทสมาชิก: ${membershipTypeThai}
+        ชื่อบริษัท/สมาคม: ${companyName}
+
+        ท่านจะได้รับการพิจารณาอนุมัติการแก้ไขนี้ภายใน 3-5 วันทำการ
+
+        ท่านสามารถติดตามความคืบหน้าได้ที่: ${statusUrl}
+        หรือเข้าไปที่เมนู "สถานะดำเนินการ" ในเมนู "จัดการสมาชิก"
+
+        สอบถามข้อมูลเพิ่มเติม
+        FTI service Center: 1453 กด 2
+        Email: member@fti.or.th
+
+        ขอบคุณสำหรับการร่วมเป็นส่วนหนึ่งในการขับเคลื่อน อุตสาหกรรมไทย พร้อมรับสิทธิประโยชน์ ให้ธุรกิจไปได้ไกลยิ่งขึ้น สอบถามข้อมูลเพิ่มเติม
+
+        © 2025 FTI Portal. สงวนลิขสิทธิ์.
+      `,
+      MessageStream: "outbound",
+    });
+    return response;
+  } catch (error) {
+    console.error("Error sending OC membership edit confirmation email:", error);
+    throw error;
+  }
+}
+
+/**
  * Send admin invitation email
  * @param {string} email - Recipient email (new admin)
  * @param {string} token - Invitation token

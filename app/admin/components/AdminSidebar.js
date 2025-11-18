@@ -14,6 +14,7 @@ import { useNavigation } from "./hooks/useNavigation";
 function AdminSidebar({ onNavigate }) {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [contactUnreadCount, setContactUnreadCount] = useState(0);
 
   // Custom hooks
   const { adminData, isLoading } = useAdminData();
@@ -36,7 +37,17 @@ function AdminSidebar({ onNavigate }) {
   console.log("AdminSidebar - adminLevel:", adminLevel);
 
   // Get menu items based on admin level and pending counts
-  const menuItems = getMenuItems(adminLevel, pendingCounts);
+  const baseMenuItems = getMenuItems(adminLevel, pendingCounts);
+
+  // Override badge for member contact messages with live unread count
+  const menuItems = baseMenuItems.map((item) =>
+    item.path === "/admin/dashboard/contact-messages"
+      ? {
+          ...item,
+          badge: contactUnreadCount > 0 ? contactUnreadCount : null,
+        }
+      : item,
+  );
 
   const toggleCollapse = useCallback(() => {
     setCollapsed(!collapsed);
@@ -48,6 +59,32 @@ function AdminSidebar({ onNavigate }) {
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
+  }, []);
+
+  // Fetch unread member contact messages count for sidebar badge
+  useEffect(() => {
+    let intervalId = null;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await fetch("/api/admin/contact-messages/unread-count");
+        if (res.ok) {
+          const data = await res.json();
+          setContactUnreadCount(typeof data.unread === "number" ? data.unread : 0);
+        }
+      } catch (err) {
+        // ignore errors to avoid affecting sidebar rendering
+      }
+    };
+
+    fetchUnreadCount();
+    intervalId = setInterval(fetchUnreadCount, 10 * 60 * 1000); // every 10 minutes
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
   }, []);
 
   // If still loading admin data, show a simple loading indicator

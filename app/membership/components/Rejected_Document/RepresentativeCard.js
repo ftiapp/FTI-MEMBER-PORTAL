@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import RepresentativeNameFields from "./RepresentativeNameFields";
+import RepresentativeNameFields from "../RepresentativeNameFields";
 import RepresentativeContactFields from "./RepresentativeContactFields";
-import { getFieldError } from "../utils/representativeValidation";
+import { getFieldError } from "../../utils/representativeValidation";
 
 /**
  * Representative Card Component

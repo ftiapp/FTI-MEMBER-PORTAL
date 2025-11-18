@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { AddressSection } from "../../../shared/address";
-import IndustrialGroupSection from "../../../components/IndustrialGroupSection";
 import IdCardField from "./IdCardField";
 import ThaiNameFields from "./ThaiNameFields";
 import EnglishNameFields from "./EnglishNameFields";
@@ -183,15 +182,6 @@ export default function ApplicantInfoSection({
           subtitle="ข้อมูลที่อยู่และการติดต่อ"
         />
 
-        {/* Industrial Group and Provincial Chapter */}
-        <IndustrialGroupSection
-          formData={formData}
-          setFormData={setFormData}
-          errors={errors}
-          industrialGroups={industrialGroups}
-          provincialChapters={provincialChapters}
-          isLoading={isLoading}
-        />
       </div>
     </div>
   );

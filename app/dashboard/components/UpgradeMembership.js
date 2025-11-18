@@ -1,24 +1,16 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import LoadingOverlay from "./shared/LoadingOverlay";
+import MembershipCardsSection from "./UpgradeMembership/MembershipCardsSection";
+import DocumentRequirementsSection from "./UpgradeMembership/DocumentRequirementsSection";
+import BenefitsComparisonSection from "./UpgradeMembership/BenefitsComparisonSection";
+import HeaderBannerSection from "./UpgradeMembership/HeaderBannerSection";
+import SummaryAndCTASection from "./UpgradeMembership/SummaryAndCTASection";
 
 export default function UpgradeMembership() {
   const router = useRouter();
-  const [showAllBenefits, setShowAllBenefits] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [activeDocumentTab, setActiveDocumentTab] = useState("ordinary");
-  const [isMobile, setIsMobile] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const itemsPerPage = 5;
-
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
 
   const benefits = [
     {
@@ -381,17 +373,6 @@ export default function UpgradeMembership() {
     },
   };
 
-  const totalPages = Math.ceil(benefits.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentBenefits = showAllBenefits
-    ? benefits.slice(startIndex, endIndex)
-    : benefits.slice(0, 10);
-
-  const goToPage = (page) => setCurrentPage(page);
-  const nextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
-  const prevPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-
   const handleMembershipClick = (link) => {
     setIsLoading(true);
     router.push(link);
@@ -420,36 +401,6 @@ export default function UpgradeMembership() {
     return () => cancelAnimationFrame(rafId);
   }, []);
 
-  const MobileBenefitCard = ({ benefit, membership }) => {
-    const hasAccess =
-      membership === "ordinary"
-        ? benefit.ordinary
-        : membership === "associate"
-          ? benefit.associate
-          : benefit.supporting;
-
-    return (
-      <div
-        className={`p-3 rounded-lg border ${hasAccess ? "border-green-200 bg-white" : "border-gray-200 bg-gray-50"}`}
-      >
-        <div className="flex items-start space-x-3">
-          <span
-            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-              hasAccess ? "bg-green-500 text-white" : "bg-gray-300 text-gray-500"
-            }`}
-          >
-            {hasAccess ? "✓" : "×"}
-          </span>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-gray-900 leading-relaxed">
-              <span className="font-medium text-blue-600">#{benefit.id}</span> {benefit.title}
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
       <LoadingOverlay isVisible={isLoading} message="กำลังโหลดข้อมูล..." />
@@ -469,60 +420,7 @@ export default function UpgradeMembership() {
       `}</style>
 
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8 space-y-6 sm:space-y-8">
-          {/* Header */}
-          <div className="text-center">
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
-              สมาชิกสภาอุตสาหกรรม
-            </h1>
-            <p className="text-sm sm:text-base text-gray-600">
-              เลือกประเภทสมาชิกที่เหมาะสมกับองค์กรของคุณ
-            </p>
-          </div>
-
-          {/* Preface Banner */}
-          <div className="relative overflow-hidden rounded-xl bg-white shadow-lg">
-            <div className="grid grid-cols-1 lg:grid-cols-2">
-              <div className="p-6 sm:p-8 lg:p-10">
-                <p className="text-blue-600 font-semibold text-base sm:text-lg mb-2">
-                  พร้อมที่จะเริ่มต้นแล้วหรือยัง?
-                </p>
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-3">
-                  สมาชิก ส.อ.ท.
-                </h3>
-                <div className="flex items-end space-x-2 sm:space-x-3 mb-3">
-                  <span className="text-red-600 font-extrabold text-3xl sm:text-4xl lg:text-5xl leading-none">
-                    {memberCount.toLocaleString("th-TH")}
-                  </span>
-                  <span className="text-gray-500 text-base sm:text-lg mb-1">ราย</span>
-                </div>
-                <p className="text-sm sm:text-base text-gray-700 leading-relaxed">
-                  มาร่วมเป็นส่วนหนึ่งในการขับเคลื่อนอุตสาหกรรมไทย
-                  พร้อมรับสิทธิประโยชน์ให้ธุรกิจไปได้ไกลยิ่งขึ้น
-                </p>
-              </div>
-
-              <div className="p-6 sm:p-8 lg:p-10 bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center">
-                <div className="w-full max-w-sm">
-                  <svg viewBox="0 0 120 60" className="w-full h-24 sm:h-32">
-                    <line x1="5" y1="55" x2="115" y2="55" stroke="#93c5fd" strokeWidth="1" />
-                    <line x1="5" y1="55" x2="5" y2="5" stroke="#93c5fd" strokeWidth="1" />
-                    <path
-                      d="M5 50 L20 48 L35 45 L50 40 L65 42 L80 35 L95 28 L110 15"
-                      fill="none"
-                      stroke="#2563eb"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                      className="animate-dash"
-                      style={{ strokeDasharray: 200, strokeDashoffset: 0 }}
-                    />
-                    <circle cx="50" cy="40" r="2.5" fill="#2563eb" />
-                    <circle cx="80" cy="35" r="2.5" fill="#2563eb" />
-                    <circle cx="110" cy="15" r="3" fill="#ef4444" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
+          <HeaderBannerSection memberCount={memberCount} />
 
           {/* Step Workflow */}
           <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
@@ -586,424 +484,33 @@ export default function UpgradeMembership() {
           </div>
 
           {/* Membership Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {membershipTypes.map((membership) => (
-              <div
-                key={membership.id}
-                className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-xl hover:border-blue-400 transition-all duration-300"
-              >
-                <div className={`${colorClasses[membership.color].bg} text-white p-4 sm:p-5`}>
-                  <h3 className="text-base sm:text-lg font-bold mb-1">{membership.title}</h3>
-                  <p className="text-xs sm:text-sm opacity-90 leading-tight">
-                    {membership.subtitle}
-                  </p>
-                </div>
-                <div className="p-4 sm:p-5">
-                  <div className="mb-4">
-                    <p className="text-lg sm:text-xl font-bold text-gray-900">{membership.price}</p>
-                    {membership.priceNote && (
-                      <p className="text-xs text-gray-500">{membership.priceNote}</p>
-                    )}
-                  </div>
-                  <ul className="space-y-2 mb-4">
-                    {membership.features.map((feature, index) => (
-                      <li key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
-                        <svg
-                          className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                        <span className="leading-tight">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <button
-                    onClick={() => handleMembershipClick(membership.link)}
-                    className={`w-full ${colorClasses[membership.color].bg} text-white py-2.5 rounded-lg ${colorClasses[membership.color].hover} transition-colors text-sm sm:text-base font-medium`}
-                  >
-                    สมัครสมาชิก
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <MembershipCardsSection
+            membershipTypes={membershipTypes}
+            colorClasses={colorClasses}
+            onMembershipClick={handleMembershipClick}
+          />
 
           {/* Document Requirements Section */}
-          <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-4 sm:p-6">
-              <h2 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2">
-                เอกสารประกอบการรับสมัครสมาชิก
-              </h2>
-              <p className="text-xs sm:text-sm opacity-90">
-                เอกสารที่จำเป็นสำหรับการสมัครสมาชิกประเภทต่างๆ
-              </p>
-            </div>
-
-            {/* Tab Navigation - Scrollable on mobile */}
-            <div className="border-b bg-gray-50 overflow-x-auto">
-              <div className="flex min-w-max">
-                {Object.entries(documentRequirements).map(([key, requirement]) => (
-                  <button
-                    key={key}
-                    onClick={() => setActiveDocumentTab(key)}
-                    className={`flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-                      activeDocumentTab === key
-                        ? "border-blue-600 text-blue-600 bg-white"
-                        : "border-transparent text-gray-600 hover:text-blue-600 hover:border-blue-300"
-                    }`}
-                  >
-                    {requirement.title.split(" - ")[1] || requirement.title}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Tab Content */}
-            <div className="p-4 sm:p-6">
-              {Object.entries(documentRequirements).map(([key, requirement]) => (
-                <div key={key} className={`${activeDocumentTab === key ? "block" : "hidden"}`}>
-                  <div className="mb-4 sm:mb-6">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-                      {requirement.title}
-                    </h3>
-                    <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-                      {requirement.description}
-                    </p>
-                  </div>
-
-                  {requirement.categories && (
-                    <div className="space-y-4">
-                      {requirement.categories.map((category, index) => (
-                        <div
-                          key={index}
-                          className="border-l-4 border-blue-500 bg-blue-50 p-3 sm:p-4 rounded-r-lg"
-                        >
-                          <h4 className="font-semibold text-blue-900 mb-2 text-sm sm:text-base">
-                            {category.title}: {category.subtitle}
-                          </h4>
-                          <ul className="space-y-2">
-                            {category.requirements.map((req, idx) => (
-                              <li
-                                key={idx}
-                                className="text-xs sm:text-sm text-gray-700 leading-relaxed flex items-start"
-                              >
-                                <span className="text-blue-600 mr-2 font-bold">•</span>
-                                <span>{req}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {requirement.documents && (
-                    <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
-                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center text-sm sm:text-base">
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mr-2"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        เอกสารประกอบ
-                      </h4>
-                      <ul className="space-y-2">
-                        {requirement.documents.map((doc, index) => (
-                          <li
-                            key={index}
-                            className="flex items-start text-xs sm:text-sm text-gray-700"
-                          >
-                            <svg
-                              className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M5 13l4 4L19 7"
-                              />
-                            </svg>
-                            <span className="leading-relaxed">{doc}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  <div className="mt-4 sm:mt-6 p-3 sm:p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-center">
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-600 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <span className="font-medium text-yellow-800 text-sm">หมายเหตุ</span>
-                    </div>
-                    <p className="text-yellow-700 mt-1 text-xs sm:text-sm leading-relaxed">
-                      เอกสารทั้งหมด ให้รับรองสำเนาถูกต้อง
-                      หากไม่ครบถ้วนเจ้าหน้าที่อาจขอเอกสารเพิ่มเติม
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <DocumentRequirementsSection
+            documentRequirements={documentRequirements}
+            activeTab={activeDocumentTab}
+            onChangeTab={setActiveDocumentTab}
+          />
 
           {/* Benefits Comparison - Desktop Table / Mobile Cards */}
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <div className="bg-gray-50 p-4 sm:p-6 border-b">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                <div>
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-                    เปรียบเทียบสิทธิประโยชน์
-                  </h2>
-                  <p className="text-xs sm:text-sm text-gray-600 mt-1">
-                    ตรวจสอบสิทธิประโยชน์ทั้งหมด {benefits.length} รายการ
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowAllBenefits(!showAllBenefits)}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                >
-                  {showAllBenefits ? "แสดงบางส่วน" : "แสดงทั้งหมด"}
-                </button>
-              </div>
-            </div>
+          <BenefitsComparisonSection
+            benefits={benefits}
+            membershipTypes={membershipTypes}
+            activeTab={activeDocumentTab}
+            onChangeTab={setActiveDocumentTab}
+          />
 
-            {isMobile ? (
-              /* Mobile View - Tabs with Cards */
-              <div>
-                <div className="border-b bg-gray-50 overflow-x-auto">
-                  <div className="flex">
-                    {membershipTypes.map((type) => (
-                      <button
-                        key={type.id}
-                        onClick={() => setActiveDocumentTab(type.id)}
-                        className={`flex-1 min-w-max px-3 py-3 text-xs font-medium border-b-2 transition-colors ${
-                          activeDocumentTab === type.id
-                            ? "border-blue-600 text-blue-600 bg-white"
-                            : "border-transparent text-gray-600"
-                        }`}
-                      >
-                        {type.title.split("-")[1] || type.title}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-3 space-y-2">
-                  {currentBenefits.map((benefit) => (
-                    <MobileBenefitCard
-                      key={benefit.id}
-                      benefit={benefit}
-                      membership={activeDocumentTab}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : (
-              /* Desktop View - Simple Table */
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
-                        สิทธิประโยชน์
-                      </th>
-                      <th className="py-3 px-4 text-center text-sm font-medium text-blue-600 w-32">
-                        สน
-                      </th>
-                      <th className="py-3 px-4 text-center text-sm font-medium text-purple-600 w-32">
-                        สส
-                      </th>
-                      <th className="py-3 px-4 text-center text-sm font-medium text-green-600 w-32">
-                        ทน
-                      </th>
-                      <th className="py-3 px-4 text-center text-sm font-medium text-amber-600 w-32">
-                        ทบ
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {currentBenefits.map((benefit) => (
-                      <tr key={benefit.id} className="hover:bg-gray-50">
-                        <td className="py-3 px-4 text-sm text-gray-900">
-                          <span className="text-blue-600 font-medium mr-2">{benefit.id}.</span>
-                          {benefit.title}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {benefit.ordinary ? (
-                            <span className="text-blue-600 text-lg">✓</span>
-                          ) : (
-                            <span className="text-gray-300 text-lg">−</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {benefit.associate ? (
-                            <span className="text-purple-600 text-lg">✓</span>
-                          ) : (
-                            <span className="text-gray-300 text-lg">−</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {benefit.supporting ? (
-                            <span className="text-green-600 text-lg">✓</span>
-                          ) : (
-                            <span className="text-gray-300 text-lg">−</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-4 text-center">
-                          {benefit.supporting ? (
-                            <span className="text-amber-600 text-lg">✓</span>
-                          ) : (
-                            <span className="text-gray-300 text-lg">−</span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Pagination */}
-            {showAllBenefits && totalPages > 1 && (
-              <div className="bg-gray-50 p-4 border-t">
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
-                  <div className="text-xs text-gray-600">
-                    หน้า {currentPage} จาก {totalPages}
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <button
-                      onClick={prevPage}
-                      disabled={currentPage === 1}
-                      className={`px-3 py-1.5 rounded text-sm font-medium ${
-                        currentPage === 1
-                          ? "bg-gray-200 text-gray-400"
-                          : "bg-white text-gray-700 border hover:bg-gray-50"
-                      }`}
-                    >
-                      ←
-                    </button>
-
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => goToPage(page)}
-                        className={`px-3 py-1.5 rounded text-xs font-medium ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white"
-                            : "bg-white text-gray-700 border hover:bg-gray-50"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ))}
-
-                    <button
-                      onClick={nextPage}
-                      disabled={currentPage === totalPages}
-                      className={`px-3 py-1.5 rounded text-sm font-medium ${
-                        currentPage === totalPages
-                          ? "bg-gray-200 text-gray-400"
-                          : "bg-white text-gray-700 border hover:bg-gray-50"
-                      }`}
-                    >
-                      →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {!showAllBenefits && benefits.length > 10 && (
-              <div className="bg-gray-50 p-4 text-center border-t">
-                <p className="text-xs text-gray-600">
-                  แสดง 10 จาก {benefits.length} รายการ
-                  <button
-                    onClick={() => {
-                      setShowAllBenefits(true);
-                      setCurrentPage(1);
-                    }}
-                    className="ml-2 text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    ดูเพิ่มเติม
-                  </button>
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Summary Statistics */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {membershipTypes.map((type) => {
-              const count = benefits.filter((b) =>
-                type.id === "ordinary"
-                  ? b.ordinary
-                  : type.id === "associate"
-                    ? b.associate
-                    : b.supporting,
-              ).length;
-
-              return (
-                <div
-                  key={type.id}
-                  className="bg-white rounded-lg border-2 border-gray-200 p-4 text-center hover:border-blue-300 transition-colors"
-                >
-                  <div
-                    className={`inline-flex items-center justify-center w-12 h-12 rounded-full ${colorClasses[type.color].light} mb-3`}
-                  >
-                    <span className={`text-2xl font-bold ${colorClasses[type.color].text}`}>
-                      {count}
-                    </span>
-                  </div>
-                  <h3 className="text-xs font-medium text-gray-600 mb-1">{type.title}</h3>
-                  <p className="text-xs text-gray-500">จาก {benefits.length} สิทธิ</p>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Call to Action */}
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-6 sm:p-8 lg:p-10 text-white text-center shadow-xl">
-            <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 leading-tight">
-              เลือกระดับสมาชิกที่เหมาะสมกับองค์กรของคุณและเริ่มต้นรับสิทธิประโยชน์วันนี้
-            </h3>
-            <button
-              onClick={handleContactClick}
-              className="bg-white text-blue-600 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors text-sm sm:text-base"
-            >
-              ปรึกษาเพิ่มเติม
-            </button>
-          </div>
+          <SummaryAndCTASection
+            membershipTypes={membershipTypes}
+            benefits={benefits}
+            colorClasses={colorClasses}
+            onContactClick={handleContactClick}
+          />
         </div>
       </div>
     </>

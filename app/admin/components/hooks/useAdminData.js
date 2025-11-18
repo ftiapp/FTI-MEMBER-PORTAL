@@ -36,6 +36,14 @@ const fetchDashboardData = async (force = false) => {
       cache: "no-cache",
     });
 
+    // Explicitly handle unauthorized session so UI can redirect instead of hanging
+    if (response.status === 401) {
+      globalState.adminData = null;
+      globalState.lastFetched = now;
+      notifyListeners();
+      return;
+    }
+
     if (!response.ok) {
       throw new Error("Failed to fetch dashboard data");
     }

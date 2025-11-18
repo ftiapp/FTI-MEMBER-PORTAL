@@ -281,3 +281,79 @@ export const submitACMembershipForm = async (data) => {
     };
   }
 };
+
+export const submitACMembershipDocumentsUpdate = async (data, mainId) => {
+  try {
+    const formData = new FormData();
+
+    const appendToFormData = (key, value) => {
+      if (value && typeof value === "object" && value.file instanceof File) {
+        formData.append(key, value.file, value.name || value.file.name);
+      } else if (value instanceof File) {
+        formData.append(key, value, value.name);
+      } else if (key === "productionImages" && Array.isArray(value)) {
+        value.forEach((fileObj, index) => {
+          if (fileObj && fileObj.file instanceof File) {
+            formData.append(
+              `productionImages[${index}]`,
+              fileObj.file,
+              fileObj.name || fileObj.file.name,
+            );
+          } else if (fileObj instanceof File) {
+            formData.append(`productionImages[${index}]`, fileObj, fileObj.name);
+          }
+        });
+      } else if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== null && value !== undefined && value !== "") {
+        formData.append(key, String(value));
+      }
+    };
+
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        if (key === "authorizedSignatures") continue;
+        appendToFormData(key, data[key]);
+      }
+    }
+
+    if (data.authorizedSignatures && Array.isArray(data.authorizedSignatures)) {
+      data.authorizedSignatures.forEach((fileObj, index) => {
+        if (fileObj && fileObj.file instanceof File) {
+          formData.append(
+            `authorizedSignatures[${index}]`,
+            fileObj.file,
+            fileObj.name || fileObj.file.name,
+          );
+        } else if (fileObj instanceof File) {
+          formData.append(`authorizedSignatures[${index}]`, fileObj, fileObj.name);
+        }
+      });
+    }
+
+    const response = await fetch(`/api/member/ac-membership/update-documents/${mainId}`, {
+      method: "POST",
+      body: formData,
+    });
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      return {
+        success: false,
+        message: result.message || "ไม่สามารถอัปเดตเอกสารแนบได้",
+      };
+    }
+
+    return {
+      success: true,
+      message: result.message || "อัปเดตเอกสารแนบเรียบร้อยแล้ว",
+    };
+  } catch (error) {
+    console.error("❌ Error updating AC membership documents:", error);
+    return {
+      success: false,
+      message: "ไม่สามารถอัปเดตเอกสารแนบได้",
+    };
+  }
+};
