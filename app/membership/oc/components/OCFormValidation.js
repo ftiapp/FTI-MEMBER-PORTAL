@@ -200,7 +200,7 @@ export const validateOCForm = (formData, step) => {
           errors.contactPerson0LastNameEn = "นามสกุลผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น";
         }
 
-        // ตรวจสอบข้อมูลอื่นๆ
+        // ตรวจสอบข้อมูลอื่นๆ (ผู้ประสานงานหลัก)
         if (!mainContact.position) {
           errors.contactPerson0Position = "กรุณากรอกตำแหน่ง";
         }
@@ -233,6 +233,36 @@ export const validateOCForm = (formData, step) => {
             errors.contactPerson0TypeContactOtherDetail = "กรุณาระบุรายละเอียดประเภทผู้ติดต่อ";
           }
         }
+      }
+
+      // ตรวจสอบข้อมูลผู้ติดต่อคนที่ 2-4 (ถ้ามี) ให้เป็น required ตาม constraint DB
+      if (Array.isArray(formData.contactPersons) && formData.contactPersons.length > 1) {
+        formData.contactPersons.forEach((cp, index) => {
+          if (index === 0 || !cp) return;
+
+          const baseKey = `contactPerson${index}`;
+          const displayIndex = index + 1; // ใช้สำหรับแสดงในข้อความ เช่น คนที่ 2, 3, 4
+
+          // Position: required
+          if (!cp.position) {
+            errors[`${baseKey}Position`] = `กรุณากรอกตำแหน่งของผู้ติดต่อคนที่ ${displayIndex}`;
+          }
+
+          // Email: required + format
+          if (!cp.email) {
+            errors[`${baseKey}Email`] = `กรุณากรอกอีเมลผู้ประสานงานคนที่ ${displayIndex}`;
+          } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cp.email)) {
+            errors[`${baseKey}Email`] = `รูปแบบอีเมลของผู้ประสานงานคนที่ ${displayIndex} ไม่ถูกต้อง`;
+          }
+
+          // Phone: required + length
+          const phoneVal = cp.phone;
+          if (!phoneVal || String(phoneVal).trim() === "") {
+            errors[`${baseKey}Phone`] = `กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงานคนที่ ${displayIndex}`;
+          } else if (String(phoneVal).length > 50) {
+            errors[`${baseKey}Phone`] = `เบอร์โทรศัพท์ของผู้ประสานงานคนที่ ${displayIndex} ต้องไม่เกิน 50 ตัวอักษร`;
+          }
+        });
       }
     }
   } else if (step === 2) {

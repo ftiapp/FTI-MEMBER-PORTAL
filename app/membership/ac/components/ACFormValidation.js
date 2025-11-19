@@ -57,6 +57,23 @@ export const validateACForm = (formData, step) => {
             hasAddressErrors = true;
           }
 
+      // ตรวจสอบเบอร์โทรศัพท์ของผู้ติดต่อคนที่ 2-4 (ถ้ามี) ให้เป็น required เช่นเดียวกับผู้ประสานงานหลัก
+      if (Array.isArray(formData.contactPersons) && formData.contactPersons.length > 1) {
+        formData.contactPersons.forEach((cp, index) => {
+          if (index === 0 || !cp) return;
+
+          const phoneVal = cp.phone;
+          const key = `contactPerson${index}Phone`;
+          const displayIndex = index + 1; // ใช้แสดงข้อความคนที่ X
+
+          if (!phoneVal || String(phoneVal).trim() === "") {
+            errors[key] = `กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงานคนที่ ${displayIndex}`;
+          } else if (String(phoneVal).length > 50) {
+            errors[key] = `เบอร์โทรศัพท์ของผู้ประสานงานคนที่ ${displayIndex} ต้องไม่เกิน 50 ตัวอักษร`;
+          }
+        });
+      }
+
           if (!address.subDistrict) {
             typeErrors.subDistrict = `กรุณากรอกตำบล/แขวง (${label})`;
             hasAddressErrors = true;

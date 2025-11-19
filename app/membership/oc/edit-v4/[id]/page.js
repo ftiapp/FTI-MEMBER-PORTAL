@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import LoadingOverlay from "../../../components/LoadingOverlay";
 import OCStepIndicator from "@/app/membership/oc/components/OCStepIndicator";
 import OCMembershipForm from "@/app/membership/oc/components/OCMembershipForm";
 import { submitOCMembershipDocumentsUpdate } from "@/app/membership/oc/components/OCFormSubmission";
+import ContactAdminModal from "@/app/membership/components/ContactAdminModal";
 
 export default function EditOCApplicationV4() {
   const params = useParams();
@@ -18,6 +19,8 @@ export default function EditOCApplicationV4() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [isSendingContact, setIsSendingContact] = useState(false);
 
   const handleEditSubmit = useCallback(
     async (data) => {
@@ -137,6 +140,43 @@ export default function EditOCApplicationV4() {
     { id: 5, name: "ยืนยันข้อมูล" },
   ];
 
+  const handleSendContactMessage = useCallback(
+    async (message) => {
+      if (!message || !message.trim()) {
+        toast.error("กรุณากรอกข้อความถึงผู้ดูแลระบบ");
+        return;
+      }
+
+      try {
+        setIsSendingContact(true);
+
+        const res = await fetch(`/api/membership/oc/${params.id}/comment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: message.trim() }),
+        });
+
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          toast.error(result.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
+
+        toast.success("ส่งข้อความถึงผู้ดูแลระบบเรียบร้อยแล้ว");
+        setShowContactModal(false);
+      } catch (e) {
+        console.error("[OC-V4] Contact admin error:", e);
+        toast.error("เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง");
+      } finally {
+        setIsSendingContact(false);
+      }
+    },
+    [params.id],
+  );
+
   if (loading) {
     return (
       <>
@@ -190,6 +230,16 @@ export default function EditOCApplicationV4() {
             <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
               แบบฟอร์มหลายขั้นตอน พร้อมข้อมูลพื้นฐานที่ดึงจากตาราง MemberRegist_OC_Main (ID: {params.id})
             </p>
+
+            <div className="mt-6 flex justify-center">
+              <button
+                type="button"
+                onClick={() => setShowContactModal(true)}
+                className="inline-flex items-center px-5 py-2.5 border border-white/60 text-sm md:text-base rounded-full bg-white/10 hover:bg-white/20 text-white font-medium shadow-sm transition-colors"
+              >
+                ติดต่อผู้ดูแลระบบ
+              </button>
+            </div>
           </div>
         </div>
 
@@ -245,6 +295,13 @@ export default function EditOCApplicationV4() {
         </div>
       </main>
       <Footer />
+
+      <ContactAdminModal
+        isOpen={showContactModal}
+        onCancel={() => setShowContactModal(false)}
+        onSend={handleSendContactMessage}
+        isSubmitting={isSendingContact}
+      />
     </>
   );
 }

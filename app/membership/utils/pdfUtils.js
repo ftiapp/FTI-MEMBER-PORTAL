@@ -742,19 +742,19 @@ const buildSignatorySignature = (signatory, preloadedSignature, index, signature
   } else if (signatureFile && signatureFile.fileUrl) {
     signatureHtml = `<img src="${signatureFile.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`;
   } else {
-    signatureHtml = `<div style="color: #999; font-size: 10px; font-style: italic;">ไม่มีลายเซ็น</div>`;
+    signatureHtml = `<div style="color: #999; font-size: 12px; font-style: italic;">ไม่มีลายเซ็น</div>`;
   }
 
   return `
-    <div class="signature-box" style="min-width: 90px;">
-      <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
+    <div class="signature-box" style="min-width: 140px;">
+      <div style="font-size: 12px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
       <div class="signature-img">
         ${signatureHtml}
       </div>
-      <div style="font-size: 7px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
+      <div style="font-size: 11px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
         (${signatoryName})
-        ${position ? `<div style="margin-top: 1px; color: #555;">ตำแหน่ง: ${position}</div>` : ""}
-        <div style="margin-top: 1px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
+        ${position ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${position}</div>` : ""}
+        <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
       </div>
     </div>
   `;
@@ -1113,28 +1113,28 @@ export const generateMembershipPDF = async (
     const styles = `
       @page { margin: 8mm; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Sarabun', sans-serif; font-size: 11px; line-height: 1.3; padding: 6px 6px 30px 6px; position: relative; }
+      body { font-family: 'Sarabun', sans-serif; font-size: 14px; line-height: 1.45; padding: 6px 6px 30px 6px; position: relative; }
       .logo-wrap { text-align: center; margin-bottom: 0px; display: flex; justify-content: center; }
       .logo-wrap img { height: 42px; object-fit: contain; display: block; margin: 0 auto; }
-      .header { text-align: center; font-size: 11.5px; font-weight: bold; margin-top: -10px; margin-bottom: 0px; padding-bottom: 4px; border-bottom: 1px solid #333; line-height: 2.5; }
-      .created-date { position: absolute; top: 40px; right: 6px; font-size: 8px; color: #999; }
-      .member-number { position: absolute; top: 6px; right: 6px; font-size: 8px; color: #000; font-weight: bold; }
+      .header { text-align: center; font-size: 15px; font-weight: bold; margin-top: -10px; margin-bottom: 0px; padding-bottom: 4px; border-bottom: 1px solid #333; line-height: 2.5; }
+      .created-date { position: absolute; top: 2px; left: 6px; font-size: 11px; color: #999; }
+      .member-number { position: absolute; top: 2px; right: 6px; font-size: 11px; color: #000; font-weight: bold; }
       .section { border: 1px solid #ddd; margin-bottom: 4px; padding: 5px; }
-      .section-title { font-weight: bold; font-size: 10px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
-      .field { margin-bottom: 2px; font-size: 10px; }
+      .section-title { font-weight: bold; font-size: 13px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
+      .field { margin-bottom: 2px; font-size: 13px; }
       .label { font-weight: 600; display: inline-block; min-width: 70px; }
       .value { color: #333; }
       .row { display: flex; gap: 12px; }
       .col { flex: 1; }
       .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
       .rep-box { border: 1px solid #e0e0e0; padding: 5px; background: #fafafa; }
-      .rep-title { font-weight: bold; font-size: 9.5px; color: #0066cc; margin-bottom: 2px; }
-      .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 9.5px; margin: 1px; }
+      .rep-title { font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 2px; }
+      .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 12px; margin: 1px; }
       .signature-area { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; justify-content: flex-end; }
-      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 110px; max-width: 140px; }
-      .signature-img { border: 1px dashed #999; height: 45px; width: 90px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
-      .stamp-box { border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 110px; }
-      .stamp-img { border: 1px dashed #999; width: 90px; height: 45px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
+      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 130px; max-width: 190px; }
+      .signature-img { border: 1px dashed #999; height: 80px; width: 150px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
+      .stamp-box { border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 130px; max-width: 190px; }
+      .stamp-img { border: 1px dashed #999; width: 150px; height: 80px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
       .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
       .list-2col .span-all { grid-column: 1 / -1; }
       .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; row-gap: 4px; align-items: start; }
@@ -1516,17 +1516,17 @@ export const generateMembershipPDF = async (
                   return `
                     <div class="signature-area">
                       <div class="signature-box">
-                        <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
+                        <div style="font-size: 12px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
                         <div class="signature-img">
                             ${
                               signatureImgSrc
                                 ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
                                 : data.authorizedSignature?.fileUrl
                                   ? `<img src="${data.authorizedSignature.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`
-                                : `<div style="color: #999; font-size: 10px; font-style: italic;">ไม่มีลายเซ็น</div>`
+                                : `<div style="color: #999; font-size: 12px; font-style: italic;">ไม่มีลายเซ็น</div>`
                             }
                         </div>
-                        <div style="font-size: 7px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
+                        <div style="font-size: 11px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
                           (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
                           ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ""}
                           <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>
@@ -1536,7 +1536,7 @@ export const generateMembershipPDF = async (
                         type === "oc" || type === "ac" || type === "am"
                           ? `
                         <div class="stamp-box">
-                          <div style="font-size: 12px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
+                          <div style="font-size: 13px; font-weight: bold; margin-bottom: 5px;">ตราบริษัท</div>
                           <div class="stamp-img">
                             ${
                               companyStampImgSrc
@@ -1554,19 +1554,19 @@ export const generateMembershipPDF = async (
               })()
             : `
           <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-            <div style="display: flex; gap: 20px; font-size: 12px;">
+            <div style="display: flex; gap: 20px; font-size: 13px;">
               <div class="signature-box">
-                <div style="font-size: 9px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
+                <div style="font-size: 12px; font-weight: bold; margin-bottom: 2px;">ลายเซ็นผู้มีอำนาจ</div>
                 <div class="signature-img">
                   ${
                     signatureImgSrc
                       ? `<img src="${signatureImgSrc}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" />`
                       : data.authorizedSignature?.fileUrl
                         ? `<img src="${data.authorizedSignature.fileUrl}" style="max-width: 100%; max-height: 100%; object-fit: contain;" crossorigin="anonymous" alt="Authorized Signature" />`
-                        : `<div style="color: #999; font-size: 10px; font-style: italic;">ไม่มีลายเซ็น</div>`
+                        : `<div style="color: #999; font-size: 12px; font-style: italic;">ไม่มีลายเซ็น</div>`
                   }
                 </div>
-                <div style="font-size: 7px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
+                <div style="font-size: 11px; margin-top: 2px; border-top: 1px solid #999; padding-top: 2px;">
                   (${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})
                   ${data.authorizedSignatoryPosition ? `<div style="margin-top: 2px; color: #555;">ตำแหน่ง: ${data.authorizedSignatoryPosition}</div>` : ""}
                   <div style="margin-top: 2px; color: #555;">วันที่: ${formatThaiDate(new Date())}</div>

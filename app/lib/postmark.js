@@ -380,20 +380,23 @@ export async function sendMembershipConfirmationEmail(email, name, membershipTyp
     const response = await client.sendEmail({
       From: defaultSender,
       To: email,
-      Subject: `แจ้งการสมัครสมาชิก${membershipTypeThai} - FTI Portal`,
+      Subject: `แจ้งผลการส่งข้อมูลสมัครสำเร็จ (${membershipTypeThai})`,
       HtmlBody: getFTIEmailHtmlTemplate({
-        title: "แจ้งการสมัครสมาชิกสำเร็จ",
+        title: "แจ้งผลการส่งข้อมูลสมัครสำเร็จ",
         bodyContent: `
+          <p style="text-align: center; color: #4b5563; margin-top: 0; margin-bottom: 16px;">
+            ท่านจะได้รับการพิจารณาอนุมัติการเป็นสมาชิก ภายใน 3-5 วันทำการ
+          </p>
+
           <p>เรียน ${name},</p>
-          <p>ขอบคุณที่ท่านได้ทำการสมัครสมาชิกกับสภาอุตสาหกรรมแห่งประเทศไทย</p>
-          
+
+          <p>เอกสารครบถ้วน ท่านจะได้รับใบแจ้งค่าสมาชิก ภายใน 3-5 วันทำการ</p>
+
           <div style="background-color: #f0f9ff; border-left: 4px solid #1a56db; padding: 16px; margin: 24px 0; border-radius: 4px;">
             <p style="margin: 0 0 8px 0;"><strong>ประเภทสมาชิก:</strong> ${membershipTypeThai}</p>
             <p style="margin: 0;"><strong>ชื่อบริษัท/สมาคม:</strong> ${companyName}</p>
           </div>
 
-          <p><strong>ท่านจะได้รับการพิจารณาอนุมัติภายใน 3-5 วันทำการ</strong></p>
-          
           <p>ท่านสามารถติดตามความคืบหน้าได้ที่:</p>
           <div style="text-align: center; margin: 24px 0;">
             <a href="${statusUrl}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
@@ -413,17 +416,17 @@ export async function sendMembershipConfirmationEmail(email, name, membershipTyp
         `,
       }),
       TextBody: `
-        แจ้งการสมัครสมาชิกสำเร็จ - FTI Portal
-        
+        แจ้งผลการส่งข้อมูลสมัครสำเร็จ (${membershipTypeThai})
+
+        ท่านจะได้รับการพิจารณาอนุมัติการเป็นสมาชิก ภายใน 3-5 วันทำการ
+
         เรียน ${name},
-        
-        ขอบคุณที่ท่านได้ทำการสมัครสมาชิกกับสภาอุตสาหกรรมแห่งประเทศไทย
-        
+
+        เอกสารครบถ้วน ท่านจะได้รับใบแจ้งค่าสมาชิก ภายใน 3-5 วันทำการ
+
         ประเภทสมาชิก: ${membershipTypeThai}
         ชื่อบริษัท/สมาคม: ${companyName}
-        
-        ท่านจะได้รับการพิจารณาอนุมัติภายใน 3-5 วันทำการ
-        
+
         ท่านสามารถติดตามความคืบหน้าได้ที่: ${statusUrl}
         หรือเข้าไปที่เมนู "สถานะดำเนินการ" ในเมนู "จัดการสมาชิก"
         

@@ -93,11 +93,19 @@ export async function GET(request) {
           FTI_Portal_User.email,
           FTI_Portal_User.phone,
           COALESCE(NULLIF(approve_admin.name, ''), approve_admin.username, NULLIF(admin_user.name, ''), admin_user.username) as approved_by_admin_name,
-          approve_admin.created_at as approved_at
+          approve_log.created_at as approved_at
         FROM ${tableName} 
         LEFT JOIN FTI_Portal_User ON ${tableName}.user_id = FTI_Portal_User.id
-        LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON ${tableName}.id = approve_log.target_id 
+        LEFT JOIN (
+          SELECT target_id, MAX(created_at) as latest_created_at
+          FROM FTI_Portal_Admin_Actions_Logs
+          WHERE action_type = 'approve_member'
+          GROUP BY target_id
+        ) latest_approve_log ON ${tableName}.id = latest_approve_log.target_id
+        LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON 
+          ${tableName}.id = approve_log.target_id 
           AND approve_log.action_type = 'approve_member'
+          AND approve_log.created_at = latest_approve_log.latest_created_at
         LEFT JOIN FTI_Portal_Admin_Users approve_admin ON approve_log.admin_id = approve_admin.id
         LEFT JOIN FTI_Portal_Admin_Users admin_user ON ${tableName}.approved_by = admin_user.id
         WHERE 1=1`;
@@ -163,11 +171,19 @@ export async function GET(request) {
           FTI_Portal_User.email,
           FTI_Portal_User.phone,
           COALESCE(NULLIF(approve_admin.name, ''), approve_admin.username, NULLIF(admin_user.name, ''), admin_user.username) as approved_by_admin_name,
-          approve_admin.created_at as approved_at
+          approve_log.created_at as approved_at
         FROM MemberRegist_IC_Main 
         LEFT JOIN FTI_Portal_User ON MemberRegist_IC_Main.user_id = FTI_Portal_User.id
-        LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON MemberRegist_IC_Main.id = approve_log.target_id 
+        LEFT JOIN (
+          SELECT target_id, MAX(created_at) as latest_created_at
+          FROM FTI_Portal_Admin_Actions_Logs
+          WHERE action_type = 'approve_member'
+          GROUP BY target_id
+        ) latest_approve_log ON MemberRegist_IC_Main.id = latest_approve_log.target_id
+        LEFT JOIN FTI_Portal_Admin_Actions_Logs approve_log ON 
+          MemberRegist_IC_Main.id = approve_log.target_id 
           AND approve_log.action_type = 'approve_member'
+          AND approve_log.created_at = latest_approve_log.latest_created_at
         LEFT JOIN FTI_Portal_Admin_Users approve_admin ON approve_log.admin_id = approve_admin.id
         LEFT JOIN FTI_Portal_Admin_Users admin_user ON MemberRegist_IC_Main.approved_by = admin_user.id
         WHERE 1=1`;

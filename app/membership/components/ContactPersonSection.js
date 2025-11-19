@@ -595,7 +595,7 @@ const ContactPersonSection = ({
                       {/* Position and Email */}
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          ตำแหน่ง / Position {isMain && <span className="text-red-500">*</span>}
+                          ตำแหน่ง / Position <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="text"
@@ -605,7 +605,7 @@ const ContactPersonSection = ({
                           onChange={(e) => handleContactChange(index, "position", e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="ตำแหน่งงาน"
-                          required={isMain}
+                          required
                         />
                         {errors[`contactPerson${index}Position`] && (
                           <p className="mt-1 text-sm text-red-600">
@@ -616,7 +616,7 @@ const ContactPersonSection = ({
 
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          อีเมล / Email
+                          อีเมล / Email <span className="text-red-500">*</span>
                         </label>
                         <input
                           type="email"
@@ -626,7 +626,7 @@ const ContactPersonSection = ({
                           onChange={(e) => handleContactChange(index, "email", e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                           placeholder="อีเมล"
-                          required={false}
+                          required
                         />
                         {errors[`contactPerson${index}Email`] && (
                           <p className="mt-1 text-sm text-red-600">
@@ -639,7 +639,7 @@ const ContactPersonSection = ({
                       <div className="lg:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           โทรศัพท์ / โทรศัพท์มือถือ / Phone / Mobile{" "}
-                          {isMain && <span className="text-red-500">*</span>}
+                          <span className="text-red-500">*</span>
                         </label>
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                           <div className="lg:col-span-2">
@@ -651,7 +651,7 @@ const ContactPersonSection = ({
                               onChange={(e) => handleContactChange(index, "phone", e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                               placeholder="เช่น 0812345678 หรือ 023451075 (9-10 หลัก)"
-                              required={isMain}
+                              required
                             />
                           </div>
                           <div>
