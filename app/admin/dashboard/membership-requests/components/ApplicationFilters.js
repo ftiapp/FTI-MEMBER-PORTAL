@@ -31,6 +31,7 @@ const ApplicationFilters = ({
             <option value="pending">รอพิจารณา</option>
             <option value="approved">อนุมัติแล้ว</option>
             <option value="rejected">ปฏิเสธแล้ว</option>
+            <option value="resubmitted">แก้ไขแล้ว (รอตรวจสอบ)</option>
           </select>
 
           <select

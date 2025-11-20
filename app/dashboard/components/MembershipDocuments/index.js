@@ -7,6 +7,7 @@ import { LoadingOverlay } from "../shared";
 import DraftApplications from "../DraftApplications";
 import SubmittedApplications from "../SubmittedApplications";
 import RejectedApplicationsV3 from "../RejectedApplications/index";
+import ResubmittedApplications from "../ResubmittedApplications";
 import ApplicationDetailView from "../ApplicationDetailView";
 import EnhancedPagination from "./EnhancedPagination";
 
@@ -77,10 +78,10 @@ export default function MembershipDocuments() {
         <div className="bg-white shadow rounded-lg overflow-hidden">
           {/* Tab Navigation */}
           <div className="border-b border-gray-200">
-            <nav className="flex">
+            <nav className="flex flex-wrap">
               <button
                 onClick={() => handleTabChange("drafts")}
-                className={`flex-1 py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
+                className={`flex-1 min-w-[150px] py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
                   activeSection === "drafts"
                     ? "text-blue-600 border-b-2 border-blue-500 bg-white"
                     : "text-gray-600 hover:text-gray-800"
@@ -94,7 +95,7 @@ export default function MembershipDocuments() {
                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                   />
                 </svg>
-                <span className="hidden sm:inline">เอกสารสมัครสมาชิกที่ยังไม่ส่ง</span>
+                <span className="hidden sm:inline">เอกสารที่บันทึกร่างไว้</span>
                 <span className="sm:hidden">ยังไม่ส่ง</span>
               </button>
 
@@ -102,7 +103,7 @@ export default function MembershipDocuments() {
               {!isProduction && (
                 <button
                   onClick={() => handleTabChange("rejected")}
-                  className={`flex-1 py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
+                  className={`flex-1 min-w-[150px] py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
                     activeSection === "rejected"
                       ? "text-red-600 border-b-2 border-red-500 bg-white"
                       : "text-gray-600 hover:text-gray-800"
@@ -121,9 +122,30 @@ export default function MembershipDocuments() {
                 </button>
               )}
 
+              {/* Resubmitted applications tab */}
+              <button
+                onClick={() => handleTabChange("resubmitted")}
+                className={`flex-1 min-w-[150px] py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
+                  activeSection === "resubmitted"
+                    ? "text-purple-600 border-b-2 border-purple-500 bg-white"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0114-7.5M19 5A9 9 0 015 12.5"
+                  />
+                </svg>
+                <span className="hidden sm:inline">เอกสารที่แก้ไขแล้ว</span>
+                <span className="sm:hidden">แก้ไขแล้ว</span>
+              </button>
+
               <button
                 onClick={() => handleTabChange("completed")}
-                className={`flex-1 py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
+                className={`flex-1 min-w-[150px] py-4 px-4 text-center font-medium flex items-center justify-center space-x-2 ${
                   activeSection === "completed"
                     ? "text-green-600 border-b-2 border-green-500 bg-white"
                     : "text-gray-600 hover:text-gray-800"
@@ -361,6 +383,51 @@ export default function MembershipDocuments() {
                 <RejectedApplicationsV3
                   searchQuery={searchQuery}
                   membershipTypeFilter={membershipTypeFilter}
+                />
+              </div>
+            ) : activeSection === "resubmitted" ? (
+              <div>
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="flex-shrink-0">
+                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                      <svg
+                        className="w-5 h-5 text-purple-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0114-7.5M19 5A9 9 0 015 12.5"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">เอกสารสมัครสมาชิกที่แก้ไขแล้ว</h2>
+                    <p className="text-sm text-gray-600">
+                      เอกสารที่ท่านได้แก้ไขและส่งกลับมาแล้ว อยู่ระหว่างรอตรวจสอบจากเจ้าหน้าที่
+                    </p>
+                  </div>
+                </div>
+
+                <ResubmittedApplications
+                  searchQuery={searchQuery}
+                  membershipTypeFilter={membershipTypeFilter}
+                  currentPage={currentPage}
+                  itemsPerPage={itemsPerPage}
+                  onPaginationChange={setSubmittedPagination}
+                  onTotalItemsChange={handleTotalItemsChange}
+                />
+
+                <EnhancedPagination
+                  totalItems={submittedPagination?.totalItems || totalItems}
+                  currentPage={currentPage}
+                  itemsPerPage={itemsPerPage}
+                  onPageChange={setCurrentPage}
+                  onItemsPerPageChange={handleItemsPerPageChange}
                 />
               </div>
             ) : (

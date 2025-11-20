@@ -3,6 +3,7 @@ export const STATUS = {
   PENDING: "pending",
   APPROVED: "approved",
   REJECTED: "rejected",
+  RESUBMITTED: "resubmitted", // แก้ไขแล้ว (รอตรวจสอบ)
 };
 
 // Status configuration for UI display
@@ -21,6 +22,11 @@ export const STATUS_CONFIG = {
     text: "ปฏิเสธแล้ว",
     bgClass: "bg-red-100",
     textClass: "text-red-800",
+  },
+  [STATUS.RESUBMITTED]: {
+    text: "แก้ไขแล้ว (รอตรวจสอบ)",
+    bgClass: "bg-purple-100",
+    textClass: "text-purple-800",
   },
   // Default fallback
   0: {

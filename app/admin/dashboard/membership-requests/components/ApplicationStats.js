@@ -15,6 +15,9 @@ const ApplicationStats = ({ applications, stats, currentStatus = "all", onClickS
   const rejected = hasBackendStats
     ? overall.rejected
     : applications.filter((app) => app.status === STATUS.REJECTED).length;
+  const resubmitted = hasBackendStats
+    ? overall.resubmitted ?? overall.pending_review ?? 0
+    : applications.filter((app) => app.status === STATUS.RESUBMITTED).length;
   const total = hasBackendStats ? overall.total : applications.length;
 
   const cardBase =
@@ -22,7 +25,7 @@ const ApplicationStats = ({ applications, stats, currentStatus = "all", onClickS
   const isActive = (k) => currentStatus === k;
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4 sm:mb-6">
       <div
         className={`${cardBase} ${isActive("all") ? "border-blue-400 ring-2 ring-blue-100" : "border-blue-100 hover:border-blue-200"}`}
         onClick={() => onClickStatus && onClickStatus("all")}
@@ -58,6 +61,15 @@ const ApplicationStats = ({ applications, stats, currentStatus = "all", onClickS
       >
         <div className="text-xs sm:text-sm text-blue-600">ปฏิเสธแล้ว</div>
         <div className="text-xl sm:text-2xl font-bold text-blue-600">{rejected}</div>
+      </div>
+      <div
+        className={`${cardBase} ${isActive("resubmitted") ? "border-purple-400 ring-2 ring-purple-100" : "border-blue-100 hover:border-blue-200"}`}
+        onClick={() => onClickStatus && onClickStatus("resubmitted")}
+        role="button"
+        tabIndex={0}
+      >
+        <div className="text-xs sm:text-sm text-purple-700">แก้ไขแล้ว (รอตรวจสอบ)</div>
+        <div className="text-xl sm:text-2xl font-bold text-purple-800">{resubmitted}</div>
       </div>
     </div>
   );

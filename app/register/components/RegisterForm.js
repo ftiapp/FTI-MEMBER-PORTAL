@@ -265,7 +265,7 @@ function RegisterForm() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("สมัครสมาชิกสำเร็จ! กำลังนำท่านไปยังหน้าตรวจสอบอีเมล");
+        setSuccess("สมัครสมาชิกสำเร็จเว็บไซต์! กำลังนำท่านไปยังหน้าตรวจสอบอีเมล");
         // คืนค่าการเลื่อนหน้าจอเมื่อสำเร็จ
         document.body.style.overflow = "";
         setTimeout(() => {
@@ -301,32 +301,36 @@ function RegisterForm() {
   };
 
   return (
-    <section className="py-12">
+    <section className="py-12 bg-gray-50">
       {/* Loading Overlay */}
       <LoadingOverlay isVisible={isSubmitting} />
-      <div className="container mx-auto px-4">
+      <div className="max-w-4xl mx-auto px-4">
         <motion.div
-          className="max-w-xl mx-auto"
+          className="mx-auto"
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
         >
           <motion.h2
-            className="text-3xl font-bold text-gray-900 mb-8 text-center"
+            className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-center tracking-tight"
             variants={fadeInUp}
             initial="hidden"
             animate="visible"
           >
-            ลงทะเบียน
+            ลงทะเบียนใช้งานระบบ
             <motion.div
-              className="w-16 h-1 bg-blue-600 mx-auto mt-3"
+              className="w-16 h-1 bg-blue-600 mx-auto mt-4 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: 64 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             />
           </motion.h2>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8">
+          <p className="text-center text-sm md:text-base text-gray-600 mb-8 max-w-2xl mx-auto">
+            กรอกข้อมูลเพื่อสร้างบัญชีเข้าใช้งานระบบสมาชิกของสภาอุตสาหกรรมแห่งประเทศไทย
+          </p>
+
+          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8">
             {/* Error Message */}
             {error && (
               <div
@@ -446,16 +450,16 @@ function RegisterForm() {
               />
 
               <div className="mt-8 space-y-4">
-                <div className="flex items-center mb-2">
+                <div className="flex items-start gap-2 mb-2">
                   <input
                     id="consent"
                     name="consent"
                     type="checkbox"
                     checked={formData.consent}
                     onChange={handleChange}
-                    className="mr-2"
+                    className="mt-1 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   />
-                  <label htmlFor="consent" className="text-gray-700 text-sm">
+                  <label htmlFor="consent" className="text-gray-700 text-sm leading-relaxed">
                     ฉันยอมรับ
                     <Link
                       href="/privacy-policy"
@@ -486,13 +490,13 @@ function RegisterForm() {
                 <button
                   type="submit"
                   disabled={isSubmitting || !formData.consent}
-                  className={`w-full px-8 py-3 bg-blue-700 hover:bg-blue-800 text-white rounded-full font-semibold transition-all duration-300 ${
+                  className={`w-full px-8 py-3 rounded-full font-semibold text-sm md:text-base transition-all duration-300 shadow-sm ${
                     isSubmitting || !formData.consent
-                      ? "opacity-50 cursor-not-allowed"
-                      : "hover:shadow-lg"
+                      ? "bg-blue-300 text-white cursor-not-allowed"
+                      : "bg-blue-700 hover:bg-blue-800 text-white hover:shadow-lg"
                   }`}
                 >
-                  {isSubmitting ? "กำลังสมัครสมาชิก..." : "สมัครสมาชิก"}
+                  {isSubmitting ? "กำลังสมัครสมาชิกเว็บไซต์..." : "เปิดบัญชีการใช้งาน"}
                 </button>
 
                 <div className="text-center mt-4">

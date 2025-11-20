@@ -28,7 +28,7 @@ export default function Navbar() {
   const menuItems = useMemo(() => {
     const items = [
       { name: "หน้าแรก", href: "/" },
-      { name: "เกี่ยวกับเรา", href: "/about" },
+      { name: "เกี่ยวกับเรา", href: "/#about" },
       { name: "ประเภทสมาชิก", href: "/membership" },
     ];
 
@@ -333,7 +333,7 @@ export default function Navbar() {
                             d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
                           />
                         </svg>
-                        สมัครสมาชิก
+                        สมัครสมาชิกเว็บไซต์
                       </ActionButton>
 
                       <MenuItem

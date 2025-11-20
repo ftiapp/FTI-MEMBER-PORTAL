@@ -1113,31 +1113,31 @@ export const generateMembershipPDF = async (
     const styles = `
       @page { margin: 8mm; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font-family: 'Sarabun', sans-serif; font-size: 14px; line-height: 1.45; padding: 6px 6px 30px 6px; position: relative; }
+      body { font-family: 'Sarabun', sans-serif; font-size: 13px; line-height: 1.4; padding: 6px 6px 26px 6px; position: relative; }
       .logo-wrap { text-align: center; margin-bottom: 0px; display: flex; justify-content: center; }
-      .logo-wrap img { height: 42px; object-fit: contain; display: block; margin: 0 auto; }
-      .header { text-align: center; font-size: 15px; font-weight: bold; margin-top: -10px; margin-bottom: 0px; padding-bottom: 4px; border-bottom: 1px solid #333; line-height: 2.5; }
-      .created-date { position: absolute; top: 2px; left: 6px; font-size: 11px; color: #999; }
-      .member-number { position: absolute; top: 2px; right: 6px; font-size: 11px; color: #000; font-weight: bold; }
-      .section { border: 1px solid #ddd; margin-bottom: 4px; padding: 5px; }
-      .section-title { font-weight: bold; font-size: 13px; background: #f5f5f5; padding: 2px 4px; margin: -5px -5px 4px -5px; border-bottom: 1px solid #ddd; }
-      .field { margin-bottom: 2px; font-size: 13px; }
+      .logo-wrap img { height: 40px; object-fit: contain; display: block; margin: 0 auto; }
+      .header { text-align: center; font-size: 14px; font-weight: bold; margin-top: -6px; margin-bottom: 0px; padding-bottom: 2px; border-bottom: 1px solid #333; line-height: 1.8; }
+      .created-date { position: absolute; top: 2px; left: 6px; font-size: 10px; color: #999; }
+      .member-number { position: absolute; top: 2px; right: 6px; font-size: 10px; color: #000; font-weight: bold; }
+      .section { border: 1px solid #ddd; margin-bottom: 3px; padding: 4px; }
+      .section-title { font-weight: bold; font-size: 12px; background: #f5f5f5; padding: 1px 4px; margin: -4px -4px 3px -4px; border-bottom: 1px solid #ddd; }
+      .field { margin-bottom: 1px; font-size: 12px; }
       .label { font-weight: 600; display: inline-block; min-width: 70px; }
       .value { color: #333; }
-      .row { display: flex; gap: 12px; }
+      .row { display: flex; gap: 10px; }
       .col { flex: 1; }
-      .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-      .rep-box { border: 1px solid #e0e0e0; padding: 5px; background: #fafafa; }
-      .rep-title { font-weight: bold; font-size: 12px; color: #0066cc; margin-bottom: 2px; }
-      .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 12px; margin: 1px; }
-      .signature-area { display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap; justify-content: flex-end; }
-      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 130px; max-width: 190px; }
-      .signature-img { border: 1px dashed #999; height: 80px; width: 150px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
-      .stamp-box { border: 1px solid #ddd; padding: 4px; text-align: center; min-width: 130px; max-width: 190px; }
-      .stamp-img { border: 1px dashed #999; width: 150px; height: 80px; margin: 3px auto; display: flex; align-items: center; justify-content: center; }
-      .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 12px; row-gap: 2px; align-items: start; }
+      .col-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+      .rep-box { border: 1px solid #e0e0e0; padding: 4px; background: #fafafa; }
+      .rep-title { font-weight: bold; font-size: 11px; color: #0066cc; margin-bottom: 1px; }
+      .business-tag { display: inline-block; background: #e6f3ff; color: #0066cc; padding: 1px 4px; border-radius: 3px; font-size: 11px; margin: 1px; }
+      .signature-area { display: flex; gap: 8px; margin-top: 5px; flex-wrap: wrap; justify-content: flex-end; }
+      .signature-box { flex: 0 0 auto; border: 1px solid #ddd; padding: 3px; text-align: center; min-width: 130px; max-width: 190px; }
+      .signature-img { border: 1px dashed #999; height: 78px; width: 148px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
+      .stamp-box { border: 1px solid #ddd; padding: 3px; text-align: center; min-width: 130px; max-width: 190px; }
+      .stamp-img { border: 1px dashed #999; width: 148px; height: 78px; margin: 2px auto; display: flex; align-items: center; justify-content: center; }
+      .list-2col { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 10px; row-gap: 2px; align-items: start; }
       .list-2col .span-all { grid-column: 1 / -1; }
-      .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 10px; row-gap: 4px; align-items: start; }
+      .list-3col { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 9px; row-gap: 3px; align-items: start; }
       .list-3col .span-all { grid-column: 1 / -1; }
     `;
 

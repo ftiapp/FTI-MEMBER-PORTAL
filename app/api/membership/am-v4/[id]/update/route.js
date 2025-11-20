@@ -62,6 +62,31 @@ export async function POST(request, { params }) {
 
     await connection.beginTransaction();
 
+    // 1) Derive association/company contact from document delivery address (type 2) if addresses are provided
+    let associationEmail = formData.associationEmail || formData.companyEmail || "";
+    let associationPhone = formData.associationPhone || formData.companyPhone || "";
+    let associationPhoneExtension =
+      formData.associationPhoneExtension || formData.companyPhoneExtension || null;
+
+    if (formData.addresses && typeof formData.addresses === "object") {
+      try {
+        const addresses = formData.addresses || {};
+        const documentAddress = addresses["2"] || addresses[2];
+        if (documentAddress) {
+          associationEmail =
+            documentAddress["email-2"] || documentAddress.email || associationEmail;
+          associationPhone =
+            documentAddress["phone-2"] || documentAddress.phone || associationPhone;
+          associationPhoneExtension =
+            documentAddress["phoneExtension-2"] ||
+            documentAddress.phoneExtension ||
+            associationPhoneExtension;
+        }
+      } catch (e) {
+        console.error("[AM-V4] Error deriving association contact from addresses:", e);
+      }
+    }
+
     const mainSql = `
       UPDATE MemberRegist_AM_Main
       SET
@@ -93,9 +118,9 @@ export async function POST(request, { params }) {
       formData.associationName || formData.companyName || "",
       formData.associationNameEn || formData.companyNameEn || "",
       formData.taxId || "",
-      formData.associationEmail || formData.companyEmail || "",
-      formData.associationPhone || formData.companyPhone || "",
-      formData.associationPhoneExtension || formData.companyPhoneExtension || null,
+      associationEmail,
+      associationPhone,
+      associationPhoneExtension,
       formData.memberCount ? parseInt(formData.memberCount, 10) || null : null,
       formData.numberOfEmployees ? parseInt(formData.numberOfEmployees, 10) || null : null,
       formData.registeredCapital || null,
@@ -111,6 +136,7 @@ export async function POST(request, { params }) {
       user.id,
     ]);
 
+    // 2) Update addresses
     if (formData.addresses) {
       const addresses = formData.addresses || {};
       await connection.execute("DELETE FROM MemberRegist_AM_Address WHERE main_id = ?", [id]);
@@ -144,6 +170,87 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 9) Update authorized signatory names (supports multiple signatories)
+    if (formData.signatories || formData.authorizedSignatoryFirstNameTh) {
+      await connection.execute(
+        "DELETE FROM MemberRegist_AM_Signature_Name WHERE main_id = ?",
+        [id],
+      );
+
+      let signatories = [];
+
+      if (Array.isArray(formData.signatories) && formData.signatories.length > 0) {
+        signatories = formData.signatories;
+      } else {
+        const sigFirstTh =
+          formData.authorizedSignatoryFirstNameTh ||
+          formData.authorizedSignatureFirstNameTh ||
+          "";
+        const sigLastTh =
+          formData.authorizedSignatoryLastNameTh ||
+          formData.authorizedSignatureLastNameTh ||
+          "";
+        const sigFirstEn =
+          formData.authorizedSignatoryFirstNameEn ||
+          formData.authorizedSignatureFirstNameEn ||
+          "";
+        const sigLastEn =
+          formData.authorizedSignatoryLastNameEn ||
+          formData.authorizedSignatureLastNameEn ||
+          "";
+        const posTh =
+          formData.authorizedSignatoryPositionTh ||
+          formData.authorizedSignaturePositionTh ||
+          null;
+        const posEn =
+          formData.authorizedSignatoryPositionEn ||
+          formData.authorizedSignaturePositionEn ||
+          "";
+
+        if (sigFirstTh && sigLastTh) {
+          signatories = [
+            {
+              prenameTh: formData.authorizedSignatoryPrenameTh || null,
+              prenameEn: formData.authorizedSignatoryPrenameEn || "",
+              prenameOther: formData.authorizedSignatoryPrenameOther || null,
+              prenameOtherEn: formData.authorizedSignatoryPrenameOtherEn || null,
+              firstNameTh: sigFirstTh,
+              lastNameTh: sigLastTh,
+              firstNameEn: sigFirstEn || "",
+              lastNameEn: sigLastEn || "",
+              positionTh: posTh,
+              positionEn: posEn,
+            },
+          ];
+        }
+      }
+
+      for (const signatory of signatories) {
+        const s = signatory || {};
+        await connection.execute(
+          `INSERT INTO MemberRegist_AM_Signature_Name (
+            main_id, prename_th, prename_en, prename_other, prename_other_en,
+            first_name_th, last_name_th, first_name_en, last_name_en,
+            position_th, position_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            s.prenameTh || null,
+            s.prenameEn || "",
+            s.prenameOther || null,
+            s.prenameOtherEn || null,
+            s.firstNameTh || null,
+            s.lastNameTh || null,
+            s.firstNameEn || "",
+            s.lastNameEn || "",
+            s.positionTh && String(s.positionTh).trim() ? s.positionTh : null,
+            s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
+          ],
+        );
+      }
+    }
+
+    // 3) Update contact persons
     if (formData.contactPersons) {
       const contactPersons = ensureArray(formData.contactPersons);
       await connection.execute("DELETE FROM MemberRegist_AM_ContactPerson WHERE main_id = ?", [id]);
@@ -177,6 +284,7 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 4) Update representatives
     if (formData.representatives) {
       const representatives = ensureArray(formData.representatives);
       await connection.execute("DELETE FROM MemberRegist_AM_Representatives WHERE main_id = ?", [id]);
@@ -210,6 +318,7 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 5) Update business types and other detail
     if (formData.businessTypes) {
       const businessTypes = formData.businessTypes || {};
       await connection.execute("DELETE FROM MemberRegist_AM_BusinessTypes WHERE main_id = ?", [id]);
@@ -232,6 +341,7 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 6) Update products
     if (formData.products) {
       const products = ensureArray(formData.products);
       await connection.execute("DELETE FROM MemberRegist_AM_Products WHERE main_id = ?", [id]);
@@ -244,6 +354,7 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 7) Update industry groups
     if (formData.industrialGroupIds) {
       const ids = ensureArray(formData.industrialGroupIds);
       const names = ensureArray(formData.industrialGroupNames || []);
@@ -260,6 +371,7 @@ export async function POST(request, { params }) {
       }
     }
 
+    // 8) Update provincial chapters
     if (formData.provincialChapterIds) {
       const ids = ensureArray(formData.provincialChapterIds);
       const names = ensureArray(formData.provincialChapterNames || []);

@@ -57,7 +57,7 @@ function DebugToast() {
         </button>
         <button
           onClick={() =>
-            testToast("success", "สมัครสมาชิกสำเร็จ! กำลังนำท่านไปยังหน้าตรวจสอบอีเมล")
+            testToast("success", "สมัครเข้าใช้งานระบบสำเร็จ! กำลังนำท่านไปยังหน้าตรวจสอบอีเมล")
           }
           className="block w-full px-3 py-1 bg-green-500 text-white rounded text-sm hover:bg-green-600"
         >

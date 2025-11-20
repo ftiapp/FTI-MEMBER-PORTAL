@@ -11,15 +11,19 @@ export async function GET() {
 
     const conn = await getConnection();
     try {
-      // Build count queries per table
+      // Build count queries per table (including resubmitted = status 4)
       const countByStatus = async (table, useIc = false) => {
         const [pending] = await conn.query(`SELECT COUNT(*) AS c FROM ${table} WHERE status = 0`);
         const [approved] = await conn.query(`SELECT COUNT(*) AS c FROM ${table} WHERE status = 1`);
         const [rejected] = await conn.query(`SELECT COUNT(*) AS c FROM ${table} WHERE status = 2`);
+        const [resubmitted] = await conn.query(
+          `SELECT COUNT(*) AS c FROM ${table} WHERE status = 4`,
+        );
         return {
           pending: pending[0]?.c || 0,
           approved: approved[0]?.c || 0,
           rejected: rejected[0]?.c || 0,
+          resubmitted: resubmitted[0]?.c || 0,
         };
       };
 
@@ -34,18 +38,32 @@ export async function GET() {
         pending: sum("pending"),
         approved: sum("approved"),
         rejected: sum("rejected"),
+        resubmitted: sum("resubmitted"),
       };
-      const total = overall.pending + overall.approved + overall.rejected;
+      const total =
+        overall.pending + overall.approved + overall.rejected + overall.resubmitted;
 
       return NextResponse.json({
         success: true,
         data: {
           overall: { ...overall, total },
           perType: {
-            oc: { ...oc, total: oc.pending + oc.approved + oc.rejected },
-            ac: { ...ac, total: ac.pending + ac.approved + ac.rejected },
-            am: { ...am, total: am.pending + am.approved + am.rejected },
-            ic: { ...ic, total: ic.pending + ic.approved + ic.rejected },
+            oc: {
+              ...oc,
+              total: oc.pending + oc.approved + oc.rejected + oc.resubmitted,
+            },
+            ac: {
+              ...ac,
+              total: ac.pending + ac.approved + ac.rejected + ac.resubmitted,
+            },
+            am: {
+              ...am,
+              total: am.pending + am.approved + am.rejected + am.resubmitted,
+            },
+            ic: {
+              ...ic,
+              total: ic.pending + ic.approved + ic.rejected + ic.resubmitted,
+            },
           },
         },
       });

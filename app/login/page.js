@@ -701,7 +701,7 @@ export default function Login() {
                           href="/register"
                           className="text-blue-700 hover:text-blue-600 font-semibold"
                         >
-                          สมัครสมาชิก
+                          สมัครสมาชิกเว็บไซต์
                         </Link>
                       </p>
                     </div>

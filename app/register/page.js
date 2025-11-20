@@ -90,7 +90,7 @@ export default function Register() {
         <Navbar />
 
         <HeroSection
-          title="สมัครสมาชิก"
+          title="สมัครเข้าใช้งานระบบ"
           subtitle="เข้าร่วมเป็นส่วนหนึ่งของสภาอุตสาหกรรมแห่งประเทศไทย"
           isMobile={isMobile}
         />

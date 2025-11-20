@@ -173,7 +173,7 @@ export default function EditICApplicationV4() {
 
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-              แก้ไขใบสมัครสมทบ-บุคคลธรรมดา (IC) จากข้อมูลระบบหลัก
+              แก้ไข - ใบสมัครสมาชิกประเภท สมทบ-บุคคลธรรมดา 
             </h1>
             <motion.div
               className="w-24 h-1 bg-white mx-auto mb-6"
@@ -182,7 +182,7 @@ export default function EditICApplicationV4() {
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
-              แบบฟอร์มหลายขั้นตอน พร้อมข้อมูลพื้นฐานที่ดึงจากตาราง MemberRegist_IC_Main (ID: {params.id})
+              ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5 วันทำการ
             </p>
           </div>
         </div>

@@ -488,9 +488,11 @@ export default function MembershipRequestDetail({ params }) {
         />
 
         {/* Comments Section */}
-        <div className="mt-8">
-          <ApplicationComments membershipType={type} membershipId={id} />
-        </div>
+        {false && (
+          <div className="mt-8">
+            <ApplicationComments membershipType={type} membershipId={id} />
+          </div>
+        )}
 
         {/* Conversation History Section */}
         <div className="mt-8">

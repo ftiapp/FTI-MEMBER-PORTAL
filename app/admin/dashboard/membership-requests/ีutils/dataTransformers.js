@@ -1,4 +1,4 @@
-import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES } from "./constants";
+import { MEMBER_TYPES, BUSINESS_TYPES, DOCUMENT_TYPES, FACTORY_TYPES, STATUS } from "./constants";
 
 const normalizeSignatories = (application) => {
   // Check for new signatories array structure
@@ -86,17 +86,19 @@ export const normalizeApplicationData = (application, type) => {
   if (!application) return null;
 
   // Map numeric status to string status for UI
-  let statusString = "pending";
+  let statusString = STATUS.PENDING;
   const rawStatus = application.status;
   if (typeof rawStatus === "number") {
-    if (rawStatus === 1) statusString = "approved";
-    else if (rawStatus === 2) statusString = "rejected";
-    else statusString = "pending";
+    if (rawStatus === 1) statusString = STATUS.APPROVED;
+    else if (rawStatus === 2) statusString = STATUS.REJECTED;
+    else if (rawStatus === 4) statusString = STATUS.RESUBMITTED; // 4 = Resubmitted
+    else statusString = STATUS.PENDING;
   } else if (typeof rawStatus === "string") {
     const s = rawStatus.toLowerCase();
-    if (s === "approved" || s === "1") statusString = "approved";
-    else if (s === "rejected" || s === "2") statusString = "rejected";
-    else statusString = "pending";
+    if (s === "approved" || s === "1") statusString = STATUS.APPROVED;
+    else if (s === "rejected" || s === "2") statusString = STATUS.REJECTED;
+    else if (s === "resubmitted" || s === "4") statusString = STATUS.RESUBMITTED;
+    else statusString = STATUS.PENDING;
   }
 
   // Normalize field names to consistent format

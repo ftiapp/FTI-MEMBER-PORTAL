@@ -65,7 +65,31 @@ export async function POST(request, { params }) {
 
     await connection.beginTransaction();
 
-    // 1) Update main table and mark as resubmitted (status = 4)
+    // 1) Derive company contact from document delivery address (type 2) if addresses are provided
+    let companyEmail = formData.companyEmail || "";
+    let companyPhone = formData.companyPhone || "";
+    let companyPhoneExtension = formData.companyPhoneExtension || null;
+
+    if (formData.addresses && typeof formData.addresses === "object") {
+      try {
+        const addresses = formData.addresses || {};
+        const documentAddress = addresses["2"] || addresses[2];
+        if (documentAddress) {
+          companyEmail =
+            documentAddress["email-2"] || documentAddress.email || companyEmail;
+          companyPhone =
+            documentAddress["phone-2"] || documentAddress.phone || companyPhone;
+          companyPhoneExtension =
+            documentAddress["phoneExtension-2"] ||
+            documentAddress.phoneExtension ||
+            companyPhoneExtension;
+        }
+      } catch (e) {
+        console.error("[OC-V4] Error deriving company contact from addresses:", e);
+      }
+    }
+
+    // 2) Update main table and mark as resubmitted (status = 4)
     const mainSql = `
       UPDATE MemberRegist_OC_Main
       SET
@@ -97,9 +121,9 @@ export async function POST(request, { params }) {
       formData.companyName || "",
       formData.companyNameEng || "",
       formData.taxId || "",
-      formData.companyEmail || "",
-      formData.companyPhone || "",
-      formData.companyPhoneExtension || null,
+      companyEmail,
+      companyPhone,
+      companyPhoneExtension,
       formData.factoryType || null,
       formData.numberOfEmployees ? parseInt(formData.numberOfEmployees, 10) || null : null,
       formData.registeredCapital || null,
@@ -115,7 +139,7 @@ export async function POST(request, { params }) {
       user.id,
     ]);
 
-    // 2) Update addresses (ลบทั้งหมดแล้ว insert ใหม่จาก formData.addresses ถ้ามี)
+    // 3) Update addresses (ลบทั้งหมดแล้ว insert ใหม่จาก formData.addresses ถ้ามี)
     if (formData.addresses) {
       const addresses = formData.addresses || {};
       await connection.execute("DELETE FROM MemberRegist_OC_Address WHERE main_id = ?", [id]);
@@ -149,7 +173,7 @@ export async function POST(request, { params }) {
       }
     }
 
-    // 3) Update contact persons
+    // 4) Update contact persons
     if (formData.contactPersons) {
       const contactPersons = ensureArray(formData.contactPersons);
       await connection.execute("DELETE FROM MemberRegist_OC_ContactPerson WHERE main_id = ?", [id]);
@@ -183,7 +207,7 @@ export async function POST(request, { params }) {
       }
     }
 
-    // 4) Update representatives
+    // 5) Update representatives
     if (formData.representatives) {
       const representatives = ensureArray(formData.representatives);
       await connection.execute("DELETE FROM MemberRegist_OC_Representatives WHERE main_id = ?", [id]);
@@ -217,7 +241,93 @@ export async function POST(request, { params }) {
       }
     }
 
-    // 5) Update business types and other detail
+    // 6) Update authorized signatory names (multiple signatories support)
+    if (formData.signatories || formData.authorizedSignatoryFirstNameTh) {
+      // Clear FK references from documents before deleting signatory rows
+      await connection.execute(
+        "UPDATE MemberRegist_OC_Documents SET signature_name_id = NULL WHERE main_id = ?",
+        [id],
+      );
+
+      await connection.execute(
+        "DELETE FROM MemberRegist_OC_Signature_Name WHERE main_id = ?",
+        [id],
+      );
+
+      let signatories = [];
+
+      if (Array.isArray(formData.signatories) && formData.signatories.length > 0) {
+        signatories = formData.signatories;
+      } else {
+        const sigFirstTh =
+          formData.authorizedSignatoryFirstNameTh ||
+          formData.authorizedSignatureFirstNameTh ||
+          "";
+        const sigLastTh =
+          formData.authorizedSignatoryLastNameTh ||
+          formData.authorizedSignatureLastNameTh ||
+          "";
+        const sigFirstEn =
+          formData.authorizedSignatoryFirstNameEn ||
+          formData.authorizedSignatureFirstNameEn ||
+          "";
+        const sigLastEn =
+          formData.authorizedSignatoryLastNameEn ||
+          formData.authorizedSignatureLastNameEn ||
+          "";
+        const posTh =
+          formData.authorizedSignatoryPositionTh ||
+          formData.authorizedSignaturePositionTh ||
+          null;
+        const posEn =
+          formData.authorizedSignatoryPositionEn ||
+          formData.authorizedSignaturePositionEn ||
+          "";
+
+        if (sigFirstTh && sigLastTh) {
+          signatories = [
+            {
+              prenameTh: formData.authorizedSignatoryPrenameTh || null,
+              prenameEn: formData.authorizedSignatoryPrenameEn || "",
+              prenameOther: formData.authorizedSignatoryPrenameOther || null,
+              prenameOtherEn: formData.authorizedSignatoryPrenameOtherEn || null,
+              firstNameTh: sigFirstTh,
+              lastNameTh: sigLastTh,
+              firstNameEn: sigFirstEn || "",
+              lastNameEn: sigLastEn || "",
+              positionTh: posTh,
+              positionEn: posEn,
+            },
+          ];
+        }
+      }
+
+      for (const signatory of signatories) {
+        const s = signatory || {};
+        await connection.execute(
+          `INSERT INTO MemberRegist_OC_Signature_Name (
+            main_id, prename_th, prename_en, prename_other, prename_other_en,
+            first_name_th, last_name_th, first_name_en, last_name_en,
+            position_th, position_en
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            s.prenameTh || null,
+            s.prenameEn || "",
+            s.prenameOther || null,
+            s.prenameOtherEn || null,
+            s.firstNameTh || null,
+            s.lastNameTh || null,
+            s.firstNameEn || "",
+            s.lastNameEn || "",
+            s.positionTh && String(s.positionTh).trim() ? s.positionTh : null,
+            s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
+          ],
+        );
+      }
+    }
+
+    // 7) Update business types and other detail
     if (formData.businessTypes) {
       const businessTypes = formData.businessTypes || {};
       await connection.execute("DELETE FROM MemberRegist_OC_BusinessTypes WHERE main_id = ?", [id]);

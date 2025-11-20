@@ -42,6 +42,10 @@ export async function GET(request) {
       case "rejected":
         statusValue = 2;
         break;
+      case "resubmitted":
+        // แก้ไขแล้ว (รอตรวจสอบ)
+        statusValue = 4;
+        break;
       default:
         statusValue = null; // 'all' or invalid status
     }
