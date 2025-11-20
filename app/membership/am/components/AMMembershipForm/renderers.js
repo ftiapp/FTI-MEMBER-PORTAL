@@ -78,6 +78,7 @@ export const renderNavigationButtons = ({
   handleSaveDraft,
   isSubmitting,
   consentAgreed,
+  submitLabel,
 }) => {
   return (
     <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
@@ -138,7 +139,7 @@ export const renderNavigationButtons = ({
                   : "bg-green-600 hover:bg-green-700 hover:shadow-md"
               } text-white`}
             >
-              {isSubmitting ? "⏳ กำลังส่ง..." : "✓ ยืนยันการสมัคร"}
+              {isSubmitting ? "⏳ กำลังส่ง..." : submitLabel || "✓ ยืนยันการสมัคร"}
             </button>
           )}
         </div>

@@ -230,6 +230,7 @@ export default function EditACApplicationV4() {
                 isSinglePageLayout={false}
                 userComment={formData.userResubmissionComment}
                 rejectionId={null}
+                isEditMode={true}
               />
             </div>
           </motion.div>

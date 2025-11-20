@@ -216,16 +216,16 @@ const validateApplicantInfo = (formData) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมล (บังคับกรอก)
-      const email = address.email || address[`email-${type}`] || "";
+      // ตรวจสอบอีเมล (บังคับกรอก) - ให้ priority กับคีย์ไดนามิกจาก UI ก่อน (email-1, ฯลฯ)
+      const email = address[`email-${type}`] || address.email || "";
       if (!email || email.trim() === "") {
         errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
-      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
-      const phone = address.phone || address[`phone-${type}`] || "";
+      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก) - ให้ priority กับคีย์ไดนามิกจาก UI ก่อน (phone-1, ฯลฯ)
+      const phone = address[`phone-${type}`] || address.phone || "";
       if (!phone) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
       } else if (phone.length > 50) {

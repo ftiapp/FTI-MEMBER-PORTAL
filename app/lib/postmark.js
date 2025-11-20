@@ -384,13 +384,10 @@ export async function sendMembershipConfirmationEmail(email, name, membershipTyp
       HtmlBody: getFTIEmailHtmlTemplate({
         title: "แจ้งผลการส่งข้อมูลสมัครสำเร็จ",
         bodyContent: `
-          <p style="text-align: center; color: #4b5563; margin-top: 0; margin-bottom: 16px;">
-            ท่านจะได้รับการพิจารณาอนุมัติการเป็นสมาชิก ภายใน 3-5 วันทำการ
-          </p>
-
+         
           <p>เรียน ${name},</p>
 
-          <p>เอกสารครบถ้วน ท่านจะได้รับใบแจ้งค่าสมาชิก ภายใน 3-5 วันทำการ</p>
+          <p>เจ้าหน้าที่ได้รับเอกสารครบถ้วนแล้ว ท่านจะได้รับใบแจ้งค่าสมาชิก ภายใน 3-5 วันทำการ</p>
 
           <div style="background-color: #f0f9ff; border-left: 4px solid #1a56db; padding: 16px; margin: 24px 0; border-radius: 4px;">
             <p style="margin: 0 0 8px 0;"><strong>ประเภทสมาชิก:</strong> ${membershipTypeThai}</p>

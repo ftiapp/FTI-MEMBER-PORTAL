@@ -204,16 +204,16 @@ const validateAssociationInfo = (formData, errors) => {
         errors[`address_${type}_postalCode`] = `รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก (${label})`;
       }
 
-      // ตรวจสอบอีเมล (บังคับกรอก)
-      const emailVal = address.email || address[`email-${type}`] || "";
+      // ตรวจสอบอีเมล (บังคับกรอก) - ให้ priority กับคีย์ไดนามิกจาก UI ก่อน (email-1, ฯลฯ)
+      const emailVal = address[`email-${type}`] || address.email || "";
       if (!emailVal || emailVal.trim() === "") {
         errors[`address_${type}_email`] = `กรุณากรอกอีเมล (${label})`;
       } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
         errors[`address_${type}_email`] = `รูปแบบอีเมลไม่ถูกต้อง (${label})`;
       }
 
-      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก)
-      const phoneValue = address[`phone-${type}`] || address.phone;
+      // ตรวจสอบเบอร์โทรศัพท์ (บังคับกรอก, รองรับ 9-10 หลัก) - ให้ priority กับคีย์ไดนามิกจาก UI ก่อน (phone-1, ฯลฯ)
+      const phoneValue = address[`phone-${type}`] || address.phone || "";
       if (!phoneValue) {
         errors[`address_${type}_phone`] = `กรุณากรอกเบอร์โทรศัพท์ (${label})`;
       } else if (phoneValue.length > 50) {

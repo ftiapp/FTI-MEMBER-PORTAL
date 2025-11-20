@@ -103,8 +103,9 @@ export const validateOCForm = (formData, step) => {
         }
 
         // อ่านค่า email/phone จากทั้งคีย์มาตรฐานและคีย์ไดนามิกของ UI
-        const emailVal = address.email ?? address[`email-${type}`];
-        const phoneRaw = address.phone ?? address[`phone-${type}`];
+        // ให้ priority กับคีย์ไดนามิกของ UI (email-1, phone-1, ฯลฯ) ก่อน แล้วค่อย fallback ไปที่คีย์ legacy
+        const emailVal = address[`email-${type}`] ?? address.email;
+        const phoneRaw = address[`phone-${type}`] ?? address.phone;
         const phoneVal = typeof phoneRaw === "string" ? phoneRaw.replace(/[-\s]/g, "") : phoneRaw;
 
         // อีเมลบังคับกรอก: ตรวจรูปแบบเสมอ

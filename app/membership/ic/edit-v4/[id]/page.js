@@ -204,6 +204,7 @@ export default function EditICApplicationV4() {
                 formData={formData}
                 setFormData={setFormData}
                 totalSteps={steps.length}
+                isEditMode={true}
               />
             </div>
           </div>

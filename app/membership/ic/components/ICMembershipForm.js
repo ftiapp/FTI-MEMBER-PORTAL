@@ -6,6 +6,7 @@ import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 import { useRouter } from "next/navigation";
 import MembershipSuccessModal from "@/app/components/MembershipSuccessModal";
 import DraftSavePopup from "../../components/DraftSavePopup";
+import OCResubmissionCommentBox from "@/app/membership/oc/components/OCMembershipForm/OCResubmissionCommentBox";
 
 // Import shared components
 import { FormDataLoader } from "../../components/FormLoadingStates";
@@ -402,6 +403,19 @@ export default function ICMembershipForm(props = {}) {
           <ConsentCheckbox consentAgreed={consentAgreed} setConsentAgreed={setConsentAgreed} />
         )}
 
+        {/* กล่องระบุรายละเอียดการแก้ไขข้อมูล - ใช้ในโหมดแก้ไขข้อมูล (edit-v4) */}
+        {currentStep === 5 && props.isEditMode && (
+          <OCResubmissionCommentBox
+            value={formData.userResubmissionComment}
+            onChange={(val) =>
+              setFormData((prev) => ({
+                ...prev,
+                userResubmissionComment: val,
+              }))
+            }
+          />
+        )}
+
         {/* Navigation Buttons */}
         {renderNavigationButtons({
           currentStep,
@@ -412,6 +426,7 @@ export default function ICMembershipForm(props = {}) {
           handleSaveDraft,
           isSubmitting,
           consentAgreed,
+          submitLabel: props.isEditMode ? "ยืนยันการแก้ไขข้อมูล" : undefined,
         })}
 
         {/* Document preparation hint */}

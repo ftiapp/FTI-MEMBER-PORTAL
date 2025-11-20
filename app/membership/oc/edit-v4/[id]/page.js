@@ -230,16 +230,6 @@ export default function EditOCApplicationV4() {
             <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
               แบบฟอร์มหลายขั้นตอน พร้อมข้อมูลพื้นฐานที่ดึงจากตาราง MemberRegist_OC_Main (ID: {params.id})
             </p>
-
-            <div className="mt-6 flex justify-center">
-              <button
-                type="button"
-                onClick={() => setShowContactModal(true)}
-                className="inline-flex items-center px-5 py-2.5 border border-white/60 text-sm md:text-base rounded-full bg-white/10 hover:bg-white/20 text-white font-medium shadow-sm transition-colors"
-              >
-                ติดต่อผู้ดูแลระบบ
-              </button>
-            </div>
           </div>
         </div>
 

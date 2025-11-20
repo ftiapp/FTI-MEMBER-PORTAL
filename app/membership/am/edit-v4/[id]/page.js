@@ -229,6 +229,7 @@ export default function EditAMApplicationV4() {
                 totalSteps={steps.length}
                 rejectionId={null}
                 userComment={formData.userResubmissionComment}
+                isEditMode={true}
               />
             </div>
           </motion.div>

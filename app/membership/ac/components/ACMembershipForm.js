@@ -13,6 +13,7 @@ import BusinessInfoSection from "./BusinessInfoSection";
 import DocumentsSection from "./DocumentUploadSection";
 import SummarySection from "./SummarySection";
 import DraftSavePopup from "../../components/DraftSavePopup";
+import OCResubmissionCommentBox from "@/app/membership/oc/components/OCMembershipForm/OCResubmissionCommentBox";
 
 // Import shared components
 import { FormDataLoader } from "../../components/FormLoadingStates";
@@ -53,6 +54,7 @@ export default function ACMembershipForm({
   rejectionId, // เพิ่ม rejectionId สำหรับโหมดแก้ไข
   userComment, // เพิ่ม comment จากผู้ใช้
   isSinglePageLayout = false, // เพิ่ม prop สำหรับ layout หน้าเดียว
+  isEditMode = false, // ใช้สำหรับโหมดแก้ไขข้อมูล (edit-v4)
 }) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
@@ -293,6 +295,19 @@ export default function ACMembershipForm({
           <ConsentCheckbox consentAgreed={consentAgreed} setConsentAgreed={setConsentAgreed} />
         )}
 
+        {/* กล่องระบุรายละเอียดการแก้ไขข้อมูล - แสดงเฉพาะโหมดแก้ไขข้อมูลในขั้นตอนสุดท้าย */}
+        {(currentStep === 5 || isSinglePageLayout) && isEditMode && (
+          <OCResubmissionCommentBox
+            value={formData.userResubmissionComment}
+            onChange={(val) =>
+              setFormData((prev) => ({
+                ...prev,
+                userResubmissionComment: val,
+              }))
+            }
+          />
+        )}
+
         {/* Navigation Buttons - Fixed positioning */}
         <div className="sticky bottom-0 bg-white border-t border-gray-200 p-8 -mx-6 mt-8 shadow-lg">
           <div
@@ -348,9 +363,11 @@ export default function ACMembershipForm({
                 >
                   {isSubmitting
                     ? "กำลังส่ง..."
-                    : rejectionId
-                      ? "ยืนยันการส่งใบสมัครใหม่"
-                      : "ยืนยันการสมัคร"}
+                    : isEditMode
+                      ? "ยืนยันการแก้ไขข้อมูล"
+                      : rejectionId
+                        ? "ยืนยันการส่งใบสมัครใหม่"
+                        : "ยืนยันการสมัคร"}
                 </button>
               )}
 

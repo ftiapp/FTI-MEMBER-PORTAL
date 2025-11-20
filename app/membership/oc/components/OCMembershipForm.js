@@ -11,6 +11,7 @@ import DraftSavePopup from "../../components/DraftSavePopup";
 import { FormDataLoader } from "../../components/FormLoadingStates";
 import { FormErrorBox } from "../../components/FormErrorDisplay";
 import { ConsentCheckbox } from "../../utils/consentHelpers";
+import OCResubmissionCommentBox from "./OCMembershipForm/OCResubmissionCommentBox";
 
 // Import form modules
 import { validateOCForm } from "./OCFormValidation";
@@ -432,6 +433,19 @@ export default function OCMembershipForm(props = {}) {
           <ConsentCheckbox consentAgreed={consentAgreed} setConsentAgreed={setConsentAgreed} />
         )}
 
+        {/* User comment about what was changed - only in rejected edit mode on final step */}
+        {currentStep === 5 && props.isRejectedMode && (
+          <OCResubmissionCommentBox
+            value={formData.userResubmissionComment}
+            onChange={(val) =>
+              setFormData((prev) => ({
+                ...prev,
+                userResubmissionComment: val,
+              }))
+            }
+          />
+        )}
+
         {/* Navigation Buttons */}
         {renderNavigationButtons({
           currentStep,
@@ -443,6 +457,7 @@ export default function OCMembershipForm(props = {}) {
           isSubmitting,
           consentAgreed,
           disableSaveDraft: props.disableSaveDraft,
+          submitLabel: props.isRejectedMode ? "ยืนยันการแก้ไขข้อมูล" : undefined,
         })}
 
         {/* Document preparation hint */}

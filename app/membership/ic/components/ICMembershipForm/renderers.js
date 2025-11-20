@@ -94,6 +94,7 @@ export const renderNavigationButtons = ({
   handleSaveDraft,
   isSubmitting,
   consentAgreed,
+  submitLabel,
 }) => {
   const steps = effectiveTotalSteps || totalSteps || 5;
 
@@ -156,7 +157,7 @@ export const renderNavigationButtons = ({
               disabled={isSubmitting || !consentAgreed}
               className="px-10 py-4 bg-green-600 text-white rounded-xl font-semibold text-base hover:bg-green-700 transition-all duration-200 hover:shadow-md disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "กำลังส่ง..." : "ยืนยันการสมัคร"}
+              {isSubmitting ? "กำลังส่ง..." : submitLabel || "ยืนยันการสมัคร"}
             </button>
           )}
         </div>
