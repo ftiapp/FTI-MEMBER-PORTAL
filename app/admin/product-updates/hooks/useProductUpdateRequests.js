@@ -272,7 +272,7 @@ export function useProductUpdateRequests() {
   // Fetch requests when filters or pagination changes
   useEffect(() => {
     fetchRequests(false); // Use cache if available
-  }, [pagination.page, pagination.limit, filters.status, filters.search, fetchRequests]);
+  }, [pagination.page, pagination.limit, filters.status, filters.search]);
 
   // Function to manually refresh data
   const refreshData = useCallback(() => {

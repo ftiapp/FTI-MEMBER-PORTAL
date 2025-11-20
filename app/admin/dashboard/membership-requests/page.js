@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 import { toast } from "react-hot-toast";
 import AdminLayout from "../../components/AdminLayout";
@@ -216,51 +217,82 @@ export default function MembershipRequestsManagement() {
 
   return (
     <AdminLayout>
-      <div className="p-6 bg-blue-50 min-h-screen">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-900 mb-2">จัดการคำขอสมาชิกใหม่</h1>
-          <p className="text-blue-700">ตรวจสอบและอนุมัติคำขอสมัครสมาชิกทุกประเภท</p>
-        </div>
+      <div className="p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 24 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="bg-white shadow-lg rounded-xl p-6 border border-gray-200"
+       >
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2 mb-1">
+              <svg
+                className="w-7 h-7 text-[#1e3a8a]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 10h.01M12 10h.01M16 10h.01M9 16h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h4l2 2h4a2 2 0 012 2v12a2 2 0 01-2 2z"
+                />
+              </svg>
+              จัดการคำขอสมาชิกใหม่
+            </h1>
+            <p className="text-sm text-gray-500">
+              ตรวจสอบและอนุมัติคำขอสมัครสมาชิกทุกประเภท พร้อมดูสถานะภาพรวมในที่เดียว
+            </p>
+          </div>
 
-        {/* Stats (uses backend totals when available) */}
-        <ApplicationStats
-          applications={applications}
-          stats={stats}
-          currentStatus={statusFilter}
-          onClickStatus={handleClickStatusCard}
-        />
-
-        {/* Filters */}
-        <ApplicationFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onSearchSubmit={handleSearch}
-          statusFilter={statusFilter}
-          onStatusFilterChange={handleStatusFilterChange}
-          typeFilter={typeFilter}
-          onTypeFilterChange={handleTypeFilterChange}
-        />
-
-        {/* Table */}
-        {isLoading ? (
-          <LoadingSpinner />
-        ) : filteredApplications.length === 0 ? (
-          <EmptyState message="ไม่พบข้อมูลการสมัครสมาชิก" />
-        ) : (
-          <>
-            <ApplicationsTable
-              applications={filteredApplications}
-              sortOrder={sortOrder}
-              onToggleDateSort={handleToggleDateSort}
+          {/* Stats (uses backend totals when available) */}
+          <div className="mb-6">
+            <ApplicationStats
+              applications={applications}
+              stats={stats}
+              currentStatus={statusFilter}
+              onClickStatus={handleClickStatusCard}
             />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
+          </div>
+
+          {/* Filters */}
+          <div className="mb-4">
+            <ApplicationFilters
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
+              onSearchSubmit={handleSearch}
+              statusFilter={statusFilter}
+              onStatusFilterChange={handleStatusFilterChange}
+              typeFilter={typeFilter}
+              onTypeFilterChange={handleTypeFilterChange}
             />
-          </>
-        )}
+          </div>
+
+          {/* Table */}
+          {isLoading ? (
+            <LoadingSpinner />
+          ) : filteredApplications.length === 0 ? (
+            <EmptyState message="ไม่พบข้อมูลการสมัครสมาชิก" />
+          ) : (
+            <>
+              <ApplicationsTable
+                applications={filteredApplications}
+                sortOrder={sortOrder}
+                onToggleDateSort={handleToggleDateSort}
+              />
+              <div className="mt-4">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                />
+              </div>
+            </>
+          )}
+        </motion.div>
       </div>
     </AdminLayout>
   );

@@ -157,7 +157,7 @@ export default function Navbar() {
 
       <div className="h-[120px] w-full"></div>
 
-      <nav className="fixed top-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
+      <nav className="fixed top-0 left-0 right-0 z-[9999] flex justify-center">
         <div className="container-custom px-4 max-w-7xl mx-auto">
           <div className="flex justify-center items-start pt-3">
             <motion.div

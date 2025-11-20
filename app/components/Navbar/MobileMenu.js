@@ -1,9 +1,15 @@
+import Link from "next/link";
 import { menuIcons } from "./MenuIcons.js";
 import ActionButton from "./ActionButton.js";
 
 export default function MobileMenu({ menuItems, user, pathname, onClose }) {
   return (
-    <div className="lg:hidden w-full fixed top-[80px] left-0 right-0 bg-white z-[9998] shadow-2xl border-t-2 border-gray-300 max-h-[calc(100vh-80px)] overflow-y-auto">
+    <div
+      className="lg:hidden w-full fixed top-[80px] left-0 right-0 bg-white z-[10000] shadow-2xl border-t-2 border-gray-300 max-h-[calc(100vh-80px)] overflow-y-auto pointer-events-auto"
+      role="dialog"
+      aria-modal="true"
+      aria-label="เมนูนำทางบนมือถือ"
+    >
       <div className="flex flex-col py-4 px-6 space-y-3">
         {/* เมนูหลัก */}
         <div className="space-y-1">
@@ -14,7 +20,7 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
           </div>
           {menuItems.map((item) => (
             <div key={item.name}>
-              <a
+              <Link
                 href={item.href}
                 className={`
                   font-medium transition-all duration-300 px-6 py-3 block rounded-xl relative group flex items-center gap-3
@@ -31,7 +37,7 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
                 {pathname !== item.href && (
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 )}
-              </a>
+              </Link>
             </div>
           ))}
         </div>
@@ -89,7 +95,7 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
                 <span className="text-sm font-medium">ชำระเงินออนไลน์</span>
               </a>
 
-              <a
+              <Link
                 href="/dashboard?tab=documents"
                 className="flex items-center px-6 py-3 rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                 onClick={onClose}
@@ -108,7 +114,7 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
                   />
                 </svg>
                 <span className="text-sm font-medium">จัดการสมาชิก</span>
-              </a>
+              </Link>
             </div>
           </>
         ) : (
@@ -171,16 +177,16 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
                   เข้าสู่ระบบ
                 </h3>
               </div>
-              <a
+              <Link
                 href="/login"
                 className="flex items-center px-6 py-3 rounded-xl text-gray-700 hover:text-blue-700 hover:bg-blue-50 transition-colors"
                 onClick={onClose}
               >
                 {menuIcons["เข้าสู่ระบบ"]}
                 <span className="text-sm font-medium">เข้าสู่ระบบ</span>
-              </a>
+              </Link>
 
-              <a
+              <Link
                 href="/register"
                 className="flex items-center px-6 py-3 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-200 hover:shadow-xl hover:shadow-blue-300 transition-all duration-300"
                 onClick={onClose}
@@ -198,8 +204,8 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
                     d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
                   />
                 </svg>
-                <span className="text-sm font-medium">สมัครสมาชิก</span>
-              </a>
+                <span className="text-sm font-medium">สมัครสมาชิกเว็บไซต์</span>
+              </Link>
             </div>
           </>
         )}

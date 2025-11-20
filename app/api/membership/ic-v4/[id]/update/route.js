@@ -107,6 +107,30 @@ export async function POST(request, { params }) {
 
       for (const key of Object.keys(addresses)) {
         const addr = addresses[key] || {};
+
+        // Normalize contact fields: รองรับทั้งคีย์ปกติและคีย์ไดนามิกจาก UI เช่น phone-1, email-2
+        const addressTypeKey = String(addr.addressType || key || "");
+
+        const emailVal =
+          (addressTypeKey && addr[`email-${addressTypeKey}`]) !== undefined
+            ? addr[`email-${addressTypeKey}`]
+            : addr.email || formData.email || "";
+
+        const phoneVal =
+          (addressTypeKey && addr[`phone-${addressTypeKey}`]) !== undefined
+            ? addr[`phone-${addressTypeKey}`]
+            : addr.phone || formData.phone || "";
+
+        const phoneExtVal =
+          (addressTypeKey && addr[`phoneExtension-${addressTypeKey}`]) !== undefined
+            ? addr[`phoneExtension-${addressTypeKey}`]
+            : addr.phoneExtension || addr.phone_extension || formData.phoneExtension || "";
+
+        const websiteVal =
+          (addressTypeKey && addr[`website-${addressTypeKey}`]) !== undefined
+            ? addr[`website-${addressTypeKey}`]
+            : addr.website || formData.website || "";
+
         await connection.execute(
           `INSERT INTO MemberRegist_IC_Address (
              main_id, address_number, building, moo, soi, street,
@@ -124,10 +148,10 @@ export async function POST(request, { params }) {
             addr.district || "",
             addr.province || "",
             addr.postalCode || addr.postal_code || "",
-            addr.phone || formData.phone || "",
-            addr.phoneExtension || addr.phone_extension || formData.phoneExtension || "",
-            addr.email || formData.email || "",
-            addr.website || formData.website || "",
+            phoneVal || "",
+            phoneExtVal || "",
+            emailVal || "",
+            websiteVal || "",
             addr.addressType || key,
           ],
         );
