@@ -186,10 +186,11 @@ export async function POST(request) {
     }
 
     // Step 2: Check for duplicate Tax ID (cross-table AM/AC/OC)
-    const { taxId } = data;
-    taxId = taxId; // assign to function level variable
-    companyName = data.companyName; // assign to function level variable
+    // 
+    taxId = data.taxId;
+    companyName = data.companyName;
     if (!taxId) {
+
       return NextResponse.json({ error: "กรุณาระบุเลขประจำตัวผู้เสียภาษี" }, { status: 400 });
     }
 

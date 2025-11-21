@@ -427,11 +427,13 @@ const validateDocuments = (formData) => {
     errors.idCardDocument = "กรุณาอัพโหลดสำเนาบัตรประชาชน";
   }
 
-  // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+  // ตรวจสอบว่ามีไฟล์จริงๆ (file object / url / fileUrl) ไม่ใช่แค่ object ว่าง
+  // รองรับไฟล์เดิมจาก Summary API ที่ใช้ fileUrl ด้วย
   const hasAuthorizedSignature =
     formData.authorizedSignature &&
     (formData.authorizedSignature.file ||
       formData.authorizedSignature.url ||
+      formData.authorizedSignature.fileUrl ||
       formData.authorizedSignature instanceof File);
 
   if (!hasAuthorizedSignature) {

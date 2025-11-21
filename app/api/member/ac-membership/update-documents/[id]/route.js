@@ -60,7 +60,8 @@ export async function POST(request, { params }) {
       if (fieldName === "productionImages") {
         docTypesToReplace.add("productionImages");
       } else if (fieldName.startsWith("authorizedSignatures[")) {
-        docTypesToReplace.add("authorizedSignatures");
+        // Don't add to docTypesToReplace, we handle specific replacement below
+        // docTypesToReplace.add("authorizedSignatures");
       } else {
         docTypesToReplace.add(fieldName);
       }
@@ -91,6 +92,24 @@ export async function POST(request, { params }) {
     }
 
     const uploadedDocuments = {};
+    
+    // Fetch signature IDs first to map them for deletion/insertion
+    const signatureNameIds = [];
+    try {
+      const signatureRecords = await executeQueryWithoutTransaction(
+        `SELECT id, prename_th, first_name_th, last_name_th
+         FROM MemberRegist_AC_Signature_Name
+         WHERE main_id = ?
+         ORDER BY id`,
+        [id],
+      );
+
+      signatureRecords.forEach((record, index) => {
+        signatureNameIds[index] = record.id;
+      });
+    } catch (error) {
+      console.error("Error fetching signature name IDs in update-documents (AC):", error);
+    }
 
     for (const fieldName of Object.keys(files)) {
       const fileValue = files[fieldName];
@@ -126,6 +145,37 @@ export async function POST(request, { params }) {
         const indexMatch = fieldName.match(/authorizedSignatures\[(\d+)\]/);
         if (indexMatch) {
           const signatoryIndex = parseInt(indexMatch[1], 10);
+          
+          // Handle deletion of EXISTING signature for this specific index
+          try {
+             const targetSignatoryId = signatureNameIds[signatoryIndex];
+             if (targetSignatoryId) {
+               const existingSigDocs = await executeQueryWithoutTransaction(
+                 "SELECT id, cloudinary_id FROM MemberRegist_AC_Documents WHERE main_id = ? AND document_type = 'authorizedSignatures' AND signature_name_id = ?",
+                 [id, targetSignatoryId]
+               );
+               
+               if (existingSigDocs && existingSigDocs.length > 0) {
+                  for (const doc of existingSigDocs) {
+                    if (doc.cloudinary_id) {
+                      try {
+                        await deleteFromCloudinary(doc.cloudinary_id);
+                      } catch (e) {
+                         console.error("Error deleting existing signature Cloudinary file", e);
+                      }
+                    }
+                  }
+                  
+                  await executeQueryWithoutTransaction(
+                    "DELETE FROM MemberRegist_AC_Documents WHERE main_id = ? AND document_type = 'authorizedSignatures' AND signature_name_id = ?",
+                    [id, targetSignatoryId]
+                  );
+               }
+             }
+          } catch (delError) {
+             console.error("Error deleting existing signature document", delError);
+          }
+
           try {
             const buffer = await fileValue.arrayBuffer();
             const result = await uploadToCloudinary(
@@ -177,22 +227,7 @@ export async function POST(request, { params }) {
       }
     }
 
-    const signatureNameIds = [];
-    try {
-      const signatureRecords = await executeQueryWithoutTransaction(
-        `SELECT id, prename_th, first_name_th, last_name_th
-         FROM MemberRegist_AC_Signature_Name
-         WHERE main_id = ?
-         ORDER BY id`,
-        [id],
-      );
-
-      signatureRecords.forEach((record, index) => {
-        signatureNameIds[index] = record.id;
-      });
-    } catch (error) {
-      console.error("Error fetching signature name IDs in update-documents (AC):", error);
-    }
+    // signatureNameIds already fetched above
 
     for (const documentKey in uploadedDocuments) {
       const doc = uploadedDocuments[documentKey];

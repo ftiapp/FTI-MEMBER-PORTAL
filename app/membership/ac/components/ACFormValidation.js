@@ -146,67 +146,72 @@ export const validateACForm = (formData, step) => {
     if (!formData.contactPersons || formData.contactPersons.length === 0) {
       errors.contactPersons = "กรุณาเพิ่มข้อมูลผู้ประสานงานหลัก";
     } else {
-      // ตรวจสอบผู้ประสานงานหลัก (คนแรก)
-      const mainContact = formData.contactPersons[0];
-      if (mainContact) {
+      // Loop check all contact persons
+      formData.contactPersons.forEach((contact, index) => {
+        const isMain = index === 0;
+        const suffix = isMain ? "" : ` (คนที่ ${index + 1})`;
+        const keyPrefix = `contactPerson${index}`;
+
         // ตรวจสอบชื่อภาษาไทย
-        if (!mainContact.firstNameTh) {
-          errors.contactPerson0FirstNameTh = "กรุณากรอกชื่อ (ภาษาไทย)";
-        } else if (!/^[ก-๙\s]+$/.test(mainContact.firstNameTh)) {
-          errors.contactPerson0FirstNameTh = "ชื่อผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น";
+        if (!contact.firstNameTh) {
+          errors[`${keyPrefix}FirstNameTh`] = `กรุณากรอกชื่อ (ภาษาไทย)${suffix}`;
+        } else if (!/^[ก-๙\s]+$/.test(contact.firstNameTh)) {
+          errors[`${keyPrefix}FirstNameTh`] = `ชื่อผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น${suffix}`;
         }
 
-        if (!mainContact.lastNameTh) {
-          errors.contactPerson0LastNameTh = "กรุณากรอกนามสกุล (ภาษาไทย)";
-        } else if (!/^[ก-๙\s]+$/.test(mainContact.lastNameTh)) {
-          errors.contactPerson0LastNameTh = "นามสกุลผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น";
+        if (!contact.lastNameTh) {
+          errors[`${keyPrefix}LastNameTh`] = `กรุณากรอกนามสกุล (ภาษาไทย)${suffix}`;
+        } else if (!/^[ก-๙\s]+$/.test(contact.lastNameTh)) {
+          errors[`${keyPrefix}LastNameTh`] = `นามสกุลผู้ประสานงานต้องเป็นภาษาไทยเท่านั้น${suffix}`;
         }
 
         // ตรวจสอบชื่อภาษาอังกฤษ - บังคับกรอก
-        if (!mainContact.firstNameEn) {
-          errors.contactPerson0FirstNameEn = "กรุณากรอกชื่อ (ภาษาอังกฤษ)";
-        } else if (!/^[a-zA-Z\s]+$/.test(mainContact.firstNameEn)) {
-          errors.contactPerson0FirstNameEn = "ชื่อผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น";
+        if (!contact.firstNameEn) {
+          errors[`${keyPrefix}FirstNameEn`] = `กรุณากรอกชื่อ (ภาษาอังกฤษ)${suffix}`;
+        } else if (!/^[a-zA-Z\s]+$/.test(contact.firstNameEn)) {
+          errors[`${keyPrefix}FirstNameEn`] = `ชื่อผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น${suffix}`;
         }
 
-        if (!mainContact.lastNameEn) {
-          errors.contactPerson0LastNameEn = "กรุณากรอกนามสกุล (ภาษาอังกฤษ)";
-        } else if (!/^[a-zA-Z\s]+$/.test(mainContact.lastNameEn)) {
-          errors.contactPerson0LastNameEn = "นามสกุลผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น";
+        if (!contact.lastNameEn) {
+          errors[`${keyPrefix}LastNameEn`] = `กรุณากรอกนามสกุล (ภาษาอังกฤษ)${suffix}`;
+        } else if (!/^[a-zA-Z\s]+$/.test(contact.lastNameEn)) {
+          errors[`${keyPrefix}LastNameEn`] = `นามสกุลผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น${suffix}`;
         }
 
         // ตรวจสอบข้อมูลอื่นๆ
-        if (!mainContact.position) {
-          errors.contactPerson0Position = "กรุณากรอกตำแหน่ง";
+        if (!contact.position) {
+          errors[`${keyPrefix}Position`] = `กรุณากรอกตำแหน่ง${suffix}`;
         }
 
-        // Email is optional, but validate format if provided
-        if (mainContact.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mainContact.email)) {
-          errors.contactPerson0Email = "รูปแบบอีเมลไม่ถูกต้อง";
+        // Email is required
+        if (!contact.email || contact.email.trim() === "") {
+          errors[`${keyPrefix}Email`] = `กรุณากรอกอีเมล${suffix}`;
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email)) {
+          errors[`${keyPrefix}Email`] = `รูปแบบอีเมลไม่ถูกต้อง${suffix}`;
         }
 
-        if (!mainContact.phone) {
-          errors.contactPerson0Phone = "กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน";
-        } else if (mainContact.phone.length > 50) {
-          errors.contactPerson0Phone = "เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร";
+        if (!contact.phone) {
+          errors[`${keyPrefix}Phone`] = `กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงาน${suffix}`;
+        } else if (contact.phone.length > 50) {
+          errors[`${keyPrefix}Phone`] = `เบอร์โทรศัพท์ต้องไม่เกิน 50 ตัวอักษร${suffix}`;
         }
 
         // ตรวจสอบประเภทผู้ติดต่อ
-        if (!mainContact.typeContactId) {
-          errors.contactPerson0TypeContactId = "กรุณาเลือกประเภทผู้ติดต่อ";
+        if (!contact.typeContactId) {
+          errors[`${keyPrefix}TypeContactId`] = `กรุณาเลือกประเภทผู้ติดต่อ${suffix}`;
         }
 
         // ตรวจสอบรายละเอียดเพิ่มเติมสำหรับประเภท "อื่นๆ"
         if (
-          mainContact.typeContactId &&
-          mainContact.typeContactOtherDetail === undefined &&
-          mainContact.typeContactName === "อื่นๆ"
+          contact.typeContactId &&
+          contact.typeContactOtherDetail === undefined &&
+          contact.typeContactName === "อื่นๆ"
         ) {
-          if (!mainContact.typeContactOtherDetail) {
-            errors.contactPerson0TypeContactOtherDetail = "กรุณาระบุรายละเอียดประเภทผู้ติดต่อ";
+          if (!contact.typeContactOtherDetail) {
+            errors[`${keyPrefix}TypeContactOtherDetail`] = `กรุณาระบุรายละเอียดประเภทผู้ติดต่อ${suffix}`;
           }
         }
-      }
+      });
     }
   } else if (step === 2) {
     // ตรวจสอบข้อมูลผู้แทน
@@ -345,18 +350,19 @@ export const validateACForm = (formData, step) => {
       errors.companyRegistration = "กรุณาอัพโหลดสำเนาหนังสือรับรองการจดทะเบียนนิติบุคคล";
 
     // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
-    // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+    // รองรับทั้งไฟล์ที่อัปโหลดในรอบนี้ (file / url / File) และไฟล์เดิมจาก Summary API (fileUrl)
     const hasCompanyStamp =
       formData.companyStamp &&
       (formData.companyStamp.file ||
         formData.companyStamp.url ||
+        formData.companyStamp.fileUrl ||
         formData.companyStamp instanceof File);
 
     const hasAuthorizedSignatures =
       formData.authorizedSignatures &&
       formData.authorizedSignatures.length > 0 &&
       formData.authorizedSignatures.some(
-        (sig) => sig && (sig.file || sig.url || sig instanceof File),
+        (sig) => sig && (sig.file || sig.url || sig.fileUrl || sig instanceof File),
       );
 
     if (!hasCompanyStamp) {
@@ -421,15 +427,26 @@ export const validateACForm = (formData, step) => {
 
         // ตรวจสอบลายเซ็นของแต่ละคน
         const authorizedSignature = formData.authorizedSignatures?.[index];
+        console.log(
+          `🔍 Validating Signature ${index + 1}:`,
+          authorizedSignature ? "Found" : "Missing",
+          authorizedSignature
+        );
+
         const hasSignatureFile =
           authorizedSignature &&
           (authorizedSignature.file ||
-            authorizedSignature.url ||
+            (typeof authorizedSignature.url === "string" && authorizedSignature.url.trim() !== "") ||
+            (typeof authorizedSignature.fileUrl === "string" &&
+              authorizedSignature.fileUrl.trim() !== "") ||
             authorizedSignature instanceof File);
 
         if (!hasSignatureFile) {
+          console.error(`❌ Signature ${index + 1} is missing or invalid`);
           errors[`authorizedSignature_${index}`] =
             `กรุณาอัพโหลดรูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`;
+        } else {
+          console.log(`✅ Signature ${index + 1} is valid`);
         }
       });
     }

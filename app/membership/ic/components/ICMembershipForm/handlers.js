@@ -4,6 +4,7 @@
 import { toast } from "react-hot-toast";
 import { FIELD_ERROR_MAP } from "./constants";
 import { getFirstErrorKey } from "./scrollHelpers";
+import { saveDraftData } from "../../../utils/draftHelpers";
 
 /**
  * Check ID card uniqueness
@@ -47,49 +48,11 @@ export const checkIdCardUniqueness = async (idCardNumber, abortController) => {
 };
 
 /**
- * Save draft
- * @param {Object} formData - Form data to save
- * @param {number} currentStep - Current step
- * @returns {Promise<{success: boolean, message?: string}>}
+ * Save draft (IC)
+ * ใช้ shared helper saveDraftData เพื่อกรอง field ประเภทไฟล์ออกจาก draft
  */
 export const saveDraft = async (formData, currentStep) => {
-  // ตรวจสอบว่ามี ID Card หรือไม่
-  if (!formData.idCardNumber || formData.idCardNumber.trim() === "") {
-    toast.error("กรุณากรอกเลขบัตรประชาชนก่อนบันทึกร่าง");
-    return { success: false, message: "Missing ID card number" };
-  }
-
-  // ตรวจสอบความถูกต้องของ ID Card (13 หลัก)
-  if (formData.idCardNumber.length !== 13 || !/^\d{13}$/.test(formData.idCardNumber)) {
-    toast.error("เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก");
-    return { success: false, message: "Invalid ID card format" };
-  }
-
-  try {
-    const response = await fetch("/api/membership/save-draft", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        memberType: "ic",
-        draftData: formData,
-        currentStep: currentStep,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (result.success) {
-      return { success: true };
-    } else {
-      return { success: false, message: result.message || "กรุณาลองใหม่" };
-    }
-  } catch (error) {
-    console.error("Error saving draft:", error);
-    toast.error("เกิดข้อผิดพลาดในการบันทึกร่าง");
-    return { success: false, message: "Error saving draft" };
-  }
+  return await saveDraftData(formData, "ic", currentStep, "idCardNumber");
 };
 
 /**

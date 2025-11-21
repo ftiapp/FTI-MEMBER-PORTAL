@@ -425,11 +425,30 @@ export async function POST(request, { params }) {
 
     // Fire-and-forget: send email notification about successful edit submission
     try {
-      const email = formData.companyEmail || user.email;
-      if (email) {
+      // Collect all relevant emails
+      const recipients = new Set();
+      
+      // 1. Logged-in user email (Priority)
+      if (user.email) recipients.add(user.email);
+      
+      // 2. Derived company email (from addresses or form)
+      if (companyEmail) recipients.add(companyEmail);
+      else if (formData.companyEmail) recipients.add(formData.companyEmail);
+      
+      // 3. Main contact person email
+      if (formData.contactPersons) {
+        const cps = ensureArray(formData.contactPersons);
+        if (cps.length > 0 && cps[0].email) {
+          recipients.add(cps[0].email);
+        }
+      }
+
+      const emailTo = Array.from(recipients).filter(Boolean).join(",");
+
+      if (emailTo) {
         const displayName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
         const companyName = formData.companyName || "";
-        await sendOCMembershipEditConfirmationEmail(email, displayName, "OC", companyName);
+        await sendOCMembershipEditConfirmationEmail(emailTo, displayName, "OC", companyName);
       }
     } catch (emailError) {
       console.error("[OC-V4] Failed to send edit confirmation email:", emailError);

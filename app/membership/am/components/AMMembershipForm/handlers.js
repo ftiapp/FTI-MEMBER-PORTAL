@@ -3,6 +3,7 @@
 
 import { toast } from "react-hot-toast";
 import { FIELD_ERROR_MAP } from "./constants";
+import { saveDraftData } from "../../../utils/draftHelpers";
 
 /**
  * Check tax ID uniqueness
@@ -46,44 +47,11 @@ export const checkTaxIdUniqueness = async (taxId, abortController) => {
 };
 
 /**
- * Save draft
- * @param {Object} formData - Form data to save
- * @param {number} currentStep - Current step
- * @returns {Promise<{success: boolean, message?: string}>}
+ * Save draft (AM)
+ * ใช้ shared helper saveDraftData เพื่อกรอง field ประเภทไฟล์ออกจาก draft
  */
 export const saveDraft = async (formData, currentStep) => {
-  // ตรวจสอบว่ามี Tax ID หรือไม่
-  if (!formData.taxId || formData.taxId.trim() === "") {
-    toast.error("กรุณากรอกเลขประจำตัวผู้เสียภาษีก่อนบันทึกร่าง");
-    return { success: false, message: "Missing tax ID" };
-  }
-
-  // ตรวจสอบความถูกต้องของ Tax ID (13 หลัก)
-  if (formData.taxId.length !== 13 || !/^\d{13}$/.test(formData.taxId)) {
-    toast.error("เลขประจำตัวผู้เสียภาษีต้องเป็นตัวเลข 13 หลัก");
-    return { success: false, message: "Invalid tax ID format" };
-  }
-
-  try {
-    const response = await fetch("/api/membership/save-draft", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        memberType: "am",
-        draftData: formData,
-        currentStep: currentStep,
-      }),
-    });
-
-    const result = await response.json();
-    return result;
-  } catch (error) {
-    console.error("Error saving draft:", error);
-    toast.error("เกิดข้อผิดพลาดในการบันทึกร่าง");
-    return { success: false, message: error.message };
-  }
+  return await saveDraftData(formData, "am", currentStep, "taxId");
 };
 
 /**

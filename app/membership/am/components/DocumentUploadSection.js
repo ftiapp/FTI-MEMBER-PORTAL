@@ -261,38 +261,40 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
     }
   };
 
-  const viewFile = (file) => {
-    if (!file) return;
+  const viewFile = (doc) => {
+    if (!doc) return;
 
-    let url;
-    let isImage = false;
-
-    if (typeof file === "string") {
-      url = file;
-      try {
-        const extension = new URL(url).pathname.split(".").pop().toLowerCase();
-        isImage = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"].includes(extension);
-      } catch (e) {
-        const extension = url.split(".").pop().toLowerCase();
-        isImage = ["jpg", "jpeg", "png", "gif", "bmp", "webp", "svg"].includes(extension);
-      }
-    } else if (file instanceof File) {
-      url = URL.createObjectURL(file);
-      isImage = file.type.startsWith("image/");
+    // 1) If it's already a string URL
+    if (typeof doc === "string") {
+      window.open(doc, "_blank");
+      return;
     }
 
-    if (url) {
-      if (isImage) {
-        const img = new Image();
-        img.src = url;
-        const w = window.open("");
-        w.document.write(
-          `<body style="margin:0; background:#222;"><img src="${url}" style="width:100%; height:auto; max-width:100vw; max-height:100vh; object-fit:contain; margin:auto; display:block;"></body>`,
-        );
-      } else {
-        window.open(url, "_blank");
-      }
+    // 2) If it's a summary/document object with explicit URL fields
+    const directUrl =
+      doc.url ||
+      doc.fileUrl ||
+      doc.cloudinary_url ||
+      doc.file_path ||
+      (typeof doc === "object" && typeof doc.href === "string" ? doc.href : null);
+
+    if (directUrl && typeof directUrl === "string") {
+      window.open(directUrl, "_blank");
+      return;
     }
+
+    // 3) If it wraps a File object (e.g. { file, name, size, ... })
+    const file = doc.file || doc;
+    if (file instanceof File) {
+      const objectUrl = URL.createObjectURL(file);
+      window.open(objectUrl, "_blank");
+      // cleanup after a short delay
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 100);
+      return;
+    }
+
+    console.warn("Cannot preview file:", doc);
+    alert("ไม่สามารถดูตัวอย่างไฟล์ได้");
   };
 
   const hasFile = (file) => !!file;
@@ -692,10 +694,10 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
           {/* Document Upload Section - ตราประทับและลายเซ็น */}
           <div className="bg-gray-50 border border-gray-200 rounded-xl p-8">
-            <div className="text-center mb-10">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-white border border-blue-200 rounded-full shadow-sm">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 border border-blue-200 rounded-full">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-4 h-4 text-blue-600"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -707,7 +709,7 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                     d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
                   />
                 </svg>
-                <span className="text-base font-semibold text-blue-800">
+                <span className="text-sm font-medium text-blue-800">
                   ตราประทับและลายเซ็น / Stamp and Signature
                 </span>
               </div>
@@ -729,7 +731,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
             <div className="space-y-3" data-error-key="companyStamp">
               <SingleFileUploadZone
                 title="รูปตราประทับสมาคม / Association Stamp Image *"
-                description="รูปถ่ายตราประทับของสมาคม หรือรูปลายเซ็นหากไม่มีตราประทับ (จำเป็น) / Photo of association stamp or signature image if no stamp available (required)"
                 name="companyStamp"
                 file={selectedFiles.companyStamp}
                 icon={
@@ -807,10 +808,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
                 <h3 className="text-lg font-semibold text-gray-900">
                   ข้อมูลผู้มีอำนาจลงนาม / Authorized Signatory Information
                 </h3>
-                <p className="text-sm text-gray-600 mt-2">
-                  กรุณากรอกชื่อ-นามสกุล และตำแหน่งของผู้มีอำนาจลงนามทั้งภาษาไทยและอังกฤษ / Please
-                  enter name and position of authorized signatory in both Thai and English
-                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

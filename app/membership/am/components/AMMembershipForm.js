@@ -204,7 +204,15 @@ export default function AMMembershipForm(props = {}) {
       setIsSubmitting(true);
 
       try {
-        const result = await submitAMMembershipForm(formData);
+        let result;
+
+        if (props.onSubmitOverride && typeof props.onSubmitOverride === "function") {
+          // Use override handler (e.g. edit mode update)
+          result = await props.onSubmitOverride(formData);
+        } else {
+          // Default: create new application
+          result = await submitAMMembershipForm(formData);
+        }
 
         if (result.success) {
           await deleteDraft(formData.taxId);
@@ -221,7 +229,7 @@ export default function AMMembershipForm(props = {}) {
         toast.error("เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง");
       }
     },
-    [formData, currentStep, router, setCurrentStep, consentAgreed],
+    [formData, currentStep, router, setCurrentStep, consentAgreed, props.onSubmitOverride],
   );
 
   // Handle next step
@@ -422,6 +430,7 @@ export default function AMMembershipForm(props = {}) {
           handleSaveDraft,
           isSubmitting,
           consentAgreed,
+          disableSaveDraft: props.disableSaveDraft,
           submitLabel: props.isEditMode ? "ยืนยันการแก้ไขข้อมูล" : undefined,
         })}
 

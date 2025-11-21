@@ -36,7 +36,21 @@ export default function EditRejectedACApplication() {
 
   useEffect(() => {
     if (rejectedApp) {
-      console.log("✅ Found AC rejected app (v2 - from Main table), mapping...");
+      console.log("✅ Found AC rejected app (v2 - from Main table)", rejectedApp);
+
+      if (rejectedApp.membershipId) {
+        console.log(
+          "🔀 Redirecting to AC edit-v4 page for membershipId:",
+          rejectedApp.membershipId,
+        );
+        // ใช้หน้า edit-v4 เป็นหลักแทน edit-rejected เดิม
+        router.replace(`/membership/ac/edit-v4/${rejectedApp.membershipId}`);
+        setDebugInfo(`Redirecting to membershipId: ${rejectedApp.membershipId}`);
+        return;
+      }
+
+      // ถ้าไม่มี membershipId ให้ fallback เป็น behavior เดิม (map ข้อมูลเข้า formData)
+      console.warn("⚠️ AC rejected app missing membershipId, falling back to local form");
       const mapped = mapRejectionDataToACForm(rejectedApp);
       console.log("✅ Setting AC formData to:", mapped);
       setFormData(mapped);
@@ -44,7 +58,7 @@ export default function EditRejectedACApplication() {
       // เพิ่ม debug info
       setDebugInfo(`Mapped data: ${Object.keys(mapped).length} fields`);
     }
-  }, [rejectedApp]);
+  }, [rejectedApp, router]);
 
   // Transform rejection_data snapshot into the flat formData shape for ACMembershipForm
   const mapRejectionDataToACForm = (data) => {

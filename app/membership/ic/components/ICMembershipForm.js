@@ -426,6 +426,7 @@ export default function ICMembershipForm(props = {}) {
           handleSaveDraft,
           isSubmitting,
           consentAgreed,
+          disableSaveDraft: props.disableSaveDraft,
           submitLabel: props.isEditMode ? "ยืนยันการแก้ไขข้อมูล" : undefined,
         })}
 

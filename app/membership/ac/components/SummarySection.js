@@ -531,6 +531,35 @@ export default function SummarySectionComponent({
     // ระบบใหม่: addresses structure
     if (formData.addresses && formData.addresses[addressType]) {
       const address = formData.addresses[addressType];
+
+      // ดึงค่า email / website ตามรูปแบบที่ AddressContactFields ใช้ (email-1, website-1 ฯลฯ)
+      const emailKey = `email-${addressType}`;
+      const websiteKey = `website-${addressType}`;
+
+      const resolvedEmail =
+        address[emailKey] ||
+        address.email ||
+        formData.companyEmail ||
+        "-";
+
+      const resolvedWebsite =
+        address[websiteKey] ||
+        address.website ||
+        formData.companyWebsite ||
+        "-";
+
+      const resolvedPhone =
+        address[`phone-${addressType}`] ||
+        address.phone ||
+        formData.companyPhone ||
+        "-";
+
+      const resolvedPhoneExt =
+        address[`phoneExtension-${addressType}`] ||
+        address.phoneExtension ||
+        formData.companyPhoneExtension ||
+        "-";
+
       return {
         addressNumber: address.addressNumber || "-",
         building: address.building || "-",
@@ -541,10 +570,10 @@ export default function SummarySectionComponent({
         district: address.district || "-",
         province: address.province || "-",
         postalCode: address.postalCode || "-",
-        phone: address.phone || formData.companyPhone || "-", // ✅ fallback ไปที่ companyPhone
-        phoneExtension: address.phoneExtension || formData.companyPhoneExtension || "-",
-        email: address.email || formData.companyEmail || "-", // ✅ fallback ไปที่ companyEmail
-        website: address.website || formData.companyWebsite || "-", // ✅ fallback ไปที่ companyWebsite
+        phone: resolvedPhone,
+        phoneExtension: resolvedPhoneExt,
+        email: resolvedEmail,
+        website: resolvedWebsite,
       };
     }
 

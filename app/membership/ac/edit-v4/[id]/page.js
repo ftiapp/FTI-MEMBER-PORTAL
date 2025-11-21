@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Toaster } from "react-hot-toast";
+import { Toaster, toast } from "react-hot-toast";
 import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import LoadingOverlay from "../../../components/LoadingOverlay";
 import ACStepIndicator from "@/app/membership/ac/components/ACStepIndicator";
 import ACMembershipForm from "@/app/membership/ac/components/ACMembershipForm";
 import { submitACMembershipDocumentsUpdate } from "@/app/membership/ac/components/ACFormSubmission";
+import ContactAdminModal from "@/app/membership/components/ContactAdminModal";
+import MembershipConversationHistory from "@/app/membership/components/MembershipConversationHistory";
 
 export default function EditACApplicationV4() {
   const params = useParams();
@@ -18,6 +20,8 @@ export default function EditACApplicationV4() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [isSendingContact, setIsSendingContact] = useState(false);
 
   const handleEditSubmit = useCallback(
     async (data) => {
@@ -134,6 +138,43 @@ export default function EditACApplicationV4() {
     { id: 5, name: "ยืนยันข้อมูล" },
   ];
 
+  const handleSendContactMessage = useCallback(
+    async (message) => {
+      if (!message || !message.trim()) {
+        toast.error("กรุณากรอกข้อความถึงผู้ดูแลระบบ");
+        return;
+      }
+
+      try {
+        setIsSendingContact(true);
+
+        const res = await fetch(`/api/membership/ac/${params.id}/comment`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ message: message.trim() }),
+        });
+
+        const result = await res.json();
+
+        if (!res.ok || !result.success) {
+          toast.error(result.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
+
+        toast.success("ส่งข้อความถึงผู้ดูแลระบบเรียบร้อยแล้ว");
+        setShowContactModal(false);
+      } catch (e) {
+        console.error("[AC-V4] Contact admin error:", e);
+        toast.error("เกิดข้อผิดพลาดในการส่งข้อความ กรุณาลองใหม่อีกครั้ง");
+      } finally {
+        setIsSendingContact(false);
+      }
+    },
+    [params.id],
+  );
+
   if (loading) {
     return (
       <>
@@ -208,6 +249,15 @@ export default function EditACApplicationV4() {
           </motion.div>
 
           <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <MembershipConversationHistory membershipType="ac" membershipId={params.id} />
+          </motion.div>
+
+          <motion.div
             className="bg-white rounded-xl shadow-lg relative overflow-hidden"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -231,12 +281,21 @@ export default function EditACApplicationV4() {
                 userComment={formData.userResubmissionComment}
                 rejectionId={null}
                 isEditMode={true}
+                disableSaveDraft={true}
+                onSubmitOverride={handleEditSubmit}
               />
             </div>
           </motion.div>
         </div>
       </main>
       <Footer />
+
+      <ContactAdminModal
+        isOpen={showContactModal}
+        onCancel={() => setShowContactModal(false)}
+        onSend={handleSendContactMessage}
+        isSubmitting={isSendingContact}
+      />
     </>
   );
 }

@@ -63,6 +63,7 @@ export const createHandleSubmit =
     router,
     hasAttemptedSubmit,
     setHasAttemptedSubmit,
+    onSubmitOverride,
   }) =>
   async (e) => {
     console.log("🚀 [createHandleSubmit] CALLED with event:", e);
@@ -384,7 +385,14 @@ export const createHandleSubmit =
 
     try {
       let result;
-      if (rejectionId) {
+
+      // 1) ใช้ onSubmitOverride ก่อน (เช่นโหมด edit-v4)
+      if (typeof onSubmitOverride === "function") {
+        console.log("🔄 Using onSubmitOverride for final submission (AC edit-v4 mode)");
+        result = await onSubmitOverride(formData);
+      }
+      // 2) ถ้าไม่มี override แต่มี rejectionId → ใช้ flow resubmit เดิม
+      else if (rejectionId) {
         console.log("🔄 Resubmitting rejected application (v2 - no Reject_DATA):", rejectionId);
         const res = await fetch(
           `/api/membership/rejected-applications-v2/ac/${rejectionId}/resubmit`,
@@ -406,7 +414,9 @@ export const createHandleSubmit =
         }
 
         result = await res.json();
-      } else {
+      }
+      // 3) กรณีสมัครใหม่ปกติ → ใช้ submitACMembershipForm
+      else {
         console.log("🔄 New submission (step mode)");
         result = await submitACMembershipForm(formData);
       }

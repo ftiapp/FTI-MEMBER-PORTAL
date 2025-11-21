@@ -59,9 +59,31 @@ const MultipleSignatories = ({
   const removeSignatory = (id) => {
     if (signatories.length <= 1) return;
 
+    // Find index before filtering
+    const indexToRemove = signatories.findIndex((s) => s.id === id);
+
     const updatedSignatories = signatories.filter((sig) => sig.id !== id);
     setSignatories(updatedSignatories);
-    setFormData((prev) => ({ ...prev, signatories: updatedSignatories }));
+    
+    // Update signatures array: Remove the file at the same index
+    const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
+    // Ensure we don't crash if array is shorter
+    if (indexToRemove !== -1 && currentSignatures.length > indexToRemove) {
+      currentSignatures.splice(indexToRemove, 1);
+    }
+    
+    // Update both formData fields
+    setFormData((prev) => ({ 
+      ...prev, 
+      signatories: updatedSignatories,
+      authorizedSignatures: currentSignatures 
+    }));
+    
+    // Update selectedFiles state
+    setSelectedFiles((prev) => ({ 
+      ...prev, 
+      authorizedSignatures: currentSignatures 
+    }));
   };
 
   // Update signatory field
@@ -138,7 +160,10 @@ const MultipleSignatories = ({
       </div>
 
       {signatories.map((signatory, index) => (
-        <div key={signatory.id} className="border border-gray-200 rounded-lg p-6 bg-gray-50">
+        <div
+          key={signatory.id ?? index}
+          className="border border-gray-200 rounded-lg p-6 bg-gray-50"
+        >
           <div className="flex items-center justify-between mb-4">
             <h4 className="text-md font-medium text-gray-900">ผู้มีอำนาจลงนาม คนที่ {index + 1}</h4>
             {signatories.length > 1 && (

@@ -63,7 +63,20 @@ export function AuthProvider({ children }) {
     if (hasTokenCookie && !user) {
       const fetchUserData = async () => {
         try {
-          const response = await fetch("/api/auth/me");
+          const response = await fetch("/api/auth/me", {
+            credentials: "include",
+          });
+
+          if (response.status === 401 && typeof window !== "undefined") {
+            const path = window.location.pathname;
+            if (path.startsWith("/admin")) {
+              window.location.href = "/admin/login";
+            } else {
+              window.location.href = "/login";
+            }
+            return;
+          }
+
           if (response.ok) {
             const userData = await response.json();
             setUser(userData.user);

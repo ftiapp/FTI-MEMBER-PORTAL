@@ -6,6 +6,7 @@ import { useInView } from "react-intersection-observer";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Image from "next/image";
+import Link from "next/link";
 import YouTubeAutoplay from "./components/YouTubeAutoplay";
 
 export default function Home() {
@@ -136,13 +137,21 @@ export default function Home() {
       <Navbar />
       <main className="bg-gray-50 min-h-screen">
         {/* Hero Section */}
-        <section id="hero">
-          <div className="relative h-full overflow-hidden py-14">
-            <div className="container mx-auto flex flex-col">
-              <div className="mt-20 grid grid-cols-1">
-                <div className="flex flex-col items-center gap-6 pb-8 text-center">
+        <section
+          id="hero"
+          className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-gray-50"
+        >
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -left-24 top-10 h-64 w-64 rounded-full bg-sky-100 blur-3xl" />
+            <div className="absolute -right-10 bottom-0 h-72 w-72 rounded-full bg-blue-100 blur-3xl" />
+          </div>
+
+          <div className="relative h-full overflow-hidden py-16">
+            <div className="container mx-auto flex flex-col px-4 lg:px-8">
+              <div className="mt-16 grid grid-cols-1 justify-items-center">
+                <div className="flex max-w-3xl flex-col items-center gap-8 pb-10 text-center">
                   <motion.h1
-                    className="bg-gradient-to-br from-black from-30% to-black/60 bg-clip-text py-6 text-4xl leading-tight font-medium tracking-tighter text-balance text-transparent sm:text-5xl md:text-6xl lg:text-7xl dark:from-white dark:to-white/40"
+                    className="bg-gradient-to-br from-slate-900 from-30% to-slate-700 bg-clip-text py-4 text-4xl font-semibold leading-tight tracking-tight text-balance text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
                     animate="animate"
                     variants={heroFadeUp}
                     initial="initial"
@@ -157,7 +166,7 @@ export default function Home() {
                   </motion.h1>
 
                   <motion.p
-                    className="text-lg tracking-tight text-balance text-gray-600 md:text-xl"
+                    className="max-w-2xl text-lg tracking-tight text-balance text-gray-600 md:text-xl"
                     animate="animate"
                     variants={heroFadeUp}
                     initial="initial"
@@ -169,8 +178,49 @@ export default function Home() {
                     }}
                   >
                     เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย
-                    <br />
-                    ให้สามารถแข่งขันได้ในระดับสากล
+                    ให้สามารถแข่งขันได้ในระดับสากล ผ่านการเชื่อมโยงภาครัฐ ภาคเอกชน
+                    และภาคอุตสาหกรรมเข้าด้วยกัน
+                  </motion.p>
+
+                  <motion.div
+                    className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4"
+                    animate="animate"
+                    variants={heroFadeUp}
+                    initial="initial"
+                    transition={{
+                      duration: 0.6,
+                      delay: 0.3,
+                      ease: [0.21, 0.47, 0.32, 0.98],
+                      type: "spring",
+                    }}
+                  >
+                    <Link
+                      href="/register"
+                      className="inline-flex w-full items-center justify-center rounded-full bg-blue-600 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/40 transition hover:bg-blue-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 sm:w-auto"
+                    >
+                      สมัครสมาชิกเว็บไซต์
+                    </Link>
+                    <a
+                      href="#about"
+                      className="inline-flex w-full items-center justify-center rounded-full border border-slate-300 bg-white/70 px-8 py-3 text-sm font-semibold text-slate-700 backdrop-blur transition hover:border-slate-400 hover:bg-white sm:w-auto"
+                    >
+                      ทำความรู้จัก FTI เพิ่มเติม
+                    </a>
+                  </motion.div>
+
+                  <motion.p
+                    className="text-xs text-slate-400"
+                    animate="animate"
+                    variants={heroFadeUp}
+                    initial="initial"
+                    transition={{
+                      duration: 0.6,
+                      delay: 0.4,
+                      ease: [0.21, 0.47, 0.32, 0.98],
+                      type: "spring",
+                    }}
+                  >
+                    ระบบสมาชิกออนไลน์สำหรับผู้ประกอบการอุตสาหกรรมทั่วประเทศ
                   </motion.p>
                 </div>
               </div>
@@ -186,14 +236,18 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
               viewport={{ once: true }}
-              className="text-center mb-12"
+              className="mb-10 text-center"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1 text-xs font-medium text-blue-700">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                คู่มือการใช้งานระบบสมาชิก
+              </div>
+              <h2 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
                 วิธีการสมัครใช้งาน
               </h2>
-              <div className="w-24 h-1 bg-blue-600 mx-auto mb-6"></div>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-                วิดีโอแนะนำวิธีการสมัครสมาชิกและยืนยันสมาชิกเดิม
+              <div className="mx-auto mb-6 h-1 w-24 rounded-full bg-blue-600" />
+              <p className="mx-auto max-w-2xl text-lg text-gray-600">
+                วิดีโอแนะนำวิธีการสมัครสมาชิกเว็บไซต์และยืนยันสมาชิกเดิม
               </p>
             </motion.div>
 
@@ -202,7 +256,7 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
-              className="max-w-4xl mx-auto"
+              className="mx-auto max-w-4xl rounded-2xl bg-white p-3 shadow-xl shadow-slate-200/70 ring-1 ring-slate-100 md:p-5"
             >
               <YouTubeAutoplay
                 videoId="oynt-orKzyE"
@@ -213,16 +267,18 @@ export default function Home() {
         </section>
 
         {/* White section under hero with centered image */}
-        <section className="bg-white">
-          <div className="container mx-auto px-4 py-10 flex justify-center">
-            <Image
-              src="/FTI%20PIC.png"
-              alt="สภาอุตสาหกรรมแห่งประเทศไทย - เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย ให้สามารถแข่งขันได้ในระดับสากล"
-              width={1000}
-              height={563}
-              priority
-              className="w-full max-w-4xl h-auto rounded-xl shadow-xl"
-            />
+        <section className="bg-gray-50/70">
+          <div className="container mx-auto flex justify-center px-4 py-12">
+            <div className="w-full max-w-5xl overflow-hidden rounded-2xl bg-white shadow-xl shadow-slate-200/70 ring-1 ring-slate-100">
+              <Image
+                src="/FTI%20PIC.png"
+                alt="สภาอุตสาหกรรมแห่งประเทศไทย - เป็นแกนกลางเสริมสร้างความเข้มแข็งและผลิตภาพอุตสาหกรรมไทย ให้สามารถแข่งขันได้ในระดับสากล"
+                width={1000}
+                height={563}
+                priority
+                className="h-auto w-full object-cover"
+              />
+            </div>
           </div>
         </section>
 
@@ -335,7 +391,7 @@ export default function Home() {
                 />
               </motion.h2>
               <motion.div
-                className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 max-w-6xl mx-auto"
+                className="mx-auto grid max-w-6xl grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
                 variants={staggerContainer}
                 initial="hidden"
                 animate={objectivesInView ? "visible" : "hidden"}
@@ -343,13 +399,13 @@ export default function Home() {
                 {objectives.map((objective, index) => (
                   <motion.div
                     key={index}
-                    className="bg-white rounded-xl p-6 shadow-lg"
+                    className="group rounded-xl bg-white p-6 shadow-lg shadow-slate-200/70 ring-1 ring-slate-100 transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-slate-300/80 hover:ring-blue-100"
                     variants={fadeInUp}
                     transition={{ delay: index * 0.1 }}
                   >
                     <div className="flex items-start">
                       <div className="flex-shrink-0">
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 ring-1 ring-blue-100 group-hover:bg-blue-600 group-hover:text-white group-hover:ring-blue-200">
                           <svg
                             className="w-6 h-6"
                             fill="none"
@@ -366,7 +422,7 @@ export default function Home() {
                         </div>
                       </div>
                       <div className="ml-4">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                        <h3 className="mb-2 text-xl font-semibold text-gray-900">
                           {objective.title}
                         </h3>
                         <p className="text-gray-600">{objective.description}</p>
@@ -397,7 +453,7 @@ export default function Home() {
                   />
                 </motion.h2>
                 <motion.div
-                  className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8"
+                  className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8"
                   variants={staggerContainer}
                   initial="hidden"
                   animate={rolesInView ? "visible" : "hidden"}
@@ -405,13 +461,13 @@ export default function Home() {
                   {roles.map((role, index) => (
                     <motion.div
                       key={index}
-                      className="bg-gradient-to-br from-blue-50 to-white rounded-xl p-6 shadow-lg"
+                      className="rounded-xl bg-gradient-to-br from-blue-50 to-white p-6 shadow-lg shadow-blue-100/70 ring-1 ring-blue-100 transition duration-200 hover:-translate-y-1 hover:shadow-xl hover:shadow-blue-200/80"
                       variants={fadeInUp}
                       transition={{ delay: index * 0.1 }}
                     >
                       <div className="flex items-start">
                         <div className="flex-shrink-0">
-                          <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 ring-1 ring-blue-200">
                             <svg
                               className="w-5 h-5"
                               fill="none"
@@ -428,7 +484,7 @@ export default function Home() {
                           </div>
                         </div>
                         <div className="ml-4">
-                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                          <h3 className="mb-2 text-lg font-semibold text-gray-900">
                             {role.title}
                           </h3>
                           <p className="text-gray-600 text-sm">{role.description}</p>

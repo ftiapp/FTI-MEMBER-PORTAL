@@ -438,18 +438,19 @@ export const validateOCForm = (formData, step) => {
     }
 
     // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
-    // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+    // รองรับทั้งโครงสร้างไฟล์ใหม่จาก Summary API (fileUrl) และไฟล์ที่เพิ่งอัปโหลด (file / url / File)
     const hasCompanyStamp =
       formData.companyStamp &&
       (formData.companyStamp.file ||
         formData.companyStamp.url ||
+        formData.companyStamp.fileUrl ||
         formData.companyStamp instanceof File);
 
     const hasAuthorizedSignatures =
       formData.authorizedSignatures &&
       formData.authorizedSignatures.length > 0 &&
       formData.authorizedSignatures.some(
-        (sig) => sig && (sig.file || sig.url || sig instanceof File),
+        (sig) => sig && (sig.file || sig.url || sig.fileUrl || sig instanceof File),
       );
 
     if (!hasCompanyStamp) {
@@ -529,6 +530,7 @@ export const validateOCForm = (formData, step) => {
           authorizedSignature &&
           (authorizedSignature.file ||
             authorizedSignature.url ||
+            authorizedSignature.fileUrl ||
             authorizedSignature instanceof File);
 
         if (!hasSignatureFile) {

@@ -205,6 +205,7 @@ export default function EditICApplicationV4() {
                 setFormData={setFormData}
                 totalSteps={steps.length}
                 isEditMode={true}
+                disableSaveDraft={true}
               />
             </div>
           </div>

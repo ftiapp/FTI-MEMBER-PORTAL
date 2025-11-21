@@ -123,6 +123,21 @@ export default function ResubmittedApplications({
     return typeMap[type] || { text: type, code: type };
   };
 
+  const getIdentifierLabel = (memberType) => {
+    const labels = {
+      IC: "เลขบัตรประจำตัวประชาชน",
+      OC: "ทะเบียนนิติบุคคล",
+      AC: "ทะเบียนนิติบุคคล",
+      AM: "ทะเบียนนิติบุคคล",
+    };
+    return labels[memberType] || "เลขประจำตัว";
+  };
+
+  const getIdentifierValue = (app) => {
+    const val = app.memberType === "IC" ? app.idCardNumber : app.taxId;
+    return val && String(val).trim() !== "" ? String(val) : "-";
+  };
+
   const openDetailPage = (application) => {
     const routes = {
       IC: "/membership/ic/summary",
@@ -217,15 +232,37 @@ export default function ResubmittedApplications({
           >
             <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
               <div className="flex-1">
+                {/* ชื่อ/บริษัท (หัวข้อหลัก) + หมายเลขระบุตัวตน */}
+                <div className="mb-3">
+                  <h4 className="text-lg font-semibold text-gray-900 mb-1">
+                    {app.displayName || "ไม่ระบุชื่อ"}
+                  </h4>
+                  <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 border border-blue-200">
+                    <svg
+                      className="w-4 h-4 mr-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span className="font-semibold">{getIdentifierLabel(app.memberType)}:</span>
+                    <span className="ml-1 font-mono">{getIdentifierValue(app)}</span>
+                  </div>
+                </div>
+
+                {/* ข้อมูลประเภทสมาชิก */}
                 <div className="flex items-center space-x-3 mb-2">
                   <div className="flex items-center justify-center w-8 h-8 bg-purple-100 rounded-full flex-shrink-0">
                     <span className="text-sm font-bold text-purple-700">{memberTypeInfo.code}</span>
                   </div>
                   <div>
                     <h4 className="font-medium text-gray-900 text-lg">{memberTypeInfo.text}</h4>
-                    <p className="text-sm text-gray-600">
-                      ชื่อ/บริษัท: {app.displayName || "ไม่ระบุชื่อ"}
-                    </p>
                   </div>
                 </div>
 

@@ -94,6 +94,7 @@ export const renderNavigationButtons = ({
   handleSaveDraft,
   isSubmitting,
   consentAgreed,
+  disableSaveDraft,
   submitLabel,
 }) => {
   const steps = effectiveTotalSteps || totalSteps || 5;
@@ -126,8 +127,8 @@ export const renderNavigationButtons = ({
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-3">
-          {/* Save Draft Button - Show on steps 1, 2, 3 */}
-          {currentStep < 4 && (
+          {/* Save Draft Button - Show on steps 1, 2, 3 (can be disabled via flag) */}
+          {!disableSaveDraft && currentStep < 4 && (
             <button
               type="button"
               onClick={handleSaveDraft}

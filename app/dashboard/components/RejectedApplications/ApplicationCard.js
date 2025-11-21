@@ -6,11 +6,10 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
   const router = useRouter();
 
   const handleViewApplication = () => {
-    if (app.type === "oc") {
-      router.push(`/membership/oc/edit-v4/${app.id}`);
-    } else {
-      router.push(`/membership/${app.type}/edit-rejected/${app.id}`);
-    }
+    if (!app.type || !app.id) return;
+
+    // ทุกประเภทสมาชิกให้ใช้หน้าแก้ไขใบสมัครเวอร์ชัน v4 ตามชนิดสมาชิก
+    router.push(`/membership/${app.type}/edit-v4/${app.id}`);
   };
 
   return (
@@ -21,6 +20,10 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
         <div className="flex-1">
           {/* เลขประจำตัวไว้ด้านบนสุด */}
           <div className="mb-3">
+            {/* ชื่อ/บริษัท เป็นหัวข้อหลัก */}
+            <h4 className="text-lg font-semibold text-gray-900 mb-1">
+              {app.name || app.companyName || "ไม่ระบุชื่อ"}
+            </h4>
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
               <svg
                 className="w-4 h-4 mr-2"
@@ -46,9 +49,7 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
               <span className="text-sm font-bold text-red-600">{getThaiAbbrev(app.type)}</span>
             </div>
             <div>
-              <h4 className="font-medium text-gray-900 text-lg">
-                {getMembershipTypeLabel(app.type)}
-              </h4>
+              <h4 className="font-medium text-gray-900 text-lg">{getMembershipTypeLabel(app.type)}</h4>
               <div className="flex items-center space-x-2">
                 <p className="text-sm text-gray-600">สถานะ: {app.statusLabel}</p>
                 {app.status === "pending_review" && (

@@ -34,7 +34,13 @@ export async function GET(request) {
           m.rejected_at AS rejected_at,
           NULL AS resolved_at,
           0 AS resubmission_count,
-          0 AS conversation_count
+          (
+            SELECT COUNT(*)
+            FROM MemberRegist_Conversations c
+            WHERE c.membership_type = 'oc'
+              AND c.membership_id = m.id
+              AND c.is_internal = 0
+          ) AS conversation_count
         FROM MemberRegist_OC_Main m
         WHERE m.user_id = ? AND m.status = 2
 
@@ -49,7 +55,13 @@ export async function GET(request) {
           m.rejected_at AS rejected_at,
           NULL AS resolved_at,
           0 AS resubmission_count,
-          0 AS conversation_count
+          (
+            SELECT COUNT(*)
+            FROM MemberRegist_Conversations c
+            WHERE c.membership_type = 'ac'
+              AND c.membership_id = m.id
+              AND c.is_internal = 0
+          ) AS conversation_count
         FROM MemberRegist_AC_Main m
         WHERE m.user_id = ? AND m.status = 2
 
@@ -64,7 +76,13 @@ export async function GET(request) {
           m.rejected_at AS rejected_at,
           NULL AS resolved_at,
           0 AS resubmission_count,
-          0 AS conversation_count
+          (
+            SELECT COUNT(*)
+            FROM MemberRegist_Conversations c
+            WHERE c.membership_type = 'am'
+              AND c.membership_id = m.id
+              AND c.is_internal = 0
+          ) AS conversation_count
         FROM MemberRegist_AM_Main m
         WHERE m.user_id = ? AND m.status = 2
 
@@ -79,7 +97,13 @@ export async function GET(request) {
           m.rejected_at AS rejected_at,
           NULL AS resolved_at,
           0 AS resubmission_count,
-          0 AS conversation_count
+          (
+            SELECT COUNT(*)
+            FROM MemberRegist_Conversations c
+            WHERE c.membership_type = 'ic'
+              AND c.membership_id = m.id
+              AND c.is_internal = 0
+          ) AS conversation_count
         FROM MemberRegist_IC_Main m
         WHERE m.user_id = ? AND m.status = 2
       ) AS t

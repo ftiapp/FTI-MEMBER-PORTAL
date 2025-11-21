@@ -198,33 +198,88 @@ export async function POST(request, { params }) {
     // 4) Update contact persons
     if (formData.contactPersons) {
       const contactPersons = ensureArray(formData.contactPersons);
-      await connection.execute("DELETE FROM MemberRegist_AC_ContactPerson WHERE main_id = ?", [id]);
+      
+      // 4.1) Fetch existing Contact Person IDs
+      const [existingCpRows] = await connection.execute(
+        "SELECT id FROM MemberRegist_AC_ContactPerson WHERE main_id = ?",
+        [id]
+      );
+      const existingCpIds = new Set(existingCpRows.map((r) => r.id));
+      const processedCpIds = new Set();
 
       for (const cp of contactPersons) {
+        const cpId = cp.id ? parseInt(cp.id) : null;
+        
+        // Ensure email is not null (DB constraint)
+        const safeEmail = cp.email || "";
+
+        if (cpId && existingCpIds.has(cpId)) {
+          // UPDATE
+          await connection.execute(
+            `UPDATE MemberRegist_AC_ContactPerson
+             SET prename_th = ?, prename_en = ?, prename_other = ?, prename_other_en = ?,
+                 first_name_th = ?, last_name_th = ?, first_name_en = ?, last_name_en = ?,
+                 position = ?, email = ?, phone = ?, phone_extension = ?,
+                 type_contact_id = ?, type_contact_name = ?, type_contact_other_detail = ?
+             WHERE id = ? AND main_id = ?`,
+            [
+              cp.prenameTh || null,
+              cp.prenameEn || "",
+              cp.prenameOther || null,
+              cp.prenameOtherEn || null,
+              cp.firstNameTh || null,
+              cp.lastNameTh || null,
+              cp.firstNameEn || "",
+              cp.lastNameEn || "",
+              cp.position || null,
+              safeEmail,
+              cp.phone || null,
+              cp.phoneExtension || null,
+              cp.typeContactId || null,
+              cp.typeContactName || "",
+              cp.typeContactOtherDetail || null,
+              cpId,
+              id,
+            ]
+          );
+          processedCpIds.add(cpId);
+        } else {
+          // INSERT
+          await connection.execute(
+            `INSERT INTO MemberRegist_AC_ContactPerson (
+               main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th,
+               first_name_en, last_name_en, position, email, phone, phone_extension,
+               type_contact_id, type_contact_name, type_contact_other_detail
+             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              id,
+              cp.prenameTh || null,
+              cp.prenameEn || "",
+              cp.prenameOther || null,
+              cp.prenameOtherEn || null,
+              cp.firstNameTh || null,
+              cp.lastNameTh || null,
+              cp.firstNameEn || "",
+              cp.lastNameEn || "",
+              cp.position || null,
+              safeEmail,
+              cp.phone || null,
+              cp.phoneExtension || null,
+              cp.typeContactId || null,
+              cp.typeContactName || "",
+              cp.typeContactOtherDetail || null,
+            ]
+          );
+        }
+      }
+
+      // 4.2) Delete removed contact persons
+      const cpIdsToDelete = [...existingCpIds].filter((x) => !processedCpIds.has(x));
+      if (cpIdsToDelete.length > 0) {
+        const placeholders = cpIdsToDelete.map(() => "?").join(",");
         await connection.execute(
-          `INSERT INTO MemberRegist_AC_ContactPerson (
-             main_id, prename_th, prename_en, prename_other, prename_other_en, first_name_th, last_name_th,
-             first_name_en, last_name_en, position, email, phone, phone_extension,
-             type_contact_id, type_contact_name, type_contact_other_detail
-           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            id,
-            cp.prenameTh || null,
-            cp.prenameEn || "",
-            cp.prenameOther || null,
-            cp.prenameOtherEn || null,
-            cp.firstNameTh || null,
-            cp.lastNameTh || null,
-            cp.firstNameEn || "",
-            cp.lastNameEn || "",
-            cp.position || null,
-            cp.email || null,
-            cp.phone || null,
-            cp.phoneExtension || null,
-            cp.typeContactId || null,
-            cp.typeContactName || "",
-            cp.typeContactOtherDetail || null,
-          ],
+          `DELETE FROM MemberRegist_AC_ContactPerson WHERE id IN (${placeholders})`,
+          cpIdsToDelete
         );
       }
     }
@@ -335,22 +390,13 @@ export async function POST(request, { params }) {
 
     // 10) Update authorized signatory names (multiple signatories support)
     if (formData.signatories || formData.authorizedSignatoryFirstNameTh) {
-      // Clear FK references from documents before deleting signatory rows
-      await connection.execute(
-        "UPDATE MemberRegist_AC_Documents SET signature_name_id = NULL WHERE main_id = ?",
-        [id],
-      );
-
-      await connection.execute(
-        "DELETE FROM MemberRegist_AC_Signature_Name WHERE main_id = ?",
-        [id],
-      );
-
+      // 10.1) Prepare new signatories list
       let signatories = [];
 
       if (Array.isArray(formData.signatories) && formData.signatories.length > 0) {
         signatories = formData.signatories;
       } else {
+        // Fallback for single signatory (legacy)
         const sigFirstTh =
           formData.authorizedSignatoryFirstNameTh ||
           formData.authorizedSignatureFirstNameTh ||
@@ -377,8 +423,13 @@ export async function POST(request, { params }) {
           "";
 
         if (sigFirstTh && sigLastTh) {
+          // Try to preserve ID if it exists in the first element of original data
+          // Note: formData usually doesn't have the original ID for single sig fallback unless we fetched it.
+          // But if we are switching from multiple to single, we might want to reuse the first ID?
+          // For simplicity, we won't try to guess ID for fallback mode unless provided.
           signatories = [
             {
+              id: formData.authorizedSignatoryId || null, // Potential future support
               prenameTh: formData.authorizedSignatoryPrenameTh || null,
               prenameEn: formData.authorizedSignatoryPrenameEn || "",
               prenameOther: formData.authorizedSignatoryPrenameOther || null,
@@ -394,27 +445,87 @@ export async function POST(request, { params }) {
         }
       }
 
-      for (const signatory of signatories) {
-        const s = signatory || {};
+      // 10.2) Fetch existing signatory IDs
+      const [existingRows] = await connection.execute(
+        "SELECT id FROM MemberRegist_AC_Signature_Name WHERE main_id = ?",
+        [id]
+      );
+      const existingIds = new Set(existingRows.map((r) => r.id));
+      const processedIds = new Set();
+
+      // 10.3) Upsert (Update existing or Insert new)
+      for (const s of signatories) {
+        const sigId = s.id ? parseInt(s.id) : null;
+
+        // Check if this ID exists in DB for this application
+        if (sigId && existingIds.has(sigId)) {
+          // UPDATE
+          await connection.execute(
+            `UPDATE MemberRegist_AC_Signature_Name
+             SET prename_th = ?, prename_en = ?, prename_other = ?, prename_other_en = ?,
+                 first_name_th = ?, last_name_th = ?, first_name_en = ?, last_name_en = ?,
+                 position_th = ?, position_en = ?
+             WHERE id = ? AND main_id = ?`,
+            [
+              s.prenameTh || null,
+              s.prenameEn || "",
+              s.prenameOther || null,
+              s.prenameOtherEn || null,
+              s.firstNameTh || null,
+              s.lastNameTh || null,
+              s.firstNameEn || "",
+              s.lastNameEn || "",
+              s.positionTh && String(s.positionTh).trim() ? s.positionTh : null,
+              s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
+              sigId,
+              id,
+            ]
+          );
+          processedIds.add(sigId);
+        } else {
+          // INSERT
+          await connection.execute(
+            `INSERT INTO MemberRegist_AC_Signature_Name (
+              main_id, prename_th, prename_en, prename_other, prename_other_en,
+              first_name_th, last_name_th, first_name_en, last_name_en,
+              position_th, position_en
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [
+              id,
+              s.prenameTh || null,
+              s.prenameEn || "",
+              s.prenameOther || null,
+              s.prenameOtherEn || null,
+              s.firstNameTh || null,
+              s.lastNameTh || null,
+              s.firstNameEn || "",
+              s.lastNameEn || "",
+              s.positionTh && String(s.positionTh).trim() ? s.positionTh : null,
+              s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
+            ]
+          );
+          // Note: We don't need to track the new ID for deletion purposes
+        }
+      }
+
+      // 10.4) Delete removed signatories
+      const idsToDelete = [...existingIds].filter((x) => !processedIds.has(x));
+      if (idsToDelete.length > 0) {
+        // Prepare placeholders
+        const placeholders = idsToDelete.map(() => "?").join(",");
+        
+        // First, clear references in Documents table for these specific IDs to avoid FK errors (if any)
+        // or to handle cascading if not set up in DB.
+        // But actually, if we delete the signatory, we probably WANT to delete the document or orphan it.
+        // The previous code orphaned ALL documents. Now we only orphan the deleted ones.
         await connection.execute(
-          `INSERT INTO MemberRegist_AC_Signature_Name (
-            main_id, prename_th, prename_en, prename_other, prename_other_en,
-            first_name_th, last_name_th, first_name_en, last_name_en,
-            position_th, position_en
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            id,
-            s.prenameTh || null,
-            s.prenameEn || "",
-            s.prenameOther || null,
-            s.prenameOtherEn || null,
-            s.firstNameTh || null,
-            s.lastNameTh || null,
-            s.firstNameEn || "",
-            s.lastNameEn || "",
-            s.positionTh && String(s.positionTh).trim() ? s.positionTh : null,
-            s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
-          ],
+          `UPDATE MemberRegist_AC_Documents SET signature_name_id = NULL WHERE signature_name_id IN (${placeholders})`,
+          idsToDelete
+        );
+
+        await connection.execute(
+          `DELETE FROM MemberRegist_AC_Signature_Name WHERE id IN (${placeholders})`,
+          idsToDelete
         );
       }
     }

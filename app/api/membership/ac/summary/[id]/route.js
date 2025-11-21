@@ -327,6 +327,7 @@ export async function GET(request, { params }) {
 
       // Multiple signatories (for PDF generation)
       signatories: signatureNamesResult.map(sig => ({
+        id: sig.id,
         prenameTh: sig.prename_th,
         prenameEn: sig.prename_en,
         prenameOther: sig.prename_other,

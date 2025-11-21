@@ -55,6 +55,8 @@ export default function ACMembershipForm({
   userComment, // เพิ่ม comment จากผู้ใช้
   isSinglePageLayout = false, // เพิ่ม prop สำหรับ layout หน้าเดียว
   isEditMode = false, // ใช้สำหรับโหมดแก้ไขข้อมูล (edit-v4)
+  disableSaveDraft = false, // ซ่อนปุ่มบันทึกร่างเมื่อใช้ในหน้า edit-v4
+  onSubmitOverride, // ใช้ override การ submit ขั้นสุดท้าย (เช่น edit-v4)
 }) {
   const router = useRouter();
   const abortControllerRef = useRef(null);
@@ -214,6 +216,7 @@ export default function ACMembershipForm({
       router,
       hasAttemptedSubmit,
       setHasAttemptedSubmit,
+      onSubmitOverride,
     }),
     [
       formData,
@@ -229,6 +232,7 @@ export default function ACMembershipForm({
       provincialChapters,
       router,
       hasAttemptedSubmit,
+      onSubmitOverride,
     ],
   );
 
@@ -343,7 +347,7 @@ export default function ACMembershipForm({
             {/* Action Buttons */}
             <div className="flex items-center space-x-3">
               {/* Save Draft Button - Show on steps 1, 2, 3 and not single page */}
-              {!isSinglePageLayout && currentStep < 4 && (
+              {!disableSaveDraft && !isSinglePageLayout && currentStep < 4 && (
                 <button
                   type="button"
                   onClick={handleSaveDraft}

@@ -301,41 +301,48 @@ function RegisterForm() {
   };
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50 via-white to-gray-50 py-14 md:py-16">
       {/* Loading Overlay */}
       <LoadingOverlay isVisible={isSubmitting} />
-      <div className="max-w-4xl mx-auto px-4">
+
+      {/* Decorative background blobs */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-10 top-10 h-48 w-48 rounded-full bg-sky-100 blur-3xl" />
+        <div className="absolute -right-16 bottom-0 h-64 w-64 rounded-full bg-blue-100 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-4xl px-4 lg:px-8">
         <motion.div
-          className="mx-auto"
+          className="mx-auto max-w-3xl"
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
         >
           <motion.h2
-            className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 text-center tracking-tight"
+            className="mb-5 text-center text-3xl font-bold tracking-tight text-slate-900 md:mb-6 md:text-4xl"
             variants={fadeInUp}
             initial="hidden"
             animate="visible"
           >
             ลงทะเบียนใช้งานระบบ
             <motion.div
-              className="w-16 h-1 bg-blue-600 mx-auto mt-4 rounded-full"
+              className="mx-auto mt-4 h-1 w-16 rounded-full bg-blue-600"
               initial={{ width: 0 }}
               animate={{ width: 64 }}
               transition={{ delay: 0.5, duration: 0.8 }}
             />
           </motion.h2>
 
-          <p className="text-center text-sm md:text-base text-gray-600 mb-8 max-w-2xl mx-auto">
+          <p className="mx-auto mb-9 max-w-2xl text-center text-sm text-gray-600 md:text-base">
             กรอกข้อมูลเพื่อสร้างบัญชีเข้าใช้งานระบบสมาชิกของสภาอุตสาหกรรมแห่งประเทศไทย
           </p>
 
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-100 p-6 md:p-8">
+          <div className="rounded-2xl bg-white/95 p-6 shadow-xl shadow-slate-200/70 ring-1 ring-slate-100 backdrop-blur">
             {/* Error Message */}
             {error && (
               <div
                 ref={errorMessageRef}
-                className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg"
+                className="mb-6 rounded-xl border border-red-200 bg-red-50/90 p-4 shadow-sm"
               >
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -356,7 +363,7 @@ function RegisterForm() {
 
             {/* Success Message */}
             {success && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="mb-6 rounded-xl border border-green-200 bg-green-50/90 p-4 shadow-sm">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
                     <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
@@ -375,7 +382,7 @@ function RegisterForm() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormInput
                   label="ชื่อ"
                   name="firstName"
@@ -450,7 +457,7 @@ function RegisterForm() {
               />
 
               <div className="mt-8 space-y-4">
-                <div className="flex items-start gap-2 mb-2">
+                <div className="mb-2 flex items-start gap-2">
                   <input
                     id="consent"
                     name="consent"
@@ -481,25 +488,28 @@ function RegisterForm() {
 
                 {/* reCAPTCHA v2 Checkbox */}
                 <div className="my-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="mb-2 block text-sm font-medium text-gray-700">
                     ยืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ
                   </label>
-                  <div id="recaptcha-container" className="g-recaptcha"></div>
+                  <div
+                    id="recaptcha-container"
+                    className="g-recaptcha overflow-hidden rounded-lg border border-gray-200 bg-gray-50/80 p-2"
+                  ></div>
                 </div>
 
                 <button
                   type="submit"
                   disabled={isSubmitting || !formData.consent}
-                  className={`w-full px-8 py-3 rounded-full font-semibold text-sm md:text-base transition-all duration-300 shadow-sm ${
+                  className={`w-full rounded-full px-8 py-3 text-sm font-semibold md:text-base transition-all duration-300 shadow-sm ${
                     isSubmitting || !formData.consent
-                      ? "bg-blue-300 text-white cursor-not-allowed"
-                      : "bg-blue-700 hover:bg-blue-800 text-white hover:shadow-lg"
+                      ? "cursor-not-allowed bg-blue-300 text-white opacity-90"
+                      : "bg-blue-700 text-white shadow-blue-500/30 hover:-translate-y-0.5 hover:bg-blue-800 hover:shadow-lg"
                   }`}
                 >
                   {isSubmitting ? "กำลังสมัครสมาชิกเว็บไซต์..." : "เปิดบัญชีการใช้งาน"}
                 </button>
 
-                <div className="text-center mt-4">
+                <div className="mt-4 text-center">
                   <p className="text-gray-600">
                     มีบัญชีอยู่แล้ว?{" "}
                     <Link

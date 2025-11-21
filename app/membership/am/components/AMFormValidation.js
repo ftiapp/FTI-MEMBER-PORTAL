@@ -426,17 +426,19 @@ const validateDocuments = (formData, errors) => {
   }
 
   // ตรวจสอบเอกสารที่จำเป็น (บังคับทุกกรณี)
-  // ตรวจสอบว่ามีไฟล์จริงๆ (file object หรือ url) ไม่ใช่แค่ object ว่าง
+  // รองรับทั้งไฟล์ที่อัปโหลดในรอบนี้ (file / url / File) และไฟล์เดิมจาก Summary API (fileUrl)
   const hasCompanyStamp =
     formData.companyStamp &&
     (formData.companyStamp.file ||
       formData.companyStamp.url ||
+      formData.companyStamp.fileUrl ||
       formData.companyStamp instanceof File);
 
   const hasAuthorizedSignature =
     formData.authorizedSignature &&
     (formData.authorizedSignature.file ||
       formData.authorizedSignature.url ||
+      formData.authorizedSignature.fileUrl ||
       formData.authorizedSignature instanceof File);
 
   if (!hasCompanyStamp) {

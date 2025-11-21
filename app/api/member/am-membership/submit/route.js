@@ -198,9 +198,10 @@ export async function POST(request) {
     let companyPhoneExtension = "";
 
     // If using multi-address structure, get email and phone from document delivery address (type 2)
-    if (data.addresses) {
+    const addressesJson = formData.get("addresses");
+    if (addressesJson) {
       try {
-        const addresses = JSON.parse(data.addresses);
+        const addresses = JSON.parse(addressesJson);
         const documentAddress = addresses["2"]; // Document delivery address
         if (documentAddress) {
           // Support dynamic keys like email-2, phone-2, phoneExtension-2 with fallback to generic keys

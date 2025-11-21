@@ -165,8 +165,22 @@ export async function GET(request) {
 // POST handler for checking tax ID availability
 export async function POST(request) {
   try {
-    const data = await request.json();
-    const { taxId } = data;
+    let data;
+
+    try {
+      data = await request.json();
+    } catch (parseError) {
+      console.error("Failed to parse AM tax ID request body:", parseError);
+      return NextResponse.json(
+        {
+          valid: false,
+          error: "รูปแบบคำขอไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง",
+        },
+        { status: 400 },
+      );
+    }
+
+    const { taxId } = data || {};
 
     console.log(`Checking AM TAX_ID: ${taxId}`);
 

@@ -16,23 +16,20 @@ export default function Membership() {
   return (
     <>
       <Navbar />
-      <div className="bg-gray-50 min-h-screen">
+      <div className="min-h-screen bg-gray-50">
         <HeroSection />
-        
-        <div className="space-y-6 max-w-7xl mx-auto p-6">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">สมาชิกสภาอุตสาหกรรม</h2>
-          </div>
 
+        <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 sm:px-6 lg:px-8">
+          {/* Member count highlight near top */}
+          <MemberCountBanner />
+
+          {/* Steps and membership information */}
           <StepWorkflow />
           <MembershipCards />
           <DocumentRequirements />
           <BenefitsComparison />
           <SummaryStatistics />
           <FAQSection />
-          <MemberCountBanner />
-         
         </div>
       </div>
       <Footer />
