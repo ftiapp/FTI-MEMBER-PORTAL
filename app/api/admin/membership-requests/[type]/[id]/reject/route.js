@@ -189,39 +189,39 @@ async function fetchCompleteApplicationData_DEPRECATED(connection, type, id) {
     } else if (type === "ic") {
       // IC specific tables
       const [addresses] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_Address WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_Address WHERE main_id = ?`,
         [id],
       );
       const [representatives] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_Representatives WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_Representatives WHERE main_id = ?`,
         [id],
       );
       const [businessTypes] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_BusinessTypes WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_BusinessTypes WHERE main_id = ?`,
         [id],
       );
       const [businessTypeOther] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_BusinessTypeOther WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_BusinessTypeOther WHERE main_id = ?`,
         [id],
       );
       const [products] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_Products WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_Products WHERE main_id = ?`,
         [id],
       );
       const [industryGroups] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_IndustryGroups WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?`,
         [id],
       );
       const [provinceChapters] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_ProvinceChapters WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?`,
         [id],
       );
       const [documents] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_Documents WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_Documents WHERE main_id = ?`,
         [id],
       );
       const [signatureName] = await connection.execute(
-        `SELECT * FROM MemberRegist_IC_Signature_Name WHERE ic_main_id = ?`,
+        `SELECT * FROM MemberRegist_IC_Signature_Name WHERE main_id = ?`,
         [id],
       );
 

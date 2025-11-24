@@ -694,7 +694,7 @@ export async function GET(request, { params }) {
 
       if (type === "ic") {
         signatureTableName = "MemberRegist_IC_Signature_Name";
-        signatureIdField = "ic_main_id";
+        signatureIdField = "main_id";
       } else {
         signatureTableName = `MemberRegist_${type.toUpperCase()}_Signature_Name`;
         signatureIdField = "main_id";

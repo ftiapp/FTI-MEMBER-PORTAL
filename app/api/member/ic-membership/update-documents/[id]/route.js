@@ -43,13 +43,23 @@ export async function POST(request, { params }) {
       );
     }
 
+    // Map form field names to canonical document_type used in DB/summary
+    const FIELD_TO_DOC_TYPE = {
+      idCardDocument: "idCard",
+      authorizedSignature: "authorizedSignature",
+      companyRegistrationDocument: "companyRegistration",
+      taxRegistrationDocument: "taxRegistration",
+    };
+
     const docTypesToReplace = new Set(Object.keys(files));
 
     for (const rawType of docTypesToReplace) {
-      const docType = rawType;
+      const canonicalType = FIELD_TO_DOC_TYPE[rawType] || rawType;
+
+      // Delete existing docs for both canonicalType และ rawType (รองรับของเก่า)
       const existingDocs = await executeQueryWithoutTransaction(
-        "SELECT id, cloudinary_url FROM MemberRegist_IC_Documents WHERE main_id = ? AND document_type = ?",
-        [id, docType],
+        "SELECT id, cloudinary_url FROM MemberRegist_IC_Documents WHERE main_id = ? AND document_type IN (?, ?)",
+        [id, canonicalType, rawType],
       );
 
       if (existingDocs && existingDocs.length > 0) {
@@ -64,8 +74,8 @@ export async function POST(request, { params }) {
         }
 
         await executeQueryWithoutTransaction(
-          "DELETE FROM MemberRegist_IC_Documents WHERE main_id = ? AND document_type = ?",
-          [id, docType],
+          "DELETE FROM MemberRegist_IC_Documents WHERE main_id = ? AND document_type IN (?, ?)",
+          [id, canonicalType, rawType],
         );
       }
     }
@@ -74,6 +84,9 @@ export async function POST(request, { params }) {
 
     for (const fieldName of Object.keys(files)) {
       const file = files[fieldName];
+
+      // Map field name to canonical document_type
+      const documentType = FIELD_TO_DOC_TYPE[fieldName] || fieldName;
 
       try {
         const buffer = await file.arrayBuffer();
@@ -84,7 +97,7 @@ export async function POST(request, { params }) {
 
         if (result.success) {
           uploadedDocuments[fieldName] = {
-            document_type: fieldName,
+            document_type: documentType,
             file_name: file.name,
             file_path: result.url,
             file_size: file.size,

@@ -94,7 +94,7 @@ export async function POST(request, { params }) {
         break;
       case "ic":
         signatureTable = "MemberRegist_IC_Signature_Name";
-        mainIdColumn = "ic_main_id";
+        mainIdColumn = "main_id";
         break;
       default:
         throw new Error("Unsupported membership type");

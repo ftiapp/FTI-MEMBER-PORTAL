@@ -207,6 +207,15 @@ export async function GET(request, { params }) {
       // ข้อมูลหลักของผู้สมัคร
       userId: mainData.user_id || null,
       idCardNumber: mainData.id_card_number,
+      // คำนำหน้าชื่อ (เก็บทั้งแบบ camelCase และ snake_case เพื่อให้ frontend ใช้งานได้สะดวก)
+      prenameTh: mainData.prename_th,
+      prenameEn: mainData.prename_en,
+      prenameOther: mainData.prename_other,
+      prenameOtherEn: mainData.prename_other_en,
+      prename_th: mainData.prename_th,
+      prename_en: mainData.prename_en,
+      prename_other: mainData.prename_other,
+      prename_other_en: mainData.prename_other_en,
       firstNameTh: mainData.first_name_th,
       lastNameTh: mainData.last_name_th,
       firstNameEn: mainData.first_name_en,
@@ -261,6 +270,16 @@ export async function GET(request, { params }) {
       representative:
         representativeResult.length > 0
           ? {
+              // คำนำหน้าชื่อผู้แทน (เก็บทั้งแบบ camelCase และ snake_case ให้ hook ใช้งานได้)
+              prenameTh: representativeResult[0].prename_th || null,
+              prenameEn: representativeResult[0].prename_en || null,
+              prenameOther: representativeResult[0].prename_other || null,
+              prenameOtherEn: representativeResult[0].prename_other_en || null,
+              prename_th: representativeResult[0].prename_th || null,
+              prename_en: representativeResult[0].prename_en || null,
+              prename_other: representativeResult[0].prename_other || null,
+              prename_other_en: representativeResult[0].prename_other_en || null,
+
               firstNameTh: representativeResult[0].first_name_th,
               lastNameTh: representativeResult[0].last_name_th,
               firstNameEn: representativeResult[0].first_name_en,

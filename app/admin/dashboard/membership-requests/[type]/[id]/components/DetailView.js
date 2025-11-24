@@ -1,7 +1,6 @@
 import React from "react";
 import ApplicantInfoSection from "../../../components/sections/ApplicantInfoSection";
 import CompanyInfoSection from "../../../components/sections/CompanyInfoSection";
-import ContactPersonSection from "../../../components/sections/ContactPersonSection";
 import AddressSection from "../../../components/sections/AddressSection";
 import RepresentativesSection from "../../../components/sections/RepresentativesSection";
 import IndustrialGroupsSection from "../../../components/sections/IndustrialGroupsSection";
@@ -121,7 +120,6 @@ const DetailView = ({
     <div className="space-y-6">
       {/* Sections */}
       <CompanyInfoSection application={application} type={type} onUpdate={handleSectionUpdate} />
-      <ContactPersonSection application={application} onUpdate={handleSectionUpdate} />
       <IndustrialGroupsSection
         application={application}
         industrialGroups={industrialGroups}

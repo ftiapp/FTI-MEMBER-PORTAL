@@ -479,30 +479,45 @@ export default function SummarySection({
   const getIndustrialGroupNames = () => {
     console.log("Debug - formData.industrialGroupId:", formData.industrialGroupId);
 
-    // อ่านจาก industrialGroupId (ที่ IndustrialGroupSection บันทึกไว้)
-    if (
-      formData.industrialGroupId &&
-      Array.isArray(formData.industrialGroupId) &&
-      formData.industrialGroupId.length > 0
-    ) {
-      return formData.industrialGroupId.map((id) => {
-        // หาชื่อจาก industrialGroups prop
-        let group = null;
+    // อ่านจาก industrialGroupId หรือ industrialGroupIds (จาก IndustrialGroupSection)
+    const idsSource =
+      (Array.isArray(formData.industrialGroupId) && formData.industrialGroupId.length
+        ? formData.industrialGroupId
+        : null) ||
+      (Array.isArray(formData.industrialGroupIds) && formData.industrialGroupIds.length
+        ? formData.industrialGroupIds
+        : null);
 
-        if (industrialGroups?.data) {
-          group = industrialGroups.data.find((g) => g.MEMBER_GROUP_CODE === id || g.id === id);
-        } else if (Array.isArray(industrialGroups)) {
-          group = industrialGroups.find((g) => g.id === id || g.MEMBER_GROUP_CODE === id);
-        }
+    if (idsSource) {
+      return idsSource
+        .filter((id) => {
+          const s = String(id ?? "").trim();
+          return s && s !== "000" && s !== "0";
+        })
+        .map((id) => {
+          // หาชื่อจาก industrialGroups prop
+          let group = null;
 
-        return group ? group.MEMBER_GROUP_NAME || group.name_th || String(id) : String(id);
-      });
+          if (industrialGroups?.data) {
+            group = industrialGroups.data.find(
+              (g) => g.MEMBER_GROUP_CODE === id || g.id === id,
+            );
+          } else if (Array.isArray(industrialGroups)) {
+            group = industrialGroups.find((g) => g.id === id || g.MEMBER_GROUP_CODE === id);
+          }
+
+          return group ? group.MEMBER_GROUP_NAME || group.name_th || String(id) : String(id);
+        });
     }
     // Fallback เพิ่มเติม: ใช้จาก formData.industryGroups หาก API ใส่มาในฟอร์มโดยตรง (แสดงเฉพาะที่เลือกไว้)
     if (Array.isArray(formData.industryGroups) && formData.industryGroups.length > 0) {
-      return formData.industryGroups.map(
-        (g) => g.industryGroupName || g.MEMBER_GROUP_NAME || g.name_th || String(g.id),
-      );
+      return formData.industryGroups
+        .filter((g) => {
+          const id = g?.id;
+          const s = String(id ?? "").trim();
+          return s && s !== "000" && s !== "0";
+        })
+        .map((g) => g.industryGroupName || g.MEMBER_GROUP_NAME || g.name_th || String(g.id));
     }
     return [];
   };
@@ -511,30 +526,47 @@ export default function SummarySection({
   const getProvincialChapterNames = () => {
     console.log("Debug - formData.provincialChapterId:", formData.provincialChapterId);
 
-    // อ่านจาก provincialChapterId (ที่ IndustrialGroupSection บันทึกไว้)
-    if (
-      formData.provincialChapterId &&
-      Array.isArray(formData.provincialChapterId) &&
-      formData.provincialChapterId.length > 0
-    ) {
-      return formData.provincialChapterId.map((id) => {
-        // หาชื่อจาก provincialChapters prop
-        let chapter = null;
+    // อ่านจาก provincialChapterId หรือ provincialChapterIds (จาก IndustrialGroupSection)
+    const idsSource =
+      (Array.isArray(formData.provincialChapterId) && formData.provincialChapterId.length
+        ? formData.provincialChapterId
+        : null) ||
+      (Array.isArray(formData.provincialChapterIds) && formData.provincialChapterIds.length
+        ? formData.provincialChapterIds
+        : null);
 
-        if (provincialChapters?.data) {
-          chapter = provincialChapters.data.find((c) => c.MEMBER_GROUP_CODE === id || c.id === id);
-        } else if (Array.isArray(provincialChapters)) {
-          chapter = provincialChapters.find((c) => c.id === id || c.MEMBER_GROUP_CODE === id);
-        }
+    if (idsSource) {
+      return idsSource
+        .filter((id) => {
+          const s = String(id ?? "").trim();
+          return s && s !== "000" && s !== "0";
+        })
+        .map((id) => {
+          // หาชื่อจาก provincialChapters prop
+          let chapter = null;
 
-        return chapter ? chapter.MEMBER_GROUP_NAME || chapter.name_th || String(id) : String(id);
-      });
+          if (provincialChapters?.data) {
+            chapter = provincialChapters.data.find(
+              (c) => c.MEMBER_GROUP_CODE === id || c.id === id,
+            );
+          } else if (Array.isArray(provincialChapters)) {
+            chapter = provincialChapters.find((c) => c.id === id || c.MEMBER_GROUP_CODE === id);
+          }
+
+          return chapter ? chapter.MEMBER_GROUP_NAME || chapter.name_th || String(id) : String(id);
+        });
     }
     // Fallback เพิ่มเติม: ใช้จาก formData.provinceChapters หาก API ใส่มาในฟอร์มโดยตรง (แสดงเฉพาะที่เลือกไว้)
     if (Array.isArray(formData.provinceChapters) && formData.provinceChapters.length > 0) {
-      return formData.provinceChapters.map(
-        (c) => c.provinceChapterName || c.MEMBER_GROUP_NAME || c.name_th || String(c.id),
-      );
+      return formData.provinceChapters
+        .filter((c) => {
+          const id = c?.id;
+          const s = String(id ?? "").trim();
+          return s && s !== "000" && s !== "0";
+        })
+        .map(
+          (c) => c.provinceChapterName || c.MEMBER_GROUP_NAME || c.name_th || String(c.id),
+        );
     }
     return [];
   };

@@ -308,7 +308,12 @@ export async function GET(request, { params }) {
       (doc) => doc.document_type === "companyStamp",
     );
     const authorizedSignatureDoc = relatedData.documents.find(
-      (doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures",
+      (doc) =>
+        doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures",
+    );
+    // 🔥 เพิ่ม: หนังสือรับรองบริษัท
+    const companyCertificateDoc = relatedData.documents.find(
+      (doc) => doc.document_type === "companyCertificate",
     );
 
     // Build response in the format that SummarySection expects
@@ -427,6 +432,9 @@ export async function GET(request, { params }) {
 
       // Company stamp document (new required document)
       companyStamp: formatDocumentForResponse(companyStampDoc),
+
+      // Company certificate document (new required document)
+      companyCertificate: formatDocumentForResponse(companyCertificateDoc),
 
       // Authorized signature document (new required document)
       authorizedSignature: formatDocumentForResponse(authorizedSignatureDoc),

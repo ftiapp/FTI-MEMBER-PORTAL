@@ -200,10 +200,21 @@ export default function ICMembershipForm(props = {}) {
       setIsSubmitting(true);
 
       try {
-        const result = await submitICMembershipForm(formData);
+        let result;
+
+        // 🔁 โหมดแก้ไข (edit-v4): ให้ใช้ onEditSubmit จาก parent แทนการสร้างใบสมัครใหม่
+        if (props.isEditMode && typeof props.onEditSubmit === "function") {
+          result = await props.onEditSubmit(formData);
+        } else {
+          // โหมดสมัครใหม่: ใช้ submitICMembershipForm เดิม
+          result = await submitICMembershipForm(formData);
+        }
 
         if (result.success) {
-          await deleteDraft(formData.idCardNumber);
+          // ลบ draft เฉพาะโหมดสมัครใหม่ (มี draft)
+          if (!props.isEditMode && formData.idCardNumber) {
+            await deleteDraft(formData.idCardNumber);
+          }
           setSubmissionResult(result);
           setShowSuccessModal(true);
           setIsSubmitting(false);
@@ -217,7 +228,7 @@ export default function ICMembershipForm(props = {}) {
         toast.error("เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง");
       }
     },
-    [formData, currentStep, router, setCurrentStep, consentAgreed],
+    [formData, currentStep, router, setCurrentStep, consentAgreed, props.isEditMode, props.onEditSubmit],
   );
 
   // Handle next step
@@ -284,7 +295,8 @@ export default function ICMembershipForm(props = {}) {
       }
 
       // Special check for ID Card on step 1
-      if (currentStep === 1 && formData.idCardNumber?.length === 13) {
+      // ข้ามการเช็คเลขบัตรซ้ำในโหมดแก้ไข (edit mode) เพื่อให้ผู้สมัครที่มีใบสมัครเดิมอยู่แล้วสามารถแก้ไขได้
+      if (!props.isEditMode && currentStep === 1 && formData.idCardNumber?.length === 13) {
         const idCardResult = await checkIdCard(formData.idCardNumber);
         if (!idCardResult.isUnique) {
           setErrors((prev) => ({ ...prev, idCardNumber: idCardResult.message }));
@@ -346,6 +358,7 @@ export default function ICMembershipForm(props = {}) {
       industrialGroups,
       provincialChapters,
       showErrors,
+      isEditMode: props.isEditMode,
     });
   }, [
     currentStep,
@@ -356,6 +369,7 @@ export default function ICMembershipForm(props = {}) {
     provincialChapters,
     idCardValidating,
     showErrors,
+    props.isEditMode,
   ]);
 
   // Show loading state

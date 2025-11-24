@@ -187,8 +187,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    if (formData.businessTypes) {
-      const businessTypes = ensureArray(formData.businessTypes);
+    if (formData.businessTypes && typeof formData.businessTypes === "object") {
       await connection.execute("DELETE FROM MemberRegist_IC_BusinessTypes WHERE main_id = ?", [id]);
 
       const businessTypeMap = {
@@ -196,14 +195,21 @@ export async function POST(request, { params }) {
         distributor: "distributor",
         importer: "importer",
         exporter: "exporter",
-        service: "service_provider",
-        service_provider: "service_provider",
+        // map ทุกค่า service/service_provider ให้เป็นคำว่า "service" ตาม format DB ที่ต้องการ
+        service: "service",
+        service_provider: "service",
         other: "other",
       };
 
-      for (const type of businessTypes) {
-        if (!type) continue;
-        const mapped = businessTypeMap[type] || type;
+      const flags = formData.businessTypes || {};
+      for (const key of Object.keys(flags)) {
+        if (!flags[key]) continue;
+
+        const s = String(key).trim();
+        // ตัดค่าที่เป็นตัวเลขล้วน (1,2,3,4..) ทิ้ง ไม่ให้ไปลงตาราง IC
+        if (!s || /^\d+$/.test(s)) continue;
+
+        const mapped = businessTypeMap[s] || s;
         await connection.execute(
           `INSERT INTO MemberRegist_IC_BusinessTypes (main_id, business_type) VALUES (?, ?)`,
           [id, mapped],
@@ -234,49 +240,89 @@ export async function POST(request, { params }) {
       }
     }
 
-    if (formData.industryGroups || formData.industrialGroupId) {
-      await connection.execute("DELETE FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?", [id]);
+    // Authorized signatory name and prename (IC)
+    await connection.execute("DELETE FROM MemberRegist_IC_Signature_Name WHERE main_id = ?", [id]);
+    const hasAuthorizedSignatoryName =
+      (formData.authorizedSignatoryFirstNameTh && formData.authorizedSignatoryFirstNameTh.trim()) ||
+      (formData.authorizedSignatoryLastNameTh && formData.authorizedSignatoryLastNameTh.trim()) ||
+      (formData.authorizedSignatoryFirstNameEn && formData.authorizedSignatoryFirstNameEn.trim()) ||
+      (formData.authorizedSignatoryLastNameEn && formData.authorizedSignatoryLastNameEn.trim());
 
-      const idsRaw = formData.industryGroups || formData.industrialGroupId;
-      const ids = ensureArray(idsRaw);
+    if (hasAuthorizedSignatoryName) {
+      await connection.execute(
+        `INSERT INTO MemberRegist_IC_Signature_Name (
+          main_id, prename_th, prename_en, prename_other, prename_other_en,
+          first_name_th, last_name_th, first_name_en, last_name_en,
+          position_th, position_en
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          formData.authorizedSignatoryPrenameTh || null,
+          formData.authorizedSignatoryPrenameEn || null,
+          formData.authorizedSignatoryPrenameOther || null,
+          formData.authorizedSignatoryPrenameOtherEn || null,
+          formData.authorizedSignatoryFirstNameTh || null,
+          formData.authorizedSignatoryLastNameTh || null,
+          formData.authorizedSignatoryFirstNameEn || null,
+          formData.authorizedSignatoryLastNameEn || null,
+          formData.authorizedSignatoryPositionTh || null,
+          formData.authorizedSignatoryPositionEn || null,
+        ],
+      );
+    }
+
+    // Industry groups (ใช้ pattern เดียวกับ AC/AM)
+    if (formData.industrialGroupIds) {
+      const ids = ensureArray(formData.industrialGroupIds);
       const names = ensureArray(formData.industrialGroupNames || []);
+      await connection.execute("DELETE FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?", [id]);
 
       for (let i = 0; i < ids.length; i++) {
         const groupId = ids[i];
         if (!groupId) continue;
-        const groupName = names[i] || "ไม่ระบุ";
+        const groupName = names[i] || "";
         await connection.execute(
           `INSERT INTO MemberRegist_IC_IndustryGroups (main_id, industry_group_id, industry_group_name) VALUES (?, ?, ?)`,
-          [id, groupId.toString(), groupName],
+          [id, groupId, groupName],
         );
       }
     }
 
-    if (formData.provinceChapters || formData.provincialChapterId) {
+    // Province chapters (ใช้ pattern เดียวกับ AC/AM)
+    if (formData.provincialChapterIds) {
+      const ids = ensureArray(formData.provincialChapterIds);
+      const names = ensureArray(formData.provincialChapterNames || []);
       await connection.execute("DELETE FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?", [id]);
-
-      const idsRaw = formData.provinceChapters || formData.provincialChapterId;
-      const ids = ensureArray(idsRaw);
-      const names = ensureArray(formData.provincialChapterNames || formData.provincialCouncilNames || []);
 
       for (let i = 0; i < ids.length; i++) {
         const chapterId = ids[i];
         if (!chapterId) continue;
-        const chapterName = names[i] || "ไม่ระบุ";
+        const chapterName = names[i] || "";
         await connection.execute(
           `INSERT INTO MemberRegist_IC_ProvinceChapters (main_id, province_chapter_id, province_chapter_name) VALUES (?, ?, ?)`,
-          [id, chapterId.toString(), chapterName],
+          [id, chapterId, chapterName],
         );
       }
     }
 
     await connection.commit();
 
+    // ส่งอีเมลยืนยันการแก้ไข (resubmission) ใบสมัคร IC โดยใช้อีเมลผู้ใช้เป็นหลัก
     try {
-      const email = formData.email || user.email;
+      let email = null;
+
+      // 1) ใช้ user.email จาก FTI_Portal_User เป็นหลัก
+      if (user.email) {
+        email = user.email;
+      } else if (formData.email) {
+        // 2) Fallback: email จากฟอร์มใบสมัคร (กรณี user.email ไม่มี)
+        email = formData.email;
+      }
+
       if (email) {
-        const displayName = `${formData.firstNameThai || formData.firstNameTh || user.firstname || ""} ${formData.lastNameThai || formData.lastNameTh || user.lastname || ""}`.trim() || "ผู้สมัคร";
-        const applicantName = displayName;
+        const displayName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
+        const applicantName =
+          formData.firstNameThai || formData.firstNameTh || formData.first_name_th || "";
         await sendOCMembershipEditConfirmationEmail(email, displayName, "IC", applicantName);
       }
     } catch (emailError) {

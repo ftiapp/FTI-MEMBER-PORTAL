@@ -4,7 +4,8 @@ export default function IdCardField({
   idCardValidation,
   handleIdCardChange,
   handleIdCardBlur,
-  isLoading
+  isLoading,
+  isEditMode,
 }) {
   // แก้ไข CSS class สำหรับ input field
   const getInputClassName = () => {
@@ -120,10 +121,16 @@ export default function IdCardField({
           id="idCardNumber"
           name="idCardNumber"
           value={formData.idCardNumber || ""}
-          onChange={(e) => handleIdCardChange(e.target.value, errors)}
-          onBlur={(e) => handleIdCardBlur(e.target.value)}
+          onChange={(e) => {
+            if (isEditMode) return;
+            handleIdCardChange(e.target.value, errors);
+          }}
+          onBlur={(e) => {
+            if (isEditMode) return;
+            handleIdCardBlur(e.target.value);
+          }}
           maxLength="13"
-          disabled={isLoading}
+          disabled={isLoading || isEditMode}
           className={getInputClassName()}
           placeholder="กรอกเลขบัตรประชาชน 13 หลัก"
         />

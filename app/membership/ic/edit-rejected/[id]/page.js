@@ -47,15 +47,20 @@ export default function EditRejectedIC() {
       const result = await response.json();
 
       if (result.success) {
-        setRejectedApp(result.data);
+        const data = result.data;
 
-        // Map rejection data to form data based on membership type
-        if (result.data.rejectionData) {
-          console.log("📦 Raw rejectionData from API:", result.data.rejectionData);
-          const mapped = mapRejectionDataToForm(
-            result.data.membershipType,
-            result.data.rejectionData,
-          );
+        // ถ้ามี membershipId แล้ว ให้ใช้หน้า edit-v4 เป็นหลัก
+        if (data?.membershipId) {
+          router.replace(`/membership/ic/edit-v4/${data.membershipId}`);
+          return;
+        }
+
+        setRejectedApp(data);
+
+        // Map rejection data to form data based on membership type (fallback legacy behaviour)
+        if (data.rejectionData) {
+          console.log("📦 Raw rejectionData from API:", data.rejectionData);
+          const mapped = mapRejectionDataToForm(data.membershipType, data.rejectionData);
           console.log("🎯 Mapped formData:", mapped);
           console.log("📍 Address fields:", {
             addressNumber: mapped.addressNumber,

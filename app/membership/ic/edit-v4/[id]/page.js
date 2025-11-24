@@ -8,6 +8,9 @@ import Navbar from "../../../../components/Navbar";
 import Footer from "../../../../components/Footer";
 import LoadingOverlay from "../../../components/LoadingOverlay";
 import ICMembershipForm from "@/app/membership/ic/components/ICMembershipForm";
+import ICStepIndicator from "@/app/membership/ic/components/ICStepIndicator";
+import MembershipConversationHistory from "@/app/membership/components/MembershipConversationHistory";
+import { INITIAL_FORM_DATA } from "@/app/membership/ic/components/ICMembershipForm/constants";
 import { submitICMembershipDocumentsUpdate } from "@/app/membership/ic/components/ICFormSubmission";
 
 export default function EditICApplicationV4() {
@@ -47,12 +50,25 @@ export default function EditICApplicationV4() {
           };
         }
 
+        // Normalize business info fields before sending to API
+        const normalizedData = { ...data };
+
+        // Ensure industrialGroupId has the selected IDs (copy from industrialGroupIds if needed)
+        if (!normalizedData.industrialGroupId && normalizedData.industrialGroupIds) {
+          normalizedData.industrialGroupId = normalizedData.industrialGroupIds;
+        }
+
+        // Ensure provincialChapterId has the selected IDs (copy from provincialChapterIds if needed)
+        if (!normalizedData.provincialChapterId && normalizedData.provincialChapterIds) {
+          normalizedData.provincialChapterId = normalizedData.provincialChapterIds;
+        }
+
         const res = await fetch(`/api/membership/ic-v4/${params.id}/update`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ formData: data }),
+          body: JSON.stringify({ formData: normalizedData }),
         });
 
         const result = await res.json();
@@ -116,7 +132,101 @@ export default function EditICApplicationV4() {
         throw new Error("ไม่พบข้อมูลใบสมัคร");
       }
 
-      setFormData(result.data || {});
+      const data = result.data || {};
+
+      // Map summary API data into the shape expected by ICMembershipForm
+      const mappedFormData = {
+        ...INITIAL_FORM_DATA,
+        ...data,
+        // Applicant basic info
+        idCardNumber: data.idCardNumber || data.id_card_number || INITIAL_FORM_DATA.idCardNumber,
+        // Prename fields (support both camelCase and snake_case from API)
+        prename_th: data.prename_th || data.prenameTh || INITIAL_FORM_DATA.prename_th,
+        prenameTh: data.prenameTh || data.prename_th || INITIAL_FORM_DATA.prename_th,
+        prename_en: data.prename_en || data.prenameEn || INITIAL_FORM_DATA.prename_en,
+        prenameEn: data.prenameEn || data.prename_en || INITIAL_FORM_DATA.prename_en,
+        prename_other:
+          data.prename_other || data.prenameOther || INITIAL_FORM_DATA.prename_other,
+        prenameOther:
+          data.prenameOther || data.prename_other || INITIAL_FORM_DATA.prename_other,
+        prename_other_en:
+          data.prename_other_en || data.prenameOtherEn || INITIAL_FORM_DATA.prename_other_en,
+        prenameOtherEn:
+          data.prenameOtherEn || data.prename_other_en || INITIAL_FORM_DATA.prename_other_en,
+        firstNameThai: data.firstNameThai || data.firstNameTh || INITIAL_FORM_DATA.firstNameThai,
+        lastNameThai: data.lastNameThai || data.lastNameTh || INITIAL_FORM_DATA.lastNameThai,
+        firstNameEng: data.firstNameEng || data.firstNameEn || INITIAL_FORM_DATA.firstNameEng,
+        lastNameEng: data.lastNameEng || data.lastNameEn || INITIAL_FORM_DATA.lastNameEng,
+        phone: data.phone || INITIAL_FORM_DATA.phone,
+        phoneExtension: data.phoneExtension || INITIAL_FORM_DATA.phoneExtension,
+        email: data.email || INITIAL_FORM_DATA.email,
+        website:
+          data.website ||
+          data.address?.website ||
+          (data.addresses && data.addresses["2"]?.website) ||
+          INITIAL_FORM_DATA.website,
+        // Industrial group & provincial chapter (use first entry if arrays are provided)
+        industrialGroupIds:
+          data.industrialGroupIds ||
+          data.industrialGroupId ||
+          (Array.isArray(data.industryGroups)
+            ? data.industryGroups.map((ig) => ig.id).filter(Boolean)
+            : INITIAL_FORM_DATA.industrialGroupId || []),
+        industrialGroupId:
+          data.industrialGroupId ||
+          data.industrialGroupIds ||
+          (Array.isArray(data.industryGroups)
+            ? data.industryGroups.map((ig) => ig.id).filter(Boolean)
+            : INITIAL_FORM_DATA.industrialGroupId || []),
+        // เก็บชื่อกลุ่มอุตสาหกรรมไว้ด้วยเพื่อให้ฝั่ง update ใช้บันทึกชื่อถูกต้อง
+        industrialGroupNames: Array.isArray(data.industryGroups)
+          ? data.industryGroups.map(
+              (ig) => ig.industryGroupName || ig.industry_group_name || ig.name_th || "",
+            )
+          : INITIAL_FORM_DATA.industrialGroupNames || [],
+
+        provincialChapterIds:
+          data.provincialChapterIds ||
+          data.provincialChapterId ||
+          (Array.isArray(data.provinceChapters)
+            ? data.provinceChapters.map((pc) => pc.id).filter(Boolean)
+            : INITIAL_FORM_DATA.provincialChapterId || []),
+        provincialChapterId:
+          data.provincialChapterId ||
+          data.provincialChapterIds ||
+          (Array.isArray(data.provinceChapters)
+            ? data.provinceChapters.map((pc) => pc.id).filter(Boolean)
+            : INITIAL_FORM_DATA.provincialChapterId || []),
+        // เก็บชื่อสภาจังหวัดไว้ด้วย
+        provincialChapterNames: Array.isArray(data.provinceChapters)
+          ? data.provinceChapters.map(
+              (pc) => pc.provinceChapterName || pc.province_chapter_name || pc.name_th || "",
+            )
+          : INITIAL_FORM_DATA.provincialChapterNames || [],
+
+        // Existing documents from summary API (for edit mode)
+        idCardDocument: data.idCardDocument || INITIAL_FORM_DATA.idCardDocument || null,
+        authorizedSignature:
+          data.authorizedSignature || INITIAL_FORM_DATA.authorizedSignature || null,
+      };
+
+      // Addresses: prefer multi-address structure from API, fallback to legacy single address
+      if (data.addresses && Object.keys(data.addresses).length > 0) {
+        mappedFormData.addresses = {
+          ...INITIAL_FORM_DATA.addresses,
+          ...data.addresses,
+        };
+      } else if (data.address) {
+        mappedFormData.addresses = {
+          ...INITIAL_FORM_DATA.addresses,
+          2: {
+            addressType: "2",
+            ...(data.address || {}),
+          },
+        };
+      }
+
+      setFormData(mappedFormData);
     } catch (e) {
       console.error("[IC-V4] Load error:", e);
       setError(e.message || "ไม่สามารถโหลดข้อมูลใบสมัครได้");
@@ -188,11 +298,43 @@ export default function EditICApplicationV4() {
         </div>
 
         <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 relative overflow-hidden">
+          <motion.div
+            className="bg-white rounded-xl shadow-lg p-6 md:p-8 mb-8 relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+          >
             {!isMobile && (
               <>
                 <div className="absolute top-0 right-0 w-40 h-40 bg-blue-50 rounded-full -mr-20 -mt-20"></div>
                 <div className="absolute bottom-0 left-0 w-60 h-60 bg-blue-50 rounded-full -ml-20 -mb-20"></div>
+              </>
+            )}
+
+            <div className="relative z-10">
+              <ICStepIndicator steps={steps} currentStep={currentStep} />
+            </div>
+          </motion.div>
+
+          <motion.div
+            className="mb-8"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+          >
+            <MembershipConversationHistory membershipType="ic" membershipId={params.id} />
+          </motion.div>
+
+          <motion.div
+            className="bg-white rounded-xl shadow-lg relative overflow-hidden"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
+          >
+            {!isMobile && (
+              <>
+                <div className="absolute top-0 left-0 w-32 h-32 bg-blue-50 rounded-full -ml-16 -mt-16"></div>
+                <div className="absolute bottom-0 right-0 w-48 h-48 bg-blue-50 rounded-full -mr-24 -mb-24"></div>
               </>
             )}
 
@@ -206,9 +348,10 @@ export default function EditICApplicationV4() {
                 totalSteps={steps.length}
                 isEditMode={true}
                 disableSaveDraft={true}
+                onEditSubmit={handleEditSubmit}
               />
             </div>
-          </div>
+          </motion.div>
         </div>
       </main>
       <Footer />

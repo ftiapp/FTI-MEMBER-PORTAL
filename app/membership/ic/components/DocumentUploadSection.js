@@ -279,7 +279,8 @@ export default function DocumentUploadSection({ formData, setFormData, errors })
 
     // If it's an object from history (existing upload), try common URL fields
     if (typeof file === "object" && !(file instanceof Blob)) {
-      const existingUrl = file.cloudinary_url || file.file_path || file.url || file.path;
+      const existingUrl =
+        file.cloudinary_url || file.fileUrl || file.file_path || file.url || file.path;
       if (existingUrl && typeof existingUrl === "string") {
         window.open(existingUrl, "_blank");
         return;

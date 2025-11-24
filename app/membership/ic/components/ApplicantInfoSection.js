@@ -9,6 +9,7 @@ export default function ApplicantInfoSectionWrapper({
   industrialGroups,
   provincialChapters,
   isLoading,
+  isEditMode,
 }) {
   return (
     <ApplicantInfoSection
@@ -18,6 +19,7 @@ export default function ApplicantInfoSectionWrapper({
       industrialGroups={industrialGroups}
       provincialChapters={provincialChapters}
       isLoading={isLoading}
+      isEditMode={isEditMode}
     />
   );
 }

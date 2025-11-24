@@ -532,8 +532,18 @@ export async function POST(request, { params }) {
 
     await connection.commit();
 
+    // ส่งอีเมลยืนยันโดยใช้อีเมลผู้ใช้ (FTI_Portal_User) เป็นหลัก แล้วค่อย fallback ไปที่ companyEmail
     try {
-      const email = formData.companyEmail || user.email;
+      let email = null;
+
+      // 1) ใช้ user.email จาก FTI_Portal_User เป็นหลัก
+      if (user.email) {
+        email = user.email;
+      } else if (formData.companyEmail) {
+        // 2) Fallback: companyEmail จากฟอร์ม ถ้า user.email ไม่มี
+        email = formData.companyEmail;
+      }
+
       if (email) {
         const displayName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
         const companyName = formData.companyName || "";

@@ -153,32 +153,37 @@ export default function EditRejectedAM() {
       console.log("🌐 API Response:", result);
 
       if (result.success) {
-        setRejectedApp(result.data);
+        const data = result.data;
+        setRejectedApp(data);
+
         console.log("🔍 Checking membership data:", {
-          membershipType: result.data.membershipType,
-          membershipId: result.data.membershipId,
-          hasData: !!result.data,
+          membershipType: data.membershipType,
+          membershipId: data.membershipId,
+          hasData: !!data,
         });
-        if (result.data.membershipType && result.data.membershipId) {
-          console.log(
-            "📞 Calling fetchComments with:",
-            result.data.membershipType,
-            result.data.membershipId,
-          );
-          fetchComments(result.data.membershipType, result.data.membershipId);
+
+        // ถ้ามี membershipId แล้ว ให้ใช้หน้า edit-v4 เป็นหลัก
+        if (data.membershipType && data.membershipId) {
+          router.replace(`/membership/am/edit-v4/${data.membershipId}`);
+          return;
+        }
+
+        if (data.membershipType && data.membershipId) {
+          console.log("📞 Calling fetchComments with:", data.membershipType, data.membershipId);
+          fetchComments(data.membershipType, data.membershipId);
         } else {
           console.log("❌ Missing membershipType or membershipId in response");
         }
-        console.log("📋 Rejected App Data:", result.data);
+        console.log("📋 Rejected App Data:", data);
 
-        if (result.data.rejectionData) {
+        if (data.rejectionData) {
           console.log("🔄 Found rejectionData, mapping...");
           // Map the rejection snapshot to form shape expected by AMMembershipForm
-          const mapped = mapRejectionDataToAMForm(result.data.rejectionData);
+          const mapped = mapRejectionDataToAMForm(data.rejectionData);
           console.log("🎯 Setting formData to:", mapped);
           setFormData(mapped);
 
-          const adminNote = result.data.adminNote?.toLowerCase() || "";
+          const adminNote = data.adminNote?.toLowerCase() || "";
           if (
             adminNote.includes("สมาคม") ||
             adminNote.includes("association") ||

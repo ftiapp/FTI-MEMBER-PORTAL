@@ -11,7 +11,6 @@ const AdminActionsSection = ({
   type,
   onOpenRejectModal,
 }) => {
-  const isProduction = process.env.NODE_ENV === "production";
 
   if (!application) return null;
 
@@ -83,23 +82,21 @@ const AdminActionsSection = ({
       {/* Action Buttons */}
       {application.status === 0 && (
         <div className="flex justify-end space-x-4">
-          {!isProduction && (
-            <button
-              onClick={handleReject}
-              className="flex items-center gap-2 px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-              disabled={isSubmitting}
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              {isSubmitting ? "กำลังดำเนินการ..." : "ปฏิเสธ"}
-            </button>
-          )}
+          <button
+            onClick={handleReject}
+            className="flex items-center gap-2 px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+            disabled={isSubmitting}
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+            {isSubmitting ? "กำลังดำเนินการ..." : "ปฏิเสธ"}
+          </button>
           <button
             onClick={handleApprove}
             className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 transition-colors"

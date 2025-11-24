@@ -23,6 +23,7 @@ export const renderStepComponent = ({
   industrialGroups,
   provincialChapters,
   showErrors,
+  isEditMode,
 }) => {
   const commonProps = { formData, setFormData, errors };
 
@@ -34,6 +35,7 @@ export const renderStepComponent = ({
         industrialGroups={industrialGroups}
         provincialChapters={provincialChapters}
         idCardValidating={idCardValidating}
+        isEditMode={isEditMode}
       />
     ),
     2: (

@@ -71,7 +71,7 @@ export async function GET(request, { params }) {
         provinceChapters: "MemberRegist_IC_ProvinceChapters",
         documents: "MemberRegist_IC_Documents",
         signatureName: "MemberRegist_IC_Signature_Name",
-        idField: "ic_main_id",
+        idField: "main_id",
       },
     };
 

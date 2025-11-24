@@ -85,8 +85,8 @@ export async function sendOCMembershipEditConfirmationEmail(email, name, members
   const membershipTypeMap = {
     OC: "สามัญ (นิติบุคคล)",
     AC: "สมทบ (นิติบุคคล)",
-    IC: "สามัญ (บุคคลธรรมดา)",
-    AM: "สมาคม",
+    IC: "สมทบ (บุคคลธรรมดา)",
+    AM: "สามัญ-(สมาคมการค้า)",
   };
 
   const membershipTypeThai = membershipTypeMap[membershipType] || membershipType;
@@ -1672,8 +1672,8 @@ export async function sendRejectionEmail(
       HtmlBody: getFTIEmailHtmlTemplate({
         title: "แจ้งผลการพิจารณาการสมัครสมาชิก",
         bodyContent: `
-          <p>เรียน ${fullName}</p>
-          <p>สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า การสมัครสมาชิกของท่าน ยังไม่ได้รับการพิจารณา</p>
+          <p>เรียน คุณ${fullName}</p>
+          <p>สภาอุตสาหกรรมแห่งประเทศไทย ได้รับข้อมูลการสมัครสมาชิกของท่านแล้ว แต่เอกสารการสมัครยังไม่ครบถ้วน จึงยังไม่สามารถดำเนินการสมัครให้แล้วเสร็จได้</p>
           
           <div style="background-color: #eff6ff; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #1e3a8a;">
             <p style="margin: 0 0 10px 0; font-weight: 600; color: #1e3a8a; font-size: 16px;">
@@ -1685,12 +1685,12 @@ export async function sendRejectionEmail(
           
           <div style="background-color: #fef2f2; padding: 16px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
             <p style="margin: 0 0 10px 0; font-weight: 600; color: #dc2626; font-size: 16px;">
-              สภาอุตสาหกรรมแห่งประเทศไทย ขอให้ท่านดำเนินการดังนี้
+              ขอให้ท่านดำเนินการดังนี้
             </p>
             <p style="margin: 0; color: #374151;">${reason || "ไม่ระบุเหตุผล"}</p>
           </div>
           
-          <p>เพื่อให้การพิจารณาสมาชิกของท่านเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น กรณีต้องการสอบถามรายละเอียดเพิ่มเติม ติดต่อได้ที่ 1453 กด 2</p>
+          <p>เพื่อให้การสมัครสมาชิกเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น สอบถามรายละเอียดเพิ่มเติม ได้ที่ 1453 กด 2</p>
           
           <div style="text-align: center; margin: 28px 0;">
             <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
@@ -1711,18 +1711,18 @@ export async function sendRejectionEmail(
       TextBody: `
         แจ้งผลการพิจารณาการสมัครสมาชิก - สภาอุตสาหกรรมแห่งประเทศไทย
         
-        เรียน ${fullName}
+        เรียน คุณ${fullName}
         
-        สภาอุตสาหกรรมแห่งประเทศไทย ขอเรียนแจ้งให้ท่านทราบว่า การสมัครสมาชิกของท่าน ยังไม่ได้รับการพิจารณา
+        สภาอุตสาหกรรมแห่งประเทศไทย ได้รับข้อมูลการสมัครสมาชิกของท่านแล้ว แต่เอกสารการสมัครยังไม่ครบถ้วน จึงยังไม่สามารถดำเนินการสมัครให้แล้วเสร็จได้
         
         ข้อมูลใบสมัคร
         ชื่อผู้สมัคร : ${companyName}
         ${memberCode ? `หมายเลขสมาชิก: ${memberCode}` : ""}
         
-        สภาอุตสาหกรรมแห่งประเทศไทย ขอให้ท่านดำเนินการดังนี้
+        ขอให้ท่านดำเนินการดังนี้
         ${reason || "ไม่ระบุเหตุผล"}
         
-        เพื่อให้การพิจารณาสมาชิกของท่านเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น กรณีต้องการสอบถามรายละเอียดเพิ่มเติม ติดต่อได้ที่ 1453 กด 2
+        เพื่อให้การสมัครสมาชิกเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น สอบถามรายละเอียดเพิ่มเติม ได้ที่ 1453 กด 2
         
         เข้าสู่ระบบ: ${dashboardLink}
         

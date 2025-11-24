@@ -17,6 +17,7 @@ export default function ApplicantInfoSection({
   industrialGroups,
   provincialChapters,
   isLoading,
+  isEditMode,
 }) {
   const [subDistricts, setSubDistricts] = useState([]);
   const [isLoadingAddress, setIsLoadingAddress] = useState(false);
@@ -144,6 +145,7 @@ export default function ApplicantInfoSection({
             handleIdCardChange={handleIdCardChange}
             handleIdCardBlur={handleIdCardBlur}
             isLoading={isLoading}
+            isEditMode={isEditMode}
           />
 
           {/* Thai Name Fields */}
@@ -194,4 +196,5 @@ ApplicantInfoSection.propTypes = {
   industrialGroups: PropTypes.array,
   provincialChapters: PropTypes.array,
   isLoading: PropTypes.bool,
+  isEditMode: PropTypes.bool,
 };

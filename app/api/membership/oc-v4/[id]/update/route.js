@@ -425,17 +425,20 @@ export async function POST(request, { params }) {
 
     // Fire-and-forget: send email notification about successful edit submission
     try {
-      // Collect all relevant emails
+      // 1) User email from FTI_Portal_User เป็นหลัก
       const recipients = new Set();
-      
-      // 1. Logged-in user email (Priority)
-      if (user.email) recipients.add(user.email);
-      
-      // 2. Derived company email (from addresses or form)
-      if (companyEmail) recipients.add(companyEmail);
-      else if (formData.companyEmail) recipients.add(formData.companyEmail);
-      
-      // 3. Main contact person email
+      if (user.email) {
+        recipients.add(user.email);
+      }
+
+      // 2) Fallback: company email (จากที่ derive แล้ว หรือจาก form โดยตรง)
+      if (companyEmail) {
+        recipients.add(companyEmail);
+      } else if (formData.companyEmail) {
+        recipients.add(formData.companyEmail);
+      }
+
+      // 3) Fallback เพิ่มเติม: email ผู้ติดต่อหลัก (ถ้ามี)
       if (formData.contactPersons) {
         const cps = ensureArray(formData.contactPersons);
         if (cps.length > 0 && cps[0].email) {

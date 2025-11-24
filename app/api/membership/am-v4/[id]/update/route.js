@@ -414,8 +414,21 @@ export async function POST(request, { params }) {
 
     await connection.commit();
 
+    // ส่งอีเมลยืนยันโดยใช้อีเมลผู้ใช้ (FTI_Portal_User) เป็นหลัก แล้วค่อย fallback ไปที่ association/company email
     try {
-      const email = formData.associationEmail || formData.companyEmail || user.email;
+      let email = null;
+
+      // 1) ใช้ user.email จาก FTI_Portal_User เป็นหลัก
+      if (user.email) {
+        email = user.email;
+      } else if (formData.associationEmail) {
+        // 2) Fallback: associationEmail จากฟอร์ม
+        email = formData.associationEmail;
+      } else if (formData.companyEmail) {
+        // 3) Fallback: companyEmail จากฟอร์ม (เผื่อโครงสร้างเก่า)
+        email = formData.companyEmail;
+      }
+
       if (email) {
         const displayName = `${user.firstname || ""} ${user.lastname || ""}`.trim() || "ผู้สมัคร";
         const companyName = formData.associationName || formData.companyName || "";
