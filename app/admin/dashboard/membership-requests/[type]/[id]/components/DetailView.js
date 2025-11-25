@@ -3,6 +3,7 @@ import ApplicantInfoSection from "../../../components/sections/ApplicantInfoSect
 import CompanyInfoSection from "../../../components/sections/CompanyInfoSection";
 import AddressSection from "../../../components/sections/AddressSection";
 import RepresentativesSection from "../../../components/sections/RepresentativesSection";
+import ContactPersonSection from "../../../components/sections/ContactPersonSection";
 import IndustrialGroupsSection from "../../../components/sections/IndustrialGroupsSection";
 import FinancialInfoSection from "../../../components/sections/FinancialInfoSection";
 import BusinessInfoSection from "../../../components/sections/BusinessInfoSection";
@@ -132,6 +133,7 @@ const DetailView = ({
         type={type}
         onUpdate={handleSectionUpdate}
       />
+      <ContactPersonSection application={application} onUpdate={handleSectionUpdate} />
       <AddressSection application={application} onUpdate={handleSectionUpdate} />
       <BusinessInfoSection application={application} onUpdate={handleSectionUpdate} />
       <DocumentsSection application={application} onViewDocument={onViewDocument} type={type} />

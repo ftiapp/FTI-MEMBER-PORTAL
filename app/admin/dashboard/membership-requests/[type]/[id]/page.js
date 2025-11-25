@@ -99,6 +99,11 @@ export default function MembershipRequestDetail({ params }) {
         });
         // เคลียร์ช่องหมายเหตุหลังบันทึกสำเร็จ
         setAdminNote("");
+
+        // Reload หน้าเพื่อให้ข้อมูลทั้งหมดอัปเดต (เช่น บันทึกช่วยจำ / ประวัติ)
+        if (typeof window !== "undefined") {
+          window.location.reload();
+        }
       } else {
         console.log("Save Note Error:", data.message);
         toast.error(data.message || "ไม่สามารถบันทึกหมายเหตุได้");
@@ -488,11 +493,9 @@ export default function MembershipRequestDetail({ params }) {
         />
 
         {/* Comments Section */}
-        {false && (
-          <div className="mt-8">
-            <ApplicationComments membershipType={type} membershipId={id} />
-          </div>
-        )}
+        <div className="mt-8">
+          <ApplicationComments membershipType={type} membershipId={id} />
+        </div>
 
         {/* Conversation History Section */}
         <div className="mt-8">
