@@ -9,10 +9,11 @@ export const generateMembershipPDF = (
   type,
   industrialGroups = {},
   provincialChapters = {},
-) => newGenerateMembershipPDF(application, type, industrialGroups, provincialChapters);
+  options = {},
+) => newGenerateMembershipPDF(application, type, industrialGroups, provincialChapters, options);
 
-export const downloadMembershipPDF = (application, type) =>
-  newDownloadMembershipPDF(application, type);
+export const downloadMembershipPDF = (application, type, options = {}) =>
+  newDownloadMembershipPDF(application, type, options);
 
 export default {
   generateMembershipPDF,

@@ -2,7 +2,8 @@
 
 export const getPDFStyles = () => `
   @page { 
-    margin: 6mm; 
+    margin: 0mm; 
+
     size: A4;
   }
   
@@ -13,41 +14,55 @@ export const getPDFStyles = () => `
   }
   
   body { 
+
     font-family: 'Sarabun', 'TH Sarabun New', 'Tahoma', sans-serif;
-    font-size: 13px;
+    font-size: 14.5px;
+
     line-height: 1.45;
-    padding: 0px 6px 16px 6px;
+    padding: 0px 1mm 6px 1mm;
     position: relative;
     color: #000000;
   }
   
   .footer-page {
     page-break-before: always;
-    min-height: 260mm;
+    /* ขยายความสูงขั้นต่ำของหน้าสำหรับ footer เพื่อดันเนื้อหาให้ลงมาใกล้ขอบล่างมากขึ้น */
+    min-height: 270mm;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 0 10mm 4mm 10mm;
+    /* เผื่อพื้นที่เล็กน้อยด้านล่างสำหรับ "สร้างเมื่อ" ที่ชิดขอบล่าง */
+    padding: 0 6mm 8mm 6mm;
   }
   
   /* Header Section */
+  .logo-header-row {
+    position: relative;
+    margin-bottom: 6px;
+    padding-top: 8px;
+    min-height: 60px;
+  }
+
   .logo-wrap { 
-    text-align: center; 
-    margin-bottom: 4px;
+    text-align: left;
     display: flex; 
-    justify-content: center; 
+    justify-content: flex-start;
+    align-items: center;
+    position: absolute;
+    left: 0;
+    top: 0;
   }
   
   .logo-wrap img { 
     height: 50px;
     object-fit: contain;
     display: block;
-    margin: 0 auto;
+    margin: 0;
   }
   
   .header { 
     text-align: center;
-    font-size: 14px;
+    font-size: 14.5px;
     font-weight: bold;
     margin-top: -2px;
     margin-bottom: 10px;
@@ -59,9 +74,12 @@ export const getPDFStyles = () => `
   /* Metadata */
   .created-date { 
     position: absolute;
-    top: 4px;
-    left: 8px;
-    font-size: 10px;
+    /* ชิดขอบล่างสุด และจัดให้อยู่กึ่งกลางแนวนอน */
+    bottom: 2mm;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    font-size: 9.5px;
     color: #666666;
   }
   
@@ -69,7 +87,7 @@ export const getPDFStyles = () => `
     position: absolute;
     top: 4px;
     right: 8px;
-    font-size: 10px;
+    font-size: 10.5px;
     color: #000000;
     font-weight: bold;
   }
@@ -83,12 +101,13 @@ export const getPDFStyles = () => `
   }
   
   .section:first-of-type { 
-    margin-top: 10px; 
+    margin-top: 6px; 
   }
   
   .section-title { 
     font-weight: bold;
-    font-size: 12px;
+    font-size: 12.5px;
+
     text-align: left;
     padding: 0 0 11px 2px;
     margin: -1px 0 10px 0;
@@ -100,14 +119,15 @@ export const getPDFStyles = () => `
   /* Fields */
   .field { 
     margin-bottom: 3px;
-    font-size: 12px;
+    font-size: 12.5px;
+
     line-height: 1.4;
   }
   
   .label { 
     font-weight: 600;
     display: inline-block;
-    min-width: 85px;
+    min-width: 70px;
     color: #000000;
   }
   

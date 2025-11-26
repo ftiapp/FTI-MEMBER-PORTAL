@@ -299,6 +299,19 @@ export default function ActionCounts({ title }) {
       .map((w) => w.toLowerCase());
     const has = (w) => tokens.includes(w);
 
+    // Explicit mappings for important actions
+    if (key === "tsic_update_request" || key === "tsic_code_update") {
+      return "อัปเดตรหัส TSIC";
+    }
+
+    if (key === "logo_update") {
+      return "อัปเดตโลโก้บริษัท";
+    }
+
+    if (key === "social_media_update") {
+      return "อัปเดตข้อมูลโซเชียลมีเดีย";
+    }
+
     const nounMap = {
       profile: "โปรไฟล์",
       address: "ที่อยู่",
@@ -471,7 +484,6 @@ export default function ActionCounts({ title }) {
                   <p className={`text-2xl sm:text-3xl font-bold ${baseInfo.textColor}`}>{count}</p>
                 </div>
                 <p className="text-base sm:text-lg font-semibold text-gray-700 truncate">{title}</p>
-                <p className="text-xs sm:text-sm text-blue-500 truncate font-mono">{action}</p>
               </div>
             );
           })}

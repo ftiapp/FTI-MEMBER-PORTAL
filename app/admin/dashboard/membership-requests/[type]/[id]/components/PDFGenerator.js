@@ -8,5 +8,11 @@ export const generateMembershipPDF = async (
   industrialGroups = {},
   provincialChapters = {},
 ) => {
-  return await generateMembershipPDFUtil(application, type, industrialGroups, provincialChapters);
+  return await generateMembershipPDFUtil(
+    application,
+    type,
+    industrialGroups,
+    provincialChapters,
+    { includeStaffFooter: true },
+  );
 };

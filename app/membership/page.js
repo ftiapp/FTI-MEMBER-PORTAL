@@ -6,7 +6,6 @@ import HeroSection from "./MembershiplandingPage/components/HeroSection";
 import StepWorkflow from "./MembershiplandingPage/components/StepWorkflow";
 import MembershipCards from "./MembershiplandingPage/components/MembershipCards";
 import DocumentRequirements from "./MembershiplandingPage/components/DocumentRequirements";
-import BenefitsComparison from "./MembershiplandingPage/components/BenefitsComparison";
 import SummaryStatistics from "./MembershiplandingPage/components/SummaryStatistics";
 import FAQSection from "./MembershiplandingPage/components/FAQSection";
 import MemberCountBanner from "./MembershiplandingPage/components/MemberCountBanner";
@@ -27,7 +26,6 @@ export default function Membership() {
           <StepWorkflow />
           <MembershipCards />
           <DocumentRequirements />
-          <BenefitsComparison />
           <SummaryStatistics />
           <FAQSection />
         </div>

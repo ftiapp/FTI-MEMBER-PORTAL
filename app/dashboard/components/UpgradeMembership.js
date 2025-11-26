@@ -3,7 +3,6 @@ import { useRouter } from "next/navigation";
 import LoadingOverlay from "./shared/LoadingOverlay";
 import MembershipCardsSection from "./UpgradeMembership/MembershipCardsSection";
 import DocumentRequirementsSection from "./UpgradeMembership/DocumentRequirementsSection";
-import BenefitsComparisonSection from "./UpgradeMembership/BenefitsComparisonSection";
 import HeaderBannerSection from "./UpgradeMembership/HeaderBannerSection";
 import SummaryAndCTASection from "./UpgradeMembership/SummaryAndCTASection";
 
@@ -493,14 +492,6 @@ export default function UpgradeMembership() {
           {/* Document Requirements Section */}
           <DocumentRequirementsSection
             documentRequirements={documentRequirements}
-            activeTab={activeDocumentTab}
-            onChangeTab={setActiveDocumentTab}
-          />
-
-          {/* Benefits Comparison - Desktop Table / Mobile Cards */}
-          <BenefitsComparisonSection
-            benefits={benefits}
-            membershipTypes={membershipTypes}
             activeTab={activeDocumentTab}
             onChangeTab={setActiveDocumentTab}
           />
