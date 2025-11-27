@@ -236,7 +236,10 @@ export const generateMembershipPDF = async (
             provincialChapterNames && provincialChapterNames.length ? provincialChapterNames : null;
 
           if (!igNames && Array.isArray(data.industrialGroupIds) && data.industrialGroupIds.length) {
-            igNames = data.industrialGroupIds.map((id) => `กลุ่มอุตสาหกรรม ${id}`);
+            const filteredGroupIds = data.industrialGroupIds.filter(
+              (id) => id && String(id).trim() !== '000',
+            );
+            igNames = filteredGroupIds.map((id) => `กลุ่มอุตสาหกรรม ${id}`);
           }
           if (
             !pcNames &&
@@ -265,9 +268,6 @@ export const generateMembershipPDF = async (
 
           const groupsAndChaptersBlock = buildGroupsAndChaptersBlock(dispIG, dispPC, extraIG, extraPC);
 
-          // If no groups/chapters at all, skip this section
-          if (!groupsAndChaptersBlock) return '';
-
           return `
             <div class="section">
               <div class="section-title">ส่วนที่ 5  สมัครเพิ่มเติม เข้ากลุ่มอุตสาหกรรม และ/หรือสภาอุตสาหกรรมจังหวัด</div>
@@ -276,6 +276,7 @@ export const generateMembershipPDF = async (
           `;
         })()}
 
+        
         ${data.contactPersons?.length ? buildContactPersonSection(data.contactPersons) : ''}
         
         ${buildSignatureArea(data, type, signatureImgSrc, companyStampImgSrc, preloadedSignatures, logoSrc)}
