@@ -32,7 +32,12 @@ export async function sendVerificationEmail(email, name, verificationToken) {
           <p>สวัสดี ${name},</p>
           <p>ขอบคุณที่ลงทะเบียนกับ FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลของคุณ:</p>
           <div style="text-align: center; margin-bottom: 30px;">
-            <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
+            <a
+              href="${verificationLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
+            </a>
           </div>
           <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
@@ -111,7 +116,12 @@ export async function sendOCMembershipEditConfirmationEmail(email, name, members
 
           <p>ท่านสามารถติดตามความคืบหน้าได้ที่:</p>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${statusUrl}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
+            <a
+              href="${statusUrl}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
+            </a>
           </div>
 
           <p style="font-size: 14px; color: #6b7280;">หรือเข้าไปที่เมนู <strong>"สถานะดำเนินการ"</strong> ในเมนู <strong>"จัดการสมาชิก"</strong></p>
@@ -184,7 +194,12 @@ export async function sendAdminInviteEmail(email, token, options = {}) {
           <p>ท่านได้รับคำเชิญให้เป็น <strong>ผู้ดูแลระบบ (Admin Level ${adminLevel})</strong> บน FTI Portal</p>
           <p>กรุณาคลิกปุ่มด้านล่างเพื่อตั้งรหัสผ่านและเปิดใช้งานบัญชีแอดมินของท่าน:</p>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${acceptLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
+            <a
+              href="${acceptLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
+            </a>
           </div>
           <p>หากคลิกปุ่มไม่ได้ ให้ใช้ลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${acceptLink}</p>
@@ -249,7 +264,12 @@ export async function sendNewEmailVerification(newEmail, name, verificationToken
           <p>สวัสดี ${name},</p>
           <p>คุณได้ขอเปลี่ยนอีเมลของคุณใน FTI Portal กรุณาคลิกที่ปุ่มด้านล่างเพื่อยืนยันอีเมลใหม่ของคุณ:</p>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${verificationLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
+            <a
+              href="${verificationLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
+            </a>
           </div>
           <p>หากคลิกปุ่มไม่ได้ ให้คัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${verificationLink}</p>
@@ -315,7 +335,12 @@ export async function sendPasswordResetEmail(email, name, resetToken) {
           <p>สวัสดี ${name},</p>
           <p>เราได้รับคำขอให้รีเซ็ตรหัสผ่านสำหรับบัญชีของคุณ กรุณาคลิกที่ปุ่มด้านล่างเพื่อตั้งรหัสผ่านใหม่:</p>
           <div style="text-align: center; margin: 24px 0;">
-            <a href="${resetLink}" style="background-color: #1a56db; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;">เข้าสู่เว็บไซต์</a>
+            <a
+              href="${resetLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
+            </a>
           </div>
           <p>หากคุณไม่สามารถคลิกที่ปุ่มได้ กรุณาคัดลอกลิงก์ด้านล่างและวางในเบราว์เซอร์ของคุณ:</p>
           <p style="word-break: break-all; background-color: #f3f4f6; padding: 10px; border-radius: 4px;">${resetLink}</p>
@@ -506,8 +531,11 @@ export async function sendAddressUpdateRequestEmail(
           <p>ท่านสามารถตรวจสอบสถานะคำขอได้ที่หน้า <strong>"ข้อมูลสมาชิก"</strong> ในแดชบอร์ดของท่าน</p>
           
           <div style="text-align: center; margin: 28px 0;">
-            <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-              เข้าสู่เว็บไซต์
+            <a
+              href="${dashboardLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
             </a>
           </div>
           
@@ -634,8 +662,11 @@ export async function sendExistingMemberVerificationEmail(
         <p>ท่านสามารถตรวจสอบสถานะการยืนยันได้ที่เมนู <strong>"ยืนยันสมาชิกเดิม"</strong> ในแดชบอร์ดของท่าน</p>
         
         <div style="text-align: center; margin: 28px 0;">
-          <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-            เข้าสู่เว็บไซต์
+          <a
+            href="${dashboardLink}"
+            style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+          >
+            คลิกที่นี่ เพื่อเข้าสู่ระบบ
           </a>
         </div>
         
@@ -728,8 +759,11 @@ export async function sendExistingMemberApprovalEmail(
           <p>ท่านสามารถตรวจสอบข้อมูลสมาชิกได้ที่ เมนู <strong>จัดการสมาชิก → ข้อมูลสมาชิก</strong> บนเว็บไซต์</p>
           
           <div style="text-align: center; margin: 28px 0;">
-            <a href="${dashboardLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-              เข้าสู่เว็บไซต์
+            <a
+              href="${dashboardLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
             </a>
           </div>
           
@@ -1271,8 +1305,11 @@ export async function sendProductUpdateApprovalEmail(
           <p>ท่านสามารถตรวจสอบข้อมูลสินค้าที่อัปเดตได้ที่หน้า <strong>"ข้อมูลสมาชิก"</strong></p>
           
           <div style="text-align: center; margin: 28px 0;">
-            <a href="${memberDetailLink}" style="background-color: #16a34a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-              เข้าสู่เว็บไซต์
+            <a
+              href="${memberDetailLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
             </a>
           </div>
           
@@ -1589,8 +1626,11 @@ export async function sendMemberConnectionEmail(email, userName, memberData) {
           <p>ท่านสามารถตรวจสอบข้อมูลได้ที่ <a href="https://member.fti.or.th" style="color: #1a56db; text-decoration: underline;">https://member.fti.or.th</a></p>
           
           <div style="text-align: center; margin: 28px 0;">
-            <a href="${dashboardLink}" style="background-color: #1a56db; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
-              เข้าสู่เว็บไซต์
+            <a
+              href="${dashboardLink}"
+              style="background-color: #dc2626; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 700; font-size: 16px;"
+            >
+              คลิกที่นี่ เพื่อเข้าสู่ระบบ
             </a>
           </div>
           
@@ -1690,7 +1730,7 @@ export async function sendRejectionEmail(
             <p style="margin: 0; color: #374151;">${reason || "ไม่ระบุเหตุผล"}</p>
           </div>
           
-          <p>เพื่อให้การสมัครสมาชิกเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น สอบถามรายละเอียดเพิ่มเติม ได้ที่ 1453 กด 2</p>
+          <p>เพื่อให้การสมัครสมาชิกเสร็จสมบูรณ์ โปรดคลิกเข้าสู่ระบบ เพื่อดำเนินการแก้ไขเอกสาร ตามรายละเอียดดังกล่าวที่แจ้งไว้</p>
           
           <div style="text-align: center; margin: 28px 0;">
             <a href="${dashboardLink}" style="background-color: #1e3a8a; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: 600; font-size: 16px;">
@@ -1722,7 +1762,9 @@ export async function sendRejectionEmail(
         ขอให้ท่านดำเนินการดังนี้
         ${reason || "ไม่ระบุเหตุผล"}
         
-        เพื่อให้การสมัครสมาชิกเสร็จสมบูรณ์ โปรดดำเนินการแก้ไขตามคำแนะนำข้างต้น สอบถามรายละเอียดเพิ่มเติม ได้ที่ 1453 กด 2
+       <p style="font-weight: 700; color: #dc2626; font-size: 16px; margin-top: 16px;">
+  เพื่อให้การสมัครสมาชิกเสร็จสมบูรณ์ โปรดคลิกเข้าสู่ระบบ เพื่อดำเนินการแก้ไขเอกสาร ตามรายละเอียดดังกล่าวที่แจ้งไว้
+</p>
         
         เข้าสู่ระบบ: ${dashboardLink}
         

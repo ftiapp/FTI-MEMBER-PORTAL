@@ -13,33 +13,35 @@ export default function RecentSection({
 }) {
   return (
     <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-      <div className={`flex items-center justify-between bg-gradient-to-r ${colorClass} p-4`}>
+      <div className={`bg-gradient-to-r ${colorClass} p-4`}>
         <h3 className="text-white font-semibold">{title}</h3>
-        <select
-          className="text-sm rounded-md px-2 py-1 bg-white/20 text-white border-white/30 focus:outline-none"
-          value={filter}
-          onChange={(e) => onFilterChange(e.target.value)}
-        >
-          {filterOptions.map((option) => (
-            <option key={option} value={option}>
-              {option === "pending"
-                ? "รอดำเนินการ"
-                : option === "approved"
-                  ? "อนุมัติแล้ว"
-                  : option === "rejected"
-                    ? "ปฏิเสธ"
-                    : option === "unread"
-                      ? "ยังไม่อ่าน"
-                      : option === "read"
-                        ? "อ่านแล้ว"
-                        : option === "replied"
-                          ? "ตอบกลับแล้ว"
-                          : "ทั้งหมด"}
-            </option>
-          ))}
-        </select>
       </div>
       <div className="p-6">
+        <div className="flex justify-end mb-4">
+          <select
+            className="text-sm rounded-md px-3 py-2 border border-gray-300 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            value={filter}
+            onChange={(e) => onFilterChange(e.target.value)}
+          >
+            {filterOptions.map((option) => (
+              <option key={option} value={option}>
+                {option === "pending"
+                  ? "รอดำเนินการ"
+                  : option === "approved"
+                    ? "อนุมัติแล้ว"
+                    : option === "rejected"
+                      ? "ปฏิเสธ"
+                      : option === "unread"
+                        ? "ยังไม่อ่าน"
+                        : option === "read"
+                          ? "อ่านแล้ว"
+                          : option === "replied"
+                            ? "ตอบกลับแล้ว"
+                            : "ทั้งหมด"}
+              </option>
+            ))}
+          </select>
+        </div>
         {loading ? (
           <p className="text-gray-500">กำลังโหลด...</p>
         ) : data.length === 0 ? (

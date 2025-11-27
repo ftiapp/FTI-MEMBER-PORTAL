@@ -19,7 +19,7 @@ export const getPDFStyles = () => `
     font-size: 14.5px;
 
     line-height: 1.45;
-    padding: 0px 1mm 6px 1mm;
+    padding: 0px 4mm 4mm 4mm;
     position: relative;
     color: #000000;
   }
@@ -68,6 +68,16 @@ export const getPDFStyles = () => `
     margin-bottom: 10px;
     padding-bottom: 0px;
     line-height: 1.5;
+    color: #000000;
+  }
+
+  .sub-header {
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    margin-top: -6px;
+    margin-bottom: 8px;
+    line-height: 1.4;
     color: #000000;
   }
   

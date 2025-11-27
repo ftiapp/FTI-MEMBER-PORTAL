@@ -16,10 +16,10 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 
 const MEMBER_TYPE_LABELS = {
   all: "ทุกประเภทสมาชิก",
-  OC: "สน สามัญ-โรงงาน",
-  AM: "สส สามัญ-สมาคมการค้า",
-  AC: "ทน สมทบ-นิติบุคคล",
-  IC: "ทบ สมทบ-บุคคลธรรมดา",
+  IC: "ทบ สมทบ-บุคคลธรรมดา IC",
+  OC: "สน สามัญ-โรงงาน OC",
+  AM: "สส สามัญ-สมาคมการค้า AM",
+  AC: "ทน สมทบ-นิติบุคคล AC",
 };
 
 const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
@@ -36,13 +36,20 @@ export default function MembershipSignupAnalytics() {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
   const [selectedType, setSelectedType] = useState("all");
+  const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
+  const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch("/api/admin/membership-requests/timeline", { cache: "no-store" });
+        const params = new URLSearchParams({
+          year: String(new Date().getFullYear()),
+          startMonth: String(startMonth + 1),
+          endMonth: String(endMonth + 1),
+        });
+        const res = await fetch(`/api/admin/analytics/membership-timeline?${params.toString()}`, { cache: "no-store" });
         if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
         const json = await res.json();
         if (!json.success) throw new Error(json.message || "โหลดข้อมูลไม่สำเร็จ");
@@ -56,17 +63,22 @@ export default function MembershipSignupAnalytics() {
     };
 
     fetchStats();
-  }, []);
+  }, [startMonth, endMonth]);
 
-  const { series, summary } = useMemo(() => {
+  const { series, summary, labels } = useMemo(() => {
     if (!data) {
       return {
         series: [],
         summary: { year: new Date().getFullYear(), totalYear: 0, latestMonthCount: 0, changePercent: 0 },
+        labels: MONTH_LABELS,
       };
     }
 
     const { year, months } = data;
+
+    // ปรับช่วงเดือนตาม state ที่เลือก (เผื่อกรณี start > end ให้สลับให้ถูกต้อง)
+    const rangeStart = Math.min(startMonth, endMonth);
+    const rangeEnd = Math.max(startMonth, endMonth);
 
     const getTotalForMonth = (m) => {
       const counts = m.countsByType || {};
@@ -76,11 +88,15 @@ export default function MembershipSignupAnalytics() {
       return counts[selectedType] || 0;
     };
 
-    const monthTotals = months.map((m) => getTotalForMonth(m));
+    const monthTotalsAll = months.map((m) => getTotalForMonth(m));
+    const monthTotals = monthTotalsAll.slice(rangeStart, rangeEnd + 1);
     const totalYear = monthTotals.reduce((sum, v) => sum + v, 0);
 
     // latest non-zero month or last month
-    const lastIndexWithData = [...monthTotals].map((v, i) => ({ v, i })).reverse().find((x) => x.v > 0)?.i ?? 11;
+    const lastIndexWithData = [...monthTotals]
+      .map((v, i) => ({ v, i }))
+      .reverse()
+      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
     const latestMonthCount = monthTotals[lastIndexWithData] || 0;
     const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
     const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
@@ -113,15 +129,16 @@ export default function MembershipSignupAnalytics() {
     return {
       series,
       summary: { year, totalYear, latestMonthCount, changePercent },
+      labels: MONTH_LABELS.slice(rangeStart, rangeEnd + 1),
     };
-  }, [data, selectedType]);
+  }, [data, selectedType, startMonth, endMonth]);
 
   const chartData = useMemo(
     () => ({
-      labels: MONTH_LABELS,
+      labels,
       datasets: series,
     }),
-    [series],
+    [labels, series],
   );
 
   const perTypeSeries = useMemo(() => {
@@ -129,36 +146,44 @@ export default function MembershipSignupAnalytics() {
     const { months } = data;
     const types = ["IC", "OC", "AM", "AC"];
 
+    const rangeStart = Math.min(startMonth, endMonth);
+    const rangeEnd = Math.max(startMonth, endMonth);
+
     const result = {};
     types.forEach((t) => {
+      const labels = MONTH_LABELS.slice(rangeStart, rangeEnd + 1);
       result[t] = {
-        labels: MONTH_LABELS,
+        labels,
         datasets: [
           {
             label: MEMBER_TYPE_LABELS[t],
             backgroundColor: TYPE_COLORS[t],
-            data: months.map((m) => m.countsByType?.[t] || 0),
+            data: months.slice(rangeStart, rangeEnd + 1).map((m) => m.countsByType?.[t] || 0),
           },
         ],
       };
     });
     return result;
-  }, [data]);
+  }, [data, startMonth, endMonth]);
 
   const perTypeStats = useMemo(() => {
     if (!data) return {};
     const { months } = data;
     const types = ["IC", "OC", "AM", "AC"];
 
+    const rangeStart = Math.min(startMonth, endMonth);
+    const rangeEnd = Math.max(startMonth, endMonth);
+
     const stats = {};
     types.forEach((t) => {
-      const monthTotals = months.map((m) => m.countsByType?.[t] || 0);
+      const monthTotalsAll = months.map((m) => m.countsByType?.[t] || 0);
+      const monthTotals = monthTotalsAll.slice(rangeStart, rangeEnd + 1);
       const totalYear = monthTotals.reduce((sum, v) => sum + v, 0);
 
       const lastIndexWithData = [...monthTotals]
         .map((v, i) => ({ v, i }))
         .reverse()
-        .find((x) => x.v > 0)?.i ?? 11;
+        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
       const latestMonthCount = monthTotals[lastIndexWithData] || 0;
       const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
       const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
@@ -167,7 +192,7 @@ export default function MembershipSignupAnalytics() {
     });
 
     return stats;
-  }, [data]);
+  }, [data, startMonth, endMonth]);
 
   const chartOptions = {
     responsive: true,
@@ -264,19 +289,47 @@ export default function MembershipSignupAnalytics() {
           <h2 className="text-2xl font-bold text-gray-800 mb-1">วิเคราะห์การสมัครสมาชิก</h2>
           <p className="text-sm text-gray-500">สถิติการสมัครสมาชิกปี {summary.year} แยกตามประเภทและเดือน</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-sm text-gray-500">ประเภทสมาชิก:</span>
-          <select
-            className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-            value={selectedType}
-            onChange={(e) => setSelectedType(e.target.value)}
-          >
-            <option value="all">ทุกประเภทสมาชิก</option>
-            <option value="IC">IC ทบ</option>
-            <option value="OC">OC สน</option>
-            <option value="AM">AM สส</option>
-            <option value="AC">AC ทน</option>
-          </select>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500">ประเภทสมาชิก:</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={selectedType}
+              onChange={(e) => setSelectedType(e.target.value)}
+            >
+              <option value="all">ทุกประเภทสมาชิก</option>
+              <option value="IC">IC ทบ</option>
+              <option value="OC">OC สน</option>
+              <option value="AM">AM สส</option>
+              <option value="AC">AC ทน</option>
+            </select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500">ช่วงเดือน:</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={startMonth}
+              onChange={(e) => setStartMonth(Number(e.target.value))}
+            >
+              {MONTH_LABELS.map((label, idx) => (
+                <option key={idx} value={idx}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-gray-400">ถึง</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={endMonth}
+              onChange={(e) => setEndMonth(Number(e.target.value))}
+            >
+              {MONTH_LABELS.map((label, idx) => (
+                <option key={idx} value={idx} disabled={idx < startMonth}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -311,11 +364,9 @@ export default function MembershipSignupAnalytics() {
             <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-100 rounded-xl p-4">
               <p className="text-xs font-medium text-slate-600 mb-1">อัตราการเติบโต (ในเดือนล่าสุด)</p>
               <p className={`text-2xl font-bold ${changeColor}`}>
-                {changePrefix}
-                {Number.isFinite(summary.changePercent)
-                  ? summary.changePercent.toFixed(1)
-                  : "0"}
-                %
+                {summary.changePercent === 0 && summary.latestMonthCount === 0
+                  ? "-"
+                  : `${changePrefix}${summary.changePercent.toFixed(1)}%`}
               </p>
             </div>
           </div>

@@ -211,6 +211,7 @@ export const generateMembershipPDF = async (
             <img src="${logoSrc}" alt="FTI Logo" crossorigin="anonymous" />
           </div>
           <div class="header">${title}</div>
+          ${memberTypeLabel ? `<div class="sub-header">ประเภทสมาชิก: ${memberTypeLabel}</div>` : ''}
         </div>
         
         ${type === 'ic' 
@@ -242,7 +243,10 @@ export const generateMembershipPDF = async (
             Array.isArray(data.provincialChapterIds) &&
             data.provincialChapterIds.length
           ) {
-            pcNames = data.provincialChapterIds.map((id) => `สภาอุตสาหกรรมจังหวัด ${id}`);
+            const filteredChapterIds = data.provincialChapterIds.filter(
+              (id) => id && String(id).trim() !== '000',
+            );
+            pcNames = filteredChapterIds.map((id) => `สภาอุตสาหกรรมจังหวัด ${id}`);
           }
 
           const MAX_GROUPS_DISPLAY = PDF_CONFIG.MAX_GROUPS_DISPLAY;

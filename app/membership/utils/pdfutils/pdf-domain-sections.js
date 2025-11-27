@@ -18,11 +18,6 @@ export const buildMemberInfoIC = (data, memberTypeLabel = '') => {
         <div class="col">${field('โทรศัพท์', data.phone ? `${data.phone}${data.phoneExtension ? ` ต่อ ${data.phoneExtension}` : ''}` : '')}</div>
         <div class="col">${field('อีเมล', data.email)}</div>
       </div>
-      <div class="row">
-        <div class="col">${field('ประเภทสมาชิก', memberTypeLabel)}</div>
-        <div class="col"></div>
-        <div class="col"></div>
-      </div>
     `,
   );
 };
@@ -34,11 +29,10 @@ export const buildMemberInfoCompany = (data, memberTypeLabel = '') => {
     `
       <div class="row">
         <div class="col">${field('เลขทะเบียนนิติบุคคล', data.taxId)}</div>
-        <div class="col">${field('ชื่อบริษัท (ไทย)', data.companyNameTh)}</div>
-      </div>
-      <div class="row">
-        <div class="col">${field('ประเภทสมาชิก', memberTypeLabel)}</div>
-        <div class="col">${field('ชื่อบริษัท (อังกฤษ)', data.companyNameEn)}</div>
+        <div class="col">
+          ${field('ชื่อบริษัท (ไทย)', data.companyNameTh)}
+          ${field('ชื่อบริษัท (อังกฤษ)', data.companyNameEn)}
+        </div>
       </div>
     `,
   );
@@ -148,20 +142,25 @@ export const buildRepresentativesSection = (representatives) => {
           <div class="rep-title">ผู้แทน ${i + 1}</div>
           <div class="row">
             <div class="col">${field('ชื่อ (ไทย)', thaiName)}</div>
-            <div class="col">${field('โทรศัพท์มือถือ', phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ''}` : '')}</div>
-            <div class="col">${position ? field('ตำแหน่ง', position) : ''}</div>
           </div>
           <div class="row">
             <div class="col">${field('ชื่อ (อังกฤษ)', engName)}</div>
+          </div>
+          <div class="row">
+            <div class="col">${field('โทรศัพท์มือถือ', phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ''}` : '')}</div>
+          </div>
+          <div class="row">
             <div class="col">${field('อีเมล', email, 'style="white-space: nowrap;"')}</div>
-            <div class="col"></div>
+          </div>
+          <div class="row">
+            <div class="col">${position ? field('ตำแหน่ง', position) : ''}</div>
           </div>
         </div>
       `;
     })
     .join('');
 
-  return section('ส่วนที่ 3 นามผู้แทนใช้สิทธิ', `<div>${repsHtml}</div>`);
+  return section('ส่วนที่ 3 นามผู้แทนใช้สิทธิ', `<div class="list-3col">${repsHtml}</div>`);
 };
 
 // Section 4: Business info

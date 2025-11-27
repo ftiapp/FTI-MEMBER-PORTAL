@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Bar } from "react-chartjs-2";
+import MemberTypeChart from "./components/MemberTypeChart";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -24,7 +25,8 @@ export default function OCIndustryProvinceAnalytics() {
   const [limit, setLimit] = useState(10);
   const now = new Date();
   const [selectedYear] = useState(now.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
+  const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -33,9 +35,10 @@ export default function OCIndustryProvinceAnalytics() {
         setError(null);
         const params = new URLSearchParams({
           year: String(selectedYear),
-          month: String(selectedMonth),
+          startMonth: String(startMonth + 1),
+          endMonth: String(endMonth + 1),
         });
-        const res = await fetch(`/api/admin/membership-requests/oc-industry-province?${params.toString()}`, {
+        const res = await fetch(`/api/admin/analytics/oc-industry-province-timeline?${params.toString()}`, {
           cache: "no-store",
         });
         if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
@@ -51,13 +54,13 @@ export default function OCIndustryProvinceAnalytics() {
     };
 
     fetchStats();
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, startMonth, endMonth]);
 
   const chartData = useMemo(() => {
     if (!data) return null;
 
     const source =
-      mode === "industry" ? data.current?.byIndustry || [] : data.current?.byProvince || [];
+      mode === "industry" ? data.byIndustry || [] : data.byProvince || [];
     const sliced = source.slice(0, limit);
 
     return {
@@ -144,51 +147,73 @@ export default function OCIndustryProvinceAnalytics() {
   };
 
   const summary = useMemo(() => {
-    if (!data) {
+    if (!data || !data.monthlyTotals) {
       return {
         label: "",
-        currentTotal: 0,
-        prevTotal: 0,
+        total: 0,
+        latestMonthCount: 0,
         changePercent: 0,
       };
     }
 
-    const currentTotal =
-      mode === "industry" ? data.current?.totalIndustry || 0 : data.current?.totalProvince || 0;
-    const prevTotal =
-      mode === "industry" ? data.previous?.totalIndustry || 0 : data.previous?.totalProvince || 0;
+    const total =
+      mode === "industry" ? data.totalIndustry || 0 : data.totalProvince || 0;
 
-    const changePercent = prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : 0;
+    const rangeStart = Math.min(startMonth, endMonth);
+    const rangeEnd = Math.max(startMonth, endMonth);
+    const monthTotals = data.monthlyTotals.slice(rangeStart, rangeEnd + 1);
+
+    // Find latest non-zero month in range
+    const lastIndexWithData = [...monthTotals]
+      .map((v, i) => ({ v, i }))
+      .reverse()
+      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
+
+    const latestMonthCount = monthTotals[lastIndexWithData] || 0;
+    const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
+    const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
     return {
       label: mode === "industry" ? "ตามกลุ่มอุตสาหกรรม" : "ตามสภาจังหวัด",
-      currentTotal,
-      prevTotal,
+      total,
+      latestMonthCount,
       changePercent,
     };
-  }, [data, mode]);
+  }, [data, mode, startMonth, endMonth]);
 
   return (
     <div className="bg-white rounded-2xl shadow-xl p-6 mt-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-800 mb-1">วิเคราะห์ตามกลุ่มอุตสาหกรรม / สภาจังหวัด (OC)</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-1">วิเคราะห์ตามกลุ่มอุตสาหกรรม / สภาจังหวัด</h3>
           {data && (
             <p className="text-sm text-gray-500">
-              ข้อมูลเดือน {MONTH_LABELS[(data.month || selectedMonth) - 1]} {data.year} รวมทุกประเภทสมาชิก
+              สรุป รวม ข้อมูลปี {data.year} รวมทุกประเภทสมาชิก
             </p>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">เดือน:</span>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500">ช่วงเดือน:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value) || 1)}
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={startMonth}
+              onChange={(e) => setStartMonth(Number(e.target.value))}
             >
               {MONTH_LABELS.map((label, idx) => (
-                <option key={idx + 1} value={idx + 1}>
+                <option key={idx} value={idx}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-gray-400">ถึง</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={endMonth}
+              onChange={(e) => setEndMonth(Number(e.target.value))}
+            >
+              {MONTH_LABELS.map((label, idx) => (
+                <option key={idx} value={idx} disabled={idx < startMonth}>
                   {label}
                 </option>
               ))}
@@ -221,30 +246,27 @@ export default function OCIndustryProvinceAnalytics() {
       </div>
 
       {data && (
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-            <p className="text-xs text-indigo-600 font-semibold mb-1">ยอดรวม {summary.label}</p>
+            <p className="text-xs text-indigo-600 font-semibold mb-1">ยอดรวม {summary.label} (ในช่วงเดือนที่เลือก)</p>
             <p className="text-2xl font-bold text-indigo-700">
-              {summary.currentTotal.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              เดือนก่อนหน้า: {summary.prevTotal.toLocaleString("th-TH")} ราย
+              {summary.total.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
             </p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex flex-col justify-center">
-            <p className="text-xs text-emerald-600 font-semibold mb-1">การเปลี่ยนแปลงเทียบเดือนก่อน</p>
-            <p
-              className={`text-2xl font-bold ${
-                summary.changePercent > 0
-                  ? "text-emerald-700"
-                  : summary.changePercent < 0
-                  ? "text-red-600"
-                  : "text-gray-700"
-              }`}
-            >
-              {summary.changePercent === 0 && summary.prevTotal === 0
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+            <p className="text-xs text-emerald-600 font-semibold mb-1">เดือนล่าสุดในช่วง (สรุป รวม)</p>
+            <p className="text-2xl font-bold text-emerald-700">
+              {summary.latestMonthCount.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
+            </p>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+            <p className="text-xs text-slate-600 font-semibold mb-1">อัตราการเติบโต (ในเดือนล่าสุด)</p>
+            <p className={`text-2xl font-bold ${
+              summary.changePercent > 0 ? "text-emerald-600" : summary.changePercent < 0 ? "text-red-600" : "text-gray-500"
+            }`}>
+              {summary.changePercent === 0 && summary.latestMonthCount === 0
                 ? "-"
-                : `${summary.changePercent.toFixed(1)}%`}
+                : `${summary.changePercent > 0 ? "+" : ""}${summary.changePercent.toFixed(1)}%`}
             </p>
           </div>
         </div>
@@ -263,8 +285,49 @@ export default function OCIndustryProvinceAnalytics() {
           ไม่พบข้อมูลการสมัครสมาชิกรายเดือนในช่วงที่เลือก
         </div>
       ) : (
-        <div className="h-72 lg:h-80">
-          <Bar data={chartData} options={chartOptions} plugins={[valueLabelPlugin]} />
+        <div className="space-y-6">
+          <div className="h-72 lg:h-80">
+            <Bar data={chartData} options={chartOptions} plugins={[valueLabelPlugin]} />
+          </div>
+
+          {/* Member Type Legend */}
+          <div className="p-4 bg-gray-50 rounded-xl">
+            <p className="text-sm font-semibold text-gray-700 mb-3">ประเภทสมาชิก (สรุป รวม)</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                <span className="text-sm text-gray-700">ทบ สมทบ-บุคคลธรรมดา IC</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-sm text-gray-700">สน สามัญ-โรงงาน OC</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <span className="text-sm text-gray-700">สส สามัญ-สมาคมการค้า AM</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+                <span className="text-sm text-gray-700">ทน สมทบ-นิติบุคคล AC</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Mini Charts by Member Type */}
+          <div className="mt-8">
+            <h4 className="text-lg font-semibold text-gray-800 mb-4">กราฟแยกตามประเภทสมาชิก</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {["IC", "OC", "AM", "AC"].map((type) => (
+                <MemberTypeChart
+                  key={type}
+                  memberType={type}
+                  year={selectedYear}
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </div>

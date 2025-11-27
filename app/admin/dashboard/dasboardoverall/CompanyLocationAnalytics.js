@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Bar } from "react-chartjs-2";
+import MemberTypeChart from "./components/MemberTypeChart";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -18,21 +19,23 @@ const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ
 
 const MEMBER_TYPE_LABELS = {
   all: "ทุกประเภทสมาชิก",
-  IC: "IC ทบ",
-  OC: "OC สน",
-  AM: "AM สส",
-  AC: "AC ทน",
+  IC: "ทบ สมทบ-บุคคลธรรมดา IC",
+  OC: "สน สามัญ-โรงงาน OC",
+  AM: "สส สามัญ-สมาคมการค้า AM",
+  AC: "ทน สมทบ-นิติบุคคล AC",
 };
 
 export default function CompanyLocationAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentData, setCurrentData] = useState(null);
-  const [prevData, setPrevData] = useState(null);
+  const [data, setData] = useState(null);
   const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const now = new Date();
   const [selectedYear] = useState(now.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
+  const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
   const [selectedType, setSelectedType] = useState("all");
 
   useEffect(() => {
@@ -40,38 +43,21 @@ export default function CompanyLocationAnalytics() {
       try {
         setLoading(true);
         setError(null);
-        const paramsCurrent = new URLSearchParams({
+        const params = new URLSearchParams({
           year: String(selectedYear),
-          month: String(selectedMonth),
+          startMonth: String(startMonth + 1),
+          endMonth: String(endMonth + 1),
           memberType: selectedType,
         });
 
-        const resCurrent = await fetch(`/api/admin/membership-requests/location?${paramsCurrent.toString()}`, {
+        const res = await fetch(`/api/admin/analytics/location-timeline?${params.toString()}`, {
           cache: "no-store",
         });
-        if (!resCurrent.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${resCurrent.status})`);
-        const jsonCurrent = await resCurrent.json();
-        if (!jsonCurrent.success) throw new Error(jsonCurrent.message || "โหลดข้อมูลไม่สำเร็จ");
+        if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
+        const json = await res.json();
+        if (!json.success) throw new Error(json.message || "โหลดข้อมูลไม่สำเร็จ");
 
-        const prevDate = new Date(selectedYear, selectedMonth - 2, 1);
-        const prevYear = prevDate.getFullYear();
-        const prevMonth = prevDate.getMonth() + 1;
-
-        const paramsPrev = new URLSearchParams({
-          year: String(prevYear),
-          month: String(prevMonth),
-          memberType: selectedType,
-        });
-
-        const resPrev = await fetch(`/api/admin/membership-requests/location?${paramsPrev.toString()}`, {
-          cache: "no-store",
-        });
-        if (!resPrev.ok) throw new Error(`โหลดข้อมูลเดือนก่อนหน้าไม่สำเร็จ (${resPrev.status})`);
-        const jsonPrev = await resPrev.json();
-        if (!jsonPrev.success) throw new Error(jsonPrev.message || "โหลดข้อมูลเดือนก่อนหน้าไม่สำเร็จ");
-
-        setCurrentData(jsonCurrent.data);
-        setPrevData(jsonPrev.data);
+        setData(json.data);
       } catch (e) {
         console.error("Error loading membership location stats", e);
         setError(e.message);
@@ -81,11 +67,11 @@ export default function CompanyLocationAnalytics() {
     };
 
     fetchStats();
-  }, [selectedYear, selectedMonth, selectedType]);
+  }, [selectedYear, startMonth, endMonth, selectedType]);
 
   const chartData = useMemo(() => {
-    if (!currentData) return null;
-    const source = currentData.byProvince || [];
+    if (!data) return null;
+    const source = data.byProvince || [];
     const sliced = source.slice(0, limit);
 
     return {
@@ -98,56 +84,57 @@ export default function CompanyLocationAnalytics() {
         },
       ],
     };
-  }, [currentData, limit]);
+  }, [data, limit]);
 
   const summary = useMemo(() => {
-    if (!currentData) {
+    if (!data || !data.monthlyTotals) {
       return {
-        currentTotal: 0,
-        prevTotal: 0,
+        total: 0,
+        latestMonthCount: 0,
         changePercent: 0,
       };
     }
 
-    const currentTotal = currentData.total || 0;
-    const prevTotal = prevData?.total || 0;
-    const changePercent = prevTotal > 0 ? ((currentTotal - prevTotal) / prevTotal) * 100 : 0;
+    const rangeStart = Math.min(startMonth, endMonth);
+    const rangeEnd = Math.max(startMonth, endMonth);
+    const monthTotals = data.monthlyTotals.slice(rangeStart, rangeEnd + 1);
+
+    // Find latest non-zero month in range
+    const lastIndexWithData = [...monthTotals]
+      .map((v, i) => ({ v, i }))
+      .reverse()
+      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
+
+    const latestMonthCount = monthTotals[lastIndexWithData] || 0;
+    const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
+    const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
     return {
-      currentTotal,
-      prevTotal,
+      total: data.total || 0,
+      latestMonthCount,
       changePercent,
     };
-  }, [currentData, prevData]);
+  }, [data, startMonth, endMonth]);
 
   const provinceRows = useMemo(() => {
-    const map = new Map();
-    if (currentData?.byProvince) {
-      for (const row of currentData.byProvince) {
-        map.set(row.name || "ไม่ระบุ", {
-          name: row.name || "ไม่ระบุ",
-          current: row.count || 0,
-          prev: 0,
-        });
-      }
-    }
-    if (prevData?.byProvince) {
-      for (const row of prevData.byProvince) {
-        const key = row.name || "ไม่ระบุ";
-        const existing = map.get(key) || { name: key, current: 0, prev: 0 };
-        existing.prev = row.count || 0;
-        map.set(key, existing);
-      }
-    }
+    if (!data?.byProvince) return [];
+    return data.byProvince
+      .map((r) => ({
+        name: r.name || "ไม่ระบุ",
+        count: r.count || 0,
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [data]);
 
-    const rows = Array.from(map.values());
-    return rows
-      .map((r) => {
-        const changePercent = r.prev > 0 ? ((r.current - r.prev) / r.prev) * 100 : 0;
-        return { ...r, changePercent };
-      })
-      .sort((a, b) => b.current - a.current);
-  }, [currentData, prevData]);
+  const pagedRows = useMemo(() => {
+    return provinceRows.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  }, [provinceRows, page, rowsPerPage]);
+
+  const totalPages = Math.ceil(provinceRows.length / rowsPerPage);
+
+  const handleChangePage = (newPage) => {
+    setPage(Math.max(0, Math.min(newPage, totalPages - 1)));
+  };
 
   const chartOptions = {
     responsive: true,
@@ -225,14 +212,13 @@ export default function CompanyLocationAnalytics() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
           <h3 className="text-xl font-bold text-gray-800 mb-1">วิเคราะห์การสมัครสมาชิกตามจังหวัดที่ตั้งบริษัท</h3>
-          {currentData && (
+          {data && (
             <p className="text-sm text-gray-500">
-              ข้อมูลเดือน {MONTH_LABELS[(currentData.month || selectedMonth) - 1]} {currentData.year} 
-              ({MEMBER_TYPE_LABELS[selectedType]})
+              ข้อมูลปี {data.year} ({MEMBER_TYPE_LABELS[selectedType]})
             </p>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="text-sm text-gray-500">ประเภทสมาชิก:</span>
             <select
@@ -241,29 +227,41 @@ export default function CompanyLocationAnalytics() {
               onChange={(e) => setSelectedType(e.target.value)}
             >
               <option value="all">ทุกประเภทสมาชิก</option>
-              <option value="IC">IC ทบ</option>
-              <option value="OC">OC สน</option>
-              <option value="AM">AM สส</option>
-              <option value="AC">AC ทน</option>
+              <option value="IC">ทบ สมทบ-บุคคลธรรมดา IC</option>
+              <option value="OC">สน สามัญ-โรงงาน OC</option>
+              <option value="AM">สส สามัญ-สมาคมการค้า AM</option>
+              <option value="AC">ทน สมทบ-นิติบุคคล AC</option>
             </select>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">เดือน:</span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500">ช่วงเดือน:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value) || 1)}
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={startMonth}
+              onChange={(e) => setStartMonth(Number(e.target.value))}
             >
               {MONTH_LABELS.map((label, idx) => (
-                <option key={idx + 1} value={idx + 1}>
+                <option key={idx} value={idx}>
+                  {label}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-gray-400">ถึง</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={endMonth}
+              onChange={(e) => setEndMonth(Number(e.target.value))}
+            >
+              {MONTH_LABELS.map((label, idx) => (
+                <option key={idx} value={idx} disabled={idx < startMonth}>
                   {label}
                 </option>
               ))}
             </select>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">จำนวนจังหวัดที่แสดง (กราฟ):</span>
             <select
+              aria-label="จำนวนจังหวัดที่แสดง (กราฟ)"
               className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value) || 10)}
@@ -276,31 +274,28 @@ export default function CompanyLocationAnalytics() {
         </div>
       </div>
 
-      {currentData && (
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      {data && (
+        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-sky-50 border border-sky-100 rounded-xl p-4">
-            <p className="text-xs text-sky-600 font-semibold mb-1">ยอดรวมทุกจังหวัด</p>
+            <p className="text-xs text-sky-600 font-semibold mb-1">ยอดรวมทุกจังหวัด (ในช่วงเดือนที่เลือก)</p>
             <p className="text-2xl font-bold text-sky-700">
-              {summary.currentTotal.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              เดือนก่อนหน้า: {summary.prevTotal.toLocaleString("th-TH")} ราย
+              {summary.total.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
             </p>
           </div>
-          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex flex-col justify-center">
-            <p className="text-xs text-emerald-600 font-semibold mb-1">การเปลี่ยนแปลงเทียบเดือนก่อน (รวมทุกจังหวัด)</p>
-            <p
-              className={`text-2xl font-bold ${
-                summary.changePercent > 0
-                  ? "text-emerald-700"
-                  : summary.changePercent < 0
-                  ? "text-red-600"
-                  : "text-gray-700"
-              }`}
-            >
-              {summary.changePercent === 0 && summary.prevTotal === 0
+          <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+            <p className="text-xs text-emerald-600 font-semibold mb-1">เดือนล่าสุดในช่วง</p>
+            <p className="text-2xl font-bold text-emerald-700">
+              {summary.latestMonthCount.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
+            </p>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
+            <p className="text-xs text-slate-600 font-semibold mb-1">อัตราการเติบโต (ในเดือนล่าสุด)</p>
+            <p className={`text-2xl font-bold ${
+              summary.changePercent > 0 ? "text-emerald-600" : summary.changePercent < 0 ? "text-red-600" : "text-gray-500"
+            }`}>
+              {summary.changePercent === 0 && summary.latestMonthCount === 0
                 ? "-"
-                : `${summary.changePercent.toFixed(1)}%`}
+                : `${summary.changePercent > 0 ? "+" : ""}${summary.changePercent.toFixed(1)}%`}
             </p>
           </div>
         </div>
@@ -314,7 +309,7 @@ export default function CompanyLocationAnalytics() {
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-700 text-sm">
           เกิดข้อผิดพลาดในการโหลดข้อมูล: {error}
         </div>
-      ) : !currentData ? (
+      ) : !data ? (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-600 text-sm">
           ไม่พบข้อมูลการสมัครสมาชิกตามจังหวัดในช่วงที่เลือก
         </div>
@@ -329,34 +324,99 @@ export default function CompanyLocationAnalytics() {
               <thead>
                 <tr className="bg-gray-50 text-gray-600">
                   <th className="px-3 py-2 text-left font-medium">จังหวัด</th>
-                  <th className="px-3 py-2 text-right font-medium">เดือนนี้</th>
-                  <th className="px-3 py-2 text-right font-medium">เดือนก่อน</th>
-                  <th className="px-3 py-2 text-right font-medium">% เปลี่ยนแปลง</th>
+                  <th className="px-3 py-2 text-right font-medium">จำนวน (ราย)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {provinceRows.map((row) => (
+                {pagedRows.map((row) => (
                   <tr key={row.name} className="hover:bg-gray-50">
                     <td className="px-3 py-2 whitespace-nowrap">{row.name}</td>
-                    <td className="px-3 py-2 text-right">{row.current.toLocaleString("th-TH")}</td>
-                    <td className="px-3 py-2 text-right">{row.prev.toLocaleString("th-TH")}</td>
-                    <td
-                      className={`px-3 py-2 text-right ${
-                        row.changePercent > 0
-                          ? "text-emerald-700"
-                          : row.changePercent < 0
-                          ? "text-red-600"
-                          : "text-gray-700"
-                      }`}
-                    >
-                      {row.changePercent === 0 && row.prev === 0
-                        ? "-"
-                        : `${row.changePercent.toFixed(1)}%`}
-                    </td>
+                    <td className="px-3 py-2 text-right font-semibold">{row.count.toLocaleString("th-TH")}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600">แสดงแถวต่อหน้า:</span>
+              <select
+                className="text-sm rounded-lg border border-gray-300 px-2 py-1 focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white"
+                value={rowsPerPage}
+                onChange={(e) => {
+                  setRowsPerPage(Number(e.target.value));
+                  setPage(0);
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+              </select>
+              <span className="text-sm text-gray-500">
+                (ทั้งหมด {provinceRows.length} จังหวัด)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handleChangePage(page - 1)}
+                disabled={page === 0}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                « ก่อนหน้า
+              </button>
+              <span className="text-sm text-gray-600">
+                หน้า {page + 1} / {totalPages || 1}
+              </span>
+              <button
+                onClick={() => handleChangePage(page + 1)}
+                disabled={page >= totalPages - 1}
+                className="px-3 py-1.5 text-sm rounded-lg border border-gray-300 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                ถัดไป »
+              </button>
+            </div>
+          </div>
+
+          {/* Member Type Legend */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-xl">
+            <p className="text-sm font-semibold text-gray-700 mb-3">ประเภทสมาชิก</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-indigo-500"></div>
+                <span className="text-sm text-gray-700">ทบ สมทบ-บุคคลธรรมดา IC</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-sm text-gray-700">สน สามัญ-โรงงาน OC</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                <span className="text-sm text-gray-700">สส สามัญ-สมาคมการค้า AM</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-pink-500"></div>
+                <span className="text-sm text-gray-700">ทน สมทบ-นิติบุคคล AC</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Mini Charts by Member Type */}
+          <div className="mt-8">
+            <h4 className="text-lg font-semibold text-gray-800 mb-4">กราฟแยกตามประเภทสมาชิก</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {["IC", "OC", "AM", "AC"].map((type) => (
+                <MemberTypeChart
+                  key={type}
+                  memberType={type}
+                  year={selectedYear}
+                  startMonth={startMonth}
+                  endMonth={endMonth}
+                />
+              ))}
+            </div>
           </div>
         </div>
       )}

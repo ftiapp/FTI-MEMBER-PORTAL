@@ -37,7 +37,7 @@ export const buildGroupsAndChaptersBlock = (igNames, pcNames, extraIG, extraPC) 
                 .join('')}
               ${extraPC > 0 ? `<span style=\"font-size: 8.5px;\">... และอีก ${extraPC} รายการ</span>` : ''}
             </div>`
-          : '<div style="margin-top: 2px;">• สภาอุตสาหกรรมแห่งประเทศไทย</div>'}
+          : '<div style="margin-top: 2px;">-</div>'}
       </div>
     </div>
   `;
