@@ -135,7 +135,7 @@ export default function BusinessInfoSection({ formData, setFormData, errors, bus
           setFormData={setFormData}
           errors={errors}
           required={true}
-          maxProducts={10}
+          maxProducts={5}
         />
       </div>
     </div>

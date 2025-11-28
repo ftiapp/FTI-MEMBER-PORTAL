@@ -56,19 +56,20 @@ export async function GET(request) {
     }
 
     // Query original membership verifications grouped by company_type and month
+    // ใช้ created_at (วันที่สร้างข้อมูลในระบบ) แทน MEMBER_DATE (วันที่เป็นสมาชิกจริง)
     const statusCondition = statusFilter !== null ? " AND Admin_Submit = ?" : "";
 
     const sql = `
       SELECT 
         company_type AS memberType,
-        MONTH(MEMBER_DATE) AS month,
+        MONTH(created_at) AS month,
         COUNT(*) AS count
       FROM FTI_Original_Membership
-      WHERE YEAR(MEMBER_DATE) = ? 
-        AND MONTH(MEMBER_DATE) BETWEEN ? AND ?
+      WHERE YEAR(created_at) = ? 
+        AND MONTH(created_at) BETWEEN ? AND ?
         AND company_type IS NOT NULL
         AND company_type != ''${statusCondition}
-      GROUP BY company_type, MONTH(MEMBER_DATE)
+      GROUP BY company_type, MONTH(created_at)
     `;
 
     const baseParams = [year, rangeStart, rangeEnd];
@@ -112,8 +113,8 @@ export async function GET(request) {
         Admin_Submit AS status,
         COUNT(*) AS count
       FROM FTI_Original_Membership
-      WHERE YEAR(MEMBER_DATE) = ? 
-        AND MONTH(MEMBER_DATE) BETWEEN ? AND ?
+      WHERE YEAR(created_at) = ? 
+        AND MONTH(created_at) BETWEEN ? AND ?
         AND Admin_Submit IS NOT NULL${statusCondition}
       GROUP BY Admin_Submit
     `;

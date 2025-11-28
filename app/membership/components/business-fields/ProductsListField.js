@@ -9,7 +9,7 @@ import { useFormIcons } from "./Icons";
  * Reusable component for managing product/service list with add/remove functionality
  */
 const ProductsListField = forwardRef(
-  ({ formData, setFormData, errors, required = true, maxProducts = 10 }, ref) => {
+  ({ formData, setFormData, errors, required = true, maxProducts = 5 }, ref) => {
     const { ErrorIcon, PlusIcon, DeleteIcon } = useFormIcons();
 
     const [products, setProducts] = useState(() => {

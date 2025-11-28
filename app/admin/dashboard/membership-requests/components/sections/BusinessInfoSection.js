@@ -9,6 +9,8 @@ const BUSINESS_TYPES = {
   other: "อื่นๆ",
 };
 
+const MAX_PRODUCTS = 5;
+
 const BusinessInfoSection = ({ application, onUpdate }) => {
   if (!application) {
     return (
@@ -135,6 +137,10 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
   };
 
   const addProduct = () => {
+    if (products.length >= MAX_PRODUCTS) {
+      return;
+    }
+
     setProducts([...products, { name_th: "", name_en: "" }]);
   };
 
@@ -322,10 +328,10 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
             <h4 className="text-lg font-medium text-black">สินค้าและบริการ</h4>
             <button
               onClick={addProduct}
-              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-              disabled={isSaving}
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              disabled={isSaving || products.length >= MAX_PRODUCTS}
             >
-              + เพิ่ม
+              + เพิ่ม ({products.length} / {MAX_PRODUCTS})
             </button>
           </div>
           {products.length > 0 ? (
