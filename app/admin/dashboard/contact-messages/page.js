@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/contexts/AuthContext";
 import AdminLayout from "../../components/AdminLayout";
 import { toast } from "react-hot-toast";
 import { motion } from "framer-motion";
@@ -11,8 +9,6 @@ import MessageDetail from "./components/MessageDetail";
 import FilterButtons from "./components/FilterButtons";
 
 export default function ContactMessages() {
-  const router = useRouter();
-  const { user } = useAuth();
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -33,15 +29,10 @@ export default function ContactMessages() {
     replied: messages.filter((m) => m.status === "replied").length,
   };
 
-  // Fetch contact messages when component mounts
+  // Fetch contact messages when component mounts or filter changes
   useEffect(() => {
-    // Check if user is admin
-    if (user && user.role !== "admin") {
-      router.push("/dashboard");
-      return;
-    }
     fetchMessages();
-  }, [user, router, filter]);
+  }, [filter]);
 
   // Poll unread count every 10 minutes
   useEffect(() => {

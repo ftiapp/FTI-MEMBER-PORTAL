@@ -466,6 +466,7 @@ export const validateOCForm = (formData, step) => {
       formData.companyCertificate &&
       (formData.companyCertificate.file ||
         formData.companyCertificate.url ||
+        formData.companyCertificate.fileUrl ||
         formData.companyCertificate instanceof File);
 
     if (!hasCompanyCertificate) {

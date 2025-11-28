@@ -1,11 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { toast, Toaster } from "react-hot-toast";
 
 export default function ResetPasswordPage() {
+  const router = useRouter();
   const [isResetting, setIsResetting] = useState(false);
   const [result, setResult] = useState(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  // ตรวจสอบสิทธิ์แอดมินระดับ 5 ก่อนแสดงหน้า
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const res = await fetch("/api/admin/check-admin", { cache: "no-store" });
+        const data = await res.json();
+
+        // ถ้าไม่ได้ล็อกอินหรือ session หมดอายุ ให้กลับไปหน้า login แอดมิน
+        if (res.status === 401) {
+          toast.error("กรุณาเข้าสู่ระบบผู้ดูแลก่อนใช้งานหน้าดังกล่าว");
+          router.push("/admin");
+          return;
+        }
+
+        if (!res.ok) {
+          throw new Error(data.message || "ไม่สามารถตรวจสอบสิทธิ์แอดมินได้");
+        }
+
+        // ต้องเป็นแอดมินระดับ 5 เท่านั้น
+        if (!data.adminLevel || data.adminLevel < 5) {
+          toast.error("คุณไม่มีสิทธิ์เข้าถึงหน้าตั้งค่ารีเซ็ตรหัสผ่าน Super Admin");
+          router.push("/admin/dashboard");
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking admin permission:", error);
+        toast.error(error.message || "เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์แอดมิน");
+        router.push("/admin/dashboard");
+        return;
+      } finally {
+        setIsChecking(false);
+      }
+    };
+
+    checkAdmin();
+  }, [router]);
 
   const handleResetPassword = async () => {
     if (!confirm("คุณแน่ใจหรือไม่ที่จะรีเซ็ตรหัสผ่าน Super Admin?")) {
@@ -36,6 +76,19 @@ export default function ResetPasswordPage() {
       setIsResetting(false);
     }
   };
+
+  // แสดง loading ระหว่างตรวจสอบสิทธิ์
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center py-12 sm:px-6 lg:px-8">
+        <Toaster position="top-right" />
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500 mb-4"></div>
+          <p className="text-gray-600">กำลังตรวจสอบสิทธิ์ผู้ดูแลระบบ...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
