@@ -130,20 +130,25 @@ export const getPDFStyles = () => `
   .field { 
     margin-bottom: 3px;
     font-size: 12.5px;
-
     line-height: 1.4;
+
+    display: flex;
+    align-items: flex-start;
   }
   
   .label { 
     font-weight: 600;
-    display: inline-block;
     min-width: 70px;
+    margin-right: 3px;
     color: #000000;
+    flex: 0 0 auto;
   }
   
   .value { 
     color: #000000;
-    display: inline;
+    flex: 1 1 auto;
+    white-space: normal;
+    word-break: break-word;
   }
   
   /* Layout */
@@ -165,15 +170,10 @@ export const getPDFStyles = () => `
   
   /* Representative Box */
   .rep-box { 
-    border: 0;
+    border: 1px solid #dddddd;
     padding: 4px 6px;
-    background: transparent;
+    background: #fafafa;
     page-break-inside: avoid;
-  }
-
-  /* Vertical separator between representatives */
-  .rep-box:not(:last-child) {
-    border-right: 1px solid #cccccc;
   }
   
   .rep-title { 

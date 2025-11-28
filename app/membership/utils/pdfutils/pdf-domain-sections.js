@@ -349,8 +349,13 @@ export const buildContactPersonSection = (contactPersons) => {
     </div>
     <div class="row">
       <div class="col">${field('ชื่อ (อังกฤษ)', engName)}</div>
-      <div class="col">${field('อีเมล', mainContact.email || '')}</div>
-      <div class="col"></div>
+      <div class="col" style="flex: 2;">
+        ${field(
+          'อีเมล',
+          mainContact.email || '',
+          'style="white-space: normal; word-break: break-all;"',
+        )}
+      </div>
     </div>
   `;
 
