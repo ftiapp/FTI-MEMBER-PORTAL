@@ -73,7 +73,7 @@ export default function MultipleFileManager({
             >
               <div className="flex items-center gap-3 flex-1">
                 <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
-                  {file.type.startsWith("image/") ? (
+                  {(file.type || "").startsWith("image/") ? (
                     <svg className="w-4 h-4 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
                       <path
                         fillRule="evenodd"
