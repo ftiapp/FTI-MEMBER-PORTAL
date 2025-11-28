@@ -20,16 +20,24 @@ export async function GET(request) {
     const yearParam = searchParams.get("year");
     const startMonthParam = searchParams.get("startMonth");
     const endMonthParam = searchParams.get("endMonth");
+    const statusParam = searchParams.get("status");
 
     const year = Number(yearParam) || new Date().getFullYear();
     const startMonth = startMonthParam ? Math.min(Math.max(Number(startMonthParam), 1), 12) : 1;
     const endMonth = endMonthParam ? Math.min(Math.max(Number(endMonthParam), 1), 12) : 12;
 
+    // Optional status filter (0,1,2,3,4). If invalid, treat as no filter
+    const rawStatus = statusParam !== null ? Number(statusParam) : null;
+    const statusFilter =
+      rawStatus !== null && !Number.isNaN(rawStatus) && rawStatus >= 0 && rawStatus <= 4
+        ? rawStatus
+        : null;
+
     // Ensure startMonth <= endMonth
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
 
-    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd });
+    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd, status: statusFilter });
     if (isProd && membershipTimelineAnalyticsCache.has(cacheKey)) {
       const cached = membershipTimelineAnalyticsCache.get(cacheKey);
       if (cached.expiresAt > Date.now()) {
@@ -39,33 +47,40 @@ export async function GET(request) {
     }
 
     // Query all 4 member types for the specified year and month range
+    const statusCondition = statusFilter !== null ? " AND status = ?" : "";
+
     const sql = `
       SELECT 'OC' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
       FROM MemberRegist_OC_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
       GROUP BY MONTH(created_at)
       UNION ALL
       SELECT 'AC' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
       FROM MemberRegist_AC_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
       GROUP BY MONTH(created_at)
       UNION ALL
       SELECT 'AM' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
       FROM MemberRegist_AM_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
       GROUP BY MONTH(created_at)
       UNION ALL
       SELECT 'IC' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
       FROM MemberRegist_IC_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
       GROUP BY MONTH(created_at)
     `;
 
+    const baseParams = [year, rangeStart, rangeEnd];
     const rows = await query(sql, [
-      year, rangeStart, rangeEnd,
-      year, rangeStart, rangeEnd,
-      year, rangeStart, rangeEnd,
-      year, rangeStart, rangeEnd,
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
     ]);
 
     // Build structure: months[1..12] with countsByType (always return full year for consistency)
@@ -91,32 +106,36 @@ export async function GET(request) {
       FROM (
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_OC_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
         GROUP BY status
         UNION ALL
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_AC_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
         GROUP BY status
         UNION ALL
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_AM_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
         GROUP BY status
         UNION ALL
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_IC_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?
+        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
         GROUP BY status
       ) AS combined
       GROUP BY status
     `;
 
     const statusRows = await query(statusSql, [
-      year, rangeStart, rangeEnd,
-      year, rangeStart, rangeEnd,
-      year, rangeStart, rangeEnd,
-      year, rangeStart, rangeEnd,
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
+      ...baseParams,
+      ...(statusFilter !== null ? [statusFilter] : []),
     ]);
 
     const statusCounts = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
@@ -134,6 +153,7 @@ export async function GET(request) {
         year,
         startMonth: rangeStart,
         endMonth: rangeEnd,
+        status: statusFilter,
         months,
         statusCounts,
       },

@@ -398,22 +398,51 @@ export default function ActionCounts({ title }) {
     const fetchActionCounts = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/admin/action-counts", {
-          cache: "no-store",
-          next: { revalidate: 0 },
-        });
+        
+        // Fetch both action counts (logs) and membership signup summary (from MemberRegist_* tables)
+        const [actionResponse, membershipResponse] = await Promise.all([
+          fetch("/api/admin/action-counts", {
+            cache: "no-store",
+            next: { revalidate: 0 },
+          }),
+          fetch("/api/admin/analytics/membership-signup-summary", {
+            cache: "no-store",
+            next: { revalidate: 0 },
+          }),
+        ]);
 
-        if (!response.ok) {
+        if (!actionResponse.ok) {
           throw new Error("Failed to fetch action counts");
         }
 
-        const data = await response.json();
+        const actionData = await actionResponse.json();
 
-        if (data.success) {
-          setActionCounts(data.data);
-        } else {
-          throw new Error(data.message || "Failed to fetch action counts");
+        if (!actionData.success) {
+          throw new Error(actionData.message || "Failed to fetch action counts");
         }
+
+        let counts = { ...actionData.data };
+
+        // Override membership signup counts with actual data from MemberRegist_* tables
+        if (membershipResponse.ok) {
+          const membershipData = await membershipResponse.json();
+          if (membershipData.success && membershipData.data?.totalByType) {
+            const { totalByType } = membershipData.data;
+            
+            // Replace log-based counts with actual database counts (lifetime totals)
+            counts.OC_membership_submit = totalByType.OC || 0;
+            counts.AC_membership_submit = totalByType.AC || 0;
+            counts.AM_membership_submit = totalByType.AM || 0;
+            counts.IC_membership_submit = totalByType.IC || 0;
+            
+            // Also handle alternative IC key if it exists
+            if (counts.ICmembership_Regist !== undefined) {
+              counts.ICmembership_Regist = totalByType.IC || 0;
+            }
+          }
+        }
+
+        setActionCounts(counts);
       } catch (err) {
         console.error("Error fetching action counts:", err);
         setError(err.message);

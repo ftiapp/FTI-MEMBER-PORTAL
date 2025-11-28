@@ -14,31 +14,28 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const MEMBER_TYPE_LABELS = {
-  all: "ทุกประเภทสมาชิก",
-  IC: "ทบ สมทบ-บุคคลธรรมดา IC",
-  OC: "สน สามัญ-โรงงาน OC",
-  AM: "สส สามัญ-สมาคมการค้า AM",
-  AC: "ทน สมทบ-นิติบุคคล AC",
-};
-
 const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
-const TYPE_COLORS = {
-  IC: "rgba(79, 70, 229, 0.7)", // indigo
-  OC: "rgba(16, 185, 129, 0.7)", // emerald
-  AM: "rgba(249, 115, 22, 0.7)", // orange
-  AC: "rgba(236, 72, 153, 0.7)", // pink
-};
+// Color palette for different company types (will be assigned dynamically)
+const TYPE_COLORS = [
+  "rgba(79, 70, 229, 0.7)", // indigo
+  "rgba(16, 185, 129, 0.7)", // emerald
+  "rgba(249, 115, 22, 0.7)", // orange
+  "rgba(236, 72, 153, 0.7)", // pink
+  "rgba(59, 130, 246, 0.7)", // blue
+  "rgba(168, 85, 247, 0.7)", // purple
+  "rgba(234, 179, 8, 0.7)", // yellow
+  "rgba(20, 184, 166, 0.7)", // teal
+];
 
-export default function MembershipSignupAnalytics() {
+export default function OriginalMembershipAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
   const [selectedType, setSelectedType] = useState("all");
   const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
   const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
-  const [selectedStatus, setSelectedStatus] = useState("all"); // all, 0,1,2,4
+  const [selectedStatus, setSelectedStatus] = useState("all"); // all, 0,1,2
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -55,13 +52,13 @@ export default function MembershipSignupAnalytics() {
         if (selectedStatus !== "all") {
           params.set("status", String(selectedStatus));
         }
-        const res = await fetch(`/api/admin/analytics/membership-timeline?${params.toString()}`, { cache: "no-store" });
+        const res = await fetch(`/api/admin/analytics/original-membership-timeline?${params.toString()}`, { cache: "no-store" });
         if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
         const json = await res.json();
         if (!json.success) throw new Error(json.message || "โหลดข้อมูลไม่สำเร็จ");
         setData(json.data);
       } catch (e) {
-        console.error("Error loading membership timeline stats", e);
+        console.error("Error loading original membership timeline stats", e);
         setError(e.message);
       } finally {
         setLoading(false);
@@ -71,25 +68,27 @@ export default function MembershipSignupAnalytics() {
     fetchStats();
   }, [startMonth, endMonth, selectedStatus]);
 
-  const { series, summary, labels } = useMemo(() => {
+  const { series, summary, labels, companyTypes } = useMemo(() => {
     if (!data) {
       return {
         series: [],
         summary: { year: new Date().getFullYear(), totalYear: 0, latestMonthCount: 0, changePercent: 0 },
         labels: MONTH_LABELS,
+        companyTypes: [],
       };
     }
 
-    const { year, months } = data;
+    const { year, months, companyTypes: types } = data;
+    const availableTypes = types || [];
 
-    // ปรับช่วงเดือนตาม state ที่เลือก (เผื่อกรณี start > end ให้สลับให้ถูกต้อง)
+    // ปรับช่วงเดือนตาม state ที่เลือก
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
 
     const getTotalForMonth = (m) => {
       const counts = m.countsByType || {};
       if (selectedType === "all") {
-        return (counts.IC || 0) + (counts.OC || 0) + (counts.AM || 0) + (counts.AC || 0);
+        return Object.values(counts).reduce((sum, v) => sum + (v || 0), 0);
       }
       return counts[selectedType] || 0;
     };
@@ -107,12 +106,12 @@ export default function MembershipSignupAnalytics() {
     const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
     const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
-    let series;
+    let chartSeries;
     if (selectedType === "all") {
-      // แสดงเฉพาะผลรวมทุกประเภทสมาชิกต่อเดือน เป็นแท่งเดียวที่เห็นชัด
-      series = [
+      // แสดงผลรวมทุกประเภท
+      chartSeries = [
         {
-          label: MEMBER_TYPE_LABELS.all,
+          label: "ทุกประเภทสมาชิก",
           backgroundColor: "rgba(79, 70, 229, 0.85)",
           borderColor: "rgba(55, 48, 163, 1)",
           borderWidth: 2,
@@ -121,11 +120,13 @@ export default function MembershipSignupAnalytics() {
       ];
     } else {
       // แสดงเฉพาะประเภทที่เลือก
-      series = [
+      const typeIndex = availableTypes.indexOf(selectedType);
+      const color = TYPE_COLORS[typeIndex % TYPE_COLORS.length];
+      chartSeries = [
         {
-          label: MEMBER_TYPE_LABELS[selectedType],
-          backgroundColor: TYPE_COLORS[selectedType],
-          borderColor: TYPE_COLORS[selectedType],
+          label: selectedType,
+          backgroundColor: color,
+          borderColor: color,
           borderWidth: 1.5,
           data: monthTotals,
         },
@@ -133,9 +134,10 @@ export default function MembershipSignupAnalytics() {
     }
 
     return {
-      series,
+      series: chartSeries,
       summary: { year, totalYear, latestMonthCount, changePercent },
       labels: MONTH_LABELS.slice(rangeStart, rangeEnd + 1),
+      companyTypes: availableTypes,
     };
   }, [data, selectedType, startMonth, endMonth]);
 
@@ -146,59 +148,6 @@ export default function MembershipSignupAnalytics() {
     }),
     [labels, series],
   );
-
-  const perTypeSeries = useMemo(() => {
-    if (!data) return {};
-    const { months } = data;
-    const types = ["IC", "OC", "AM", "AC"];
-
-    const rangeStart = Math.min(startMonth, endMonth);
-    const rangeEnd = Math.max(startMonth, endMonth);
-
-    const result = {};
-    types.forEach((t) => {
-      const labels = MONTH_LABELS.slice(rangeStart, rangeEnd + 1);
-      result[t] = {
-        labels,
-        datasets: [
-          {
-            label: MEMBER_TYPE_LABELS[t],
-            backgroundColor: TYPE_COLORS[t],
-            data: months.slice(rangeStart, rangeEnd + 1).map((m) => m.countsByType?.[t] || 0),
-          },
-        ],
-      };
-    });
-    return result;
-  }, [data, startMonth, endMonth]);
-
-  const perTypeStats = useMemo(() => {
-    if (!data) return {};
-    const { months } = data;
-    const types = ["IC", "OC", "AM", "AC"];
-
-    const rangeStart = Math.min(startMonth, endMonth);
-    const rangeEnd = Math.max(startMonth, endMonth);
-
-    const stats = {};
-    types.forEach((t) => {
-      const monthTotalsAll = months.map((m) => m.countsByType?.[t] || 0);
-      const monthTotals = monthTotalsAll.slice(rangeStart, rangeEnd + 1);
-      const totalYear = monthTotals.reduce((sum, v) => sum + v, 0);
-
-      const lastIndexWithData = [...monthTotals]
-        .map((v, i) => ({ v, i }))
-        .reverse()
-        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
-      const latestMonthCount = monthTotals[lastIndexWithData] || 0;
-      const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-      const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
-
-      stats[t] = { totalYear, latestMonthCount, changePercent };
-    });
-
-    return stats;
-  }, [data, startMonth, endMonth]);
 
   const chartOptions = {
     responsive: true,
@@ -212,7 +161,7 @@ export default function MembershipSignupAnalytics() {
         callbacks: {
           label: (ctx) => {
             const value = ctx.raw || 0;
-            return `${ctx.dataset.label}: ${value.toLocaleString("th-TH")} ราย`; 
+            return `${ctx.dataset.label}: ${value.toLocaleString("th-TH")} ราย`;
           },
         },
       },
@@ -260,7 +209,6 @@ export default function MembershipSignupAnalytics() {
           const y = bar.y;
           const label = value.toLocaleString("th-TH");
 
-          // วางเลขชิดหัวแท่งมากขึ้น และไม่ดันขึ้นสูงเกินไป
           const minY = top + 4;
           const labelY = Math.max(y - 2, minY);
           ctx.fillText(label, x, labelY);
@@ -273,15 +221,13 @@ export default function MembershipSignupAnalytics() {
 
   const statusCounts = useMemo(() => {
     if (!data || !data.statusCounts) {
-      return { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0 };
+      return { 0: 0, 1: 0, 2: 0 };
     }
     const sc = data.statusCounts;
     return {
       0: Number(sc[0]) || 0,
       1: Number(sc[1]) || 0,
       2: Number(sc[2]) || 0,
-      3: Number(sc[3]) || 0,
-      4: Number(sc[4]) || 0,
     };
   }, [data]);
 
@@ -297,8 +243,8 @@ export default function MembershipSignupAnalytics() {
     <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">วิเคราะห์การสมัครสมาชิก</h2>
-          <p className="text-sm text-gray-500">สถิติการสมัครสมาชิกปี {summary.year} แยกตามประเภทและเดือน</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-1">วิเคราะห์การยืนยันสมาชิกเดิม</h2>
+          <p className="text-sm text-gray-500">สถิติการยืนยันสมาชิกเดิมปี {summary.year} แยกตามประเภทและเดือน</p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -309,10 +255,11 @@ export default function MembershipSignupAnalytics() {
               onChange={(e) => setSelectedType(e.target.value)}
             >
               <option value="all">ทุกประเภทสมาชิก</option>
-              <option value="IC">IC ทบ</option>
-              <option value="OC">OC สน</option>
-              <option value="AM">AM สส</option>
-              <option value="AC">AC ทน</option>
+              {companyTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
             </select>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -354,7 +301,7 @@ export default function MembershipSignupAnalytics() {
         </div>
       ) : !data ? (
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 text-gray-600 text-sm">
-          ไม่พบข้อมูลการสมัครสมาชิกในปีนี้
+          ไม่พบข้อมูลการยืนยันสมาชิกเดิมในปีนี้
         </div>
       ) : (
         <>
@@ -385,7 +332,7 @@ export default function MembershipSignupAnalytics() {
           {/* Status breakdown cards (clickable filters) */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-3 gap-2">
-              <h3 className="text-lg font-semibold text-gray-800">สถานะการสมัครสมาชิก</h3>
+              <h3 className="text-lg font-semibold text-gray-800">สถานะการยืนยัน</h3>
               <button
                 type="button"
                 onClick={() => setSelectedStatus("all")}
@@ -398,21 +345,21 @@ export default function MembershipSignupAnalytics() {
                 แสดงทุกสถานะ
               </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <button
                 type="button"
                 onClick={() => setSelectedStatus(0)}
                 className={`text-left rounded-xl p-4 border transition-all ${
                   isStatusActive(0)
-                    ? "bg-blue-100/80 border-blue-400 shadow-md"
-                    : "bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 hover:border-blue-300"
+                    ? "bg-yellow-100/80 border-yellow-400 shadow-md"
+                    : "bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-200 hover:border-yellow-300"
                 }`}
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                  <p className="text-xs font-medium text-blue-700">รอรับการพิจารณา</p>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <p className="text-xs font-medium text-yellow-700">รออนุมัติ</p>
                 </div>
-                <p className="text-2xl font-bold text-blue-800">
+                <p className="text-2xl font-bold text-yellow-800">
                   {statusCounts[0].toLocaleString("th-TH")}
                 </p>
               </button>
@@ -452,97 +399,12 @@ export default function MembershipSignupAnalytics() {
                   {statusCounts[2].toLocaleString("th-TH")}
                 </p>
               </button>
-
-              <button
-                type="button"
-                onClick={() => setSelectedStatus(4)}
-                className={`text-left rounded-xl p-4 border transition-all ${
-                  isStatusActive(4)
-                    ? "bg-purple-100/80 border-purple-400 shadow-md"
-                    : "bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 hover:border-purple-300"
-                }`}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                  <p className="text-xs font-medium text-purple-700">แก้ไขแล้ว (รอตรวจสอบ)</p>
-                </div>
-                <p className="text-2xl font-bold text-purple-800">
-                  {statusCounts[4].toLocaleString("th-TH")}
-                </p>
-              </button>
             </div>
           </div>
 
           {/* Chart */}
           <div className="h-72 lg:h-80 mb-6">
             <Bar data={chartData} options={chartOptions} plugins={[valueLabelPlugin]} />
-          </div>
-
-          {/* Small charts for each member type */}
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-3">กราฟแยกตามประเภทสมาชิก</h3>
-            <p className="text-xs text-gray-500 mb-4">
-              ดูแนวโน้มรายเดือนของแต่ละประเภทสมาชิกแยกจากกัน
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {(["IC", "OC", "AM", "AC"]).map((t) => (
-                <div
-                  key={t}
-                  className="bg-slate-50 border border-slate-100 rounded-xl p-3 flex flex-col"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <p className="text-sm font-semibold text-gray-700">
-                      {MEMBER_TYPE_LABELS[t]}
-                    </p>
-                  </div>
-                  {perTypeStats[t] && (
-                    <div className="mb-2 grid grid-cols-3 gap-2 text-[11px] text-gray-600">
-                      <div>
-                        <p className="font-medium text-gray-700">รวมทั้งปี</p>
-                        <p className="font-semibold text-indigo-700">
-                          {perTypeStats[t].totalYear.toLocaleString("th-TH")} ราย
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-700">เดือนล่าสุด</p>
-                        <p className="font-semibold text-emerald-700">
-                          {perTypeStats[t].latestMonthCount.toLocaleString("th-TH")} ราย
-                        </p>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-700">เติบโต</p>
-                        <p
-                          className={`font-semibold ${
-                            perTypeStats[t].changePercent > 0
-                              ? "text-emerald-700"
-                              : perTypeStats[t].changePercent < 0
-                              ? "text-red-600"
-                              : "text-gray-600"
-                          }`}
-                        >
-                          {Number.isFinite(perTypeStats[t].changePercent)
-                            ? `${perTypeStats[t].changePercent.toFixed(1)}%`
-                            : "-"}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  <div className="h-44">
-                    <Bar
-                      data={perTypeSeries[t] || { labels: MONTH_LABELS, datasets: [] }}
-                      options={{
-                        ...chartOptions,
-                        plugins: {
-                          ...chartOptions.plugins,
-                          legend: { display: false },
-                        },
-                      }}
-                      plugins={[valueLabelPlugin]}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </>
       )}

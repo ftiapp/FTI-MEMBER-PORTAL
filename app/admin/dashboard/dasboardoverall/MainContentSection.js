@@ -6,6 +6,7 @@ import ContactMessageStats from "../../components/ContactMessageStats";
 import GuestContactMessageStats from "../../components/GuestContactMessageStats";
 import RecentSection from "./RecentSection";
 import MembershipSignupAnalytics from "./MembershipSignupAnalytics";
+import OriginalMembershipAnalytics from "./OriginalMembershipAnalytics";
 import OCIndustryProvinceAnalytics from "./OCIndustryProvinceAnalytics";
 import CompanyLocationAnalytics from "./CompanyLocationAnalytics";
 
@@ -248,6 +249,9 @@ export default function MainContentSection({
 
       {/* Membership analytics */}
       <MembershipSignupAnalytics />
+
+      {/* Original Membership Verification analytics */}
+      <OriginalMembershipAnalytics />
 
       {/* OC Industry / Province analytics */}
       <OCIndustryProvinceAnalytics />
