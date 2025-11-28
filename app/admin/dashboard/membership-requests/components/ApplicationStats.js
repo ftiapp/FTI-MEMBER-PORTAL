@@ -1,24 +1,19 @@
 import React from "react";
 import { STATUS } from "../ีutils/constants";
 
-// Accept optional stats prop from backend. Fallback to per-page calc if not provided.
+// ใช้ตัวเลขจาก backend stats เท่านั้น เพื่อให้ยอดบนการ์ดนิ่งและไม่เปลี่ยนตามรายการในหน้านั้น
+// ถ้า backend ยังไม่ส่ง stats มา ให้แสดง 0 ชั่วคราว (ไม่ fallback ไปนับจาก applications อีกต่อไป)
 const ApplicationStats = ({ applications, stats, currentStatus = "all", onClickStatus }) => {
-  const hasBackendStats = stats && stats.overall;
-  const overall = hasBackendStats ? stats.overall : null;
+  const hasBackendStats = Boolean(stats && stats.overall);
+  const overall = hasBackendStats
+    ? stats.overall
+    : { pending: 0, approved: 0, rejected: 0, resubmitted: 0, total: 0 };
 
-  const pending = hasBackendStats
-    ? overall.pending
-    : applications.filter((app) => app.status === STATUS.PENDING).length;
-  const approved = hasBackendStats
-    ? overall.approved
-    : applications.filter((app) => app.status === STATUS.APPROVED).length;
-  const rejected = hasBackendStats
-    ? overall.rejected
-    : applications.filter((app) => app.status === STATUS.REJECTED).length;
-  const resubmitted = hasBackendStats
-    ? overall.resubmitted ?? overall.pending_review ?? 0
-    : applications.filter((app) => app.status === STATUS.RESUBMITTED).length;
-  const total = hasBackendStats ? overall.total : applications.length;
+  const pending = overall.pending;
+  const approved = overall.approved;
+  const rejected = overall.rejected;
+  const resubmitted = overall.resubmitted ?? overall.pending_review ?? 0;
+  const total = overall.total;
 
   const cardBase =
     "bg-white p-3 sm:p-4 rounded-lg shadow-sm border cursor-pointer transition-colors";

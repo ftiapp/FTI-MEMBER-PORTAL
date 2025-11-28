@@ -2,8 +2,10 @@ import { NextResponse } from "next/server";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
-const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
+// เปิด cache เสมอใน production และสามารถเปิดใน dev ได้ผ่าน env: NEXT_PUBLIC_ENABLE_STATS_CACHE=1
 const isProd = process.env.NODE_ENV === "production";
+const enableCache = isProd || process.env.NEXT_PUBLIC_ENABLE_STATS_CACHE === "1";
 let membershipStatsCache = { data: null, expiresAt: 0 };
 
 export async function GET() {
@@ -13,7 +15,7 @@ export async function GET() {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
-    if (isProd && membershipStatsCache.data && membershipStatsCache.expiresAt > Date.now()) {
+    if (enableCache && membershipStatsCache.data && membershipStatsCache.expiresAt > Date.now()) {
       return NextResponse.json(membershipStatsCache.data);
     }
 
@@ -76,10 +78,11 @@ export async function GET() {
         },
       };
 
-      if (isProd) {
+      if (enableCache) {
+        const ttl = FIVE_MINUTES_MS;
         membershipStatsCache = {
           data: responseBody,
-          expiresAt: Date.now() + TWELVE_HOURS_MS,
+          expiresAt: Date.now() + ttl,
         };
       }
 
