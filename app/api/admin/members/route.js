@@ -93,23 +93,51 @@ export async function GET(request) {
       whereParams,
     );
 
-    // Get documents for each member, grouped by MEMBER_CODE
-    const membersWithDocuments = await Promise.all(
-      membersResult.map(async (member) => {
-        const documents = await query(
-          `SELECT id, MEMBER_CODE, file_name, file_path, status, Admin_Submit, reject_reason, uploaded_at, updated_at
-           FROM FTI_Original_Membership_Documents_Member
-           WHERE user_id = ? AND MEMBER_CODE = ?
-           ORDER BY uploaded_at DESC`,
-          [member.user_id, member.MEMBER_CODE],
-        );
+    // If no members on this page, return early without querying documents
+    if (!membersResult || membersResult.length === 0) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      });
+    }
 
-        return {
-          ...member,
-          documents,
-        };
-      }),
-    );
+    // Avoid N+1 queries by fetching all documents for the current page in a single query
+    const memberConditions = membersResult.map(() => "(user_id = ? AND MEMBER_CODE = ?)").join(" OR ");
+    const memberParams = membersResult.flatMap((member) => [member.user_id, member.MEMBER_CODE]);
+
+    const documentsQuery = `
+      SELECT id, user_id, MEMBER_CODE, file_name, file_path, status, Admin_Submit, reject_reason, uploaded_at, updated_at
+      FROM FTI_Original_Membership_Documents_Member
+      WHERE ${memberConditions}
+      ORDER BY uploaded_at DESC
+    `;
+
+    const documentsResult = await query(documentsQuery, memberParams);
+
+    // Group documents by user_id + MEMBER_CODE key
+    const documentsByMemberKey = {};
+    for (const doc of documentsResult) {
+      const key = `${doc.user_id}::${doc.MEMBER_CODE}`;
+      if (!documentsByMemberKey[key]) {
+        documentsByMemberKey[key] = [];
+      }
+      documentsByMemberKey[key].push(doc);
+    }
+
+    // Attach grouped documents to each member
+    const membersWithDocuments = membersResult.map((member) => {
+      const key = `${member.user_id}::${member.MEMBER_CODE}`;
+      return {
+        ...member,
+        documents: documentsByMemberKey[key] || [],
+      };
+    });
 
     return NextResponse.json({
       success: true,

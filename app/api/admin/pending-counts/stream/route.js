@@ -60,8 +60,8 @@ export async function GET(request) {
 
         // send initial payload immediately
         tick();
-        // then every 15 seconds
-        intervalId = setInterval(tick, 15000);
+        // then every 15 minutes
+        intervalId = setInterval(tick, 15 * 60 * 1000);
 
         if (signal) {
           signal.addEventListener("abort", () => {

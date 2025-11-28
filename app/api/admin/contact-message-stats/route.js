@@ -2,6 +2,10 @@
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let contactMessageStatsCache = { data: null, expiresAt: 0 };
+
 /**
  * API endpoint to get statistics for contact messages by status
  *
@@ -13,6 +17,14 @@ export async function GET() {
     const admin = await getAdminFromSession();
     if (!admin) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (
+      isProd &&
+      contactMessageStatsCache.data &&
+      contactMessageStatsCache.expiresAt > Date.now()
+    ) {
+      return NextResponse.json(contactMessageStatsCache.data);
     }
 
     // Get counts for each status type
@@ -45,13 +57,22 @@ export async function GET() {
     // Get total count
     const totalCount = Object.values(statusCounts).reduce((sum, count) => sum + count, 0);
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         statusCounts,
         totalCount,
       },
-    });
+    };
+
+    if (isProd) {
+      contactMessageStatsCache = {
+        data: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      };
+    }
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error("Error fetching contact message stats:", error);
     return NextResponse.json(

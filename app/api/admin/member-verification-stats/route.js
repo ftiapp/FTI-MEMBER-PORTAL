@@ -2,6 +2,10 @@
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let memberVerificationStatsCache = { data: null, expiresAt: 0 };
+
 /**
  * GET /api/admin/member-verification-stats
  *
@@ -14,6 +18,14 @@ export async function GET(request) {
     const admin = await getAdminFromSession();
     if (!admin) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
+    }
+
+    if (
+      isProd &&
+      memberVerificationStatsCache.data &&
+      memberVerificationStatsCache.expiresAt > Date.now()
+    ) {
+      return NextResponse.json(memberVerificationStatsCache.data);
     }
 
     // Get total count
@@ -72,10 +84,19 @@ export async function GET(request) {
 
     console.log("Final stats:", JSON.stringify(stats));
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       stats,
-    });
+    };
+
+    if (isProd) {
+      memberVerificationStatsCache = {
+        data: responseBody,
+        expiresAt: Date.now() + ONE_DAY_MS,
+      };
+    }
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error("Error fetching member verification stats:", error);
     return NextResponse.json(

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const locationTimelineCache = new Map();
+
 // GET /api/admin/analytics/location-timeline
 // Returns membership signup counts by company province with month range support
 // Query params: year, startMonth, endMonth, memberType (optional: IC/OC/AM/AC/all)
@@ -27,6 +31,15 @@ export async function GET(request) {
     // Ensure startMonth <= endMonth
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
+
+    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd, memberType });
+    if (isProd && locationTimelineCache.has(cacheKey)) {
+      const cached = locationTimelineCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      locationTimelineCache.delete(cacheKey);
+    }
 
     // We use address_type = '2' (ที่อยู่จัดส่งเอกสาร/ที่อยู่หลักบริษัท) for province
     let queryText;
@@ -173,7 +186,7 @@ export async function GET(request) {
       }
     }
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         year,
@@ -184,7 +197,16 @@ export async function GET(request) {
         byProvince,
         monthlyTotals,
       },
-    });
+    };
+
+    if (isProd) {
+      locationTimelineCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     console.error("Error fetching location timeline stats:", err);
     return NextResponse.json(

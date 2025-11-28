@@ -3,6 +3,13 @@ import { cookies } from "next/headers";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
+const ONE_MINUTE_MS = 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+
+// Simple in-memory cache for membership requests (production only)
+// Keyed by status, type, search, page, limit, sortOrder
+const membershipRequestsCache = new Map();
+
 /**
  * GET handler for fetching membership requests
  *
@@ -29,6 +36,16 @@ export async function GET(request) {
 
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
+
+    // Build cache key and return cached result if available (production only)
+    const cacheKey = JSON.stringify({ status, type, search, page, limit, sortOrder });
+    if (isProd && membershipRequestsCache.has(cacheKey)) {
+      const cached = membershipRequestsCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      membershipRequestsCache.delete(cacheKey);
+    }
 
     // Convert status string to numeric value
     let statusValue;
@@ -344,7 +361,7 @@ export async function GET(request) {
       // Calculate total pages
       const totalPages = Math.ceil(totalCount / limit);
 
-      return NextResponse.json({
+      const responsePayload = {
         success: true,
         data: rows,
         pagination: {
@@ -353,7 +370,16 @@ export async function GET(request) {
           limit,
           totalPages,
         },
-      });
+      };
+
+      if (isProd) {
+        membershipRequestsCache.set(cacheKey, {
+          payload: responsePayload,
+          expiresAt: Date.now() + ONE_MINUTE_MS,
+        });
+      }
+
+      return NextResponse.json(responsePayload);
     } finally {
       connection.release();
     }

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let userStatsCache = { data: null, expiresAt: 0 };
+
 /**
  * GET /api/admin/user-stats
  *
@@ -16,6 +20,10 @@ export async function GET() {
     const admin = await checkAdminSession();
     if (!admin) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
+    }
+
+    if (isProd && userStatsCache.data && userStatsCache.expiresAt > Date.now()) {
+      return NextResponse.json(userStatsCache.data);
     }
 
     // Query to get user status counts
@@ -67,6 +75,13 @@ export async function GET() {
             }
           : null,
     };
+
+    if (isProd) {
+      userStatsCache = {
+        data: stats,
+        expiresAt: Date.now() + ONE_DAY_MS,
+      };
+    }
 
     return NextResponse.json(stats);
   } catch (error) {

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const membershipLocationCache = new Map();
+
 // GET /api/admin/membership-requests/location
 // Returns membership signup counts by company province with optional filters
 export async function GET(request) {
@@ -20,6 +24,15 @@ export async function GET(request) {
     const year = Number(yearParam) || now.getFullYear();
     const month = Math.min(Math.max(Number(monthParam) || now.getMonth() + 1, 1), 12);
     const memberType = ["IC", "OC", "AM", "AC"].includes(memberTypeParam) ? memberTypeParam : "ALL";
+
+    const cacheKey = JSON.stringify({ year, month, memberType });
+    if (isProd && membershipLocationCache.has(cacheKey)) {
+      const cached = membershipLocationCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      membershipLocationCache.delete(cacheKey);
+    }
 
     // We use address_type = '2' (ที่อยู่จัดส่งเอกสาร/ที่อยู่หลักบริษัท) for province
     let queryText;
@@ -99,7 +112,7 @@ export async function GET(request) {
     const byProvince = rows.map((r) => ({ name: r.name || "ไม่ระบุ", count: Number(r.count) || 0 }));
     const total = byProvince.reduce((sum, r) => sum + (r.count || 0), 0);
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         year,
@@ -108,7 +121,16 @@ export async function GET(request) {
         total,
         byProvince,
       },
-    });
+    };
+
+    if (isProd) {
+      membershipLocationCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     console.error("Error fetching membership location stats:", err);
     return NextResponse.json(

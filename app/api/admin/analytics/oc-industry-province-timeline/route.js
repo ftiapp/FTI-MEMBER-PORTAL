@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const ocIndustryProvinceTimelineCache = new Map();
+
 // GET /api/admin/analytics/oc-industry-province-timeline
 // Returns OC industry and province chapter stats with month range support
 // Query params: year, startMonth, endMonth
@@ -25,6 +29,15 @@ export async function GET(request) {
     // Ensure startMonth <= endMonth
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
+
+    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd });
+    if (isProd && ocIndustryProvinceTimelineCache.has(cacheKey)) {
+      const cached = ocIndustryProvinceTimelineCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      ocIndustryProvinceTimelineCache.delete(cacheKey);
+    }
 
     // Query industry groups for the specified range
     const industryRows = await query(
@@ -164,7 +177,7 @@ export async function GET(request) {
       }
     }
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         year,
@@ -176,7 +189,16 @@ export async function GET(request) {
         totalProvince,
         monthlyTotals,
       },
-    });
+    };
+
+    if (isProd) {
+      ocIndustryProvinceTimelineCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     console.error("Error fetching OC industry/province timeline stats:", err);
     return NextResponse.json(

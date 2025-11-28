@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const membershipTimelineAnalyticsCache = new Map();
+
 // GET /api/admin/analytics/membership-timeline
 // Returns monthly signup counts with flexible date range support
 // Query params: year (required), startMonth (optional, 1-12), endMonth (optional, 1-12)
@@ -24,6 +28,15 @@ export async function GET(request) {
     // Ensure startMonth <= endMonth
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
+
+    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd });
+    if (isProd && membershipTimelineAnalyticsCache.has(cacheKey)) {
+      const cached = membershipTimelineAnalyticsCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      membershipTimelineAnalyticsCache.delete(cacheKey);
+    }
 
     // Query all 4 member types for the specified year and month range
     const sql = `
@@ -115,7 +128,7 @@ export async function GET(request) {
       }
     }
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         year,
@@ -124,7 +137,16 @@ export async function GET(request) {
         months,
         statusCounts,
       },
-    });
+    };
+
+    if (isProd) {
+      membershipTimelineAnalyticsCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     console.error("Error fetching membership timeline stats:", err);
     return NextResponse.json(

@@ -66,8 +66,8 @@ if (!isBuildTime && process.env.DB_HOST) {
 dbConfig = {
   ...dbConfig,
   waitForConnections: true,
-  connectionLimit: 20, // เพิ่มจำนวน connection ที่รองรับ
-  maxIdle: 10,
+  connectionLimit: 10, // ลดจำนวน connection พร้อมกัน เพื่อลดการใช้หน่วยความจำของ MySQL
+  maxIdle: 5,
   idleTimeout: 30000, // ลดเวลา idle ลงเพื่อให้ปล่อย connection เร็วขึ้น
   queueLimit: 0,
   enableKeepAlive: true,

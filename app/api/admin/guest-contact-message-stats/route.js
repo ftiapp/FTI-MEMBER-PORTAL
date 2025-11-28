@@ -2,12 +2,24 @@
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let guestContactMessageStatsCache = { data: null, expiresAt: 0 };
+
 export async function GET() {
   try {
     // Verify admin authentication
     const admin = await getAdminFromSession();
     if (!admin) {
       return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (
+      isProd &&
+      guestContactMessageStatsCache.data &&
+      guestContactMessageStatsCache.expiresAt > Date.now()
+    ) {
+      return NextResponse.json(guestContactMessageStatsCache.data);
     }
 
     // Query to count messages by status
@@ -41,13 +53,22 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         statusCounts,
         totalCount: totalCountResult[0]?.count || 0,
       },
-    });
+    };
+
+    if (isProd) {
+      guestContactMessageStatsCache = {
+        data: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      };
+    }
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error("Error fetching guest contact message statistics:", error);
     return NextResponse.json(

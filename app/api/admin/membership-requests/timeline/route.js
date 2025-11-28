@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const membershipTimelineCache = new Map();
+
 // GET /api/admin/membership-requests/timeline
 // Returns monthly signup counts for current year, grouped by member type
 export async function GET() {
@@ -13,6 +17,15 @@ export async function GET() {
 
     const currentYearResult = await query("SELECT YEAR(CURDATE()) AS year");
     const year = currentYearResult?.[0]?.year || new Date().getFullYear();
+
+    const cacheKey = String(year);
+    if (isProd && membershipTimelineCache.has(cacheKey)) {
+      const cached = membershipTimelineCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      membershipTimelineCache.delete(cacheKey);
+    }
 
     // We assume each MemberRegist_*_Main table has a created_at column
     const sql = `
@@ -92,14 +105,23 @@ export async function GET() {
       }
     }
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         year,
         months,
         statusCounts,
       },
-    });
+    };
+
+    if (isProd) {
+      membershipTimelineCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     console.error("Error fetching membership timeline stats:", err);
     return NextResponse.json(

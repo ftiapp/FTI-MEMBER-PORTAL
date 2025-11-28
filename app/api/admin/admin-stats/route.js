@@ -1,6 +1,10 @@
 ﻿import { getAdminFromSession } from "../../../lib/adminAuth";
 import { query } from "../../../lib/db";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let adminStatsCache = { data: null, expiresAt: 0 };
+
 export async function GET(request) {
   try {
     // Verify admin session
@@ -16,6 +20,13 @@ export async function GET(request) {
           headers: { "Content-Type": "application/json" },
         },
       );
+    }
+
+    if (isProd && adminStatsCache.data && adminStatsCache.expiresAt > Date.now()) {
+      return new Response(JSON.stringify(adminStatsCache.data), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Get admin statistics
@@ -47,24 +58,30 @@ export async function GET(request) {
       adminList = await query(adminListQuery);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        stats: {
-          totalAdmins: adminStats.total_admins || 0,
-          activeAdmins: adminStats.active_admins || 0,
-          superAdmins: adminStats.super_admins || 0,
-          createAdmins: adminStats.create_admins || 0,
-          updateAdmins: adminStats.update_admins || 0,
-          latestAdminCreated: adminStats.latest_admin_created || null,
-        },
-        recentAdmins: adminList,
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    const responseBody = {
+      success: true,
+      stats: {
+        totalAdmins: adminStats.total_admins || 0,
+        activeAdmins: adminStats.active_admins || 0,
+        superAdmins: adminStats.super_admins || 0,
+        createAdmins: adminStats.create_admins || 0,
+        updateAdmins: adminStats.update_admins || 0,
+        latestAdminCreated: adminStats.latest_admin_created || null,
       },
-    );
+      recentAdmins: adminList,
+    };
+
+    if (isProd) {
+      adminStatsCache = {
+        data: responseBody,
+        expiresAt: Date.now() + ONE_DAY_MS,
+      };
+    }
+
+    return new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error fetching admin statistics:", error);
     return new Response(

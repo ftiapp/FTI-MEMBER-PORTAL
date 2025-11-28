@@ -5,11 +5,21 @@ export async function POST(req) {
   try {
     const body = await req.json();
     const { user_id, event_type, session_id } = body;
-    const ip_address = req.headers.get("x-forwarded-for") || req.ip || "";
+
+    // Normalize client IP so it fits into VARCHAR(45)
+    const rawIpHeader =
+      req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || req.ip || "";
+    const clientIp = rawIpHeader
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean)[0] || "";
+    const ip_address = clientIp.substring(0, 45);
+
     const user_agent = req.headers.get("user-agent") || "";
 
     console.log("[log-login] BODY:", body);
-    console.log("[log-login] ip_address:", ip_address, "user_agent:", user_agent);
+    console.log("[log-login] rawIpHeader:", rawIpHeader, "normalized ip_address:", ip_address);
+    console.log("[log-login] user_agent:", user_agent);
     console.log("[log-login] typeof db:", typeof db, "typeof db.query:", typeof db.query);
 
     if (!user_id || !event_type) {

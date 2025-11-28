@@ -2,10 +2,20 @@
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 
-// ไม่ต้องใช้ cache เพื่อความเรียบง่าย
+// Simple in-memory cache (per Node.js process)
+// เหมาะสำหรับลดโหลด DB เมื่อมีหลาย component เรียก endpoint นี้พร้อมกัน
+const TWENTY_MINUTES = 20 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let unreadCache = { value: null, expiresAt: 0 };
+
 export async function GET(request) {
   try {
-    // ไม่ต้องตรวจสอบ admin session ที่นี่ เพราะเราจะใช้ middleware หรือตรวจสอบที่หน้าเว็บแทน
+    const now = Date.now();
+
+    // Use cache only in production เพื่อให้ dev เห็นผลลัพธ์สด ๆ ง่ายต่อการ debug
+    if (isProd && unreadCache.value !== null && unreadCache.expiresAt > now) {
+      return NextResponse.json({ unread: unreadCache.value, cached: true });
+    }
 
     // Query DB directly
     const result = await query(
@@ -13,7 +23,14 @@ export async function GET(request) {
     );
     const unread = result?.[0]?.unread ?? 0;
 
-    return NextResponse.json({ unread });
+    if (isProd) {
+      unreadCache = {
+        value: unread,
+        expiresAt: now + TWENTY_MINUTES,
+      };
+    }
+
+    return NextResponse.json({ unread, cached: false });
   } catch (error) {
     console.error("Error fetching unread count:", error);
     return NextResponse.json({ error: "Failed to fetch unread count" }, { status: 500 });

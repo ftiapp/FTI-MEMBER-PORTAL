@@ -2,11 +2,19 @@ import { NextResponse } from "next/server";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let membershipStatsCache = { data: null, expiresAt: 0 };
+
 export async function GET() {
   try {
     const admin = await checkAdminSession();
     if (!admin) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
+    }
+
+    if (isProd && membershipStatsCache.data && membershipStatsCache.expiresAt > Date.now()) {
+      return NextResponse.json(membershipStatsCache.data);
     }
 
     const conn = await getConnection();
@@ -43,7 +51,7 @@ export async function GET() {
       const total =
         overall.pending + overall.approved + overall.rejected + overall.resubmitted;
 
-      return NextResponse.json({
+      const responseBody = {
         success: true,
         data: {
           overall: { ...overall, total },
@@ -66,7 +74,16 @@ export async function GET() {
             },
           },
         },
-      });
+      };
+
+      if (isProd) {
+        membershipStatsCache = {
+          data: responseBody,
+          expiresAt: Date.now() + TWELVE_HOURS_MS,
+        };
+      }
+
+      return NextResponse.json(responseBody);
     } finally {
       conn.release();
     }

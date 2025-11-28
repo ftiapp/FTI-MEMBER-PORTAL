@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let userCountStatCache = { data: null, expiresAt: 0 };
+
 /**
  * GET /api/admin/UserCountStat
  *
@@ -14,6 +18,10 @@ export async function GET(request) {
     const admin = await getAdminFromSession();
     if (!admin) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
+    }
+
+    if (isProd && userCountStatCache.data && userCountStatCache.expiresAt > Date.now()) {
+      return NextResponse.json(userCountStatCache.data);
     }
 
     // Get total FTI_Portal_User
@@ -61,7 +69,7 @@ export async function GET(request) {
       }
     });
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       counts: {
         total: totalUsers,
@@ -69,7 +77,16 @@ export async function GET(request) {
         notVerified: notVerifiedUsers,
         roleCounts,
       },
-    });
+    };
+
+    if (isProd) {
+      userCountStatCache = {
+        data: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      };
+    }
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error("Error fetching user count statistics:", error);
     return NextResponse.json(

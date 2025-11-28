@@ -3,6 +3,10 @@ import { query } from "../../../../lib/db";
 import { cookies } from "next/headers";
 import jwt from "jsonwebtoken";
 
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const tsicCodesCache = new Map();
+
 /**
  * Handle GET requests to retrieve TSIC codes for a member
  */
@@ -35,6 +39,16 @@ export async function GET(request) {
     // Validate required fields
     if (!memberCode) {
       return NextResponse.json({ success: false, message: "กรุณาระบุรหัสสมาชิก" }, { status: 400 });
+    }
+
+    // Simple in-memory cache (production only), keyed by member_code + status
+    const cacheKey = JSON.stringify({ memberCode, status: status ?? null });
+    if (isProd && tsicCodesCache.has(cacheKey)) {
+      const cached = tsicCodesCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      tsicCodesCache.delete(cacheKey);
     }
 
     // เนื่องจากมีปัญหา collation ที่แตกต่างกัน เราจะดึงข้อมูลแยกกันและรวมข้อมูลในโค้ด
@@ -151,12 +165,21 @@ export async function GET(request) {
     });
 
     // ส่งข้อมูลกลับในรูปแบบที่ง่ายต่อการใช้งาน
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: formattedCodes,
       total: tsicCodes.length,
       categories: categoryDescriptions,
-    });
+    };
+
+    if (isProd) {
+      tsicCodesCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWENTY_FOUR_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     console.error("Error retrieving TSIC codes:", error);
     return NextResponse.json(

@@ -1,6 +1,10 @@
 ﻿import { getAdminFromSession } from "../../../lib/adminAuth";
 import { query } from "../../../lib/db";
 
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+let dashboardCache = { data: null, expiresAt: 0 };
+
 export async function GET(request) {
   try {
     // Verify admin session
@@ -16,6 +20,13 @@ export async function GET(request) {
           headers: { "Content-Type": "application/json" },
         },
       );
+    }
+
+    if (isProd && dashboardCache.data && dashboardCache.expiresAt > Date.now()) {
+      return new Response(JSON.stringify(dashboardCache.data), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     // Get all counts in a single database query using subqueries
@@ -36,31 +47,37 @@ export async function GET(request) {
 
     const [countsResult] = await query(countsQuery);
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        counts: {
-          verifications: countsResult.verifications_count || 0,
-          profileUpdates: countsResult.profile_updates_count || 0,
-          addressUpdates: countsResult.address_updates_count || 0,
-          guestMessages: countsResult.guest_messages_count || 0,
-          productUpdates: countsResult.product_updates_count || 0,
-          membershipRequests: countsResult.membership_requests_count || 0,
-        },
-        admin: {
-          id: admin.id,
-          username: admin.username,
-          name: admin.name,
-          adminLevel: admin.adminLevel || admin.admin_level || 0,
-          canCreate: admin.canCreate,
-          canUpdate: admin.canUpdate,
-        },
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+    const responseBody = {
+      success: true,
+      counts: {
+        verifications: countsResult.verifications_count || 0,
+        profileUpdates: countsResult.profile_updates_count || 0,
+        addressUpdates: countsResult.address_updates_count || 0,
+        guestMessages: countsResult.guest_messages_count || 0,
+        productUpdates: countsResult.product_updates_count || 0,
+        membershipRequests: countsResult.membership_requests_count || 0,
       },
-    );
+      admin: {
+        id: admin.id,
+        username: admin.username,
+        name: admin.name,
+        adminLevel: admin.adminLevel || admin.admin_level || 0,
+        canCreate: admin.canCreate,
+        canUpdate: admin.canUpdate,
+      },
+    };
+
+    if (isProd) {
+      dashboardCache = {
+        data: responseBody,
+        expiresAt: Date.now() + ONE_DAY_MS,
+      };
+    }
+
+    return new Response(JSON.stringify(responseBody), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
     return new Response(

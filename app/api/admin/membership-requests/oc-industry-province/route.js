@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { getAdminFromSession } from "@/app/lib/adminAuth";
 
+const TWELVE_HOURS_MS = 12 * 60 * 60 * 1000;
+const isProd = process.env.NODE_ENV === "production";
+const ocIndustryProvinceCache = new Map();
+
 export async function GET(request) {
   try {
     const admin = await getAdminFromSession();
@@ -16,6 +20,15 @@ export async function GET(request) {
 
     const year = Number(yearParam) || now.getFullYear();
     const month = Math.min(Math.max(Number(monthParam) || now.getMonth() + 1, 1), 12);
+
+    const cacheKey = JSON.stringify({ year, month });
+    if (isProd && ocIndustryProvinceCache.has(cacheKey)) {
+      const cached = ocIndustryProvinceCache.get(cacheKey);
+      if (cached.expiresAt > Date.now()) {
+        return NextResponse.json(cached.payload);
+      }
+      ocIndustryProvinceCache.delete(cacheKey);
+    }
 
     const prevDate = new Date(year, month - 2, 1);
     const prevYear = prevDate.getFullYear();
@@ -178,7 +191,7 @@ export async function GET(request) {
     const totalIndustryPrevious = Number(industryRowsPrevious?.[0]?.count) || 0;
     const totalProvincePrevious = Number(provinceRowsPrevious?.[0]?.count) || 0;
 
-    return NextResponse.json({
+    const responseBody = {
       success: true,
       data: {
         year,
@@ -194,7 +207,16 @@ export async function GET(request) {
           totalProvince: totalProvincePrevious,
         },
       },
-    });
+    };
+
+    if (isProd) {
+      ocIndustryProvinceCache.set(cacheKey, {
+        payload: responseBody,
+        expiresAt: Date.now() + TWELVE_HOURS_MS,
+      });
+    }
+
+    return NextResponse.json(responseBody);
   } catch (err) {
     console.error("Error fetching OC industry/province stats:", err);
     return NextResponse.json(
