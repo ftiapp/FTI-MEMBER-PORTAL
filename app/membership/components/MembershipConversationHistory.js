@@ -129,8 +129,7 @@ export default function MembershipConversationHistory({ membershipType, membersh
                 </div>
 
                 <div className="text-gray-700 whitespace-pre-wrap break-words">
-                  <span className="font-medium">ข้อความ :</span>{" "}
-                  {conv.message}
+                  <span className="font-medium">ข้อความ :</span> {conv.message}
                 </div>
               </div>
             </div>

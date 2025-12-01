@@ -397,7 +397,9 @@ export default function MembershipDocuments() {
                     </div>
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-gray-900">เอกสารสมัครสมาชิกที่แก้ไขแล้ว</h2>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      เอกสารสมัครสมาชิกที่แก้ไขแล้ว
+                    </h2>
                     <p className="text-sm text-gray-600">
                       เอกสารที่ท่านได้แก้ไขและส่งกลับมาแล้ว อยู่ระหว่างรอตรวจสอบจากเจ้าหน้าที่
                     </p>

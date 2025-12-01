@@ -2,9 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { toast } from "react-hot-toast";
 
 export function useTaxIdValidation(formData, setFormData, errors, setErrors) {
-  const [validationStatus, setValidationStatus] = useState({ 
-    status: "idle", 
-    message: "" 
+  const [validationStatus, setValidationStatus] = useState({
+    status: "idle",
+    message: "",
   });
   const taxIdTimeoutRef = useRef(null);
 
@@ -14,9 +14,9 @@ export function useTaxIdValidation(formData, setFormData, errors, setErrors) {
       return false;
     }
 
-    setValidationStatus({ 
-      status: "checking", 
-      message: "กำลังตรวจสอบเลขประจำตัวผู้เสียภาษี..." 
+    setValidationStatus({
+      status: "checking",
+      message: "กำลังตรวจสอบเลขประจำตัวผู้เสียภาษี...",
     });
 
     try {
@@ -58,7 +58,7 @@ export function useTaxIdValidation(formData, setFormData, errors, setErrors) {
 
     setFormData((prev) => ({ ...prev, taxId: numericValue }));
     setValidationStatus({ status: "idle", message: "" });
-    
+
     if (errors.taxId) {
       setErrors((prev) => ({ ...prev, taxId: undefined }));
     }

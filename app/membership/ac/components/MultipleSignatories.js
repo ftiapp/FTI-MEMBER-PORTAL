@@ -64,25 +64,25 @@ const MultipleSignatories = ({
 
     const updatedSignatories = signatories.filter((sig) => sig.id !== id);
     setSignatories(updatedSignatories);
-    
+
     // Update signatures array: Remove the file at the same index
     const currentSignatures = [...(selectedFiles.authorizedSignatures || [])];
     // Ensure we don't crash if array is shorter
     if (indexToRemove !== -1 && currentSignatures.length > indexToRemove) {
       currentSignatures.splice(indexToRemove, 1);
     }
-    
+
     // Update both formData fields
-    setFormData((prev) => ({ 
-      ...prev, 
+    setFormData((prev) => ({
+      ...prev,
       signatories: updatedSignatories,
-      authorizedSignatures: currentSignatures 
+      authorizedSignatures: currentSignatures,
     }));
-    
+
     // Update selectedFiles state
-    setSelectedFiles((prev) => ({ 
-      ...prev, 
-      authorizedSignatures: currentSignatures 
+    setSelectedFiles((prev) => ({
+      ...prev,
+      authorizedSignatures: currentSignatures,
     }));
   };
 

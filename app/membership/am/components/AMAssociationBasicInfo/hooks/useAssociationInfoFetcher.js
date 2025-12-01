@@ -6,7 +6,7 @@ export function useAssociationInfoFetcher(
   setFormData,
   setErrors,
   setIsFetchingDBD,
-  setValidationStatus
+  setValidationStatus,
 ) {
   const lastFetchTime = useRef(0);
   const throttleTime = 5000; // 5 seconds

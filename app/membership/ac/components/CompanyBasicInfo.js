@@ -1,6 +1,6 @@
 "use client";
 
-import CompanyBasicInfo from '@/app/membership/ac/components/ACCompanyBasicInfo/CompanyBasicInfo';
+import CompanyBasicInfo from "@/app/membership/ac/components/ACCompanyBasicInfo/CompanyBasicInfo";
 
 export default function CompanyBasicInfoWrapper({
   formData,

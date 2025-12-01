@@ -146,7 +146,12 @@ function ProductUpdatesPage() {
                         filters.status === "pending" ? "bg-yellow-400" : "bg-gray-200"
                       }`}
                     >
-                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -178,7 +183,12 @@ function ProductUpdatesPage() {
                         filters.status === "approved" ? "bg-green-500" : "bg-gray-200"
                       }`}
                     >
-                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"
@@ -210,7 +220,12 @@ function ProductUpdatesPage() {
                         filters.status === "rejected" ? "bg-red-500" : "bg-gray-200"
                       }`}
                     >
-                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
                         <path
                           strokeLinecap="round"
                           strokeLinejoin="round"

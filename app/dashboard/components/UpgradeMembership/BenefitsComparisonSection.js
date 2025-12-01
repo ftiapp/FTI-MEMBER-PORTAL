@@ -66,9 +66,7 @@ export default function BenefitsComparisonSection({
       <div className="bg-gray-50 p-4 sm:p-6 border-b">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold text-gray-900">
-              เปรียบเทียบสิทธิประโยชน์
-            </h2>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">เปรียบเทียบสิทธิประโยชน์</h2>
             <p className="text-xs sm:text-sm text-gray-600 mt-1">
               ตรวจสอบสิทธิประโยชน์ทั้งหมด {benefits.length} รายการ
             </p>
@@ -109,11 +107,7 @@ export default function BenefitsComparisonSection({
 
           <div className="p-3 space-y-2">
             {currentBenefits.map((benefit) => (
-              <MobileBenefitCard
-                key={benefit.id}
-                benefit={benefit}
-                membership={activeTab}
-              />
+              <MobileBenefitCard key={benefit.id} benefit={benefit} membership={activeTab} />
             ))}
           </div>
         </div>
@@ -125,9 +119,7 @@ export default function BenefitsComparisonSection({
                 <th className="py-3 px-4 text-left text-sm font-medium text-gray-700">
                   สิทธิประโยชน์
                 </th>
-                <th className="py-3 px-4 text-center text-sm font-medium text-blue-600 w-32">
-                  สน
-                </th>
+                <th className="py-3 px-4 text-center text-sm font-medium text-blue-600 w-32">สน</th>
                 <th className="py-3 px-4 text-center text-sm font-medium text-purple-600 w-32">
                   สส
                 </th>
@@ -150,36 +142,28 @@ export default function BenefitsComparisonSection({
                     {benefit.ordinary ? (
                       <span className="text-blue-600 text-lg">✓</span>
                     ) : (
-                      <span className="text-gray-300 text-lg">
-                        
-                      </span>
+                      <span className="text-gray-300 text-lg"></span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
                     {benefit.associate ? (
                       <span className="text-purple-600 text-lg">✓</span>
                     ) : (
-                      <span className="text-gray-300 text-lg">
-                        
-                      </span>
+                      <span className="text-gray-300 text-lg"></span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
                     {benefit.supporting ? (
                       <span className="text-green-600 text-lg">✓</span>
                     ) : (
-                      <span className="text-gray-300 text-lg">
-                        
-                      </span>
+                      <span className="text-gray-300 text-lg"></span>
                     )}
                   </td>
                   <td className="py-3 px-4 text-center">
                     {benefit.supporting ? (
                       <span className="text-amber-600 text-lg">✓</span>
                     ) : (
-                      <span className="text-gray-300 text-lg">
-                        
-                      </span>
+                      <span className="text-gray-300 text-lg"></span>
                     )}
                   </td>
                 </tr>

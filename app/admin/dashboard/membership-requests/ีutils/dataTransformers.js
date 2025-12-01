@@ -91,7 +91,8 @@ export const normalizeApplicationData = (application, type) => {
   if (typeof rawStatus === "number") {
     if (rawStatus === 1) statusString = STATUS.APPROVED;
     else if (rawStatus === 2) statusString = STATUS.REJECTED;
-    else if (rawStatus === 4) statusString = STATUS.RESUBMITTED; // 4 = Resubmitted
+    else if (rawStatus === 4)
+      statusString = STATUS.RESUBMITTED; // 4 = Resubmitted
     else statusString = STATUS.PENDING;
   } else if (typeof rawStatus === "string") {
     const s = rawStatus.toLowerCase();

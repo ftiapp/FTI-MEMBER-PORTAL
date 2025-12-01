@@ -80,14 +80,14 @@ export async function POST(request) {
     let signatureNameId = null;
     if (documentType.startsWith("authorizedSignature")) {
       const signatureIndex = parseInt(documentType.replace("authorizedSignature", "")) - 1; // Convert to 0-based index
-      
+
       // Get the signature record at this index
       const signatureTable = `MemberRegist_${membershipType}_Signature_Name`;
       const signatures = await query(
         `SELECT id FROM ${signatureTable} WHERE main_id = ? ORDER BY id ASC LIMIT ? OFFSET ?`,
         [applicationId, 1, signatureIndex],
       );
-      
+
       if (signatures.length > 0) {
         signatureNameId = signatures[0].id;
       }

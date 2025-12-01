@@ -275,8 +275,6 @@ select:-webkit-autofill {
 
 /* Removed dark-mode variable overrides to avoid white text on white backgrounds in iOS Dark Mode */
 
-
-
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -332,8 +330,6 @@ select:-webkit-autofill {
     --chart-5: 340 75% 55%;
   }
 }
-
-
 
 @layer base {
   * {

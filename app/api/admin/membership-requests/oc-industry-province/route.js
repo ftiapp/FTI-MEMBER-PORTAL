@@ -182,8 +182,14 @@ export async function GET(request) {
       [prevYear, prevMonth, prevYear, prevMonth, prevYear, prevMonth, prevYear, prevMonth],
     );
 
-    const byIndustry = industryRowsCurrent.map((r) => ({ name: r.name || "ไม่ระบุ", count: Number(r.count) || 0 }));
-    const byProvince = provinceRowsCurrent.map((r) => ({ name: r.name || "ไม่ระบุ", count: Number(r.count) || 0 }));
+    const byIndustry = industryRowsCurrent.map((r) => ({
+      name: r.name || "ไม่ระบุ",
+      count: Number(r.count) || 0,
+    }));
+    const byProvince = provinceRowsCurrent.map((r) => ({
+      name: r.name || "ไม่ระบุ",
+      count: Number(r.count) || 0,
+    }));
 
     const totalIndustryCurrent = byIndustry.reduce((sum, r) => sum + (r.count || 0), 0);
     const totalProvinceCurrent = byProvince.reduce((sum, r) => sum + (r.count || 0), 0);

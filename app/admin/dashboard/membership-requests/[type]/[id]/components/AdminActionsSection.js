@@ -11,7 +11,6 @@ const AdminActionsSection = ({
   type,
   onOpenRejectModal,
 }) => {
-
   if (!application) return null;
 
   return (

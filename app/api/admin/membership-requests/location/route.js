@@ -39,8 +39,7 @@ export async function GET(request) {
     let params;
 
     if (memberType === "OC") {
-      queryText =
-        `SELECT a.province AS name, COUNT(*) AS count
+      queryText = `SELECT a.province AS name, COUNT(*) AS count
          FROM MemberRegist_OC_Address a
          JOIN MemberRegist_OC_Main m ON a.main_id = m.id
          WHERE a.address_type = '2' AND YEAR(m.created_at) = ? AND MONTH(m.created_at) = ?
@@ -48,8 +47,7 @@ export async function GET(request) {
          ORDER BY count DESC, a.province ASC`;
       params = [year, month];
     } else if (memberType === "AC") {
-      queryText =
-        `SELECT a.province AS name, COUNT(*) AS count
+      queryText = `SELECT a.province AS name, COUNT(*) AS count
          FROM MemberRegist_AC_Address a
          JOIN MemberRegist_AC_Main m ON a.main_id = m.id
          WHERE a.address_type = '2' AND YEAR(m.created_at) = ? AND MONTH(m.created_at) = ?
@@ -57,8 +55,7 @@ export async function GET(request) {
          ORDER BY count DESC, a.province ASC`;
       params = [year, month];
     } else if (memberType === "AM") {
-      queryText =
-        `SELECT a.province AS name, COUNT(*) AS count
+      queryText = `SELECT a.province AS name, COUNT(*) AS count
          FROM MemberRegist_AM_Address a
          JOIN MemberRegist_AM_Main m ON a.main_id = m.id
          WHERE a.address_type = '2' AND YEAR(m.created_at) = ? AND MONTH(m.created_at) = ?
@@ -66,8 +63,7 @@ export async function GET(request) {
          ORDER BY count DESC, a.province ASC`;
       params = [year, month];
     } else if (memberType === "IC") {
-      queryText =
-        `SELECT a.province AS name, COUNT(*) AS count
+      queryText = `SELECT a.province AS name, COUNT(*) AS count
          FROM MemberRegist_IC_Address a
          JOIN MemberRegist_IC_Main m ON a.main_id = m.id
          WHERE a.address_type = '2' AND YEAR(m.created_at) = ? AND MONTH(m.created_at) = ?
@@ -75,8 +71,7 @@ export async function GET(request) {
          ORDER BY count DESC, a.province ASC`;
       params = [year, month];
     } else {
-      queryText =
-        `SELECT province AS name, SUM(cnt) AS count
+      queryText = `SELECT province AS name, SUM(cnt) AS count
          FROM (
            SELECT a.province, COUNT(*) AS cnt
            FROM MemberRegist_OC_Address a
@@ -109,7 +104,10 @@ export async function GET(request) {
 
     const rows = await query(queryText, params);
 
-    const byProvince = rows.map((r) => ({ name: r.name || "ไม่ระบุ", count: Number(r.count) || 0 }));
+    const byProvince = rows.map((r) => ({
+      name: r.name || "ไม่ระบุ",
+      count: Number(r.count) || 0,
+    }));
     const total = byProvince.reduce((sum, r) => sum + (r.count || 0), 0);
 
     const responseBody = {

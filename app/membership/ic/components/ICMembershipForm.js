@@ -228,7 +228,15 @@ export default function ICMembershipForm(props = {}) {
         toast.error("เกิดข้อผิดพลาดร้ายแรง กรุณาลองใหม่อีกครั้ง");
       }
     },
-    [formData, currentStep, router, setCurrentStep, consentAgreed, props.isEditMode, props.onEditSubmit],
+    [
+      formData,
+      currentStep,
+      router,
+      setCurrentStep,
+      consentAgreed,
+      props.isEditMode,
+      props.onEditSubmit,
+    ],
   );
 
   // Handle next step

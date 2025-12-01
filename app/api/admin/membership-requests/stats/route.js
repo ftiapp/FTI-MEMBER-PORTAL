@@ -50,8 +50,7 @@ export async function GET() {
         rejected: sum("rejected"),
         resubmitted: sum("resubmitted"),
       };
-      const total =
-        overall.pending + overall.approved + overall.rejected + overall.resubmitted;
+      const total = overall.pending + overall.approved + overall.rejected + overall.resubmitted;
 
       const responseBody = {
         success: true,

@@ -61,7 +61,8 @@ export default function ContactAdminModal({ isOpen, onSend, onCancel, isSubmitti
               <div className="px-6 py-6">
                 <div className="space-y-4">
                   <p className="text-gray-700 leading-relaxed">
-                    กรุณาระบุข้อความที่ต้องการติดต่อผู้ดูแลระบบ เช่น คำอธิบายการแก้ไขข้อมูล หรือคำถามเพิ่มเติมเกี่ยวกับใบสมัครของคุณ
+                    กรุณาระบุข้อความที่ต้องการติดต่อผู้ดูแลระบบ เช่น คำอธิบายการแก้ไขข้อมูล
+                    หรือคำถามเพิ่มเติมเกี่ยวกับใบสมัครของคุณ
                   </p>
 
                   <div>

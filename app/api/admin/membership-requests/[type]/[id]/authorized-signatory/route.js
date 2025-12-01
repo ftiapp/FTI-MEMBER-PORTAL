@@ -31,7 +31,7 @@ export async function POST(request, { params }) {
     // Parse request body - handle both single object and array format
     const body = await request.json();
     let signatories = Array.isArray(body) ? body : [body];
-    
+
     // Validate all signatories
     for (let i = 0; i < signatories.length; i++) {
       const signatory = signatories[i];
@@ -40,14 +40,20 @@ export async function POST(request, { params }) {
       // Validate required Thai fields
       if (!prename_th || prename_th.trim() === "") {
         return NextResponse.json(
-          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)` },
+          {
+            success: false,
+            message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาเลือกคำนำหน้าชื่อ (ภาษาไทย)`,
+          },
           { status: 400 },
         );
       }
 
       if (prename_th === "อื่นๆ" && (!prename_other || prename_other.trim() === "")) {
         return NextResponse.json(
-          { success: false, message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)` },
+          {
+            success: false,
+            message: `ผู้มีอำนาจลงนามคนที่ ${i + 1}: กรุณาระบุคำนำหน้าชื่อ (อื่นๆ)`,
+          },
           { status: 400 },
         );
       }
@@ -107,7 +113,7 @@ export async function POST(request, { params }) {
     );
 
     let result;
-    
+
     // Before deleting signatories, set signature_name_id to NULL in related documents
     // to avoid foreign key constraint violations
     const documentTable = `MemberRegist_${type.toUpperCase()}_Documents`;
@@ -115,10 +121,10 @@ export async function POST(request, { params }) {
       `UPDATE ${documentTable} SET signature_name_id = NULL WHERE main_id = ? AND signature_name_id IS NOT NULL`,
       [id],
     );
-    
+
     // Delete existing signatories for this application
     await connection.execute(`DELETE FROM ${signatureTable} WHERE ${mainIdColumn} = ?`, [id]);
-    
+
     // Insert all signatories
     for (let i = 0; i < signatories.length; i++) {
       const signatory = signatories[i];

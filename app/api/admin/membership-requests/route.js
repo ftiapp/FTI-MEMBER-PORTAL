@@ -27,12 +27,19 @@ export async function GET(request) {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    let limit = parseInt(searchParams.get("limit") || "10");
     const status = searchParams.get("status") || "pending";
     const type = searchParams.get("type") || "all";
     const search = searchParams.get("search") || "";
     const sortOrderParam = (searchParams.get("sortOrder") || "desc").toLowerCase();
     const sortOrder = sortOrderParam === "asc" ? "ASC" : "DESC";
+
+    // Normalize and cap limit to prevent excessively large pages
+    if (Number.isNaN(limit) || limit <= 0) {
+      limit = 10;
+    } else if (limit > 100) {
+      limit = 100;
+    }
 
     // Calculate offset for pagination
     const offset = (page - 1) * limit;

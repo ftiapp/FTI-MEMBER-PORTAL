@@ -66,12 +66,17 @@ if (!isBuildTime && process.env.DB_HOST) {
 dbConfig = {
   ...dbConfig,
   waitForConnections: true,
-  connectionLimit: 10, // ลดจำนวน connection พร้อมกัน เพื่อลดการใช้หน่วยความจำของ MySQL
-  maxIdle: 5,
-  idleTimeout: 30000, // ลดเวลา idle ลงเพื่อให้ปล่อย connection เร็วขึ้น
+  // ลดจำนวน connection พร้อมกัน เพื่อลดการใช้หน่วยความจำของ MySQL
+  // จาก 10 เหลือ 5 ซึ่งยังมากกว่าค่า Max_used_connections ในระบบปัจจุบัน
+  connectionLimit: 5,
+  // ลดจำนวน idle connection ลงเล็กน้อย เพื่อลด footprint ใน RAM
+  maxIdle: 3,
+  // ลดเวลา idle ลงเพื่อให้ปล่อย connection เร็วขึ้น
+  idleTimeout: 20000,
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 10000, // เพิ่มการส่ง keepalive เร็วขึ้น
+  // ลด delay ของ keepalive ลงเล็กน้อยให้ connection ที่ยังใช้งานตอบสนองดี แต่ไม่ค้างนานเกินไป
+  keepAliveInitialDelay: 8000,
   connectTimeout: 60000, // เพิ่มเวลาในการเชื่อมต่อ
   // acquireTimeout ไม่ใช่ option ที่ถูกต้องสำหรับ mysql2
 };

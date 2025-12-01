@@ -8,7 +8,13 @@ import ResubmitSuccessModal from "./ResubmitSuccessModal";
 import ResubmitModal from "./ResubmitModal";
 import ConfirmationModal from "../ConfirmationModal";
 
-export default function RejectedActions({ rejectionId, membershipType, membershipId, status, formData }) {
+export default function RejectedActions({
+  rejectionId,
+  membershipType,
+  membershipId,
+  status,
+  formData,
+}) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);

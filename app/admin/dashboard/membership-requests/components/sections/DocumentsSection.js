@@ -424,13 +424,13 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
     if (found) {
       return found.label;
     }
-    
+
     // Handle dynamic authorized signature types
     if (docType?.startsWith("authorizedSignature")) {
       const num = docType.replace("authorizedSignature", "");
       return `ลายเซ็นผู้มีอำนาจลงนาม ${num}`;
     }
-    
+
     // Fallback to capitalized type or 'ไม่ระบุ'
     if (!docType) return "ไม่ระบุ";
     return docType.replace(/([A-Z])/g, " $1").replace(/^\w/, (c) => c.toUpperCase());

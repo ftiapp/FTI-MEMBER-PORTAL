@@ -42,7 +42,8 @@ export default function EditOCApplicationV4() {
             return {
               success: false,
               message:
-                commentResult.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง",
+                commentResult.message ||
+                "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง",
             };
           }
         } else {
@@ -162,7 +163,9 @@ export default function EditOCApplicationV4() {
         const result = await res.json();
 
         if (!res.ok || !result.success) {
-          toast.error(result.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง");
+          toast.error(
+            result.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง",
+          );
           return;
         }
 
@@ -220,7 +223,7 @@ export default function EditOCApplicationV4() {
 
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-              แก้ไข - ใบสมัครสมาชิกประเภท สามัญ-โรงงาน 
+              แก้ไข - ใบสมัครสมาชิกประเภท สามัญ-โรงงาน
             </h1>
             <motion.div
               className="w-24 h-1 bg-white mx-auto mb-6"
@@ -229,7 +232,8 @@ export default function EditOCApplicationV4() {
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
-             ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5 วันทำการ
+              ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5
+              วันทำการ
             </p>
           </div>
         </div>

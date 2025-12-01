@@ -108,7 +108,9 @@ export async function GET(request) {
     }
 
     // Avoid N+1 queries by fetching all documents for the current page in a single query
-    const memberConditions = membersResult.map(() => "(user_id = ? AND MEMBER_CODE = ?)").join(" OR ");
+    const memberConditions = membersResult
+      .map(() => "(user_id = ? AND MEMBER_CODE = ?)")
+      .join(" OR ");
     const memberParams = membersResult.flatMap((member) => [member.user_id, member.MEMBER_CODE]);
 
     const documentsQuery = `

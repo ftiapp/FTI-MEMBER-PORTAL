@@ -12,17 +12,17 @@ export default function OCResubmissionCommentBox({ value, onChange }) {
         {/* Header with icon */}
         <div className="flex items-start gap-3 mb-3">
           <div className="flex-shrink-0 w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-sm">
-            <svg 
-              className="w-5 h-5 text-white" 
-              fill="none" 
-              stroke="currentColor" 
+            <svg
+              className="w-5 h-5 text-white"
+              fill="none"
+              stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
               />
             </svg>
           </div>
@@ -34,7 +34,7 @@ export default function OCResubmissionCommentBox({ value, onChange }) {
               ระบุรายละเอียดการแก้ไขข้อมูล
             </label>
             <p className="text-sm text-gray-600">
-              กรุณาระบุรายละเอียดการแก้ไขข้อมูล ว่าท่านได้แก้ไขข้อมูลตรงส่วนใดบ้าง 
+              กรุณาระบุรายละเอียดการแก้ไขข้อมูล ว่าท่านได้แก้ไขข้อมูลตรงส่วนใดบ้าง
             </p>
           </div>
         </div>
@@ -53,16 +53,12 @@ export default function OCResubmissionCommentBox({ value, onChange }) {
             placeholder="ตัวอย่าง: แก้ไขที่อยู่บริษัท, เพิ่มเอกสารประกอบ, ปรับชื่อผู้มีอำนาจลงนาม"
             maxLength={maxChars}
           />
-          
+
           {/* Character counter */}
           <div className="absolute bottom-3 right-3 text-xs text-gray-500 bg-white px-2 py-1 rounded-md shadow-sm">
             {charCount}/{maxChars}
           </div>
         </div>
-
-      
-         
-   
       </div>
     </div>
   );

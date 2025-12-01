@@ -35,9 +35,7 @@ export default function BenefitsComparison() {
     <div className="bg-white rounded-lg shadow-lg overflow-hidden">
       <div className="bg-blue-50 p-6 border-b">
         <div className="flex justify-between items-center">
-          <h3 className="text-2xl font-bold text-blue-900">
-            เปรียบเทียบสิทธิประโยชน์ทั้งหมด
-          </h3>
+          <h3 className="text-2xl font-bold text-blue-900">เปรียบเทียบสิทธิประโยชน์ทั้งหมด</h3>
           <button
             onClick={() => setShowAllBenefits(!showAllBenefits)}
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
@@ -86,9 +84,7 @@ export default function BenefitsComparison() {
                 <td className="py-3 px-4 text-center border-b">
                   <span
                     className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.ordinary
-                        ? "bg-blue-100 text-blue-600"
-                        : "bg-gray-100 text-gray-400"
+                      benefit.ordinary ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
                     }`}
                   >
                     {benefit.ordinary ? "✓" : "×"}
@@ -97,9 +93,7 @@ export default function BenefitsComparison() {
                 <td className="py-3 px-4 text-center border-b">
                   <span
                     className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.associate
-                        ? "bg-blue-100 text-blue-600"
-                        : "bg-gray-100 text-gray-400"
+                      benefit.associate ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
                     }`}
                   >
                     {benefit.associate ? "✓" : "×"}
@@ -108,9 +102,7 @@ export default function BenefitsComparison() {
                 <td className="py-3 px-4 text-center border-b">
                   <span
                     className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.supporting
-                        ? "bg-blue-100 text-blue-600"
-                        : "bg-gray-100 text-gray-400"
+                      benefit.supporting ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
                     }`}
                   >
                     {benefit.supporting ? "✓" : "×"}
@@ -119,9 +111,7 @@ export default function BenefitsComparison() {
                 <td className="py-3 px-4 text-center border-b">
                   <span
                     className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${
-                      benefit.supporting
-                        ? "bg-blue-100 text-blue-600"
-                        : "bg-gray-100 text-gray-400"
+                      benefit.supporting ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-400"
                     }`}
                   >
                     {benefit.supporting ? "✓" : "×"}
@@ -139,8 +129,8 @@ export default function BenefitsComparison() {
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
             {/* Page Info */}
             <div className="text-sm text-blue-600">
-              แสดง {startIndex + 1}-{Math.min(endIndex, benefits.length)} จาก{" "}
-              {benefits.length} รายการ
+              แสดง {startIndex + 1}-{Math.min(endIndex, benefits.length)} จาก {benefits.length}{" "}
+              รายการ
             </div>
 
             {/* Pagination Buttons */}

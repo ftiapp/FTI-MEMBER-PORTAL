@@ -8,11 +8,11 @@ const originalMembershipTimelineCache = new Map();
 
 /**
  * GET /api/admin/analytics/original-membership-timeline
- * 
+ *
  * Returns monthly verification counts for original members (FTI_Original_Membership)
  * Similar to membership-timeline but for existing member verifications
- * 
- * Query params: 
+ *
+ * Query params:
  *   - year (required)
  *   - startMonth (optional, 1-12)
  *   - endMonth (optional, 1-12)

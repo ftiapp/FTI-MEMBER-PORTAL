@@ -43,7 +43,10 @@ export async function POST(request, { params }) {
 
     const { formData } = await parseJsonBody(request);
     if (!formData || typeof formData !== "object") {
-      return NextResponse.json({ success: false, message: "ข้อมูลฟอร์มไม่ถูกต้อง" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "ข้อมูลฟอร์มไม่ถูกต้อง" },
+        { status: 400 },
+      );
     }
 
     connection = await getConnection();
@@ -160,7 +163,9 @@ export async function POST(request, { params }) {
 
     if (formData.representative) {
       const rep = formData.representative;
-      await connection.execute("DELETE FROM MemberRegist_IC_Representatives WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_IC_Representatives WHERE main_id = ?", [
+        id,
+      ]);
 
       await connection.execute(
         `INSERT INTO MemberRegist_IC_Representatives (
@@ -216,7 +221,9 @@ export async function POST(request, { params }) {
         );
       }
 
-      await connection.execute("DELETE FROM MemberRegist_IC_BusinessTypeOther WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_IC_BusinessTypeOther WHERE main_id = ?", [
+        id,
+      ]);
       if (formData.otherBusinessTypeDetail || formData.businessCategoryOther) {
         await connection.execute(
           `INSERT INTO MemberRegist_IC_BusinessTypeOther (main_id, other_type) VALUES (?, ?)`,
@@ -275,7 +282,9 @@ export async function POST(request, { params }) {
     if (formData.industrialGroupIds) {
       const ids = ensureArray(formData.industrialGroupIds);
       const names = ensureArray(formData.industrialGroupNames || []);
-      await connection.execute("DELETE FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_IC_IndustryGroups WHERE main_id = ?", [
+        id,
+      ]);
 
       for (let i = 0; i < ids.length; i++) {
         const groupId = ids[i];
@@ -292,7 +301,9 @@ export async function POST(request, { params }) {
     if (formData.provincialChapterIds) {
       const ids = ensureArray(formData.provincialChapterIds);
       const names = ensureArray(formData.provincialChapterNames || []);
-      await connection.execute("DELETE FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_IC_ProvinceChapters WHERE main_id = ?", [
+        id,
+      ]);
 
       for (let i = 0; i < ids.length; i++) {
         const chapterId = ids[i];

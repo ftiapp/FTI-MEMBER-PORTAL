@@ -2,12 +2,15 @@ import { useMemo } from "react";
 
 export function usePrenameHandling(formData, setFormData) {
   // Mapping Thai prename to English prename
-  const prenameMapping = useMemo(() => ({
-    นาย: "Mr.",
-    นาง: "Mrs.",
-    นางสาว: "Miss",
-    อื่นๆ: "Other",
-  }), []);
+  const prenameMapping = useMemo(
+    () => ({
+      นาย: "Mr.",
+      นาง: "Mrs.",
+      นางสาว: "Miss",
+      อื่นๆ: "Other",
+    }),
+    [],
+  );
 
   const handlePrenameThaiChange = (value) => {
     const englishPrename = prenameMapping[value] || "";

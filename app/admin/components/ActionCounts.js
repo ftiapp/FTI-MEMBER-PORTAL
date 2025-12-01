@@ -398,7 +398,7 @@ export default function ActionCounts({ title }) {
     const fetchActionCounts = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch both action counts (logs) and membership signup summary (from MemberRegist_* tables)
         const [actionResponse, membershipResponse] = await Promise.all([
           fetch("/api/admin/action-counts", {
@@ -428,13 +428,13 @@ export default function ActionCounts({ title }) {
           const membershipData = await membershipResponse.json();
           if (membershipData.success && membershipData.data?.totalByType) {
             const { totalByType } = membershipData.data;
-            
+
             // Replace log-based counts with actual database counts (lifetime totals)
             counts.OC_membership_submit = totalByType.OC || 0;
             counts.AC_membership_submit = totalByType.AC || 0;
             counts.AM_membership_submit = totalByType.AM || 0;
             counts.IC_membership_submit = totalByType.IC || 0;
-            
+
             // Also handle alternative IC key if it exists
             if (counts.ICmembership_Regist !== undefined) {
               counts.ICmembership_Regist = totalByType.IC || 0;

@@ -6,7 +6,7 @@ import { toast } from "react-hot-toast";
  * Files cannot be properly restored from drafts, so we exclude them entirely
  */
 const filterFileFieldsForDraft = (formData) => {
-  if (!formData || typeof formData !== 'object') {
+  if (!formData || typeof formData !== "object") {
     return formData;
   }
 
@@ -15,17 +15,17 @@ const filterFileFieldsForDraft = (formData) => {
 
   // List of file-related fields to exclude from draft saving
   const fileFieldsToExclude = [
-    'companyRegistration',
-    'vatRegistration',
-    'idCard',
-    'authorityLetter',
-    'companyStamp',
-    'authorizedSignature',
-    'authorizedSignatures', // Array of signature files
+    "companyRegistration",
+    "vatRegistration",
+    "idCard",
+    "authorityLetter",
+    "companyStamp",
+    "authorizedSignature",
+    "authorizedSignatures", // Array of signature files
   ];
 
   // Remove file fields
-  fileFieldsToExclude.forEach(field => {
+  fileFieldsToExclude.forEach((field) => {
     if (filteredData.hasOwnProperty(field)) {
       delete filteredData[field];
     }

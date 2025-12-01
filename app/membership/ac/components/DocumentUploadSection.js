@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 
-import MultipleSignatories from './MultipleSignatories';
+import MultipleSignatories from "./MultipleSignatories";
 
 // Image Editor Modal Component for Company Stamp and Signature
 const ImageEditor = ({ isOpen, onClose, onSave, initialImage, title }) => {
@@ -827,7 +827,6 @@ export default function DocumentUploadSection({ formData, setFormData, errors, s
                 </div>
               </div>
             </div>
-
           </div>
         </div>
       </div>

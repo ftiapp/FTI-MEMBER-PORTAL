@@ -7,11 +7,7 @@ let contactPersonTypesCache = { data: null, expiresAt: 0 };
 
 export async function GET() {
   try {
-    if (
-      isProd &&
-      contactPersonTypesCache.data &&
-      contactPersonTypesCache.expiresAt > Date.now()
-    ) {
+    if (isProd && contactPersonTypesCache.data && contactPersonTypesCache.expiresAt > Date.now()) {
       return NextResponse.json(contactPersonTypesCache.data, { status: 200 });
     }
 

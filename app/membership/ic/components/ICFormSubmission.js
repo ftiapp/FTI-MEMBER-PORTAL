@@ -597,13 +597,14 @@ export const submitICMembershipDocumentsUpdate = async (data, mainId) => {
     }
 
     if (data.authorizedSignature && data.authorizedSignature instanceof File) {
-      formData.append("authorizedSignature", data.authorizedSignature, data.authorizedSignature.name);
+      formData.append(
+        "authorizedSignature",
+        data.authorizedSignature,
+        data.authorizedSignature.name,
+      );
     }
 
-    if (
-      data.companyRegistrationDocument &&
-      data.companyRegistrationDocument instanceof File
-    ) {
+    if (data.companyRegistrationDocument && data.companyRegistrationDocument instanceof File) {
       formData.append(
         "companyRegistrationDocument",
         data.companyRegistrationDocument,

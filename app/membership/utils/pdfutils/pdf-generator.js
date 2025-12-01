@@ -1,17 +1,17 @@
 // pdf-generator.js - ไฟล์หลักสำหรับสร้าง PDF
 // ติดตั้ง: npm install html2pdf.js
 
-import html2pdf from 'html2pdf.js';
-import { PDF_CONFIG, FORM_TITLES } from './pdf-config.js';
-import { getPDFStyles } from './pdf-styles.js';
+import html2pdf from "html2pdf.js";
+import { PDF_CONFIG, FORM_TITLES } from "./pdf-config.js";
+import { getPDFStyles } from "./pdf-styles.js";
 import {
   formatThaiDate,
   transformCloudinaryUrl,
   loadImageAsDataURL,
   getBusinessTypeNames,
   pickName,
-} from './pdf-utils.js';
-import { processApplicationData } from './pdf-data-processor.js';
+} from "./pdf-utils.js";
+import { processApplicationData } from "./pdf-data-processor.js";
 import {
   buildMemberInfoIC,
   buildMemberInfoCompany,
@@ -20,8 +20,8 @@ import {
   buildBusinessSection,
   buildContactPersonSection,
   buildGroupsAndChaptersBlock,
-} from './pdf-sections.js';
-import { preloadSignature, buildSignatureArea } from './pdf-signature.js';
+} from "./pdf-sections.js";
+import { preloadSignature, buildSignatureArea } from "./pdf-signature.js";
 
 // Main PDF generation function
 export const generateMembershipPDF = async (
@@ -31,11 +31,10 @@ export const generateMembershipPDF = async (
   provincialChapters = {},
   options = {},
 ) => {
-
   try {
     // Process data
     const data = processApplicationData(application);
-    const title = FORM_TITLES[type] || 'ข้อมูลสมาชิก';
+    const title = FORM_TITLES[type] || "ข้อมูลสมาชิก";
     const businessTypes = getBusinessTypeNames(data);
 
     // Resolve Industrial Group & Provincial Chapter names
@@ -45,31 +44,31 @@ export const generateMembershipPDF = async (
     if (!industrialGroupNames || industrialGroupNames.length === 0) {
       if (Array.isArray(application.industryGroups)) {
         industrialGroupNames = application.industryGroups
-          .map((g) => pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+          .map((g) => pickName(g, ["industryGroupName", "MEMBER_GROUP_NAME", "name_th", "nameTh"]))
           .filter(Boolean);
       } else if (Array.isArray(data.industrialGroups)) {
         industrialGroupNames = data.industrialGroups
           .map((g) =>
             pickName(g, [
-              'name',
-              'industryGroupName',
-              'industry_group_name',
-              'MEMBER_GROUP_NAME',
-              'name_th',
-              'nameTh',
+              "name",
+              "industryGroupName",
+              "industry_group_name",
+              "MEMBER_GROUP_NAME",
+              "name_th",
+              "nameTh",
             ]),
           )
           .filter(Boolean);
       } else if (Array.isArray(data.industrialGroupIds)) {
-        if (data.industrialGroupIds.length > 0 && typeof data.industrialGroupIds[0] === 'object') {
+        if (data.industrialGroupIds.length > 0 && typeof data.industrialGroupIds[0] === "object") {
           industrialGroupNames = data.industrialGroupIds
             .map((g) =>
               pickName(g, [
-                'industryGroupName',
-                'industry_group_name',
-                'MEMBER_GROUP_NAME',
-                'name_th',
-                'nameTh',
+                "industryGroupName",
+                "industry_group_name",
+                "MEMBER_GROUP_NAME",
+                "name_th",
+                "nameTh",
               ]),
             )
             .filter(Boolean);
@@ -80,8 +79,9 @@ export const generateMembershipPDF = async (
             : industrialGroups.data || [];
           industrialGroupNames = data.industrialGroupIds
             .map((id) => groupsArr.find((g) => g.id === id || g.MEMBER_GROUP_CODE === id))
-            .map((g) =>
-              g && pickName(g, ['industryGroupName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']),
+            .map(
+              (g) =>
+                g && pickName(g, ["industryGroupName", "MEMBER_GROUP_NAME", "name_th", "nameTh"]),
             )
             .filter(Boolean);
         }
@@ -89,37 +89,42 @@ export const generateMembershipPDF = async (
     }
 
     if (!provincialChapterNames || provincialChapterNames.length === 0) {
-      if (Array.isArray(application.provinceChapters) || Array.isArray(application.provincialChapters)) {
+      if (
+        Array.isArray(application.provinceChapters) ||
+        Array.isArray(application.provincialChapters)
+      ) {
         const src = application.provinceChapters || application.provincialChapters;
         provincialChapterNames = src
-          .map((c) => pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']))
+          .map((c) =>
+            pickName(c, ["provinceChapterName", "MEMBER_GROUP_NAME", "name_th", "nameTh"]),
+          )
           .filter(Boolean);
       } else if (Array.isArray(data.provincialChapters)) {
         provincialChapterNames = data.provincialChapters
           .map((c) =>
             pickName(c, [
-              'name',
-              'provinceChapterName',
-              'province_chapter_name',
-              'MEMBER_GROUP_NAME',
-              'name_th',
-              'nameTh',
+              "name",
+              "provinceChapterName",
+              "province_chapter_name",
+              "MEMBER_GROUP_NAME",
+              "name_th",
+              "nameTh",
             ]),
           )
           .filter(Boolean);
       } else if (Array.isArray(data.provincialChapterIds)) {
         if (
           data.provincialChapterIds.length > 0 &&
-          typeof data.provincialChapterIds[0] === 'object'
+          typeof data.provincialChapterIds[0] === "object"
         ) {
           provincialChapterNames = data.provincialChapterIds
             .map((c) =>
               pickName(c, [
-                'provinceChapterName',
-                'province_chapter_name',
-                'MEMBER_GROUP_NAME',
-                'name_th',
-                'nameTh',
+                "provinceChapterName",
+                "province_chapter_name",
+                "MEMBER_GROUP_NAME",
+                "name_th",
+                "nameTh",
               ]),
             )
             .filter(Boolean);
@@ -130,16 +135,17 @@ export const generateMembershipPDF = async (
             : provincialChapters.data || [];
           provincialChapterNames = data.provincialChapterIds
             .map((id) => chArr.find((c) => c.id === id || c.MEMBER_GROUP_CODE === id))
-            .map((c) =>
-              c && pickName(c, ['provinceChapterName', 'MEMBER_GROUP_NAME', 'name_th', 'nameTh']),
+            .map(
+              (c) =>
+                c && pickName(c, ["provinceChapterName", "MEMBER_GROUP_NAME", "name_th", "nameTh"]),
             )
             .filter(Boolean);
         }
       }
     }
 
-    console.log('[PDF] Starting PDF generation for type:', type);
-    console.log('[PDF] Data processed:', {
+    console.log("[PDF] Starting PDF generation for type:", type);
+    console.log("[PDF] Data processed:", {
       companyNameTh: data.companyNameTh,
       signatures: data.authorizedSignatures?.length || 0,
       signatories: data.signatories?.length || 0,
@@ -151,11 +157,11 @@ export const generateMembershipPDF = async (
       const logoDataUrl = await loadImageAsDataURL(PDF_CONFIG.FTI_LOGO_PATH);
       if (logoDataUrl) logoSrc = logoDataUrl;
     } catch (e) {
-      console.warn('[PDF] Failed to preload logo, using path', e);
+      console.warn("[PDF] Failed to preload logo, using path", e);
     }
 
     // Preload company stamp
-    let companyStampImgSrc = '';
+    let companyStampImgSrc = "";
     if (data.companyStamp?.fileUrl) {
       const stampUrl = transformCloudinaryUrl(data.companyStamp.fileUrl);
       const dataUrl = await loadImageAsDataURL(stampUrl);
@@ -167,7 +173,7 @@ export const generateMembershipPDF = async (
     }
 
     // Preload signatures
-    let signatureImgSrc = '';
+    let signatureImgSrc = "";
     if (data.authorizedSignature) {
       signatureImgSrc = await preloadSignature(data.authorizedSignature);
     }
@@ -183,13 +189,13 @@ export const generateMembershipPDF = async (
     const includeStaffFooter = options.includeStaffFooter === true;
 
     const MEMBER_TYPE_LABELS = {
-      ic: 'สมทบ-บุคคลธรรมดา (ทบ)',
-      oc: 'สามัญ-โรงงาน (สน)',
-      ac: 'สมทบ-นิติบุคคล (ทน)',
-      am: 'สามัญ-สมาคมการค้า (สส)',
+      ic: "สมทบ-บุคคลธรรมดา (ทบ)",
+      oc: "สามัญ-โรงงาน (สน)",
+      ac: "สมทบ-นิติบุคคล (ทน)",
+      am: "สามัญ-สมาคมการค้า (สส)",
     };
 
-    const memberTypeLabel = MEMBER_TYPE_LABELS[type] || '';
+    const memberTypeLabel = MEMBER_TYPE_LABELS[type] || "";
 
     // Build HTML content
     const html = `
@@ -201,7 +207,7 @@ export const generateMembershipPDF = async (
       </head>
       <body>
         <div class="created-date">
-          สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString('th-TH')}
+          สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString("th-TH")}
         </div>
         <div class="member-number">
           หมายเลขสมาชิก:<br><br>................................................
@@ -211,21 +217,23 @@ export const generateMembershipPDF = async (
             <img src="${logoSrc}" alt="FTI Logo" crossorigin="anonymous" />
           </div>
           <div class="header">${title}</div>
-          ${memberTypeLabel ? `<div class="sub-header">ประเภทสมาชิก: ${memberTypeLabel}</div>` : ''}
+          ${memberTypeLabel ? `<div class="sub-header">ประเภทสมาชิก: ${memberTypeLabel}</div>` : ""}
         </div>
         
-        ${type === 'ic' 
-          ? buildMemberInfoIC(data, memberTypeLabel) 
-          : buildMemberInfoCompany(data, memberTypeLabel)
+        ${
+          type === "ic"
+            ? buildMemberInfoIC(data, memberTypeLabel)
+            : buildMemberInfoCompany(data, memberTypeLabel)
         }
         
         ${buildAddressSection(data)}
         
         ${buildRepresentativesSection(data.representatives)}
         
-        ${businessTypes && businessTypes !== '-' 
-          ? buildBusinessSection(data, businessTypes, type) 
-          : ''
+        ${
+          businessTypes && businessTypes !== "-"
+            ? buildBusinessSection(data, businessTypes, type)
+            : ""
         }
         
         ${(() => {
@@ -235,9 +243,13 @@ export const generateMembershipPDF = async (
           let pcNames =
             provincialChapterNames && provincialChapterNames.length ? provincialChapterNames : null;
 
-          if (!igNames && Array.isArray(data.industrialGroupIds) && data.industrialGroupIds.length) {
+          if (
+            !igNames &&
+            Array.isArray(data.industrialGroupIds) &&
+            data.industrialGroupIds.length
+          ) {
             const filteredGroupIds = data.industrialGroupIds.filter(
-              (id) => id && String(id).trim() !== '000',
+              (id) => id && String(id).trim() !== "000",
             );
             igNames = filteredGroupIds.map((id) => `กลุ่มอุตสาหกรรม ${id}`);
           }
@@ -247,7 +259,7 @@ export const generateMembershipPDF = async (
             data.provincialChapterIds.length
           ) {
             const filteredChapterIds = data.provincialChapterIds.filter(
-              (id) => id && String(id).trim() !== '000',
+              (id) => id && String(id).trim() !== "000",
             );
             pcNames = filteredChapterIds.map((id) => `สภาอุตสาหกรรมจังหวัด ${id}`);
           }
@@ -266,7 +278,12 @@ export const generateMembershipPDF = async (
               ? pcNames.length - MAX_CHAPTERS_DISPLAY
               : 0;
 
-          const groupsAndChaptersBlock = buildGroupsAndChaptersBlock(dispIG, dispPC, extraIG, extraPC);
+          const groupsAndChaptersBlock = buildGroupsAndChaptersBlock(
+            dispIG,
+            dispPC,
+            extraIG,
+            extraPC,
+          );
 
           return `
             <div class="section">
@@ -277,12 +294,13 @@ export const generateMembershipPDF = async (
         })()}
 
         
-        ${data.contactPersons?.length ? buildContactPersonSection(data.contactPersons) : ''}
+        ${data.contactPersons?.length ? buildContactPersonSection(data.contactPersons) : ""}
         
         ${buildSignatureArea(data, type, signatureImgSrc, companyStampImgSrc, preloadedSignatures, logoSrc)}
 
-        ${includeStaffFooter
-          ? `<div class="footer-page">
+        ${
+          includeStaffFooter
+            ? `<div class="footer-page">
               <div class="footer-separator"></div>
               <div class="footer-section">
                 <div class="footer-title">(สำหรับเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย)</div>
@@ -303,43 +321,43 @@ export const generateMembershipPDF = async (
                 </div>
               </div>
             </div>`
-          : ''}
+            : ""
+        }
       </body>
       </html>
     `;
 
     // Create PDF
-    const element = document.createElement('div');
+    const element = document.createElement("div");
     element.innerHTML = html;
 
-    const filename = `${type?.toUpperCase()}_${data.companyNameTh || data.firstNameTh || 'APPLICATION'}_${new Date().toISOString().split('T')[0]}.pdf`;
+    const filename = `${type?.toUpperCase()}_${data.companyNameTh || data.firstNameTh || "APPLICATION"}_${new Date().toISOString().split("T")[0]}.pdf`;
 
     const opt = {
       margin: PDF_CONFIG.margin,
       filename: filename,
-      image: { type: 'jpeg', quality: PDF_CONFIG.imageQuality },
-      html2canvas: { 
-        scale: PDF_CONFIG.scale, 
-        useCORS: true, 
-        allowTaint: true, 
+      image: { type: "jpeg", quality: PDF_CONFIG.imageQuality },
+      html2canvas: {
+        scale: PDF_CONFIG.scale,
+        useCORS: true,
+        allowTaint: true,
         imageTimeout: PDF_CONFIG.imageTimeout,
-        foreignObjectRendering: false 
+        foreignObjectRendering: false,
       },
-      jsPDF: { 
-        unit: 'mm', 
-        format: PDF_CONFIG.format, 
-        orientation: PDF_CONFIG.orientation 
+      jsPDF: {
+        unit: "mm",
+        format: PDF_CONFIG.format,
+        orientation: PDF_CONFIG.orientation,
       },
-      pagebreak: { mode: ['css', 'avoid-all'] },
+      pagebreak: { mode: ["css", "avoid-all"] },
     };
 
     await html2pdf().set(opt).from(element).save();
-    
-    console.log('[PDF] ✅ PDF generated successfully:', filename);
+
+    console.log("[PDF] ✅ PDF generated successfully:", filename);
     return { success: true, filename };
-    
   } catch (error) {
-    console.error('[PDF] ❌ Error:', error);
+    console.error("[PDF] ❌ Error:", error);
     return { success: false, error: error.message };
   }
 };
@@ -347,8 +365,10 @@ export const generateMembershipPDF = async (
 // Download helper function
 export const downloadMembershipPDF = async (application, type, options = {}) => {
   const appData = application?.data ? application.data : application;
-  const lookupIndustrialGroups = application?.industrialGroups || application?.lookupIndustrialGroups || [];
-  const lookupProvincialChapters = application?.provincialChapters || application?.lookupProvincialChapters || [];
+  const lookupIndustrialGroups =
+    application?.industrialGroups || application?.lookupIndustrialGroups || [];
+  const lookupProvincialChapters =
+    application?.provincialChapters || application?.lookupProvincialChapters || [];
 
   const result = await generateMembershipPDF(
     appData,
@@ -357,11 +377,11 @@ export const downloadMembershipPDF = async (application, type, options = {}) => 
     lookupProvincialChapters,
     options,
   );
-  
+
   if (!result.success) {
-    throw new Error(result.error || 'เกิดข้อผิดพลาดในการสร้างไฟล์ PDF');
+    throw new Error(result.error || "เกิดข้อผิดพลาดในการสร้างไฟล์ PDF");
   }
-  
+
   return result;
 };
 

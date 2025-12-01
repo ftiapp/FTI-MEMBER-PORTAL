@@ -1,6 +1,6 @@
 "use client";
 
-import AssociationBasicInfo from '@/app/membership/am/components/AMAssociationBasicInfo/AssociationBasicInfo';
+import AssociationBasicInfo from "@/app/membership/am/components/AMAssociationBasicInfo/AssociationBasicInfo";
 
 export default function AssociationBasicInfoWrapper({
   formData,

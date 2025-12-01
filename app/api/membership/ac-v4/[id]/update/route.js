@@ -43,7 +43,10 @@ export async function POST(request, { params }) {
 
     const { formData } = await parseJsonBody(request);
     if (!formData || typeof formData !== "object") {
-      return NextResponse.json({ success: false, message: "ข้อมูลฟอร์มไม่ถูกต้อง" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "ข้อมูลฟอร์มไม่ถูกต้อง" },
+        { status: 400 },
+      );
     }
 
     connection = await getConnection();
@@ -73,8 +76,7 @@ export async function POST(request, { params }) {
         const documentAddress = addresses["2"] || addresses[2];
         if (documentAddress) {
           companyEmail = documentAddress.email || companyEmail;
-          companyPhone =
-            documentAddress["phone-2"] || documentAddress.phone || companyPhone;
+          companyPhone = documentAddress["phone-2"] || documentAddress.phone || companyPhone;
           companyPhoneExtension =
             documentAddress["phoneExtension-2"] ||
             documentAddress.phoneExtension ||
@@ -198,18 +200,18 @@ export async function POST(request, { params }) {
     // 4) Update contact persons
     if (formData.contactPersons) {
       const contactPersons = ensureArray(formData.contactPersons);
-      
+
       // 4.1) Fetch existing Contact Person IDs
       const [existingCpRows] = await connection.execute(
         "SELECT id FROM MemberRegist_AC_ContactPerson WHERE main_id = ?",
-        [id]
+        [id],
       );
       const existingCpIds = new Set(existingCpRows.map((r) => r.id));
       const processedCpIds = new Set();
 
       for (const cp of contactPersons) {
         const cpId = cp.id ? parseInt(cp.id) : null;
-        
+
         // Ensure email is not null (DB constraint)
         const safeEmail = cp.email || "";
 
@@ -240,7 +242,7 @@ export async function POST(request, { params }) {
               cp.typeContactOtherDetail || null,
               cpId,
               id,
-            ]
+            ],
           );
           processedCpIds.add(cpId);
         } else {
@@ -268,7 +270,7 @@ export async function POST(request, { params }) {
               cp.typeContactId || null,
               cp.typeContactName || "",
               cp.typeContactOtherDetail || null,
-            ]
+            ],
           );
         }
       }
@@ -279,7 +281,7 @@ export async function POST(request, { params }) {
         const placeholders = cpIdsToDelete.map(() => "?").join(",");
         await connection.execute(
           `DELETE FROM MemberRegist_AC_ContactPerson WHERE id IN (${placeholders})`,
-          cpIdsToDelete
+          cpIdsToDelete,
         );
       }
     }
@@ -287,7 +289,9 @@ export async function POST(request, { params }) {
     // 5) Update representatives
     if (formData.representatives) {
       const representatives = ensureArray(formData.representatives);
-      await connection.execute("DELETE FROM MemberRegist_AC_Representatives WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_AC_Representatives WHERE main_id = ?", [
+        id,
+      ]);
 
       let order = 1;
       for (const rep of representatives) {
@@ -332,7 +336,9 @@ export async function POST(request, { params }) {
         }
       }
 
-      await connection.execute("DELETE FROM MemberRegist_AC_BusinessTypeOther WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_AC_BusinessTypeOther WHERE main_id = ?", [
+        id,
+      ]);
       if (formData.otherBusinessTypeDetail) {
         await connection.execute(
           `INSERT INTO MemberRegist_AC_BusinessTypeOther (main_id, detail) VALUES (?, ?)`,
@@ -358,7 +364,9 @@ export async function POST(request, { params }) {
     if (formData.industrialGroupIds) {
       const ids = ensureArray(formData.industrialGroupIds);
       const names = ensureArray(formData.industrialGroupNames || []);
-      await connection.execute("DELETE FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_AC_IndustryGroups WHERE main_id = ?", [
+        id,
+      ]);
 
       for (let i = 0; i < ids.length; i++) {
         const groupId = ids[i];
@@ -375,7 +383,9 @@ export async function POST(request, { params }) {
     if (formData.provincialChapterIds) {
       const ids = ensureArray(formData.provincialChapterIds);
       const names = ensureArray(formData.provincialChapterNames || []);
-      await connection.execute("DELETE FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_AC_ProvinceChapters WHERE main_id = ?", [
+        id,
+      ]);
 
       for (let i = 0; i < ids.length; i++) {
         const chapterId = ids[i];
@@ -398,29 +408,17 @@ export async function POST(request, { params }) {
       } else {
         // Fallback for single signatory (legacy)
         const sigFirstTh =
-          formData.authorizedSignatoryFirstNameTh ||
-          formData.authorizedSignatureFirstNameTh ||
-          "";
+          formData.authorizedSignatoryFirstNameTh || formData.authorizedSignatureFirstNameTh || "";
         const sigLastTh =
-          formData.authorizedSignatoryLastNameTh ||
-          formData.authorizedSignatureLastNameTh ||
-          "";
+          formData.authorizedSignatoryLastNameTh || formData.authorizedSignatureLastNameTh || "";
         const sigFirstEn =
-          formData.authorizedSignatoryFirstNameEn ||
-          formData.authorizedSignatureFirstNameEn ||
-          "";
+          formData.authorizedSignatoryFirstNameEn || formData.authorizedSignatureFirstNameEn || "";
         const sigLastEn =
-          formData.authorizedSignatoryLastNameEn ||
-          formData.authorizedSignatureLastNameEn ||
-          "";
+          formData.authorizedSignatoryLastNameEn || formData.authorizedSignatureLastNameEn || "";
         const posTh =
-          formData.authorizedSignatoryPositionTh ||
-          formData.authorizedSignaturePositionTh ||
-          null;
+          formData.authorizedSignatoryPositionTh || formData.authorizedSignaturePositionTh || null;
         const posEn =
-          formData.authorizedSignatoryPositionEn ||
-          formData.authorizedSignaturePositionEn ||
-          "";
+          formData.authorizedSignatoryPositionEn || formData.authorizedSignaturePositionEn || "";
 
         if (sigFirstTh && sigLastTh) {
           // Try to preserve ID if it exists in the first element of original data
@@ -448,7 +446,7 @@ export async function POST(request, { params }) {
       // 10.2) Fetch existing signatory IDs
       const [existingRows] = await connection.execute(
         "SELECT id FROM MemberRegist_AC_Signature_Name WHERE main_id = ?",
-        [id]
+        [id],
       );
       const existingIds = new Set(existingRows.map((r) => r.id));
       const processedIds = new Set();
@@ -479,7 +477,7 @@ export async function POST(request, { params }) {
               s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
               sigId,
               id,
-            ]
+            ],
           );
           processedIds.add(sigId);
         } else {
@@ -502,7 +500,7 @@ export async function POST(request, { params }) {
               s.lastNameEn || "",
               s.positionTh && String(s.positionTh).trim() ? s.positionTh : null,
               s.positionEn && String(s.positionEn).trim() ? s.positionEn : "",
-            ]
+            ],
           );
           // Note: We don't need to track the new ID for deletion purposes
         }
@@ -513,19 +511,19 @@ export async function POST(request, { params }) {
       if (idsToDelete.length > 0) {
         // Prepare placeholders
         const placeholders = idsToDelete.map(() => "?").join(",");
-        
+
         // First, clear references in Documents table for these specific IDs to avoid FK errors (if any)
         // or to handle cascading if not set up in DB.
         // But actually, if we delete the signatory, we probably WANT to delete the document or orphan it.
         // The previous code orphaned ALL documents. Now we only orphan the deleted ones.
         await connection.execute(
           `UPDATE MemberRegist_AC_Documents SET signature_name_id = NULL WHERE signature_name_id IN (${placeholders})`,
-          idsToDelete
+          idsToDelete,
         );
 
         await connection.execute(
           `DELETE FROM MemberRegist_AC_Signature_Name WHERE id IN (${placeholders})`,
-          idsToDelete
+          idsToDelete,
         );
       }
     }

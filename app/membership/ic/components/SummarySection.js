@@ -499,9 +499,7 @@ export default function SummarySection({
           let group = null;
 
           if (industrialGroups?.data) {
-            group = industrialGroups.data.find(
-              (g) => g.MEMBER_GROUP_CODE === id || g.id === id,
-            );
+            group = industrialGroups.data.find((g) => g.MEMBER_GROUP_CODE === id || g.id === id);
           } else if (Array.isArray(industrialGroups)) {
             group = industrialGroups.find((g) => g.id === id || g.MEMBER_GROUP_CODE === id);
           }
@@ -564,9 +562,7 @@ export default function SummarySection({
           const s = String(id ?? "").trim();
           return s && s !== "000" && s !== "0";
         })
-        .map(
-          (c) => c.provinceChapterName || c.MEMBER_GROUP_NAME || c.name_th || String(c.id),
-        );
+        .map((c) => c.provinceChapterName || c.MEMBER_GROUP_NAME || c.name_th || String(c.id));
     }
     return [];
   };

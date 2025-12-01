@@ -339,7 +339,9 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
               {products.map((product, index) => (
                 <div key={index} className="border border-blue-200 rounded-lg p-3 bg-blue-50">
                   <div className="flex justify-between items-center mb-2">
-                    <span className="font-semibold text-sm text-black">สินค้า/บริการ #{index + 1}</span>
+                    <span className="font-semibold text-sm text-black">
+                      สินค้า/บริการ #{index + 1}
+                    </span>
                     <button
                       onClick={() => removeProduct(index)}
                       className="text-red-600 hover:text-red-800 text-sm"

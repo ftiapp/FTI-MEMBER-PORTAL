@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import {
-  executeQueryWithoutTransaction,
-} from "@/app/lib/db";
+import { executeQueryWithoutTransaction } from "@/app/lib/db";
 import { getSession } from "@/app/lib/session";
 import { uploadToCloudinary, deleteFromCloudinary } from "@/app/lib/cloudinary";
 
@@ -92,7 +90,7 @@ export async function POST(request, { params }) {
     }
 
     const uploadedDocuments = {};
-    
+
     // Fetch signature IDs first to map them for deletion/insertion
     const signatureNameIds = [];
     try {
@@ -138,42 +136,45 @@ export async function POST(request, { params }) {
               };
             }
           } catch (uploadError) {
-            console.error("Error uploading production image in update-documents (AC):", uploadError);
+            console.error(
+              "Error uploading production image in update-documents (AC):",
+              uploadError,
+            );
           }
         }
       } else if (fieldName.startsWith("authorizedSignatures[") && fileValue instanceof File) {
         const indexMatch = fieldName.match(/authorizedSignatures\[(\d+)\]/);
         if (indexMatch) {
           const signatoryIndex = parseInt(indexMatch[1], 10);
-          
+
           // Handle deletion of EXISTING signature for this specific index
           try {
-             const targetSignatoryId = signatureNameIds[signatoryIndex];
-             if (targetSignatoryId) {
-               const existingSigDocs = await executeQueryWithoutTransaction(
-                 "SELECT id, cloudinary_id FROM MemberRegist_AC_Documents WHERE main_id = ? AND document_type = 'authorizedSignatures' AND signature_name_id = ?",
-                 [id, targetSignatoryId]
-               );
-               
-               if (existingSigDocs && existingSigDocs.length > 0) {
-                  for (const doc of existingSigDocs) {
-                    if (doc.cloudinary_id) {
-                      try {
-                        await deleteFromCloudinary(doc.cloudinary_id);
-                      } catch (e) {
-                         console.error("Error deleting existing signature Cloudinary file", e);
-                      }
+            const targetSignatoryId = signatureNameIds[signatoryIndex];
+            if (targetSignatoryId) {
+              const existingSigDocs = await executeQueryWithoutTransaction(
+                "SELECT id, cloudinary_id FROM MemberRegist_AC_Documents WHERE main_id = ? AND document_type = 'authorizedSignatures' AND signature_name_id = ?",
+                [id, targetSignatoryId],
+              );
+
+              if (existingSigDocs && existingSigDocs.length > 0) {
+                for (const doc of existingSigDocs) {
+                  if (doc.cloudinary_id) {
+                    try {
+                      await deleteFromCloudinary(doc.cloudinary_id);
+                    } catch (e) {
+                      console.error("Error deleting existing signature Cloudinary file", e);
                     }
                   }
-                  
-                  await executeQueryWithoutTransaction(
-                    "DELETE FROM MemberRegist_AC_Documents WHERE main_id = ? AND document_type = 'authorizedSignatures' AND signature_name_id = ?",
-                    [id, targetSignatoryId]
-                  );
-               }
-             }
+                }
+
+                await executeQueryWithoutTransaction(
+                  "DELETE FROM MemberRegist_AC_Documents WHERE main_id = ? AND document_type = 'authorizedSignatures' AND signature_name_id = ?",
+                  [id, targetSignatoryId],
+                );
+              }
+            }
           } catch (delError) {
-             console.error("Error deleting existing signature document", delError);
+            console.error("Error deleting existing signature document", delError);
           }
 
           try {
@@ -198,7 +199,10 @@ export async function POST(request, { params }) {
               };
             }
           } catch (uploadError) {
-            console.error("Error uploading authorized signature in update-documents (AC):", uploadError);
+            console.error(
+              "Error uploading authorized signature in update-documents (AC):",
+              uploadError,
+            );
           }
         }
       } else if (fileValue instanceof File) {
@@ -222,7 +226,10 @@ export async function POST(request, { params }) {
             };
           }
         } catch (uploadError) {
-          console.error(`Error uploading file for ${fieldName} in update-documents (AC):`, uploadError);
+          console.error(
+            `Error uploading file for ${fieldName} in update-documents (AC):`,
+            uploadError,
+          );
         }
       }
     }

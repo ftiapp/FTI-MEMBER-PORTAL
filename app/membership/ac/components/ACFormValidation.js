@@ -57,22 +57,23 @@ export const validateACForm = (formData, step) => {
             hasAddressErrors = true;
           }
 
-      // ตรวจสอบเบอร์โทรศัพท์ของผู้ติดต่อคนที่ 2-4 (ถ้ามี) ให้เป็น required เช่นเดียวกับผู้ประสานงานหลัก
-      if (Array.isArray(formData.contactPersons) && formData.contactPersons.length > 1) {
-        formData.contactPersons.forEach((cp, index) => {
-          if (index === 0 || !cp) return;
+          // ตรวจสอบเบอร์โทรศัพท์ของผู้ติดต่อคนที่ 2-4 (ถ้ามี) ให้เป็น required เช่นเดียวกับผู้ประสานงานหลัก
+          if (Array.isArray(formData.contactPersons) && formData.contactPersons.length > 1) {
+            formData.contactPersons.forEach((cp, index) => {
+              if (index === 0 || !cp) return;
 
-          const phoneVal = cp.phone;
-          const key = `contactPerson${index}Phone`;
-          const displayIndex = index + 1; // ใช้แสดงข้อความคนที่ X
+              const phoneVal = cp.phone;
+              const key = `contactPerson${index}Phone`;
+              const displayIndex = index + 1; // ใช้แสดงข้อความคนที่ X
 
-          if (!phoneVal || String(phoneVal).trim() === "") {
-            errors[key] = `กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงานคนที่ ${displayIndex}`;
-          } else if (String(phoneVal).length > 50) {
-            errors[key] = `เบอร์โทรศัพท์ของผู้ประสานงานคนที่ ${displayIndex} ต้องไม่เกิน 50 ตัวอักษร`;
+              if (!phoneVal || String(phoneVal).trim() === "") {
+                errors[key] = `กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงานคนที่ ${displayIndex}`;
+              } else if (String(phoneVal).length > 50) {
+                errors[key] =
+                  `เบอร์โทรศัพท์ของผู้ประสานงานคนที่ ${displayIndex} ต้องไม่เกิน 50 ตัวอักษร`;
+              }
+            });
           }
-        });
-      }
 
           if (!address.subDistrict) {
             typeErrors.subDistrict = `กรุณากรอกตำบล/แขวง (${label})`;
@@ -175,7 +176,8 @@ export const validateACForm = (formData, step) => {
         if (!contact.lastNameEn) {
           errors[`${keyPrefix}LastNameEn`] = `กรุณากรอกนามสกุล (ภาษาอังกฤษ)${suffix}`;
         } else if (!/^[a-zA-Z\s]+$/.test(contact.lastNameEn)) {
-          errors[`${keyPrefix}LastNameEn`] = `นามสกุลผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น${suffix}`;
+          errors[`${keyPrefix}LastNameEn`] =
+            `นามสกุลผู้ประสานงานต้องเป็นภาษาอังกฤษเท่านั้น${suffix}`;
         }
 
         // ตรวจสอบข้อมูลอื่นๆ
@@ -208,7 +210,8 @@ export const validateACForm = (formData, step) => {
           contact.typeContactName === "อื่นๆ"
         ) {
           if (!contact.typeContactOtherDetail) {
-            errors[`${keyPrefix}TypeContactOtherDetail`] = `กรุณาระบุรายละเอียดประเภทผู้ติดต่อ${suffix}`;
+            errors[`${keyPrefix}TypeContactOtherDetail`] =
+              `กรุณาระบุรายละเอียดประเภทผู้ติดต่อ${suffix}`;
           }
         }
       });
@@ -430,13 +433,14 @@ export const validateACForm = (formData, step) => {
         console.log(
           `🔍 Validating Signature ${index + 1}:`,
           authorizedSignature ? "Found" : "Missing",
-          authorizedSignature
+          authorizedSignature,
         );
 
         const hasSignatureFile =
           authorizedSignature &&
           (authorizedSignature.file ||
-            (typeof authorizedSignature.url === "string" && authorizedSignature.url.trim() !== "") ||
+            (typeof authorizedSignature.url === "string" &&
+              authorizedSignature.url.trim() !== "") ||
             (typeof authorizedSignature.fileUrl === "string" &&
               authorizedSignature.fileUrl.trim() !== "") ||
             authorizedSignature instanceof File);

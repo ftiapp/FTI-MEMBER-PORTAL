@@ -45,7 +45,10 @@ export async function POST(request, { params }) {
 
     const { formData } = await parseJsonBody(request);
     if (!formData || typeof formData !== "object") {
-      return NextResponse.json({ success: false, message: "ข้อมูลฟอร์มไม่ถูกต้อง" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "ข้อมูลฟอร์มไม่ถูกต้อง" },
+        { status: 400 },
+      );
     }
 
     connection = await getConnection();
@@ -75,10 +78,8 @@ export async function POST(request, { params }) {
         const addresses = formData.addresses || {};
         const documentAddress = addresses["2"] || addresses[2];
         if (documentAddress) {
-          companyEmail =
-            documentAddress["email-2"] || documentAddress.email || companyEmail;
-          companyPhone =
-            documentAddress["phone-2"] || documentAddress.phone || companyPhone;
+          companyEmail = documentAddress["email-2"] || documentAddress.email || companyEmail;
+          companyPhone = documentAddress["phone-2"] || documentAddress.phone || companyPhone;
           companyPhoneExtension =
             documentAddress["phoneExtension-2"] ||
             documentAddress.phoneExtension ||
@@ -234,7 +235,9 @@ export async function POST(request, { params }) {
     // 5) Update representatives
     if (formData.representatives) {
       const representatives = ensureArray(formData.representatives);
-      await connection.execute("DELETE FROM MemberRegist_OC_Representatives WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_OC_Representatives WHERE main_id = ?", [
+        id,
+      ]);
 
       let order = 1;
       for (const rep of representatives) {
@@ -273,10 +276,9 @@ export async function POST(request, { params }) {
         [id],
       );
 
-      await connection.execute(
-        "DELETE FROM MemberRegist_OC_Signature_Name WHERE main_id = ?",
-        [id],
-      );
+      await connection.execute("DELETE FROM MemberRegist_OC_Signature_Name WHERE main_id = ?", [
+        id,
+      ]);
 
       let signatories = [];
 
@@ -284,29 +286,17 @@ export async function POST(request, { params }) {
         signatories = formData.signatories;
       } else {
         const sigFirstTh =
-          formData.authorizedSignatoryFirstNameTh ||
-          formData.authorizedSignatureFirstNameTh ||
-          "";
+          formData.authorizedSignatoryFirstNameTh || formData.authorizedSignatureFirstNameTh || "";
         const sigLastTh =
-          formData.authorizedSignatoryLastNameTh ||
-          formData.authorizedSignatureLastNameTh ||
-          "";
+          formData.authorizedSignatoryLastNameTh || formData.authorizedSignatureLastNameTh || "";
         const sigFirstEn =
-          formData.authorizedSignatoryFirstNameEn ||
-          formData.authorizedSignatureFirstNameEn ||
-          "";
+          formData.authorizedSignatoryFirstNameEn || formData.authorizedSignatureFirstNameEn || "";
         const sigLastEn =
-          formData.authorizedSignatoryLastNameEn ||
-          formData.authorizedSignatureLastNameEn ||
-          "";
+          formData.authorizedSignatoryLastNameEn || formData.authorizedSignatureLastNameEn || "";
         const posTh =
-          formData.authorizedSignatoryPositionTh ||
-          formData.authorizedSignaturePositionTh ||
-          null;
+          formData.authorizedSignatoryPositionTh || formData.authorizedSignaturePositionTh || null;
         const posEn =
-          formData.authorizedSignatoryPositionEn ||
-          formData.authorizedSignaturePositionEn ||
-          "";
+          formData.authorizedSignatoryPositionEn || formData.authorizedSignaturePositionEn || "";
 
         if (sigFirstTh && sigLastTh) {
           signatories = [
@@ -365,7 +355,9 @@ export async function POST(request, { params }) {
         }
       }
 
-      await connection.execute("DELETE FROM MemberRegist_OC_BusinessTypeOther WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_OC_BusinessTypeOther WHERE main_id = ?", [
+        id,
+      ]);
       if (formData.otherBusinessTypeDetail) {
         await connection.execute(
           `INSERT INTO MemberRegist_OC_BusinessTypeOther (main_id, detail) VALUES (?, ?)`,
@@ -391,7 +383,9 @@ export async function POST(request, { params }) {
     if (formData.industrialGroupIds) {
       const ids = ensureArray(formData.industrialGroupIds);
       const names = ensureArray(formData.industrialGroupNames || []);
-      await connection.execute("DELETE FROM MemberRegist_OC_IndustryGroups WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_OC_IndustryGroups WHERE main_id = ?", [
+        id,
+      ]);
 
       for (let i = 0; i < ids.length; i++) {
         const groupId = ids[i];
@@ -408,7 +402,9 @@ export async function POST(request, { params }) {
     if (formData.provincialChapterIds) {
       const ids = ensureArray(formData.provincialChapterIds);
       const names = ensureArray(formData.provincialChapterNames || []);
-      await connection.execute("DELETE FROM MemberRegist_OC_ProvinceChapters WHERE main_id = ?", [id]);
+      await connection.execute("DELETE FROM MemberRegist_OC_ProvinceChapters WHERE main_id = ?", [
+        id,
+      ]);
 
       for (let i = 0; i < ids.length; i++) {
         const chapterId = ids[i];

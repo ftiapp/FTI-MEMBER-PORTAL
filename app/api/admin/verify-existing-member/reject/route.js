@@ -20,7 +20,10 @@ export async function POST(request) {
     );
 
     if (adminDetails.length === 0) {
-      return NextResponse.json({ success: false, message: "ไม่พบข้อมูลผู้ดูแลระบบ" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "ไม่พบข้อมูลผู้ดูแลระบบ" },
+        { status: 404 },
+      );
     }
 
     const adminName = adminDetails[0].name;

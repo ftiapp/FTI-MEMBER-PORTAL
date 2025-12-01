@@ -583,14 +583,8 @@ export function mapICRejectionData(rejectionData) {
   if (rejectionData.firstNameThai || rejectionData.idCardNumber) {
     return {
       // Ensure Thai prename aliases exist for ICApplicantInfo
-      prename_th:
-        rejectionData.prename_th ||
-        rejectionData.prenameTh ||
-        "",
-      prenameTh:
-        rejectionData.prenameTh ||
-        rejectionData.prename_th ||
-        "",
+      prename_th: rejectionData.prename_th || rejectionData.prenameTh || "",
+      prenameTh: rejectionData.prenameTh || rejectionData.prename_th || "",
 
       // Keep all existing fields
       ...rejectionData,

@@ -78,8 +78,7 @@ export default function EditAMApplicationV4() {
 
         return {
           success: true,
-          message:
-            docResult.message || result.message || "บันทึกการแก้ไขใบสมัครเรียบร้อยแล้ว",
+          message: docResult.message || result.message || "บันทึกการแก้ไขใบสมัครเรียบร้อยแล้ว",
         };
       } catch (e) {
         console.error("[AM-V4] Edit submit error:", e);
@@ -159,7 +158,9 @@ export default function EditAMApplicationV4() {
         const result = await res.json();
 
         if (!res.ok || !result.success) {
-          toast.error(result.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง");
+          toast.error(
+            result.message || "ไม่สามารถส่งข้อความถึงผู้ดูแลระบบได้ กรุณาลองใหม่อีกครั้ง",
+          );
           return;
         }
 
@@ -224,7 +225,8 @@ export default function EditAMApplicationV4() {
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
-              ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5 วันทำการ
+              ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5
+              วันทำการ
             </p>
           </div>
         </div>

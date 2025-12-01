@@ -112,7 +112,10 @@ export async function POST(request, { params }) {
               };
             }
           } catch (uploadError) {
-            console.error("Error uploading production image in update-documents (AM):", uploadError);
+            console.error(
+              "Error uploading production image in update-documents (AM):",
+              uploadError,
+            );
           }
         }
       } else if (fileValue instanceof File) {
@@ -134,7 +137,10 @@ export async function POST(request, { params }) {
             };
           }
         } catch (uploadError) {
-          console.error(`Error uploading file for ${fieldName} in update-documents (AM):`, uploadError);
+          console.error(
+            `Error uploading file for ${fieldName} in update-documents (AM):`,
+            uploadError,
+          );
         }
       }
     }
@@ -146,13 +152,7 @@ export async function POST(request, { params }) {
           `INSERT INTO MemberRegist_AM_Documents
              (main_id, document_type, file_name, file_path, cloudinary_url, created_at)
            VALUES (?, ?, ?, ?, ?, NOW())`,
-          [
-            id,
-            doc.document_type,
-            doc.file_name,
-            doc.file_path,
-            doc.cloudinary_url,
-          ],
+          [id, doc.document_type, doc.file_name, doc.file_path, doc.cloudinary_url],
         );
       } catch (dbError) {
         console.error(`Error inserting document ${documentKey} in update-documents (AM):`, dbError);

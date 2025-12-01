@@ -1,10 +1,6 @@
 import InputField from "./InputField";
 
-export default function AssociationInfoFields({
-  formData,
-  errors,
-  handleInputChange,
-}) {
+export default function AssociationInfoFields({ formData, errors, handleInputChange }) {
   return (
     <>
       {/* Association Name Field */}

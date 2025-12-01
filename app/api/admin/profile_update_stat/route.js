@@ -20,11 +20,7 @@ export async function GET(request) {
       return NextResponse.json({ success: false, message: "ไม่ได้รับอนุญาต" }, { status: 401 });
     }
 
-    if (
-      isProd &&
-      profileUpdateStatCache.data &&
-      profileUpdateStatCache.expiresAt > Date.now()
-    ) {
+    if (isProd && profileUpdateStatCache.data && profileUpdateStatCache.expiresAt > Date.now()) {
       return NextResponse.json(profileUpdateStatCache.data);
     }
 

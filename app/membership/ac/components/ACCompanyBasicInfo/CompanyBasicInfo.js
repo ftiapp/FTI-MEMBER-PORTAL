@@ -21,19 +21,15 @@ export default function CompanyBasicInfo({
   const [isFetchingDBD, setIsFetchingDBD] = useState(false);
 
   // Custom hooks for business logic
-  const {
-    validationStatus,
-    setValidationStatus,
-    handleTaxIdChange,
-    checkTaxIdUniqueness,
-  } = useTaxIdValidation(formData, setFormData, errors, setErrors);
+  const { validationStatus, setValidationStatus, handleTaxIdChange, checkTaxIdUniqueness } =
+    useTaxIdValidation(formData, setFormData, errors, setErrors);
 
   const { fetchCompanyInfo, clearAutofilledFields } = useCompanyInfoFetcher(
     formData,
     setFormData,
     setErrors,
     setIsFetchingDBD,
-    setValidationStatus
+    setValidationStatus,
   );
 
   const handleInputChange = (e) => {
@@ -79,10 +75,7 @@ export default function CompanyBasicInfo({
         {/* Content Section */}
         <div className="px-8 py-8 space-y-8">
           {/* Mode Selection */}
-          <ModeSelection
-            isAutofill={isAutofill}
-            toggleAutofill={toggleAutofill}
-          />
+          <ModeSelection isAutofill={isAutofill} toggleAutofill={toggleAutofill} />
 
           {/* Company Information Section */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">

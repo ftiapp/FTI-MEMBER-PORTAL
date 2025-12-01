@@ -30,17 +30,13 @@ export default function ApplicantInfoSection({
   }, [formData]);
 
   // Custom hooks
-  const {
-    idCardValidation,
-    handleIdCardChange,
-    handleIdCardBlur,
-  } = useIdCardValidation(formData, setFormData);
+  const { idCardValidation, handleIdCardChange, handleIdCardBlur } = useIdCardValidation(
+    formData,
+    setFormData,
+  );
 
-  const {
-    prenameMapping,
-    handlePrenameThaiChange,
-    handlePrenameEnglishChange,
-  } = usePrenameHandling(formData, setFormData);
+  const { prenameMapping, handlePrenameThaiChange, handlePrenameEnglishChange } =
+    usePrenameHandling(formData, setFormData);
 
   // Handle input change
   const handleInputChange = (e) => {
@@ -183,7 +179,6 @@ export default function ApplicantInfoSection({
           title="ที่อยู่"
           subtitle="ข้อมูลที่อยู่และการติดต่อ"
         />
-
       </div>
     </div>
   );

@@ -14,7 +14,20 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const MONTH_LABELS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
 
 // Color palette for different company types (will be assigned dynamically)
 const TYPE_COLORS = [
@@ -52,7 +65,10 @@ export default function OriginalMembershipAnalytics() {
         if (selectedStatus !== "all") {
           params.set("status", String(selectedStatus));
         }
-        const res = await fetch(`/api/admin/analytics/original-membership-timeline?${params.toString()}`, { cache: "no-store" });
+        const res = await fetch(
+          `/api/admin/analytics/original-membership-timeline?${params.toString()}`,
+          { cache: "no-store" },
+        );
         if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
         const json = await res.json();
         if (!json.success) throw new Error(json.message || "โหลดข้อมูลไม่สำเร็จ");
@@ -72,7 +88,12 @@ export default function OriginalMembershipAnalytics() {
     if (!data) {
       return {
         series: [],
-        summary: { year: new Date().getFullYear(), totalYear: 0, latestMonthCount: 0, changePercent: 0 },
+        summary: {
+          year: new Date().getFullYear(),
+          totalYear: 0,
+          latestMonthCount: 0,
+          changePercent: 0,
+        },
         labels: MONTH_LABELS,
         companyTypes: [],
       };
@@ -98,13 +119,15 @@ export default function OriginalMembershipAnalytics() {
     const totalYear = monthTotals.reduce((sum, v) => sum + v, 0);
 
     // latest non-zero month or last month
-    const lastIndexWithData = [...monthTotals]
-      .map((v, i) => ({ v, i }))
-      .reverse()
-      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
+    const lastIndexWithData =
+      [...monthTotals]
+        .map((v, i) => ({ v, i }))
+        .reverse()
+        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
     const latestMonthCount = monthTotals[lastIndexWithData] || 0;
     const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-    const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
+    const changePercent =
+      prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
     let chartSeries;
     if (selectedType === "all") {
@@ -191,7 +214,7 @@ export default function OriginalMembershipAnalytics() {
       } = chart;
       ctx.save();
       ctx.fillStyle = "#111827";
-      ctx.font = "11px system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif";
+      ctx.font = '11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
       const datasets = chart.data.datasets || [];
@@ -231,7 +254,12 @@ export default function OriginalMembershipAnalytics() {
     };
   }, [data]);
 
-  const changeColor = summary.changePercent > 0 ? "text-emerald-600" : summary.changePercent < 0 ? "text-red-600" : "text-gray-500";
+  const changeColor =
+    summary.changePercent > 0
+      ? "text-emerald-600"
+      : summary.changePercent < 0
+        ? "text-red-600"
+        : "text-gray-500";
   const changePrefix = summary.changePercent > 0 ? "+" : "";
 
   const isStatusActive = (statusValue) => {
@@ -244,7 +272,9 @@ export default function OriginalMembershipAnalytics() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-1">วิเคราะห์การยืนยันสมาชิกเดิม</h2>
-          <p className="text-sm text-gray-500">สถิติการยืนยันสมาชิกเดิมปี {summary.year} แยกตามประเภทและเดือน</p>
+          <p className="text-sm text-gray-500">
+            สถิติการยืนยันสมาชิกเดิมปี {summary.year} แยกตามประเภทและเดือน
+          </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -320,7 +350,9 @@ export default function OriginalMembershipAnalytics() {
               </p>
             </div>
             <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-100 rounded-xl p-4">
-              <p className="text-xs font-medium text-slate-600 mb-1">อัตราการเติบโต (ในเดือนล่าสุด)</p>
+              <p className="text-xs font-medium text-slate-600 mb-1">
+                อัตราการเติบโต (ในเดือนล่าสุด)
+              </p>
               <p className={`text-2xl font-bold ${changeColor}`}>
                 {summary.changePercent === 0 && summary.latestMonthCount === 0
                   ? "-"

@@ -326,7 +326,7 @@ export async function GET(request, { params }) {
       authorizedSignatoryPositionEn: signatureNamesResult[0]?.position_en || null,
 
       // Multiple signatories (for PDF generation)
-      signatories: signatureNamesResult.map(sig => ({
+      signatories: signatureNamesResult.map((sig) => ({
         id: sig.id,
         prenameTh: sig.prename_th,
         prenameEn: sig.prename_en,
@@ -340,7 +340,7 @@ export async function GET(request, { params }) {
       })),
 
       // Multiple authorized signatures
-      authorizedSignatures: signatureDocumentsResult.map(doc => ({
+      authorizedSignatures: signatureDocumentsResult.map((doc) => ({
         fileUrl: doc.cloudinary_url || doc.file_path,
         mimeType: doc.mime_type,
         fileName: doc.file_name,
@@ -408,21 +408,44 @@ export async function GET(request, { params }) {
         : null,
 
       // Authorized signature document (new required document)
-      authorizedSignature: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
+      authorizedSignature: documentsRows.find(
+        (doc) =>
+          doc.document_type === "authorizedSignature" ||
+          doc.document_type === "authorizedSignatures",
+      )
         ? {
             name:
-              documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")?.file_name ||
-              "ไฟล์ถูกอัปโหลดแล้ว",
+              documentsRows.find(
+                (doc) =>
+                  doc.document_type === "authorizedSignature" ||
+                  doc.document_type === "authorizedSignatures",
+              )?.file_name || "ไฟล์ถูกอัปโหลดแล้ว",
             fileUrl:
-              documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
-                ?.cloudinary_url ||
-              documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")?.file_path,
-            fileType: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
-              ?.mime_type,
-            fileSize: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
-              ?.file_size,
-            cloudinaryId: documentsRows.find((doc) => doc.document_type === "authorizedSignature" || doc.document_type === "authorizedSignatures")
-              ?.cloudinary_id,
+              documentsRows.find(
+                (doc) =>
+                  doc.document_type === "authorizedSignature" ||
+                  doc.document_type === "authorizedSignatures",
+              )?.cloudinary_url ||
+              documentsRows.find(
+                (doc) =>
+                  doc.document_type === "authorizedSignature" ||
+                  doc.document_type === "authorizedSignatures",
+              )?.file_path,
+            fileType: documentsRows.find(
+              (doc) =>
+                doc.document_type === "authorizedSignature" ||
+                doc.document_type === "authorizedSignatures",
+            )?.mime_type,
+            fileSize: documentsRows.find(
+              (doc) =>
+                doc.document_type === "authorizedSignature" ||
+                doc.document_type === "authorizedSignatures",
+            )?.file_size,
+            cloudinaryId: documentsRows.find(
+              (doc) =>
+                doc.document_type === "authorizedSignature" ||
+                doc.document_type === "authorizedSignatures",
+            )?.cloudinary_id,
           }
         : null,
     };

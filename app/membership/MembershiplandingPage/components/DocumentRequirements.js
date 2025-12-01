@@ -176,8 +176,7 @@ export default function DocumentRequirements() {
                 <span className="font-medium text-blue-800">หมายเหตุ</span>
               </div>
               <p className="text-blue-700 mt-1 text-sm">
-                เอกสารทั้งหมด ให้รับรองสำเนาถูกต้อง
-                หากไม่ครบถ้วนเจ้าหน้าที่อาจขอเอกสารเพิ่มเติม
+                เอกสารทั้งหมด ให้รับรองสำเนาถูกต้อง หากไม่ครบถ้วนเจ้าหน้าที่อาจขอเอกสารเพิ่มเติม
               </p>
             </div>
           </div>

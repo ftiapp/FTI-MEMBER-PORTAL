@@ -136,8 +136,11 @@ export async function POST(request) {
 
     console.log("🔍 [AC] Parsing FormData entries...");
     for (const [key, value] of formData.entries()) {
-      console.log(`  - ${key}:`, value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value);
-      
+      console.log(
+        `  - ${key}:`,
+        value instanceof File ? `File(${value.name}, ${value.size} bytes)` : value,
+      );
+
       if (value instanceof File && value.size > 0) {
         if (key.startsWith("productionImages[")) {
           productionImages.push(value);
@@ -186,11 +189,10 @@ export async function POST(request) {
     }
 
     // Step 2: Check for duplicate Tax ID (cross-table AM/AC/OC)
-    // 
+    //
     taxId = data.taxId;
     companyName = data.companyName;
     if (!taxId) {
-
       return NextResponse.json({ error: "กรุณาระบุเลขประจำตัวผู้เสียภาษี" }, { status: 400 });
     }
 
@@ -929,7 +931,6 @@ export async function POST(request) {
 
     await commitTransaction(trx);
     console.log("🎉 [AC] Transaction committed successfully");
-
   } catch (transactionError) {
     console.error("❌ [AC] Error in AC membership submission:", transactionError);
 
@@ -1035,9 +1036,7 @@ export async function POST(request) {
             ? `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE idcard = ? AND status = 3`
             : `DELETE FROM MemberRegist_${memberType.toUpperCase()}_Draft WHERE tax_id = ? AND status = 3`;
 
-        const deleteResult = await executeQueryWithoutTransaction(deleteDraftQuery, [
-          taxId,
-        ]);
+        const deleteResult = await executeQueryWithoutTransaction(deleteDraftQuery, [taxId]);
         console.log(
           `🗑️ [AC] Deleted ALL drafts for ${memberType} with tax_id: ${taxId} (all users)`,
         );

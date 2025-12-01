@@ -10,7 +10,6 @@ import SummaryStatistics from "./MembershiplandingPage/components/SummaryStatist
 import FAQSection from "./MembershiplandingPage/components/FAQSection";
 import MemberCountBanner from "./MembershiplandingPage/components/MemberCountBanner";
 
-
 export default function Membership() {
   return (
     <>

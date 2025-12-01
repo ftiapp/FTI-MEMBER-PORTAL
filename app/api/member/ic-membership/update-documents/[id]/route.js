@@ -106,7 +106,10 @@ export async function POST(request, { params }) {
           };
         }
       } catch (uploadError) {
-        console.error(`Error uploading file for ${fieldName} in update-documents (IC):`, uploadError);
+        console.error(
+          `Error uploading file for ${fieldName} in update-documents (IC):`,
+          uploadError,
+        );
       }
     }
 

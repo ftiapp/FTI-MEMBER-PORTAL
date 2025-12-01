@@ -86,9 +86,7 @@ export default function AdditionalInfo() {
     <section id="pricing" className="py-12">
       <div className="mx-auto flex max-w-screen-xl flex-col gap-8 px-4 py-10 md:px-8">
         <div className="mx-auto max-w-5xl text-center">
-          <h4 className="text-blue-600 mb-2 font-medium tracking-tight">
-            แพ็กเกจสมาชิก
-          </h4>
+          <h4 className="text-blue-600 mb-2 font-medium tracking-tight">แพ็กเกจสมาชิก</h4>
 
           <h2 className="text-blue-900 text-3xl font-semibold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl">
             เลือกแพ็กเกจที่เหมาะสมสำหรับคุณ
@@ -96,9 +94,7 @@ export default function AdditionalInfo() {
 
           <p className="text-blue-700 mt-6 leading-6 text-balance lg:text-lg">
             เลือก{" "}
-            <strong className="text-blue-900 font-semibold">
-              แพ็กเกจที่ตรงกับความต้องการ
-            </strong>{" "}
+            <strong className="text-blue-900 font-semibold">แพ็กเกจที่ตรงกับความต้องการ</strong>{" "}
             ของคุณ พร้อมสิทธิพิเศษมากมายสำหรับการพัฒนาธุรกิจและเครือข่าย
           </p>
         </div>
@@ -180,7 +176,10 @@ export default function AdditionalInfo() {
                   {interval === "year"
                     ? toHumanPrice(price.yearlyPrice, 0)
                     : toHumanPrice(price.monthlyPrice, 0)}
-                  <span className="text-sm font-normal"> บาท/{interval === "year" ? "ปี" : "เดือน"}</span>
+                  <span className="text-sm font-normal">
+                    {" "}
+                    บาท/{interval === "year" ? "ปี" : "เดือน"}
+                  </span>
                 </span>
               </motion.div>
 
@@ -194,9 +193,7 @@ export default function AdditionalInfo() {
                 onClick={() => void onSubscribeClick(price.id)}
               >
                 <span className="bg-white/20 absolute right-0 -mt-12 h-32 w-8 translate-x-12 rotate-12 transform-gpu opacity-50 transition-all duration-1000 ease-out group-hover:-translate-x-96" />
-                {(!isLoading || (isLoading && id !== price.id)) && (
-                  <span>สมัครสมาชิก</span>
-                )}
+                {(!isLoading || (isLoading && id !== price.id)) && <span>สมัครสมาชิก</span>}
 
                 {isLoading && id === price.id && <span>กำลังดำเนินการ</span>}
                 {isLoading && id === price.id && (

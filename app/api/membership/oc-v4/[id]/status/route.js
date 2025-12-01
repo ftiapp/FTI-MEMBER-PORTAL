@@ -20,7 +20,10 @@ export async function POST(request, { params }) {
     const { status } = body || {};
 
     if (typeof status !== "number") {
-      return NextResponse.json({ success: false, message: "รูปแบบสถานะไม่ถูกต้อง" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "รูปแบบสถานะไม่ถูกต้อง" },
+        { status: 400 },
+      );
     }
 
     connection = await getConnection();

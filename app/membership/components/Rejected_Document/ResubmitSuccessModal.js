@@ -92,8 +92,6 @@ export default function ResubmitSuccessModal({ isOpen, onClose, membershipType }
                     <p>เจ้าหน้าที่จะตรวจสอบและติดต่อกลับภายใน 3-5 วันทำการ</p>
                   </div>
                 </div>
-
-               
               </div>
 
               {/* Actions */}

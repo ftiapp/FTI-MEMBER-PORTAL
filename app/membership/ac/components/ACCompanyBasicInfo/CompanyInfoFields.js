@@ -1,11 +1,6 @@
 import InputField from "./InputField";
 
-export default function CompanyInfoFields({
-  formData,
-  errors,
-  isAutofill,
-  handleInputChange,
-}) {
+export default function CompanyInfoFields({ formData, errors, isAutofill, handleInputChange }) {
   return (
     <>
       {/* Company Name Field */}

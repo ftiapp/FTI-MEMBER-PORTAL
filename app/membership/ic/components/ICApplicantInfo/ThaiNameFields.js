@@ -29,7 +29,7 @@ export default function ThaiNameFields({
   errors,
   handleInputChange,
   handlePrenameThaiChange,
-  isLoading
+  isLoading,
 }) {
   console.log("[ThaiNameFields] prename_th/prenameTh:", formData.prename_th, formData.prenameTh);
   return (
@@ -77,9 +77,7 @@ export default function ThaiNameFields({
             disabled={isLoading}
             className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.firstNameThai ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
           />
-          {errors?.firstNameThai && (
-            <p className="text-sm text-red-600">{errors.firstNameThai}</p>
-          )}
+          {errors?.firstNameThai && <p className="text-sm text-red-600">{errors.firstNameThai}</p>}
         </div>
 
         {/* Thai Last Name */}
@@ -97,19 +95,14 @@ export default function ThaiNameFields({
             disabled={isLoading}
             className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.lastNameThai ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
           />
-          {errors?.lastNameThai && (
-            <p className="text-sm text-red-600">{errors.lastNameThai}</p>
-          )}
+          {errors?.lastNameThai && <p className="text-sm text-red-600">{errors.lastNameThai}</p>}
         </div>
       </div>
 
       {/* Thai Other Prename - show only when "อื่นๆ" selected */}
       {formData.prename_th === "อื่นๆ" && (
         <div className="animate-fadeIn bg-gray-50 border border-gray-200 rounded-lg p-4">
-          <label
-            htmlFor="prename_other"
-            className="block text-sm font-medium text-gray-900 mb-2"
-          >
+          <label htmlFor="prename_other" className="block text-sm font-medium text-gray-900 mb-2">
             ระบุคำนำหน้า (ภาษาไทย) <span className="text-red-500">*</span>
           </label>
           <input
@@ -125,9 +118,7 @@ export default function ThaiNameFields({
           {errors?.prename_other && (
             <p className="text-sm text-red-600 mt-1">{errors.prename_other}</p>
           )}
-          <p className="text-xs text-gray-500 mt-1">
-            กรุณากรอกคำนำหน้าที่ต้องการใช้ 
-          </p>
+          <p className="text-xs text-gray-500 mt-1">กรุณากรอกคำนำหน้าที่ต้องการใช้</p>
         </div>
       )}
     </div>

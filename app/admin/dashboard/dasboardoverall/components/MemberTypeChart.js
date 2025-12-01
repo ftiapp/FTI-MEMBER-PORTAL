@@ -2,7 +2,20 @@
 import { useState, useEffect, useMemo } from "react";
 import { Bar } from "react-chartjs-2";
 
-const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const MONTH_LABELS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
 
 const MEMBER_TYPE_LABELS = {
   IC: "ทบ สมทบ-บุคคลธรรมดา IC",
@@ -61,14 +74,16 @@ export default function MemberTypeChart({ memberType, year, startMonth, endMonth
     const rangeEnd = Math.max(startMonth, endMonth);
     const monthTotals = data.monthlyTotals.slice(rangeStart, rangeEnd + 1);
 
-    const lastIndexWithData = [...monthTotals]
-      .map((v, i) => ({ v, i }))
-      .reverse()
-      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
+    const lastIndexWithData =
+      [...monthTotals]
+        .map((v, i) => ({ v, i }))
+        .reverse()
+        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
 
     const latestMonthCount = monthTotals[lastIndexWithData] || 0;
     const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-    const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
+    const changePercent =
+      prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
     return {
       total: data.total || 0,
@@ -156,7 +171,9 @@ export default function MemberTypeChart({ memberType, year, startMonth, endMonth
         </div>
         <div>
           <p className="text-gray-600">ล่าสุด</p>
-          <p className="font-bold text-emerald-700">{summary.latestMonthCount.toLocaleString("th-TH")}</p>
+          <p className="font-bold text-emerald-700">
+            {summary.latestMonthCount.toLocaleString("th-TH")}
+          </p>
         </div>
         <div>
           <p className="text-gray-600">เติบโต</p>
@@ -165,8 +182,8 @@ export default function MemberTypeChart({ memberType, year, startMonth, endMonth
               summary.changePercent > 0
                 ? "text-emerald-600"
                 : summary.changePercent < 0
-                ? "text-red-600"
-                : "text-gray-500"
+                  ? "text-red-600"
+                  : "text-gray-500"
             }`}
           >
             {summary.changePercent === 0 && summary.latestMonthCount === 0

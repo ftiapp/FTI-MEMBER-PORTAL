@@ -2,7 +2,13 @@
 
 import { useRouter } from "next/navigation";
 
-export default function ApplicationCard({ app, getIdentifierLabel, getMembershipTypeLabel, getThaiAbbrev, formatDate }) {
+export default function ApplicationCard({
+  app,
+  getIdentifierLabel,
+  getMembershipTypeLabel,
+  getThaiAbbrev,
+  formatDate,
+}) {
   const router = useRouter();
 
   const handleViewApplication = () => {
@@ -13,9 +19,7 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
   };
 
   return (
-    <div
-      className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white"
-    >
+    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow bg-white">
       <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
         <div className="flex-1">
           {/* เลขประจำตัวไว้ด้านบนสุด */}
@@ -25,12 +29,7 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
               {app.name || app.companyName || "ไม่ระบุชื่อ"}
             </h4>
             <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 border border-red-200">
-              <svg
-                className="w-4 h-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -49,7 +48,9 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
               <span className="text-sm font-bold text-red-600">{getThaiAbbrev(app.type)}</span>
             </div>
             <div>
-              <h4 className="font-medium text-gray-900 text-lg">{getMembershipTypeLabel(app.type)}</h4>
+              <h4 className="font-medium text-gray-900 text-lg">
+                {getMembershipTypeLabel(app.type)}
+              </h4>
               <div className="flex items-center space-x-2">
                 <p className="text-sm text-gray-600">สถานะ: {app.statusLabel}</p>
                 {app.status === "pending_review" && (
@@ -78,12 +79,7 @@ export default function ApplicationCard({ app, getIdentifierLabel, getMembership
           <div className="md:ml-11 mt-3 md:mt-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-xs text-gray-500">
               <p className="flex items-center">
-                <svg
-                  className="w-3 h-3 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"

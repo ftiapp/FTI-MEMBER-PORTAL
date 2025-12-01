@@ -9,10 +9,11 @@ export async function POST(req) {
     // Normalize client IP so it fits into VARCHAR(45)
     const rawIpHeader =
       req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || req.ip || "";
-    const clientIp = rawIpHeader
-      .split(",")
-      .map((part) => part.trim())
-      .filter(Boolean)[0] || "";
+    const clientIp =
+      rawIpHeader
+        .split(",")
+        .map((part) => part.trim())
+        .filter(Boolean)[0] || "";
     const ip_address = clientIp.substring(0, 45);
 
     const user_agent = req.headers.get("user-agent") || "";

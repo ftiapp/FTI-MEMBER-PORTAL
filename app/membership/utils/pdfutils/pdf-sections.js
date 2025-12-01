@@ -5,7 +5,7 @@ import {
   buildGroupsAndChaptersBlock,
   buildCompactContactPersonBlock,
   buildSignatorySignature,
-} from './pdf-core-sections.js';
+} from "./pdf-core-sections.js";
 
 import {
   buildMemberInfoIC,
@@ -14,7 +14,7 @@ import {
   buildRepresentativesSection,
   buildBusinessSection,
   buildContactPersonSection,
-} from './pdf-domain-sections.js';
+} from "./pdf-domain-sections.js";
 
 // Re-export all public helpers so existing imports keep working
 export {

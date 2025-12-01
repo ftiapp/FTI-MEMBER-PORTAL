@@ -536,23 +536,13 @@ export default function SummarySectionComponent({
       const emailKey = `email-${addressType}`;
       const websiteKey = `website-${addressType}`;
 
-      const resolvedEmail =
-        address[emailKey] ||
-        address.email ||
-        formData.companyEmail ||
-        "-";
+      const resolvedEmail = address[emailKey] || address.email || formData.companyEmail || "-";
 
       const resolvedWebsite =
-        address[websiteKey] ||
-        address.website ||
-        formData.companyWebsite ||
-        "-";
+        address[websiteKey] || address.website || formData.companyWebsite || "-";
 
       const resolvedPhone =
-        address[`phone-${addressType}`] ||
-        address.phone ||
-        formData.companyPhone ||
-        "-";
+        address[`phone-${addressType}`] || address.phone || formData.companyPhone || "-";
 
       const resolvedPhoneExt =
         address[`phoneExtension-${addressType}`] ||
@@ -823,7 +813,9 @@ export default function SummarySectionComponent({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {formData.signatories.map((signatory, index) => (
               <div key={index} className="bg-white border border-gray-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-gray-700 mb-2">ผู้มีอำนาจลงนาม คนที่ {index + 1}</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  ผู้มีอำนาจลงนาม คนที่ {index + 1}
+                </h4>
                 <div className="space-y-2">
                   <div>
                     <p className="text-xs text-gray-500">คำนำหน้า</p>
@@ -840,7 +832,8 @@ export default function SummarySectionComponent({
                   <div>
                     <p className="text-xs text-gray-500">ชื่อ-นามสกุล</p>
                     <p className="text-sm">
-                      {`${signatory?.firstNameTh || ""} ${signatory?.lastNameTh || ""}`.trim() || "-"}
+                      {`${signatory?.firstNameTh || ""} ${signatory?.lastNameTh || ""}`.trim() ||
+                        "-"}
                     </p>
                   </div>
                   <div>
@@ -948,14 +941,15 @@ export default function SummarySectionComponent({
             fileUrl={getFileUrl(formData?.companyStamp)}
             description="รูปตราประทับบริษัท (หรือรูปลายเซ็นหากไม่มีตราประทับ)"
           />
-          {formData?.authorizedSignatures && formData.authorizedSignatures.map((signature, index) => (
-            <FileCard
-              key={index}
-              fileName={getFileName(signature)}
-              fileUrl={getFileUrl(signature)}
-              description={`รูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`}
-            />
-          ))}
+          {formData?.authorizedSignatures &&
+            formData.authorizedSignatures.map((signature, index) => (
+              <FileCard
+                key={index}
+                fileName={getFileName(signature)}
+                fileUrl={getFileUrl(signature)}
+                description={`รูปลายเซ็นผู้มีอำนาจลงนาม คนที่ ${index + 1}`}
+              />
+            ))}
         </div>
       </Section>
 

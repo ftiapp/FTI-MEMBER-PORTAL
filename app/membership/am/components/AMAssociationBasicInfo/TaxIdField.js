@@ -1,11 +1,6 @@
 import ValidationStatusBadge from "./ValidationStatusBadge";
 
-export default function TaxIdField({
-  formData,
-  isLoading,
-  validationStatus,
-  handleTaxIdChange,
-}) {
+export default function TaxIdField({ formData, isLoading, validationStatus, handleTaxIdChange }) {
   return (
     <div className="space-y-2">
       <label htmlFor="taxId" className="block text-sm font-medium text-gray-900">

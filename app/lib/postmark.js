@@ -83,7 +83,12 @@ export async function sendVerificationEmail(email, name, verificationToken) {
  * @param {string} companyName - Company/Association name
  * @returns {Promise}
  */
-export async function sendOCMembershipEditConfirmationEmail(email, name, membershipType, companyName) {
+export async function sendOCMembershipEditConfirmationEmail(
+  email,
+  name,
+  membershipType,
+  companyName,
+) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3456";
   const statusUrl = `${baseUrl}/member/dashboard`;
 

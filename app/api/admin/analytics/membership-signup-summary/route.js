@@ -8,10 +8,10 @@ const membershipSignupSummaryCache = new Map();
 
 /**
  * GET /api/admin/analytics/membership-signup-summary
- * 
+ *
  * Returns lifetime total counts of membership signups by type
  * Used for dashboard cards showing total signups since system launch
- * 
+ *
  * No date filtering - counts ALL records from MemberRegist_* tables
  */
 export async function GET(request) {

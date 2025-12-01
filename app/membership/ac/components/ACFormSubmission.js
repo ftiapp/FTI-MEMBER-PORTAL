@@ -19,11 +19,7 @@ export const checkTaxIdUniqueness = async (taxId) => {
     const data = await response.json();
 
     // ตรวจสอบสถานะจาก API โดยดูจาก status ที่ส่งกลับมา
-    if (
-      response.status !== 200 ||
-      data.status === "pending" ||
-      data.status === "approved"
-    ) {
+    if (response.status !== 200 || data.status === "pending" || data.status === "approved") {
       return {
         isUnique: false,
         message: data.message || "เลขประจำตัวผู้เสียภาษีนี้มีในระบบแล้ว",
@@ -73,24 +69,24 @@ export const submitACMembershipForm = async (data) => {
     // กรอง "000" (ไม่ระบุ) ออกจาก industrialGroups และ industrialGroupIds
     if (mappedData.industrialGroups && Array.isArray(mappedData.industrialGroups)) {
       mappedData.industrialGroups = mappedData.industrialGroups.filter(
-        (id) => id !== "000" && id !== 0
+        (id) => id !== "000" && id !== 0,
       );
     }
     if (mappedData.industrialGroupIds && Array.isArray(mappedData.industrialGroupIds)) {
       mappedData.industrialGroupIds = mappedData.industrialGroupIds.filter(
-        (id) => id !== "000" && id !== 0
+        (id) => id !== "000" && id !== 0,
       );
     }
 
     // กรอง "000" (ไม่ระบุ) ออกจาก provincialChapters และ provincialChapterIds
     if (mappedData.provincialChapters && Array.isArray(mappedData.provincialChapters)) {
       mappedData.provincialChapters = mappedData.provincialChapters.filter(
-        (id) => id !== "000" && id !== 0
+        (id) => id !== "000" && id !== 0,
       );
     }
     if (mappedData.provincialChapterIds && Array.isArray(mappedData.provincialChapterIds)) {
       mappedData.provincialChapterIds = mappedData.provincialChapterIds.filter(
-        (id) => id !== "000" && id !== 0
+        (id) => id !== "000" && id !== 0,
       );
     }
 
@@ -103,9 +99,7 @@ export const submitACMembershipForm = async (data) => {
         mappedData.industrialGroupNames.length !== mappedData.industrialGroups.length)
     ) {
       console.log("Setting industrialGroupNames as fallback from IDs");
-      mappedData.industrialGroupNames = mappedData.industrialGroups.map((id) =>
-        id.toString()
-      );
+      mappedData.industrialGroupNames = mappedData.industrialGroups.map((id) => id.toString());
     }
 
     // ตรวจสอบว่ามีข้อมูลชื่อสภาอุตสาหกรรมจังหวัดหรือไม่
@@ -117,9 +111,7 @@ export const submitACMembershipForm = async (data) => {
         mappedData.provincialChapterNames.length !== mappedData.provincialChapters.length)
     ) {
       console.log("Setting provincialChapterNames as fallback from IDs");
-      mappedData.provincialChapterNames = mappedData.provincialChapters.map((id) =>
-        id.toString()
-      );
+      mappedData.provincialChapterNames = mappedData.provincialChapters.map((id) => id.toString());
     }
 
     // Normalize address fields to use 'street' (keep 'road' for backward compatibility)
@@ -131,39 +123,36 @@ export const submitACMembershipForm = async (data) => {
 
     // Normalize nested addresses object if provided
     if (mappedData.addresses && typeof mappedData.addresses === "object") {
-      mappedData.addresses = Object.entries(mappedData.addresses).reduce(
-        (acc, [type, addr]) => {
-          const a = { ...(addr || {}) };
-          if (!a.street && a.road) a.street = a.road;
-          return { ...acc, [type]: a };
-        },
-        {}
-      );
+      mappedData.addresses = Object.entries(mappedData.addresses).reduce((acc, [type, addr]) => {
+        const a = { ...(addr || {}) };
+        if (!a.street && a.road) a.street = a.road;
+        return { ...acc, [type]: a };
+      }, {});
     }
 
     // ✅ Handle authorizedSignatures array of files BEFORE appendToFormData
     if (mappedData.authorizedSignatures && Array.isArray(mappedData.authorizedSignatures)) {
       console.log(
         "🔍 [ACFormSubmission] Authorized Signatures files before FormData conversion:",
-        mappedData.authorizedSignatures
+        mappedData.authorizedSignatures,
       );
-      
+
       mappedData.authorizedSignatures.forEach((fileObj, index) => {
         if (fileObj && fileObj.file instanceof File) {
           formDataToSend.append(
             `authorizedSignatures[${index}]`,
             fileObj.file,
-            fileObj.name || fileObj.file.name
+            fileObj.name || fileObj.file.name,
           );
           console.log(
-            ` Signature ${index + 1}: File(${fileObj.file.name}, ${fileObj.file.size} bytes)`
+            ` Signature ${index + 1}: File(${fileObj.file.name}, ${fileObj.file.size} bytes)`,
           );
         } else if (fileObj instanceof File) {
           formDataToSend.append(`authorizedSignatures[${index}]`, fileObj, fileObj.name);
           console.log(` Signature ${index + 1}: File(${fileObj.name}, ${fileObj.size} bytes)`);
         }
       });
-      
+
       // Remove from mappedData to avoid duplicate processing
       delete mappedData.authorizedSignatures;
     }
@@ -228,8 +217,7 @@ export const submitACMembershipForm = async (data) => {
     if (!response.ok) {
       return {
         success: false,
-        message:
-          result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง",
+        message: result.message || "เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้ง",
       };
     }
 

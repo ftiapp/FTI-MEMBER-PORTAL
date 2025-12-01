@@ -1,36 +1,36 @@
 // pdf-signature.js - signature preload and layout helpers
 
-import { formatThaiDate, transformCloudinaryUrl, loadImageAsDataURL } from './pdf-utils.js';
-import { PDF_CONFIG } from './pdf-config.js';
-import { buildSignatorySignature } from './pdf-core-sections.js';
+import { formatThaiDate, transformCloudinaryUrl, loadImageAsDataURL } from "./pdf-utils.js";
+import { PDF_CONFIG } from "./pdf-config.js";
+import { buildSignatorySignature } from "./pdf-core-sections.js";
 
 // Preload signature image (single document)
 export const preloadSignature = async (signatureDoc) => {
-  console.log('[PDF] Preloading signature...');
+  console.log("[PDF] Preloading signature...");
   if (!signatureDoc || !signatureDoc.fileUrl) {
-    console.log('[PDF] ❌ No signature file');
+    console.log("[PDF] ❌ No signature file");
     return null;
   }
 
   const sigUrl = signatureDoc.fileUrl;
   const transformedUrl = transformCloudinaryUrl(sigUrl);
-  console.debug('[PDF] Signature URL:', transformedUrl);
+  console.debug("[PDF] Signature URL:", transformedUrl);
 
   const dataUrl = await loadImageAsDataURL(transformedUrl);
   if (dataUrl) {
-    console.debug('[PDF] ✅ Signature loaded as data URL');
+    console.debug("[PDF] ✅ Signature loaded as data URL");
     return dataUrl;
   }
 
   const looksLikeImg =
     /\.(png|jpe?g|webp|gif)(\?|$)/i.test(transformedUrl) ||
-    signatureDoc.mimeType?.startsWith?.('image/');
+    signatureDoc.mimeType?.startsWith?.("image/");
   if (looksLikeImg) {
-    console.debug('[PDF] ⚠️ Fallback to URL');
+    console.debug("[PDF] ⚠️ Fallback to URL");
     return transformedUrl;
   }
 
-  console.warn('[PDF] ❌ Not an image');
+  console.warn("[PDF] ❌ Not an image");
   return null;
 };
 
@@ -47,8 +47,9 @@ export const buildSignatureArea = (
     data.signatories && Array.isArray(data.signatories) && data.signatories.length > 0;
   const authorizedSignatures = data.authorizedSignatures || [];
 
-  const stampHtml = type === 'oc' || type === 'ac' || type === 'am'
-    ? `
+  const stampHtml =
+    type === "oc" || type === "ac" || type === "am"
+      ? `
     <div class="stamp-box">
       <div style="font-size: 11px; font-weight: bold; margin-bottom: 7px;">ตราบริษัท</div>
       <div class="stamp-img">
@@ -60,9 +61,9 @@ export const buildSignatureArea = (
       </div>
     </div>
   `
-    : '';
+      : "";
 
-  if (['oc', 'ac', 'am'].includes(type)) {
+  if (["oc", "ac", "am"].includes(type)) {
     if (hasMultipleSignatories) {
       const signaturesHtml = data.signatories
         .map((signatory, index) => {
@@ -70,7 +71,7 @@ export const buildSignatureArea = (
           const signatureFile = authorizedSignatures[index] || null;
           return buildSignatorySignature(signatory, preloadedSignature, index, signatureFile);
         })
-        .join('');
+        .join("");
 
       return `
         <div class="signature-area">
@@ -94,11 +95,11 @@ export const buildSignatureArea = (
             }
           </div>
           <div style="font-size: 12px; margin-top: 4px; border-top: 1px solid #000; padding-top: 4px;">
-            <span class="signature-name">(${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})</span>
+            <span class="signature-name">(${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})</span>
             ${
               data.authorizedSignatoryPosition
                 ? `<div style="margin-top: 2px;">${data.authorizedSignatoryPosition}</div>`
-                : ''
+                : ""
             }
             <div style="margin-top: 2px;">วันที่: ${formatThaiDate(new Date())}</div>
           </div>
@@ -123,11 +124,11 @@ export const buildSignatureArea = (
           }
         </div>
         <div style="font-size: 12px; margin-top: 4px; border-top: 1px solid #000; padding-top: 4px;">
-          <span class="signature-name">(${data.authorizedSignatoryName || 'ชื่อผู้มีอำนาจลงนาม'})</span>
+          <span class="signature-name">(${data.authorizedSignatoryName || "ชื่อผู้มีอำนาจลงนาม"})</span>
           ${
             data.authorizedSignatoryPosition
               ? `<div style="margin-top: 2px;">${data.authorizedSignatoryPosition}</div>`
-              : ''
+              : ""
           }
           <div style="margin-top: 2px;">วันที่: ${formatThaiDate(new Date())}</div>
         </div>

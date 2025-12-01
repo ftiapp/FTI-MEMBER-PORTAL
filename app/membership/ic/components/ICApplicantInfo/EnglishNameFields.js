@@ -3,7 +3,7 @@ export default function EnglishNameFields({
   errors,
   handleInputChange,
   handlePrenameEnglishChange,
-  isLoading
+  isLoading,
 }) {
   return (
     <div className="space-y-4 mb-6">
@@ -51,9 +51,7 @@ export default function EnglishNameFields({
             disabled={isLoading}
             className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.firstNameEng ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
           />
-          {errors?.firstNameEng && (
-            <p className="text-sm text-red-600">{errors.firstNameEng}</p>
-          )}
+          {errors?.firstNameEng && <p className="text-sm text-red-600">{errors.firstNameEng}</p>}
         </div>
 
         {/* English Last Name */}
@@ -71,9 +69,7 @@ export default function EnglishNameFields({
             disabled={isLoading}
             className={`w-full px-4 py-3 text-sm border rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${errors?.lastNameEng ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"} bg-white`}
           />
-          {errors?.lastNameEng && (
-            <p className="text-sm text-red-600">{errors.lastNameEng}</p>
-          )}
+          {errors?.lastNameEng && <p className="text-sm text-red-600">{errors.lastNameEng}</p>}
         </div>
       </div>
 

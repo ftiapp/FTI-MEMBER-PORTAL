@@ -164,20 +164,18 @@ export default function MainContentSection({
                 <div className="flex items-start justify-between">
                   <div>
                     <p className="font-medium text-gray-800">
-                      [{
-                        MEMBER_TYPE_LABELS[item.type?.toUpperCase?.() || item.type] ||
+                      [
+                      {MEMBER_TYPE_LABELS[item.type?.toUpperCase?.() || item.type] ||
                         item.type?.toUpperCase?.() ||
                         item.type ||
-                        "-"
-                      }] {item.companyNameTh || item.companyNameEn}
+                        "-"}
+                      ] {item.companyNameTh || item.companyNameEn}
                     </p>
                     <p className="text-xs text-gray-500">
                       {new Date(item.createdAt).toLocaleString("th-TH")}
                     </p>
                   </div>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-md ${STATUS_STYLES[item.status]}`}
-                  >
+                  <span className={`text-xs px-2 py-1 rounded-md ${STATUS_STYLES[item.status]}`}>
                     {STATUS_LABELS[item.status]}
                   </span>
                 </div>
@@ -199,9 +197,7 @@ export default function MainContentSection({
               <li key={m.id} className="py-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-800">
-                      {m.subject || "(ไม่มีหัวเรื่อง)"}
-                    </p>
+                    <p className="font-medium text-gray-800">{m.subject || "(ไม่มีหัวเรื่อง)"}</p>
                     <p className="text-xs text-gray-500">
                       จาก {m.name || m.email || "-"} •{" "}
                       {new Date(m.created_at).toLocaleString("th-TH")}
@@ -229,9 +225,7 @@ export default function MainContentSection({
               <li key={g.id} className="py-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="font-medium text-gray-800">
-                      {g.subject || "(ไม่มีหัวเรื่อง)"}
-                    </p>
+                    <p className="font-medium text-gray-800">{g.subject || "(ไม่มีหัวเรื่อง)"}</p>
                     <p className="text-xs text-gray-500">
                       จาก {g.name || g.email || "-"} •{" "}
                       {new Date(g.created_at).toLocaleString("th-TH")}

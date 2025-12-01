@@ -86,10 +86,18 @@ export async function GET(request) {
        GROUP BY name
        ORDER BY count DESC, name ASC`,
       [
-        year, rangeStart, rangeEnd,
-        year, rangeStart, rangeEnd,
-        year, rangeStart, rangeEnd,
-        year, rangeStart, rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
       ],
     );
 
@@ -140,15 +148,29 @@ export async function GET(request) {
        GROUP BY name
        ORDER BY count DESC, name ASC`,
       [
-        year, rangeStart, rangeEnd,
-        year, rangeStart, rangeEnd,
-        year, rangeStart, rangeEnd,
-        year, rangeStart, rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
+        year,
+        rangeStart,
+        rangeEnd,
       ],
     );
 
-    const byIndustry = industryRows.map((r) => ({ name: r.name || "ไม่ระบุ", count: Number(r.count) || 0 }));
-    const byProvince = provinceRows.map((r) => ({ name: r.name || "ไม่ระบุ", count: Number(r.count) || 0 }));
+    const byIndustry = industryRows.map((r) => ({
+      name: r.name || "ไม่ระบุ",
+      count: Number(r.count) || 0,
+    }));
+    const byProvince = provinceRows.map((r) => ({
+      name: r.name || "ไม่ระบุ",
+      count: Number(r.count) || 0,
+    }));
 
     const totalIndustry = byIndustry.reduce((sum, r) => sum + (r.count || 0), 0);
     const totalProvince = byProvince.reduce((sum, r) => sum + (r.count || 0), 0);

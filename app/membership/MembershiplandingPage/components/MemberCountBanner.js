@@ -28,9 +28,7 @@ export default function MemberCountBanner() {
       <div className="grid grid-cols-1 md:grid-cols-2">
         {/* Left: question and copy */}
         <div className="p-6 md:p-8">
-          <p className="text-blue-600 font-semibold text-lg mb-2">
-            พร้อมที่จะเริ่มต้นแล้วหรือยัง?
-          </p>
+          <p className="text-blue-600 font-semibold text-lg mb-2">พร้อมที่จะเริ่มต้นแล้วหรือยัง?</p>
           <h3 className="text-2xl md:text-3xl font-bold text-blue-900 mb-2">สมาชิก ส.อ.ท.</h3>
           <div className="flex items-end space-x-3 mb-3">
             <span className="text-red-600 font-extrabold text-4xl md:text-5xl leading-none">

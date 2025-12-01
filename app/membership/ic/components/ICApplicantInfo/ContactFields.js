@@ -1,9 +1,4 @@
-export default function ContactFields({
-  formData,
-  errors,
-  handleInputChange,
-  isLoading
-}) {
+export default function ContactFields({ formData, errors, handleInputChange, isLoading }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       {/* Phone */}
@@ -29,9 +24,7 @@ export default function ContactFields({
               transition-all duration-200
               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
               ${
-                errors?.phone
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300 hover:border-gray-400"
+                errors?.phone ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"
               }
             `}
           />
@@ -80,11 +73,7 @@ export default function ContactFields({
             placeholder-gray-400
             transition-all duration-200
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-            ${
-              errors?.email
-                ? "border-red-300 bg-red-50"
-                : "border-gray-300 hover:border-gray-400"
-            }
+            ${errors?.email ? "border-red-300 bg-red-50" : "border-gray-300 hover:border-gray-400"}
           `}
         />
         {errors?.email && (

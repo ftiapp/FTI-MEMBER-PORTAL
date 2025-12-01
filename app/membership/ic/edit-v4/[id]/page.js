@@ -89,8 +89,7 @@ export default function EditICApplicationV4() {
 
         return {
           success: true,
-          message:
-            docResult.message || result.message || "บันทึกการแก้ไขใบสมัครเรียบร้อยแล้ว",
+          message: docResult.message || result.message || "บันทึกการแก้ไขใบสมัครเรียบร้อยแล้ว",
         };
       } catch (e) {
         console.error("[IC-V4] Edit submit error:", e);
@@ -145,10 +144,8 @@ export default function EditICApplicationV4() {
         prenameTh: data.prenameTh || data.prename_th || INITIAL_FORM_DATA.prename_th,
         prename_en: data.prename_en || data.prenameEn || INITIAL_FORM_DATA.prename_en,
         prenameEn: data.prenameEn || data.prename_en || INITIAL_FORM_DATA.prename_en,
-        prename_other:
-          data.prename_other || data.prenameOther || INITIAL_FORM_DATA.prename_other,
-        prenameOther:
-          data.prenameOther || data.prename_other || INITIAL_FORM_DATA.prename_other,
+        prename_other: data.prename_other || data.prenameOther || INITIAL_FORM_DATA.prename_other,
+        prenameOther: data.prenameOther || data.prename_other || INITIAL_FORM_DATA.prename_other,
         prename_other_en:
           data.prename_other_en || data.prenameOtherEn || INITIAL_FORM_DATA.prename_other_en,
         prenameOtherEn:
@@ -283,7 +280,7 @@ export default function EditICApplicationV4() {
 
           <div className="container mx-auto px-4 relative z-10 max-w-5xl">
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-center">
-              แก้ไข - ใบสมัครสมาชิกประเภท สมทบ-บุคคลธรรมดา 
+              แก้ไข - ใบสมัครสมาชิกประเภท สมทบ-บุคคลธรรมดา
             </h1>
             <motion.div
               className="w-24 h-1 bg-white mx-auto mb-6"
@@ -292,7 +289,8 @@ export default function EditICApplicationV4() {
               transition={{ duration: 0.8, delay: 0.2 }}
             />
             <p className="text-lg md:text-xl text-center text-blue-100 max-w-3xl mx-auto">
-              ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5 วันทำการ
+              ท่านสามารถแก้ไขข้อมูลและส่งคำขอใหม่ได้ ทะเบียนสมาชิกจะพิจารณาคำขอของท่าน ภายใน 3-5
+              วันทำการ
             </p>
           </div>
         </div>

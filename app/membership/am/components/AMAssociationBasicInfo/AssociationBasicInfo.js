@@ -20,19 +20,15 @@ export default function AssociationBasicInfo({
   const [isFetchingDBD, setIsFetchingDBD] = useState(false);
 
   // Custom hooks for business logic
-  const {
-    validationStatus,
-    setValidationStatus,
-    handleTaxIdChange,
-    checkTaxIdUniqueness,
-  } = useTaxIdValidation(formData, setFormData, errors, setErrors);
+  const { validationStatus, setValidationStatus, handleTaxIdChange, checkTaxIdUniqueness } =
+    useTaxIdValidation(formData, setFormData, errors, setErrors);
 
   const { fetchAssociationInfo, clearAutofilledFields } = useAssociationInfoFetcher(
     formData,
     setFormData,
     setErrors,
     setIsFetchingDBD,
-    setValidationStatus
+    setValidationStatus,
   );
 
   const handleInputChange = (e) => {

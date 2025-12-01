@@ -168,7 +168,12 @@ export default function ResubmittedApplications({
     return (
       <div className="text-center py-12">
         <div className="text-red-600 mb-4">
-          <svg className="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-12 h-12 mx-auto mb-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -193,7 +198,12 @@ export default function ResubmittedApplications({
     return (
       <div className="text-center py-12">
         <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="w-8 h-8 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -202,7 +212,9 @@ export default function ResubmittedApplications({
             />
           </svg>
         </div>
-        <h3 className="text-lg font-medium text-gray-900 mb-2">ไม่มีเอกสารสมัครสมาชิกที่แก้ไขแล้ว</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          ไม่มีเอกสารสมัครสมาชิกที่แก้ไขแล้ว
+        </h3>
         <p className="text-sm text-gray-500">ยังไม่มีเอกสารที่ถูกส่งกลับมาแก้ไขแล้วในระบบ</p>
       </div>
     );
@@ -214,7 +226,8 @@ export default function ResubmittedApplications({
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-sm text-gray-600 mb-4 gap-2">
           <span className="text-center sm:text-left">
             แสดง {Math.min((currentPage - 1) * itemsPerPage + 1, pagination.totalItems)}-
-            {Math.min(currentPage * itemsPerPage, pagination.totalItems)} จาก {pagination.totalItems} รายการ
+            {Math.min(currentPage * itemsPerPage, pagination.totalItems)} จาก{" "}
+            {pagination.totalItems} รายการ
           </span>
           <span className="text-center sm:text-right text-gray-500">
             หน้า {currentPage} จาก {Math.ceil(pagination.totalItems / itemsPerPage)}
@@ -267,12 +280,8 @@ export default function ResubmittedApplications({
                 </div>
 
                 <div className="md:ml-11 mt-3 md:mt-0 text-xs text-gray-500 space-y-1">
-                  <p>
-                    ส่งครั้งล่าสุด: {formatDateTime(app.createdAt)}
-                  </p>
-                  {app.updatedAt && (
-                    <p>อัปเดตข้อมูล: {formatDateTime(app.updatedAt)}</p>
-                  )}
+                  <p>ส่งครั้งล่าสุด: {formatDateTime(app.createdAt)}</p>
+                  {app.updatedAt && <p>อัปเดตข้อมูล: {formatDateTime(app.updatedAt)}</p>}
                 </div>
               </div>
 

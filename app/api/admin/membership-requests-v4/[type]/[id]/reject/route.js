@@ -85,7 +85,8 @@ export async function POST(request, { params }) {
 
       // Insert conversation record for this rejection (V4 uses unified conversations table)
       try {
-        const adminName = `${adminData.firstname || ""} ${adminData.lastname || ""}`.trim() || "Admin";
+        const adminName =
+          `${adminData.firstname || ""} ${adminData.lastname || ""}`.trim() || "Admin";
 
         await connection.execute(
           `INSERT INTO MemberRegist_Conversations 

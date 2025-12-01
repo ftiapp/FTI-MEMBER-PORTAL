@@ -4,7 +4,7 @@ import { toast } from "react-hot-toast";
 export function useTaxIdValidation(formData, setFormData, errors, setErrors) {
   const [validationStatus, setValidationStatus] = useState({
     status: "idle",
-    message: ""
+    message: "",
   });
   const taxIdTimeoutRef = useRef(null);
 
@@ -16,7 +16,7 @@ export function useTaxIdValidation(formData, setFormData, errors, setErrors) {
 
     setValidationStatus({
       status: "checking",
-      message: "กำลังตรวจสอบเลขประจำตัวผู้เสียภาษี..."
+      message: "กำลังตรวจสอบเลขประจำตัวผู้เสียภาษี...",
     });
 
     try {

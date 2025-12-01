@@ -1,6 +1,6 @@
 "use client";
 
-import ApplicantInfoSection from '@/app/membership/ic/components/ICApplicantInfo/ApplicantInfoSection';
+import ApplicantInfoSection from "@/app/membership/ic/components/ICApplicantInfo/ApplicantInfoSection";
 
 export default function ApplicantInfoSectionWrapper({
   formData,

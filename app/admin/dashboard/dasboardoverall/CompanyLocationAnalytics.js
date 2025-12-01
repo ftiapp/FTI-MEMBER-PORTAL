@@ -15,7 +15,20 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const MONTH_LABELS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
 
 const MEMBER_TYPE_LABELS = {
   all: "ทุกประเภทสมาชิก",
@@ -100,14 +113,16 @@ export default function CompanyLocationAnalytics() {
     const monthTotals = data.monthlyTotals.slice(rangeStart, rangeEnd + 1);
 
     // Find latest non-zero month in range
-    const lastIndexWithData = [...monthTotals]
-      .map((v, i) => ({ v, i }))
-      .reverse()
-      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
+    const lastIndexWithData =
+      [...monthTotals]
+        .map((v, i) => ({ v, i }))
+        .reverse()
+        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
 
     const latestMonthCount = monthTotals[lastIndexWithData] || 0;
     const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-    const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
+    const changePercent =
+      prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
     return {
       total: data.total || 0,
@@ -185,7 +200,7 @@ export default function CompanyLocationAnalytics() {
 
       ctx.save();
       ctx.fillStyle = "#111827";
-      ctx.font = "11px system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif";
+      ctx.font = '11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
 
@@ -211,7 +226,9 @@ export default function CompanyLocationAnalytics() {
     <div className="bg-white rounded-2xl shadow-xl p-6 mt-6 mb-8">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-800 mb-1">วิเคราะห์การสมัครสมาชิกตามจังหวัดที่ตั้งบริษัท</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-1">
+            วิเคราะห์การสมัครสมาชิกตามจังหวัดที่ตั้งบริษัท
+          </h3>
           {data && (
             <p className="text-sm text-gray-500">
               ข้อมูลปี {data.year} ({MEMBER_TYPE_LABELS[selectedType]})
@@ -277,22 +294,34 @@ export default function CompanyLocationAnalytics() {
       {data && (
         <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-sky-50 border border-sky-100 rounded-xl p-4">
-            <p className="text-xs text-sky-600 font-semibold mb-1">ยอดรวมทุกจังหวัด (ในช่วงเดือนที่เลือก)</p>
+            <p className="text-xs text-sky-600 font-semibold mb-1">
+              ยอดรวมทุกจังหวัด (ในช่วงเดือนที่เลือก)
+            </p>
             <p className="text-2xl font-bold text-sky-700">
-              {summary.total.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
+              {summary.total.toLocaleString("th-TH")}{" "}
+              <span className="text-sm font-normal text-gray-500">ราย</span>
             </p>
           </div>
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
             <p className="text-xs text-emerald-600 font-semibold mb-1">เดือนล่าสุดในช่วง</p>
             <p className="text-2xl font-bold text-emerald-700">
-              {summary.latestMonthCount.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
+              {summary.latestMonthCount.toLocaleString("th-TH")}{" "}
+              <span className="text-sm font-normal text-gray-500">ราย</span>
             </p>
           </div>
           <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-            <p className="text-xs text-slate-600 font-semibold mb-1">อัตราการเติบโต (ในเดือนล่าสุด)</p>
-            <p className={`text-2xl font-bold ${
-              summary.changePercent > 0 ? "text-emerald-600" : summary.changePercent < 0 ? "text-red-600" : "text-gray-500"
-            }`}>
+            <p className="text-xs text-slate-600 font-semibold mb-1">
+              อัตราการเติบโต (ในเดือนล่าสุด)
+            </p>
+            <p
+              className={`text-2xl font-bold ${
+                summary.changePercent > 0
+                  ? "text-emerald-600"
+                  : summary.changePercent < 0
+                    ? "text-red-600"
+                    : "text-gray-500"
+              }`}
+            >
               {summary.changePercent === 0 && summary.latestMonthCount === 0
                 ? "-"
                 : `${summary.changePercent > 0 ? "+" : ""}${summary.changePercent.toFixed(1)}%`}
@@ -331,7 +360,9 @@ export default function CompanyLocationAnalytics() {
                 {pagedRows.map((row) => (
                   <tr key={row.name} className="hover:bg-gray-50">
                     <td className="px-3 py-2 whitespace-nowrap">{row.name}</td>
-                    <td className="px-3 py-2 text-right font-semibold">{row.count.toLocaleString("th-TH")}</td>
+                    <td className="px-3 py-2 text-right font-semibold">
+                      {row.count.toLocaleString("th-TH")}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -355,9 +386,7 @@ export default function CompanyLocationAnalytics() {
                 <option value={50}>50</option>
                 <option value={100}>100</option>
               </select>
-              <span className="text-sm text-gray-500">
-                (ทั้งหมด {provinceRows.length} จังหวัด)
-              </span>
+              <span className="text-sm text-gray-500">(ทั้งหมด {provinceRows.length} จังหวัด)</span>
             </div>
             <div className="flex items-center gap-2">
               <button

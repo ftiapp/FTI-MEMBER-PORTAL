@@ -369,7 +369,9 @@ export const getFirstFieldError = (errs) => {
   }
 
   // 5) Authorized signature file errors: authorizedSignature_index
-  const authorizedSignatureKeys = Object.keys(errs).filter((k) => k.startsWith("authorizedSignature_"));
+  const authorizedSignatureKeys = Object.keys(errs).filter((k) =>
+    k.startsWith("authorizedSignature_"),
+  );
   if (authorizedSignatureKeys.length > 0) {
     const k = authorizedSignatureKeys[0];
     const v = errs[k];

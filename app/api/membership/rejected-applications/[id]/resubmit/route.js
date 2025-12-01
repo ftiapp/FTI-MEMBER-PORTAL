@@ -271,23 +271,24 @@ export async function POST(request, { params }) {
 
         // Representative: prefer nested representative object if present
         const repSource = representative || {};
-        const representativeMapped = repSource && Object.keys(repSource).length > 0
-          ? {
-              prenameTh: repSource.prenameTh || null,
-              prenameEn: repSource.prenameEn || null,
-              prenameOther: repSource.prenameOther || null,
-              prenameOtherEn: repSource.prenameOtherEn || null,
-              firstNameThai: repSource.firstNameThai || "",
-              lastNameThai: repSource.lastNameThai || "",
-              firstNameEng: repSource.firstNameEn || "",
-              lastNameEng: repSource.lastNameEn || "",
-              position: repSource.position || null,
-              email: repSource.email || null,
-              phone: repSource.phone || null,
-              phoneExtension: repSource.phoneExtension || null,
-              isPrimary: repSource.isPrimary ?? true,
-            }
-          : null;
+        const representativeMapped =
+          repSource && Object.keys(repSource).length > 0
+            ? {
+                prenameTh: repSource.prenameTh || null,
+                prenameEn: repSource.prenameEn || null,
+                prenameOther: repSource.prenameOther || null,
+                prenameOtherEn: repSource.prenameOtherEn || null,
+                firstNameThai: repSource.firstNameThai || "",
+                lastNameThai: repSource.lastNameThai || "",
+                firstNameEng: repSource.firstNameEn || "",
+                lastNameEng: repSource.lastNameEn || "",
+                position: repSource.position || null,
+                email: repSource.email || null,
+                phone: repSource.phone || null,
+                phoneExtension: repSource.phoneExtension || null,
+                isPrimary: repSource.isPrimary ?? true,
+              }
+            : null;
 
         // Business types: backend expects array of raw type IDs/keys
         const mappedBusinessTypes = Array.isArray(businessTypes)

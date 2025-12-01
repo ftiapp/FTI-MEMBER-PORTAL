@@ -62,9 +62,7 @@ export default function DocumentRequirementsSection({
                           key={idx}
                           className="text-xs sm:text-sm text-gray-700 leading-relaxed flex items-start"
                         >
-                          <span className="text-blue-600 mr-2 font-bold">
-                            •
-                          </span>
+                          <span className="text-blue-600 mr-2 font-bold">•</span>
                           <span>{req}</span>
                         </li>
                       ))}
@@ -94,10 +92,7 @@ export default function DocumentRequirementsSection({
                 </h4>
                 <ul className="space-y-2">
                   {requirement.documents.map((doc, index) => (
-                    <li
-                      key={index}
-                      className="flex items-start text-xs sm:text-sm text-gray-700"
-                    >
+                    <li key={index} className="flex items-start text-xs sm:text-sm text-gray-700">
                       <svg
                         className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5"
                         fill="none"

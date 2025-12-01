@@ -253,7 +253,8 @@ export const validateOCForm = (formData, step) => {
           if (!cp.email) {
             errors[`${baseKey}Email`] = `กรุณากรอกอีเมลผู้ประสานงานคนที่ ${displayIndex}`;
           } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cp.email)) {
-            errors[`${baseKey}Email`] = `รูปแบบอีเมลของผู้ประสานงานคนที่ ${displayIndex} ไม่ถูกต้อง`;
+            errors[`${baseKey}Email`] =
+              `รูปแบบอีเมลของผู้ประสานงานคนที่ ${displayIndex} ไม่ถูกต้อง`;
           }
 
           // Phone: required + length
@@ -261,7 +262,8 @@ export const validateOCForm = (formData, step) => {
           if (!phoneVal || String(phoneVal).trim() === "") {
             errors[`${baseKey}Phone`] = `กรุณากรอกเบอร์โทรศัพท์ผู้ประสานงานคนที่ ${displayIndex}`;
           } else if (String(phoneVal).length > 50) {
-            errors[`${baseKey}Phone`] = `เบอร์โทรศัพท์ของผู้ประสานงานคนที่ ${displayIndex} ต้องไม่เกิน 50 ตัวอักษร`;
+            errors[`${baseKey}Phone`] =
+              `เบอร์โทรศัพท์ของผู้ประสานงานคนที่ ${displayIndex} ต้องไม่เกิน 50 ตัวอักษร`;
           }
         });
       }

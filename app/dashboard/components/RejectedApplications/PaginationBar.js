@@ -8,8 +8,7 @@ export default function PaginationBar({ pagination, onPageChange }) {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 border-t border-gray-200 pt-4">
       <div className="text-sm text-gray-700">
-        แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span>{" "}
-        ถึง{" "}
+        แสดง <span className="font-medium">{(pagination.page - 1) * pagination.limit + 1}</span> ถึง{" "}
         <span className="font-medium">
           {Math.min(pagination.page * pagination.limit, pagination.total)}
         </span>{" "}
@@ -59,12 +58,7 @@ export default function PaginationBar({ pagination, onPageChange }) {
         >
           ถัดไป
           <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 5l7 7-7 7"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>

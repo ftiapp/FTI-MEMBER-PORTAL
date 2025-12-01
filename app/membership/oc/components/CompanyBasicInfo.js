@@ -1,6 +1,6 @@
 "use client";
 
-import CompanyBasicInfo from '@/app/membership/oc/components/OCCompanyBasicInfo/CompanyBasicInfo';
+import CompanyBasicInfo from "@/app/membership/oc/components/OCCompanyBasicInfo/CompanyBasicInfo";
 
 export default function CompanyBasicInfoWrapper({
   formData,

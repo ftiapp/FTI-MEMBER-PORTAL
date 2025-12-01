@@ -15,7 +15,20 @@ import {
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const MONTH_LABELS = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+const MONTH_LABELS = [
+  "ม.ค.",
+  "ก.พ.",
+  "มี.ค.",
+  "เม.ย.",
+  "พ.ค.",
+  "มิ.ย.",
+  "ก.ค.",
+  "ส.ค.",
+  "ก.ย.",
+  "ต.ค.",
+  "พ.ย.",
+  "ธ.ค.",
+];
 
 export default function OCIndustryProvinceAnalytics() {
   const [loading, setLoading] = useState(true);
@@ -38,9 +51,12 @@ export default function OCIndustryProvinceAnalytics() {
           startMonth: String(startMonth + 1),
           endMonth: String(endMonth + 1),
         });
-        const res = await fetch(`/api/admin/analytics/oc-industry-province-timeline?${params.toString()}`, {
-          cache: "no-store",
-        });
+        const res = await fetch(
+          `/api/admin/analytics/oc-industry-province-timeline?${params.toString()}`,
+          {
+            cache: "no-store",
+          },
+        );
         if (!res.ok) throw new Error(`โหลดข้อมูลไม่สำเร็จ (${res.status})`);
         const json = await res.json();
         if (!json.success) throw new Error(json.message || "โหลดข้อมูลไม่สำเร็จ");
@@ -59,8 +75,7 @@ export default function OCIndustryProvinceAnalytics() {
   const chartData = useMemo(() => {
     if (!data) return null;
 
-    const source =
-      mode === "industry" ? data.byIndustry || [] : data.byProvince || [];
+    const source = mode === "industry" ? data.byIndustry || [] : data.byProvince || [];
     const sliced = source.slice(0, limit);
 
     return {
@@ -124,7 +139,7 @@ export default function OCIndustryProvinceAnalytics() {
 
       ctx.save();
       ctx.fillStyle = "#111827";
-      ctx.font = "11px system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif";
+      ctx.font = '11px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
       ctx.textAlign = "center";
       ctx.textBaseline = "bottom";
 
@@ -156,22 +171,23 @@ export default function OCIndustryProvinceAnalytics() {
       };
     }
 
-    const total =
-      mode === "industry" ? data.totalIndustry || 0 : data.totalProvince || 0;
+    const total = mode === "industry" ? data.totalIndustry || 0 : data.totalProvince || 0;
 
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
     const monthTotals = data.monthlyTotals.slice(rangeStart, rangeEnd + 1);
 
     // Find latest non-zero month in range
-    const lastIndexWithData = [...monthTotals]
-      .map((v, i) => ({ v, i }))
-      .reverse()
-      .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
+    const lastIndexWithData =
+      [...monthTotals]
+        .map((v, i) => ({ v, i }))
+        .reverse()
+        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
 
     const latestMonthCount = monthTotals[lastIndexWithData] || 0;
     const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-    const changePercent = prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
+    const changePercent =
+      prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
 
     return {
       label: mode === "industry" ? "ตามกลุ่มอุตสาหกรรม" : "ตามสภาจังหวัด",
@@ -185,7 +201,9 @@ export default function OCIndustryProvinceAnalytics() {
     <div className="bg-white rounded-2xl shadow-xl p-6 mt-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h3 className="text-xl font-bold text-gray-800 mb-1">วิเคราะห์ตามกลุ่มอุตสาหกรรม / สภาจังหวัด</h3>
+          <h3 className="text-xl font-bold text-gray-800 mb-1">
+            วิเคราะห์ตามกลุ่มอุตสาหกรรม / สภาจังหวัด
+          </h3>
           {data && (
             <p className="text-sm text-gray-500">
               สรุป รวม ข้อมูลปี {data.year} รวมทุกประเภทสมาชิก
@@ -248,22 +266,36 @@ export default function OCIndustryProvinceAnalytics() {
       {data && (
         <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-            <p className="text-xs text-indigo-600 font-semibold mb-1">ยอดรวม {summary.label} (ในช่วงเดือนที่เลือก)</p>
+            <p className="text-xs text-indigo-600 font-semibold mb-1">
+              ยอดรวม {summary.label} (ในช่วงเดือนที่เลือก)
+            </p>
             <p className="text-2xl font-bold text-indigo-700">
-              {summary.total.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
+              {summary.total.toLocaleString("th-TH")}{" "}
+              <span className="text-sm font-normal text-gray-500">ราย</span>
             </p>
           </div>
           <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
-            <p className="text-xs text-emerald-600 font-semibold mb-1">เดือนล่าสุดในช่วง (สรุป รวม)</p>
+            <p className="text-xs text-emerald-600 font-semibold mb-1">
+              เดือนล่าสุดในช่วง (สรุป รวม)
+            </p>
             <p className="text-2xl font-bold text-emerald-700">
-              {summary.latestMonthCount.toLocaleString("th-TH")} <span className="text-sm font-normal text-gray-500">ราย</span>
+              {summary.latestMonthCount.toLocaleString("th-TH")}{" "}
+              <span className="text-sm font-normal text-gray-500">ราย</span>
             </p>
           </div>
           <div className="bg-slate-50 border border-slate-100 rounded-xl p-4">
-            <p className="text-xs text-slate-600 font-semibold mb-1">อัตราการเติบโต (ในเดือนล่าสุด)</p>
-            <p className={`text-2xl font-bold ${
-              summary.changePercent > 0 ? "text-emerald-600" : summary.changePercent < 0 ? "text-red-600" : "text-gray-500"
-            }`}>
+            <p className="text-xs text-slate-600 font-semibold mb-1">
+              อัตราการเติบโต (ในเดือนล่าสุด)
+            </p>
+            <p
+              className={`text-2xl font-bold ${
+                summary.changePercent > 0
+                  ? "text-emerald-600"
+                  : summary.changePercent < 0
+                    ? "text-red-600"
+                    : "text-gray-500"
+              }`}
+            >
               {summary.changePercent === 0 && summary.latestMonthCount === 0
                 ? "-"
                 : `${summary.changePercent > 0 ? "+" : ""}${summary.changePercent.toFixed(1)}%`}
