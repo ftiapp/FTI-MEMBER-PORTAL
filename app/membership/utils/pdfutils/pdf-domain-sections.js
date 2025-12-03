@@ -22,23 +22,60 @@ export const buildMemberInfoIC = (data, memberTypeLabel = "") => {
   );
 };
 
-// Section 1: Member Info (OC/AC/AM types)
-export const buildMemberInfoCompany = (data, memberTypeLabel = "") => {
+// Section 3: Invoice address (address type 3)
+export const buildInvoiceAddressSection = (data) => {
+  const addr = data.address3 || data;
+  const phone = data.address3 ? data.addressType3Phone : data.phone;
+  const phoneExt = data.address3 ? data.addressType3PhoneExt : data.phoneExtension;
+  const email = data.address3 ? data.addressType3Email : data.email;
+  const website = data.address3 ? data.addressType3Website : data.website;
+
   return section(
-    "ส่วนที่ 1 ข้อมูลสมาชิก",
+    "ส่วนที่ 3 ที่อยู่ใบกำกับภาษี",
     `
       <div class="row">
-        <div class="col">${field("เลขทะเบียนนิติบุคคล", data.taxId)}</div>
-        <div class="col">
-          ${field("ชื่อบริษัท (ไทย)", data.companyNameTh)}
-          ${field("ชื่อบริษัท (อังกฤษ)", data.companyNameEn)}
-        </div>
+        <div class="col">${field("เลขที่", addr.number || addr.addressNumber)}</div>
+        <div class="col">${field("หมู่", addr.moo)}</div>
+        <div class="col">${field("ซอย", addr.soi)}</div>
+        <div class="col">${field("ถนน", addr.street)}</div>
+      </div>
+      <div class="row">
+        <div class="col">${field("ตำบล/แขวง", addr.subDistrict)}</div>
+        <div class="col">${field("อำเภอ/เขต", addr.district)}</div>
+        <div class="col">${field("จังหวัด", addr.province)}</div>
+        <div class="col">${field("รหัสไปรษณีย์", addr.postalCode)}</div>
+      </div>
+      <div class="row" style="margin-top: 5px; border-top: 1px solid #e0e0e0; padding-top: 5px;">
+        <div class="col">${field("โทรศัพท์", phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ""}` : "")}</div>
+        <div class="col">${field("อีเมล", email || "", 'style="white-space: nowrap;"')}</div>
+        <div class="col"></div>
+      </div>
+      <div class="row">
+        <div class="col">${field("เว็บไซต์", website || "", 'style="white-space: nowrap;"')}</div>
       </div>
     `,
   );
 };
 
-// Section 2: Address
+// Section 1: Member Info (OC/AC/AM types)
+export const buildMemberInfoCompany = (data, memberTypeLabel = ""
+) => {
+  const titleWithTaxId = `ส่วนที่ 1 ข้อมูลสมาชิก<span style="float: right; font-weight: normal;">เลขทะเบียนนิติบุคคล: ${
+    data.taxId || "-"
+  }</span>`;
+
+  return section(
+    titleWithTaxId,
+    `
+      <div class="row">
+        <div class="col">${field("ชื่อบริษัท (ไทย)", data.companyNameTh)}</div>
+        <div class="col">${field("ชื่อบริษัท (อังกฤษ)", data.companyNameEn)}</div>
+      </div>
+    `,
+  );
+};
+
+// Section 2: Shipping / document delivery address (address type 2)
 export const buildAddressSection = (data) => {
   const addr = data.address2 || data;
   const phone = data.address2 ? data.addressType2Phone : data.phone;
@@ -73,7 +110,7 @@ export const buildAddressSection = (data) => {
   );
 };
 
-// Section 3: Representatives
+// Section 4: Representatives
 export const buildRepresentativesSection = (representatives) => {
   if (!representatives || representatives.length === 0) return "";
 
@@ -156,10 +193,10 @@ export const buildRepresentativesSection = (representatives) => {
     })
     .join("");
 
-  return section("ส่วนที่ 3 นามผู้แทนใช้สิทธิ", `<div class="list-3col">${repsHtml}</div>`);
+  return section("ส่วนที่ 4 นามผู้แทนใช้สิทธิ", `<div class="list-3col">${repsHtml}</div>`);
 };
 
-// Section 4: Business info
+// Section 5: Business info
 export const buildBusinessSection = (data, businessTypes, type) => {
   const displayProducts = Array.isArray(data.products)
     ? data.products.slice(0, PDF_CONFIG.MAX_PRODUCTS_DISPLAY)
@@ -279,7 +316,7 @@ export const buildBusinessSection = (data, businessTypes, type) => {
       : "";
 
   return section(
-    "ส่วนที่ 4 รายละเอียดอื่นๆ",
+    "ส่วนที่ 5 รายละเอียดอื่นๆ",
     `
       <div class="row">
         <div class="col">
@@ -296,7 +333,7 @@ export const buildBusinessSection = (data, businessTypes, type) => {
   );
 };
 
-// Section 6: Contact person
+// Section 7: Contact person
 export const buildContactPersonSection = (contactPersons) => {
   if (!contactPersons || contactPersons.length === 0) return "";
 
@@ -351,5 +388,5 @@ export const buildContactPersonSection = (contactPersons) => {
     </div>
   `;
 
-  return section("ส่วนที่ 6 ข้อมูลผู้ประสานงาน", content);
+  return section("ส่วนที่ 7 ข้อมูลผู้ประสานงาน", content);
 };

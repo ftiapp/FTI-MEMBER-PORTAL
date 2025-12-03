@@ -15,6 +15,7 @@ import { processApplicationData } from "./pdf-data-processor.js";
 import {
   buildMemberInfoIC,
   buildMemberInfoCompany,
+  buildInvoiceAddressSection,
   buildAddressSection,
   buildRepresentativesSection,
   buildBusinessSection,
@@ -187,6 +188,7 @@ export const generateMembershipPDF = async (
     }
 
     const includeStaffFooter = options.includeStaffFooter === true;
+    const totalPages = includeStaffFooter ? 2 : 1;
 
     const MEMBER_TYPE_LABELS = {
       ic: "สมทบ-บุคคลธรรมดา (ทบ)",
@@ -212,6 +214,7 @@ export const generateMembershipPDF = async (
         <div class="member-number">
           หมายเลขสมาชิก:<br><br>................................................
         </div>
+        <div class="page-number">หน้า 1/${totalPages}</div>
         <div class="logo-header-row">
           <div class="logo-wrap">
             <img src="${logoSrc}" alt="FTI Logo" crossorigin="anonymous" />
@@ -227,6 +230,8 @@ export const generateMembershipPDF = async (
         }
         
         ${buildAddressSection(data)}
+        
+        ${buildInvoiceAddressSection(data)}
         
         ${buildRepresentativesSection(data.representatives)}
         
@@ -287,7 +292,7 @@ export const generateMembershipPDF = async (
 
           return `
             <div class="section">
-              <div class="section-title">ส่วนที่ 5  สมัครเพิ่มเติม เข้ากลุ่มอุตสาหกรรม และ/หรือสภาอุตสาหกรรมจังหวัด</div>
+              <div class="section-title">ส่วนที่ 6  สมัครเพิ่มเติม เข้ากลุ่มอุตสาหกรรม และ/หรือสภาอุตสาหกรรมจังหวัด</div>
               ${groupsAndChaptersBlock}
             </div>
           `;
@@ -301,6 +306,7 @@ export const generateMembershipPDF = async (
         ${
           includeStaffFooter
             ? `<div class="footer-page">
+              <div class="footer-taxid">เลขทะเบียนนิติบุคคล: ${data.taxId || "-"}</div>
               <div class="footer-separator"></div>
               <div class="footer-section">
                 <div class="footer-title">(สำหรับเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย)</div>
@@ -320,6 +326,7 @@ export const generateMembershipPDF = async (
                   </div>
                 </div>
               </div>
+              <div class="page-number">หน้า 2/${totalPages}</div>
             </div>`
             : ""
         }

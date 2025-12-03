@@ -14,6 +14,7 @@ import {
   buildRepresentativesSection,
   buildBusinessSection,
   buildContactPersonSection,
+  buildInvoiceAddressSection,
 } from "./pdf-domain-sections.js";
 
 // Re-export all public helpers so existing imports keep working
@@ -25,6 +26,7 @@ export {
   buildSignatorySignature,
   buildMemberInfoIC,
   buildMemberInfoCompany,
+  buildInvoiceAddressSection,
   buildAddressSection,
   buildRepresentativesSection,
   buildBusinessSection,

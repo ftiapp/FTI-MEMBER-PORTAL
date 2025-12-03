@@ -112,6 +112,12 @@ export const processApplicationData = (app) => {
   let addressType2Email = "";
   let addressType2Website = "";
 
+  // Address type 3 contact info (invoice address)
+  let addressType3Phone = "";
+  let addressType3PhoneExt = "";
+  let addressType3Email = "";
+  let addressType3Website = "";
+
   if (app.addresses) {
     const addr2 = processAddress(app.addresses, "2");
     if (addr2) {
@@ -129,6 +135,26 @@ export const processApplicationData = (app) => {
         addressType2PhoneExt = raw.phone_extension || raw.phoneExtension || "";
         addressType2Email = raw.email || "";
         addressType2Website = raw.website || "";
+      }
+    }
+
+    // Address type 3 (invoice address)
+    const addr3 = processAddress(app.addresses, "3");
+    if (addr3) {
+      if (Array.isArray(app.addresses)) {
+        const raw3 = app.addresses.find(
+          (a) => a.address_type === "3" || a.addressType === "3" || a.addressTypeId === 3,
+        );
+        addressType3Phone = raw3?.phone || "";
+        addressType3PhoneExt = raw3?.phone_extension || raw3?.phoneExtension || "";
+        addressType3Email = raw3?.email || "";
+        addressType3Website = raw3?.website || "";
+      } else if (typeof app.addresses === "object" && app.addresses["3"]) {
+        const raw3 = app.addresses["3"];
+        addressType3Phone = raw3.phone || "";
+        addressType3PhoneExt = raw3.phone_extension || raw3.phoneExtension || "";
+        addressType3Email = raw3.email || "";
+        addressType3Website = raw3.website || "";
       }
     }
   }
@@ -354,7 +380,14 @@ export const processApplicationData = (app) => {
     addressType2PhoneExt,
     addressType2Email,
     addressType2Website,
+    // Address 2 & 3 objects
     address2: processAddress(app.addresses, "2"),
+    address3: processAddress(app.addresses, "3"),
+    // Contact info for address type 3 (invoice)
+    addressType3Phone,
+    addressType3PhoneExt,
+    addressType3Email,
+    addressType3Website,
     authorizedSignatoryName,
     authorizedSignatoryPosition,
   };

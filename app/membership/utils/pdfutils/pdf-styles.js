@@ -16,7 +16,7 @@ export const getPDFStyles = () => `
   body { 
 
     font-family: 'Sarabun', 'TH Sarabun New', 'Tahoma', sans-serif;
-    font-size: 14.5px;
+    font-size: 14px;
 
     line-height: 1.45;
     padding: 0px 4mm 4mm 4mm;
@@ -33,13 +33,14 @@ export const getPDFStyles = () => `
     justify-content: flex-end;
     /* เผื่อพื้นที่เล็กน้อยด้านล่างสำหรับ "สร้างเมื่อ" ที่ชิดขอบล่าง */
     padding: 0 6mm 8mm 6mm;
+    position: relative;
   }
   
   /* Header Section */
   .logo-header-row {
     position: relative;
-    margin-bottom: 6px;
-    padding-top: 8px;
+    margin-bottom: 4px;
+    padding-top: 4px;
     min-height: 60px;
   }
 
@@ -62,7 +63,7 @@ export const getPDFStyles = () => `
   
   .header { 
     text-align: center;
-    font-size: 14.5px;
+    font-size: 14px;
     font-weight: bold;
     margin-top: -2px;
     margin-bottom: 10px;
@@ -73,7 +74,7 @@ export const getPDFStyles = () => `
 
   .sub-header {
     text-align: center;
-    font-size: 12.5px;
+    font-size: 12px;
     font-weight: 600;
     margin-top: -6px;
     margin-bottom: 8px;
@@ -89,15 +90,35 @@ export const getPDFStyles = () => `
     left: 50%;
     transform: translateX(-50%);
     text-align: center;
-    font-size: 9.5px;
+    font-size: 9px;
     color: #666666;
+  }
+
+  /* Page numbering (bottom-left) */
+  .page-number {
+    position: absolute;
+    left: 4mm;
+    bottom: 6mm;
+    font-size: 9px;
+    color: #666666;
+    z-index: 10;
+  }
+
+  /* Tax ID on second page (top-right inside footer-page) */
+  .footer-taxid {
+    position: absolute;
+    top: 4mm;
+    right: 8mm;
+    font-size: 10px;
+    color: #000000;
+    font-weight: 500;
   }
   
   .member-number { 
     position: absolute;
     top: 4px;
     right: 8px;
-    font-size: 10.5px;
+    font-size: 10px;
     color: #000000;
     font-weight: bold;
   }
@@ -111,16 +132,16 @@ export const getPDFStyles = () => `
   }
   
   .section:first-of-type { 
-    margin-top: 6px; 
+    margin-top: 2px; 
   }
   
   .section-title { 
     font-weight: bold;
-    font-size: 12.5px;
+    font-size: 12px;
 
     text-align: left;
-    padding: 0 0 11px 2px;
-    margin: -1px 0 10px 0;
+    padding: 0 0 8px 2px;  /* ระยะจากข้อความถึงเส้น - ขยับเส้นลงมาอีกเล็กน้อย */
+    margin: 2px 0 1px 0;   /* ระยะจากเส้นถึงข้อมูล - ให้ข้อมูลเข้าใกล้เส้นมากขึ้น */
     border-bottom: 1px solid #000000;
     background-color: transparent;
     line-height: 1.1;
@@ -129,7 +150,7 @@ export const getPDFStyles = () => `
   /* Fields */
   .field { 
     margin-bottom: 3px;
-    font-size: 12.5px;
+    font-size: 12px;
     line-height: 1.4;
 
     display: flex;
@@ -178,7 +199,7 @@ export const getPDFStyles = () => `
   
   .rep-title { 
     font-weight: bold;
-    font-size: 12px;
+    font-size: 11.5px;
     color: #000000;
     margin-bottom: 3px;
     padding-bottom: 1px;
