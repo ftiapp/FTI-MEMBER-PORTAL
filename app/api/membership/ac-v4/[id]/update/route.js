@@ -12,6 +12,33 @@ async function parseJsonBody(request) {
   }
 }
 
+// Helper: sanitize decimal numbers from formatted strings (e.g. 10,000.00)
+function sanitizeDecimal(
+  raw,
+  { field = "value", min = 0, max = Number.POSITIVE_INFINITY, scale = 2, allowNull = true } = {},
+) {
+  if (raw === undefined || raw === null || raw === "")
+    return allowNull
+      ? null
+      : (() => {
+          throw new Error(`${field} is required`);
+        })();
+
+  const cleaned = String(raw).replace(/[\,\s฿]/g, "");
+  const num = Number(cleaned);
+  if (!Number.isFinite(num)) throw new Error(`${field} is not a valid number`);
+
+  const factor = Math.pow(10, scale);
+  const rounded = Math.round(num * factor) / factor;
+  if (rounded < min || rounded > max) throw new Error(`${field} out of allowed range`);
+  return rounded;
+}
+
+// Helper: sanitize percentage values (0-100)
+function sanitizePercent(raw, { field = "percent", allowNull = true } = {}) {
+  return sanitizeDecimal(raw, { field, min: 0, max: 100, scale: 2, allowNull });
+}
+
 function ensureArray(value) {
   if (!value) return [];
   if (Array.isArray(value)) return value;
@@ -60,6 +87,75 @@ export async function POST(request, { params }) {
       return NextResponse.json(
         { success: false, message: "ไม่พบใบสมัครนี้หรือคุณไม่มีสิทธิ์แก้ไข" },
         { status: 403 },
+      );
+    }
+
+    // Sanitize numeric fields before starting transaction
+    let registeredCapital = null;
+    let productionCapacityValue = null;
+    let salesDomestic = null;
+    let salesExport = null;
+    let revenueLastYear = null;
+    let revenuePreviousYear = null;
+    let shareholderThaiPercent = null;
+    let shareholderForeignPercent = null;
+
+    try {
+      registeredCapital = sanitizeDecimal(formData.registeredCapital, {
+        field: "registeredCapital",
+        min: 0,
+        max: 9999999999999.99,
+        scale: 2,
+        allowNull: true,
+      });
+      productionCapacityValue = sanitizeDecimal(formData.productionCapacityValue, {
+        field: "productionCapacityValue",
+        min: 0,
+        max: 9999999999999.99,
+        scale: 2,
+        allowNull: true,
+      });
+      salesDomestic = sanitizeDecimal(formData.salesDomestic, {
+        field: "salesDomestic",
+        min: 0,
+        max: 9999999999999.99,
+        scale: 2,
+        allowNull: true,
+      });
+      salesExport = sanitizeDecimal(formData.salesExport, {
+        field: "salesExport",
+        min: 0,
+        max: 9999999999999.99,
+        scale: 2,
+        allowNull: true,
+      });
+      revenueLastYear = sanitizeDecimal(formData.revenueLastYear, {
+        field: "revenueLastYear",
+        min: 0,
+        max: 9999999999999.99,
+        scale: 2,
+        allowNull: true,
+      });
+      revenuePreviousYear = sanitizeDecimal(formData.revenuePreviousYear, {
+        field: "revenuePreviousYear",
+        min: 0,
+        max: 9999999999999.99,
+        scale: 2,
+        allowNull: true,
+      });
+      shareholderThaiPercent = sanitizePercent(formData.shareholderThaiPercent, {
+        field: "shareholderThaiPercent",
+        allowNull: true,
+      });
+      shareholderForeignPercent = sanitizePercent(formData.shareholderForeignPercent, {
+        field: "shareholderForeignPercent",
+        allowNull: true,
+      });
+    } catch (numErr) {
+      console.error("[AC-V4] Numeric sanitize error:", numErr);
+      return NextResponse.json(
+        { success: false, message: "ข้อมูลตัวเลขไม่ถูกต้อง", details: String(numErr.message) },
+        { status: 400 },
       );
     }
 
@@ -126,15 +222,15 @@ export async function POST(request, { params }) {
       formData.companyWebsite || "",
       formData.factoryType || null,
       formData.numberOfEmployees ? parseInt(formData.numberOfEmployees, 10) || null : null,
-      formData.registeredCapital || null,
-      formData.productionCapacityValue || null,
+      registeredCapital,
+      productionCapacityValue,
       formData.productionCapacityUnit || null,
-      formData.salesDomestic || null,
-      formData.salesExport || null,
-      formData.revenueLastYear || null,
-      formData.revenuePreviousYear || null,
-      formData.shareholderThaiPercent || null,
-      formData.shareholderForeignPercent || null,
+      salesDomestic,
+      salesExport,
+      revenueLastYear,
+      revenuePreviousYear,
+      shareholderThaiPercent,
+      shareholderForeignPercent,
       id,
       user.id,
     ]);

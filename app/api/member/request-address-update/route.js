@@ -312,7 +312,7 @@ export async function POST(request) {
     try {
       // ดึงข้อมูลผู้ใช้และบริษัท
       const userDataQuery = `
-        SELECT u.email, u.firstname, u.lastname, cm.COMP_NAME_TH
+        SELECT u.email, u.firstname, u.lastname, cm.company_name
         FROM FTI_Portal_User u
         LEFT JOIN FTI_Original_Membership cm ON cm.MEMBER_CODE = ?
         WHERE u.id = ?
@@ -326,7 +326,7 @@ export async function POST(request) {
           userData[0].firstname || "",
           userData[0].lastname || "",
           memberCodeValue,
-          userData[0].COMP_NAME_TH || "ไม่ระบุ",
+          userData[0].company_name || "ไม่ระบุ",
           addrCodeValue,
           addrLangValue,
         );

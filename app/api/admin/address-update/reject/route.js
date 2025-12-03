@@ -122,7 +122,7 @@ export async function POST(request) {
             "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
             [
               addressUpdate.user_id,
-              "reject_address_update",
+              "address_update_request",
               `ปฏิเสธคำขอแก้ไขที่อยู่${addrTypeText}${langText} - รหัสสมาชิก: ${addressUpdate.member_code || ""}, บริษัท: ${company_name}, เหตุผล: ${reason}`,
             ],
           );

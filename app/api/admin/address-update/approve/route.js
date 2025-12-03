@@ -425,7 +425,7 @@ export async function POST(request) {
 
           await query(
             "INSERT INTO FTI_Portal_User_Logs (user_id, action, details, created_at) VALUES (?, ?, ?, NOW())",
-            [user_id, "approve_address_update", detailsText],
+            [user_id, "address_update_request", detailsText],
           );
         } catch (userLogError) {
           console.error("Error logging user action:", userLogError.message);
