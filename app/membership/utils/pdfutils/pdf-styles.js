@@ -159,8 +159,8 @@ export const getPDFStyles = () => `
   
   .label { 
     font-weight: 600;
-    min-width: 70px;
-    margin-right: 3px;
+    min-width: auto;
+    margin-right:5px;
     color: #000000;
     flex: 0 0 auto;
   }
@@ -175,7 +175,7 @@ export const getPDFStyles = () => `
   /* Layout */
   .row { 
     display: flex;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 2px;
   }
   
@@ -278,7 +278,7 @@ export const getPDFStyles = () => `
   .list-2col { 
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    column-gap: 8px;
+    column-gap: 12px;
     row-gap: 4px;
     align-items: start;
   }
@@ -290,7 +290,7 @@ export const getPDFStyles = () => `
   .list-3col { 
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    column-gap: 10px;
+    column-gap: 14px;
     row-gap: 4px;
     align-items: start;
   }

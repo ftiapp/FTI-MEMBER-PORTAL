@@ -30,25 +30,39 @@ export const buildInvoiceAddressSection = (data) => {
   const email = data.address3 ? data.addressType3Email : data.email;
   const website = data.address3 ? data.addressType3Website : data.website;
 
+  // Dynamic gap: ถ้าข้อความที่อยู่ส่วนใหญ่สั้น ใช้ gap ใหญ่, ถ้ายาวใช้ gap เล็ก
+  const baseGap = 30; // สำหรับข้อความยาว
+  const wideGap = 60; // สำหรับข้อความสั้น
+  const len = (v) => (v ? String(v).length : 0);
+  const isShortAddress =
+    len(addr.building) <= 10 &&
+    len(addr.soi) <= 10 &&
+    len(addr.street) <= 10;
+  const gap = isShortAddress ? wideGap : baseGap;
+
   return section(
     "ส่วนที่ 3 ที่อยู่ใบกำกับภาษี",
     `
-      <div class="row">
-        <div class="col">${field("เลขที่", addr.number || addr.addressNumber)}</div>
-        <div class="col">${field("อาคาร/หมู่บ้าน", addr.building)}</div>
-        <div class="col">${field("หมู่", addr.moo)}</div>
-        <div class="col">${field("ซอย", addr.soi)}</div>
+      <div class="row" style="gap: ${gap}px;">
+        <div class="col" style="flex: 0 0 auto;">${field("เลขที่", addr.number || addr.addressNumber)}</div>
+        <div class="col" style="flex: 3 1 0;">${field(
+          "อาคาร/หมู่บ้าน",
+          addr.building,
+          'style="white-space: nowrap;"',
+        )}</div>
+        <div class="col" style="flex: 0 0 auto;">${field("หมู่", addr.moo)}</div>
+        <div class="col" style="flex: 1 1 0;">${field("ซอย", addr.soi)}</div>
       </div>
-      <div class="row">
+      <div class="row" style="gap: ${gap}px;">
+        <div class="col">${field("ถนน", addr.street)}</div>
         <div class="col">${field("ตำบล/แขวง", addr.subDistrict)}</div>
         <div class="col">${field("อำเภอ/เขต", addr.district)}</div>
         <div class="col">${field("จังหวัด", addr.province)}</div>
-        <div class="col">${field("รหัสไปรษณีย์", addr.postalCode)}</div>
       </div>
-      <div class="row" style="margin-top: 5px; border-top: 1px solid #e0e0e0; padding-top: 5px;">
+      <div class="row" style="gap: ${gap}px; margin-top: 5px; border-top: 1px solid #e0e0e0; padding-top: 5px;">
+        <div class="col">${field("รหัสไปรษณีย์", addr.postalCode)}</div>
         <div class="col">${field("โทรศัพท์", phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ""}` : "")}</div>
         <div class="col">${field("อีเมล", email || "", 'style="white-space: nowrap;"')}</div>
-        <div class="col"></div>
       </div>
       <div class="row">
         <div class="col">${field("เว็บไซต์", website || "", 'style="white-space: nowrap;"')}</div>
@@ -83,25 +97,39 @@ export const buildAddressSection = (data) => {
   const email = data.address2 ? data.addressType2Email : data.email;
   const website = data.address2 ? data.addressType2Website : data.website;
 
+  // Dynamic gap: ถ้าข้อความที่อยู่ส่วนใหญ่สั้น ใช้ gap ใหญ่, ถ้ายาวใช้ gap เล็ก
+  const baseGap = 30; // สำหรับข้อความยาว
+  const wideGap = 60; // สำหรับข้อความสั้น
+  const len = (v) => (v ? String(v).length : 0);
+  const isShortAddress =
+    len(addr.building) <= 10 &&
+    len(addr.soi) <= 10 &&
+    len(addr.street) <= 10;
+  const gap = isShortAddress ? baseGap : wideGap;
+
   return section(
     "ส่วนที่ 2 ที่อยู่ในการจัดส่งเอกสาร",
     `
-      <div class="row">
-        <div class="col">${field("เลขที่", addr.number || addr.addressNumber)}</div>
-        <div class="col">${field("อาคาร/หมู่บ้าน", addr.building)}</div>
-        <div class="col">${field("หมู่", addr.moo)}</div>
-        <div class="col">${field("ซอย", addr.soi)}</div>
+      <div class="row" style="gap: ${gap}px;">
+        <div class="col" style="flex: 0 0 auto;">${field("เลขที่", addr.number || addr.addressNumber)}</div>
+        <div class="col" style="flex: 3 1 0;">${field(
+          "อาคาร/หมู่บ้าน",
+          addr.building,
+          'style="white-space: nowrap;"',
+        )}</div>
+        <div class="col" style="flex: 0 0 auto;">${field("หมู่", addr.moo)}</div>
+        <div class="col" style="flex: 1 1 0;">${field("ซอย", addr.soi)}</div>
       </div>
-      <div class="row">
+      <div class="row" style="gap: ${gap}px;">
+        <div class="col">${field("ถนน", addr.street)}</div>
         <div class="col">${field("ตำบล/แขวง", addr.subDistrict)}</div>
         <div class="col">${field("อำเภอ/เขต", addr.district)}</div>
         <div class="col">${field("จังหวัด", addr.province)}</div>
-        <div class="col">${field("รหัสไปรษณีย์", addr.postalCode)}</div>
       </div>
-      <div class="row" style="margin-top: 5px; border-top: 1px solid #e0e0e0; padding-top: 5px;">
+      <div class="row" style="gap: ${gap}px; margin-top: 5px; border-top: 1px solid #e0e0e0; padding-top: 5px;">
+        <div class="col">${field("รหัสไปรษณีย์", addr.postalCode)}</div>
         <div class="col">${field("โทรศัพท์", phone ? `${phone}${phoneExt ? ` ต่อ ${phoneExt}` : ""}` : "")}</div>
         <div class="col">${field("อีเมล", email || "", 'style="white-space: nowrap;"')}</div>
-        <div class="col"></div>
       </div>
       <div class="row">
         <div class="col">${field("เว็บไซต์", website || "", 'style="white-space: nowrap;"')}</div>
