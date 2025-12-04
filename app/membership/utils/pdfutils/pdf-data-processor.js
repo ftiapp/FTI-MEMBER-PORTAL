@@ -63,6 +63,14 @@ const processAddress = (addresses, type) => {
       raw.houseNumber ||
       raw.number ||
       "",
+    building:
+      raw.building ||
+      raw.building_name ||
+      raw.buildingName ||
+      raw.village ||
+      raw.village_name ||
+      raw.villageName ||
+      "",
     moo: raw.moo || "",
     soi: raw.soi || "",
     street: raw.STreet || raw.street || raw.road || "",

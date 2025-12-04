@@ -35,9 +35,9 @@ export const buildInvoiceAddressSection = (data) => {
     `
       <div class="row">
         <div class="col">${field("เลขที่", addr.number || addr.addressNumber)}</div>
+        <div class="col">${field("อาคาร/หมู่บ้าน", addr.building)}</div>
         <div class="col">${field("หมู่", addr.moo)}</div>
         <div class="col">${field("ซอย", addr.soi)}</div>
-        <div class="col">${field("ถนน", addr.street)}</div>
       </div>
       <div class="row">
         <div class="col">${field("ตำบล/แขวง", addr.subDistrict)}</div>
@@ -88,9 +88,9 @@ export const buildAddressSection = (data) => {
     `
       <div class="row">
         <div class="col">${field("เลขที่", addr.number || addr.addressNumber)}</div>
+        <div class="col">${field("อาคาร/หมู่บ้าน", addr.building)}</div>
         <div class="col">${field("หมู่", addr.moo)}</div>
         <div class="col">${field("ซอย", addr.soi)}</div>
-        <div class="col">${field("ถนน", addr.street)}</div>
       </div>
       <div class="row">
         <div class="col">${field("ตำบล/แขวง", addr.subDistrict)}</div>
