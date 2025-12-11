@@ -94,8 +94,10 @@ const AdminActionsSection = ({
         </div>
       )}
 
-      {/* Action Buttons: show for pending and resubmitted applications */}
-      {(application?.status === STATUS.PENDING || application?.status === STATUS.RESUBMITTED) && (
+      {/* Action Buttons: show for pending, resubmitted, and rejected applications */}
+      {(application?.status === STATUS.PENDING ||
+        application?.status === STATUS.RESUBMITTED ||
+        application?.status === STATUS.REJECTED) && (
         <div className="flex justify-end space-x-4">
           <button
             onClick={onOpenRejectModal}
