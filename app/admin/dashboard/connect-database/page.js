@@ -31,24 +31,48 @@ export default function ConnectDatabasePage() {
   const [connectedError, setConnectedError] = useState(null);
   const [search, setSearch] = useState("");
   const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0, totalPages: 0 });
+  const [memberTypeFilter, setMemberTypeFilter] = useState("");
   // Pending search and connected count
   const [pendingSearch, setPendingSearch] = useState("");
   const [connectedCount, setConnectedCount] = useState(0);
+  const [connectedTypeCounts, setConnectedTypeCounts] = useState({ OC: 0, AM: 0, AC: 0, IC: 0 });
+
+  const pendingTypeCounts = members.reduce(
+    (acc, m) => {
+      const type = (m.member_type || "").toString().toUpperCase();
+      if (type === "OC" || type === "AM" || type === "AC" || type === "IC") {
+        acc[type] += 1;
+      }
+      return acc;
+    },
+    { OC: 0, AM: 0, AC: 0, IC: 0 },
+  );
 
   useEffect(() => {
     fetchApprovedMembers();
     // prefetch connected count for cards
     const prefetchConnectedCount = async () => {
-      const response = await fetch(`/api/admin/connect-database/connected?page=1&limit=1`, {
+      const response = await fetch(`/api/admin/connect-database/connected-counts`, {
         credentials: "include",
       });
       if (response.ok) {
         const data = await response.json();
-        setConnectedCount(data.pagination?.total || 0);
+        setConnectedCount(data.total || 0);
+        setConnectedTypeCounts(data.counts || { OC: 0, AM: 0, AC: 0, IC: 0 });
       }
     };
     prefetchConnectedCount();
   }, []);
+
+  const handleMemberTypeCardClick = (type) => {
+    setMemberTypeFilter((prev) => (prev === type ? "" : type));
+  };
+
+  useEffect(() => {
+    if (activeTab === "connected") {
+      fetchConnectedMembers({ page: 1, q: search });
+    }
+  }, [memberTypeFilter]);
 
   const fetchApprovedMembers = async () => {
     try {
@@ -85,6 +109,7 @@ export default function ConnectDatabasePage() {
       const params = new URLSearchParams({ page: String(page), limit: String(pagination.limit) });
       // API expects 'search' (not 'q') — support when value provided
       if ((q || "").trim() !== "") params.append("search", q.trim());
+      if ((memberTypeFilter || "").trim() !== "") params.append("memberType", memberTypeFilter);
 
       const url = `/api/admin/connect-database/connected?${params}`;
       console.log("🌐 Fetching URL:", url);
@@ -173,6 +198,17 @@ export default function ConnectDatabasePage() {
 
       // Refresh the list
       fetchApprovedMembers();
+      const refreshConnectedCounts = async () => {
+        const response = await fetch(`/api/admin/connect-database/connected-counts`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setConnectedCount(data.total || 0);
+          setConnectedTypeCounts(data.counts || { OC: 0, AM: 0, AC: 0, IC: 0 });
+        }
+      };
+      refreshConnectedCounts();
       if (activeTab === "connected") {
         fetchConnectedMembers({ page: 1 });
       }
@@ -392,6 +428,60 @@ export default function ConnectDatabasePage() {
           </div>
         </div>
 
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button
+            type="button"
+            onClick={() => handleMemberTypeCardClick("OC")}
+            className={`p-4 rounded-xl border transition-all ${
+              memberTypeFilter === "OC" ? "border-blue-500 bg-blue-50" : "border-gray-200 bg-white"
+            }`}
+          >
+            <div className="text-xs font-medium text-gray-600">สน สามัญ-โรงงาน</div>
+            <div className="text-2xl font-bold text-gray-900 mt-1">
+              {activeTab === "pending" ? pendingTypeCounts.OC : connectedTypeCounts.OC}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleMemberTypeCardClick("AM")}
+            className={`p-4 rounded-xl border transition-all ${
+              memberTypeFilter === "AM" ? "border-purple-500 bg-purple-50" : "border-gray-200 bg-white"
+            }`}
+          >
+            <div className="text-xs font-medium text-gray-600">สส สามัญ-สมาคมการค้า</div>
+            <div className="text-2xl font-bold text-gray-900 mt-1">
+              {activeTab === "pending" ? pendingTypeCounts.AM : connectedTypeCounts.AM}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleMemberTypeCardClick("AC")}
+            className={`p-4 rounded-xl border transition-all ${
+              memberTypeFilter === "AC" ? "border-green-500 bg-green-50" : "border-gray-200 bg-white"
+            }`}
+          >
+            <div className="text-xs font-medium text-gray-600">ทน สมทบ-นิติบุคคล</div>
+            <div className="text-2xl font-bold text-gray-900 mt-1">
+              {activeTab === "pending" ? pendingTypeCounts.AC : connectedTypeCounts.AC}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleMemberTypeCardClick("IC")}
+            className={`p-4 rounded-xl border transition-all ${
+              memberTypeFilter === "IC" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-white"
+            }`}
+          >
+            <div className="text-xs font-medium text-gray-600">ทบ สมทบ-บุคคลธรรมดา</div>
+            <div className="text-2xl font-bold text-gray-900 mt-1">
+              {activeTab === "pending" ? pendingTypeCounts.IC : connectedTypeCounts.IC}
+            </div>
+          </button>
+        </div>
+
         {/* Tab Switch - Improved design */}
         <div className="flex gap-2 mb-6 bg-gray-50 p-2 rounded-lg">
           <button
@@ -442,8 +532,10 @@ export default function ConnectDatabasePage() {
             members={members}
             connecting={connecting}
             pendingSearch={pendingSearch}
+            memberTypeFilter={memberTypeFilter}
             onConnect={handleConnect}
             onSearchChange={setPendingSearch}
+            onMemberTypeChange={setMemberTypeFilter}
           />
         )}
 
@@ -453,8 +545,10 @@ export default function ConnectDatabasePage() {
             connectedLoading={connectedLoading}
             connectedError={connectedError}
             search={search}
+            memberTypeFilter={memberTypeFilter}
             onSearchChange={handleSearch}
             onSearchSubmit={handleSearchSubmit}
+            onMemberTypeChange={setMemberTypeFilter}
             pagination={pagination}
             onPrevPage={() => handlePagination("prev")}
             onNextPage={() => handlePagination("next")}

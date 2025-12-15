@@ -11,6 +11,7 @@ export async function GET(request) {
 
     const { searchParams } = new URL(request.url);
     const search = (searchParams.get("search") || "").trim();
+    const memberType = (searchParams.get("memberType") || "").trim().toUpperCase();
     const limit = Math.min(parseInt(searchParams.get("limit") || "50", 10), 200);
     const page = Math.max(parseInt(searchParams.get("page") || "1", 10), 1);
     const offset = (page - 1) * limit;
@@ -45,6 +46,10 @@ export async function GET(request) {
 
     const whereParts = [];
     const params = [];
+    if (memberType) {
+      whereParts.push(`m.member_type = ?`);
+      params.push(memberType);
+    }
     if (search) {
       const like = `%${search}%`;
       whereParts.push(`(

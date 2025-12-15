@@ -1,6 +1,34 @@
 import { formatThaiDate, getMemberTypeDescription, getMemberTypeColorClasses } from "./utils";
 
-function PendingMembersTable({ members, connecting, pendingSearch, onConnect, onSearchChange }) {
+function PendingMembersTable({
+  members,
+  connecting,
+  pendingSearch,
+  memberTypeFilter,
+  onConnect,
+  onSearchChange,
+  onMemberTypeChange,
+}) {
+  const filteredMembers = members
+    .filter((m) => {
+      if (!memberTypeFilter) return true;
+      return (m.member_type || "").toString().toUpperCase() === memberTypeFilter;
+    })
+    .filter((m) => {
+      const q = pendingSearch.trim().toLowerCase();
+      if (!q) return true;
+      const values = [
+        m.company_name_th,
+        m.company_name_en,
+        m.tax_id,
+        m.firstname,
+        m.lastname,
+        m.username,
+        m.user_email,
+      ].map((v) => (v || "").toString().toLowerCase());
+      return values.some((v) => v.includes(q));
+    });
+
   return (
     <div>
       {/* Search Bar - Improved */}
@@ -32,6 +60,19 @@ function PendingMembersTable({ members, connecting, pendingSearch, onConnect, on
             className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
+
+        <select
+          value={memberTypeFilter || ""}
+          onChange={(e) => onMemberTypeChange(e.target.value)}
+          className="w-full sm:w-64 px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+        >
+          <option value="">ทั้งหมด (ทุกประเภท)</option>
+          <option value="OC">สน สามัญ-โรงงาน</option>
+          <option value="AM">สส สามัญ-สมาคมการค้า</option>
+          <option value="AC">ทน สมทบ-นิติบุคคล</option>
+          <option value="IC">ทบ สมทบ-บุคคลธรรมดา</option>
+        </select>
+
         <button
           onClick={() => {
             /* client-side filter only */
@@ -94,22 +135,14 @@ function PendingMembersTable({ members, connecting, pendingSearch, onConnect, on
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {members
-                .filter((m) => {
-                  const q = pendingSearch.trim().toLowerCase();
-                  if (!q) return true;
-                  const values = [
-                    m.company_name_th,
-                    m.company_name_en,
-                    m.tax_id,
-                    m.firstname,
-                    m.lastname,
-                    m.username,
-                    m.user_email,
-                  ].map((v) => (v || "").toString().toLowerCase());
-                  return values.some((v) => v.includes(q));
-                })
-                .map((member, index) => (
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
+                    ไม่พบข้อมูล
+                  </td>
+                </tr>
+              ) : (
+                filteredMembers.map((member, index) => (
                   <tr
                     key={member.id}
                     className={`transition-all duration-200 hover:bg-blue-50 ${
@@ -297,7 +330,8 @@ function PendingMembersTable({ members, connecting, pendingSearch, onConnect, on
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+              )}
             </tbody>
           </table>
         </div>
