@@ -373,15 +373,35 @@ async function updateCompanyInfo(applicationId, type, data) {
   // Get existing columns from table
   const columns = await executeQueryWithoutTransaction(`SHOW COLUMNS FROM ${tableName}`);
   const columnNames = columns.map((col) => col.Field);
+  const columnMeta = new Map(columns.map((col) => [col.Field, col]));
 
   const updateFields = [];
   const updateValues = [];
 
   // Helper to add field if column exists
-  const addField = (dataKey, columnName, value) => {
+  const toNumberOrDbDefault = (v, columnName) => {
+    if (v === undefined) return undefined;
+    if (v === null) return null;
+
+    const meta = columnMeta.get(columnName);
+    const isNotNull = meta?.Null === "NO";
+
+    if (v === "" || v === "-") {
+      return isNotNull ? 0 : null;
+    }
+
+    const normalized = typeof v === "string" ? v.replace(/,/g, "").trim() : v;
+    const n = Number(normalized);
+    if (!Number.isFinite(n)) {
+      return isNotNull ? 0 : null;
+    }
+    return n;
+  };
+
+  const addField = (dataKey, columnName, value, numeric = false) => {
     if (value !== undefined && columnNames.includes(columnName)) {
       updateFields.push(`${columnName} = ?`);
-      updateValues.push(value);
+      updateValues.push(numeric ? toNumberOrDbDefault(value, columnName) : value);
     }
   };
 
@@ -396,22 +416,23 @@ async function updateCompanyInfo(applicationId, type, data) {
   addField("phoneExtension", "company_phone_extension", data.phoneExtension);
   addField("website", "company_website", data.website);
   addField("factoryType", "factory_type", data.factoryType);
-  addField("numberOfEmployees", "number_of_employees", data.numberOfEmployees);
-  addField("numberOfMembers", "number_of_members", data.numberOfMembers);
-  addField("numberOfMembers", "number_of_member", data.numberOfMembers);
-  addField("registeredCapital", "registered_capital", data.registeredCapital);
-  addField("productionCapacityValue", "production_capacity_value", data.productionCapacityValue);
+  addField("numberOfEmployees", "number_of_employees", data.numberOfEmployees, true);
+  addField("numberOfMembers", "number_of_members", data.numberOfMembers, true);
+  addField("numberOfMembers", "number_of_member", data.numberOfMembers, true);
+  addField("registeredCapital", "registered_capital", data.registeredCapital, true);
+  addField("productionCapacityValue", "production_capacity_value", data.productionCapacityValue, true);
   addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
-  addField("salesDomestic", "sales_domestic", data.salesDomestic);
-  addField("salesExport", "sales_export", data.salesExport);
-  addField("shareholderThaiPercent", "shareholder_thai_percent", data.shareholderThaiPercent);
+  addField("salesDomestic", "sales_domestic", data.salesDomestic, true);
+  addField("salesExport", "sales_export", data.salesExport, true);
+  addField("shareholderThaiPercent", "shareholder_thai_percent", data.shareholderThaiPercent, true);
   addField(
     "shareholderForeignPercent",
     "shareholder_foreign_percent",
     data.shareholderForeignPercent,
+    true,
   );
-  addField("revenueLastYear", "revenue_last_year", data.revenueLastYear);
-  addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear);
+  addField("revenueLastYear", "revenue_last_year", data.revenueLastYear, true);
+  addField("revenuePreviousYear", "revenue_previous_year", data.revenuePreviousYear, true);
 
   if (updateFields.length > 0) {
     updateValues.push(applicationId);
