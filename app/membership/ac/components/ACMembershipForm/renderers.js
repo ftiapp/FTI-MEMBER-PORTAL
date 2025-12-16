@@ -23,54 +23,13 @@ export const createRenderFormContent =
     isLoading,
   }) =>
   () => {
-    function ACRenderFormContent() {
-      const commonProps = { formData, setFormData, errors, setErrors };
+    const commonProps = { formData, setFormData, errors, setErrors };
 
-      if (isSinglePageLayout) {
-        return (
-          <div className="space-y-12">
-            <CompanyInfoSection
-              {...commonProps}
-              setErrors={setErrors}
-              taxIdValidating={taxIdValidating}
-            />
-            <hr />
-            <RepresentativeInfoSection
-              mode="multiple"
-              formData={formData}
-              setFormData={setFormData}
-              errors={errors}
-              config={{
-                headerTitle: "ข้อมูลผู้แทนสมาคม",
-                headerSubtitle: "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม",
-                positionPlaceholder: "ประธาน, รองประธาน...",
-                toastId: "ac-representative-errors",
-              }}
-            />
-            <hr />
-            <BusinessInfoSection
-              {...commonProps}
-              businessTypes={businessTypes}
-              industrialGroups={industrialGroups}
-              provincialChapters={provincialChapters}
-              isLoading={isLoading}
-            />
-            <hr />
-            <DocumentsSection {...commonProps} />
-          </div>
-        );
-      }
-
-      // Original step-by-step logic
-      const stepComponents = {
-        1: (
-          <CompanyInfoSection
-            {...commonProps}
-            setErrors={setErrors}
-            taxIdValidating={taxIdValidating}
-          />
-        ),
-        2: (
+    if (isSinglePageLayout) {
+      return (
+        <div className="space-y-12">
+          <CompanyInfoSection {...commonProps} setErrors={setErrors} taxIdValidating={taxIdValidating} />
+          <hr />
           <RepresentativeInfoSection
             mode="multiple"
             formData={formData}
@@ -83,8 +42,7 @@ export const createRenderFormContent =
               toastId: "ac-representative-errors",
             }}
           />
-        ),
-        3: (
+          <hr />
           <BusinessInfoSection
             {...commonProps}
             businessTypes={businessTypes}
@@ -92,23 +50,50 @@ export const createRenderFormContent =
             provincialChapters={provincialChapters}
             isLoading={isLoading}
           />
-        ),
-        4: <DocumentsSection {...commonProps} />,
-        5: (
-          <SummarySection
-            formData={formData}
-            businessTypes={businessTypes}
-            industrialGroups={industrialGroups}
-            provincialChapters={provincialChapters}
-          />
-        ),
-      };
-
-      return stepComponents[currentStep] || null;
+          <hr />
+          <DocumentsSection {...commonProps} />
+        </div>
+      );
     }
 
-    ACRenderFormContent.displayName = "ACRenderFormContent";
-    return <ACRenderFormContent />;
+    // Original step-by-step logic
+    const stepComponents = {
+      1: <CompanyInfoSection {...commonProps} setErrors={setErrors} taxIdValidating={taxIdValidating} />,
+      2: (
+        <RepresentativeInfoSection
+          mode="multiple"
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+          config={{
+            headerTitle: "ข้อมูลผู้แทนสมาคม",
+            headerSubtitle: "ข้อมูลผู้มีอำนาจลงนามแทนสมาคม",
+            positionPlaceholder: "ประธาน, รองประธาน...",
+            toastId: "ac-representative-errors",
+          }}
+        />
+      ),
+      3: (
+        <BusinessInfoSection
+          {...commonProps}
+          businessTypes={businessTypes}
+          industrialGroups={industrialGroups}
+          provincialChapters={provincialChapters}
+          isLoading={isLoading}
+        />
+      ),
+      4: <DocumentsSection {...commonProps} />,
+      5: (
+        <SummarySection
+          formData={formData}
+          businessTypes={businessTypes}
+          industrialGroups={industrialGroups}
+          provincialChapters={provincialChapters}
+        />
+      ),
+    };
+
+    return stepComponents[currentStep] || null;
   };
 
 /**

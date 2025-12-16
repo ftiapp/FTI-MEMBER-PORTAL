@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronRight, Plus, Trash2, User } from "lucide-react";
 
+let cachedContactTypes = null;
+let cachedContactTypesError = null;
+let inFlightContactTypesPromise = null;
+
 const ContactPersonSection = ({
   contactPersons = [],
   onContactPersonsChange,
@@ -41,20 +45,47 @@ const ContactPersonSection = ({
   useEffect(() => {
     let active = true;
     async function loadTypes() {
+      if (cachedContactTypes) {
+        setContactTypes(cachedContactTypes);
+        setLoadError(cachedContactTypesError);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       setLoadError(null);
       try {
+        if (inFlightContactTypesPromise) {
+          const result = await inFlightContactTypesPromise;
+          if (active) {
+            setContactTypes(result.types);
+            setLoadError(result.error);
+            setLoading(false);
+          }
+          return;
+        }
+
+        inFlightContactTypesPromise = (async () => {
         const res = await fetch("/api/member/contact-person-types", { method: "GET" });
         const json = await res.json();
         if (!res.ok || json.success === false) {
           throw new Error(json.error || "โหลดประเภทผู้ติดต่อไม่สำเร็จ");
         }
+        const types = Array.isArray(json.data) ? json.data : [];
+        cachedContactTypes = types;
+        cachedContactTypesError = null;
+        return { types, error: null };
+        })();
+
+        const result = await inFlightContactTypesPromise;
         if (active) {
-          setContactTypes(Array.isArray(json.data) ? json.data : []);
+          setContactTypes(result.types);
         }
       } catch (e) {
-        if (active) setLoadError(e.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
+        cachedContactTypesError = e.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล";
+        if (active) setLoadError(cachedContactTypesError);
       } finally {
+        inFlightContactTypesPromise = null;
         if (active) setLoading(false);
       }
     }
