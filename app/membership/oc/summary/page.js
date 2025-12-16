@@ -39,18 +39,24 @@ export default function OCSummaryPage() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      console.log("Fetching data for ID:", id);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Fetching data for ID:", id);
+      }
 
       const response = await fetch(`/api/membership/oc/summary/${id}`);
       const result = await response.json();
 
-      console.log("API Response:", result);
-      console.log("API Response Data:", result.data);
-      console.log("Company Name:", result.data?.companyName);
+      if (process.env.NODE_ENV !== "production") {
+        console.log("API Response:", result);
+        console.log("API Response Data:", result.data);
+        console.log("Company Name:", result.data?.companyName);
+      }
 
       if (result.success) {
         setApplicationData(result.data);
-        console.log("Data set to state:", result.data);
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Data set to state:", result.data);
+        }
       } else {
         setError(result.message || "ไม่สามารถโหลดข้อมูลได้");
       }

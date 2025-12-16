@@ -45,12 +45,16 @@ const InfoBox = () => {
               <span className="hidden sm:inline mx-2">|</span>
               <div className="flex items-center mb-1 sm:mb-0">
                 <FaFileAlt className="inline mr-1 sm:mr-2 text-blue-600 flex-shrink-0" size={10} />
-                <span className="text-xs sm:text-sm">กด "ดูเอกสาร" เพื่อตรวจสอบเอกสารยืนยัน</span>
+                <span className="text-xs sm:text-sm">
+                  กด &quot;ดูเอกสาร&quot; เพื่อตรวจสอบเอกสารยืนยัน
+                </span>
               </div>
               <span className="hidden sm:inline mx-2">|</span>
               <div className="flex items-center">
                 <FaEdit className="inline mr-1 sm:mr-2 text-blue-600 flex-shrink-0" size={10} />
-                <span className="text-xs sm:text-sm">กด "แก้ไขข้อมูล" เพื่อปรับปรุงข้อมูล</span>
+                <span className="text-xs sm:text-sm">
+                  กด &quot;แก้ไขข้อมูล&quot; เพื่อปรับปรุงข้อมูล
+                </span>
               </div>
             </div>
 

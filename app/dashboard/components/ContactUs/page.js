@@ -435,7 +435,7 @@ export default function ContactUs(props) {
                     <p className="text-yellow-800">
                       <span className="font-medium">หมายเหตุ:</span>{" "}
                       ท่านสามารถตรวจสอบข้อความตอบกลับได้ที่อีเมลล์ที่ท่านลงทะเบียนกับเรา หากไม่พบ
-                      กรุณาส่งข้อความ "ติดต่อเรา" อีกครั้ง
+                      กรุณาส่งข้อความ &quot;ติดต่อเรา&quot; อีกครั้ง
                     </p>
                   </div>
                 </motion.div>

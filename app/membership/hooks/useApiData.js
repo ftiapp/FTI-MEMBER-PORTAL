@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
+import { fetchWithCache } from "@/app/utils/cache";
 
 export const useApiData = () => {
   const [data, setData] = useState({
@@ -29,32 +30,28 @@ export const useApiData = () => {
       try {
         setData((prev) => ({ ...prev, isLoading: true, error: null }));
 
-        const [businessTypesRes, industrialGroupsRes, provincialChaptersRes] = await Promise.all([
-          fetch("/api/business-types", { signal: abortControllerRef.current.signal }),
-          fetch("/api/industrial-groups?limit=1000&page=1", {
-            signal: abortControllerRef.current.signal,
-          }),
-          fetch("/api/provincial-chapters?limit=1000&page=1", {
-            signal: abortControllerRef.current.signal,
-          }),
+        const signal = abortControllerRef.current.signal;
+
+        const [businessTypes, industrialGroupsRaw, provincialChaptersRaw] = await Promise.all([
+          fetchWithCache("/api/business-types", { signal }),
+          fetchWithCache("/api/industrial-groups?limit=1000&page=1", { signal }),
+          fetchWithCache("/api/provincial-chapters?limit=1000&page=1", { signal }),
         ]);
 
-        const businessTypes = businessTypesRes.ok ? await businessTypesRes.json() : [];
-
-        const industrialGroups = industrialGroupsRes.ok
-          ? (await industrialGroupsRes.json()).data?.map((item) => ({
+        const industrialGroups = industrialGroupsRaw?.data
+          ? industrialGroupsRaw.data.map((item) => ({
               id: item.MEMBER_GROUP_CODE,
               name_th: item.MEMBER_GROUP_NAME,
               name_en: item.MEMBER_GROUP_NAME,
-            })) || []
+            }))
           : [];
 
-        const provincialChapters = provincialChaptersRes.ok
-          ? (await provincialChaptersRes.json()).data?.map((item) => ({
+        const provincialChapters = provincialChaptersRaw?.data
+          ? provincialChaptersRaw.data.map((item) => ({
               id: item.MEMBER_GROUP_CODE,
               name_th: item.MEMBER_GROUP_NAME,
               name_en: item.MEMBER_GROUP_NAME,
-            })) || []
+            }))
           : [];
 
         setData({

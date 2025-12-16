@@ -446,7 +446,9 @@ export default function ConnectDatabasePage() {
             type="button"
             onClick={() => handleMemberTypeCardClick("AM")}
             className={`p-4 rounded-xl border transition-all ${
-              memberTypeFilter === "AM" ? "border-purple-500 bg-purple-50" : "border-gray-200 bg-white"
+              memberTypeFilter === "AM"
+                ? "border-purple-500 bg-purple-50"
+                : "border-gray-200 bg-white"
             }`}
           >
             <div className="text-xs font-medium text-gray-600">สส สามัญ-สมาคมการค้า</div>
@@ -459,7 +461,9 @@ export default function ConnectDatabasePage() {
             type="button"
             onClick={() => handleMemberTypeCardClick("AC")}
             className={`p-4 rounded-xl border transition-all ${
-              memberTypeFilter === "AC" ? "border-green-500 bg-green-50" : "border-gray-200 bg-white"
+              memberTypeFilter === "AC"
+                ? "border-green-500 bg-green-50"
+                : "border-gray-200 bg-white"
             }`}
           >
             <div className="text-xs font-medium text-gray-600">ทน สมทบ-นิติบุคคล</div>
@@ -472,7 +476,9 @@ export default function ConnectDatabasePage() {
             type="button"
             onClick={() => handleMemberTypeCardClick("IC")}
             className={`p-4 rounded-xl border transition-all ${
-              memberTypeFilter === "IC" ? "border-indigo-500 bg-indigo-50" : "border-gray-200 bg-white"
+              memberTypeFilter === "IC"
+                ? "border-indigo-500 bg-indigo-50"
+                : "border-gray-200 bg-white"
             }`}
           >
             <div className="text-xs font-medium text-gray-600">ทบ สมทบ-บุคคลธรรมดา</div>

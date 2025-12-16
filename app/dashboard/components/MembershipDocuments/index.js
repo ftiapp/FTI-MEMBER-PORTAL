@@ -260,7 +260,7 @@ export default function MembershipDocuments() {
                 <span className="text-xs text-gray-500">กรองโดย:</span>
                 {searchQuery && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-100 text-blue-700 text-xs rounded-full">
-                    ค้นหา: "{searchQuery}"
+                    ค้นหา: &quot;{searchQuery}&quot;
                     <button
                       onClick={() => setSearchQuery("")}
                       className="hover:bg-blue-200 rounded-full p-0.5"

@@ -15,6 +15,11 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
       badge: pendingCounts.membershipRequests > 0 ? pendingCounts.membershipRequests : null,
     },
     {
+      name: "ตรวจสอบผู้แทน",
+      path: "/admin/dashboard/representative-check",
+      icon: MenuIcons.list,
+    },
+    {
       name: "เชื่อมต่อฐานข้อมูล",
       path: "/admin/dashboard/connect-database",
       icon: MenuIcons.database,
@@ -101,14 +106,7 @@ export const getMenuItems = (adminLevel, pendingCounts) => {
 
   // รวมเมนูตามระดับสิทธิ์
   // ถ้าเป็น superadmin (ตรวจสอบจากชื่อผู้ใช้หรือค่า adminLevel)
-  const isSuperAdmin =
-    adminLevel >= 5 ||
-    (typeof window !== "undefined" && window.localStorage.getItem("is_super_admin") === "true");
-
-  // เพิ่มโค้ดบันทึกค่า superadmin ลงใน localStorage
-  if (adminLevel >= 5 && typeof window !== "undefined") {
-    window.localStorage.setItem("is_super_admin", "true");
-  }
+  const isSuperAdmin = adminLevel >= 5;
 
   return [...commonMenuItems, ...regularMenuItems, ...(isSuperAdmin ? superAdminMenuItems : [])];
 };

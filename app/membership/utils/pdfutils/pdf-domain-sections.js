@@ -34,10 +34,7 @@ export const buildInvoiceAddressSection = (data) => {
   const baseGap = 30; // สำหรับข้อความยาว
   const wideGap = 60; // สำหรับข้อความสั้น
   const len = (v) => (v ? String(v).length : 0);
-  const isShortAddress =
-    len(addr.building) <= 10 &&
-    len(addr.soi) <= 10 &&
-    len(addr.street) <= 10;
+  const isShortAddress = len(addr.building) <= 10 && len(addr.soi) <= 10 && len(addr.street) <= 10;
   const gap = isShortAddress ? wideGap : baseGap;
 
   return section(
@@ -72,8 +69,7 @@ export const buildInvoiceAddressSection = (data) => {
 };
 
 // Section 1: Member Info (OC/AC/AM types)
-export const buildMemberInfoCompany = (data, memberTypeLabel = ""
-) => {
+export const buildMemberInfoCompany = (data, memberTypeLabel = "") => {
   const titleWithTaxId = `ส่วนที่ 1 ข้อมูลสมาชิก<span style="float: right; font-weight: normal;">เลขทะเบียนนิติบุคคล: ${
     data.taxId || "-"
   }</span>`;
@@ -101,10 +97,7 @@ export const buildAddressSection = (data) => {
   const baseGap = 30; // สำหรับข้อความยาว
   const wideGap = 60; // สำหรับข้อความสั้น
   const len = (v) => (v ? String(v).length : 0);
-  const isShortAddress =
-    len(addr.building) <= 10 &&
-    len(addr.soi) <= 10 &&
-    len(addr.street) <= 10;
+  const isShortAddress = len(addr.building) <= 10 && len(addr.soi) <= 10 && len(addr.street) <= 10;
   const gap = isShortAddress ? baseGap : wideGap;
 
   return section(

@@ -420,7 +420,12 @@ async function updateCompanyInfo(applicationId, type, data) {
   addField("numberOfMembers", "number_of_members", data.numberOfMembers, true);
   addField("numberOfMembers", "number_of_member", data.numberOfMembers, true);
   addField("registeredCapital", "registered_capital", data.registeredCapital, true);
-  addField("productionCapacityValue", "production_capacity_value", data.productionCapacityValue, true);
+  addField(
+    "productionCapacityValue",
+    "production_capacity_value",
+    data.productionCapacityValue,
+    true,
+  );
   addField("productionCapacityUnit", "production_capacity_unit", data.productionCapacityUnit);
   addField("salesDomestic", "sales_domestic", data.salesDomestic, true);
   addField("salesExport", "sales_export", data.salesExport, true);

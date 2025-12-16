@@ -119,12 +119,16 @@ export async function fetchWithCache(url, options = {}, cacheInstance = apiCache
   // Check cache first
   const cached = cacheInstance.get(cacheKey);
   if (cached) {
-    console.log(`Cache hit for: ${url}`);
+    if (isDev) {
+      console.log(`Cache hit for: ${url}`);
+    }
     return cached;
   }
 
   try {
-    console.log(`Fetching: ${url}`);
+    if (isDev) {
+      console.log(`Fetching: ${url}`);
+    }
     const response = await fetch(url, options);
 
     if (!response.ok) {

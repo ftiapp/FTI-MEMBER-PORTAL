@@ -23,11 +23,6 @@ export default function Dashboard() {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  // Early return BEFORE any hooks to prevent hook order issues
-  if (!user) {
-    return <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูลผู้ใช้..." />;
-  }
-
   const [isMobile, setIsMobile] = useState(false);
   const [activeTab, setActiveTab] = useState("ข้อมูลผู้ใช้งาน");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -132,16 +127,19 @@ export default function Dashboard() {
   ];
 
   // Tab to name mapping
-  const tabMapping = {
-    userinfo: "ข้อมูลผู้ใช้งาน",
-    member: "ข้อมูลสมาชิก",
-    wasmember: "ยืนยันสมาชิกเดิม",
-    membership: "สมัครสมาชิก ส.อ.ท.",
-    documents: "เอกสารสมัครสมาชิก",
-    certificate: "เอกสารยืนยันสมาชิก",
-    status: "สถานะการดำเนินการ",
-    contact: "ติดต่อเรา",
-  };
+  const tabMapping = useMemo(
+    () => ({
+      userinfo: "ข้อมูลผู้ใช้งาน",
+      member: "ข้อมูลสมาชิก",
+      wasmember: "ยืนยันสมาชิกเดิม",
+      membership: "สมัครสมาชิก ส.อ.ท.",
+      documents: "เอกสารสมัครสมาชิก",
+      certificate: "เอกสารยืนยันสมาชิก",
+      status: "สถานะการดำเนินการ",
+      contact: "ติดต่อเรา",
+    }),
+    [],
+  );
 
   // Handle responsive design
   useEffect(() => {
@@ -183,6 +181,10 @@ export default function Dashboard() {
       router.push("/login");
     }
   }, [user, router]);
+
+  if (!user) {
+    return <LoadingOverlay isVisible={true} message="กำลังโหลดข้อมูลผู้ใช้..." />;
+  }
 
   // Handle menu click
   const handleMenuClick = (item) => {

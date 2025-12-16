@@ -94,18 +94,20 @@ export default function ICMembershipForm(props = {}) {
   const effectiveTotalSteps = props.totalSteps ?? totalSteps ?? 5;
 
   // Debug logging
-  console.log("🎛️ ICMembershipForm Props:", {
-    hasFormDataProp: !!props.formData,
-    hasSetFormDataProp: !!props.setFormData,
-    hasCurrentStepProp: !!props.currentStep,
-    hasSetCurrentStepProp: !!props.setCurrentStep,
-    hasShowErrorsProp: !!props.showErrors,
-    hasSetShowErrorsProp: !!props.setShowErrors,
-    formDataKeys: props.formData ? Object.keys(props.formData) : "none",
-    currentStepValue: currentStep,
-    totalStepsValue: effectiveTotalSteps,
-    showErrorsValue: showErrors,
-  });
+  if (process.env.NODE_ENV !== "production") {
+    console.log("🎛️ ICMembershipForm Props:", {
+      hasFormDataProp: !!props.formData,
+      hasSetFormDataProp: !!props.setFormData,
+      hasCurrentStepProp: !!props.currentStep,
+      hasSetCurrentStepProp: !!props.setCurrentStep,
+      hasShowErrorsProp: !!props.showErrors,
+      hasSetShowErrorsProp: !!props.setShowErrors,
+      formDataKeys: props.formData ? Object.keys(props.formData) : "none",
+      currentStepValue: currentStep,
+      totalStepsValue: effectiveTotalSteps,
+      showErrorsValue: showErrors,
+    });
+  }
 
   // Cleanup on unmount
   useEffect(() => {

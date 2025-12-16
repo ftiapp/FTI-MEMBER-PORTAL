@@ -46,10 +46,10 @@ export default function LogoGuide() {
               <div className="space-y-2">
                 <p className="font-medium">ขั้นตอนการอัปโหลดโลโก้:</p>
                 <ol className="list-decimal list-inside pl-4 space-y-1">
-                  <li>คลิกปุ่ม "เพิ่มโลโก้" หรือ "แก้ไขโลโก้"</li>
+                  <li>คลิกปุ่ม &quot;เพิ่มโลโก้&quot; หรือ &quot;แก้ไขโลโก้&quot;</li>
                   <li>เลือกไฟล์รูปภาพจากเครื่องของคุณ (รองรับไฟล์ JPEG, PNG, GIF, WebP)</li>
                   <li>เลือกรูปแบบการแสดงผล (วงกลมหรือสี่เหลี่ยม)</li>
-                  <li>คลิกปุ่ม "บันทึก" เพื่อบันทึกโลโก้</li>
+                  <li>คลิกปุ่ม &quot;บันทึก&quot; เพื่อบันทึกโลโก้</li>
                 </ol>
               </div>
 

@@ -651,7 +651,7 @@ const DocumentsSection = ({ application, onViewDocument, type }) => {
               </svg>
               <p className="text-blue-900 font-medium">ยังไม่มีเอกสารแนบ</p>
               <p className="text-sm text-blue-700 mt-1">
-                กดปุ่ม "อัปโหลดเอกสารใหม่" เพื่อเพิ่มเอกสาร
+                กดปุ่ม &quot;อัปโหลดเอกสารใหม่&quot; เพื่อเพิ่มเอกสาร
               </p>
             </div>
           </div>

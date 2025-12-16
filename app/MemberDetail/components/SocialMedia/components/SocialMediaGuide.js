@@ -39,11 +39,11 @@ export default function SocialMediaGuide() {
               <div className="space-y-2">
                 <p className="font-medium">ขั้นตอนการเพิ่มช่องทางโซเชียลมีเดีย:</p>
                 <ol className="list-decimal list-inside pl-4 space-y-1">
-                  <li>คลิกปุ่ม "เพิ่มข้อมูล" หรือ "แก้ไขข้อมูล"</li>
+                  <li>คลิกปุ่ม &quot;เพิ่มข้อมูล&quot; หรือ &quot;แก้ไขข้อมูล&quot;</li>
                   <li>เลือกแพลตฟอร์มที่ต้องการเพิ่ม</li>
                   <li>ใส่ URL หรือ Username ของช่องทางนั้นๆ</li>
                   <li>เพิ่มชื่อที่ต้องการให้แสดง (ไม่บังคับ)</li>
-                  <li>คลิกปุ่ม "บันทึก" เพื่อบันทึกข้อมูล</li>
+                  <li>คลิกปุ่ม &quot;บันทึก&quot; เพื่อบันทึกข้อมูล</li>
                 </ol>
               </div>
 

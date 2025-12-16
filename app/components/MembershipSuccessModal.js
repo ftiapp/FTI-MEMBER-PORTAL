@@ -166,8 +166,8 @@ export default function MembershipSuccessModal({
                     </p>
                     <p className="text-sm text-blue-700 mb-2">ท่านสามารถติดตามความคืบหน้าได้ที่:</p>
                     <p className="text-sm text-blue-700">
-                      <span className="font-medium">เมนู "สถานะดำเนินการ"</span> ใน{" "}
-                      <span className="font-medium">เมนู "จัดการสมาชิก"</span>
+                      <span className="font-medium">เมนู &quot;สถานะดำเนินการ&quot;</span> ใน{" "}
+                      <span className="font-medium">เมนู &quot;จัดการสมาชิก&quot;</span>
                     </p>
                     <p className="text-sm text-gray-700 mt-3">
                       ทั้งนี้

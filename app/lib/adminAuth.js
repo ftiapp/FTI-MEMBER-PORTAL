@@ -34,6 +34,7 @@ export async function verifyAdminPassword(username, password) {
       admin: {
         id: admin.id,
         username: admin.username,
+        name: admin.name,
         adminLevel: admin.admin_level,
         canCreate: admin.can_create,
         canUpdate: admin.can_update,
@@ -51,6 +52,7 @@ export async function createAdminSession(admin) {
     const token = await new SignJWT({
       id: admin.id,
       username: admin.username,
+      name: admin.name,
       adminLevel: admin.adminLevel,
       canCreate: admin.canCreate,
       canUpdate: admin.canUpdate,

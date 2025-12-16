@@ -292,7 +292,9 @@ const AuthorizedSignatorySection = ({ application, type, onUpdate }) => {
                 />
               </svg>
               <p className="text-gray-500">ยังไม่มีข้อมูลผู้มีอำนาจลงนาม</p>
-              <p className="text-sm text-gray-400 mt-1">กดปุ่ม "เพิ่ม" เพื่อเพิ่มข้อมูล</p>
+              <p className="text-sm text-gray-400 mt-1">
+                กดปุ่ม &quot;เพิ่ม&quot; เพื่อเพิ่มข้อมูล
+              </p>
             </div>
           )}
         </div>

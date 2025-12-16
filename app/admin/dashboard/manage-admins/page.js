@@ -22,6 +22,11 @@ export default function ManageAdminsPage() {
   const [admins, setAdmins] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showMenuModal, setShowMenuModal] = useState(false);
+  const [menuAdmin, setMenuAdmin] = useState(null);
+  const [menuItems, setMenuItems] = useState([]);
+  const [menuSelection, setMenuSelection] = useState({});
+  const [isMenuLoading, setIsMenuLoading] = useState(false);
   const [inviteForm, setInviteForm] = useState({
     email: "",
     adminLevel: 1,
@@ -266,6 +271,90 @@ export default function ManageAdminsPage() {
     });
   };
 
+  const openMenuModal = async (adminUser) => {
+    setMenuAdmin(adminUser);
+    setShowMenuModal(true);
+    setIsMenuLoading(true);
+    try {
+      const res = await fetch(`/api/admin/menu-permissions?adminId=${adminUser.id}`);
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        toast.error(data.message || "ไม่สามารถดึงข้อมูลเมนูได้");
+        setMenuItems([]);
+        setMenuSelection({});
+        return;
+      }
+
+      const items = Array.isArray(data.data) ? data.data : [];
+      setMenuItems(items);
+
+      const selection = {};
+      for (const item of items) {
+        if (item && item.id != null) {
+          selection[item.id] = !!item.can_view;
+        }
+      }
+      setMenuSelection(selection);
+    } catch (error) {
+      console.error("Error fetching menu permissions:", error);
+      toast.error("เกิดข้อผิดพลาดในการดึงข้อมูลเมนู");
+      setMenuItems([]);
+      setMenuSelection({});
+    } finally {
+      setIsMenuLoading(false);
+    }
+  };
+
+  const closeMenuModal = () => {
+    setShowMenuModal(false);
+    setMenuAdmin(null);
+    setMenuItems([]);
+    setMenuSelection({});
+    setIsMenuLoading(false);
+  };
+
+  const toggleMenu = (menuId) => {
+    setMenuSelection((prev) => ({
+      ...prev,
+      [menuId]: !prev[menuId],
+    }));
+  };
+
+  const saveMenuPermissions = async () => {
+    if (!menuAdmin?.id) {
+      toast.error("ไม่พบข้อมูลผู้ดูแลระบบ");
+      return;
+    }
+
+    const menuIds = Object.entries(menuSelection)
+      .filter(([, enabled]) => !!enabled)
+      .map(([id]) => Number(id))
+      .filter((id) => !Number.isNaN(id));
+
+    try {
+      setIsMenuLoading(true);
+      const res = await fetch("/api/admin/menu-permissions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ adminId: menuAdmin.id, menuIds }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        toast.error(data.message || "บันทึกสิทธิ์เมนูไม่สำเร็จ");
+        return;
+      }
+
+      toast.success("บันทึกสิทธิ์เมนูเรียบร้อยแล้ว");
+      closeMenuModal();
+    } catch (error) {
+      console.error("Error saving menu permissions:", error);
+      toast.error("เกิดข้อผิดพลาดในการบันทึกสิทธิ์เมนู");
+    } finally {
+      setIsMenuLoading(false);
+    }
+  };
+
   // Helper to render initials for avatar
   const getInitials = (name, username) => {
     const base = (name && String(name).trim()) || (username && String(username).trim()) || "";
@@ -453,6 +542,12 @@ export default function ManageAdminsPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-3">
                       {admin.admin_level < 5 && (
                         <>
+                          <button
+                            onClick={() => openMenuModal(admin)}
+                            className="text-sm text-purple-600 hover:text-purple-800"
+                          >
+                            ตั้งค่าเมนู
+                          </button>
                           <button
                             onClick={() => handleToggleActive(admin.id, admin.is_active)}
                             className={`text-sm ${admin.is_active ? "text-yellow-600 hover:text-yellow-800" : "text-green-600 hover:text-green-900"}`}
@@ -686,6 +781,109 @@ export default function ManageAdminsPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showMenuModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full">
+            <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">ตั้งค่าเมนู</h3>
+                <div className="text-xs text-gray-500">
+                  {menuAdmin ? `${menuAdmin.name || menuAdmin.username} (${menuAdmin.username})` : ""}
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeMenuModal}
+                className="px-3 py-1.5 text-sm border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              >
+                ปิด
+              </button>
+            </div>
+
+            <div className="px-6 py-4">
+              {isMenuLoading ? (
+                <div className="flex justify-center items-center h-40">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+              ) : menuItems.length === 0 ? (
+                <div className="text-center py-10 text-gray-500">ไม่มีข้อมูลเมนู</div>
+              ) : (
+                <div className="max-h-[60vh] overflow-y-auto border border-gray-200 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          เมนู
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Path
+                        </th>
+                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          เปิดใช้งาน
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {menuItems
+                        .filter((m) => m && m.code !== "DASHBOARD_ROOT")
+                        .map((m) => {
+                          const isParent = m.parent_id == null;
+                          const enabled = !!menuSelection[m.id];
+
+                          return (
+                            <tr key={m.id} className="hover:bg-gray-50">
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className={`text-sm ${isParent ? "font-semibold text-gray-900" : "text-gray-900"}`}>
+                                  {m.title || m.code}
+                                </div>
+                                <div className="text-xs text-gray-500">{m.code}</div>
+                              </td>
+                              <td className="px-4 py-3">
+                                <div className="text-sm text-gray-600 break-all">{m.path || "-"}</div>
+                              </td>
+                              <td className="px-4 py-3 whitespace-nowrap text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleMenu(m.id)}
+                                  className={`inline-flex items-center h-6 w-11 rounded-full transition-colors ${enabled ? "bg-green-600" : "bg-gray-300"}`}
+                                  aria-pressed={enabled}
+                                >
+                                  <span
+                                    className={`inline-block h-5 w-5 bg-white rounded-full transform transition-transform ${enabled ? "translate-x-5" : "translate-x-1"}`}
+                                  />
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={closeMenuModal}
+                disabled={isMenuLoading}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={saveMenuPermissions}
+                disabled={isMenuLoading}
+                className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              >
+                บันทึก
+              </button>
+            </div>
           </div>
         </div>
       )}

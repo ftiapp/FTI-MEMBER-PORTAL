@@ -12,18 +12,13 @@ const BUSINESS_TYPES = {
 const MAX_PRODUCTS = 5;
 
 const BusinessInfoSection = ({ application, onUpdate }) => {
-  if (!application) {
-    return (
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h3 className="text-xl font-semibold text-red-600">ไม่มีข้อมูล application</h3>
-      </div>
-    );
-  }
+  const hasApplication = !!application;
+  const app = application || {};
 
   // ดึงข้อมูลจาก application
-  const businessTypesData = application.businessTypes || [];
-  const productsData = application.products || [];
-  const businessTypeOtherData = application.businessTypeOther || [];
+  const businessTypesData = app.businessTypes || [];
+  const productsData = app.products || [];
+  const businessTypeOtherData = app.businessTypeOther || [];
 
   const normalizeProducts = (productArray) => {
     if (!Array.isArray(productArray)) return [];
@@ -192,6 +187,11 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      {!hasApplication && (
+        <div className="mb-4">
+          <h3 className="text-xl font-semibold text-red-600">ไม่มีข้อมูล application</h3>
+        </div>
+      )}
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-xl font-semibold text-blue-600">ข้อมูลธุรกิจ</h3>
@@ -379,7 +379,7 @@ const BusinessInfoSection = ({ application, onUpdate }) => {
             </div>
           ) : (
             <p className="text-gray-500 italic text-sm text-center py-4">
-              ยังไม่มีสินค้า/บริการ คลิก "+ เพิ่ม" เพื่อเพิ่มข้อมูล
+              ยังไม่มีสินค้า/บริการ คลิก &quot;+ เพิ่ม&quot; เพื่อเพิ่มข้อมูล
             </p>
           )}
         </div>

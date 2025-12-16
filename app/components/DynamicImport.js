@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, lazy, useState } from "react";
+import { Suspense, lazy, useEffect, useRef, useState } from "react";
 
 // Loading components for different contexts
 const FormSkeleton = () => (
@@ -85,11 +85,14 @@ export function createLazyImport(importFunc, loadingType = "spinner", customLoad
     }
   };
 
-  return (props) => (
+  const WrappedLazyComponent = (props) => (
     <Suspense fallback={getLoadingComponent()}>
       <LazyComponent {...props} />
     </Suspense>
   );
+
+  WrappedLazyComponent.displayName = "LazyImport";
+  return WrappedLazyComponent;
 }
 
 // Pre-defined lazy components for common use cases
@@ -208,8 +211,8 @@ export function LazyOnIntersection({
 
   useEffect(() => {
     if (isVisible && !Component) {
-      importFunc().then((module) => {
-        setComponent(() => module.default);
+      importFunc().then((mod) => {
+        setComponent(() => mod.default);
       });
     }
   }, [isVisible, Component, importFunc]);
@@ -252,10 +255,10 @@ export function ProgressiveLoader({ components, loadingOrder = "sequential" }) {
     if (loadingOrder === "parallel") {
       components.forEach(async (component, index) => {
         try {
-          const module = await component.importFunc();
+          const mod = await component.importFunc();
           setLoadedComponents((prev) => ({
             ...prev,
-            [index]: module.default,
+            [index]: mod.default,
           }));
         } catch (error) {
           console.error(`Error loading component ${index}:`, error);

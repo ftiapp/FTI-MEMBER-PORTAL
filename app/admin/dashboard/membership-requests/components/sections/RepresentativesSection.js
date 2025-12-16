@@ -205,7 +205,9 @@ const RepresentativesSection = ({ application, type, onUpdate }) => {
             เพิ่มผู้แทน
           </button>
         </div>
-        <p className="text-gray-500">ยังไม่มีผู้แทน กด "เพิ่มผู้แทน" เพื่อเพิ่มรายการแรก</p>
+        <p className="text-gray-500">
+          ยังไม่มีผู้แทน กด &quot;เพิ่มผู้แทน&quot; เพื่อเพิ่มรายการแรก
+        </p>
       </div>
     );
   }

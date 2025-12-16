@@ -217,14 +217,16 @@ export default function TestRememberMe() {
       </div>
 
       <div className="mt-8 bg-blue-50 p-6 rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">How to Test "Remember Me" Functionality</h2>
+        <h2 className="text-xl font-semibold mb-4">
+          How to Test &quot;Remember Me&quot; Functionality
+        </h2>
         <ol className="list-decimal pl-6 space-y-2">
-          <li>Click "Test Login" to simulate login with Remember Me enabled</li>
+          <li>Click &quot;Test Login&quot; to simulate login with Remember Me enabled</li>
           <li>Verify that token, rememberMe, and userEmail cookies are set</li>
           <li>Verify that user data is stored in both localStorage and sessionStorage</li>
-          <li>Click "Fetch User Data" to test the /api/auth/me endpoint</li>
+          <li>Click &quot;Fetch User Data&quot; to test the /api/auth/me endpoint</li>
           <li>Close the browser and reopen this page - your login state should persist</li>
-          <li>Click "Test Logout" to clear all authentication data</li>
+          <li>Click &quot;Test Logout&quot; to clear all authentication data</li>
           <li>Verify that cookies are cleared and storage is emptied</li>
         </ol>
       </div>

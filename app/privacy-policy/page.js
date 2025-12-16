@@ -130,7 +130,7 @@ export default function PrivacyPolicy() {
               <div className="space-y-6 text-gray-600 leading-relaxed">
                 <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
                   <p className="font-medium text-blue-800">
-                    สภาอุตสาหกรรมแห่งประเทศไทย ("สภาอุตสาหกรรมฯ")
+                    สภาอุตสาหกรรมแห่งประเทศไทย (&quot;สภาอุตสาหกรรมฯ&quot;)
                     ให้ความสำคัญกับความเป็นส่วนตัวของข้อมูลส่วนบุคคลของท่าน
                     และมุ่งมั่นที่จะคุ้มครองข้อมูลส่วนบุคคลของท่านตามพระราชบัญญัติคุ้มครองข้อมูลส่วนบุคคล
                     พ.ศ. 2562

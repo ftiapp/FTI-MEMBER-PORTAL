@@ -89,7 +89,7 @@ export default function InfoAlert() {
         </svg>
       ),
       title: "ตรวจสอบข้อมูล",
-      description: 'ในเมนู "ข้อมูลสมาชิก"',
+      description: "ในเมนู &quot;ข้อมูลสมาชิก&quot;",
     },
   ];
 
@@ -204,7 +204,7 @@ export default function InfoAlert() {
         >
           <p>
             ท่านสามารถติดตามสถานะการดำเนินการได้ที่เมนู{" "}
-            <span className="font-semibold">"สถานะดำเนินการ"</span>
+            <span className="font-semibold">&quot;สถานะดำเนินการ&quot;</span>
           </p>
         </motion.div>
       </motion.div>

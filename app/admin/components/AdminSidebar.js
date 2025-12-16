@@ -15,6 +15,7 @@ function AdminSidebar({ onNavigate }) {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const [contactUnreadCount, setContactUnreadCount] = useState(0);
+  const [allowedMenuPaths, setAllowedMenuPaths] = useState(null);
 
   // Custom hooks
   const { adminData, isLoading } = useAdminData();
@@ -39,15 +40,65 @@ function AdminSidebar({ onNavigate }) {
   // Get menu items based on admin level and pending counts
   const baseMenuItems = getMenuItems(adminLevel, pendingCounts);
 
-  // Override badge for member contact messages with live unread count
-  const menuItems = baseMenuItems.map((item) =>
-    item.path === "/admin/dashboard/contact-messages"
-      ? {
-          ...item,
-          badge: contactUnreadCount > 0 ? contactUnreadCount : null,
+  // Load allowed menus from DB so per-admin menu permissions work
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchAllowedMenus = async () => {
+      try {
+        // SuperAdmin sees all menus; no need to filter
+        if (adminLevel >= 5) {
+          setAllowedMenuPaths(null);
+          return;
         }
-      : item,
-  );
+
+        const res = await fetch("/api/admin/allowed-menus", { cache: "no-store" });
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.message || "Failed to fetch allowed menus");
+        }
+
+        const paths = new Set(
+          (Array.isArray(data.data) ? data.data : [])
+            .map((m) => (m && m.path ? String(m.path) : null))
+            .filter(Boolean),
+        );
+
+        // Always keep dashboard root visible
+        paths.add("/admin/dashboard");
+
+        if (!cancelled) {
+          setAllowedMenuPaths(paths);
+        }
+      } catch (err) {
+        // If fetching fails, fall back to current menu logic to avoid breaking navigation
+        if (!cancelled) {
+          setAllowedMenuPaths(null);
+        }
+      }
+    };
+
+    fetchAllowedMenus();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [adminLevel]);
+
+  // Override badge for member contact messages with live unread count
+  const menuItems = baseMenuItems
+    .filter((item) => {
+      if (!allowedMenuPaths) return true;
+      return allowedMenuPaths.has(item.path);
+    })
+    .map((item) =>
+      item.path === "/admin/dashboard/contact-messages"
+        ? {
+            ...item,
+            badge: contactUnreadCount > 0 ? contactUnreadCount : null,
+          }
+        : item,
+    );
 
   const toggleCollapse = useCallback(() => {
     setCollapsed(!collapsed);
