@@ -5,7 +5,6 @@ import { toast } from "react-hot-toast";
 import LoadingOverlay from "@/app/dashboard/components/shared/LoadingOverlay";
 import TaxIdField from "./TaxIdField";
 import CompanyInfoFields from "./CompanyInfoFields";
-import ModeSelection from "./ModeSelection";
 import { useCompanyInfoFetcher } from "./hooks/useCompanyInfoFetcher";
 import { useTaxIdValidation } from "./hooks/useTaxIdValidation";
 
@@ -74,9 +73,6 @@ export default function CompanyBasicInfo({
 
         {/* Content Section */}
         <div className="px-8 py-8 space-y-8">
-          {/* Mode Selection */}
-          <ModeSelection isAutofill={isAutofill} toggleAutofill={toggleAutofill} />
-
           {/* Company Information Section */}
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <h4 className="text-base font-medium text-gray-900 mb-6 pb-3 border-b border-gray-100">

@@ -17,7 +17,7 @@ import { useIndustrialGroups } from "../../hooks/useIndustrialGroups";
  */
 export default function CompanyInfoSection({ formData, setFormData, errors, setErrors }) {
   const [isLoading, setIsLoading] = useState(false);
-  const [isAutofill, setIsAutofill] = useState(true); // เริ่มต้นด้วยโหมด autofill
+  const [isAutofill, setIsAutofill] = useState(false); // เริ่มต้นด้วยโหมด autofill
   const [isCheckingTaxId, setIsCheckingTaxId] = useState(false);
 
   // Fetch industrial groups and provincial chapters from MSSQL
