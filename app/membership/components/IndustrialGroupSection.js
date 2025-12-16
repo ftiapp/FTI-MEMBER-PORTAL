@@ -89,7 +89,7 @@ export default function IndustrialGroupSection({
   );
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-10">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-visible relative z-50">
       {/* Header Section */}
       <div className="bg-blue-600 px-8 py-6">
         <h3 className="text-xl font-semibold text-white tracking-tight">{finalConfig.title}</h3>

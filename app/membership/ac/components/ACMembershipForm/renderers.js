@@ -108,7 +108,7 @@ export const createRenderFormContent =
     }
 
     ACRenderFormContent.displayName = "ACRenderFormContent";
-    return ACRenderFormContent;
+    return <ACRenderFormContent />;
   };
 
 /**

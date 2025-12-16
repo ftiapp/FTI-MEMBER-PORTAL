@@ -22,7 +22,15 @@ export const useApiData = () => {
     const fetchData = async () => {
       // Cancel previous request if it exists
       if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
+        const prev = abortControllerRef.current;
+        abortControllerRef.current = null;
+        try {
+          if (!prev.signal?.aborted) {
+            prev.abort();
+          }
+        } catch {
+          // Ignore abort errors during teardown / fast refresh
+        }
       }
 
       abortControllerRef.current = new AbortController();
@@ -81,9 +89,9 @@ export const useApiData = () => {
 
     // Cleanup function
     return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      // Avoid calling abort() during unmount because some environments/dev overlays
+      // surface it as an error even when it's expected. Clearing the ref is enough.
+      abortControllerRef.current = null;
     };
   }, []);
 
