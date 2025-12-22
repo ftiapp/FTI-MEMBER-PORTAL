@@ -186,7 +186,11 @@ export const useRepresentatives = ({
             lastScrolledErrorRef.current = errorKey;
             const errorMessage = representativeErrors[firstErrorField];
 
-            // Toast removed - only show when Next button is clicked in ACFormNavigation.js
+            if (errorMessage) {
+              toast.error(errorMessage, { id: toastId });
+            } else {
+              toast.error("กรุณากรอกข้อมูลผู้แทนให้ครบถ้วน", { id: toastId });
+            }
 
             // Scroll to error field
             setTimeout(() => {
@@ -272,7 +276,11 @@ export const useRepresentatives = ({
               lastScrolledErrorRef.current = errorKey;
               const errorMessage = errors[firstErrorField];
 
-              // Toast removed - only show when Next button is clicked in ACFormNavigation.js
+              if (errorMessage) {
+                toast.error(errorMessage, { id: toastId });
+              } else {
+                toast.error("กรุณากรอกข้อมูลผู้แทนให้ครบถ้วน", { id: toastId });
+              }
 
               // Scroll to error field
               setTimeout(() => {

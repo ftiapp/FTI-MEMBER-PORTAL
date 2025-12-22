@@ -162,7 +162,7 @@ function AdminSidebar({ onNavigate }) {
         </div>
         <button
           onClick={toggleCollapse}
-          className={`text-gray-300 p-1 rounded-full hover:bg-slate-700/50 transition-colors ${collapsed ? "hidden" : "block"}`}
+          className={`text-gray-300 p-1 rounded-full hover:bg-slate-700/50 transition-colors ${collapsed ? "block" : "block"}`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -171,12 +171,21 @@ function AdminSidebar({ onNavigate }) {
             viewBox="0 0 24 24"
             stroke="currentColor"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-            />
+            {collapsed ? (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 5l7 7-7 7M5 5l7 7-7 7"
+              />
+            ) : (
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+              />
+            )}
           </svg>
         </button>
       </div>
