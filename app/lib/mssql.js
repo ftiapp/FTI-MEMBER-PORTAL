@@ -1,17 +1,8 @@
 import sql from "mssql";
 
-// ตรวจสอบว่ามี environment variables ครบถ้วน
-if (!process.env.MSSQL_SERVER) {
-  throw new Error("MSSQL_SERVER environment variable is not set");
-}
-if (!process.env.MSSQL_USER) {
-  throw new Error("MSSQL_USER environment variable is not set");
-}
-if (!process.env.MSSQL_PASSWORD) {
-  throw new Error("MSSQL_PASSWORD environment variable is not set");
-}
-if (!process.env.MSSQL_DATABASE) {
-  throw new Error("MSSQL_DATABASE environment variable is not set");
+function getMissingEnvKeys() {
+  const requiredKeys = ["MSSQL_SERVER", "MSSQL_USER", "MSSQL_PASSWORD", "MSSQL_DATABASE"];
+  return requiredKeys.filter((k) => !process.env[k]);
 }
 
 const config = {
@@ -40,6 +31,11 @@ let connectionPromise = null;
 const MAX_RETRY_ATTEMPTS = 3;
 
 async function getConnection(retryCount = 0) {
+  const missingKeys = getMissingEnvKeys();
+  if (missingKeys.length > 0) {
+    throw new Error(`Missing MSSQL environment variables: ${missingKeys.join(", ")}`);
+  }
+
   // If we're already connecting, wait for that connection
   if (isConnecting && connectionPromise) {
     try {
