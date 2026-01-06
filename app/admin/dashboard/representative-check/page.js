@@ -1,11 +1,13 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { toast } from "react-hot-toast";
 import AdminLayout from "../../components/AdminLayout";
 
 export default function RepresentativeCheckPage() {
+  const router = useRouter();
   const [reasonText, setReasonText] = useState("");
   const [reasonId, setReasonId] = useState(null);
   const [showReasonModal, setShowReasonModal] = useState(true);
@@ -672,8 +674,18 @@ export default function RepresentativeCheckPage() {
       </motion.div>
 
       {showReasonModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full">
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full relative">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+              title="ปิด"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">ระบุเหตุผล</h3>
               <div className="mt-1 text-sm text-gray-600">
@@ -694,6 +706,13 @@ export default function RepresentativeCheckPage() {
             </div>
 
             <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => router.back()}
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                ยกเลิก
+              </button>
               <button
                 type="button"
                 onClick={saveReason}

@@ -150,7 +150,7 @@ export default function Home() {
               <div className="mt-16 grid grid-cols-1 justify-items-center">
                 <div className="flex max-w-3xl flex-col items-center gap-8 pb-10 text-center">
                   <motion.h1
-                    className="bg-gradient-to-br from-slate-900 from-30% to-slate-700 bg-clip-text py-4 text-4xl font-semibold leading-tight tracking-tight text-balance text-transparent sm:text-5xl md:text-6xl lg:text-7xl"
+                    className="bg-gradient-to-br from-slate-900 from-30% to-slate-700 bg-clip-text py-4 text-3xl font-semibold leading-tight tracking-tight text-transparent sm:text-nowrap sm:text-5xl md:text-6xl lg:text-7xl"
                     animate="animate"
                     variants={heroFadeUp}
                     initial="initial"
