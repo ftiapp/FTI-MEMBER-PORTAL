@@ -25,19 +25,15 @@ export const getPDFStyles = () => `
   }
   
   .footer-page {
-    /* เดิมบังคับขึ้นหน้าใหม่ตลอด ทำให้เกิดหน้า 3 เมื่อข้อมูลล้น; เปลี่ยนเป็นหลีกเลี่ยงการขึ้นหน้าใหม่หากพอที่ */
-    page-break-before: avoid;
-    break-before: avoid-page;
-    page-break-inside: avoid;
-    break-inside: avoid-page;
-    /* เอา min-height ออกเพื่อให้ footer กอดติดกับคอนเทนต์ก่อนหน้า ลดโอกาสเกิดหน้าเปล่า */
-    min-height: auto;
+    page-break-before: always;
+    /* ขยายความสูงขั้นต่ำของหน้าสำหรับ footer เพื่อดันเนื้อหาให้ลงมาใกล้ขอบล่างมากขึ้น */
+    min-height: 270mm;
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
+    /* เผื่อพื้นที่เล็กน้อยด้านล่างสำหรับ "สร้างเมื่อ" ที่ชิดขอบล่าง */
     padding: 0 6mm 8mm 6mm;
     position: relative;
-    margin-top: 8mm; /* เว้นระยะจากคอนเทนต์ก่อนหน้าเล็กน้อย */
   }
   
   /* Header Section */
