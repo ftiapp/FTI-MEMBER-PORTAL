@@ -180,10 +180,34 @@ export default function SubmittedApplications({
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, memberCode) => {
+    // If member_code exists, show as approved
+    if (memberCode && memberCode.trim() !== "") {
+      return { text: "อนุมัติ", color: "bg-green-100 text-green-800 border-green-200" };
+    }
+    
     const statusMap = {
       0: { text: "รอพิจารณา", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
-      1: { text: "อนุมัติ", color: "bg-green-100 text-green-800 border-green-200" },
+      1: { text: "รอการชำระเงิน", color: "bg-green-100 text-green-800 border-green-200" },
+      2: { text: "ปฏิเสธ", color: "bg-red-100 text-red-800 border-red-200" },
+    };
+    return (
+      statusMap[status] || {
+        text: "ไม่ทราบสถานะ",
+        color: "bg-gray-100 text-gray-800 border-gray-200",
+      }
+    );
+  };
+
+  const getDocumentStatusBadge = (status, memberCode) => {
+    // If member_code exists, show as approved
+    if (memberCode && memberCode.trim() !== "") {
+      return { text: "อนุมัติ", color: "bg-green-100 text-green-800 border-green-200" };
+    }
+    
+    const statusMap = {
+      0: { text: "รอพิจารณา", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+      1: { text: "รอการชำระเงิน", color: "bg-green-100 text-green-800 border-green-200" },
       2: { text: "ปฏิเสธ", color: "bg-red-100 text-red-800 border-red-200" },
     };
     return (
@@ -344,7 +368,13 @@ export default function SubmittedApplications({
       {/* รายการใบสมัคร */}
       {applications.map((app) => {
         const memberTypeInfo = getMemberTypeInfo(app.memberType);
-        const statusBadge = getStatusBadge(app.status);
+        const memberCode = (
+          app.memberCode ||
+          app.member_code ||
+          app.MEMBER_CODE ||
+          ""
+        );
+        const statusBadge = getStatusBadge(app.status, memberCode);
 
         return (
           <div
@@ -466,10 +496,10 @@ export default function SubmittedApplications({
                   </button>
                 )}
 
-                {/* แสดงสถานะ */}
-                <div className="w-full md:w-28">
+                {/* แสดงสถานะเอกสาร */}
+                <div className="w-full md:w-36">
                   <div className="flex justify-between text-xs text-gray-600 mb-2">
-                    <span className="font-medium">สถานะ</span>
+                    <span className="font-medium whitespace-nowrap">สถานะเอกสาร</span>
                     <span
                       className={`font-bold ${
                         app.status === 0

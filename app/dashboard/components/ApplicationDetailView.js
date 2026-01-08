@@ -50,10 +50,29 @@ export default function ApplicationDetailView() {
     }
   };
 
-  const getStatusText = (status) => {
+  const getStatusText = (status, memberCode) => {
+    // If member_code exists, show as approved
+    if (memberCode && memberCode.trim() !== "") {
+      return "อนุมัติ";
+    }
+    
     const statusMap = {
       0: "รอพิจารณา",
-      1: "อนุมัติ",
+      1: "รอการชำระเงิน",
+      2: "ปฏิเสธ",
+    };
+    return statusMap[status] || "ไม่ระบุ";
+  };
+
+  const getDocumentStatusText = (status, memberCode) => {
+    // If member_code exists, show as approved
+    if (memberCode && memberCode.trim() !== "") {
+      return "อนุมัติ";
+    }
+    
+    const statusMap = {
+      0: "รอพิจารณา",
+      1: "รอการชำระเงิน",
       2: "ปฏิเสธ",
     };
     return statusMap[status] || "ไม่ระบุ";
@@ -99,6 +118,8 @@ export default function ApplicationDetailView() {
     products,
     documents,
   } = application;
+
+  const memberCode = (appData?.member_code || appData?.memberCode || appData?.MEMBER_CODE || "");
 
   // Transform application data to match SummarySection expected format
   const transformDataForSummary = () => {
@@ -256,6 +277,21 @@ export default function ApplicationDetailView() {
         >
           กลับไปหน้ารายการ
         </button>
+      </div>
+
+      {/* Status Display */}
+      <div className="mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">สถานะเอกสาร</h3>
+              <p className="text-sm text-gray-600">สถานะปัจจุบันของเอกสารสมัครสมาชิก</p>
+            </div>
+            <div className={`px-4 py-2 rounded-full text-sm font-medium ${getStatusColor(appData.status)}`}>
+              {getDocumentStatusText(appData.status, memberCode)}
+            </div>
+          </div>
+        </div>
       </div>
 
       {renderSummarySection()}
