@@ -56,7 +56,10 @@ export async function GET(request, { params }) {
     // Check authentication
     const cookieStore = await cookies();
     const user = await checkUserSession(cookieStore);
-    if (!user) {
+    const admin = await checkAdminSession(cookieStore);
+
+    // Allow both user and admin sessions
+    if (!user && !admin) {
       console.log("Unauthorized access attempt");
       return NextResponse.json({ error: "Unauthorized", success: false }, { status: 401 });
     }

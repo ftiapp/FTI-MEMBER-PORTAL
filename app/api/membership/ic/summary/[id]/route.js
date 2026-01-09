@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/app/lib/session";
-import { query } from "@/app/lib/db";
+import { cookies } from "next/headers";
+import { checkUserSession, checkAdminSession } from "../../../../../lib/auth";
+import { query } from "../../../../../lib/db";
 
 export async function GET(request, { params }) {
   try {
-    const session = await getSession();
+    const cookieStore = await cookies();
+    const user = await checkUserSession(cookieStore);
+    const admin = await checkAdminSession(cookieStore);
 
-    if (!session || !session.user) {
+    // Allow both user and admin sessions
+    if (!user && !admin) {
       return NextResponse.json(
         {
           success: false,
@@ -17,17 +21,18 @@ export async function GET(request, { params }) {
     }
 
     const { id } = await params;
-    const userId = session.user.id;
 
     // ดึงข้อมูลหลักจาก MemberRegist_IC_Main
-    const mainQuery = `
-      SELECT 
-        m.*
-      FROM MemberRegist_IC_Main m
-      WHERE m.id = ? AND m.user_id = ?
-    `;
+    // For admin, don't filter by user_id. For user, filter by user_id.
+    let mainQuery = `SELECT m.* FROM MemberRegist_IC_Main m WHERE m.id = ?`;
+    let queryParams = [id];
 
-    const mainResult = await query(mainQuery, [id, userId]);
+    if (user && !admin) {
+      mainQuery += ` AND m.user_id = ?`;
+      queryParams.push(user.id);
+    }
+
+    const mainResult = await query(mainQuery, queryParams);
 
     if (!mainResult || mainResult.length === 0) {
       return NextResponse.json(

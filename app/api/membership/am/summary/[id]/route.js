@@ -16,7 +16,10 @@ export async function GET(request, { params }) {
   try {
     const cookieStore = await cookies();
     const user = await checkUserSession(cookieStore);
-    if (!user) {
+    const admin = await checkAdminSession(cookieStore);
+
+    // Allow both user and admin sessions
+    if (!user && !admin) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

@@ -24,6 +24,23 @@ import {
 } from "./pdf-sections.js";
 import { preloadSignature, buildSignatureArea } from "./pdf-signature.js";
 
+const sanitizeForFilename = (value, fallback = "file") => {
+  const str = value && typeof value !== "string" ? String(value) : value;
+  const normalized = str?.normalize ? str.normalize("NFKC") : str || "";
+  const trimmed = normalized.trim();
+  const cleaned = trimmed.replace(/[<>:"/\\|?*\x00-\x1F]+/g, "-");
+  const collapsed = cleaned.replace(/\s+/g, "_");
+  if (collapsed) {
+    return collapsed.slice(0, 120);
+  }
+  const fallbackValue = String(fallback || "file");
+  const fallbackClean = fallbackValue
+    .trim()
+    .replace(/[<>:"/\\|?*\x00-\x1F]+/g, "-")
+    .replace(/\s+/g, "_");
+  return fallbackClean.slice(0, 120) || "file";
+};
+
 // Main PDF generation function
 export const generateMembershipPDF = async (
   application,
@@ -343,7 +360,27 @@ export const generateMembershipPDF = async (
     element.innerHTML = html;
     document.body.appendChild(element); // Append to DOM to calculate pages correctly
 
-    const filename = `${type?.toUpperCase()}_${data.companyNameTh || data.firstNameTh || "APPLICATION"}_${new Date().toISOString().split("T")[0]}.pdf`;
+    const nameSource =
+      data.companyNameTh ||
+      data.firstNameTh ||
+      data.displayName ||
+      data.company_name ||
+      `ID_${data.id || "UNKNOWN"}`;
+    const safeType = sanitizeForFilename(type?.toUpperCase() || "MEMBER");
+    const safeName = sanitizeForFilename(nameSource, `ID_${data.id || "UNKNOWN"}`);
+    const dateSegment = new Date().toISOString().split("T")[0];
+    const filename = `${safeType}_${safeName}_${dateSegment}.pdf`;
+    
+    // Debug filename generation
+    console.log("[PDF] Debug filename:", {
+      type: type?.toUpperCase(),
+      companyNameTh: data.companyNameTh,
+      firstNameTh: data.firstNameTh,
+      displayName: data.displayName,
+      company_name: data.company_name,
+      id: data.id,
+      finalFilename: filename
+    });
 
     const opt = {
       margin: PDF_CONFIG.margin,
@@ -363,6 +400,14 @@ export const generateMembershipPDF = async (
       },
       pagebreak: { mode: ["css", "avoid-all"] },
     };
+
+    console.log("[PDF] Configuration:", {
+      filename: opt.filename,
+      nameSource: nameSource,
+      safeType: safeType,
+      safeName: safeName,
+      dateSegment: dateSegment
+    });
 
     // Use worker to handle dynamic page calculation
     const worker = html2pdf().set(opt).from(element).toPdf().get('pdf');
@@ -453,7 +498,7 @@ export const generateMembershipPDF = async (
               }
             }
           }
-          return pdf.save();
+          return pdf.save(filename, { returnPromise: true });
         });
       });
     });
