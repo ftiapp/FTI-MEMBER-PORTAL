@@ -42,6 +42,16 @@ export async function checkAdminSession() {
       canUpdate: payload.canUpdate,
     };
   } catch (error) {
+    const errorCode = error?.code;
+    const errorName = error?.name;
+
+    if (
+      errorCode === "ERR_JWS_SIGNATURE_VERIFICATION_FAILED" ||
+      errorName === "JWSSignatureVerificationFailed"
+    ) {
+      return null;
+    }
+
     console.error("Error checking admin session:", error);
     return null;
   }

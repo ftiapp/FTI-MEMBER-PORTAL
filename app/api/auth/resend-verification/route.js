@@ -52,6 +52,32 @@ export async function POST(request) {
       message: "ส่งอีเมลยืนยันใหม่เรียบร้อยแล้ว กรุณาตรวจสอบอีเมลของคุณ",
     });
   } catch (error) {
+    const errorMessage = String(error?.message || "");
+    const statusCode = Number(error?.statusCode);
+    const providerCode = Number(error?.code);
+
+    // Postmark: recipient is inactive/suppressed (hard bounce/spam complaint/manual suppression)
+    if (
+      statusCode === 422 &&
+      (providerCode === 406 || errorMessage.toLowerCase().includes("inactive"))
+    ) {
+      console.warn("Resend verification blocked due to inactive recipient:", {
+        email,
+        statusCode,
+        providerCode,
+        message: errorMessage,
+      });
+
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "ไม่สามารถส่งอีเมลยืนยันไปยังอีเมลนี้ได้ (อีเมลถูกระงับการส่งจากผู้ให้บริการ) กรุณาใช้อีเมลอื่นหรือติดต่อเจ้าหน้าที่",
+        },
+        { status: 422 },
+      );
+    }
+
     console.error("Error resending verification email:", error);
     return NextResponse.json(
       { success: false, message: "เกิดข้อผิดพลาดในการส่งอีเมลยืนยัน" },

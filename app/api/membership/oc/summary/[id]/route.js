@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { checkUserSession } from "../../../../../lib/auth";
+import { checkAdminSession, checkUserSession } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 
 const BUSINESS_TYPE_MAP = {
@@ -42,11 +42,13 @@ function formatDocumentForResponse(document) {
 }
 
 export async function GET(request, { params }) {
+  let requestId;
   try {
     const resolvedParams = await params;
-    console.log("OC Summary API called with params:", resolvedParams);
+    requestId = resolvedParams?.id;
 
-    const { id } = resolvedParams;
+    const { id } = resolvedParams || {};
+    console.log("OC Summary API called with params:", resolvedParams);
     console.log("Fetching OC data for ID:", id);
 
     if (!id) {
@@ -530,7 +532,7 @@ export async function GET(request, { params }) {
     console.error("Error in OC summary API:", {
       message: error.message,
       stack: error.stack,
-      id: resolvedParams?.id,
+      id: requestId,
     });
 
     const isDevelopment = process.env.NODE_ENV === "development";

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { checkUserSession } from "../../../../../lib/auth";
+import { checkAdminSession, checkUserSession } from "../../../../../lib/auth";
 import { query } from "../../../../../lib/db";
 
 const BUSINESS_TYPE_MAP = {
@@ -24,7 +24,7 @@ export async function GET(request, { params }) {
     }
 
     const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = resolvedParams || {};
 
     // Fetch main AC data
     const mainQuery = await query("SELECT * FROM MemberRegist_AC_Main WHERE id = ?", [id]);

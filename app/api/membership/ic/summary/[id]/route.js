@@ -20,7 +20,18 @@ export async function GET(request, { params }) {
       );
     }
 
-    const { id } = await params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
+
+    if (!id) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Missing ID parameter",
+        },
+        { status: 400 },
+      );
+    }
 
     // ดึงข้อมูลหลักจาก MemberRegist_IC_Main
     // For admin, don't filter by user_id. For user, filter by user_id.
