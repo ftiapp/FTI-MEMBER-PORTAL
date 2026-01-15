@@ -29,6 +29,16 @@ export const menuIcons = {
       />
     </svg>
   ),
+  แบบฟอร์มต่างๆ: (
+    <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth={2}
+        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.172a2 2 0 011.414.586l3.828 3.828A2 2 0 0118 8.828V19a2 2 0 01-2 2z"
+      />
+    </svg>
+  ),
   ติดต่อเรา: (
     <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path

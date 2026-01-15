@@ -28,8 +28,12 @@ export default function Navbar() {
   const menuItems = useMemo(() => {
     const items = [
       { name: "หน้าแรก", href: "/" },
-      { name: "เกี่ยวกับเรา", href: "/#about" },
       { name: "ประเภทสมาชิก", href: "/membership" },
+      {
+        name: "แบบฟอร์มต่างๆ",
+        href: "https://drive.google.com/drive/folders/1xrkRrJvav_Org6DPSYDKuONooWO8ADcI",
+        external: true,
+      },
     ];
 
     // "ติดต่อเรา" removed for guest users to prevent UI crowding
@@ -127,7 +131,7 @@ export default function Navbar() {
       <>
         <div className="h-[120px] w-full"></div>
         <nav className="fixed top-0 left-0 right-0 z-[9999] flex justify-center pointer-events-none">
-          <div className="container-custom px-4 max-w-7xl mx-auto">
+          <div className="container-custom px-4 max-w-[1500px] mx-auto">
             <div className="flex justify-center items-center py-3">
               <div className="pointer-events-auto w-full lg:w-auto">
                 <div className="bg-white/95 backdrop-blur-md shadow-lg rounded-full px-4 py-2 flex items-center justify-between gap-3">
@@ -158,7 +162,7 @@ export default function Navbar() {
       <div className="h-[120px] w-full"></div>
 
       <nav className="fixed top-0 left-0 right-0 z-[9999] flex justify-center">
-        <div className="container-custom px-4 max-w-7xl mx-auto">
+        <div className="container-custom px-4 max-w-[1500px] mx-auto">
           <div className="flex justify-center items-start pt-3">
             <motion.div
               className="pointer-events-auto w-full lg:w-auto"
@@ -192,7 +196,7 @@ export default function Navbar() {
                 </motion.div>
 
                 {/* Main Menu Items */}
-                <div className="hidden lg:flex items-center gap-3">
+                <div className="hidden lg:flex items-center gap-2.5">
                   {menuItems.map((item) => (
                     <MenuItem key={item.name} item={item} isActive={pathname === item.href} />
                   ))}

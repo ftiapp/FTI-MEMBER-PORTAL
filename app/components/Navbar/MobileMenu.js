@@ -18,28 +18,46 @@ export default function MobileMenu({ menuItems, user, pathname, onClose }) {
               เมนูหลัก
             </h3>
           </div>
-          {menuItems.map((item) => (
-            <div key={item.name}>
-              <Link
-                href={item.href}
-                className={`
+          {menuItems.map((item) => {
+            const className = `
                   font-medium transition-all duration-300 px-6 py-3 block rounded-xl relative group flex items-center gap-3
                   ${
                     pathname === item.href
                       ? "text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-200"
                       : "text-gray-700 hover:text-blue-700 hover:bg-blue-50"
                   }
-                `}
-                onClick={onClose}
-              >
+                `;
+
+            const content = (
+              <>
                 {menuIcons[item.name]}
                 <span className="relative z-10">{item.name}</span>
                 {pathname !== item.href && (
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl opacity-0 group-hover:opacity-10 transition-opacity duration-300"></div>
                 )}
-              </Link>
-            </div>
-          ))}
+              </>
+            );
+
+            return (
+              <div key={item.name}>
+                {item.external ? (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={className}
+                    onClick={onClose}
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  <Link href={item.href} className={className} onClick={onClose}>
+                    {content}
+                  </Link>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {user ? (
