@@ -210,33 +210,6 @@ export const generateMembershipPDF = async (
     let initialTotalPages = includeStaffFooter ? 2 : 1;
     let totalPages = initialTotalPages;
     
-    // Function to build staff footer HTML
-    const buildStaffFooter = (pageNumber, totalCount) => `
-      <div class="footer-page" style="page-break-before: always;">
-        <div class="footer-taxid">เลขทะเบียนนิติบุคคล: ${data.taxId || "-"}</div>
-        <div class="footer-separator"></div>
-        <div class="footer-section">
-          <div class="footer-title">(สำหรับเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย)</div>
-          <div class="footer-text">
-            ข้าพเจ้าขอรับรองว่า ผู้สมัครรายนี้มีคุณสมบัติครบถ้วนในการสมัครเข้าเป็นสมาชิกตามระเบียบ และข้อบังคับของสภาอุตสาหกรรมแห่งประเทศไทย ทุกประการ
-          </div>
-          <div class="footer-signatures">
-            <div class="footer-signature-col">
-              ลงชื่อ <span class="footer-sign-line">&nbsp;</span><br />
-              (<span class="footer-sign-line">&nbsp;</span>)<br />
-              เจ้าหน้าที่
-            </div>
-            <div class="footer-signature-col">
-              ลงชื่อ <span class="footer-sign-line">&nbsp;</span><br />
-              (<span class="footer-sign-line">&nbsp;</span>)<br />
-              นายทะเบียน
-            </div>
-          </div>
-        </div>
-        <div class="page-number">หน้า ${pageNumber}/${totalCount}</div>
-      </div>
-    `;
-
     const MEMBER_TYPE_LABELS = {
       ic: "สมทบ-บุคคลธรรมดา (ทบ)",
       oc: "สามัญ-โรงงาน (สน)",
@@ -255,13 +228,9 @@ export const generateMembershipPDF = async (
         <style>${getPDFStyles()}</style>
       </head>
       <body>
-        <div class="created-date">
-          สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString("th-TH")}
-        </div>
         <div class="member-number">
           หมายเลขสมาชิก:<br><br>................................................
         </div>
-        <div class="page-number">หน้า 1/${initialTotalPages}</div>
         <div class="logo-header-row">
           <div class="logo-wrap">
             <img src="${logoSrc}" alt="FTI Logo" crossorigin="anonymous" />
@@ -349,8 +318,6 @@ export const generateMembershipPDF = async (
         ${data.contactPersons?.length ? buildContactPersonSection(data.contactPersons) : ""}
         
         ${buildSignatureArea(data, type, signatureImgSrc, companyStampImgSrc, preloadedSignatures, logoSrc)}
-
-        ${includeStaffFooter ? buildStaffFooter(2, initialTotalPages) : ""}
       </body>
       </html>
     `;
@@ -382,6 +349,20 @@ export const generateMembershipPDF = async (
       finalFilename: filename
     });
 
+    const loadSarabunFont = async () => {
+      const response = await fetch("/fonts/THSarabunNew.ttf");
+      if (!response.ok) {
+        throw new Error("Failed to load THSarabunNew.ttf");
+      }
+      const buffer = await response.arrayBuffer();
+      const bytes = new Uint8Array(buffer);
+      let binary = "";
+      for (let i = 0; i < bytes.length; i += 1) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    };
+
     const opt = {
       margin: PDF_CONFIG.margin,
       filename: filename,
@@ -410,7 +391,7 @@ export const generateMembershipPDF = async (
     });
 
     // Use worker to handle dynamic page calculation
-    const worker = html2pdf().set(opt).from(element).toPdf().get('pdf');
+    const worker = html2pdf().set(opt).from(element).toPdf().get("pdf");
     
     await worker.then(async (pdf) => {
       let realTotalPages = pdf.internal.getNumberOfPages();
@@ -418,19 +399,17 @@ export const generateMembershipPDF = async (
       
       const pageNumElements = element.querySelectorAll('.page-number');
       
-      // Handle staff footer logic for overflow (2 or more pages)
+      // Handle staff footer - always force it to be on page 2
       if (includeStaffFooter) {
         const footerDiv = element.querySelector('.footer-page');
         if (footerDiv) {
-          // If the content itself already creates 2 or more pages,
-          // we don't want the staff footer to force an ADDITIONAL empty page.
-          // It should follow the content on the very last page.
+          // Always ensure footer is on page 2, never create page 3
           if (realTotalPages >= 2) {
+            // Content already spans 2+ pages, footer should be at end of page 2
             footerDiv.style.pageBreakBefore = 'avoid';
             footerDiv.style.marginTop = '20px';
-            footerDiv.classList.add('spilled');
           } else {
-            // Content is only 1 page, so staff footer will be on page 2.
+            // Content is only 1 page, footer creates page 2
             footerDiv.style.pageBreakBefore = 'always';
           }
         }
@@ -439,65 +418,106 @@ export const generateMembershipPDF = async (
       // Re-run PDF generation to get the final total pages including the footer adjustments
       const finalWorker = html2pdf().set(opt).from(element).toPdf().get('pdf');
       
-      return finalWorker.then((finalPdf) => {
+      return finalWorker.then(async (finalPdf) => {
         const finalTotal = finalPdf.internal.getNumberOfPages();
         console.log("[PDF] Final total pages:", finalTotal);
 
-        pageNumElements.forEach(el => {
-          const text = el.innerText;
-          const match = text.match(/หน้า\s+(\d+)\//);
-          if (match) {
-            const currentPage = match[1];
-            el.innerText = `หน้า ${currentPage}/${finalTotal}`;
-          }
-        });
+        if (pageNumElements.length) {
+          pageNumElements.forEach(el => {
+            const text = el.innerText;
+            const match = text.match(/หน้า\s+(\d+)\//);
+            if (match) {
+              const currentPage = match[1];
+              el.innerText = `หน้า ${currentPage}/${finalTotal}`;
+            }
+          });
+        }
 
         // Final save
-        return html2pdf().set(opt).from(element).toPdf().get('pdf').then((pdf) => {
-          const totalPages = pdf.internal.getNumberOfPages();
-          
-          if (includeStaffFooter && totalPages > 1) {
-            // Draw staff footer elements on every page except page 1
-            for (let i = 2; i <= totalPages; i++) {
-              pdf.setPage(i);
-              
-              // Only draw if this page doesn't already have the full HTML footer
-              // (The full HTML footer is only on the very last page)
-              if (i < totalPages) {
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-                
-                // Draw a dashed line
-                pdf.setLineDash([2, 2], 0);
-                pdf.setDrawColor(0);
-                pdf.line(10, pageHeight - 65, pageWidth - 10, pageHeight - 65);
-                pdf.setLineDash([], 0); // Reset dash
-                
-                // Add Staff Section Title
-                pdf.setFontSize(10);
-                pdf.setFont('Sarabun', 'bold');
-                pdf.text('(สำหรับเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย)', pageWidth / 2, pageHeight - 58, { align: 'center' });
-                
-                // Add Confirmation Text
-                pdf.setFontSize(9);
-                pdf.setFont('Sarabun', 'normal');
-                const splitText = pdf.splitTextToSize('ข้าพเจ้าขอรับรองว่า ผู้สมัครรายนี้มีคุณสมบัติครบถ้วนในการสมัครเข้าเป็นสมาชิกตามระเบียบ และข้อบังคับของสภาอุตสาหกรรมแห่งประเทศไทย ทุกประการ', pageWidth - 40);
-                pdf.text(splitText, pageWidth / 2, pageHeight - 50, { align: 'center' });
-                
-                // Signature Lines
-                pdf.setFontSize(9);
-                // Staff side
-                pdf.text('ลงชื่อ ...........................................................', 40, pageHeight - 35);
-                pdf.text('(...........................................................)', 40, pageHeight - 28);
-                pdf.text('เจ้าหน้าที่', 55, pageHeight - 21);
-                
-                // Registrar side
-                pdf.text('ลงชื่อ ...........................................................', pageWidth - 100, pageHeight - 35);
-                pdf.text('(...........................................................)', pageWidth - 100, pageHeight - 28);
-                pdf.text('นายทะเบียน', pageWidth - 85, pageHeight - 21);
-              }
-            }
+        return html2pdf().set(opt).from(element).toPdf().get("pdf").then(async (pdf) => {
+          let totalPages = pdf.internal.getNumberOfPages();
+          console.log("[PDF] Total pages before limit:", totalPages);
+
+          let sarabunReady = false;
+          try {
+            const sarabunBase64 = await loadSarabunFont();
+            pdf.addFileToVFS("THSarabunNew.ttf", sarabunBase64);
+            pdf.addFont("THSarabunNew.ttf", "THSarabunNew", "normal");
+            pdf.addFont("THSarabunNew.ttf", "THSarabunNew", "bold");
+            sarabunReady = true;
+          } catch (err) {
+            console.warn("[PDF] Failed to load Sarabun font, fallback to helvetica", err);
           }
+          
+          // Ensure page 2 always exists when staff footer is required
+          if (includeStaffFooter && totalPages === 1) {
+            pdf.addPage();
+            totalPages = 2;
+            console.log("[PDF] Added page 2 for staff footer");
+          }
+
+          // Force maximum 2 pages - delete any pages beyond page 2
+          if (totalPages > 2) {
+            for (let i = totalPages; i > 2; i--) {
+              pdf.deletePage(i);
+            }
+            totalPages = 2;
+            console.log("[PDF] Deleted extra pages, now limited to 2 pages");
+          }
+          
+          // Draw staff footer on page 2 if enabled
+          if (includeStaffFooter && totalPages >= 2) {
+            pdf.setPage(2);
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const footerFont = sarabunReady ? "THSarabunNew" : "helvetica";
+            
+            // Add Tax ID (left) within footer area
+            pdf.setFontSize(11);
+            pdf.setFont(footerFont, "normal");
+            pdf.text(`เอกสารนี้อ้างอิงขทะเบียนนิติบุคคล: ${data.taxId || "-"}`, 10, pageHeight - 70, { align: "left" });
+
+            // Draw a dashed line
+            pdf.setLineDash([2, 2], 0);
+            pdf.setDrawColor(0);
+            pdf.line(10, pageHeight - 65, pageWidth - 10, pageHeight - 65);
+            pdf.setLineDash([], 0);
+            
+            // Add Staff Section Title
+            pdf.setFontSize(11);
+            pdf.setFont(footerFont, "bold");
+            pdf.text('(สำหรับเจ้าหน้าที่สภาอุตสาหกรรมแห่งประเทศไทย)', pageWidth / 2, pageHeight - 58, { align: 'center' });
+            
+            // Add Confirmation Text
+            pdf.setFontSize(10);
+            pdf.setFont(footerFont, "normal");
+            const confirmText = 'ข้าพเจ้าขอรับรองว่า ผู้สมัครรายนี้มีคุณสมบัติครบถ้วนในการสมัครเข้าเป็นสมาชิกตามระเบียบ';
+            const confirmText2 = 'และข้อบังคับของสภาอุตสาหกรรมแห่งประเทศไทย ทุกประการ';
+            pdf.text(confirmText, pageWidth / 2, pageHeight - 50, { align: 'center' });
+            pdf.text(confirmText2, pageWidth / 2, pageHeight - 45, { align: 'center' });
+            
+            // Signature Lines
+            pdf.setFontSize(10);
+            pdf.setFont(footerFont, "normal");
+            // Staff side
+            pdf.text('ลงชื่อ ...........................................................................................', 40, pageHeight - 35);
+            pdf.text('(...........................................................................................)', 40, pageHeight - 28);
+            pdf.text('        เจ้าหน้าที่', 55, pageHeight - 21);
+            
+            // Registrar side
+            pdf.text('ลงชื่อ ...........................................................................................', pageWidth - 100, pageHeight - 35);
+            pdf.text('(...........................................................................................)', pageWidth - 100, pageHeight - 28);
+            pdf.text('        นายทะเบียน', pageWidth - 85, pageHeight - 21);
+
+            // Created date at very bottom center
+            pdf.setFontSize(10);
+            pdf.setFont(footerFont, "normal");
+            const createdDateText = `สร้างเมื่อ: ${formatThaiDate(new Date())} ${new Date().toLocaleTimeString("th-TH")}`;
+            pdf.text(createdDateText, pageWidth / 2, pageHeight - 6, { align: "center" });
+          }
+          
+          // Page numbers removed from HTML
+          
           return pdf.save(filename, { returnPromise: true });
         });
       });
