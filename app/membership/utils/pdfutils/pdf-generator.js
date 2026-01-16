@@ -475,7 +475,7 @@ export const generateMembershipPDF = async (
             // Add Tax ID (left) within footer area
             pdf.setFontSize(11);
             pdf.setFont(footerFont, "normal");
-            pdf.text(`เอกสารนี้อ้างอิงขทะเบียนนิติบุคคล: ${data.taxId || "-"}`, 10, pageHeight - 70, { align: "left" });
+            pdf.text(`เอกสารนี้อ้างอิง เลขทะเบียนนิติบุคคล: ${data.taxId || "-"}`, 10, pageHeight - 70, { align: "left" });
 
             // Draw a dashed line
             pdf.setLineDash([2, 2], 0);
