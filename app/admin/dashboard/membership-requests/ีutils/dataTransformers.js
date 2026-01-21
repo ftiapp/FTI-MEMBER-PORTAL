@@ -110,11 +110,11 @@ export const normalizeApplicationData = (application, type) => {
     status: statusString,
     memberCode: application.member_code || application.memberCode,
 
-    // Personal/Company Info (from FTI_Portal_User table)
-    firstNameTh: application.first_name_th || application.firstNameTh || application.firstname,
-    lastNameTh: application.last_name_th || application.lastNameTh || application.lastname,
-    firstNameEn: application.first_name_en || application.firstNameEn,
-    lastNameEn: application.last_name_en || application.lastNameEn,
+    // Personal/Company Info (from application tables only)
+    firstNameTh: application.first_name_th || application.firstNameTh || (application.type === 'ic' ? application.companyNameTh?.split(' ')[0] : null),
+    lastNameTh: application.last_name_th || application.lastNameTh || (application.type === 'ic' ? application.companyNameTh?.split(' ').slice(1).join(' ') : null),
+    firstNameEn: application.first_name_en || application.firstNameEn || (application.type === 'ic' ? application.companyNameEn?.split(' ')[0] : null),
+    lastNameEn: application.last_name_en || application.lastNameEn || (application.type === 'ic' ? application.companyNameEn?.split(' ').slice(1).join(' ') : null),
     companyNameTh:
       application.company_name_th || application.companyNameTh || application.associationNameTh,
     companyNameEn:

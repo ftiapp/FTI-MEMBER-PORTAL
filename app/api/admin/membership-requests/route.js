@@ -116,8 +116,6 @@ export async function GET(request) {
           ${tableName}.approved_at as main_approved_at,
           ${tableName}.approved_by as main_approved_by,
           ${tableName}.user_id,
-          FTI_Portal_User.firstname,
-          FTI_Portal_User.lastname,
           FTI_Portal_User.email,
           FTI_Portal_User.phone,
           COALESCE(NULLIF(approve_admin.name, ''), approve_admin.username, NULLIF(admin_user.name, ''), admin_user.username) as approved_by_admin_name,
@@ -194,8 +192,6 @@ export async function GET(request) {
           MemberRegist_IC_Main.approved_at as main_approved_at,
           MemberRegist_IC_Main.approved_by as main_approved_by,
           MemberRegist_IC_Main.user_id,
-          FTI_Portal_User.firstname,
-          FTI_Portal_User.lastname,
           FTI_Portal_User.email,
           FTI_Portal_User.phone,
           COALESCE(NULLIF(approve_admin.name, ''), approve_admin.username, NULLIF(admin_user.name, ''), admin_user.username) as approved_by_admin_name,
@@ -323,7 +319,7 @@ export async function GET(request) {
       combinedQuery = `SELECT * FROM (${combinedQuery}) AS combined_all 
                        GROUP BY id, type, companyNameTh, companyNameEn, taxId, idCard, 
                                 status, createdAt, main_approved_at, main_approved_by, user_id,
-                                firstname, lastname, email, phone, approved_by_admin_name, approved_at`;
+                                email, phone, approved_by_admin_name, approved_at`;
       combinedQuery += ` ORDER BY createdAt ${sortOrder} LIMIT ? OFFSET ?`;
       params.push(limit, offset);
 

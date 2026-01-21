@@ -59,6 +59,16 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
               const memberType = getMemberTypeInfo(app.type);
               const isIC = app.type === "ic";
 
+              // Debug: Log IC name data
+              if (isIC && app.id === '74') {
+                console.log("=== DEBUG IC ID 74 Name Data ===");
+                console.log("Raw app data:", JSON.stringify(app, null, 2));
+                console.log("firstNameTh:", app.firstNameTh);
+                console.log("lastNameTh:", app.lastNameTh);
+                console.log("firstname from FTI_Portal_User:", app.firstname);
+                console.log("lastname from FTI_Portal_User:", app.lastname);
+              }
+
               // Debug: Log approved data for AM records
               if (app.type === "am" && app.status === 1) {
                 console.log("=== Frontend DEBUG: AM Record ===");
@@ -87,12 +97,24 @@ const ApplicationsTable = ({ applications, sortOrder = "desc", onToggleDateSort 
                   </td>
                   <td className="px-3 sm:px-4 lg:px-6 py-2 sm:py-3 lg:py-4">
                     <div className="max-w-xs">
-                      <div className="font-medium text-blue-900 truncate">
+                      <div 
+                        className="font-medium text-blue-900 truncate cursor-help hover:text-blue-700 transition-colors"
+                        title={isIC 
+                          ? `${app.firstNameTh || ""} ${app.lastNameTh || ""}`.trim() || "-" 
+                          : app.companyNameTh || "-"
+                        }
+                      >
                         {isIC
                           ? `${app.firstNameTh || ""} ${app.lastNameTh || ""}`.trim()
                           : app.companyNameTh || "-"}
                       </div>
-                      <div className="text-xs sm:text-sm text-blue-600 truncate">
+                      <div 
+                        className="text-xs sm:text-sm text-blue-600 truncate cursor-help hover:text-blue-500 transition-colors"
+                        title={isIC
+                          ? `${app.firstNameEn || ""} ${app.lastNameEn || ""}`.trim() || "-"
+                          : app.companyNameEn || "-"
+                        }
+                      >
                         {isIC
                           ? `${app.firstNameEn || ""} ${app.lastNameEn || ""}`.trim()
                           : app.companyNameEn || "-"}
