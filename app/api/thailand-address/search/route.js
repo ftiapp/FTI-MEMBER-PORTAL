@@ -5,7 +5,7 @@ import rateLimiter from "../../../lib/rate-limiter";
 // Import the data fetching function directly
 let cachedData = null;
 let lastFetch = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 hours
 
 async function fetchThailandData() {
   // If we have cache and it's not expired
@@ -16,9 +16,9 @@ async function fetchThailandData() {
   try {
     console.log("Fetching Thailand address data from server...");
 
-    // Fetch data from GitHub (server-side won't be affected by CORS)
+    // Fetch data from thailand-geography-json (server-side won't be affected by CORS)
     const response = await fetch(
-      "https://raw.githubusercontent.com/earthchie/jquery.Thailand.js/master/jquery.Thailand.js/database/raw_database/raw_database.json",
+      "https://raw.githubusercontent.com/thailand-geography-data/thailand-geography-json/main/src/geography.json",
       {
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; Thailand-Address-API/1.0)",
@@ -52,10 +52,10 @@ function processThailandData(rawData) {
 
   return rawData
     .map((item) => ({
-      subdistrict: (item.district || item.tambon || "").trim(),
-      district: (item.amphoe || item.amphur || "").trim(),
-      province: (item.province || item.changwat || "").trim(),
-      postalCode: (item.zipcode || item.postal_code || "").toString().trim(),
+      subdistrict: (item.subdistrictNameTh || "").trim(),
+      district: (item.districtNameTh || "").trim(),
+      province: (item.provinceNameTh || "").trim(),
+      postalCode: (item.postalCode || "").toString().trim(),
     }))
     .filter((item) => item.subdistrict && item.district && item.province && item.postalCode);
 }
