@@ -1,6 +1,14 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
 import { NextResponse } from "next/server";
 import { getUserFromSession } from "@/app/lib/userAuth";
 import { query } from "@/app/lib/db";
+
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
 
 export async function POST(request) {
   try {

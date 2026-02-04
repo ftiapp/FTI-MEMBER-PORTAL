@@ -1,4 +1,8 @@
-﻿import { NextResponse } from "next/server";
+﻿export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
+
+import { NextResponse } from "next/server";
 import { getAdminFromSession } from "../../../../lib/adminAuth";
 import { query } from "../../../../lib/db";
 import { mssqlQuery } from "../../../../lib/mssql";
@@ -501,7 +505,7 @@ export async function POST(request) {
       await query("ROLLBACK");
 
       // ถ้าเป็นข้อผิดพลาดจากการอัปเดต MSSQL ให้บันทึกข้อผิดพลาดและดำเนินการต่อ
-      if (registCode) {
+      if (error.message && error.message.includes('MSSQL')) {
         console.error("Error updating MSSQL database:", error.message);
         console.log("Proceeding with MySQL updates despite MSSQL error");
 

@@ -30,6 +30,15 @@ const MONTH_LABELS = [
   "ธ.ค.",
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = [
+  { value: "all", label: "รวมทุกปี" },
+  ...Array.from({ length: 6 }).map((_, idx) => {
+    const y = CURRENT_YEAR - idx;
+    return { value: y, label: `${y + 543}` };
+  }),
+];
+
 const MEMBER_TYPE_LABELS = {
   all: "ทุกประเภทสมาชิก",
   IC: "ทบ สมทบ-บุคคลธรรมดา IC",
@@ -46,7 +55,7 @@ export default function CompanyLocationAnalytics() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const now = new Date();
-  const [selectedYear] = useState(now.getFullYear());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
   const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
   const [selectedType, setSelectedType] = useState("all");
@@ -231,15 +240,29 @@ export default function CompanyLocationAnalytics() {
           </h3>
           {data && (
             <p className="text-sm text-gray-500">
-              ข้อมูลปี {data.year} ({MEMBER_TYPE_LABELS[selectedType]})
+              ข้อมูล {data.year === "all" ? "รวมทุกปี" : `ปี ${Number(data.year) + 543}`} ({MEMBER_TYPE_LABELS[selectedType]})
             </p>
           )}
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-sm text-gray-500">ปี (พ.ศ.):</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-sky-500 bg-white min-w-[140px]"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+            >
+              {YEAR_OPTIONS.map((y) => (
+                <option key={y.value} value={y.value}>
+                  {y.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-gray-500">ประเภทสมาชิก:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[150px]"
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
             >
@@ -250,10 +273,10 @@ export default function CompanyLocationAnalytics() {
               <option value="AC">ทน สมทบ-นิติบุคคล AC</option>
             </select>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-gray-500">ช่วงเดือน:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[120px]"
               value={startMonth}
               onChange={(e) => setStartMonth(Number(e.target.value))}
             >
@@ -276,10 +299,10 @@ export default function CompanyLocationAnalytics() {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <select
               aria-label="จำนวนจังหวัดที่แสดง (กราฟ)"
-              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[120px]"
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value) || 10)}
             >

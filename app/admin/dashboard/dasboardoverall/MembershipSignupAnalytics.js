@@ -37,6 +37,21 @@ const MONTH_LABELS = [
   "ธ.ค.",
 ];
 
+const formatDateForInput = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const formatThaiDate = (dateStr) => {
+  const date = new Date(dateStr);
+  const thaiYear = date.getFullYear() + 543;
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  return `${day} ${MONTH_LABELS[month - 1]} ${thaiYear}`;
+};
+
 const TYPE_COLORS = {
   IC: "rgba(79, 70, 229, 0.7)", // indigo
   OC: "rgba(16, 185, 129, 0.7)", // emerald
@@ -49,9 +64,12 @@ export default function MembershipSignupAnalytics() {
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
   const [selectedType, setSelectedType] = useState("all");
-  const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
-  const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
-  const [selectedStatus, setSelectedStatus] = useState("all"); // all, 0,1,2,4
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  
+  // Initialize with current year's date range (Jan 1 - Dec 31)
+  const currentYear = new Date().getFullYear();
+  const [startDate, setStartDate] = useState(formatDateForInput(new Date(currentYear, 0, 1)));
+  const [endDate, setEndDate] = useState(formatDateForInput(new Date(currentYear, 11, 31)));
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -59,12 +77,10 @@ export default function MembershipSignupAnalytics() {
         setLoading(true);
         setError(null);
         const params = new URLSearchParams({
-          year: String(new Date().getFullYear()),
-          startMonth: String(startMonth + 1),
-          endMonth: String(endMonth + 1),
+          startDate: startDate,
+          endDate: endDate,
         });
 
-        // Apply status filter if not "all"
         if (selectedStatus !== "all") {
           params.set("status", String(selectedStatus));
         }
@@ -84,82 +100,125 @@ export default function MembershipSignupAnalytics() {
     };
 
     fetchStats();
-  }, [startMonth, endMonth, selectedStatus]);
+  }, [startDate, endDate, selectedStatus]);
 
   const { series, summary, labels } = useMemo(() => {
-    if (!data) {
+    if (!data || !data.days) {
       return {
         series: [],
         summary: {
-          year: new Date().getFullYear(),
-          totalYear: 0,
-          latestMonthCount: 0,
+          dateRange: `${startDate} - ${endDate}`,
+          totalPeriod: 0,
+          latestCount: 0,
           changePercent: 0,
         },
-        labels: MONTH_LABELS,
+        labels: [],
       };
     }
 
-    const { year, months } = data;
+    const { days } = data;
 
-    // ปรับช่วงเดือนตาม state ที่เลือก (เผื่อกรณี start > end ให้สลับให้ถูกต้อง)
-    const rangeStart = Math.min(startMonth, endMonth);
-    const rangeEnd = Math.max(startMonth, endMonth);
+    // Calculate date range span in days
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
 
-    const getTotalForMonth = (m) => {
-      const counts = m.countsByType || {};
+    // Aggregate by month if range > 90 days, otherwise show daily
+    const aggregateByMonth = daysDiff > 90;
+
+    let aggregatedData = [];
+    let aggregatedLabels = [];
+
+    if (aggregateByMonth) {
+      // Group by year-month
+      const monthlyData = {};
+      days.forEach((day) => {
+        const monthKey = `${day.year}-${String(day.month).padStart(2, '0')}`;
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {
+            year: day.year,
+            month: day.month,
+            countsByType: { IC: 0, OC: 0, AM: 0, AC: 0 },
+          };
+        }
+        Object.keys(day.countsByType).forEach((type) => {
+          monthlyData[monthKey].countsByType[type] += day.countsByType[type];
+        });
+      });
+
+      // Sort by date
+      const sortedMonths = Object.values(monthlyData).sort((a, b) => {
+        return a.year !== b.year ? a.year - b.year : a.month - b.month;
+      });
+
+      aggregatedData = sortedMonths;
+      aggregatedLabels = sortedMonths.map((m) => {
+        const thaiYear = m.year + 543;
+        return `${MONTH_LABELS[m.month - 1]} ${thaiYear}`;
+      });
+    } else {
+      // Show daily data
+      aggregatedData = days;
+      aggregatedLabels = days.map((d) => {
+        return `${d.day} ${MONTH_LABELS[d.month - 1]}`;
+      });
+    }
+
+    const getTotalForPeriod = (item) => {
+      const counts = item.countsByType || {};
       if (selectedType === "all") {
         return (counts.IC || 0) + (counts.OC || 0) + (counts.AM || 0) + (counts.AC || 0);
       }
       return counts[selectedType] || 0;
     };
 
-    const monthTotalsAll = months.map((m) => getTotalForMonth(m));
-    const monthTotals = monthTotalsAll.slice(rangeStart, rangeEnd + 1);
-    const totalYear = monthTotals.reduce((sum, v) => sum + v, 0);
+    const periodTotals = aggregatedData.map((item) => getTotalForPeriod(item));
+    const totalPeriod = periodTotals.reduce((sum, v) => sum + v, 0);
 
-    // latest non-zero month or last month
+    // Latest non-zero period or last period
     const lastIndexWithData =
-      [...monthTotals]
+      [...periodTotals]
         .map((v, i) => ({ v, i }))
         .reverse()
-        .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
-    const latestMonthCount = monthTotals[lastIndexWithData] || 0;
-    const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-    const changePercent =
-      prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
+        .find((x) => x.v > 0)?.i ?? periodTotals.length - 1;
+    const latestCount = periodTotals[lastIndexWithData] || 0;
+    const prevCount = lastIndexWithData > 0 ? periodTotals[lastIndexWithData - 1] || 0 : 0;
+    const changePercent = prevCount > 0 ? ((latestCount - prevCount) / prevCount) * 100 : 0;
 
     let series;
     if (selectedType === "all") {
-      // แสดงเฉพาะผลรวมทุกประเภทสมาชิกต่อเดือน เป็นแท่งเดียวที่เห็นชัด
       series = [
         {
           label: MEMBER_TYPE_LABELS.all,
           backgroundColor: "rgba(79, 70, 229, 0.85)",
           borderColor: "rgba(55, 48, 163, 1)",
           borderWidth: 2,
-          data: monthTotals,
+          data: periodTotals,
         },
       ];
     } else {
-      // แสดงเฉพาะประเภทที่เลือก
       series = [
         {
           label: MEMBER_TYPE_LABELS[selectedType],
           backgroundColor: TYPE_COLORS[selectedType],
           borderColor: TYPE_COLORS[selectedType],
           borderWidth: 1.5,
-          data: monthTotals,
+          data: periodTotals,
         },
       ];
     }
 
     return {
       series,
-      summary: { year, totalYear, latestMonthCount, changePercent },
-      labels: MONTH_LABELS.slice(rangeStart, rangeEnd + 1),
+      summary: {
+        dateRange: `${formatThaiDate(startDate)} - ${formatThaiDate(endDate)}`,
+        totalPeriod,
+        latestCount,
+        changePercent,
+      },
+      labels: aggregatedLabels,
     };
-  }, [data, selectedType, startMonth, endMonth]);
+  }, [data, selectedType, startDate, endDate]);
 
   const chartData = useMemo(
     () => ({
@@ -170,59 +229,120 @@ export default function MembershipSignupAnalytics() {
   );
 
   const perTypeSeries = useMemo(() => {
-    if (!data) return {};
-    const { months } = data;
+    if (!data || !data.days) return {};
+    const { days } = data;
     const types = ["IC", "OC", "AM", "AC"];
 
-    const rangeStart = Math.min(startMonth, endMonth);
-    const rangeEnd = Math.max(startMonth, endMonth);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const aggregateByMonth = daysDiff > 90;
+
+    let aggregatedData = [];
+    let aggregatedLabels = [];
+
+    if (aggregateByMonth) {
+      const monthlyData = {};
+      days.forEach((day) => {
+        const monthKey = `${day.year}-${String(day.month).padStart(2, '0')}`;
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {
+            year: day.year,
+            month: day.month,
+            countsByType: { IC: 0, OC: 0, AM: 0, AC: 0 },
+          };
+        }
+        Object.keys(day.countsByType).forEach((type) => {
+          monthlyData[monthKey].countsByType[type] += day.countsByType[type];
+        });
+      });
+
+      const sortedMonths = Object.values(monthlyData).sort((a, b) => {
+        return a.year !== b.year ? a.year - b.year : a.month - b.month;
+      });
+
+      aggregatedData = sortedMonths;
+      aggregatedLabels = sortedMonths.map((m) => {
+        const thaiYear = m.year + 543;
+        return `${MONTH_LABELS[m.month - 1]} ${thaiYear}`;
+      });
+    } else {
+      aggregatedData = days;
+      aggregatedLabels = days.map((d) => {
+        return `${d.day} ${MONTH_LABELS[d.month - 1]}`;
+      });
+    }
 
     const result = {};
     types.forEach((t) => {
-      const labels = MONTH_LABELS.slice(rangeStart, rangeEnd + 1);
       result[t] = {
-        labels,
+        labels: aggregatedLabels,
         datasets: [
           {
             label: MEMBER_TYPE_LABELS[t],
             backgroundColor: TYPE_COLORS[t],
-            data: months.slice(rangeStart, rangeEnd + 1).map((m) => m.countsByType?.[t] || 0),
+            data: aggregatedData.map((item) => item.countsByType?.[t] || 0),
           },
         ],
       };
     });
     return result;
-  }, [data, startMonth, endMonth]);
+  }, [data, startDate, endDate]);
 
   const perTypeStats = useMemo(() => {
-    if (!data) return {};
-    const { months } = data;
+    if (!data || !data.days) return {};
+    const { days } = data;
     const types = ["IC", "OC", "AM", "AC"];
 
-    const rangeStart = Math.min(startMonth, endMonth);
-    const rangeEnd = Math.max(startMonth, endMonth);
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysDiff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+    const aggregateByMonth = daysDiff > 90;
+
+    let aggregatedData = [];
+
+    if (aggregateByMonth) {
+      const monthlyData = {};
+      days.forEach((day) => {
+        const monthKey = `${day.year}-${String(day.month).padStart(2, '0')}`;
+        if (!monthlyData[monthKey]) {
+          monthlyData[monthKey] = {
+            year: day.year,
+            month: day.month,
+            countsByType: { IC: 0, OC: 0, AM: 0, AC: 0 },
+          };
+        }
+        Object.keys(day.countsByType).forEach((type) => {
+          monthlyData[monthKey].countsByType[type] += day.countsByType[type];
+        });
+      });
+
+      aggregatedData = Object.values(monthlyData).sort((a, b) => {
+        return a.year !== b.year ? a.year - b.year : a.month - b.month;
+      });
+    } else {
+      aggregatedData = days;
+    }
 
     const stats = {};
     types.forEach((t) => {
-      const monthTotalsAll = months.map((m) => m.countsByType?.[t] || 0);
-      const monthTotals = monthTotalsAll.slice(rangeStart, rangeEnd + 1);
-      const totalYear = monthTotals.reduce((sum, v) => sum + v, 0);
+      const periodTotals = aggregatedData.map((item) => item.countsByType?.[t] || 0);
+      const totalPeriod = periodTotals.reduce((sum, v) => sum + v, 0);
 
       const lastIndexWithData =
-        [...monthTotals]
+        [...periodTotals]
           .map((v, i) => ({ v, i }))
           .reverse()
-          .find((x) => x.v > 0)?.i ?? monthTotals.length - 1;
-      const latestMonthCount = monthTotals[lastIndexWithData] || 0;
-      const prevMonthCount = lastIndexWithData > 0 ? monthTotals[lastIndexWithData - 1] || 0 : 0;
-      const changePercent =
-        prevMonthCount > 0 ? ((latestMonthCount - prevMonthCount) / prevMonthCount) * 100 : 0;
+          .find((x) => x.v > 0)?.i ?? periodTotals.length - 1;
+      const latestCount = periodTotals[lastIndexWithData] || 0;
+      const prevCount = lastIndexWithData > 0 ? periodTotals[lastIndexWithData - 1] || 0 : 0;
+      const changePercent = prevCount > 0 ? ((latestCount - prevCount) / prevCount) * 100 : 0;
 
-      stats[t] = { totalYear, latestMonthCount, changePercent };
+      stats[t] = { totalYear: totalPeriod, latestMonthCount: latestCount, changePercent };
     });
 
     return stats;
-  }, [data, startMonth, endMonth]);
+  }, [data, startDate, endDate]);
 
   const chartOptions = {
     responsive: true,
@@ -328,10 +448,26 @@ export default function MembershipSignupAnalytics() {
         <div>
           <h2 className="text-2xl font-bold text-gray-800 mb-1">วิเคราะห์การสมัครสมาชิก</h2>
           <p className="text-sm text-gray-500">
-            สถิติการสมัครสมาชิกปี {summary.year} แยกตามประเภทและเดือน
+            สถิติการสมัครสมาชิก {summary.dateRange} แยกตามประเภท
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-500">ช่วงวันที่:</span>
+            <input
+              type="date"
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <span className="text-xs text-gray-400">ถึง</span>
+            <input
+              type="date"
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-sm text-gray-500">ประเภทสมาชิก:</span>
             <select
@@ -344,32 +480,6 @@ export default function MembershipSignupAnalytics() {
               <option value="OC">OC สน</option>
               <option value="AM">AM สส</option>
               <option value="AC">AC ทน</option>
-            </select>
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-500">ช่วงเดือน:</span>
-            <select
-              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              value={startMonth}
-              onChange={(e) => setStartMonth(Number(e.target.value))}
-            >
-              {MONTH_LABELS.map((label, idx) => (
-                <option key={idx} value={idx}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <span className="text-xs text-gray-400">ถึง</span>
-            <select
-              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-              value={endMonth}
-              onChange={(e) => setEndMonth(Number(e.target.value))}
-            >
-              {MONTH_LABELS.map((label, idx) => (
-                <option key={idx} value={idx} disabled={idx < startMonth}>
-                  {label}
-                </option>
-              ))}
             </select>
           </div>
         </div>
@@ -392,23 +502,23 @@ export default function MembershipSignupAnalytics() {
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-gradient-to-r from-indigo-50 to-indigo-100 border border-indigo-100 rounded-xl p-4">
-              <p className="text-xs font-medium text-indigo-600 mb-1">รวมทั้งปี</p>
+              <p className="text-xs font-medium text-indigo-600 mb-1">รวมทั้งช่วง</p>
               <p className="text-2xl font-bold text-indigo-700">
-                {summary.totalYear.toLocaleString("th-TH")} ราย
+                {summary.totalPeriod.toLocaleString("th-TH")} ราย
               </p>
             </div>
             <div className="bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-100 rounded-xl p-4">
-              <p className="text-xs font-medium text-emerald-600 mb-1">เดือนล่าสุด</p>
+              <p className="text-xs font-medium text-emerald-600 mb-1">ช่วงล่าสุด</p>
               <p className="text-2xl font-bold text-emerald-700">
-                {summary.latestMonthCount.toLocaleString("th-TH")} ราย
+                {summary.latestCount.toLocaleString("th-TH")} ราย
               </p>
             </div>
             <div className="bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-100 rounded-xl p-4">
               <p className="text-xs font-medium text-slate-600 mb-1">
-                อัตราการเติบโต (ในเดือนล่าสุด)
+                อัตราการเติบโต (ในช่วงล่าสุด)
               </p>
               <p className={`text-2xl font-bold ${changeColor}`}>
-                {summary.changePercent === 0 && summary.latestMonthCount === 0
+                {summary.changePercent === 0 && summary.latestCount === 0
                   ? "-"
                   : `${changePrefix}${summary.changePercent.toFixed(1)}%`}
               </p>

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pool from "@/app/lib/db";
+import { getPool } from "@/app/lib/db";
 
 /**
  * API Route: Send notification after membership application
@@ -20,6 +20,7 @@ export async function POST(request) {
       );
     }
 
+    const pool = await getPool();
     connection = await pool.getConnection();
 
     // Create notification message based on application type

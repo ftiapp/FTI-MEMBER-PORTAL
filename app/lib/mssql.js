@@ -1,4 +1,14 @@
-import sql from "mssql";
+// app/lib/mssql.js
+
+let sql = null;
+
+async function getSql() {
+  if (!sql) {
+    // Use require instead of import to avoid webpack bundling
+    sql = require('mssql');
+  }
+  return sql;
+}
 
 function getMissingEnvKeys() {
   const requiredKeys = ["MSSQL_SERVER", "MSSQL_USER", "MSSQL_PASSWORD", "MSSQL_DATABASE"];
@@ -11,10 +21,10 @@ const config = {
   password: process.env.MSSQL_PASSWORD,
   database: process.env.MSSQL_DATABASE,
   options: {
-    encrypt: true, // เปิดการเข้ารหัสการเชื่อมต่อ
-    trustServerCertificate: true, // ยอมรับใบรับรองจากเซิร์ฟเวอร์
-    connectTimeout: 30000, // Increase connection timeout
-    requestTimeout: 60000, // Increase request timeout for long-running queries
+    encrypt: true,
+    trustServerCertificate: true,
+    connectTimeout: 30000,
+    requestTimeout: 60000,
   },
   pool: {
     max: 10,
@@ -23,11 +33,10 @@ const config = {
   },
 };
 
-let pool;
+let pool = null;
 let isConnecting = false;
 let connectionPromise = null;
 
-// Maximum number of connection retry attempts
 const MAX_RETRY_ATTEMPTS = 3;
 
 async function getConnection(retryCount = 0) {
@@ -36,26 +45,23 @@ async function getConnection(retryCount = 0) {
     throw new Error(`Missing MSSQL environment variables: ${missingKeys.join(", ")}`);
   }
 
-  // If we're already connecting, wait for that connection
+  const mssql = await getSql();
+
   if (isConnecting && connectionPromise) {
     try {
       return await connectionPromise;
     } catch (error) {
       console.error("Error while waiting for existing connection:", error);
-      // Continue to retry logic
     }
   }
 
   try {
-    // Check if pool exists and is connected
     if (pool && !pool.closed) {
       try {
-        // Test the connection with a simple query
         await pool.request().query("SELECT 1 AS test");
         return pool;
       } catch (testError) {
         console.warn("Connection test failed, will create new connection:", testError.message);
-        // Connection test failed, close the pool and create a new one
         try {
           await pool.close();
         } catch (closeError) {
@@ -65,9 +71,8 @@ async function getConnection(retryCount = 0) {
       }
     }
 
-    // Create a new connection
     isConnecting = true;
-    connectionPromise = sql.connect(config);
+    connectionPromise = mssql.connect(config);
     pool = await connectionPromise;
     console.log("MSSQL connection pool created successfully");
     isConnecting = false;
@@ -81,7 +86,6 @@ async function getConnection(retryCount = 0) {
       error,
     );
 
-    // Retry logic
     if (retryCount < MAX_RETRY_ATTEMPTS - 1) {
       console.log(`Retrying connection in 1 second... (attempt ${retryCount + 1})`);
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -95,42 +99,37 @@ async function getConnection(retryCount = 0) {
 }
 
 export async function mssqlQuery(queryText, params = [], retryCount = 0) {
-  const MAX_QUERY_RETRY = 2; // Maximum number of query retry attempts
+  const MAX_QUERY_RETRY = 2;
+  const mssql = await getSql();
 
   try {
-    // Get a connection from the pool with retry logic built in
-    const pool = await getConnection();
-    const request = pool.request();
+    const currentPool = await getConnection();
+    const request = currentPool.request();
 
-    // Set timeout for this specific request
-    request.timeout = 60000; // 60 seconds timeout for long queries
+    request.timeout = 60000;
 
-    // Add parameters to the request
     if (params && params.length > 0) {
       params.forEach((param, index) => {
-        // ระบุประเภทข้อมูลตามค่าของพารามิเตอร์
         if (typeof param === "string") {
-          request.input(`param${index}`, sql.NVarChar, param);
+          request.input(`param${index}`, mssql.NVarChar, param);
         } else if (typeof param === "number") {
           if (Number.isInteger(param)) {
-            request.input(`param${index}`, sql.Int, param);
+            request.input(`param${index}`, mssql.Int, param);
           } else {
-            request.input(`param${index}`, sql.Float, param);
+            request.input(`param${index}`, mssql.Float, param);
           }
         } else if (typeof param === "boolean") {
-          request.input(`param${index}`, sql.Bit, param);
+          request.input(`param${index}`, mssql.Bit, param);
         } else if (param instanceof Date) {
-          request.input(`param${index}`, sql.DateTime, param);
+          request.input(`param${index}`, mssql.DateTime, param);
         } else if (param === null || param === undefined) {
-          request.input(`param${index}`, sql.NVarChar, null);
+          request.input(`param${index}`, mssql.NVarChar, null);
         } else {
-          // ถ้าไม่รู้จักประเภทข้อมูล ให้ใช้ NVarChar
-          request.input(`param${index}`, sql.NVarChar, String(param));
+          request.input(`param${index}`, mssql.NVarChar, String(param));
         }
       });
     }
 
-    // Replace ? with @param0, @param1, etc.
     let modifiedQuery = queryText;
     if (params && params.length > 0) {
       params.forEach((_, index) => {
@@ -141,10 +140,8 @@ export async function mssqlQuery(queryText, params = [], retryCount = 0) {
     console.log("Executing MSSQL query:", modifiedQuery);
     const result = await request.query(modifiedQuery);
 
-    // Check if this is a stored procedure call (contains EXEC or EXECUTE)
     const isStoredProcedure = /EXEC(?:UTE)?\s+/i.test(queryText);
 
-    // Enhanced logging for debugging stored procedure results
     console.log(
       "Stored procedure result:",
       isStoredProcedure ? "Success" : "Not a stored procedure",
@@ -152,7 +149,6 @@ export async function mssqlQuery(queryText, params = [], retryCount = 0) {
     console.log("Recordset available:", result.recordset ? "Yes" : "No");
     console.log("Records found:", result.recordset ? result.recordset.length : 0);
 
-    // For stored procedures, especially member detail queries
     if (isStoredProcedure && queryText.includes("sp_GetMemberDetailByMemberCode_FTI_PORTAL")) {
       const memberCode = params[0];
       if (!result.recordset || result.recordset.length === 0) {
@@ -160,12 +156,10 @@ export async function mssqlQuery(queryText, params = [], retryCount = 0) {
       }
     }
 
-    // Return the recordset or an empty array if no recordset
     return result.recordset || [];
   } catch (error) {
     console.error(`MSSQL query error (attempt ${retryCount + 1}/${MAX_QUERY_RETRY + 1}):`, error);
 
-    // Check if this is a connection-related error
     const isConnectionError =
       error.message.includes("Connection is closed") ||
       error.message.includes("Connection lost") ||
@@ -174,13 +168,11 @@ export async function mssqlQuery(queryText, params = [], retryCount = 0) {
       error.code === "ETIMEOUT" ||
       error.code === "ECONNCLOSED";
 
-    // Retry logic for connection errors
     if (isConnectionError && retryCount < MAX_QUERY_RETRY) {
       console.log(
         `Connection error detected. Retrying query in 1 second... (attempt ${retryCount + 1})`,
       );
 
-      // Reset the pool to force a new connection on retry
       if (pool) {
         try {
           await pool.close();
@@ -207,16 +199,13 @@ export async function closeMssqlPool() {
     }
   } catch (error) {
     console.error("Error closing MSSQL connection pool:", error);
-    // Don't throw the error, just log it
-    // This prevents issues when closing during server shutdown
   }
 }
 
-// Function to check connection health
 export async function checkConnectionHealth() {
   try {
-    const pool = await getConnection();
-    const result = await pool.request().query("SELECT 1 AS connectionTest");
+    const currentPool = await getConnection();
+    const result = await currentPool.request().query("SELECT 1 AS connectionTest");
     return {
       healthy: true,
       message: "Database connection is healthy",
@@ -231,5 +220,4 @@ export async function checkConnectionHealth() {
   }
 }
 
-// Export getConnection as connectMSSQL for compatibility with connect route
 export const connectMSSQL = getConnection;

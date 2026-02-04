@@ -19,6 +19,11 @@ export default function MemberDetailsModal({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showUploadModal, setShowUploadModal] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState("other");
+  const [uploadFile, setUploadFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const imageRef = useRef(null);
 
   // Check if file is an image
@@ -264,6 +269,23 @@ export default function MemberDetailsModal({
               <h4 className="text-md font-semibold mb-3 text-[#1e3a8a] border-b pb-1 border-gray-200">
                 เอกสาร
               </h4>
+              <div className="flex justify-between items-center mb-3">
+                <p className="text-sm text-gray-600">อัปโหลดไฟล์เพิ่มเติมให้สมาชิก</p>
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 transition-colors"
+                >
+                  <svg
+                    className="w-4 h-4 mr-2"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  อัปโหลดไฟล์
+                </button>
+              </div>
               {member.documents && member.documents.length > 0 ? (
                 <div className="overflow-x-auto">
                   <div className="bg-blue-50 p-3 mb-3 rounded-md border border-blue-200">
@@ -568,6 +590,183 @@ export default function MemberDetailsModal({
           </div>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-[70] px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 space-y-6"
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between border-b border-gray-200 pb-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-900">อัปโหลดไฟล์เพิ่มเติม</h3>
+                  <p className="text-sm text-gray-500 mt-0.5">บันทึกเป็น approved โดยอัตโนมัติ</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setUploadFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg p-2 transition-colors"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* File Upload Area */}
+            <div className="space-y-4">
+              <div className="relative">
+                <label 
+                  htmlFor="file-upload" 
+                  className="block w-full cursor-pointer"
+                >
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 hover:bg-blue-50 transition-all duration-200 group">
+                    <div className="flex flex-col items-center space-y-3">
+                      <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                        <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-base font-medium text-gray-700 group-hover:text-blue-600">
+                          คลิกเพื่อเลือกไฟล์ หรือลากไฟล์มาวาง
+                        </p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          รองรับ PDF, JPG, PNG • สามารถเลือกหลายไฟล์พร้อมกัน
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </label>
+                <input
+                  id="file-upload"
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,image/*"
+                  multiple
+                  onChange={(e) => setUploadFile(e.target.files)}
+                  className="hidden"
+                />
+              </div>
+
+              {/* Selected Files Display */}
+              {uploadFile && uploadFile.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm font-medium text-blue-900">
+                      เลือกแล้ว {uploadFile.length} ไฟล์
+                    </p>
+                  </div>
+                  <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {Array.from(uploadFile).map((file, idx) => (
+                      <div key={idx} className="text-xs text-blue-700 flex items-center space-x-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        <span className="truncate">{file.name}</span>
+                        <span className="text-gray-500">({(file.size / 1024).toFixed(1)} KB)</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => {
+                  setShowUploadModal(false);
+                  setUploadFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+                className="px-5 py-2.5 text-sm font-medium rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+              >
+                ยกเลิก
+              </button>
+              <button
+                onClick={async () => {
+                  if (!uploadFile || uploadFile.length === 0) {
+                    toast.error("กรุณาเลือกไฟล์");
+                    return;
+                  }
+                  try {
+                    setIsUploading(true);
+                    const files = Array.from(uploadFile);
+                    let successCount = 0;
+                    
+                    for (const file of files) {
+                      const formData = new FormData();
+                      formData.append("file", file);
+                      formData.append("userId", String(member.user_id));
+                      formData.append("memberCode", member.MEMBER_CODE || "");
+                      formData.append("documentType", "other");
+
+                      const res = await fetch("/api/admin/verify-upload", {
+                        method: "POST",
+                        body: formData,
+                      });
+                      const data = await res.json();
+                      if (res.ok && data.success) {
+                        successCount++;
+                      } else {
+                        console.error(`Failed to upload ${file.name}:`, data.message);
+                      }
+                    }
+                    
+                    if (successCount > 0) {
+                      toast.success(`อัปโหลดสำเร็จ ${successCount} ไฟล์`);
+                      window.location.reload();
+                    } else {
+                      throw new Error("ไม่สามารถอัปโหลดไฟล์ได้");
+                    }
+                  } catch (error) {
+                    console.error("Upload failed", error);
+                    toast.error(error.message || "อัปโหลดไม่สำเร็จ");
+                  } finally {
+                    setIsUploading(false);
+                  }
+                }}
+                disabled={isUploading || !uploadFile || uploadFile.length === 0}
+                className="px-6 py-2.5 text-sm font-medium rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all flex items-center space-x-2"
+              >
+                {isUploading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>กำลังอัปโหลด...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <span>อัปโหลด</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Image/PDF Preview Modal */}
       {previewImage && (

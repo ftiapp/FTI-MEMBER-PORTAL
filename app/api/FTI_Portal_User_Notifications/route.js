@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pool from "@/app/lib/db";
+import { getPool } from "@/app/lib/db";
 
 /**
  * API Route: Get user notifications
@@ -20,6 +20,7 @@ export async function GET(request) {
       );
     }
 
+    const pool = await getPool();
     connection = await pool.getConnection();
 
     // Fetch notifications for the user

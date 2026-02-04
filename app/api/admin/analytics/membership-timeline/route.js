@@ -7,8 +7,13 @@ const isProd = process.env.NODE_ENV === "production";
 const membershipTimelineAnalyticsCache = new Map();
 
 // GET /api/admin/analytics/membership-timeline
-// Returns monthly signup counts with flexible date range support
-// Query params: year (required), startMonth (optional, 1-12), endMonth (optional, 1-12)
+// Returns signup counts with flexible date range support
+// Query params: 
+//   - startDate (optional, YYYY-MM-DD format)
+//   - endDate (optional, YYYY-MM-DD format)
+//   - year (optional, for backward compatibility)
+//   - startMonth, endMonth (optional, for backward compatibility)
+//   - status (optional, 0-4)
 export async function GET(request) {
   try {
     const admin = await getAdminFromSession();
@@ -17,14 +22,51 @@ export async function GET(request) {
     }
 
     const { searchParams } = new URL(request.url);
+    const startDateParam = searchParams.get("startDate");
+    const endDateParam = searchParams.get("endDate");
     const yearParam = searchParams.get("year");
     const startMonthParam = searchParams.get("startMonth");
     const endMonthParam = searchParams.get("endMonth");
     const statusParam = searchParams.get("status");
 
-    const year = Number(yearParam) || new Date().getFullYear();
-    const startMonth = startMonthParam ? Math.min(Math.max(Number(startMonthParam), 1), 12) : 1;
-    const endMonth = endMonthParam ? Math.min(Math.max(Number(endMonthParam), 1), 12) : 12;
+    let startDate, endDate, useDateRange = false;
+
+    // Priority 1: Use date range if provided
+    if (startDateParam && endDateParam) {
+      startDate = new Date(startDateParam);
+      endDate = new Date(endDateParam);
+      
+      // Ensure valid dates
+      if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+        // Ensure startDate <= endDate
+        if (startDate > endDate) {
+          [startDate, endDate] = [endDate, startDate];
+        }
+        // Set to start of day for startDate and end of day for endDate
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        useDateRange = true;
+      }
+    }
+
+    // Priority 2: Fall back to year/month range for backward compatibility
+    if (!useDateRange) {
+      const year = yearParam === "all" ? null : Number(yearParam) || new Date().getFullYear();
+      const startMonth = startMonthParam ? Math.min(Math.max(Number(startMonthParam), 1), 12) : 1;
+      const endMonth = endMonthParam ? Math.min(Math.max(Number(endMonthParam), 1), 12) : 12;
+      
+      const rangeStart = Math.min(startMonth, endMonth);
+      const rangeEnd = Math.max(startMonth, endMonth);
+      
+      if (year) {
+        startDate = new Date(year, rangeStart - 1, 1, 0, 0, 0, 0);
+        endDate = new Date(year, rangeEnd, 0, 23, 59, 59, 999); // Last day of rangeEnd month
+      } else {
+        // "all" years - use a wide range
+        startDate = new Date(2000, 0, 1);
+        endDate = new Date(2099, 11, 31);
+      }
+    }
 
     // Optional status filter (0,1,2,3,4). If invalid, treat as no filter
     const rawStatus = statusParam !== null ? Number(statusParam) : null;
@@ -33,11 +75,12 @@ export async function GET(request) {
         ? rawStatus
         : null;
 
-    // Ensure startMonth <= endMonth
-    const rangeStart = Math.min(startMonth, endMonth);
-    const rangeEnd = Math.max(startMonth, endMonth);
-
-    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd, status: statusFilter });
+    const cacheKey = JSON.stringify({ 
+      startDate: startDate.toISOString(), 
+      endDate: endDate.toISOString(), 
+      status: statusFilter 
+    });
+    
     if (isProd && membershipTimelineAnalyticsCache.has(cacheKey)) {
       const cached = membershipTimelineAnalyticsCache.get(cacheKey);
       if (cached.expiresAt > Date.now()) {
@@ -46,32 +89,49 @@ export async function GET(request) {
       membershipTimelineAnalyticsCache.delete(cacheKey);
     }
 
-    // Query all 4 member types for the specified year and month range
+    // Query all 4 member types for the specified date range
     const statusCondition = statusFilter !== null ? " AND status = ?" : "";
 
     const sql = `
-      SELECT 'OC' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
+      SELECT 'OC' AS memberType, 
+             YEAR(created_at) AS year,
+             MONTH(created_at) AS month, 
+             DAY(created_at) AS day,
+             COUNT(*) AS count
       FROM MemberRegist_OC_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
-      GROUP BY MONTH(created_at)
+      WHERE created_at >= ? AND created_at <= ?${statusCondition}
+      GROUP BY YEAR(created_at), MONTH(created_at), DAY(created_at)
       UNION ALL
-      SELECT 'AC' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
+      SELECT 'AC' AS memberType, 
+             YEAR(created_at) AS year,
+             MONTH(created_at) AS month, 
+             DAY(created_at) AS day,
+             COUNT(*) AS count
       FROM MemberRegist_AC_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
-      GROUP BY MONTH(created_at)
+      WHERE created_at >= ? AND created_at <= ?${statusCondition}
+      GROUP BY YEAR(created_at), MONTH(created_at), DAY(created_at)
       UNION ALL
-      SELECT 'AM' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
+      SELECT 'AM' AS memberType, 
+             YEAR(created_at) AS year,
+             MONTH(created_at) AS month, 
+             DAY(created_at) AS day,
+             COUNT(*) AS count
       FROM MemberRegist_AM_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
-      GROUP BY MONTH(created_at)
+      WHERE created_at >= ? AND created_at <= ?${statusCondition}
+      GROUP BY YEAR(created_at), MONTH(created_at), DAY(created_at)
       UNION ALL
-      SELECT 'IC' AS memberType, MONTH(created_at) AS month, COUNT(*) AS count
+      SELECT 'IC' AS memberType, 
+             YEAR(created_at) AS year,
+             MONTH(created_at) AS month, 
+             DAY(created_at) AS day,
+             COUNT(*) AS count
       FROM MemberRegist_IC_Main
-      WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
-      GROUP BY MONTH(created_at)
+      WHERE created_at >= ? AND created_at <= ?${statusCondition}
+      GROUP BY YEAR(created_at), MONTH(created_at), DAY(created_at)
+      ORDER BY year, month, day
     `;
 
-    const baseParams = [year, rangeStart, rangeEnd];
+    const baseParams = [startDate, endDate];
     const rows = await query(sql, [
       ...baseParams,
       ...(statusFilter !== null ? [statusFilter] : []),
@@ -83,45 +143,53 @@ export async function GET(request) {
       ...(statusFilter !== null ? [statusFilter] : []),
     ]);
 
-    // Build structure: months[1..12] with countsByType (always return full year for consistency)
-    const months = Array.from({ length: 12 }, (_, i) => ({
-      month: i + 1,
-      countsByType: { IC: 0, OC: 0, AM: 0, AC: 0 },
-    }));
-
+    // Build daily data structure
+    const dailyData = {};
     for (const row of rows) {
-      const m = Number(row.month);
+      const dateKey = `${row.year}-${String(row.month).padStart(2, '0')}-${String(row.day).padStart(2, '0')}`;
+      if (!dailyData[dateKey]) {
+        dailyData[dateKey] = {
+          date: dateKey,
+          year: Number(row.year),
+          month: Number(row.month),
+          day: Number(row.day),
+          countsByType: { IC: 0, OC: 0, AM: 0, AC: 0 },
+        };
+      }
       const type = row.memberType;
       const count = Number(row.count) || 0;
-      if (m >= 1 && m <= 12) {
-        const target = months[m - 1];
-        if (!target.countsByType[type]) target.countsByType[type] = 0;
-        target.countsByType[type] += count;
-      }
+      dailyData[dateKey].countsByType[type] = count;
     }
 
-    // Aggregate counts by status across all tables for the year and month range
+    // Convert to array and sort by date
+    const days = Object.values(dailyData).sort((a, b) => {
+      const dateA = new Date(a.year, a.month - 1, a.day);
+      const dateB = new Date(b.year, b.month - 1, b.day);
+      return dateA - dateB;
+    });
+
+    // Aggregate counts by status across all tables for the date range
     const statusSql = `
       SELECT status, SUM(cnt) AS count
       FROM (
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_OC_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
+        WHERE created_at >= ? AND created_at <= ?${statusCondition}
         GROUP BY status
         UNION ALL
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_AC_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
+        WHERE created_at >= ? AND created_at <= ?${statusCondition}
         GROUP BY status
         UNION ALL
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_AM_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
+        WHERE created_at >= ? AND created_at <= ?${statusCondition}
         GROUP BY status
         UNION ALL
         SELECT status, COUNT(*) AS cnt
         FROM MemberRegist_IC_Main
-        WHERE YEAR(created_at) = ? AND MONTH(created_at) BETWEEN ? AND ?${statusCondition}
+        WHERE created_at >= ? AND created_at <= ?${statusCondition}
         GROUP BY status
       ) AS combined
       GROUP BY status
@@ -150,11 +218,10 @@ export async function GET(request) {
     const responseBody = {
       success: true,
       data: {
-        year,
-        startMonth: rangeStart,
-        endMonth: rangeEnd,
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
         status: statusFilter,
-        months,
+        days,
         statusCounts,
       },
     };

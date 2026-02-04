@@ -31,7 +31,7 @@ export async function GET(request) {
     const endMonthParam = searchParams.get("endMonth");
     const statusParam = searchParams.get("status");
 
-    const year = Number(yearParam) || new Date().getFullYear();
+    const year = yearParam === "all" ? null : Number(yearParam) || new Date().getFullYear();
     const startMonth = startMonthParam ? Math.min(Math.max(Number(startMonthParam), 1), 12) : 1;
     const endMonth = endMonthParam ? Math.min(Math.max(Number(endMonthParam), 1), 12) : 12;
 
@@ -46,7 +46,7 @@ export async function GET(request) {
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
 
-    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd, status: statusFilter });
+    const cacheKey = JSON.stringify({ year: year ?? "all", rangeStart, rangeEnd, status: statusFilter });
     if (isProd && originalMembershipTimelineCache.has(cacheKey)) {
       const cached = originalMembershipTimelineCache.get(cacheKey);
       if (cached.expiresAt > Date.now()) {
@@ -58,6 +58,7 @@ export async function GET(request) {
     // Query original membership verifications grouped by company_type and month
     // ใช้ created_at (วันที่สร้างข้อมูลในระบบ) แทน MEMBER_DATE (วันที่เป็นสมาชิกจริง)
     const statusCondition = statusFilter !== null ? " AND Admin_Submit = ?" : "";
+    const yearCondition = year ? "YEAR(created_at) = ? AND " : "";
 
     const sql = `
       SELECT 
@@ -65,14 +66,14 @@ export async function GET(request) {
         MONTH(created_at) AS month,
         COUNT(*) AS count
       FROM FTI_Original_Membership
-      WHERE YEAR(created_at) = ? 
-        AND MONTH(created_at) BETWEEN ? AND ?
+      WHERE ${yearCondition}
+        MONTH(created_at) BETWEEN ? AND ?
         AND company_type IS NOT NULL
         AND company_type != ''${statusCondition}
       GROUP BY company_type, MONTH(created_at)
     `;
 
-    const baseParams = [year, rangeStart, rangeEnd];
+    const baseParams = year ? [year, rangeStart, rangeEnd] : [rangeStart, rangeEnd];
     const queryParams = statusFilter !== null ? [...baseParams, statusFilter] : baseParams;
 
     const rows = await query(sql, queryParams);
@@ -113,8 +114,8 @@ export async function GET(request) {
         Admin_Submit AS status,
         COUNT(*) AS count
       FROM FTI_Original_Membership
-      WHERE YEAR(created_at) = ? 
-        AND MONTH(created_at) BETWEEN ? AND ?
+      WHERE ${yearCondition}
+        MONTH(created_at) BETWEEN ? AND ?
         AND Admin_Submit IS NOT NULL${statusCondition}
       GROUP BY Admin_Submit
     `;
@@ -133,7 +134,7 @@ export async function GET(request) {
     const responseBody = {
       success: true,
       data: {
-        year,
+        year: year ?? "all",
         startMonth: rangeStart,
         endMonth: rangeEnd,
         status: statusFilter,

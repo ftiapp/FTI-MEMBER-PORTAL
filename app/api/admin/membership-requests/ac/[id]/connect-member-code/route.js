@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getConnection } from "@/app/lib/db";
 import { checkAdminSession } from "@/app/lib/auth";
-import sql from "mssql";
 
 // Configuration for MSSQL connection
 const mssqlConfig = {
@@ -36,7 +35,7 @@ export async function POST(request, { params }) {
     try {
       // Get the tax_id from MemberRegist_AC_Main
       const [memberRows] = await mysqlConnection.execute(
-        "SELECT tax_id, company_name FROM MemberRegist_AC_Main WHERE id = ? AND status = 1",
+        "SELECT tax_id, company_name, user_id FROM MemberRegist_AC_Main WHERE id = ? AND status = 1",
         [id],
       );
 
@@ -51,7 +50,7 @@ export async function POST(request, { params }) {
         );
       }
 
-      const { tax_id, company_name } = memberRows[0];
+      const { tax_id, company_name, user_id } = memberRows[0];
 
       // Check if member_code already exists
       const [existingCodeRows] = await mysqlConnection.execute(
@@ -70,6 +69,9 @@ export async function POST(request, { params }) {
           { status: 409 },
         );
       }
+
+      // Dynamic import mssql
+      const sql = (await import("mssql")).default;
 
       // Connect to MSSQL to get the MEMBER_CODE
       let mssqlPool;
@@ -118,7 +120,7 @@ export async function POST(request, { params }) {
            (user_id, MEMBER_CODE, COMP_PERSON_CODE, REGIST_CODE, company_name, company_type, tax_id, created_at, updated_at, Admin_Submit, admin_id, admin_name) 
            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 1, ?, ?)`,
           [
-            memberRows[0].user_id || null,
+            user_id || null,
             memberData.MEMBER_CODE,
             memberData.COMP_PERSON_CODE || null,
             memberData.REGIST_CODE || null,
@@ -173,7 +175,7 @@ export async function POST(request, { params }) {
       }
     } catch (mysqlError) {
       // Rollback transaction on error
-      if (mysqlConnection.connection._pool) {
+      if (mysqlConnection.connection && mysqlConnection.connection._pool) {
         await mysqlConnection.rollback();
       }
       throw mysqlError;

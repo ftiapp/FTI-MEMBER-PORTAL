@@ -1,7 +1,19 @@
-﻿import { NextResponse } from "next/server";
+﻿export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
+import { NextResponse } from "next/server";
 import { query } from "../../../../lib/db";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwt() {
+  const mod = await import("jsonwebtoken");
+  return mod.default || mod;
+}
 
 /**
  * API endpoint to directly update TSIC codes without admin approval

@@ -9,126 +9,104 @@ const nextConfig = {
     optimizeCss: true,
     optimizePackageImports: ["lucide-react", "react-icons"],
   },
+
+  serverExternalPackages: [
+    "mssql",
+    "tedious",
+    "postmark",
+    "tarn",
+    "msnodesqlv8",
+    "jsonwebtoken",
+    "bcryptjs",
+  ],
+
   compiler: {
-    // Remove console logs in production
     removeConsole:
       process.env.NODE_ENV === "production"
-        ? {
-            exclude: ["error", "warn"],
-          }
+        ? { exclude: ["error", "warn"] }
         : false,
-    // Remove React prop types in production
     reactRemoveProperties: process.env.NODE_ENV === "production",
   },
-  // Performance optimizations
+
   poweredByHeader: false,
   compress: true,
-
-  // Static optimization
   generateEtags: true,
 
-  // Image optimization
   images: {
     domains: ["res.cloudinary.com"],
     formats: ["image/webp", "image/avif"],
-    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
+    minimumCacheTTL: 60 * 60 * 24 * 30,
   },
 
-  // Security headers
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "origin-when-cross-origin",
-          },
-          {
-            key: "X-XSS-Protection",
-            value: "1; mode=block",
-          },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "origin-when-cross-origin" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
         ],
       },
       {
         source: "/images/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
         source: "/_next/static/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
         source: "/fonts/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
       },
       {
         source: "/api/:path*",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "no-store, must-revalidate",
-          },
-        ],
+        headers: [{ key: "Cache-Control", value: "no-store, must-revalidate" }],
       },
     ];
   },
 
-  // Redirects for SEO and performance
   async redirects() {
-    return [
-      // Add any redirects here if needed
-    ];
+    return [];
   },
 
-  // Webpack optimizations
   webpack: (config, { isServer, dev, webpack }) => {
     config.resolve.alias["@"] = path.resolve(__dirname, "./");
 
-    // Handle mysql2 module compatibility
     if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push({
-        mysql2: "commonjs mysql2",
-        "mysql2/promise": "commonjs mysql2/promise",
-      });
+      // Mark these packages as external - don't bundle them
+      config.externals = [
+        ...(Array.isArray(config.externals) ? config.externals : []),
+        ({ request }, callback) => {
+          if (/^(mssql|tedious|postmark|tarn|msnodesqlv8|jsonwebtoken|bcryptjs)$/.test(request)) {
+            return callback(null, `commonjs ${request}`);
+          }
+          callback();
+        },
+      ];
     }
 
-    // Ensure proper module resolution
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      fs: false,
-      net: false,
-      tls: false,
-      crypto: false,
-    };
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        crypto: false,
+        dns: false,
+        path: false,
+        os: false,
+        stream: false,
+        zlib: false,
+        http: false,
+        https: false,
+        util: false,
+      };
+    }
 
-    // Production optimizations
     if (!dev && !isServer) {
-      // Split chunks for better caching
       config.optimization = {
         ...config.optimization,
         splitChunks: {
@@ -148,27 +126,19 @@ const nextConfig = {
           },
         },
       };
-
-      // Minimize bundle size
       config.optimization.usedExports = true;
       config.optimization.sideEffects = false;
     }
 
-    // Performance budgets
     if (!dev) {
       config.performance = {
-        maxEntrypointSize: 512000, // 512KB
-        maxAssetSize: 512000, // 512KB
+        maxEntrypointSize: 512000,
+        maxAssetSize: 512000,
         hints: "warning",
       };
-    }
-
-    // Ignore source maps in production
-    if (!dev) {
       config.devtool = false;
     }
 
-    // Bundle analyzer
     if (process.env.ANALYZE === "true") {
       const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
       config.plugins.push(
@@ -182,12 +152,8 @@ const nextConfig = {
     return config;
   },
 
-  // Experimental features for better performance
-
-  // Output configuration
   output: "standalone",
 
-  // Environment variables
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,
   },

@@ -29,6 +29,15 @@ const MONTH_LABELS = [
   "ธ.ค.",
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = [
+  { value: "all", label: "รวมทุกปี" },
+  ...Array.from({ length: 6 }).map((_, idx) => {
+    const y = CURRENT_YEAR - idx;
+    return { value: y, label: `${y + 543}` };
+  }),
+];
+
 // Color palette for different company types (will be assigned dynamically)
 const TYPE_COLORS = [
   "rgba(79, 70, 229, 0.7)", // indigo
@@ -45,6 +54,7 @@ export default function OriginalMembershipAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [data, setData] = useState(null);
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [selectedType, setSelectedType] = useState("all");
   const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
   const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
@@ -56,7 +66,7 @@ export default function OriginalMembershipAnalytics() {
         setLoading(true);
         setError(null);
         const params = new URLSearchParams({
-          year: String(new Date().getFullYear()),
+          year: String(selectedYear),
           startMonth: String(startMonth + 1),
           endMonth: String(endMonth + 1),
         });
@@ -82,14 +92,14 @@ export default function OriginalMembershipAnalytics() {
     };
 
     fetchStats();
-  }, [startMonth, endMonth, selectedStatus]);
+  }, [selectedYear, startMonth, endMonth, selectedStatus]);
 
   const { series, summary, labels, companyTypes } = useMemo(() => {
     if (!data) {
       return {
         series: [],
         summary: {
-          year: new Date().getFullYear(),
+          year: selectedYear,
           totalYear: 0,
           latestMonthCount: 0,
           changePercent: 0,
@@ -162,7 +172,7 @@ export default function OriginalMembershipAnalytics() {
       labels: MONTH_LABELS.slice(rangeStart, rangeEnd + 1),
       companyTypes: availableTypes,
     };
-  }, [data, selectedType, startMonth, endMonth]);
+  }, [data, selectedType, startMonth, endMonth, selectedYear]);
 
   const chartData = useMemo(
     () => ({
@@ -268,17 +278,31 @@ export default function OriginalMembershipAnalytics() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-xl p-6 mt-10">
+    <div className="bg-white rounded-2xl shadow-xl p-6 mt-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-1">วิเคราะห์การยืนยันสมาชิกเดิม</h2>
+          <h3 className="text-xl font-bold text-gray-800 mb-1">ยืนยันตัวสมาชิกเดิม</h3>
           <p className="text-sm text-gray-500">
-            สถิติการยืนยันสมาชิกเดิมปี {summary.year} แยกตามประเภทและเดือน
+            ข้อมูล {summary.year === "all" ? "รวมทุกปี" : `ปี ${Number(summary.year) + 543}`} แยกตามประเภท
           </p>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-500">ประเภทสมาชิก:</span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">ปี (พ.ศ.):</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+            >
+              {YEAR_OPTIONS.map((y) => (
+                <option key={y.value} value={y.value}>
+                  {y.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">ประเภท:</span>
             <select
               className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
               value={selectedType}

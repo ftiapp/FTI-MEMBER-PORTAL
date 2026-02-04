@@ -22,7 +22,7 @@ export async function GET(request) {
     const startMonthParam = searchParams.get("startMonth");
     const endMonthParam = searchParams.get("endMonth");
 
-    const year = Number(yearParam) || now.getFullYear();
+    const year = yearParam === "all" ? null : Number(yearParam) || now.getFullYear();
     const startMonth = startMonthParam ? Math.min(Math.max(Number(startMonthParam), 1), 12) : 1;
     const endMonth = endMonthParam ? Math.min(Math.max(Number(endMonthParam), 1), 12) : 12;
 
@@ -30,7 +30,7 @@ export async function GET(request) {
     const rangeStart = Math.min(startMonth, endMonth);
     const rangeEnd = Math.max(startMonth, endMonth);
 
-    const cacheKey = JSON.stringify({ year, rangeStart, rangeEnd });
+    const cacheKey = JSON.stringify({ year: year ?? "all", rangeStart, rangeEnd });
     if (isProd && ocIndustryProvinceTimelineCache.has(cacheKey)) {
       const cached = ocIndustryProvinceTimelineCache.get(cacheKey);
       if (cached.expiresAt > Date.now()) {
@@ -40,6 +40,7 @@ export async function GET(request) {
     }
 
     // Query industry groups for the specified range
+    const yearCondition = year ? "YEAR(m.created_at) = ? AND " : "";
     const industryRows = await query(
       `SELECT name, SUM(cnt) AS count
        FROM (
@@ -50,7 +51,7 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_OC_IndustryGroups ig
          JOIN MemberRegist_OC_Main m ON ig.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
          UNION ALL
          SELECT COALESCE(
@@ -60,7 +61,7 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_AC_IndustryGroups ig
          JOIN MemberRegist_AC_Main m ON ig.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
          UNION ALL
          SELECT COALESCE(
@@ -70,7 +71,7 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_AM_IndustryGroups ig
          JOIN MemberRegist_AM_Main m ON ig.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
          UNION ALL
          SELECT COALESCE(
@@ -80,22 +81,22 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_IC_IndustryGroups ig
          JOIN MemberRegist_IC_Main m ON ig.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
        ) AS combined
        GROUP BY name
        ORDER BY count DESC, name ASC`,
       [
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
       ],
@@ -112,7 +113,7 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_OC_ProvinceChapters pc
          JOIN MemberRegist_OC_Main m ON pc.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
          UNION ALL
          SELECT COALESCE(
@@ -122,7 +123,7 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_AC_ProvinceChapters pc
          JOIN MemberRegist_AC_Main m ON pc.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
          UNION ALL
          SELECT COALESCE(
@@ -132,7 +133,7 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_AM_ProvinceChapters pc
          JOIN MemberRegist_AM_Main m ON pc.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
          UNION ALL
          SELECT COALESCE(
@@ -142,22 +143,22 @@ export async function GET(request) {
                 COUNT(*) AS cnt
          FROM MemberRegist_IC_ProvinceChapters pc
          JOIN MemberRegist_IC_Main m ON pc.main_id = m.id
-         WHERE YEAR(m.created_at) = ? AND MONTH(m.created_at) BETWEEN ? AND ?
+         WHERE ${yearCondition}MONTH(m.created_at) BETWEEN ? AND ?
          GROUP BY name
        ) AS combined
        GROUP BY name
        ORDER BY count DESC, name ASC`,
       [
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
-        year,
+        ...(year ? [year] : []),
         rangeStart,
         rangeEnd,
       ],
@@ -179,18 +180,18 @@ export async function GET(request) {
     const monthlyQuery = `
       SELECT month, SUM(cnt) AS count
       FROM (
-        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_OC_Main WHERE YEAR(created_at) = ? GROUP BY MONTH(created_at)
+        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_OC_Main ${year ? "WHERE YEAR(created_at) = ?" : ""} GROUP BY MONTH(created_at)
         UNION ALL
-        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_AC_Main WHERE YEAR(created_at) = ? GROUP BY MONTH(created_at)
+        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_AC_Main ${year ? "WHERE YEAR(created_at) = ?" : ""} GROUP BY MONTH(created_at)
         UNION ALL
-        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_AM_Main WHERE YEAR(created_at) = ? GROUP BY MONTH(created_at)
+        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_AM_Main ${year ? "WHERE YEAR(created_at) = ?" : ""} GROUP BY MONTH(created_at)
         UNION ALL
-        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_IC_Main WHERE YEAR(created_at) = ? GROUP BY MONTH(created_at)
+        SELECT MONTH(created_at) AS month, COUNT(*) AS cnt FROM MemberRegist_IC_Main ${year ? "WHERE YEAR(created_at) = ?" : ""} GROUP BY MONTH(created_at)
       ) AS combined
       GROUP BY month
     `;
 
-    const monthlyRows = await query(monthlyQuery, [year, year, year, year]);
+    const monthlyRows = await query(monthlyQuery, year ? [year, year, year, year] : []);
     const monthlyTotals = Array(12).fill(0);
     for (const row of monthlyRows) {
       const m = Number(row.month);
@@ -202,7 +203,7 @@ export async function GET(request) {
     const responseBody = {
       success: true,
       data: {
-        year,
+        year: year ?? "all",
         startMonth: rangeStart,
         endMonth: rangeEnd,
         byIndustry,

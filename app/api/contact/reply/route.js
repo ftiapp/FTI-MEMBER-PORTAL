@@ -1,11 +1,25 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
 import { NextResponse } from "next/server";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
-import { verify } from "jsonwebtoken";
 import { createNotification } from "@/app/lib/notifications";
 
 // ใช้ secret key เดียวกับที่ใช้ในการสร้าง token
-const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
+const SECRET_KEY = process.env.JWT_SECRET || "your-secret-key";
+
+// Ensure Buffer exists
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwtVerify() {
+  const mod = await import("jsonwebtoken");
+  const jwt = mod.default || mod;
+  return jwt.verify.bind(jwt);
+}
 
 export async function POST(request) {
   try {

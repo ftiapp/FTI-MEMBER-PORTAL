@@ -1,8 +1,21 @@
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { query } from "@/app/lib/db";
 import { cookies } from "next/headers";
+
+// Ensure Buffer exists (avoid polyfill issues during build/edge contexts)
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwt() {
+  const mod = await import("jsonwebtoken");
+  return mod.default || mod;
+}
 
 // Progressive rate limiter with increasing lockout times (only increments on failed attempts)
 const rateLimit = {
@@ -249,6 +262,8 @@ export async function POST(request) {
 
     // สร้าง JWT token with expiration based on rememberMe
     const expiresIn = rememberMe ? "30d" : "1d"; // 30 days if remember me, 1 day if not
+
+    const jwt = await getJwt();
 
     const token = jwt.sign(
       {

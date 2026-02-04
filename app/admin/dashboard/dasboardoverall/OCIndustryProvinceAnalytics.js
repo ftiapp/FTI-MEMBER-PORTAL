@@ -30,6 +30,15 @@ const MONTH_LABELS = [
   "ธ.ค.",
 ];
 
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_OPTIONS = [
+  { value: "all", label: "รวมทุกปี" },
+  ...Array.from({ length: 6 }).map((_, idx) => {
+    const y = CURRENT_YEAR - idx;
+    return { value: y, label: `${y + 543}` };
+  }),
+];
+
 export default function OCIndustryProvinceAnalytics() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -37,7 +46,7 @@ export default function OCIndustryProvinceAnalytics() {
   const [mode, setMode] = useState("industry"); // "industry" | "province"
   const [limit, setLimit] = useState(10);
   const now = new Date();
-  const [selectedYear] = useState(now.getFullYear());
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [startMonth, setStartMonth] = useState(0); // 0 = ม.ค.
   const [endMonth, setEndMonth] = useState(11); // 11 = ธ.ค.
 
@@ -206,15 +215,29 @@ export default function OCIndustryProvinceAnalytics() {
           </h3>
           {data && (
             <p className="text-sm text-gray-500">
-              สรุป รวม ข้อมูลปี {data.year} รวมทุกประเภทสมาชิก
+              สรุป รวม ข้อมูล {data.year === "all" ? "ทุกปี" : `ปี ${Number(data.year) + 543}`} รวมทุกประเภทสมาชิก
             </p>
           )}
         </div>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <span className="text-sm text-gray-500">ปี (พ.ศ.):</span>
+            <select
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[140px]"
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(e.target.value === "all" ? "all" : Number(e.target.value))}
+            >
+              {YEAR_OPTIONS.map((y) => (
+                <option key={y.value} value={y.value}>
+                  {y.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-gray-500">ช่วงเดือน:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="text-sm rounded-lg border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[120px]"
               value={startMonth}
               onChange={(e) => setStartMonth(Number(e.target.value))}
             >
@@ -237,10 +260,10 @@ export default function OCIndustryProvinceAnalytics() {
               ))}
             </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-gray-500">มุมมอง:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[160px]"
               value={mode}
               onChange={(e) => setMode(e.target.value)}
             >
@@ -248,10 +271,10 @@ export default function OCIndustryProvinceAnalytics() {
               <option value="province">ตามสภาจังหวัด</option>
             </select>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-gray-500">จำนวนรายการ:</span>
             <select
-              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+              className="text-sm rounded-lg border border-gray-300 px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white min-w-[120px]"
               value={limit}
               onChange={(e) => setLimit(Number(e.target.value) || 10)}
             >

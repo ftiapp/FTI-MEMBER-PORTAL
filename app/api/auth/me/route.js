@@ -1,7 +1,21 @@
-﻿import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+﻿export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
+import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { query } from "@/app/lib/db";
+
+// Ensure Buffer exists (avoid polyfill issues during build/edge contexts)
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwt() {
+  // Dynamic import to avoid evaluating jwt before Buffer/global polyfills
+  const mod = await import("jsonwebtoken");
+  return mod.default || mod;
+}
 
 export async function GET() {
   try {
@@ -16,7 +30,9 @@ export async function GET() {
     // Verify the token
     let decoded;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || "your-secret-key");
+      const secretKey = process.env.JWT_SECRET || "your-secret-key";
+      const jwt = await getJwt();
+      decoded = jwt.verify(token, secretKey);
     } catch (error) {
       console.error("Token verification error:", error);
       return NextResponse.json({ error: "โทเคนไม่ถูกต้องหรือหมดอายุ" }, { status: 401 });

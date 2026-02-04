@@ -1,5 +1,17 @@
-﻿import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
+﻿export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
+import { NextResponse } from "next/server";
+
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwt() {
+  const mod = await import("jsonwebtoken");
+  return mod.default || mod;
+}
 import { query } from "../../../lib/db";
 import { cookies } from "next/headers";
 import { createNotification } from "../../../lib/notifications";

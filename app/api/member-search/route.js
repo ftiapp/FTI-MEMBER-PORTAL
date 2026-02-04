@@ -1,24 +1,16 @@
-import sql from "mssql";
 import { NextResponse } from "next/server";
 
 // Database configuration
 const config = {
-  user: "itadmin",
-  password: "It#11044",
-  server: "203.151.40.31",
-  database: "FTI",
+  user: process.env.MSSQL_USER || "itadmin",
+  password: process.env.MSSQL_PASSWORD || "It#11044",
+  server: process.env.MSSQL_SERVER || "203.151.40.31",
+  database: process.env.MSSQL_DATABASE || "FTI",
   options: {
     encrypt: true,
     trustServerCertificate: true,
   },
 };
-
-// Log the configuration for debugging (without password)
-console.log("Database config:", {
-  user: config.user,
-  server: config.server,
-  database: config.database,
-});
 
 export async function GET(req) {
   let pool;
@@ -37,6 +29,9 @@ export async function GET(req) {
       });
     }
 
+    // Dynamic import mssql
+    const sql = (await import("mssql")).default;
+
     pool = await sql.connect(config);
 
     const searchPattern = `%${searchTerm}%`;
@@ -54,9 +49,9 @@ export async function GET(req) {
           [MEMBER_TYPE_CODE],
           [COMP_PERSON_CODE],
           [TAX_ID],
-          [COMPANY_NAME],         -- Includes prename
-          [COMPANY_NAME_TH],      -- Plain company name (Thai)
-          [COMP_PERSON_NAME_EN]   -- English name if needed
+          [COMPANY_NAME],
+          [COMPANY_NAME_TH],
+          [COMP_PERSON_NAME_EN]
         FROM [FTI].[dbo].[BI_MEMBER]
         WHERE [MEMBER_STATUS_CODE] = 'A'
           AND [MEMBER_MAIN_GROUP_CODE] = '000'
@@ -77,11 +72,7 @@ export async function GET(req) {
       `);
 
     console.log("Query executed successfully");
-
     console.log("Records found:", result.recordset.length);
-    if (result.recordset.length > 0) {
-      console.log("Sample record:", result.recordset[0]);
-    }
 
     // Map member type codes to their display values
     const mappedResults = result.recordset.map((record) => {

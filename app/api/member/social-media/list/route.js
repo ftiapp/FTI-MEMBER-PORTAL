@@ -1,7 +1,19 @@
-﻿import { query } from "@/app/lib/db";
+﻿export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+import { Buffer } from "buffer";
+import { query } from "@/app/lib/db";
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
+
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwt() {
+  const mod = await import("jsonwebtoken");
+  return mod.default || mod;
+}
 
 /**
  * API endpoint to fetch social media links for a member

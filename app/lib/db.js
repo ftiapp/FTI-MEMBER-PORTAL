@@ -92,6 +92,11 @@ const initPool = async () => {
   return pool;
 };
 
+// Helper to get or initialize the shared pool
+export async function getPool() {
+  return initPool();
+}
+
 // Test connection on startup with retry
 async function testConnection() {
   // Skip connection test during build time

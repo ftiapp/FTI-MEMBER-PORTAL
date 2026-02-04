@@ -1,6 +1,16 @@
+import { Buffer } from "buffer";
 import { cookies } from "next/headers";
-import jwt from "jsonwebtoken";
 import { query } from "./db";
+
+// Ensure Buffer exists before loading jsonwebtoken
+if (!globalThis.Buffer) {
+  globalThis.Buffer = Buffer;
+}
+
+async function getJwt() {
+  const mod = await import("jsonwebtoken");
+  return mod.default || mod;
+}
 
 /**
  * ตรวจสอบ session ของผู้ใช้จาก cookie
@@ -18,6 +28,7 @@ export async function getUserFromSession() {
     // สร้าง secret key สำหรับ JWT
     const secretKey = process.env.JWT_SECRET || "your-secret-key";
 
+    const jwt = await getJwt();
     const payload = jwt.verify(token, secretKey);
 
     // ตรวจสอบว่าผู้ใช้ยังคงมีอยู่ในฐานข้อมูล
@@ -45,6 +56,8 @@ export async function getUserFromSession() {
 export async function createUserToken(user) {
   // สร้าง secret key สำหรับ JWT
   const secretKey = process.env.JWT_SECRET || "your-secret-key";
+
+  const jwt = await getJwt();
 
   return jwt.sign(
     {
