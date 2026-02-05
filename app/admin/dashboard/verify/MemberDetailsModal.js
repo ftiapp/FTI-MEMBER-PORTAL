@@ -807,7 +807,7 @@ export default function MemberDetailsModal({
                     onClick={zoomIn}
                     disabled={zoomLevel >= 5}
                     className="text-white hover:text-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    title="ซูมเข้า (+)"
+                    title="ซูม (+)"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
